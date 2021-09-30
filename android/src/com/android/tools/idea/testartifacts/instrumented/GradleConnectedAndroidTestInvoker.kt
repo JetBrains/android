@@ -38,20 +38,23 @@ import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Joiner
+import com.intellij.build.BuildContentManager
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.util.concurrent.Future
 
@@ -71,6 +74,7 @@ class GradleConnectedAndroidTestInvoker(
   = { iDevice, testSuiteDisplayName, artifact, listener ->
     GradleTestResultAdapter(iDevice, testSuiteDisplayName, artifact, listener)
   },
+  private val buildToolWindowProvider: (Project) -> ToolWindow = { BuildContentManager.getInstance(it).orCreateToolWindow },
 ) {
 
   companion object {
@@ -136,7 +140,7 @@ class GradleConnectedAndroidTestInvoker(
 
     val path: File = Projects.getBaseDirPath(project)
     val taskNames: List<String> = getTaskNames(androidModuleModel)
-    val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
+    val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
@@ -149,6 +153,13 @@ class GradleConnectedAndroidTestInvoker(
         }
       })
 
+      var testRunIsCancelled = false
+
+      override fun onCancel(id: ExternalSystemTaskId) {
+        super.onCancel(id)
+        testRunIsCancelled = true
+      }
+
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         super.onTaskOutput(id, text, stdOut)
         if (stdOut) {
@@ -160,6 +171,9 @@ class GradleConnectedAndroidTestInvoker(
 
       override fun onEnd(id: ExternalSystemTaskId) {
         super.onEnd(id)
+
+        val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
+
         outputLineProcessor.close()
         adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
 
@@ -203,6 +217,17 @@ class GradleConnectedAndroidTestInvoker(
             )
           }
         } else {
+          // If Gradle task run finished before the test suite starts, show error
+          // in the Build output tool window.
+          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled) {
+            ApplicationManager.getApplication().invokeLater({
+              val toolWindow = buildToolWindowProvider(project)
+              if (toolWindow.isAvailable && !toolWindow.isVisible) {
+                toolWindow.show()
+              }
+            }, ModalityState.NON_MODAL, project.disposed)
+          }
+
           processHandler.detachProcess()
         }
       }

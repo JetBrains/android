@@ -65,6 +65,12 @@ class GradleTestResultAdapter(
   private lateinit var myTestSuite: AndroidTestSuite
   private lateinit var myUtpTestSuiteResult: TestSuiteResultProto.TestSuiteResult
 
+  /**
+   * Returns true when the test suite started otherwise false.
+   */
+  val testSuiteStarted: Boolean
+    get() = this::myTestSuite.isInitialized
+
   private val myTestCases = mutableMapOf<TestIdentifier, AndroidTestCase>()
 
   // This map keeps track of number of rerun of the same test method.

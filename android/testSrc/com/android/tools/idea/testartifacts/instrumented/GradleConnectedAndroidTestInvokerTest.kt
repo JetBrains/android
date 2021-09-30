@@ -38,10 +38,12 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,6 +75,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   @Mock lateinit var mockModuleData: ModuleData
+  @Mock lateinit var mockBuildToolWindow: ToolWindow
   private lateinit var mockDevices: List<IDevice>
   private lateinit var mockGradleTestResultAdapters: List<GradleTestResultAdapter>
 
@@ -83,6 +86,8 @@ class GradleConnectedAndroidTestInvokerTest {
     `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
     `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
     `when`(mockModuleData.id).thenReturn(":app")
+    `when`(mockBuildToolWindow.isAvailable).thenReturn(true)
+    `when`(mockBuildToolWindow.isVisible).thenReturn(false)
   }
 
   private fun createGradleConnectedAndroidTestInvoker(
@@ -115,6 +120,7 @@ class GradleConnectedAndroidTestInvokerTest {
       gradleTestResultAdapterFactory = { iDevice, _, _, _ ->
         mockGradleTestResultAdapters[mockDevices.indexOf(iDevice)]
       },
+      buildToolWindowProvider = { mockBuildToolWindow },
     )
   }
 
@@ -479,5 +485,119 @@ class GradleConnectedAndroidTestInvokerTest {
       nullable(String::class.java),
       any()
     )
+  }
+
+  @Test
+  fun projectSystemIdMustBeGradle() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    verify(mockGradleTaskManager).executeTasks(
+      argThat { externalSystemTaskId ->
+        externalSystemTaskId.projectSystemId == GradleConstants.SYSTEM_ID
+      },
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun buildToolWindowShouldBeDisplayedWhenTaskFailedBeforeTestSuiteStarted() {
+    `when`(mockGradleTaskManager.executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )).then {
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
+      listener.onEnd(externalTaskId)
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    verify(mockBuildToolWindow).show()
+  }
+
+  @Test
+  fun buildToolWindowShouldNotBeDisplayedWhenTaskFailedAfterTestSuiteStarted() {
+    `when`(mockGradleTaskManager.executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )).then {
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
+      listener.onEnd(externalTaskId)
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    `when`(mockGradleTestResultAdapters[0].testSuiteStarted).thenReturn(true)
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    verify(mockBuildToolWindow, never()).show()
+  }
+
+  @Test
+  fun buildToolWindowShouldNotBeDisplayedWhenTaskIsCancelled() {
+    `when`(mockGradleTaskManager.executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )).then {
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
+      listener.onCancel(externalTaskId)
+      listener.onEnd(externalTaskId)
+      null
+    }
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], RetentionConfiguration())
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+
+    verify(mockBuildToolWindow, never()).show()
   }
 }
