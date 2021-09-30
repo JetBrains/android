@@ -26,7 +26,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
@@ -389,15 +388,13 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
-      DumbService dumbService = DumbService.getInstance(project);
-
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);
-      dumbService.queueTask(pruneTask);
+      pruneTask.queue(project);
 
       // Prune stale projects, and manage LRU list (putting current project in front).
       ManageLruProjectFilesTask manageProjectsTask = new ManageLruProjectFilesTask(project);
-      dumbService.queueTask(manageProjectsTask);
+      manageProjectsTask.queue(project);
     }
   }
 
@@ -406,11 +403,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
-      DumbService dumbService = DumbService.getInstance(project);
-
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
-      dumbService.queueTask(task);
+      task.queue(project);
     }
   }
 }
