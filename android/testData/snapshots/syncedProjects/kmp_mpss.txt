@@ -150,8 +150,6 @@ PROJECT                       : kotlinMultiPlatform
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -174,8 +172,6 @@ PROJECT                       : kotlinMultiPlatform
             LanguageLevel                 : 1.5
             MergedCompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -661,8 +657,6 @@ PROJECT                       : kotlinMultiPlatform
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -685,8 +679,6 @@ PROJECT                       : kotlinMultiPlatform
             LanguageLevel                 : 1.5
             MergedCompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -1132,8 +1124,6 @@ PROJECT                       : kotlinMultiPlatform
             ApiLevel                      : 1.5
             CompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -1156,8 +1146,6 @@ PROJECT                       : kotlinMultiPlatform
             LanguageLevel                 : 1.5
             MergedCompilerArguments
                 apiVersion                    : 1.5
-                autoAdvanceApiVersion         : true
-                autoAdvanceLanguageVersion    : true
                 languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
