@@ -97,9 +97,13 @@ class GradleTestResultAdapterTest {
 
     verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
 
+    assertThat(adapter.testSuiteStarted).isFalse()
+
     adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
       scheduledTestCaseCount = 1
     }.build())
+
+    assertThat(adapter.testSuiteStarted).isTrue()
 
     verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
