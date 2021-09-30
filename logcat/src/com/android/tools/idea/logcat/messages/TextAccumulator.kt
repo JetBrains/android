@@ -29,12 +29,13 @@ internal class TextAccumulator {
   val highlightRanges = mutableListOf<Range<TextAttributes>>()
   val hintRanges = mutableListOf<Range<String>>()
 
-  fun accumulate(text: String, textAttributes: TextAttributes? = null, hint: String? = null) {
+  fun accumulate(text: String, textAttributes: TextAttributes? = null, hint: String? = null): TextAccumulator {
     val start = stringBuilder.length
     val end = start + text.length
     stringBuilder.append(text)
     highlightRanges.addRange(start, end, textAttributes)
     hintRanges.addRange(start, end, hint)
+    return this
   }
 
   internal data class Range<T>(val start: Int, val end: Int, val data: T)

@@ -18,8 +18,11 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.NO_IDS
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.PID
+import com.android.tools.idea.logcat.messages.TimestampFormat.NO_TIMESTAMP
+import com.android.tools.idea.logcat.messages.TimestampFormat.TIME
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
@@ -31,52 +34,244 @@ private val timestamp = Instant.ofEpochMilli(1000)
  */
 class MessageFormatterTest {
   private val logcatColors = LogcatColors()
-  private val messageFormatter = MessageFormatter(logcatColors, ZoneId.of("Asia/Yerevan"))
+  private val formattingOptions = FormattingOptions()
+  private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, ZoneId.of("Asia/Yerevan"))
 
   @Test
-  fun formatMessages_alignment() {
+  fun formatMessages_defaultFormat() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 12345, 12345, "app", "tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 12345, 12345, "long app", "tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 12345, 12345, "app", "long tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 12345, 12345, "long app", "long tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 20001, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 20001, "com.example.app1", "Tag2", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
-      1970-01-01 04:00:01.000      1-2      tag app W message
-      1970-01-01 04:00:01.000  12345-12345      app W message
-      1970-01-01 04:00:01.000  12345-12345      long app W message
-      1970-01-01 04:00:01.000  12345-12345  long tag app      W message
-      1970-01-01 04:00:01.000  12345-12345           long app W message
-      1970-01-01 04:00:01.000      1-2      tag      app      W message
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-20001 Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-20001 Tag2                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
+      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
+      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag2     com.long.company.name.app2           W  message
 
     """.trimIndent())
   }
 
   @Test
-  fun formatMessages_omitSameTag() {
+  fun formatMessages_timeOnly() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.timestampFormat = TIME
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_noTimestamp() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.timestampFormat = NO_TIMESTAMP
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
+
+    assertThat(textAccumulator.text).isEqualTo("    1-2     Tag1                    com.example.app1                     W  message\n")
+  }
+
+  @Test
+  fun formatMessages_pidOnly() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.processThreadFormat = PID
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000 1     Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000 10001 Tag1                    com.example.app2                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_noIds() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.processThreadFormat = NO_IDS
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000 Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000 Tag1                    com.example.app2                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_longTags() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.tagFormat = TagFormat(maxLength = 15)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1            com.example.app1                     W  message
+      1970-01-01 04:00:01.000     2-2     Lon...yNameTag1 com.example.app1                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_missingTag() {
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag1", timestamp), "message1"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag1", timestamp), "message2"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag1", timestamp), "message3"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app", "tag2", timestamp), "message4"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
-      1970-01-01 04:00:01.000      1-2      tag1 app W message1
-      1970-01-01 04:00:01.000      1-2           app W message2
-      1970-01-01 04:00:01.000      1-2           app W message3
-      1970-01-01 04:00:01.000      1-2      tag2 app W message4
+      1970-01-01 04:00:01.000     1-2     <no-tag>                com.example.app1                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_hideDuplicateTags() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.tagFormat = TagFormat(hideDuplicates = true)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag2", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2                             com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2     Tag2                    com.example.app1                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_noTags() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.tagFormat = TagFormat(enabled = false)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     com.example.app1                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_longAppName() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.appNameFormat = AppNameFormat(maxLength = 20)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.long.company.name.app2", "Tag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1      W  message
+      1970-01-01 04:00:01.000     2-2     Tag1                    com...pany.name.app2  W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_missingAppName() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "?", "Tag", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "", "Tag", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
+      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_hideDuplicateAppNames() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.appNameFormat = AppNameFormat(hideDuplicates = true)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.example.app2", "Tag2", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2     Tag1                                                         W  message
+      1970-01-01 04:00:01.000     2-2     Tag2                    com.example.app2                     W  message
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_noAppNames() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.appNameFormat = AppNameFormat(enabled = false)
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                     W  message
 
     """.trimIndent())
   }
@@ -118,38 +313,12 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a tag and build a map tag -> color.
-    val tagColors = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" tag\\d+ *".toRegex()) }
+    val tagColors = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
     assertThat(tagColors).hasSize(numTags)
     tagColors.forEach { (tag, color) ->
       assertThat(color).isEqualTo(logcatColors.getTagColor(tag))
     }
-  }
-
-  @Test
-  fun formatMessages_emptyTag() {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      textAccumulator, listOf(LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 1, 2, "app", "", timestamp), "message")))
-
-    assertThat(textAccumulator.text).isEqualTo("""
-        1970-01-01 04:00:01.000      1-2        app I message
-
-      """.trimIndent())
-  }
-
-  @Test
-  fun formatMessages_emptyApp() = runBlocking {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      textAccumulator, listOf(LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 1, 2, "", "tag", timestamp), "message")))
-
-    assertThat(textAccumulator.text).isEqualTo("""
-        1970-01-01 04:00:01.000      1-2      tag   I message
-
-      """.trimIndent())
   }
 
   @Test
