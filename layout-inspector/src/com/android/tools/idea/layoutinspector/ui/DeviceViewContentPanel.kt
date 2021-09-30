@@ -154,11 +154,12 @@ class DeviceViewContentPanel(
         else if ((e.x - x) + (e.y - y) > 50) {
           // Drag when rotation is disabled. Show tooltip.
           val dataContext = DataManager.getInstance().getDataContext(this@DeviceViewContentPanel)
-          val toggle3dButton = dataContext.getData(TOGGLE_3D_ACTION_BUTTON_KEY)!!
-          GotItTooltip("LayoutInspector.RotateViewTooltip", "Click to toggle 3D mode", disposableParent)
-            .withShowCount(FRAMES_BEFORE_RESET_TO_BITMAP)
-            .withPosition(Balloon.Position.atLeft)
-            .show(toggle3dButton, GotItTooltip.LEFT_MIDDLE)
+          dataContext.getData(TOGGLE_3D_ACTION_BUTTON_KEY)?.let { toggle3dButton ->
+            GotItTooltip("LayoutInspector.RotateViewTooltip", "Click to toggle 3D mode", disposableParent)
+              .withShowCount(FRAMES_BEFORE_RESET_TO_BITMAP)
+              .withPosition(Balloon.Position.atLeft)
+              .show(toggle3dButton, GotItTooltip.LEFT_MIDDLE)
+          }
         }
       }
 

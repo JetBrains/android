@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.Timer
 
-val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
 
 private const val ROTATION_DURATION = 300L
 private const val ROTATION_TIMEOUT = 10_000L
@@ -55,8 +55,8 @@ class DeviceViewPanelActionsToolbarProvider(
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
 
-  val toggle3dActionButton: ActionButton
-    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)!!
+  val toggle3dActionButton: ActionButton?
+    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)
 
   init {
     updateToolbar()
