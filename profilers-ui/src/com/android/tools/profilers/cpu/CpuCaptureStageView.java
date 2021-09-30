@@ -44,7 +44,6 @@ import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
-import com.android.tools.profilers.cpu.analysis.FramesAtTopCpuAnalysisAdapter;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
@@ -152,7 +151,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myScrollPane.setBorder(JBUI.Borders.empty());
-    myAnalysisPanel = new CpuAnalysisPanel(view, stage, FramesAtTopCpuAnalysisAdapter::new);
+    myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
     myVsyncBackgroundCheckBox.addItemListener(e -> {

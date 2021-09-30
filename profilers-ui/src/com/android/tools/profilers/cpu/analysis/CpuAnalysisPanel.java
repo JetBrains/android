@@ -31,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,24 +45,12 @@ public class CpuAnalysisPanel extends AspectObserver {
   private final JPanel myPanel = new JPanel(new BorderLayout());
   private final CpuCaptureStage myStage;
   private final StudioProfilersView myProfilersView;
-  private CpuAnalysisView mySelectedView;
+  private CpuAnalysisModel mySelectedModel;
   private ViewBinder<StudioProfilersView, CpuAnalysisTabModel, CpuAnalysisTab> myTabViewsBinder;
-  private final CpuAnalysisAdapter myViewAdapter;
 
   public CpuAnalysisPanel(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
-    this(view, stage, PlainCpuAnalysisAdapter::new);
-  }
-
-  /**
-   * @param makeViewAdapter given a way to make a tab-view for each tab-model, returns an adapter that
-   *                        provides a way to view the analysis model
-   */
-  public CpuAnalysisPanel(@NotNull StudioProfilersView view,
-                          @NotNull CpuCaptureStage stage,
-                          Function1<Function1<CpuAnalysisTabModel<?>, JComponent>, CpuAnalysisAdapter> makeViewAdapter) {
     myStage = stage;
     myProfilersView = view;
-    myViewAdapter = makeViewAdapter.invoke(model -> myTabViewsBinder.build(myProfilersView, model));
     JLabel tabsTitle = new JLabel("Analysis");
     tabsTitle.setBorder(JBUI.Borders.empty(5));
     myTabs = new TabbedToolbar(tabsTitle);
@@ -114,31 +101,31 @@ public class CpuAnalysisPanel extends AspectObserver {
    */
   private void updateComponents() {
     myTabs.clearTabs();
-    List<CpuAnalysisView> views = myViewAdapter.make(myStage.getAnalysisModels());
-    if (views.isEmpty()) {
+    List<CpuAnalysisModel> models = myStage.getAnalysisModels();
+    if (models.isEmpty()) {
       return;
     }
 
-    for (CpuAnalysisView view : views) {
-      myTabs.addTab(view.getName(), () -> onSelectAnalysis(view));
+    for (CpuAnalysisModel model : models) {
+      myTabs.addTab(model.getName(), () -> onSelectAnalysis(model));
     }
     // When tabs are updated auto select the latest tab.
-    onSelectAnalysis(views.get(views.size() - 1));
+    onSelectAnalysis(models.get(models.size() - 1));
   }
 
   /**
    * This function is called when the user selects an analysis tab (eg "All threads").
    * We update and display the child tabs (eg "Summary", "Flame Chart").
    */
-  private void onSelectAnalysis(@NotNull CpuAnalysisView view) {
-    mySelectedView = view;
+  private void onSelectAnalysis(@NotNull CpuAnalysisModel<?> model) {
+    mySelectedModel = model;
     // Reset state.
     myTabView.removeAll();
 
     // Create new child tabs. These tabs are things like "Flame Chart", "Top Down" etc...
-    view.getTabs().forEach(
-      tab -> {
-        String typeName = tab.getName();
+    model.getTabModels().forEach(
+      tabModel -> {
+        String typeName = tabModel.getTabType().getName();
         myTabView.insertTab(typeName, null, new JPanel(), typeName, myTabView.getTabCount());
       });
     // Need to repaint panel instead of TabView because only repainting the TabView causes artifact's on the panel.
@@ -160,7 +147,7 @@ public class CpuAnalysisPanel extends AspectObserver {
     @Override
     public void stateChanged(ChangeEvent e) {
       int newIndex = myTabView.getSelectedIndex();
-      if (newIndex == myLastSelectedIndex || mySelectedView == null) {
+      if (newIndex == myLastSelectedIndex || mySelectedModel == null) {
         return;
       }
 
@@ -169,7 +156,7 @@ public class CpuAnalysisPanel extends AspectObserver {
         myTabView.setComponentAt(myLastSelectedIndex, new JPanel());
       }
       if (newIndex >= 0 && newIndex < myTabView.getTabCount()) {
-        myTabView.setComponentAt(newIndex, mySelectedView.getTabs().get(newIndex).getView().invoke());
+        myTabView.setComponentAt(newIndex, myTabViewsBinder.build(myProfilersView, mySelectedModel.getTabModelAt(newIndex)));
       }
       myLastSelectedIndex = newIndex;
     }
