@@ -682,7 +682,7 @@ public class VisualizationForm
         }
       });
     }
-    return renderFuture;
+    return renderFuture.thenRun(() -> mySurface.getIssueModel().updateErrorsList());
   }
 
   private void interruptRendering() {
