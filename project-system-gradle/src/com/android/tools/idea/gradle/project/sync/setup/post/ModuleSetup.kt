@@ -36,20 +36,7 @@ fun setUpModules(project: Project) {
   ModuleManager.getInstance(project).modules.forEach { module ->
     recordLastAgpVersion(module)
     setupAndroidRunConfiguration(module)
-    setupKotlinOptionsOnFacet(module)
   }
-}
-
-// Added due to KT-19958
-private fun setupKotlinOptionsOnFacet(module: Module) {
-  val facet = AndroidFacet.getInstance(module) ?: return
-  val androidModel = AndroidModuleModel.get(facet) ?: return
-  val sourceSetName = androidModel.selectedVariant.name
-  if (module.sourceSetName == sourceSetName) return
-  val argsInfo = module.compilerArgumentsBySourceSet?.get(sourceSetName) ?: return
-  val kotlinFacet = KotlinFacet.get(module) ?: return
-  module.sourceSetName = sourceSetName
-  configureFacetByCompilerArguments(kotlinFacet, argsInfo, null)
 }
 
 private fun setupAndroidRunConfiguration(module: Module) {
