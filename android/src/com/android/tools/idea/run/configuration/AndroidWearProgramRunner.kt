@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.run.configuration.execution.AndroidWearConfigurationExecutorBase
+import com.android.tools.idea.stats.RunStatsService
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -48,15 +49,21 @@ class AndroidWearProgramRunner : AsyncProgramRunner<RunnerSettings>() {
     assert(state is AndroidWearConfigurationExecutorBase)
 
     FileDocumentManager.getInstance().saveAllDocuments()
+    val stats = RunStatsService.get(environment.project).create()
 
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${environment.runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
-        promise.setResult((state as AndroidWearConfigurationExecutorBase).execute())
+        promise.setResult((state as AndroidWearConfigurationExecutorBase).execute(stats))
       }
 
       override fun onThrowable(error: Throwable) {
+        stats.fail()
         promise.setError(error)
       }
+
+      override fun onSuccess() = stats.success()
+
+      override fun onCancel() = stats.abort()
     })
 
     return promise
