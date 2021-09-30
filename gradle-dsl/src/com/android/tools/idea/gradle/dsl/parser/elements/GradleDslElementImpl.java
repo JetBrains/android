@@ -905,6 +905,15 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return resolveInternalSyntaxReference(referenceText, resolveWithOrder);
   }
 
+  @Override
+  public @Nullable GradleDslElement resolveExternalSyntaxReference(@NotNull PsiElement psiElement, boolean resolveWithOrder) {
+    GradleDslElement searchStartElement = this;
+    GradleDslParser parser = getDslFile().getParser();
+    String referenceText = parser.convertReferencePsi(searchStartElement, psiElement);
+
+    return resolveInternalSyntaxReference(referenceText, resolveWithOrder);
+  }
+
   @Nullable
   @Override
   public GradleDslElement resolveInternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder) {

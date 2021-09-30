@@ -42,9 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
@@ -1131,9 +1129,9 @@ public final class GroovyDslUtil {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     if (psiElement instanceof GrReferenceExpression || psiElement instanceof GrIndexProperty) {
-      String text = psiElement.getText();
-      GradleDslElement element = context.resolveExternalSyntaxReference(text, true);
-      return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, text));
+      String name = context.getDslFile().getParser().convertReferencePsi(context, psiElement);
+      GradleDslElement element = context.resolveInternalSyntaxReference(name, true);
+      return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, name));
     }
 
     if (!(psiElement instanceof GrString)) {
@@ -1146,6 +1144,11 @@ public final class GroovyDslUtil {
       if (injection != null) {
         String name = getInjectionName(injection);
         if (name != null) {
+          // TODO(xof): It seems bizarre to need to get the injection content as a String, in order to resolve that string in the
+          //  external syntax to our internal data, but: although a GrStringInjection can in theory hold arbitrary Groovy code, the
+          //  Psi merely contains a ClosableBlock: there is no way to usefully visit the contents of the string injection.  It might
+          //  nevertheless be better to integrate that into psiToName rather than special-case getInjectionName, if only to be able
+          //  to remove this call to the String form of resolveExternalSyntaxReference.
           GradleDslElement referenceElement = context.resolveExternalSyntaxReference(name, true);
           if (includeUnresolved || referenceElement != null) {
             injections.add(new GradleReferenceInjection(context, referenceElement, injection, name));

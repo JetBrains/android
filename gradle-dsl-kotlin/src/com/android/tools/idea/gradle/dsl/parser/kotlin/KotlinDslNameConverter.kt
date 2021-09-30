@@ -68,6 +68,11 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   }
 
   @JvmDefault
+  override fun convertReferencePsi(context: GradleDslElement, element: PsiElement): String {
+    return (element as? KtExpression)?.let { gradleNameFor(element) } ?: convertReferenceText(context, element.text)
+  }
+
+  @JvmDefault
   override fun convertReferenceToExternalText(context: GradleDslElement,
                                               referenceText: String,
                                               forInjection: Boolean): String {

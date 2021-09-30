@@ -81,7 +81,7 @@ public final class ElementSort {
     return element.getDependencies().stream().map(e -> {
       GradleDslElement newElement = e.getToBeInjected();
       GradleDslSimpleExpression originElement = e.getOriginElement();
-      String internalSyntaxReference = originElement.getDslFile().getParser().convertReferenceText(originElement, e.getName());
+      String internalSyntaxReference = e.getName();
       if (newElement == null && myElement.getNameElement().isReferencedIn(internalSyntaxReference)) {
         return myElement;
       }

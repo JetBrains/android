@@ -109,7 +109,7 @@ public final class DependencyManager {
     List<GradleReferenceInjection> injections = myUnresolvedReferences.getOrDefault(dslFile, new ArrayList<>());
     for (Iterator<GradleReferenceInjection> it = injections.iterator(); it.hasNext(); ) {
       GradleReferenceInjection injection = it.next();
-      GradleDslElement newElement = injection.getOriginElement().resolveExternalSyntaxReference(injection.getName(), true);
+      GradleDslElement newElement = injection.getOriginElement().resolveInternalSyntaxReference(injection.getName(), true);
       if (newElement != null) {
         injection.resolveWith(newElement);
         newElement.registerDependent(injection);

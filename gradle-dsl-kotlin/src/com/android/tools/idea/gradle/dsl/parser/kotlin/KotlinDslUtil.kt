@@ -561,16 +561,16 @@ internal fun findInjections(
   when (psiElement) {
     // foo, KotlinCompilerVersion, android.compileSdkVersion
     is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
-      val text = psiElement.text
-      val element = context.resolveExternalSyntaxReference(text, true)
-      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
+      val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+      val element = context.resolveInternalSyntaxReference(name, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
     }
     // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0], rootProject.extra["kotlin_version"]
     is KtArrayAccessExpression -> {
       if (psiElement.arrayExpression == null) return noInjections
-      val text = psiElement.text
-      val element = context.resolveExternalSyntaxReference(text, true)
-      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
+      val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+      val element = context.resolveInternalSyntaxReference(name, true)
+      return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
     }
     // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"
     is KtStringTemplateExpression -> {

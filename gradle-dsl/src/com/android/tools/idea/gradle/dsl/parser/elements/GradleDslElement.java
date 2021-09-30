@@ -99,6 +99,9 @@ public interface GradleDslElement extends AnchorProvider {
   GradleDslElement resolveExternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder);
 
   @Nullable
+  GradleDslElement resolveExternalSyntaxReference(@NotNull PsiElement psiElement, boolean resolveWithOrder);
+
+  @Nullable
   GradleDslElement resolveInternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder);
 
   void setPsiElement(@Nullable PsiElement psiElement);

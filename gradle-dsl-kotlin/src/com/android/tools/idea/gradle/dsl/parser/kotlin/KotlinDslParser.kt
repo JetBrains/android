@@ -126,7 +126,7 @@ class KotlinDslParser(
       // Ex: KotlinCompilerVersion, android.compileSdkVersion
       is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
         if (resolve) {
-          val gradleDslElement = context.resolveExternalSyntaxReference(literal.text, true)
+          val gradleDslElement = context.resolveExternalSyntaxReference(literal, true)
           // Only get the value if the element is a GradleDslSimpleExpression.
           if (gradleDslElement is GradleDslSimpleExpression) {
             return gradleDslElement.value
@@ -137,7 +137,7 @@ class KotlinDslParser(
       // prop[0], rootProject.extra["kotlin_version"]
       is KtArrayAccessExpression -> {
         if (resolve) {
-          val gradleDslElement = context.resolveExternalSyntaxReference(literal.text, true)
+          val gradleDslElement = context.resolveExternalSyntaxReference(literal, true)
           if (gradleDslElement is GradleDslSimpleExpression) {
             return gradleDslElement.value
           }

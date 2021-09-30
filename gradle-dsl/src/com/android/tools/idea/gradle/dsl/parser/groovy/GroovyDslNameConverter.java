@@ -98,6 +98,15 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
     return result != null ? result : referenceText;
   }
 
+  @Override
+  public @NotNull String convertReferencePsi(@NotNull GradleDslElement context, @NotNull PsiElement element) {
+    if (element instanceof GrExpression) {
+      String result = gradleNameFor((GrExpression)element);
+      if (result != null) return result;
+    }
+    return convertReferenceText(context, element.getText());
+  }
+
   @NotNull
   @Override
   public String convertReferenceToExternalText(@NotNull GradleDslElement context,
