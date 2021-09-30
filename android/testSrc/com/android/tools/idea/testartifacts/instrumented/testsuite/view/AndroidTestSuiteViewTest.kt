@@ -663,7 +663,10 @@ class AndroidTestSuiteViewTest {
   @Test
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
-    ActionToolbarImpl.updateAllToolbarsImmediately()
+
+    UIUtil.uiTraverser(view.component)
+      .filter(ActionToolbarImpl::class.java)
+      .forEach(ActionToolbarImpl::updateActionsImmediately)
 
     val actionButtons = UIUtil.uiTraverser(view.component)
       .filter(ActionButton::class.java)
@@ -672,7 +675,6 @@ class AndroidTestSuiteViewTest {
       .filterNotNull()
       .toList()
 
-/* b/201109483
     assertThat(actionButtons).containsExactly(
       "Show passed tests",
       "Show skipped tests",
@@ -684,7 +686,6 @@ class AndroidTestSuiteViewTest {
       "Import Tests from File...",
       "Export Test Results..."
     ).inOrder()
-b/201109483 */
   }
 
   // Regression tests for b/172088812 where the apply-code-changes action causes
