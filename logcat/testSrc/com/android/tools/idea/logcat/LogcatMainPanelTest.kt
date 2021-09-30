@@ -137,10 +137,9 @@ class LogcatMainPanelTest {
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.text).isEqualTo(
-        """
-        1970-01-01 04:00:01.000      1-2      tag1 app1 W message1
-        1970-01-01 04:00:01.000      1-2      tag2 app2 I message2
+      assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+        1970-01-01 04:00:01.000     1-2     tag2                    app2                                 I  message2
 
       """.trimIndent())
     }

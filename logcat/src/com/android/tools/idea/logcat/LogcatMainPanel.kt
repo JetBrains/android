@@ -20,6 +20,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.messages.DocumentAppender
+import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
@@ -57,7 +58,8 @@ internal class LogcatMainPanel(
   internal val editor: EditorEx = createEditor(project)
   private val documentAppender = DocumentAppender(project, editor.document)
   private val deviceContext = DeviceContext()
-  private val messageFormatter = MessageFormatter(logcatColors, zoneId)
+  private val formattingOptions = state?.formattingOptions ?: FormattingOptions()
+  private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, this::appendToDocument)
@@ -92,7 +94,10 @@ internal class LogcatMainPanel(
   }
 
   override fun getState(): String = LogcatPanelConfig.toJson(
-    LogcatPanelConfig(deviceContext.selectedDevice?.serialNumber, deviceContext.selectedClient?.clientData?.packageName))
+    LogcatPanelConfig(
+      deviceContext.selectedDevice?.serialNumber,
+      deviceContext.selectedClient?.clientData?.packageName,
+      formattingOptions))
 
   /**
    * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
