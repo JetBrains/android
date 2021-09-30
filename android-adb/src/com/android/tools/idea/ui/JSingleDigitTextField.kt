@@ -16,12 +16,15 @@
 package com.android.tools.idea.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBFont
+import java.awt.AWTKeyStroke
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.KeyboardFocusManager
 import java.awt.Toolkit
+import java.awt.event.KeyEvent
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.BadLocationException
@@ -33,7 +36,7 @@ import kotlin.streams.toList
  * a single digit and that does not display the caret when focused
  */
 @UiThread
-class JSingleDigitTextField : JBTextField() {
+class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
   private val listeners = ArrayList<Listener>()
 
   init {
@@ -45,6 +48,14 @@ class JSingleDigitTextField : JBTextField() {
 
     // Set document filter so that we can ensure only single digit contents
     (document as AbstractDocument).documentFilter = OneDigitOnlyDocumentFilter(this)
+
+    setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+                          hashSetOf(AWTKeyStroke.getAWTKeyStroke("shift TAB"),
+                                    AWTKeyStroke.getAWTKeyStroke("LEFT"),
+                                    AWTKeyStroke.getAWTKeyStroke("BACK_SPACE")))
+    setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+                          hashSetOf(AWTKeyStroke.getAWTKeyStroke("TAB"),
+                                    AWTKeyStroke.getAWTKeyStroke("RIGHT")))
   }
 
   fun addListener(listener: Listener) {
@@ -141,5 +152,10 @@ class JSingleDigitTextField : JBTextField() {
 
   data class Event(val component: Component) {
     var consumed = false
+  }
+
+  /** Don't let IntelliJ's ActionManager process backspace: we want to use it as a focus traversal key. */
+  override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
+    return event.keyChar == '\b';
   }
 }
