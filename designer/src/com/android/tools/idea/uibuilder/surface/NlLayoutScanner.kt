@@ -173,7 +173,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
       result = validatorResult
     } finally {
       renderMetric.renderMs = renderResult.stats.renderDurationMs
-      renderMetric.scanMs = validatorResult.metric.mElapsedMs
+      renderMetric.scanMs = validatorResult.metric.mHierarchyCreationMs
       renderMetric.componentCount = layoutParser.componentCount
       renderMetric.isRenderResultSuccess = renderResult.renderResult.isSuccess
 
