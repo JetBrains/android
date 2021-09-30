@@ -195,7 +195,7 @@ public class VisualizationForm
     SurfaceLayoutManager surfaceLayoutManager = myCurrentConfigurationSet == ConfigurationSet.Tablets.INSTANCE ?
                                                 myTwoGridLayoutManager : myGridSurfaceLayoutManager;
 
-    final LayoutScannerConfiguration config = StudioFlags.NELE_VISUAL_LINT.get()
+    final LayoutScannerConfiguration config = StudioFlags.NELE_VISUAL_LINT.get() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()
                                               ? new LayoutScannerEnabled()
                                               : LayoutScannerConfiguration.getDISABLED();
     // Custom issue panel integration used.
@@ -645,7 +645,6 @@ public class VisualizationForm
             RenderResult result = layoutlibSceneManager.getRenderResult();
 
             if (result != null) {
-              VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myLintIssueProvider);
               VisualLintAnalysisKt.analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues);
 
               if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
