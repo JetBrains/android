@@ -22,12 +22,14 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.utils.HtmlBuilder
+import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 import com.intellij.lang.annotation.HighlightSeverity
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.event.HyperlinkListener
@@ -56,12 +58,18 @@ fun analyzeAfterModelUpdate(result: RenderResult,
   analyzeOverlap(result, model, issueProvider)
   analyzeLongText(result, model, issueProvider)
   analyzeLocaleText(result, baseConfigIssues, model, issueProvider)
+  if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
+    analyzeAtf(result, model, issueProvider)
+  }
 }
 
 /**
- * Collects in [issueProvider] all the [VisualLintAtfIssue] found when analyzing the given [RenderResult] after render is complete.
+ * Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint.
+ * For now, it only runs [DuplicateClickableBoundsCheck] among all other atf checks.
+ *
+ * To run more checks, update the policy in [VisualLintAtfAnalysis.validateAndUpdateLint]
  */
-fun analyzeAfterRenderComplete(renderResult: RenderResult, model: NlModel,
+private fun analyzeAtf(renderResult: RenderResult, model: NlModel,
                                issueProvider: VisualLintIssueProvider) {
   val atfAnalyzer = VisualLintAtfAnalysis(model)
   val atfIssues: List<VisualLintAtfIssue> = atfAnalyzer.validateAndUpdateLint(renderResult)
