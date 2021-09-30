@@ -18,7 +18,9 @@ package com.android.tools.idea.configurations
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.sdklib.devices.Device
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -32,7 +34,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import icons.StudioIcons
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.Icon
 import kotlin.math.roundToInt
@@ -259,7 +260,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
       }
       add(genericGroup)
     }
-    add(AddDeviceDefinitionAction())
+    add(AddDeviceDefinitionAction(renderContext))
   }
 
   private fun getDeviceLabel(device: Device): String {
@@ -270,17 +271,6 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val isTv = HardwareConfigHelper.isTv(device)
     val displayedDensity = AvdScreenData.getScreenDensity(device.id, isTv, density.dpiValue.toDouble(), screen.yDimension)
     return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
-  }
-
-  private class AddDeviceDefinitionAction: AnAction() {
-    init {
-      templatePresentation.text = "Add Device Definition"
-      templatePresentation.icon = null
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID).actionPerformed(e)
-    }
   }
 
   companion object {
@@ -311,6 +301,28 @@ private class DeviceCategory(text: String?, description: String?, private val my
   }
 
   override fun actionPerformed(e: AnActionEvent) = Unit
+}
+
+class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHolder): AnAction() {
+  init {
+    templatePresentation.text = "Add Device Definition"
+    templatePresentation.icon = null
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val config = configurationHolder.configuration ?: return
+    val module = config.module ?: return
+    val project = module.project
+
+    val optionsModel = AvdOptionsModel(null)
+    val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)
+
+    if (dialog.showAndGet()) {
+      // Select the new created AVD device.
+      val avdDevice = config.configurationManager.createDeviceForAvd(optionsModel.createdAvd)
+      config.setDevice(avdDevice, true)
+    }
+  }
 }
 
 private const val NEXUS_NAME = "Nexus"

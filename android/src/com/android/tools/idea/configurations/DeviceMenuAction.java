@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -189,7 +188,7 @@ public class DeviceMenuAction extends DropDownAction {
     addCustomDeviceSection(currentDevice);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), currentDevice);
     addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), currentDevice);
-    add(ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+    add(new AddDeviceDefinitionAction(myRenderContext));
   }
 
   private void addDeviceSection(@NotNull Map<DeviceGroup, List<Device>> groupedDevices,
