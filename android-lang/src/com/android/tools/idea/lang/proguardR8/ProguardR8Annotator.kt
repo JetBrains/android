@@ -19,6 +19,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
@@ -35,8 +36,7 @@ class ProguardR8Annotator : Annotator {
         (JAVA_KEY_WORDS.contains(element.elementType) || JAVA_PRIMITIVE.contains(element.elementType)) &&
         !isPartOfName(element)
     ) {
-      val annotation = holder.createInfoAnnotation(element.textRange, null)
-      annotation.enforcedTextAttributes = ProguardR8TextAttributes.KEYWORD.key.defaultAttributes
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).enforcedTextAttributes(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes).create()
     }
   }
 
