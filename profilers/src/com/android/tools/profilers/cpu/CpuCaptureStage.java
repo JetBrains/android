@@ -43,6 +43,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.FramesAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
@@ -344,6 +345,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
       addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+      CpuAnalysisModel<?> framesModel = FramesAnalysisModel.of(capture);
+      if (framesModel != null) {
+        addPinnedCpuAnalysisModel(framesModel);
+      }
     }
     if (getStudioProfilers().getSession().getPid() == 0) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,18 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
 
-class CpuFullTraceAnalysisModelTest {
+class FramesAnalysisModelTest {
   @Test
-  fun analysisTabs() {
+  fun `frames model has all-frames tab`() {
+    val systemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
+      Mockito.`when`(getAndroidFrameLayers()).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
+    }
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(this.range).thenReturn(Range())
+      Mockito.`when`(this.systemTraceData).thenReturn(systemTraceData)
     }
-    val model = CpuFullTraceAnalysisModel(capture, Range())
+    val model = FramesAnalysisModel.of(capture)!!
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
-    assertThat(analysisModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
+    assertThat(analysisModels).containsExactly(Type.FRAMES)
   }
 }
