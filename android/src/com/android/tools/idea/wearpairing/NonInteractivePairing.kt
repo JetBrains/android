@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.Closeable
-import java.lang.IllegalArgumentException
 import java.util.concurrent.TimeUnit
 
 class NonInteractivePairing private constructor(private val phone: IDevice,
@@ -90,16 +89,22 @@ class NonInteractivePairing private constructor(private val phone: IDevice,
     logReaderJob.cancel()
   }
 
-  enum class PairingState(val needsAttention: Boolean, val successful: Boolean?) {
-    UNKNOWN(false, null),
-    INTERNAL_ERROR(true, false),
+  enum class PairingState {
+    UNKNOWN,
+    INTERNAL_ERROR,
 
     // Below cases correspond to the states reported by the companion app and should not be renamed.
-    STARTED(false, null),
-    CONSENT(true, null),
-    PAIRING(false, null),
-    SUCCESS(true, true),
-    FAILURE(true, false),
-    CANCELLED(true, false),
+    STARTED,
+    CONSENT,
+    PAIRING,
+    SUCCESS,
+    FAILURE,
+    CANCELLED;
+
+    fun hasFinished(): Boolean =
+      when (this) {
+        INTERNAL_ERROR, SUCCESS, FAILURE, CANCELLED,  -> true
+        UNKNOWN, STARTED, CONSENT, PAIRING -> false
+      }
   }
 }
