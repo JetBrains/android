@@ -23,6 +23,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Java8DefaultProcessorSettings
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
@@ -408,6 +409,23 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.0").setNewAgpVersion("7.1.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REDUNDANT_PROPERTIES).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testNoAndroidManifestsUsageTracker() {
+    val processor = AndroidManifestPackageToNamespaceRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(ANDROID_MANIFEST_PACKAGE).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(0).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(ANDROID_MANIFEST_PACKAGE).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(0).setFiles(2))
         .build(),
     )
   }

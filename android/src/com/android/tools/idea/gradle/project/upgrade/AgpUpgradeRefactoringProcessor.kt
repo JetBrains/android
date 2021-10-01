@@ -242,6 +242,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
     RedundantPropertiesRefactoringProcessor(this),
+    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
