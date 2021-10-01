@@ -166,13 +166,13 @@ public class MemoryClassifierViewTest {
 
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
 
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
-    MemoryObject selectedClassifier = ((MemoryObjectTreeNode)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
+    MemoryObject selectedClassifier = ((MemoryObjectTreeNode<?>)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
     assertThat(selectedClassifier).isInstanceOf(ClassSet.class);
 
     // Check if group by package is grouping as expected.
@@ -183,7 +183,7 @@ public class MemoryClassifierViewTest {
 
     root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
@@ -191,7 +191,7 @@ public class MemoryClassifierViewTest {
     TreePath selectionPath = classifierTree.getSelectionPath();
     assertThat(selectionPath).isNotNull();
     assertThat(selectionPath.getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
-    MemoryObject reselectedClassifier = ((MemoryObjectTreeNode)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
+    MemoryObject reselectedClassifier = ((MemoryObjectTreeNode<?>)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
     assertThat(reselectedClassifier).isInstanceOf(ClassSet.class);
     Set<InstanceObject> instances = ((ClassSet)reselectedClassifier).getInstancesStream().collect(Collectors.toSet());
     assertThat(((ClassSet)selectedClassifier).isSupersetOf(instances)).isTrue();
@@ -228,9 +228,9 @@ public class MemoryClassifierViewTest {
 
     root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
-    assertThat(((MemoryObjectTreeNode)root).getChildCount()).isEqualTo(3);
+    assertThat(((MemoryObjectTreeNode<?>)root).getChildCount()).isEqualTo(3);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
@@ -317,7 +317,7 @@ public class MemoryClassifierViewTest {
     JTree classifierTree = myClassifierView.getTree();
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
@@ -337,7 +337,7 @@ public class MemoryClassifierViewTest {
 
     root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
@@ -346,7 +346,7 @@ public class MemoryClassifierViewTest {
     Object reselected = selectionPath.getLastPathComponent();
     assertThat(reselected).isNotNull();
     assertThat(reselected).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)reselected).getAdapter()).isInstanceOf(ClassSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)reselected).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     Set<InstanceObject> instances = (((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter()).getInstancesStream().collect(Collectors.toSet());
     assertThat(selectedClassNode.getAdapter().isSupersetOf(instances)).isTrue();
@@ -460,7 +460,7 @@ public class MemoryClassifierViewTest {
     assertThat(classifierTree).isNotNull();
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
@@ -479,7 +479,7 @@ public class MemoryClassifierViewTest {
 
     root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
@@ -606,7 +606,7 @@ public class MemoryClassifierViewTest {
     assertThat(classifierTree).isNotNull();
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
@@ -618,7 +618,7 @@ public class MemoryClassifierViewTest {
 
     root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
@@ -670,7 +670,7 @@ public class MemoryClassifierViewTest {
     assertThat(selectionPath).isNotNull();
     Object selectedObject = selectionPath.getLastPathComponent();
     assertThat(selectedObject).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)selectedObject).getAdapter()).isInstanceOf(ClassSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)selectedObject).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     Set<InstanceObject> instances = (nodeToSelect.getAdapter()).getInstancesStream().collect(Collectors.toSet());;
     assertThat(((MemoryObjectTreeNode<ClassSet>)selectedObject).getAdapter().isSupersetOf(instances)).isTrue();
@@ -734,7 +734,7 @@ public class MemoryClassifierViewTest {
 
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(1);
@@ -784,7 +784,7 @@ public class MemoryClassifierViewTest {
 
     Object root = classifierTree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(1);
@@ -838,7 +838,7 @@ public class MemoryClassifierViewTest {
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
@@ -896,7 +896,7 @@ public class MemoryClassifierViewTest {
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(0);
@@ -991,7 +991,7 @@ public class MemoryClassifierViewTest {
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(0);
@@ -1058,7 +1058,7 @@ public class MemoryClassifierViewTest {
     myStage.getCaptureSelection().setClassGrouping(ARRANGE_BY_CALLSTACK);
     root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //// The 3, "Foo" filter should apply to the new grouping automatically
@@ -1118,7 +1118,7 @@ public class MemoryClassifierViewTest {
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
-    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(0);

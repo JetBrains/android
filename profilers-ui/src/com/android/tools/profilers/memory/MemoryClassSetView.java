@@ -296,7 +296,7 @@ public final class MemoryClassSetView extends AspectObserver {
         Object[] fieldNodePath = Arrays.copyOfRange(path.getPath(), 2, path.getPathCount());
         ArrayList<FieldObject> fieldObjectPath = new ArrayList<>(fieldNodePath.length);
         for (Object fieldNode : fieldNodePath) {
-          if (!(fieldNode instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)fieldNode).getAdapter() instanceof FieldObject)) {
+          if (!(fieldNode instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode<?>)fieldNode).getAdapter() instanceof FieldObject)) {
             return;
           }
           //noinspection unchecked
@@ -384,7 +384,7 @@ public final class MemoryClassSetView extends AspectObserver {
         return null;
       }
 
-      MemoryObject selectedObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      MemoryObject selectedObject = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
       if (selectedObject instanceof InstanceObject) {
         return new CodeLocation.Builder(((InstanceObject)selectedObject).getClassEntry().getClassName()).build();
       }
@@ -675,10 +675,10 @@ public final class MemoryClassSetView extends AspectObserver {
                                         boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         if (value instanceof MemoryObjectTreeNode &&
-            ((MemoryObjectTreeNode)value).getAdapter() instanceof InstanceObject) {
+            ((MemoryObjectTreeNode<?>)value).getAdapter() instanceof InstanceObject) {
           CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
           myIsLeaked = leakFilter != null &&
-                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
+                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode<?>)value).getAdapter());
           String msg = "To investigate leak, select instance and see \"References\"";
           setToolTipText(myIsLeaked ? msg : null);
         }

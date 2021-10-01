@@ -62,6 +62,6 @@ public class StudioMonitorStage extends StreamingStage {
   public void setTooltip(TooltipModel tooltip) {
     super.setTooltip(tooltip);
     myMonitors.forEach(monitor -> monitor
-      .setFocus(getTooltip() instanceof ProfilerMonitorTooltip && ((ProfilerMonitorTooltip)getTooltip()).getMonitor() == monitor));
+      .setFocus(getTooltip() instanceof ProfilerMonitorTooltip && ((ProfilerMonitorTooltip<?>)getTooltip()).getMonitor() == monitor));
   }
 }

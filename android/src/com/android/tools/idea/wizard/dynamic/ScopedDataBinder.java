@@ -281,7 +281,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      Object selectedObject = ((JComboBox)component).getSelectedItem();
+      Object selectedObject = ((JComboBox<?>)component).getSelectedItem();
       if (selectedObject instanceof ApiComboBoxItem) {
         ApiComboBoxItem selectedItem = (ApiComboBoxItem)selectedObject;
         newValue = selectedItem.getData();
@@ -537,7 +537,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
       if (item instanceof ApiComboBoxItem) {
-        item = ((ApiComboBoxItem)item).getData();
+        item = ((ApiComboBoxItem<?>)item).getData();
       }
       if (Objects.equal(item, value)) {
         index = i;
@@ -650,7 +650,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
         ((JCheckBox)component).removeItemListener(this);
       }
       else if (component instanceof JComboBox) {
-        ((JComboBox)component).removeActionListener(this);
+        ((JComboBox<?>)component).removeActionListener(this);
       }
       else if (component instanceof JTextField) {
         ((JTextField)component).getDocument().removeDocumentListener(this);

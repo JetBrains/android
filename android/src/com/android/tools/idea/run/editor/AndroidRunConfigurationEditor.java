@@ -231,7 +231,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myModulesComboBox) {
       if (myConfigurationSpecificEditor instanceof ApplicationRunParameters) {
-        ((ApplicationRunParameters)myConfigurationSpecificEditor).onModuleChanged();
+        ((ApplicationRunParameters<?>)myConfigurationSpecificEditor).onModuleChanged();
       }
     }
   }

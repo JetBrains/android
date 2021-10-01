@@ -313,7 +313,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         if (isRunBuildAction) {
-          ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildActionExecuter<?>)operation).forTasks(toStringArray(gradleTasks));
         }
         else {
           ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
@@ -327,7 +327,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             .notifyConnectionAboutChangedPaths(connection);
         }
         if (isRunBuildAction) {
-          model.set(((BuildActionExecuter)operation).run());
+          model.set(((BuildActionExecuter<?>)operation).run());
         }
         else {
           ((BuildLauncher)operation).run();

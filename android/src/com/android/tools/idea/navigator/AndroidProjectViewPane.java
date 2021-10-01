@@ -277,7 +277,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   public Object getValueFromNode(@Nullable Object node) {
     Object o = super.getValueFromNode(node);
     if (o instanceof ArrayList && TreeUtil.getUserObject(node) instanceof FolderGroupNode) {
-      return ((ArrayList)o).toArray();
+      return ((ArrayList<?>)o).toArray();
     }
 
     return o;

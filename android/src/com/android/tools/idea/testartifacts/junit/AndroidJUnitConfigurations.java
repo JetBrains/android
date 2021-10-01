@@ -44,7 +44,7 @@ public class AndroidJUnitConfigurations {
     if (androidConfiguration instanceof ModuleBasedConfiguration &&
         (otherConfiguration instanceof JUnitConfiguration) &&
         !(otherConfiguration instanceof AndroidJUnitConfiguration)) {
-      Module module = ((ModuleBasedConfiguration)androidConfiguration).getConfigurationModule().getModule();
+      Module module = ((ModuleBasedConfiguration<?, ?>)androidConfiguration).getConfigurationModule().getModule();
       if (module != null && GradleProjects.isIdeaAndroidModule(module)) {
         return true;
       }
@@ -89,7 +89,7 @@ public class AndroidJUnitConfigurations {
     }
 
     RunnerAndConfigurationSettings template = RunManager.getInstance(junitConfiguration.getProject()).getConfigurationTemplate(configurationFactory);
-    Module predefinedModule = ((ModuleBasedConfiguration)template.getConfiguration()).getConfigurationModule().getModule();
+    Module predefinedModule = ((ModuleBasedConfiguration<?, ?>)template.getConfiguration()).getConfigurationModule().getModule();
     Module configurationModule = junitConfiguration.getConfigurationModule().getModule();
     Module contextModule = configurationContext.getLocation() == null ? null : configurationContext.getLocation().getModule();
 

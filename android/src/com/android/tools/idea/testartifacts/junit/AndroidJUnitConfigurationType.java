@@ -66,7 +66,7 @@ public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
 
       @Override
       public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
-        ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
+        ((ModuleBasedConfiguration<?, ?>)configuration).onNewConfigurationCreated();
       }
     };
   }

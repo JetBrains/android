@@ -229,7 +229,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
-    return modelToCodeLocation(((CpuTreeNode)node.getUserObject()).getMethodModel());
+    return modelToCodeLocation(((CpuTreeNode<?>)node.getUserObject()).getMethodModel());
   }
 
   private static CpuTreeNode getNode(Object value) {

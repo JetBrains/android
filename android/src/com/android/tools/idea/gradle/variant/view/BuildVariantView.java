@@ -543,7 +543,7 @@ public class BuildVariantView {
             Component editorComponent = getEditorComponent();
             if (editorComponent instanceof ComboBox) {
               editorComponent.requestFocusInWindow();
-              ((ComboBox)editorComponent).showPopup();
+              ((ComboBox<?>)editorComponent).showPopup();
             }
           }
         }
