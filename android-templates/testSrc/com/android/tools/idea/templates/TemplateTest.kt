@@ -311,6 +311,19 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  fun testComposeActivityMaterial3() {
+    // We temporarily are not setting the StudioFlags.NPW_MATERIAL3_ENABLED so detect if it's enabled accidentally.
+    // See comment in TemplateTestUtils.isBroken.
+
+    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      projectData.kotlinVersion = "1.5.31"
+      moduleData.category = Category.Compose
+    }
+    checkCreateTemplate("Empty Compose Activity (Material3)", withSpecificKotlin) // Compose is always Kotlin
+  }
+
+  @TemplateCheck
   fun testResponsiveActivity() {
     checkCreateTemplate("Responsive Activity")
   }

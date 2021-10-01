@@ -43,7 +43,7 @@ fun RecipeExecutor.generateAndroidModule(
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
-  val isMaterial3 = data.category == Category.Material3
+  val isMaterial3 = data.isMaterial3
   generateCommonModule(
     data = data,
     appTitle = appTitle,
@@ -67,7 +67,7 @@ fun RecipeExecutor.generateAndroidModule(
       androidModuleThemesMaterial3V29(data.themesData.main.name)
     else
       null,
-    colorsXml = if (isMaterial3) androidModuleColorsMaterial3() else androidModuleColors(),
+    colorsXml = if (isMaterial3 && data.category != Category.Compose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard
   )
