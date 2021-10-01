@@ -25,10 +25,8 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.lang.properties.psi.PropertyKeyValueFormat
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
@@ -157,18 +155,9 @@ class GradleVersionUsageInfo(
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl.escapeColons(), PropertyKeyValueFormat.FILE)
-    // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
-    //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
-    //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
-    val documentManager = PsiDocumentManager.getInstance(project)
-    val document = documentManager.getDocument(element!!.containingFile) ?: return
-    if (documentManager.isDocumentBlockedByPsi(document)) {
-      documentManager.doPostponedOperationsAndUnblockDocument(document)
-    }
-    FileDocumentManager.getInstance().saveDocument(document)
-    if (!documentManager.isCommitted(document)) {
-      documentManager.commitDocument(document)
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.let { property ->
+      property.setValue(updatedUrl.escapeColons(), PropertyKeyValueFormat.FILE)
+      otherAffectedFiles.add(property.containingFile)
     }
   }
 

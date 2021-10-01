@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -111,16 +109,7 @@ class AndroidManifestPackageUsageInfo(element: WrappedPsiElement) : GradleBuildM
     element?.let {
       val containingFile = it.containingFile
       it.delete()
-      // TODO(xof): *sigh*.  Maybe find some way to consolidate this with the thing in GradleVersionRefactoringProcessor?
-      val documentManager = PsiDocumentManager.getInstance(project)
-      val document = documentManager.getDocument(containingFile) ?: return
-      if (documentManager.isDocumentBlockedByPsi(document)) {
-        documentManager.doPostponedOperationsAndUnblockDocument(document)
-      }
-      FileDocumentManager.getInstance().saveDocument(document)
-      if (!documentManager.isCommitted(document)) {
-        documentManager.commitDocument(document)
-      }
+      otherAffectedFiles.add(containingFile)
     }
   }
 

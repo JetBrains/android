@@ -56,6 +56,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -64,6 +65,7 @@ import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.pluralize
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.FakePsiElement
@@ -113,6 +115,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   val project: Project
   val projectBuildModel: ProjectBuildModel
 
+  val otherAffectedFiles = mutableSetOf<PsiFile>()
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
   var foundUsages: Boolean = false
@@ -123,6 +126,7 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
     usages.forEach {
       if (it is GradleBuildModelUsageInfo) {
         it.performRefactoringFor(this)
+        otherAffectedFiles.addAll(it.otherAffectedFiles)
       }
     }
   }
@@ -130,6 +134,20 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   override fun performPsiSpoilingRefactoring() {
     LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
     projectBuildModel.applyChanges()
+
+    if (otherAffectedFiles.isNotEmpty()) {
+      val documentManager = PsiDocumentManager.getInstance(project)
+      otherAffectedFiles.forEach psiFile@{ psiFile ->
+        val document = documentManager.getDocument(psiFile) ?: return@psiFile
+        if (documentManager.isDocumentBlockedByPsi(document)) {
+          documentManager.doPostponedOperationsAndUnblockDocument(document)
+        }
+        FileDocumentManager.getInstance().saveDocument(document)
+        if (!documentManager.isCommitted(document)) {
+          documentManager.commitDocument(document)
+        }
+      }
+    }
 
     if (psiSpoilingUsageInfos.isNotEmpty()) {
       projectBuildModel.reparse()
@@ -181,6 +199,14 @@ abstract class GradleBuildModelUsageInfo(element: WrappedPsiElement) : UsageInfo
    * deletions but will not be in general for additions.
    */
   open fun getDiscriminatingValues(): List<Any> = listOf()
+
+  /**
+   * Most actions taken by a [GradleBuildModelUsageInfo] in its [performBuildModelRefactoring] method affect project files through the
+   * build model, which takes responsibility for making sure that documents are saved and psi is not blocking.  Some actions affect
+   * files outside that model, however, and any such actions are responsible for adding those files to this set so that they can be
+   * accumulated for handling alongside the build model files.
+   */
+  val otherAffectedFiles = mutableSetOf<PsiFile>()
 
   final override fun equals(other: Any?) = super.equals(other) && when(other) {
     is GradleBuildModelUsageInfo -> getDiscriminatingValues() == other.getDiscriminatingValues()
