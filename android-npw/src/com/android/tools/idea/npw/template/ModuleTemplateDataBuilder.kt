@@ -80,6 +80,7 @@ class ModuleTemplateDataBuilder(
   var baseFeature: BaseFeature? = null
   var apis: ApiTemplateData? = null
   var category: Category? = null
+  var isMaterial3: Boolean = false
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -227,7 +228,8 @@ class ModuleTemplateDataBuilder(
     baseFeature,
     apis!!,
     viewBindingSupport = viewBindingSupport,
-    category!!
+    category!!,
+    isMaterial3
   )
 }
 

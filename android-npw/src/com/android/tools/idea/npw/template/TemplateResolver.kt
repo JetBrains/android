@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardTemplateProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 
@@ -31,9 +32,10 @@ class TemplateResolver {
       return EP_NAME.extensions
         .flatMap { it.getTemplates() }
         .filter {
-          when (it.category) {
-            Category.Compose -> StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()
-            Category.Material3 -> StudioFlags.NPW_MATERIAL3_ENABLED.get()
+          return@filter when {
+            // Filter Material3 templates if disabled
+            it.constraints.contains(TemplateConstraint.Material3) && !StudioFlags.NPW_MATERIAL3_ENABLED.get() -> false
+            it.category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() -> false
             else -> true
           }
         }

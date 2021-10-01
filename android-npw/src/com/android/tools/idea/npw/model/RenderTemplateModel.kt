@@ -39,6 +39,7 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -143,6 +144,7 @@ class RenderTemplateModel private constructor(
           paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
         )
         category = newTemplate.category
+        isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3)
         projectTemplateDataBuilder.language = language.value
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
@@ -196,7 +198,7 @@ class RenderTemplateModel private constructor(
 
       if (newTemplate.category == Category.Compose) {
         // Compose requires this specific Kotlin
-        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.5.21"
+        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.5.31"
       }
 
       val context = RenderingContext(

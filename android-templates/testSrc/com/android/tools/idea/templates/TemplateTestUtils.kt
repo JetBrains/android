@@ -21,6 +21,7 @@ package com.android.tools.idea.templates
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.common.LintBatchResult
@@ -83,6 +84,10 @@ internal fun isBroken(templateName: String): Boolean {
     if ("AIDL File" == templateName) return true // b/37139315
     if ("Native C++" == templateName) return true // b/158067606
   }
+
+  // Temporarily disable the automated test of the Compose Material template until we have the artifacts merged merged.
+  // This also ensures the test is only ignored if StudioFlags.NPW_MATERIAL3_ENABLED is disabled (so the template is not visible for users).
+  if ("Empty Compose Activity (Material3)" == templateName) return !StudioFlags.NPW_MATERIAL3_ENABLED.get() // b/200005771
 
   return false
 }
