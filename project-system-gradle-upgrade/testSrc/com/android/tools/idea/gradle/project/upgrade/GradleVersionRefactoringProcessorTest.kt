@@ -71,17 +71,6 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     }
   }
 
-  // Although the AgpGradleVersionRefactoringProcessor is part of the GradleBuildModel set of RefactoringProcessors, it
-  // in fact edits a file (the Gradle Wrapper properties file) which is not strictly part of the build model.  That means it can't
-  // be unit tested in quite the same way.
-
-  private fun writeToGradleWrapperPropertiesFile(fileName: TestFileName) {
-    val testFile = fileName.toFile(testDataPath, "")
-    assertTrue(testFile.exists())
-    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
-    runWriteAction { VfsUtil.saveText(wrapperSettingsFile, VfsUtilCore.loadText(virtualTestFile!!)) }
-  }
-
   @Test
   fun testOldGradleVersion360() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
@@ -217,4 +206,14 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
   //  GRADLE_MINIMUM_VERSION changes)
+
+  // Although the GradleVersionRefactoringProcessor is part of the GradleBuildModel set of RefactoringProcessors, it
+  // in fact edits a file (the Gradle Wrapper properties file) which is not strictly part of the build model.  That means it can't
+  // be unit tested in quite the same way.
+  private fun writeToGradleWrapperPropertiesFile(fileName: TestFileName) {
+    val testFile = fileName.toFile(testDataPath, "")
+    assertTrue(testFile.exists())
+    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+    runWriteAction { VfsUtil.saveText(wrapperSettingsFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+  }
 }
