@@ -19,8 +19,8 @@ import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -28,8 +28,10 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.util.Disposer
@@ -47,9 +49,11 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.spy
 import java.awt.BorderLayout
 import java.awt.BorderLayout.CENTER
 import java.awt.BorderLayout.NORTH
+import java.awt.BorderLayout.WEST
 import java.awt.Dimension
 import java.time.Instant
 import java.time.ZoneId
@@ -80,9 +84,14 @@ class LogcatMainPanelTest {
 
     val borderLayout = logcatMainPanel.layout as BorderLayout
 
-    assertThat(logcatMainPanel.componentCount).isEqualTo(2)
+    assertThat(logcatMainPanel.componentCount).isEqualTo(3)
     assertThat(borderLayout.getLayoutComponent(NORTH)).isInstanceOf(LogcatHeaderPanel::class.java)
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
+    assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
+    val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
+    assertThat(toolbar.actions).hasSize(2)
+    assertThat(toolbar.actions[0]).isInstanceOf(HeaderFormatOptionsAction::class.java)
+    assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
   }
 
   @RunsInEdt
@@ -166,24 +175,26 @@ class LogcatMainPanelTest {
       })
     }
     var latestPopup: ActionPopupMenu? = null
-    val actionManager = mock<ActionManager>()
-    ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
-    `when`(actionManager.getAction(anyString())).thenReturn(
-      object : AnAction("An FakeAction") {
-        override fun actionPerformed(e: AnActionEvent) {}
-      })
-    `when`(actionManager.createActionPopupMenu(anyString(), any(ActionGroup::class.java))).thenAnswer {
-      latestPopup = FakeActionPopupMenu(it.getArgument(1))
-      latestPopup
-    }
-    logcatMainPanel = LogcatMainPanel(projectRule.project, popupActionGroup, LogcatColors(), state = null).apply {
-      size = Dimension(100, 100)
-    }
-    val fakeUi = FakeUi(logcatMainPanel)
+    val actionManager = ApplicationManager.getApplication().getService(ActionManager::class.java)
+    val mockActionManager = spy(actionManager)
+    try {
+      ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, projectRule.project)
+      `when`(mockActionManager.createActionPopupMenu(anyString(), any(ActionGroup::class.java))).thenAnswer {
+        latestPopup = FakeActionPopupMenu(it.getArgument(1))
+        latestPopup
+      }
+      logcatMainPanel = LogcatMainPanel(projectRule.project, popupActionGroup, LogcatColors(), state = null).apply {
+        size = Dimension(100, 100)
+      }
+      val fakeUi = FakeUi(logcatMainPanel)
 
-    fakeUi.rightClickOn(logcatMainPanel)
+      fakeUi.rightClickOn(logcatMainPanel)
 
-    assertThat(latestPopup!!.actionGroup).isSameAs(popupActionGroup)
+      assertThat(latestPopup!!.actionGroup).isSameAs(popupActionGroup)
+    }
+    finally {
+      ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
+    }
   }
 
   private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {

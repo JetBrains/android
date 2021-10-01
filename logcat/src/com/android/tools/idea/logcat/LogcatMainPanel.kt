@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -30,6 +34,8 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -40,8 +46,10 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 import java.time.ZoneId
@@ -68,8 +76,15 @@ internal class LogcatMainPanel(
   internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, this::appendToDocument)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
+  private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
 
   init {
+    editor.installPopupHandler(object : ContextMenuPopupHandler() {
+      override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
+    })
+
+    toolbar.setTargetComponent(this)
+
     // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
     //  might be challenging both technically and from a UX perspective. Since, when restoring the state, the device/client might not be
     //  available.
@@ -77,6 +92,7 @@ internal class LogcatMainPanel(
     //  From a technical standpoint, the current implementation that uses DevicePanel doesn't seem to be well suited for preselecting a
     //  device/client.
     addToTop(headerPanel)
+    addToLeft(toolbar.component)
     addToCenter(editor.component)
 
     deviceContext.addListener(object : DeviceConnectionListener() {
@@ -107,39 +123,7 @@ internal class LogcatMainPanel(
       deviceContext.selectedClient?.clientData?.packageName,
       formattingOptions))
 
-  /**
-   * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
-   */
-  private fun createEditor(project: Project): EditorEx {
-    val editorFactory = EditorFactory.getInstance()
-    val document = (editorFactory as EditorFactoryImpl).createDocument(true)
-    UndoUtil.disableUndoFor(document)
-    val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
-
-    editor.installPopupHandler(object : ContextMenuPopupHandler() {
-      override fun getActionGroup(event: EditorMouseEvent): ActionGroup = popupActionGroup
-    })
-
-    editor.document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
-
-    val editorSettings = editor.settings
-    editorSettings.isAllowSingleLogicalLineFolding = true
-    editorSettings.isLineMarkerAreaShown = false
-    editorSettings.isIndentGuidesShown = false
-    editorSettings.isLineNumbersShown = false
-    editorSettings.isFoldingOutlineShown = true
-    editorSettings.isAdditionalPageAtBottom = false
-    editorSettings.additionalColumnsCount = 0
-    editorSettings.additionalLinesCount = 0
-    editorSettings.isRightMarginShown = false
-    editorSettings.isCaretRowShown = false
-    editorSettings.isShowingSpecialChars = false
-    editor.gutterComponentEx.isPaintBackground = false
-
-    return editor
-  }
-
-  private suspend fun appendToDocument(buffer: TextAccumulator) = withContext(uiThread) {
+  private suspend fun appendToDocument(buffer: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
     if (!isActive) {
       return@withContext
     }
@@ -149,5 +133,47 @@ internal class LogcatMainPanel(
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
+  }
+
+  @UiThread
+  fun refreshDocument() {
+    editor.document.setText("")
+    AndroidCoroutineScope(this, AndroidDispatchers.workerThread).launch {
+      messageProcessor.appendMessages(messageBacklog.messages)
+    }
+  }
+
+  private fun createToolbarActions(project: Project): ActionGroup {
+    return SimpleActionGroup().apply {
+      add(HeaderFormatOptionsAction(project, formattingOptions, this@LogcatMainPanel::refreshDocument))
+    }
+  }
+
+  companion object {
+    /**
+     * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
+     */
+    fun createEditor(project: Project): EditorEx {
+      val editorFactory = EditorFactory.getInstance()
+      val document = (editorFactory as EditorFactoryImpl).createDocument(true)
+      UndoUtil.disableUndoFor(document)
+      val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
+      editor.document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
+      val editorSettings = editor.settings
+      editorSettings.isAllowSingleLogicalLineFolding = true
+      editorSettings.isLineMarkerAreaShown = false
+      editorSettings.isIndentGuidesShown = false
+      editorSettings.isLineNumbersShown = false
+      editorSettings.isFoldingOutlineShown = true
+      editorSettings.isAdditionalPageAtBottom = false
+      editorSettings.additionalColumnsCount = 0
+      editorSettings.additionalLinesCount = 0
+      editorSettings.isRightMarginShown = false
+      editorSettings.isCaretRowShown = false
+      editorSettings.isShowingSpecialChars = false
+      editor.gutterComponentEx.isPaintBackground = false
+
+      return editor
+    }
   }
 }
