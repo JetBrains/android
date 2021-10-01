@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.ui.GuiTestingService
@@ -23,6 +24,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.config.installerData
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost
 import com.google.common.util.concurrent.Atomics
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.Messages
@@ -40,7 +42,9 @@ val log = logger<AndroidStudioWelcomeScreenProvider>()
  */
 class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
   override fun createWelcomeScreen(rootPane: JRootPane): WelcomeScreen {
-    checkInternetConnection()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      checkInternetConnection()
+    }
     val wizardMode = wizardMode!!
     // This means isAvailable was false! Why are we even called?
 
@@ -92,8 +96,11 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
       return (!persistentData.isSdkUpToDate || !persistentData.isSameTimestamp(data.timestamp)) && data.isCurrentVersion
     }
 
-    private fun checkInternetConnection(): ConnectionState {
+    @WorkerThread
+    private fun checkInternetConnection() {
+      ApplicationManager.getApplication().assertIsNonDispatchThread()
       CommonProxy.isInstalledAssertion()
+
       var result: ConnectionState? = null
       while (result == null) {
         try {
@@ -113,7 +120,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
           // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
           //     at javax.crypto.KeyGenerator.a(DashoA13*..)
           //     ....
-          // See http://b.android.com/149270 for more.
+          // See b/37021138 for more.
           // This shouldn't cause a crash at startup which prevents starting the IDE!
           result = ConnectionState.NO_CONNECTION
           var message = "Couldn't check internet connection"
@@ -122,9 +129,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
           }
           log.warn(message, e)
         }
-
       }
-      return result
     }
 
     private fun promptToRetryFailedConnection(): ConnectionState? {
