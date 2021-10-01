@@ -39,6 +39,8 @@ class ViewInspectorTreeLoader(
   composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
+  private var folderConfig = LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(1)
+
   // if true, exit immediately and return null
   private var isInterrupted = false
 
@@ -54,9 +56,12 @@ class ViewInspectorTreeLoader(
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
   fun loadComponentTree(): AndroidWindow? {
-    val folderConfig = viewEvent.configuration.convert(process.device.apiLevel)
-    resourceLookup.updateConfiguration(folderConfig, viewEvent.appContext.convert(viewEvent.configuration), viewNodeCreator.strings,
-                                       process)
+    val configuration = viewEvent.configuration
+    if (configuration !== LayoutInspectorViewProtocol.Configuration.getDefaultInstance()) {
+      folderConfig = configuration.convert(process.device.apiLevel)
+      resourceLookup.updateConfiguration(folderConfig, configuration.fontScale, viewEvent.appContext.convert(), viewNodeCreator.strings,
+                                         process)
+    }
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
     return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, folderConfig, { isInterrupted }, logEvent)
   }

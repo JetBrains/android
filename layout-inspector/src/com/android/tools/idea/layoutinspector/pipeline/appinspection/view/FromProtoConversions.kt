@@ -124,10 +124,9 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
   return Locale(language, country, variant, script)
 }
 
-fun LayoutInspectorViewProtocol.AppContext.convert(config: LayoutInspectorViewProtocol.Configuration): AppContext {
+fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
-    theme.convert(),
-    config.fontScale
+    theme.convert()
   )
 }
 

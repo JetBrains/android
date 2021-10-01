@@ -809,13 +809,13 @@ class FakeInspectorState(
    * The real inspector triggers occasional captures as the UI changes, but for tests, we'll
    * expose this method so it can be triggered manually.
    */
-  fun triggerLayoutCapture(rootId: Long, isLastCapture: Boolean = false) {
+  fun triggerLayoutCapture(rootId: Long, isLastCapture: Boolean = false, excludeConfiguration: Boolean = false) {
     val rootView = layoutTrees.first { it.id == rootId }
     viewInspector.connection.sendEvent {
       layoutEventBuilder.apply {
         addAllStrings(viewStrings)
         this.rootView = rootView
-        appContextBuilder.apply {
+        if (!excludeConfiguration) {
           configurationBuilder.apply {
             density = Density.HIGH.dpiValue
             fontScale = 1.5f

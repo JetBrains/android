@@ -21,6 +21,7 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
@@ -184,6 +185,10 @@ class LayoutInspectorTreePanelTest {
 
           appContextBuilder.apply {
             theme = ViewResource(13, 12, 11)
+          }
+          configurationBuilder.apply {
+            density = Density.DEFAULT_DENSITY
+            fontScale = 1.0f
           }
         }
       }
