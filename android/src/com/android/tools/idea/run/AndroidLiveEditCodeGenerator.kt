@@ -167,6 +167,16 @@ class AndroidLiveEditCodeGenerator {
     var cause = e;
     while (cause.cause != null) {
       cause = cause.cause!!
+      var message = cause.message!!
+      if (message.contains("Unhandled intrinsic in ExpressionCodegen")) {
+        var nameStart = message.indexOf("name:") + "name:".length
+        var nameEnd = message.indexOf(' ', nameStart)
+        var name = message.substring(nameStart, nameEnd)
+
+        println("Live Edit: Bug (b/201728545) unable to compile a file that reference a top level function in another source file. " +
+                " For now work around this by moving function $name inside the class.")
+        return
+      }
     }
     println("Live Edit: compilation error\n ${e.message}")
   }
