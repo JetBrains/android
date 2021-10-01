@@ -24,7 +24,7 @@ private const val PREFIX_LEN = 6
 /**
  * Provides formatting for the log tag.
  */
-internal class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
+internal data class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
   init {
     assert(maxLength >= MIN_LENGTH)
   }
