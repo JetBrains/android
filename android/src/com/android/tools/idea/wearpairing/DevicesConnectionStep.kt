@@ -25,6 +25,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.wearpairing.NonInteractivePairing.PairingState
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.util.concurrent.Futures
@@ -266,14 +267,14 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiPairingNonInteractive(phoneDevice, wearDevice)
       NonInteractivePairing.startPairing(phoneDevice, wearDevice.avdName!!, companionAppId, wearDevice.loadNodeID()).use {
         withTimeoutOrNull(Duration.ofMinutes(1)) {
-          it.pairingState.takeWhile { it.successful == null }.collect { state ->
-            if (state.needsAttention) {
+          it.pairingState.takeWhile { !it.hasFinished() }.collect { state ->
+            if (state == PairingState.CONSENT) {
               showUiPairingNonInteractive(phoneDevice, wearDevice,
                                           message("wear.assistant.device.connection.pairing.auto.consent", phoneDevice.name))
             }
           }
         }
-        if (it.pairingState.value.successful == true) {
+        if (it.pairingState.value == PairingState.SUCCESS) {
           showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
         }
         else {
