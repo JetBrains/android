@@ -223,9 +223,13 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         IdeSdks.getInstance()
       )
 
+      val modules = listOf(mainIdeModule)
+      /* FIXME-ank6: this does not work with MPP projects, because source sets of main module are: common, jvm, ios, etc.
+       * and they may need their own sdks like JDK, Kotlin SDK, etc.
       val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
         modelsProvider.findIdeModule(dataNode.data)
       }
+       */
       modules.forEach { module ->
         module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
       }
