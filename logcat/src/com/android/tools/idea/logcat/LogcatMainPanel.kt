@@ -16,12 +16,14 @@
 package com.android.tools.idea.logcat
 
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
@@ -60,6 +62,7 @@ internal class LogcatMainPanel(
   private val deviceContext = DeviceContext()
   private val formattingOptions = state?.formattingOptions ?: FormattingOptions()
   private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
+  private val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, this::appendToDocument)
@@ -81,7 +84,7 @@ internal class LogcatMainPanel(
         logcatReader?.let {
           Disposer.dispose(it)
         }
-        logcatReader = LogcatReader(device, this@LogcatMainPanel, messageProcessor::appendMessages).also(LogcatReader::start)
+        logcatReader = LogcatReader(device, this@LogcatMainPanel, this@LogcatMainPanel::processMessages).also(LogcatReader::start)
       }
 
       override fun onDeviceDisconnected(device: IDevice) {
@@ -91,6 +94,11 @@ internal class LogcatMainPanel(
         logcatReader = null
       }
     }, this)
+  }
+
+  private suspend fun processMessages(messages: List<LogCatMessage>) {
+    messageBacklog.addAll(messages)
+    messageProcessor.appendMessages(messages)
   }
 
   override fun getState(): String = LogcatPanelConfig.toJson(

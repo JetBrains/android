@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.Log
+import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.ddmlib.logcat.LogCatHeader
+import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
+import java.time.Instant
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
@@ -45,3 +50,16 @@ internal fun MessageProcessor.onIdle(run: () -> Any) {
     run()
   }
 }
+
+/**
+ * Convenience creation of a [LogCatMessage] for testing
+ */
+fun logCatMessage(
+  logLevel: Log.LogLevel = INFO,
+  pid: Int = 1,
+  tid: Int = 2,
+  appName: String = "com.example.app",
+  tag: String = "ExampleTag",
+  timestamp: Instant = Instant.EPOCH,
+  message: String = "message",
+): LogCatMessage = LogCatMessage(LogCatHeader(logLevel, pid, tid, appName, tag, timestamp), message)
