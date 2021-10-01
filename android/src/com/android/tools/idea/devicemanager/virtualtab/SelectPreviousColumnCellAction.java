@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
+import com.intellij.ui.table.JBTable;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JTable;
@@ -27,13 +28,27 @@ import org.jetbrains.annotations.NotNull;
 final class SelectPreviousColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    JTable table = (JTable)event.getSource();
+    JBTable table = (JBTable)event.getSource();
+
+    if (table.isEmpty()) {
+      return;
+    }
+
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
 
     AvdActionPanel panel;
 
     switch (viewColumnIndex) {
+      case -1:
+        int lastViewRowIndex = table.getRowCount() - 1;
+        int lastViewColumnIndex = table.getColumnCount() - 1;
+
+        table.setRowSelectionInterval(lastViewRowIndex, lastViewRowIndex);
+        table.setColumnSelectionInterval(lastViewColumnIndex, lastViewColumnIndex);
+
+        setFocusedActionComponentToLast(table, lastViewRowIndex, lastViewColumnIndex);
+        break;
       case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
         panel = ((ActionRenderer)table.getCellEditor()).getComponent();
 
@@ -54,14 +69,17 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
         Tables.selectPreviousOrLastRow(table);
         model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
 
-        table.editCellAt(table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
-
-        panel = ((ActionRenderer)table.getCellEditor()).getComponent();
-        panel.setFocusedComponent(panel.getVisibleComponentCount() - 1);
-
+        setFocusedActionComponentToLast(table, table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
         break;
       default:
         assert false;
     }
+  }
+
+  private static void setFocusedActionComponentToLast(@NotNull JTable table, int viewRowIndex, int viewColumnIndex) {
+    table.editCellAt(viewRowIndex, viewColumnIndex);
+
+    AvdActionPanel panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+    panel.setFocusedComponent(panel.getVisibleComponentCount() - 1);
   }
 }
