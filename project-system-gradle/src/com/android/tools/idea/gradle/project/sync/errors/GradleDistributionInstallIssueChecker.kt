@@ -66,10 +66,10 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
         buildIssueComposer.addDescription("The cached zip file ${zipFile} may be corrupted.")
         buildIssueComposer.addQuickFix(
           "Delete file and sync project", DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
+         return buildIssueComposer.composeBuildIssue()
       }
     }
-
-    return buildIssueComposer.composeBuildIssue()
+    return null
   }
 
   override fun consumeBuildOutputFailureMessage(message: String,
