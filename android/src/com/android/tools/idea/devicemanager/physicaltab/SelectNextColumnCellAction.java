@@ -27,12 +27,21 @@ final class SelectNextColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
     PhysicalDeviceTable table = (PhysicalDeviceTable)event.getSource();
+
+    if (table.isEmpty()) {
+      return;
+    }
+
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
     int nextViewColumnIndex = viewColumnIndex + 1;
     int viewColumnCount = table.getColumnCount();
 
-    if (nextViewColumnIndex < viewColumnCount && table.isActionsColumn(nextViewColumnIndex)) {
+    if (viewColumnIndex == -1) {
+      table.setRowSelectionInterval(0, 0);
+      table.setColumnSelectionInterval(0, 0);
+    }
+    else if (nextViewColumnIndex < viewColumnCount && table.isActionsColumn(nextViewColumnIndex)) {
       model.setLeadSelectionIndex(nextViewColumnIndex);
 
       table.editCellAt(table.getSelectedRow(), nextViewColumnIndex);

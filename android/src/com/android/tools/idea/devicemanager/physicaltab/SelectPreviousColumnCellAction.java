@@ -27,11 +27,25 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
     PhysicalDeviceTable table = (PhysicalDeviceTable)event.getSource();
+
+    if (table.isEmpty()) {
+      return;
+    }
+
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
     int previousViewColumnIndex = viewColumnIndex - 1;
 
-    if (table.isActionsColumn(viewColumnIndex)) {
+    if (viewColumnIndex == -1) {
+      int lastViewRowIndex = table.getRowCount() - 1;
+      int lastViewColumnIndex = table.getColumnCount() - 1;
+
+      table.setRowSelectionInterval(lastViewRowIndex, lastViewRowIndex);
+      table.setColumnSelectionInterval(lastViewColumnIndex, lastViewColumnIndex);
+
+      requestFocusForLastActionComponent(table, lastViewRowIndex, lastViewColumnIndex);
+    }
+    else if (table.isActionsColumn(viewColumnIndex)) {
       Optional<Component> component = table.getActionsCellEditor().getComponent().getFirstEnabledComponentBeforeFocusOwner();
 
       if (component.isPresent()) {
@@ -54,12 +68,18 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
       int lastViewColumnIndex = table.getColumnCount() - 1;
       model.setLeadSelectionIndex(lastViewColumnIndex);
 
-      if (table.isActionsColumn(lastViewColumnIndex)) {
-        table.editCellAt(table.getSelectedRow(), lastViewColumnIndex);
-
-        ActionsComponent component = table.getActionsCellEditor().getComponent();
-        component.getLastEnabledComponent(component.getComponentCount() - 1).ifPresent(Component::requestFocusInWindow);
-      }
+      requestFocusForLastActionComponent(table, table.getSelectedRow(), lastViewColumnIndex);
     }
+  }
+
+  private static void requestFocusForLastActionComponent(@NotNull PhysicalDeviceTable table, int viewRowIndex, int viewColumnIndex) {
+    if (!table.isActionsColumn(viewColumnIndex)) {
+      return;
+    }
+
+    table.editCellAt(viewRowIndex, viewColumnIndex);
+
+    ActionsComponent component = table.getActionsCellEditor().getComponent();
+    component.getLastEnabledComponent(component.getComponentCount() - 1).ifPresent(Component::requestFocusInWindow);
   }
 }

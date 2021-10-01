@@ -18,20 +18,30 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
+import com.intellij.ui.table.JBTable;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectNextColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    JTable table = (JTable)event.getSource();
+    JBTable table = (JBTable)event.getSource();
+
+    if (table.isEmpty()) {
+      return;
+    }
+
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
 
     switch (viewColumnIndex) {
+      case -1:
+        table.setRowSelectionInterval(0, 0);
+        table.setColumnSelectionInterval(0, 0);
+
+        break;
       case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
       case VirtualTableView.API_VIEW_COLUMN_INDEX:
         model.setLeadSelectionIndex(viewColumnIndex + 1);
