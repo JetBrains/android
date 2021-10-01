@@ -280,10 +280,9 @@ private fun analyzeLongText(renderResult: RenderResult,
 }
 
 private fun findLongText(root: ViewInfo, model: NlModel, issueProvider: VisualLintIssueProvider) {
-  if (root.viewObject is TextView) {
-    val layout = (root.viewObject as TextView).layout
-    for (i in 0 until layout.lineCount) {
-      val numChars = layout.getLineVisibleEnd(i) - layout.getEllipsisCount(i) - layout.getLineStart(i) + 1
+  (root.viewObject as? TextView)?.layout?.let {
+    for (i in 0 until it.lineCount) {
+      val numChars = it.getLineVisibleEnd(i) - it.getEllipsisCount(i) - it.getLineStart(i) + 1
       if (numChars > 120) {
         val viewName = simpleName(root)
         val summary = "$viewName has lines containing more than 120 characters"
