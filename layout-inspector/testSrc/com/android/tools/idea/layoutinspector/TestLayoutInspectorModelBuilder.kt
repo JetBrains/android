@@ -248,7 +248,7 @@ class InspectorModelDescriptor(val project: Project) {
       val strings = TestStringTable()
       val config = ConfigurationParamsBuilder(strings)
       model.resourceLookup.updateConfiguration(
-        FolderConfiguration.createDefault(), config.makeSampleContext(project), strings, config.makeSampleProcess(project))
+        FolderConfiguration.createDefault(), 0f, config.makeSampleContext(project), strings, config.makeSampleProcess(project))
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->
