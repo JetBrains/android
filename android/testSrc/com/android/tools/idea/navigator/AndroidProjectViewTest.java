@@ -424,7 +424,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                                   Stack<String> path,
                                   Set<List<String>> result) {
     for (Object child : structure.getChildElements(node)) {
-      String nodeName = ((AbstractTreeNode)child).toTestString(null);
+      String nodeName = ((AbstractTreeNode<?>)child).toTestString(null);
       if (structure.getChildElements(child).length == 0) {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);

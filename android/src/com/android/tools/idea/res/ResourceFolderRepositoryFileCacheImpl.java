@@ -393,11 +393,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);
-      dumbService.queueTask(pruneTask);
+      pruneTask.queue(project);
 
       // Prune stale projects, and manage LRU list (putting current project in front).
       ManageLruProjectFilesTask manageProjectsTask = new ManageLruProjectFilesTask(project);
-      dumbService.queueTask(manageProjectsTask);
+      manageProjectsTask.queue(project);
     }
   }
 
@@ -406,11 +406,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
-      DumbService dumbService = DumbService.getInstance(project);
-
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
-      dumbService.queueTask(task);
+      task.queue(project);
     }
   }
 }

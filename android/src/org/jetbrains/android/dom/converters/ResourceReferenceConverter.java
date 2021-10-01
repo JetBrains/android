@@ -675,7 +675,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       DomElement domElement = context.getInvocationElement();
 
       if (domElement instanceof GenericDomValue) {
-        String value = ((GenericDomValue)domElement).getStringValue();
+        String value = ((GenericDomValue<?>)domElement).getStringValue();
 
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);

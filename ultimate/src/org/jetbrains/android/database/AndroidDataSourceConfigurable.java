@@ -319,7 +319,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
   private boolean isSelectedFromList(@NotNull ComboBox<String> comboBox) {
     String currentValue = (String)comboBox.getEditor().getItem();
-    return StringUtil.isEmpty(currentValue) || ((DefaultComboBoxModel)comboBox.getModel()).getIndexOf(currentValue) >= 0;
+    return StringUtil.isEmpty(currentValue) || ((DefaultComboBoxModel<?>)comboBox.getModel()).getIndexOf(currentValue) >= 0;
   }
 
   @NotNull

@@ -59,7 +59,7 @@ public class AndroidProjectRootListener {
    * @param project the project whose module roots changed
    */
   private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
-    DumbService.getInstance(project).queueTask(new DumbModeTask(project) {
+    new DumbModeTask(project) {
       @Override
       public void performInDumbMode(@NotNull ProgressIndicator indicator) {
         if (!project.isDisposed()) {
@@ -70,7 +70,7 @@ public class AndroidProjectRootListener {
           }
         }
       }
-    });
+    }.queue(project);
   }
 
   /**

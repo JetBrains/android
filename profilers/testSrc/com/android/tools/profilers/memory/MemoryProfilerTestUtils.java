@@ -98,7 +98,7 @@ public class MemoryProfilerTestUtils {
   public static MemoryObjectTreeNode<ClassifierSet> getRootClassifierSet(@Nullable JTree tree) {
     assertNotNull(tree);
     Object root = tree.getModel().getRoot();
-    assertTrue(root instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)root).getAdapter() instanceof ClassifierSet);
+    assertTrue(root instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode<?>)root).getAdapter() instanceof ClassifierSet);
     //noinspection unchecked
     return (MemoryObjectTreeNode<ClassifierSet>)root;
   }

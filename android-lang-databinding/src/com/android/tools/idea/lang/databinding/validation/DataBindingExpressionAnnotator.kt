@@ -39,6 +39,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClass
@@ -106,7 +107,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   }
 
   private fun annotateError(element: PsiElement, error: String, vararg args: Any?) {
-    holder!!.createErrorAnnotation(element, error.format(*args))
+    holder!!.newAnnotation(HighlightSeverity.ERROR, error.format(*args)).range(element).create()
   }
 
   /**
