@@ -101,4 +101,24 @@ class TabbedToolbarTest {
     buttonComponents.forEach { (it as CommonButton).doClick() }
     assertThat(clicked).isTrue()
   }
+
+  @Test
+  fun `can select tab by index`() {
+    var selected = "nope"
+    val toolbar = TabbedToolbar(JLabel("Title"))
+    toolbar.addTab("First") { selected = "First" }
+    toolbar.addTab("Second") { selected = "Second" }
+    toolbar.addTab("Third") { selected = "Third" }
+
+    assertThat(toolbar.countTabs()).isEqualTo(3)
+    toolbar.selectTab(1)
+    assertThat(selected).isEqualTo("Second")
+
+    toolbar.clearTabs()
+    toolbar.addTab("Fourth") { selected = "Fourth" }
+    toolbar.addTab("Fifth") { selected = "Fifth" }
+    assertThat(toolbar.countTabs()).isEqualTo(2)
+    toolbar.selectTab(1)
+    assertThat(selected).isEqualTo("Fifth")
+  }
 }
