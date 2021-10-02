@@ -36,6 +36,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -57,6 +59,7 @@ public class TabbedToolbar extends JPanel {
   // Note: If we do not set the preferred height of the child the label is not framed properly.
   // Note: If we do not use the updated preferred height when more than 1 item is added we end up with a pixel space on the first item.
   private int myPreferredHeight;
+  private List<Runnable> mySelectionActions = new ArrayList<Runnable>();
 
   /**
    * Creates a toolbar where the label can be replaces by a custom component.
@@ -98,13 +101,15 @@ public class TabbedToolbar extends JPanel {
    */
   public void addTab(@NotNull String name, @NotNull TabListener selectedListener, @Nullable TabListener closedListener) {
     TabLabel tab = new TabLabel(name, closedListener);
+    Runnable selectTabAction = () -> {
+      selectTab(tab, selectedListener);
+      repaint(); // Need to repaint to adjust blue label for selected tab
+    };
     tab.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         super.mousePressed(e);
-        selectTab(tab, selectedListener);
-        // Need to repaint to adjust blue label for selected tab.
-        repaint();
+        selectTabAction.run();
       }
 
       @Override
@@ -143,6 +148,7 @@ public class TabbedToolbar extends JPanel {
       }
     });
     myTabsPanel.add(tab);
+    mySelectionActions.add(selectTabAction);
     // Cache preferred height of control so we can properly adjust child elements sizes.
     myPreferredHeight = getPreferredSize().height;
     selectTab(tab, selectedListener);
@@ -153,7 +159,16 @@ public class TabbedToolbar extends JPanel {
    */
   public void clearTabs() {
     myTabsPanel.removeAll();
+    mySelectionActions.clear();
     myPreferredHeight = 0; // Clear preferred height to prevent growing forever.
+  }
+
+  public int countTabs() {
+    return mySelectionActions.size();
+  }
+
+  public void selectTab(int tabIndex) {
+    mySelectionActions.get(tabIndex).run();
   }
 
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
