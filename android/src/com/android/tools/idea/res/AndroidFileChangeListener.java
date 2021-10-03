@@ -16,16 +16,19 @@
 package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.FD_RES_RAW;
+import static java.lang.Math.max;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.util.FileExtensions;
 import com.intellij.AppTopics;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -332,6 +335,8 @@ public class AndroidFileChangeListener implements Disposable {
     }
 
     private void onFileOrDirectoryCreated(@Nullable VirtualFile parent, @NotNull String childName) {
+      ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
+                                     pathForLogging(parent, childName) + ")");
       if (parent == null || !parent.exists()) {
         return;
       }
@@ -350,9 +355,18 @@ public class AndroidFileChangeListener implements Disposable {
       }
 
       if (cachedRepositories != null) {
+        ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated: Dispatching to repositories");
         onFileOrDirectoryCreated(created, cachedRepositories.namespaced);
         onFileOrDirectoryCreated(created, cachedRepositories.nonNamespaced);
       }
+    }
+
+    private @NotNull String pathForLogging(@Nullable VirtualFile parent, @NotNull String childName) {
+      if (parent == null) {
+        return childName;
+      }
+      PathString path = FileExtensions.toPathString(parent).resolve(childName);
+      return path.subpath(max(path.getNameCount(), 4), path.getNameCount()).getNativePath();
     }
 
     private static void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
@@ -360,6 +374,8 @@ public class AndroidFileChangeListener implements Disposable {
         return;
       }
 
+      ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" + created + ", " +
+                                     repository.getDisplayName() + ")");
       if (!created.isDirectory()) {
         repository.onFileCreated(created);
       }

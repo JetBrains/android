@@ -175,6 +175,9 @@
     <option name="resource" path="ActionManager" hit="Display selected file in the Resource Manager" />
     <option name="selected" path="ActionManager" hit="Display selected file in the Resource Manager" />
     <option name="the" path="ActionManager" hit="Display selected file in the Resource Manager" />
+    <option name="dump" path="ActionManager" hit="Dump Resource Trace" />
+    <option name="resource" path="ActionManager" hit="Dump Resource Trace" />
+    <option name="trace" path="ActionManager" hit="Dump Resource Trace" />
     <option name="build" path="ActionManager" hit="Edit Build Types..." />
     <option name="edit" path="ActionManager" hit="Edit Build Types..." />
     <option name="types" path="ActionManager" hit="Edit Build Types..." />
@@ -188,10 +191,6 @@
     <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="enable" path="ActionManager" hit="Enable Resource Update Tracing" />
-    <option name="resource" path="ActionManager" hit="Enable Resource Update Tracing" />
-    <option name="tracing" path="ActionManager" hit="Enable Resource Update Tracing" />
-    <option name="update" path="ActionManager" hit="Enable Resource Update Tracing" />
     <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />

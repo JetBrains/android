@@ -16,27 +16,22 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ex.ApplicationInfoEx
-import com.intellij.openapi.project.DumbAwareToggleAction
+import com.intellij.openapi.project.DumbAware
 
 /**
- * Enables/disables tracing in [ResourceFolderRepository].
+ * Dumps resource trace to idea.log.
  */
-class ToggleResourceUpdateTracingAction : DumbAwareToggleAction("Enable Resource Update Tracing") {
-  override fun isSelected(event: AnActionEvent): Boolean = ResourceFolderRepository.isTracingActive()
-
-  override fun setSelected(event: AnActionEvent, state: Boolean) {
-    if (state) {
-      ResourceFolderRepository.startTracing()
-    }
-    else {
-      ResourceFolderRepository.stopTracingAndDump()
-    }
+class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
+  override fun actionPerformed(e: AnActionEvent) {
+    ResourceUpdateTracer.dumpTrace(null)
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = StudioFlags.RESOURCE_REPOSITORY_TRACE_UPDATES.get() || ApplicationInfoEx.getInstanceEx().isEAP
+    event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
   }
 }

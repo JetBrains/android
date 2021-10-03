@@ -154,7 +154,7 @@
     </group>
     <group id="Android.Diagnostics">
       <separator/>
-      <action class="com.android.tools.idea.res.ToggleResourceUpdateTracingAction"/>
+      <action class="com.android.tools.idea.res.DumpResourceTraceAction"/>
       <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
     </group>
 

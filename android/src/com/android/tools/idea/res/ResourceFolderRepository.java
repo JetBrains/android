@@ -31,6 +31,8 @@ import static com.android.resources.base.ResourceSerializationUtil.createPersist
 import static com.android.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
 import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
+import static com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging;
+import static com.android.utils.TraceUtils.getSimpleId;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.SdkConstants;
@@ -67,10 +69,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.FileExtensions;
-import com.android.utils.FlightRecorder;
 import com.android.utils.SdkUtils;
-import com.android.utils.TraceUtils;
-import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -143,7 +142,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
@@ -192,7 +190,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static final Comparator<ResourceItemSource<? extends ResourceItem>> SOURCE_COMPARATOR =
       Comparator.comparing(ResourceItemSource::getFolderConfiguration);
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
-  private static final Tracer TRACER = new Tracer(false);
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final PsiTreeChangeListener myPsiListener;
@@ -290,10 +287,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     Loader loader = new Loader(this, cachingData);
     loader.load();
 
-    if (StudioFlags.RESOURCE_REPOSITORY_TRACE_UPDATES.get()) {
-      startTracing();
-    }
-
     Disposer.register(myFacet, updateExecutor::shutdownNow);
   }
 
@@ -378,10 +371,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   @SuppressWarnings("GuardedBy")
   private void commitToRepositoryWithoutLock(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> itemsByType) {
-    TRACER.log(() -> "ResourceFolderRepository.commitToRepositoryWithoutLock");
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".commitToRepositoryWithoutLock");
     for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : itemsByType.entrySet()) {
       for (ResourceItem item : entry.getValue().values()) {
-        TRACER.log(() -> "Committing " + item.getType() + '/' + item.getName());
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Committing " + item.getType() + '/' + item.getName());
       }
       getOrCreateMap(entry.getKey()).putAll(entry.getValue());
     }
@@ -672,7 +665,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (LOG.isDebugEnabled()) {
       LOG.debug("Converting to PSI ", psiFile);
     }
-    TRACER.log(() -> "ResourceFolderRepository.convertToPsiIfNeeded " + psiFile.getVirtualFile() + " converting to PSI");
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".convertToPsiIfNeeded " + pathForLogging(psiFile) + " converting to PSI");
     scheduleScan(virtualFile, folderType);
     return true;
   }
@@ -685,30 +678,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void scheduleScan(@NotNull VirtualFile virtualFile, @NotNull ResourceFolderType folderType) {
-    TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile));
     synchronized (scanLock) {
       if (!pendingScans.add(virtualFile)) {
-        TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " pending already");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile) + " pending already");
         return;
       }
     }
 
     scheduleUpdate(() -> {
-      TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " preparing to scan");
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile) + " preparing to scan");
       if (!virtualFile.isValid() || !isScanPending(virtualFile)) {
-        TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " pending already");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile) + " pending already");
         return;
       }
       PsiFile psiFile = findPsiFile(virtualFile);
       if (psiFile == null) {
-        TRACER.log(() -> "ResourceFolderRepository.scheduleScan no PSI " + virtualFile);
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan no PSI " + pathForLogging(virtualFile));
         return;
       }
 
       ProgressIndicator runHandle;
       synchronized (scanLock) {
         if (!pendingScans.remove(virtualFile)) {
-          TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " scanned already");
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile) + " scanned already");
           return;
         }
         runHandle = new EmptyProgressIndicator();
@@ -724,7 +717,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       finally {
         synchronized (scanLock) {
           runningScans.remove(virtualFile, runHandle);
-          TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " finished scanning");
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleScan " + pathForLogging(virtualFile) + " finished scanning");
         }
       }
     });
@@ -735,7 +728,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * All update actions are executed in the same order they were scheduled.
    */
   private void scheduleUpdate(@NotNull Runnable updateAction) {
-    TRACER.log(() -> "ResourceFolderRepository.scheduleUpdate scheduling " + updateAction);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scheduleUpdate scheduling " + updateAction);
     boolean wasEmpty;
     synchronized (updateQueue) {
       wasEmpty = updateQueue.isEmpty();
@@ -752,13 +745,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 break;
               }
             }
-            TRACER.log(() -> "Update " + action + " started");
+            ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " started");
             try {
               ReadAction.nonBlocking(action).expireWith(myFacet).executeSynchronously();
-              TRACER.log(() -> "Update " + action + " finished");
+              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " finished");
             }
             catch (ProcessCanceledException e) {
-              TRACER.log(() -> "Update " + action + " was canceled");
+              ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Update " + action + " was canceled");
               // The current update action has been canceled. Proceed to the next one in the queue.
             }
             catch (Throwable e) {
@@ -775,7 +768,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
-    TRACER.log(() -> "ResourceFolderRepository.runAfterPendingUpdatesFinish " + callback);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".runAfterPendingUpdatesFinish " + callback);
     scheduleUpdate(() -> executor.execute(callback));
   }
 
@@ -796,7 +789,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       return;
     }
 
-    TRACER.log(() -> "ResourceFolderRepository.scan " + psiFile.getVirtualFile());
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scan " + pathForLogging(psiFile));
     if (LOG.isDebugEnabled()) {
       LOG.debug("Rescanning ", psiFile);
     }
@@ -939,7 +932,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     commitToRepository(result);
-    TRACER.log(() -> "ResourceFolderRepository.scan " + psiFile.getVirtualFile() + " end");
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".scan " + pathForLogging(psiFile) + " end");
   }
 
   private void scan(@NotNull VirtualFile file) {
@@ -1072,29 +1065,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return myPsiListener;
   }
 
-  @Nullable
-  private VirtualFile psiToVirtual(@Nullable PsiFile psiFile) {
-    return psiFile == null ? null : psiFile.getVirtualFile();
-  }
-
   protected void setModificationCount(long count) {
-    TRACER.log(() -> "ResourceFolderRepository.setModificationCount " + count);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".setModificationCount " + count);
     super.setModificationCount(count);
-  }
-
-  static void startTracing() {
-    FlightRecorder.initialize(StudioFlags.RESOURCE_REPOSITORY_TRACE_SIZE.get());
-    TRACER.enabled = true;
-  }
-
-  static void stopTracingAndDump() {
-    TRACER.enabled = false;
-    List<Object> trace = FlightRecorder.getAndClear();
-    LOG.info("Resource update trace:\n" + Joiner.on('\n').join(trace) + "\n-------------------------");
-  }
-
-  static boolean isTracingActive() {
-    return TRACER.enabled;
   }
 
   /**
@@ -1105,12 +1078,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private final class SimplePsiListener extends PsiTreeAnyChangeAbstractAdapter {
     @Override
     protected void onChange(@Nullable PsiFile psiFile) {
-      TRACER.log(() -> "SimplePsiListener.onChange " + psiToVirtual(psiFile));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onChange " + pathForLogging(psiFile));
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
       if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
         scheduleScan(psiFile.getVirtualFile(), folderType);
       }
-      TRACER.log(() -> "SimplePsiListener.onChange " + psiToVirtual(psiFile) + " end");
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onChange " + pathForLogging(psiFile) + " end");
     }
   }
 
@@ -1124,7 +1097,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     @Override
     public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      TRACER.log(() -> "IncrementalUpdatePsiListener.childAdded " + psiToVirtual(event.getFile()));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childAdded " + pathForLogging(event.getFile()));
       try {
         PsiFile psiFile = event.getFile();
         if (psiFile != null && isRelevantFile(psiFile)) {
@@ -1190,8 +1163,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       if (((PsiResourceItem)parentItem).recomputeValue()) {
                         setModificationCount(ourModificationCounter.incrementAndGet());
                       }
-                      TRACER.log(() -> "IncrementalUpdatePsiListener.childAdded " + psiToVirtual(event.getFile()) +
-                                       " recomputed: " + parentItem);
+                      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childAdded " + pathForLogging(event.getFile()) +
+                                                     " recomputed: " + parentItem);
                       return;
                     }
                   }
@@ -1276,7 +1249,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                           assert resourceFile instanceof PsiResourceFile;
                           PsiResourceFile psiResourceFile = (PsiResourceFile)resourceFile;
                           psiResourceFile.addItem(newIdResource);
-                          TRACER.log(() -> "Adding id/" + newIdResource.getName());
+                          ResourceUpdateTracer.log(() -> getSimpleId(this) + ": Adding id/" + newIdResource.getName());
                           getOrCreateMap(ResourceType.ID).put(newIdResource.getName(), newIdResource);
                           setModificationCount(ourModificationCounter.incrementAndGet());
                           invalidateParentCaches(ResourceFolderRepository.this, ResourceType.ID);
@@ -1298,13 +1271,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         myIgnoreChildrenChanged = true;
       }
       finally {
-        TRACER.log(() -> "IncrementalUpdatePsiListener.childAdded " + psiToVirtual(event.getFile()) + " end");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childAdded " + pathForLogging(event.getFile()) + " end");
       }
     }
 
     @Override
     public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      TRACER.log(() -> "IncrementalUpdatePsiListener.childRemoved " + psiToVirtual(event.getFile()));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childRemoved " + pathForLogging(event.getFile()));
       try {
         PsiFile psiFile = event.getFile();
         if (psiFile != null && isRelevantFile(psiFile)) {
@@ -1338,8 +1311,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       if (((PsiResourceItem)resourceItem).recomputeValue()) {
                         setModificationCount(ourModificationCounter.incrementAndGet());
                       }
-                      TRACER.log(() -> "IncrementalUpdatePsiListener.childRemoved " + psiToVirtual(event.getFile()) +
-                                       " recomputed: " + resourceItem);
+                      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childRemoved " + pathForLogging(event.getFile()) +
+                                                     " recomputed: " + resourceItem);
 
                       if (resourceItem.getType() == ResourceType.ATTR) {
                         parentTag = parentTag.getParentTag();
@@ -1430,13 +1403,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         myIgnoreChildrenChanged = true;
       }
       finally {
-        TRACER.log(() -> "IncrementalUpdatePsiListener.childRemoved " + psiToVirtual(event.getFile()) + " end");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childRemoved " + pathForLogging(event.getFile()) + " end");
       }
     }
 
     @Override
     public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-      TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()));
       try {
         PsiFile psiFile = event.getFile();
         if (psiFile != null) {
@@ -1533,8 +1506,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   XmlTag xmlTag = attribute.getParent();
                   String oldText = StringUtil.notNullize(event.getOldChild().getText()).trim();
                   String newText = StringUtil.notNullize(event.getNewChild().getText()).trim();
-                  TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) +
-                                   " oldText: \"" + oldText + "\" newText: \"" + newText + "\"");
+                  ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) +
+                                                 " oldText: \"" + oldText + "\" newText: \"" + newText + "\"");
                   if (oldText.startsWith(NEW_ID_PREFIX) || newText.startsWith(NEW_ID_PREFIX)) {
                     ResourceItemSource<? extends ResourceItem> resourceFile = mySources.get(psiFile.getVirtualFile());
                     if (!(resourceFile instanceof PsiResourceFile)) {
@@ -1618,8 +1591,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       if (((PsiResourceItem)resourceItem).recomputeValue()) {
                         setModificationCount(ourModificationCounter.incrementAndGet());
                       }
-                      TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) +
-                                       " recomputed: " + resourceItem);
+                      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) +
+                                                     " recomputed: " + resourceItem);
                       return;
                     }
                   }
@@ -1659,8 +1632,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     if (type != null) {
                       String oldName = event.getOldChild().getText();
                       String newName = event.getNewChild().getText();
-                      TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) +
-                                       " oldName: \"" + oldName + "\" newName: \"" + newName + "\"");
+                      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) +
+                                                     " oldName: \"" + oldName + "\" newName: \"" + newName + "\"");
                       if (oldName.equals(newName)) {
                         // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc).
                         return;
@@ -1720,8 +1693,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                             if (style instanceof PsiResourceItem) {
                               ((PsiResourceItem)style).recomputeValue();
                             }
-                            TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) +
-                                             " recomputed: " + style);
+                            ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) +
+                                                           " recomputed: " + style);
                           }
                         }
                       });
@@ -1741,8 +1714,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                           if (((PsiResourceItem)resourceItem).recomputeValue()) {
                             setModificationCount(ourModificationCounter.incrementAndGet());
                           }
-                          TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) +
-                                           " recomputed: " + resourceItem);
+                          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) +
+                                                         " recomputed: " + resourceItem);
                           return;
                         }
                       }
@@ -1797,7 +1770,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         myIgnoreChildrenChanged = true;
       }
       finally {
-        TRACER.log(() -> "IncrementalUpdatePsiListener.childReplaced " + psiToVirtual(event.getFile()) + " end");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childReplaced " + pathForLogging(event.getFile()) + " end");
       }
     }
 
@@ -1810,11 +1783,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     private boolean rescheduleScanIfRunning(@NotNull VirtualFile virtualFile) {
       synchronized (scanLock) {
         if (pendingScans.contains(virtualFile)) {
-          TRACER.log(() -> "IncrementalUpdatePsiListener.rescheduleScanIfRunning " + virtualFile + " scan is already pending");
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".rescheduleScanIfRunning " + pathForLogging(virtualFile) +
+                                         " scan is already pending");
           return true;
         }
         if (runningScans.containsKey(virtualFile)) {
-          TRACER.log(() -> "IncrementalUpdatePsiListener.rescheduleScanIfRunning " + virtualFile + " rescheduling scan");
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".rescheduleScanIfRunning " + pathForLogging(virtualFile) +
+                                         " rescheduling scan");
           scheduleScan(virtualFile);
           return true;
         }
@@ -1856,7 +1831,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               if (cleared) { // Only bump revision if this is a value which has already been observed!
                 setModificationCount(ourModificationCounter.incrementAndGet());
               }
-              TRACER.log(() -> "IncrementalUpdatePsiListener.handleValueXmlTextEdit " + virtualFile + " recomputed: " + item);
+              ResourceUpdateTracer.log(() -> getSimpleId(this) + ".handleValueXmlTextEdit " + pathForLogging(virtualFile) +
+                                             " recomputed: " + item);
             }
           });
           return;
@@ -1884,7 +1860,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             if (cleared) { // Only bump revision if this is a value which has already been observed!
               setModificationCount(ourModificationCounter.incrementAndGet());
             }
-            TRACER.log(() -> "IncrementalUpdatePsiListener.handleValueXmlTextEdit " + virtualFile + " recomputed: " + item);
+            ResourceUpdateTracer.log(() -> getSimpleId(this) + ".handleValueXmlTextEdit " + pathForLogging(virtualFile) +
+                                           " recomputed: " + item);
           }
         });
       }
@@ -1894,13 +1871,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     @Override
     public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      TRACER.log(() -> "IncrementalUpdatePsiListener.beforeChildrenChange " + psiToVirtual(event.getFile()));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".beforeChildrenChange " + pathForLogging(event.getFile()));
       myIgnoreChildrenChanged = false;
     }
 
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      TRACER.log(() -> "IncrementalUpdatePsiListener.childrenChanged " + psiToVirtual(event.getFile()));
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childrenChanged " + pathForLogging(event.getFile()));
       PsiElement parent = event.getParent();
       // Called after children have changed. There are typically individual childMoved, childAdded etc
       // calls that we hook into for more specific details. However, there are some events we don't
@@ -1911,12 +1888,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         // are the same, and in those cases there may be other child events we need to process
         // so fall through and process the whole file.
         if (parent != event.getChild()) {
-          TRACER.log(() -> "IncrementalUpdatePsiListener.childrenChanged " + psiToVirtual(event.getFile()) + " event already processed");
+          ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childrenChanged " + pathForLogging(event.getFile()) +
+                                         " event already processed");
           return;
         }
       }
       else if (event instanceof PsiTreeChangeEventImpl && ((PsiTreeChangeEventImpl)event).isGenericChange()) {
-        TRACER.log(() -> "IncrementalUpdatePsiListener.childrenChanged " + psiToVirtual(event.getFile()) + " generic change");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childrenChanged " + pathForLogging(event.getFile()) +
+                                       " generic change");
         return;
       }
 
@@ -1924,7 +1903,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       // that can be expensive.
       PsiElement firstChild = parent != null && !(parent instanceof PsiFile) ? parent.getFirstChild() : null;
       if (firstChild instanceof PsiWhiteSpace && firstChild == parent.getLastChild()) {
-        TRACER.log(() -> "IncrementalUpdatePsiListener.childrenChanged " + psiToVirtual(event.getFile()) + " white space");
+        ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childrenChanged " + pathForLogging(event.getFile()) + " white space");
         // This event is just adding white spaces.
         return;
       }
@@ -1946,19 +1925,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           LOG.debug("Received unexpected childrenChanged event for inter-file operations", throwable);
         }
       }
-      TRACER.log(() -> "IncrementalUpdatePsiListener.childrenChanged " + psiToVirtual(event.getFile()) + " end");
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".childrenChanged " + pathForLogging(event.getFile()) + " end");
     }
   }
 
   void onFileCreated(@NotNull VirtualFile file) {
-    TRACER.log(() -> "ResourceFolderRepository.onFileCreated " + file);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onFileCreated " + pathForLogging(file));
     scheduleScan(file);
   }
 
   void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-    TRACER.log(() -> "ResourceFolderRepository.onFileOrDirectoryRemoved " + file);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onFileOrDirectoryRemoved " + pathForLogging(file));
     scheduleUpdate(() -> {
-      TRACER.log(() -> "ResourceFolderRepository.onFileOrDirectoryRemoved processing removal of " + file);
+      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onFileOrDirectoryRemoved processing removal of " + pathForLogging(file));
       if (file.isDirectory()) {
         for (Iterator<Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>>> iterator = mySources.entrySet().iterator();
              iterator.hasNext(); ) {
@@ -1982,7 +1961,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
-    TRACER.log(() -> "ResourceFolderRepository.onSourceRemoved " + file);
+    ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onSourceRemoved " + pathForLogging(file));
 
     boolean removed = removeItemsFromSource(source);
     if (removed) {
@@ -2562,20 +2541,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static class ParsingException extends RuntimeException {
     ParsingException(Throwable cause) {
       super(cause);
-    }
-  }
-
-  private static class Tracer {
-    boolean enabled;
-
-    Tracer(boolean enabled) {
-      this.enabled = enabled;
-    }
-
-    void log(@NotNull Supplier<?> lazyRecord) {
-      if (enabled) {
-        FlightRecorder.log(() -> TraceUtils.currentTime() + ' ' + lazyRecord.get());
-      }
     }
   }
 }
