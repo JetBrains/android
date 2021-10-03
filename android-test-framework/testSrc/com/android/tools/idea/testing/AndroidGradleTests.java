@@ -50,6 +50,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -674,5 +675,27 @@ public class AndroidGradleTests {
       jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
     }
     return jdkRootPath.getCanonicalPath();
+  }
+
+
+  /**
+   * Returns the main module for the Java module under the given moduleName.
+   *
+   * @param moduleName the name of the Gradle project to find the main module for
+   * @return the main module
+   */
+  @NotNull
+  public static Module getMainJavaModule(@NotNull Project project, @NotNull String moduleName) {
+    Module holderModule = TestModuleUtil.findModule(project, moduleName);
+
+    if (AndroidFacet.getInstance(holderModule) != null) {
+      throw new IllegalArgumentException("The module named " + moduleName + " must be a Java only module!");
+    }
+
+    if (!ModuleUtil.isModulePerSourceSetEnabled(project)) {
+      return holderModule;
+    }
+
+    return TestModuleUtil.findModule(project, moduleName + ".main");
   }
 }
