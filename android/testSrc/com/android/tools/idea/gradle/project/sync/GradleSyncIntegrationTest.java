@@ -16,14 +16,11 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
@@ -65,7 +62,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
@@ -112,17 +108,15 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
-import com.intellij.testFramework.LeakHunter;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -457,7 +451,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     loadProject(SIMPLE_APPLICATION);
 
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    assertSize(2, modules);
     for (Module module : modules) {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (module.getName().contains("app")) {
@@ -669,8 +662,9 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     }
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
-    Module lib1Module = getModule("lib1");
-    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getModule("lib2").getName(), DependencyScope.COMPILE, false);
+    Module lib1Module = AndroidGradleTests.getMainJavaModule(getProject(), "lib1");
+    assertAbout(moduleDependencies()).that(lib1Module)
+      .hasDependency(AndroidGradleTests.getMainJavaModule(getProject(), "lib2").getName(), DependencyScope.COMPILE, false);
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
