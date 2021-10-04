@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.editor.AndroidDebuggerContext
@@ -26,7 +27,6 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Element
@@ -62,5 +62,5 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     XmlSerializer.deserializeInto(this, element)
   }
 
-  override fun getValidModules() = ModuleManager.getInstance(project).modules.filter { AndroidFacet.getInstance(it) != null }
+  override fun getValidModules() = project.getAndroidModulesForDisplay()
 }

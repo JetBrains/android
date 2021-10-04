@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
@@ -48,6 +50,7 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
         return false
       }
       val facet = AndroidFacet.getInstance(module) ?: return false
+      if (!module.isHolderModule()) return false
       return !facet.configuration.isLibraryProject
     }
   }
@@ -69,7 +72,7 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
           facade.findClass(it, ProjectScope.getAllScope(project))
         }
         surfaceBaseClasses.flatMap { baseClass ->
-          ClassInheritorsSearch.search(baseClass, module.moduleScope, true).findAll().mapNotNull { it.qualifiedName }
+          ClassInheritorsSearch.search(baseClass, module.getMainModule().moduleScope, true).findAll().mapNotNull { it.qualifiedName }
         }
       }
       wearComponentFqNameComboBox.component.model = DefaultComboBoxModel(availableComponents.toTypedArray())
