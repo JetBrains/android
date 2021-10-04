@@ -15,12 +15,9 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuCapture
 import java.util.concurrent.TimeUnit
-import javax.swing.RowSorter
-import javax.swing.SortOrder
 
 /**
  * Tab model for the Frames tab in the Analysis Panel.
@@ -29,7 +26,7 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
   /**
    * Frame table data by layer. This is lazily initialized because at the time of construction, the [CpuCapture] data is not yet available.
    */
-  val tableModels: List<FrameEventTableModel> by lazy {
+  val tableModels: List<PaginatedTableModel<FrameEventRow>> by lazy {
     val layers = dataSeries.flatMap { it.systemTraceData?.getAndroidFrameLayers() ?: listOf() }
     // Transform frame event proto (grouped by phase) into table model (grouped by frame number).
     layers.map { layer ->
@@ -54,7 +51,11 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
           }
         }
       }
-      FrameEventTableModel(layer.layerName, frameNumberToRow.values.toMutableList())
+      frameNumberToRow.values.toMutableList()
+        .asTableModel(getColumn = FrameEventTableColumn::getValueFrom,
+                      getClass = FrameEventTableColumn::type,
+                      getName = FrameEventTableColumn::displayName,
+                      name = layer.layerName.let { it.substring(it.lastIndexOf('/') + 1) })
     }
   }
 }
@@ -73,48 +74,6 @@ data class FrameEventRow(val frameNumber: Int,
 }
 
 /**
- * Table model for the frame events table.
- */
-class FrameEventTableModel(val layerName: String, val frameEvents: MutableList<FrameEventRow>) : AbstractPaginatedTableModel(25) {
-  override fun getDataSize(): Int {
-    return frameEvents.size
-  }
-
-  override fun getDataValueAt(dataIndex: Int, columnIndex: Int): Any {
-    return FrameEventTableColumn.values()[columnIndex].getValueFrom(frameEvents[dataIndex])
-  }
-
-  override fun sortData(sortKeys: List<RowSorter.SortKey>) {
-    if (sortKeys.isNotEmpty()) {
-      val sortKey = sortKeys[0]
-      val comparator = FrameEventTableColumn.values()[sortKey.column].getComparator()
-      if (sortKey.sortOrder == SortOrder.ASCENDING) {
-        frameEvents.sortWith(comparator)
-      }
-      else {
-        frameEvents.sortWith(comparator.reversed())
-      }
-    }
-  }
-
-  override fun getColumnCount(): Int {
-    return FrameEventTableColumn.values().size
-  }
-
-  override fun getColumnClass(columnIndex: Int): Class<*> {
-    return FrameEventTableColumn.values()[columnIndex].type
-  }
-
-  override fun getColumnName(column: Int): String {
-    return FrameEventTableColumn.values()[column].displayName
-  }
-
-  override fun toString(): String {
-    return layerName.substring(layerName.lastIndexOf('/') + 1)
-  }
-}
-
-/**
  * Column definition for the frame events table.
  *
  * @param type use Java number classes (e.g. [java.lang.Long]) to ensure proper sorting in JTable
@@ -125,6 +84,4 @@ enum class FrameEventTableColumn(val displayName: String, val type: Class<*>, va
   APP("Application", java.lang.Long::class.java, FrameEventRow::appDurationUs),
   GPU("Wait for GPU", java.lang.Long::class.java, FrameEventRow::gpuDurationUs),
   COMPOSITION("Composition", java.lang.Long::class.java, FrameEventRow::compositionDurationUs);
-
-  fun getComparator(): Comparator<FrameEventRow> = compareBy(getValueFrom)
 }

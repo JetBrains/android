@@ -30,7 +30,7 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
   init {
     layout = BorderLayout()
     val tableContainer = JPanel(BorderLayout())
-    fun initializeTable(model: FrameEventTableModel) {
+    fun initializeTable(model: PaginatedTableModel<FrameEventRow>) {
       val table = PaginatedTableView(model, PAGE_SIZE_VALUES).apply {
         table.apply {
           showVerticalLines = true
@@ -46,7 +46,7 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
           selectionModel.addListSelectionListener {
             if (selectedRow >= 0) {
               val selectedEventIndex = convertRowIndexToModel(selectedRow) + model.pageIndex * model.pageSize
-              model.frameEvents[selectedEventIndex].let {
+              model.rows[selectedEventIndex].let {
                 profilersView.studioProfilers.stage.timeline.viewRange.set(it.startTimeUs.toDouble(), it.endTimeUs.toDouble())
               }
             }
@@ -61,7 +61,7 @@ class CpuAnalysisFramesTab(profilersView: StudioProfilersView,
       // Add a dropdown list when there are multiple layers.
       val layerDropdownList = ComboBox(model.tableModels.toTypedArray()).apply {
         addActionListener {
-          initializeTable(this.selectedItem as FrameEventTableModel)
+          initializeTable(this.selectedItem as PaginatedTableModel<FrameEventRow>)
         }
       }
       add(JPanel(BorderLayout()).apply {

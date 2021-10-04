@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.PaginatedTableView
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.model.AbstractPaginatedTableModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.analysis.CaptureNodeDetailTable.Companion.PAGE_SIZE_VALUES
@@ -27,8 +26,6 @@ import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
-import javax.swing.RowSorter
-import javax.swing.SortOrder
 import javax.swing.table.AbstractTableModel
 import com.android.tools.adtui.common.border as BorderColor
 
@@ -52,7 +49,11 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
   val component: JComponent
 
   private val extendedCaptureNodes = captureNodes.map { ExtendedCaptureNode(it) }.toMutableList()
-  private val tableModel = CaptureNodeDetailTableModel(initialPageSize, captureRange)
+  private val tableModel =
+    extendedCaptureNodes.asTableModel(getColumn = { it.getValue(captureRange) },
+                                      getClass = Column::type,
+                                      getName = Column::displayName,
+                                      pageSize = initialPageSize)
 
   init {
     if (initialPageSize < Int.MAX_VALUE) {
@@ -121,109 +122,20 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
   }
 
   /**
-   * Table model for the capture node detail table.
-   */
-  private inner class CaptureNodeDetailTableModel(pageSize: Int, private val captureRange: Range) : AbstractPaginatedTableModel(pageSize) {
-    override fun getDataSize(): Int {
-      return extendedCaptureNodes.size
-    }
-
-    override fun getDataValueAt(dataIndex: Int, columnIndex: Int): Any {
-      return Column.values()[columnIndex].getValueFrom(extendedCaptureNodes[dataIndex], captureRange)
-    }
-
-    override fun sortData(sortKeys: List<RowSorter.SortKey>) {
-      if (sortKeys.isNotEmpty()) {
-        val sortKey = sortKeys[0]
-        if (sortKey.sortOrder == SortOrder.ASCENDING) {
-          extendedCaptureNodes.sortWith(getColumnComparator(sortKey.column))
-        }
-        else {
-          extendedCaptureNodes.sortWith(getColumnComparator(sortKey.column).reversed())
-        }
-      }
-    }
-
-    override fun getColumnCount(): Int {
-      return Column.values().size
-    }
-
-    override fun getColumnClass(columnIndex: Int): Class<*> {
-      return Column.values()[columnIndex].type
-    }
-
-    override fun getColumnName(column: Int): String {
-      return Column.values()[column].displayName
-    }
-
-    private fun getColumnComparator(columnIndex: Int): Comparator<ExtendedCaptureNode> {
-      return Column.values()[columnIndex].getComparator()
-    }
-  }
-
-  /**
    * Column definition for the capture node details table.
    *
    * @param type use Java number classes (e.g. [java.lang.Long]) to ensure proper sorting in JTable
    */
-  private enum class Column(val displayName: String, val type: Class<*>) {
-    START_TIME("Start Time", java.lang.Long::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        // Display start time relative to capture start time.
-        return data.node.startGlobal - captureRange.min.toLong()
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.startGlobal }
-      }
-    },
-    NAME("Name", String::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        return data.node.data.name
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.data.name }
-      }
-    },
-    WALL_DURATION("Wall Duration", java.lang.Long::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        return data.node.endGlobal - data.node.startGlobal
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.endGlobal - it.node.startGlobal }
-      }
-    },
-    WALL_SELF_TIME("Wall Self Time", java.lang.Long::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        return data.selfGlobal
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.selfGlobal }
-      }
-    },
-    CPU_DURATION("CPU Duration", java.lang.Long::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        return data.node.endThread - data.node.startThread
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.node.endThread - it.node.startThread }
-      }
-    },
-    CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java) {
-      override fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any {
-        return data.selfThread
-      }
-
-      override fun getComparator(): Comparator<ExtendedCaptureNode> {
-        return compareBy { it.selfThread }
-      }
-    };
-
-    abstract fun getValueFrom(data: ExtendedCaptureNode, captureRange: Range): Any
-    abstract fun getComparator(): Comparator<ExtendedCaptureNode>
+  private enum class Column(val displayName: String,
+                            val type: Class<*>,
+                            val getValue: (Range) -> (ExtendedCaptureNode) -> Comparable<*>) {
+    START_TIME("Start Time", java.lang.Long::class.java,
+               // Display start time relative to capture start time.
+               { range -> { data -> data.node.startGlobal - range.min.toLong() } }),
+    NAME("Name", String::class.java, {{ it.node.data.name }}),
+    WALL_DURATION("Wall Duration", java.lang.Long::class.java,{{ it.node.endGlobal - it.node.startGlobal }}),
+    WALL_SELF_TIME("Wall Self Time", java.lang.Long::class.java, {{ it.selfGlobal }}),
+    CPU_DURATION("CPU Duration", java.lang.Long::class.java, { { it.node.endThread - it.node.startThread }}),
+    CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java, {{ it.selfThread }});
   }
 }

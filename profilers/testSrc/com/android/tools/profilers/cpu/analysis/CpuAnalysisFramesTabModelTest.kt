@@ -34,7 +34,7 @@ class CpuAnalysisFramesTabModelTest {
 
     assertThat(tableModel.rowCount).isEqualTo(4)
     assertThat(tableModel.columnCount).isEqualTo(5)
-    assertThat(tableModel.frameEvents).containsExactly(
+    assertThat(tableModel.rows).containsExactly(
       FrameEventRow(1, 0, 10, 5, 1, 3),
       FrameEventRow(2, 10, 27, 10, 2, 2),
       FrameEventRow(3, 20, 33, 3, 3, 3),
