@@ -20,6 +20,8 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTERPOLATED_TEXT_TYPE
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -47,7 +49,16 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
       if (plugin.name().toString().startsWith("com.android")) {
         val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
         if (version == current && version < new)  {
-          val resultModel = plugin.version().resultModel
+          val resultModel = when (plugin.version().valueType) {
+            GradlePropertyModel.ValueType.INTERPOLATED -> {
+              val interpolatedText = plugin.version().getValue(INTERPOLATED_TEXT_TYPE) ?: return
+              if (interpolatedText.interpolationElements.size != 1) return
+              val element = interpolatedText.interpolationElements.get(0)
+              val reference = element.referenceItem ?: return
+              GradlePropertyModelBuilder.create(reference.referredElement).buildResolved()
+            }
+            else -> plugin.version().resultModel
+          }
           val psiElement = when (val element = resultModel.rawElement) {
             null -> return
             else -> element.psiElement
