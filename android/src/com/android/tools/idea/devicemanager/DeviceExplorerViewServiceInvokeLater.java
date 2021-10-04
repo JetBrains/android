@@ -45,4 +45,13 @@ public final class DeviceExplorerViewServiceInvokeLater implements DeviceExplore
       }
     });
   }
+
+  @Override
+  public void showToolWindow() {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!myProject.isDisposed()) {
+        DeviceExplorerViewService.getInstance(myProject).showToolWindow();
+      }
+    });
+  }
 }

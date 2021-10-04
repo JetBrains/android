@@ -37,4 +37,6 @@ public interface DeviceExplorerViewService {
    * Opens the Device File Explorer tool window and selects the device matching the given serialNumber.
    */
   void openAndShowDevice(@NotNull String serialNumber);
+
+  void showToolWindow();
 }
