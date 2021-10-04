@@ -811,7 +811,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       @Override
       public void run() {
         // Whenever error queue is active, make sure to resume any paused scanner control.
-        myScannerControl.resume();
+        if (myScannerControl != null) {
+          myScannerControl.resume();
+        }
         // Look up *current* result; a newer one could be available
         Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
           .filter(LayoutlibSceneManager.class::isInstance)
@@ -1050,10 +1052,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setRenderSynchronously(boolean enabled) {
     myIsRenderingSynchronously = enabled;
     // If animation is enabled, scanner must be paused.
-    if (enabled) {
-      myScannerControl.pause();
-    } else {
-      myScannerControl.resume();
+    if (myScannerControl != null) {
+      if (enabled) {
+        myScannerControl.pause();
+      }
+      else {
+        myScannerControl.resume();
+      }
     }
   }
 
