@@ -62,7 +62,7 @@ public class NavNlEditorTest {
     SceneComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
 
-    assertThat(layout.getSelection()).containsExactly(screen.getSceneComponent());
+    assertThat(layout.getSelection()).containsExactly(screen.getSceneComponent().getNlComponent());
 
     List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
     assertEquals(1, selectedComponents.size());

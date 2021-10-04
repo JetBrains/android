@@ -430,6 +430,21 @@ java_test(
 )
 
 java_test(
+    name = "NavNlEditorTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/SimpleApplication/**",
+        "testData/Navigation/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavNlEditorTest"],
+    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "ConstraintLayoutTest",
     size = "large",
     data = COMMON_DATA + [
