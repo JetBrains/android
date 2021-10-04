@@ -54,7 +54,7 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
   fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
   fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
-  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider, extra: T.() -> Collection<IdeSourceProviderContainer>) =
+  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider?, extra: T.() -> Collection<IdeSourceProviderContainer>) =
     when (artifactName) {
       ARTIFACT_NAME_MAIN -> main()
       else -> extra().singleOrNull { it.artifactName == artifactName }?.sourceProvider

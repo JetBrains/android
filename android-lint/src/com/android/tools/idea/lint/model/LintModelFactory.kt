@@ -367,11 +367,12 @@ class LintModelFactory : LintModelModuleLoader {
     ): List<LintModelSourceProvider> {
         val providers = mutableListOf<LintModelSourceProvider>()
 
-        providers.add(getSourceProvider(project.defaultConfig.sourceProvider))
+        // if we have variant, than the main sourceset is present
+        providers.add(getSourceProvider(project.defaultConfig.sourceProvider!!))
 
         for (flavorContainer in project.productFlavors) {
             if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
-                providers.add(getSourceProvider(flavorContainer.sourceProvider))
+                providers.add(getSourceProvider(flavorContainer.sourceProvider!!))
             }
         }
 
@@ -386,7 +387,7 @@ class LintModelFactory : LintModelModuleLoader {
                 debugVariant = buildTypeContainer.buildType.isDebuggable
                 providers.add(
                     getSourceProvider(
-                        provider = buildTypeContainer.sourceProvider,
+                        provider = buildTypeContainer.sourceProvider!!,
                         debugOnly = debugVariant
                     )
                 )
@@ -437,7 +438,7 @@ class LintModelFactory : LintModelModuleLoader {
 
         for (extra in project.defaultConfig.extraSourceProviders) {
             if (extra.isTest()) {
-                providers.add(getSourceProvider(extra))
+                getSourceProvider(extra)?.let { providers.add(it) }
             }
         }
 
@@ -445,7 +446,7 @@ class LintModelFactory : LintModelModuleLoader {
             if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
                 for (extra in flavorContainer.extraSourceProviders) {
                     if (extra.isTest()) {
-                        providers.add(getSourceProvider(extra))
+                        getSourceProvider(extra)?.let { providers.add(it) }
                     }
                 }
             }
@@ -455,12 +456,10 @@ class LintModelFactory : LintModelModuleLoader {
             if (variant.buildType == buildTypeContainer.buildType.name) {
                 for (extra in buildTypeContainer.extraSourceProviders) {
                     if (extra.isTest()) {
-                        providers.add(
-                            getSourceProvider(
-                                providerContainer = extra,
-                                debugOnly = buildTypeContainer.buildType.isDebuggable
-                            )
-                        )
+                        getSourceProvider(
+                            providerContainer = extra,
+                            debugOnly = buildTypeContainer.buildType.isDebuggable
+                        )?.let { providers.add(it) }
                     }
                 }
             }
@@ -472,8 +471,8 @@ class LintModelFactory : LintModelModuleLoader {
     private fun getSourceProvider(
       providerContainer: IdeSourceProviderContainer,
       debugOnly: Boolean = false
-    ): LintModelSourceProvider {
-        val provider = providerContainer.sourceProvider
+    ): LintModelSourceProvider? {
+        val provider = providerContainer.sourceProvider ?: return null
         return DefaultLintModelSourceProvider(
           manifestFile = provider.manifestFile,
           javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),

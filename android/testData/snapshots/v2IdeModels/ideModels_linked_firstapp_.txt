@@ -187,22 +187,6 @@ MODULE                        : My_First_App.app
             ShadersDirectories            : <ROOT>/firstapp/app/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/firstapp/app/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/firstapp/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/firstapp/app/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/firstapp/app/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/firstapp/app/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/firstapp/app/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/firstapp/app/src/androidTestRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -2399,22 +2383,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/shared/mysharedlibrary/src/release/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_

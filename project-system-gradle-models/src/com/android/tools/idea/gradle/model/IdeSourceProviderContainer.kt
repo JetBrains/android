@@ -24,6 +24,6 @@ interface IdeSourceProviderContainer {
   /**
    * Returns the source provider
    */
-  val sourceProvider: IdeSourceProvider
+  val sourceProvider: IdeSourceProvider?
 
 }

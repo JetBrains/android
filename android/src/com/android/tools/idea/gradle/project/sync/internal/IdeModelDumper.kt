@@ -454,7 +454,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    private fun dump(ideSourceProvider: IdeSourceProvider) {
+    private fun dump(ideSourceProvider: IdeSourceProvider?) {
+      if (ideSourceProvider == null) return
       prop("Name") { ideSourceProvider.name }
       prop("Manifest") { ideSourceProvider.manifestFile.path.toPrintablePath() }
       ideSourceProvider.javaDirectories.forEach { prop("JavaDirectories") { it.path.toPrintablePath() } }

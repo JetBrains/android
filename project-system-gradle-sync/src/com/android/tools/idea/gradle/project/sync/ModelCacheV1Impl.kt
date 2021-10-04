@@ -258,7 +258,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     return IdeProductFlavorContainerImpl(
       productFlavor = copyModel(container.productFlavor, ::productFlavorFrom),
-      sourceProvider = copyModel(container.sourceProvider, mlModelBindingEnabled, ::sourceProviderFrom),
+      sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
     )
   }
@@ -294,7 +294,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     return IdeBuildTypeContainerImpl(
       buildType = copyModel(container.buildType, ::buildTypeFrom),
-      sourceProvider = copyModel(container.sourceProvider, mlModelBindingEnabled, ::sourceProviderFrom),
+      sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
       extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
     )
   }

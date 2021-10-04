@@ -23,6 +23,6 @@ import java.io.Serializable
 
 data class IdeBuildTypeContainerImpl(
   override val buildType: IdeBuildType,
-  override val sourceProvider: IdeSourceProvider,
+  override val sourceProvider: IdeSourceProvider?,
   override val extraSourceProviders: Collection<IdeSourceProviderContainer>
 ) : IdeBuildTypeContainer, Serializable

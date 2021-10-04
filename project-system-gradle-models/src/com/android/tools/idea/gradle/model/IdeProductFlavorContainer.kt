@@ -28,7 +28,7 @@ interface IdeProductFlavorContainer {
    *
    * @return the main source provider.
    */
-  val sourceProvider: IdeSourceProvider
+  val sourceProvider: IdeSourceProvider?
 
   /**
    * Returns a list of ArtifactMetaData/SourceProvider association.

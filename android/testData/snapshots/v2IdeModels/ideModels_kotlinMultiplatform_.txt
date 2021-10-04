@@ -185,22 +185,6 @@ MODULE                        : kotlinMultiPlatform.app
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
@@ -2514,29 +2498,6 @@ MODULE                        : kotlinMultiPlatform.module2
             JniLibsDirectories            : <ROOT>/module2/src/androidRelease/jniLibs [-]
             ShadersDirectories            : <ROOT>/module2/src/release/shaders [-]
             ShadersDirectories            : <ROOT>/module2/src/androidRelease/shaders [-]
-        ExtraSourceProviders
-            ExtraSourceProvider
-                ArtifactName                  : _android_test_
-                SourceProvider
-                    Name                          : androidTestRelease
-                    Manifest                      : <ROOT>/module2/src/androidTestRelease/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/module2/src/androidTestRelease/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidAndroidTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidTestRelease/java [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidTestRelease/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidAndroidTestRelease/resources [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidTestRelease/aidl [-]
-                    AidlDirectories               : <ROOT>/module2/src/androidAndroidTestRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/module2/src/androidTestRelease/rs [-]
-                    RenderscriptDirectories       : <ROOT>/module2/src/androidAndroidTestRelease/rs [-]
-                    ResDirectories                : <ROOT>/module2/src/androidTestRelease/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidAndroidTestRelease/res [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidTestRelease/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidAndroidTestRelease/assets [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidTestRelease/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidAndroidTestRelease/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidTestRelease/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidAndroidTestRelease/shaders [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_

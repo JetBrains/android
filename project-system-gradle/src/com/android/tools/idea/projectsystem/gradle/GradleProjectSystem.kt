@@ -280,7 +280,7 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
       listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
       model.androidProject.productFlavors
         .filter { it.productFlavor.name in flavorNames }
-        .map { it.sourceProvider.toIdeaSourceProvider() }
+        .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     }
   )
 }

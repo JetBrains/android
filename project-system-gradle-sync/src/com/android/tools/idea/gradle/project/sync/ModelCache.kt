@@ -130,13 +130,15 @@ data class ModuleId(val gradlePath: String, val buildId: String)
 
 internal inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
 
-internal inline fun <K : Any, R: Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
-
 @JvmName("copyModelNullable")
 internal inline fun <K : Any, V> copyModel(key: K?, mappingFunction: (K) -> V): V? = key?.let(mappingFunction)
 
+internal inline fun <K : Any, R: Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
+
 @JvmName("copyModelNullable")
-internal inline fun <K : Any, R : Any, V> copyModel(key: K?,
+internal inline fun <K : Any, R: Any, V> copyModel2(key: K, key2: R?, mappingFunction: (K, R?) -> V): V = mappingFunction(key, key2)
+
+internal inline fun <K : Any, R : Any, V> copyNullableModel(key: K?,
                                                     key2: R?,
                                                     mappingFunction: (K, R) -> V): V? =
   if (key != null && key2 != null) mappingFunction(key, key2) else null

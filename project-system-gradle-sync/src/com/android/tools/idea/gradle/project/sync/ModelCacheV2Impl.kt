@@ -379,14 +379,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun productFlavorContainerFrom(
     productFlavor: ProductFlavor,
-    container: SourceSetContainer): IdeProductFlavorContainerImpl {
+    container: SourceSetContainer?): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
       productFlavor = copyModel(productFlavor, ::productFlavorFrom),
-      sourceProvider = copyModel(container.sourceProvider, ::sourceProviderFrom),
+      sourceProvider = copyModel(container?.sourceProvider, ::sourceProviderFrom),
       extraSourceProviders = listOfNotNull(
-        copyModel(container.androidTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.testFixturesSourceProvider, ::sourceProviderContainerFrom)
+        copyModel(container?.androidTestSourceProvider, ::sourceProviderContainerFrom),
+        copyModel(container?.unitTestSourceProvider, ::sourceProviderContainerFrom),
+        copyModel(container?.testFixturesSourceProvider, ::sourceProviderContainerFrom)
       )
     )
   }
@@ -1149,7 +1149,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     androidDsl: AndroidDsl
   ): IdeAndroidProjectImpl {
     val parsedModelVersion = GradleVersion.tryParse(modelsVersions.agp)
-    val defaultConfigCopy: IdeProductFlavorContainer = copyModel(androidDsl.defaultConfig, basicProject.mainSourceSet,
+    val defaultConfigCopy: IdeProductFlavorContainer = copyModel2(androidDsl.defaultConfig, basicProject.mainSourceSet,
                                                                  ::productFlavorContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainer> = copy(androidDsl::buildTypes, basicProject::buildTypeSourceSets,
                                                                  ::buildTypeContainerFrom)
