@@ -22,13 +22,20 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.util.Targets;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 final class VirtualDevices {
   private VirtualDevices() {
   }
 
   static @NotNull Device build(@NotNull AvdInfo device) {
+    return build(device, AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning);
+  }
+
+  @VisibleForTesting
+  static @NotNull Device build(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
     IdDisplay tag = device.getTag();
 
     return new VirtualDevice.Builder()
@@ -36,7 +43,7 @@ final class VirtualDevices {
       .setCpuArchitecture(device.getCpuArch())
       .setType(getType(tag))
       .setName(device.getDisplayName())
-      .setOnline(AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(device))
+      .setOnline(isAvdRunning.test(device))
       .setTarget(Targets.toString(device.getAndroidVersion(), tag))
       .build();
   }
