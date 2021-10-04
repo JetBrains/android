@@ -111,7 +111,10 @@ public class IssueNotificationAction extends ToggleAction {
         Logger.getInstance(IssueNotificationAction.class).warn("Cannot find issue panel service");
         return false;
       }
-      return service.isLayoutEditorIssuePanelVisible();
+      if (service.isLayoutAndQualifierPanelVisible()) {
+        return service.isIssueModelAttached(surface.getIssueModel());
+      }
+      return false;
     }
     return surface != null && !surface.getIssuePanel().isMinimized();
   }
@@ -130,9 +133,11 @@ public class IssueNotificationAction extends ToggleAction {
         return;
       }
       if (state) {
-        issuePanelService.showLayoutEditorIssuePanel();
+        issuePanelService.showCurrentFileAndQualifierTab();
+        issuePanelService.attachIssueModel(surface.getIssueModel(), surface.getModel().getVirtualFile());
       }
       else {
+        issuePanelService.detachIssueModel(surface.getIssueModel());
         issuePanelService.hideIssuePanel();
       }
     }

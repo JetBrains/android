@@ -228,7 +228,8 @@ public class NlTreeBadgeHandler {
             Logger.getInstance(NlTreeBadgeHandler.class).warn("Cannot find issue panel service");
             return;
           }
-          service.showLayoutEditorIssuePanel();
+          service.showCurrentFileAndQualifierTab();
+          service.attachIssueModel(myIssueModel, myNlModel.getVirtualFile());
         }
         myIssuePanel.showIssueForComponent(component, true);
       }

@@ -15,38 +15,26 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.editor.DesignToolsSplitEditor
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.ide.DataManager
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent
-import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
-import com.intellij.ui.content.ContentManagerEvent
-import com.intellij.ui.content.ContentManagerListener
-import java.awt.BorderLayout
-import javax.swing.JLabel
-import javax.swing.JPanel
-
 
 /**
  * A service to help to show the issues of Design Tools in IJ's Problems panel.
  */
 class IssuePanelService(private val project: Project) {
 
-  private var layoutEditorTab: Content? = null
-  private var validationToolTab: Content? = null
+  private var issueAndQualifierTab: Content? = null
+  private var layoutAndQualifierPanel: DesignerCommonIssuePanel? = null
+
   private val initLock = Any()
   private var inited = false
+
+  private val issueProviders = LayoutIssueProviderGroup()
 
   init {
     val manager = ToolWindowManager.getInstance(project)
@@ -80,106 +68,30 @@ class IssuePanelService(private val project: Project) {
       }
       inited = true
     }
-    addLayoutTabToProblemsWindow(problemsViewWindow)
-  }
 
-  private fun addLayoutTabToProblemsWindow(problemsWindow: ToolWindow) {
-    val contentManager = problemsWindow.contentManager
+    // This is the only common issue panel.
+    val contentManager = problemsViewWindow.contentManager
     val contentFactory = contentManager.factory
 
-    // Add tab for layout editor.
-    layoutEditorTab = contentFactory.createContent(JPanel(BorderLayout()), "Layout Editor", true).apply {
+    val issuePanel = DesignerCommonIssuePanel(project, project)
+    layoutAndQualifierPanel = issuePanel
+    issuePanel.setIssueProvider(issueProviders)
+    contentFactory.createContent(issuePanel.getComponent(), "Current File and Qualifiers", true).apply {
+      issueAndQualifierTab = this
       isCloseable = false
       contentManager.addContent(this@apply)
     }
-
-    // Add tab for visual linting in layout validation tool.
-    if (StudioFlags.NELE_VISUAL_LINT.get()) {
-      validationToolTab = contentFactory.createContent(JPanel(BorderLayout()), "Layout Validation", true).apply {
-        isCloseable = false
-        contentManager.addContent(this@apply)
-      }
-      // Register tool window state event for tracing the visibility of Layout Validation Tool.
-      project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-        override fun stateChanged(toolWindowManager: ToolWindowManager) {
-          loadValidationToolIssuePanel()
-        }
-      })
-    }
-
-    // Register editor change event.
-    project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun selectionChanged(event: FileEditorManagerEvent) = updateContent(event.newEditor)
-    })
-    // Register tool window tab change event.
-    contentManager.addContentManagerListener(object : ContentManagerListener {
-      override fun selectionChanged(event: ContentManagerEvent) = updateContent(FileEditorManager.getInstance(project)?.selectedEditor)
-    })
-
-    // Load issue panel for current selected editor if needed.
-    updateContent(FileEditorManager.getInstance(project)?.selectedEditor)
   }
 
-  private fun updateContent(editor: FileEditor?) {
-    layoutEditorTab?.let {
-      if (isTabShowing(it)) {
-        loadLayoutEditorIssuePanel(editor)
-      }
-    }
-    val validationTab = validationToolTab
-    if (StudioFlags.NELE_VISUAL_LINT.get() && validationTab != null) {
-      if (isTabShowing(validationTab)) {
-        loadValidationToolIssuePanel()
-      }
-    }
+  fun isLayoutAndQualifierPanelVisible() = issueAndQualifierTab?.let { isTabShowing(it) } ?: false
+
+  fun isIssueModelAttached(issueModel: IssueModel): Boolean {
+    return issueProviders.containsIssueModel(issueModel)
   }
 
-  private fun loadLayoutEditorIssuePanel(editor: FileEditor?) {
-    val tab = layoutEditorTab ?: return
-    val file = editor?.file
-    val surface = (editor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
-    val issuePanelContainer = tab.component
-    if (editor == null || file == null || surface == null) {
-      tab.displayName = "Layout Editor"
-      issuePanelContainer.removeAll()
-      issuePanelContainer.add(JLabel("Cannot find Layout File"))
-    }
-    else {
-      tab.displayName = file.name
-      issuePanelContainer.removeAll()
-      issuePanelContainer.add(surface.issuePanel)
-    }
+  fun showCurrentFileAndQualifierTab() {
+    issueAndQualifierTab?.let { showTab(it) }
   }
-
-  private fun loadValidationToolIssuePanel() {
-    val tab = validationToolTab ?: return
-    val issuePanelContainer = tab.component
-    issuePanelContainer.removeAll()
-
-    val window = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
-    if (window == null) {
-      Logger.getInstance(IssuePanelService::class.java).warn("The validation tool is not activated")
-      issuePanelContainer.add(JLabel("Layout Validation Tool is not enabled"))
-      return
-    }
-
-    if (window.isVisible) {
-      val surface = DataManager.getInstance().getDataContext(window.contentManager.component).getData(DESIGN_SURFACE)
-      if (surface == null) {
-        issuePanelContainer.add(JLabel("Cannot find preview panel in Layout Validation Tool"))
-      }
-      else {
-        issuePanelContainer.add(surface.issuePanel)
-      }
-    }
-    else {
-      issuePanelContainer.add(JLabel("Layout Validation Tool is not opened."))
-    }
-  }
-
-  fun isLayoutEditorIssuePanelVisible() = layoutEditorTab?.let { isTabShowing(it) } ?: false
-
-  fun isLayoutValidationIssuePanelVisible() = validationToolTab?.let { isTabShowing(it) } ?: false
 
   /**
    * Return true if IJ's problem panel is visible and selecting the given [tab], false otherwise.
@@ -192,28 +104,27 @@ class IssuePanelService(private val project: Project) {
     return tab.isSelected
   }
 
-  /**
-   * Show the issue panel of Layout Editor in IJ's Problem panel.
-   * This open the Problem panel and switch to Layout Editor tab.
-   * If the Problem panel is opened already, then it just switches to Layout Editor tab.
-   *
-   * If IJ's Problem panel cannot be found or ther eis no tab for layout editor, then this function does nothing.
-   */
-  fun showLayoutEditorIssuePanel() = layoutEditorTab?.let { showTab(it) }
-
-  /**
-   * Show the issue panel of Layout Validation Tool in IJ's Problem panel.
-   * This open the Problem panel and switch to Layout Validation Tool tab.
-   * If the Problem panel is opened already, then it just switches to Layout Validation Tool tab.
-   *
-   * If IJ's Problem panel cannot be found or there is no tab for validation tool, then this function does nothing.
-   */
-  fun showLayoutValidationIssuePanel() = validationToolTab?.let { showTab(it) }
-
   private fun showTab(tab: Content) {
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     problemsViewPanel.show {
       tab.manager?.setSelectedContent(tab)
+    }
+  }
+
+  fun attachIssueModel(issueModel: IssueModel, file: VirtualFile) {
+    val commonIssuePanel = layoutAndQualifierPanel ?: return
+    if (issueProviders.containsIssueModel(issueModel)) {
+      return
+    }
+    issueProviders.addProvider(issueModel, file)
+    commonIssuePanel.updateTree(file, issueModel)
+  }
+
+  fun detachIssueModel(issueModel: IssueModel) {
+    val commonIssuePanel = layoutAndQualifierPanel ?: return
+    if (issueProviders.containsIssueModel(issueModel)) {
+      issueProviders.removeProvider(issueModel)
+      commonIssuePanel.updateTree(null, issueModel)
     }
   }
 
@@ -222,8 +133,9 @@ class IssuePanelService(private val project: Project) {
    * If IJ's Problem panel cannot be found, then this function does nothing.
    */
   fun hideIssuePanel() {
-    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
-    problemsViewPanel.hide()
+    // TODO: Hide the panel when not using attach/detach mechanism. At this moment we don't hide it.
+    //val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
+    //problemsViewPanel.hide()
   }
 
   companion object {
