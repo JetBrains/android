@@ -44,7 +44,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     fun addUsagesFor(plugin: PluginModel) {
-      if (plugin.version().valueType == GradlePropertyModel.ValueType.STRING && plugin.name().toString().startsWith("com.android")) {
+      if (plugin.name().toString().startsWith("com.android")) {
         val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
         if (version == current && version < new)  {
           val resultModel = plugin.version().resultModel
