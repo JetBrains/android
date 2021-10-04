@@ -32,6 +32,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,6 +51,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -87,8 +89,8 @@ public class ProjectStructureUsageTracker {
 
     List<GradleLibrary> gradleLibraries = new ArrayList<>();
 
-    for (Module module : modules) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
@@ -123,13 +125,13 @@ public class ProjectStructureUsageTracker {
                                                            .build();
       // @formatter:on
 
-      for (Module module : modules) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
         if (androidModel != null) {
           IdeAndroidProject moduleAndroidProject = androidModel.getAndroidProject();
           GradleAndroidModule.Builder androidModule = GradleAndroidModule.newBuilder();
           // @formatter:off
-          androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(module.getName()))
+          androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(facet.getHolderModule().getName()))
                        .setSigningConfigCount(moduleAndroidProject.getSigningConfigs().size())
                        .setIsLibrary(moduleAndroidProject.getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
                        .setBuildTypeCount(androidModel.getBuildTypeNames().size())
@@ -140,7 +142,7 @@ public class ProjectStructureUsageTracker {
         }
 
         boolean shouldReportNative = false;
-        NdkModuleModel ndkModel = NdkModuleModel.get(module);
+        NdkModuleModel ndkModel = NdkModuleModel.get(facet.getHolderModule());
         NativeBuildSystemType buildSystemType = UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
         String moduleName = "";
 
