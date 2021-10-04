@@ -18,12 +18,16 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +35,32 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   // TODO Use VirtualDevice instead
   private final @NotNull AvdInfo myDevice;
 
-  private @Nullable InfoSection mySummarySection;
+  private @Nullable SummarySection mySummarySection;
   private @Nullable InfoSection myPropertiesSection;
 
+  @VisibleForTesting
+  static final class SummarySection extends InfoSection {
+    @VisibleForTesting final @NotNull JLabel myApiLevelLabel;
+    @VisibleForTesting final @NotNull JLabel myResolutionLabel;
+    @VisibleForTesting final @NotNull JLabel myDpLabel;
+    @VisibleForTesting @Nullable JLabel myErrorLabel;
+    @VisibleForTesting @Nullable JLabel mySnapshotLabel;
+
+    private SummarySection() {
+      super("Summary");
+
+      myApiLevelLabel = addNameAndValueLabels("API level");
+      myResolutionLabel = addNameAndValueLabels("Resolution");
+      myDpLabel = addNameAndValueLabels("dp");
+    }
+  }
+
   VirtualDeviceDetailsPanel(@NotNull AvdInfo device) {
+    this(device, AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning);
+  }
+
+  @VisibleForTesting
+  VirtualDeviceDetailsPanel(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
     super(device.getDisplayName());
     myDevice = device;
 
@@ -42,7 +68,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initPropertiesSection();
 
     myInfoSections.add(mySummarySection);
-    InfoSection.newPairedDeviceSection(VirtualDevices.build(device)).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(VirtualDevices.build(device, isAvdRunning)).ifPresent(myInfoSections::add);
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
@@ -52,22 +78,24 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   private void initSummarySection() {
-    mySummarySection = new InfoSection("Summary");
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("API level"), myDevice.getAndroidVersion().getApiString());
+    mySummarySection = new SummarySection();
+    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
 
     Resolution resolution = getResolution();
 
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("Resolution"), resolution);
-    InfoSection.setText(mySummarySection.addNameAndValueLabels("dp"), getDp(resolution));
+    InfoSection.setText(mySummarySection.myResolutionLabel, resolution);
+    InfoSection.setText(mySummarySection.myDpLabel, getDp(resolution));
 
     if (!myDevice.getStatus().equals(AvdStatus.OK)) {
-      InfoSection.setText(mySummarySection.addNameAndValueLabels("Error"), myDevice.getErrorMessage());
+      mySummarySection.myErrorLabel = mySummarySection.addNameAndValueLabels("Error");
+      InfoSection.setText(mySummarySection.myErrorLabel, myDevice.getErrorMessage());
     }
     else {
       Object snapshot = myDevice.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
-        InfoSection.setText(mySummarySection.addNameAndValueLabels("Snapshot"), snapshot);
+        mySummarySection.mySnapshotLabel = mySummarySection.addNameAndValueLabels("Snapshot");
+        InfoSection.setText(mySummarySection.mySnapshotLabel, snapshot);
       }
     }
 
@@ -133,5 +161,11 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
 
     properties.forEach((name, value) -> InfoSection.setText(myPropertiesSection.addNameAndValueLabels(name), value));
     myPropertiesSection.setLayout();
+  }
+
+  @VisibleForTesting
+  @NotNull SummarySection getSummarySection() {
+    assert mySummarySection != null;
+    return mySummarySection;
   }
 }
