@@ -83,6 +83,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
       TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS),
       TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, skipV1toV2Comparison = true),
+      // Ignore comparing the variant name for module dependencies because this is not always provided by V1 models.
       TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM)
     )
@@ -177,16 +178,28 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
         !PROPERTIES_TO_SKIP.any { property.endsWith(it) } &&
         !testProjectName!!.v1toV2PropertiesToSkip.any { property.endsWith(it) }
       }
-      .filter { (property, line) -> !VALUES_TO_SUPPRESS.any { property.endsWith(it.key) and line.contains(it.value) } }
+      .filter { (property, line) -> !VALUES_TO_SUPPRESS.any { property.endsWith(it.key) and it.value.any { value -> line.contains(value) } } }
       .map { it.second }
       .joinToString(separator = "\n")
 
 }
 
+/**
+ * we skip:
+ * [IdeAndroidLibrary.lintJar] because in V2 we do check that the jar exists before populating the property.
+ */
 private val PROPERTIES_TO_SKIP = setOf(
   "/Level2Dependencies/AndroidLibraries/AndroidLibrary/LintJars"
 )
 
+/**
+ * some properties values have different patterns in V1 and V2, and we do suppress them.
+ * AndroidLibrary: in V2 we added better support for wrapped_aars and composite builds in the libraries names,
+ *                  so this will end up being different from V1 where we do not have support for composite builds,
+ *                  and the names are prefixed with "artifacts" instead.
+ * AndroidLibrary.ArtifactAddress: the same rules from above apply to ArtifactAddress as well, plus the distinction of local aars paths.
+ */
 private val VALUES_TO_SUPPRESS = mapOf(
-  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/ArtifactAddress" to "__local_aars__"
+  "/Level2Dependencies/AndroidLibraries/AndroidLibrary" to listOf("__wrapped_aars__", "artifacts"),
+  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/ArtifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
