@@ -33,6 +33,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
@@ -69,7 +70,6 @@ import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -117,7 +117,10 @@ class DeviceViewContentPanelTest {
   val disposable = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
+
+  @get:Rule
+  val fontRule = SetPortableUiFontRule()
 
   var testDataPath: Path = Path.of("")
 
@@ -1001,7 +1004,6 @@ class DeviceViewContentPanelWithScaledFontTest {
   @Test
   fun testPaintEmpty() {
     AssumeUtil.assumeNotMac() // b/163289116
-    IconLoader.activate()
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val model = model {}
