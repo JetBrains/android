@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -950,7 +951,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.getModule());
       if (gradleBuildModel == null) {
         String errorMessage =
-          "Could not edit build file for '" + facet.getModule().getName() + "' please apply the suggestion manually";
+          "Could not edit build file for '" + facet.getHolderModule().getName() + "' please apply the suggestion manually";
         ApplicationManager.getApplication()
           .invokeLater(() -> Messages.showErrorDialog(facet.getModule().getProject(), errorMessage, "Apply Manifest Suggestion"));
         return;
@@ -1086,7 +1087,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         Module module = ModuleUtilCore.findModuleForFile(vFile, facet.getModule().getProject());
         if (module != null) {
           if (modules.length >= 2) {
-            source = module.getName();
+            source = ModuleSystemUtil.getHolderModule(module).getName();
           }
 
           // AAR library in the project build directory?
