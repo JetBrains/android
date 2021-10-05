@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.TimeUnit
 
 private val LOG get() = logger<WearPairingManager>()
@@ -65,6 +66,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
+  private var virtualDevicesProvider: () -> List<AvdInfo> = { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false) }
+  private var connectedDevicesProvider: () -> List<IDevice> = { findAdb()?.devices?.toList() ?: emptyList() }
 
   data class PhoneWearPair(
     val phone: PairingDevice,
@@ -77,6 +80,12 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   private fun isTestMode(): Boolean =
     ApplicationManager.getApplication()?.isUnitTestMode != false
+
+  @TestOnly
+  internal fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
+    virtualDevicesProvider = virtualDevices
+    connectedDevicesProvider = connectedDevices
+  }
 
   @UiThread
   override fun runActivity(project: Project, disposable: Disposable) {
@@ -267,7 +276,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     val deviceTable = hashMapOf<String, PairingDevice>()
 
     // Collect list of all available AVDs
-    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).filter { it.isWearOrPhone() }.forEach { avdInfo ->
+    virtualDevicesProvider().filter { it.isWearOrPhone() }.forEach { avdInfo ->
       val deviceID = avdInfo.name
       deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID, isPaired(deviceID))
     }
@@ -323,8 +332,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   }
 
   private fun getConnectedDevices(): Map<String, IDevice> {
-    val connectedDevices = findAdb()?.devices ?: return emptyMap()
-    return connectedDevices
+    return connectedDevicesProvider()
       .filter { it.isEmulator || it.arePropertiesSet() } // Ignore un-populated physical devices (still loading properties)
       .filter { it.isOnline }
       .associateBy { it.getDeviceID() }

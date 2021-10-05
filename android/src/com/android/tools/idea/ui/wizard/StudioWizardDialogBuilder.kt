@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
 import java.net.URL
 
@@ -154,7 +155,7 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
 private const val SCREEN_PERCENT = 0.8f
 
 private fun getClampedSize(size: Dimension): Dimension {
-  val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
+  val screenSize = if (GraphicsEnvironment.isHeadless()) Dimension(1200, 800) else Toolkit.getDefaultToolkit().screenSize
   return Dimension(size.width.coerceAtMost((screenSize.width * SCREEN_PERCENT).toInt()),
                    size.height.coerceAtMost((screenSize.height * SCREEN_PERCENT).toInt()))
 }
