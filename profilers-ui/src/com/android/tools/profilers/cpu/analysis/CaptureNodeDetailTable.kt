@@ -20,12 +20,13 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.analysis.CaptureNodeDetailTable.Companion.PAGE_SIZE_VALUES
+import com.android.tools.profilers.cpu.analysis.TableUtils.changeRangeOnSelection
+import com.android.tools.profilers.cpu.analysis.TableUtils.setColumnRenderers
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.ListSelectionModel
 import javax.swing.table.AbstractTableModel
 import com.android.tools.adtui.common.border as BorderColor
 
@@ -79,23 +80,14 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
       showVerticalLines = true
       showHorizontalLines = false
       emptyText.text = "No events in the selected range"
-      columnModel.getColumn(Column.START_TIME.ordinal).cellRenderer = TimestampRenderer()
-      columnModel.getColumn(Column.NAME.ordinal).cellRenderer = CustomBorderTableCellRenderer()
-      columnModel.getColumn(Column.WALL_DURATION.ordinal).cellRenderer = DurationRenderer()
-      columnModel.getColumn(Column.WALL_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
-      columnModel.getColumn(Column.CPU_DURATION.ordinal).cellRenderer = DurationRenderer()
-      columnModel.getColumn(Column.CPU_SELF_TIME.ordinal).cellRenderer = DurationRenderer()
+      setColumnRenderers<Column> { when (it) {
+        Column.START_TIME -> TimestampRenderer()
+        Column.NAME -> CustomBorderTableCellRenderer()
+        Column.WALL_DURATION, Column.WALL_SELF_TIME, Column.CPU_DURATION, Column.CPU_SELF_TIME -> DurationRenderer()
+      } }
 
       if (viewRange != null) {
-        setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-        selectionModel.addListSelectionListener {
-          if (selectedRow >= 0) {
-            val selectedModelIndex = convertRowIndexToModel(selectedRow) + tableModel.pageIndex * tableModel.pageSize
-            extendedCaptureNodes[selectedModelIndex].node.let {
-              viewRange.set(it.startGlobal.toDouble(), it.endGlobal.toDouble())
-            }
-          }
-        }
+        changeRangeOnSelection(tableModel, { viewRange }, { it.node.startGlobal.toDouble() }, { it.node.endGlobal.toDouble()})
       }
       else {
         rowSelectionAllowed = false
