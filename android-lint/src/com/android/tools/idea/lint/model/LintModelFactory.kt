@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.lint.model
+package com.android.tools.idea.lint.model
 
 import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidProject
@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeSourceProvider
@@ -38,7 +37,40 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.project.sync.ModelCache
+import com.android.tools.lint.model.DefaultLintModelAndroidArtifact
+import com.android.tools.lint.model.DefaultLintModelAndroidLibrary
+import com.android.tools.lint.model.DefaultLintModelBuildFeatures
+import com.android.tools.lint.model.DefaultLintModelDependencies
+import com.android.tools.lint.model.DefaultLintModelDependency
+import com.android.tools.lint.model.DefaultLintModelDependencyGraph
+import com.android.tools.lint.model.DefaultLintModelJavaArtifact
+import com.android.tools.lint.model.DefaultLintModelJavaLibrary
+import com.android.tools.lint.model.DefaultLintModelLibraryResolver
+import com.android.tools.lint.model.DefaultLintModelLintOptions
+import com.android.tools.lint.model.DefaultLintModelMavenName
+import com.android.tools.lint.model.DefaultLintModelModule
+import com.android.tools.lint.model.DefaultLintModelModuleLibrary
+import com.android.tools.lint.model.DefaultLintModelResourceField
+import com.android.tools.lint.model.DefaultLintModelSourceProvider
+import com.android.tools.lint.model.DefaultLintModelVariant
+import com.android.tools.lint.model.LintModelAndroidArtifact
+import com.android.tools.lint.model.LintModelBuildFeatures
+import com.android.tools.lint.model.LintModelDependencies
+import com.android.tools.lint.model.LintModelDependency
+import com.android.tools.lint.model.LintModelJavaArtifact
+import com.android.tools.lint.model.LintModelLibrary
+import com.android.tools.lint.model.LintModelLibraryResolver
+import com.android.tools.lint.model.LintModelLintOptions
+import com.android.tools.lint.model.LintModelMavenName
+import com.android.tools.lint.model.LintModelModule
+import com.android.tools.lint.model.LintModelModuleLoader
+import com.android.tools.lint.model.LintModelModuleType
+import com.android.tools.lint.model.LintModelNamespacingMode
+import com.android.tools.lint.model.LintModelResourceField
+import com.android.tools.lint.model.LintModelSerialization
+import com.android.tools.lint.model.LintModelSeverity
+import com.android.tools.lint.model.LintModelSourceProvider
+import com.android.tools.lint.model.LintModelVariant
 import com.android.utils.FileUtils
 import java.io.File
 
@@ -48,7 +80,7 @@ import java.io.File
 class LintModelFactory : LintModelModuleLoader {
     init {
         // We're just copying by value so make sure our constants match
-        assert(LintModelMavenName.LOCAL_AARS == ModelCache.LOCAL_AARS)
+        assert(LintModelMavenName.LOCAL_AARS == "__local_aars__")
     }
 
     private val libraryResolverMap = mutableMapOf<String, LintModelLibrary>()
@@ -541,7 +573,7 @@ class LintModelFactory : LintModelModuleLoader {
 
         // Currently [LintModelMavenName] supports group:name:version format only.
         return LintModelMavenName.parse(artifactAddress.substring(0, lastDelimiterIndex))
-            ?: error("Cannot parse '$artifactAddress'")
+               ?: error("Cannot parse '$artifactAddress'")
     }
 
     private fun getLintOptions(project: IdeAndroidProject): LintModelLintOptions =

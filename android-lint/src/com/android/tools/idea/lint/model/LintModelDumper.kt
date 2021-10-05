@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.internal
+package com.android.tools.idea.lint.model
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
+import com.android.tools.idea.gradle.project.sync.internal.head
+import com.android.tools.idea.gradle.project.sync.internal.prop
 import com.android.tools.lint.model.LintModelAndroidArtifact
 import com.android.tools.lint.model.LintModelAndroidLibrary
 import com.android.tools.lint.model.LintModelArtifact
 import com.android.tools.lint.model.LintModelDependencies
 import com.android.tools.lint.model.LintModelDependency
-import com.android.tools.lint.model.LintModelFactory
 import com.android.tools.lint.model.LintModelJavaArtifact
 import com.android.tools.lint.model.LintModelLibrary
 import com.android.tools.lint.model.LintModelLintOptions

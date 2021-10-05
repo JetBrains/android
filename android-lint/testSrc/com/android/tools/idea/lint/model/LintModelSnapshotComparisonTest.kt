@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.snapshots
+package com.android.tools.idea.lint.model
 
-import com.android.tools.idea.gradle.project.sync.internal.dumpLintModels
+import com.android.tools.idea.lint.TestDataPaths
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
@@ -48,7 +47,7 @@ import java.io.File
  *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
  *
  *       Or with bazel:
-bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --test_filter=LintModelSnapshotComparisonTest  \
+bazel test //tools/adt/idea/android-lint:intellij.android.lint.tests_tests__test_filter=LintModelSnapshotComparisonTest  \
 --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
  */
 
@@ -69,18 +68,17 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
-      TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
-      TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
-      TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
-      TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR), // TODO(b/178796251): The snaphot does not include `proguardFiles`.
-      TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
-      TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
-      TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
-      TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject(TestProjectToSnapshotPaths.LINT_CUSTOM_CHECKS)
+      TestProject(TestDataPaths.SIMPLE_APPLICATION),
+      TestProject(TestDataPaths.BASIC_CMAKE_APP),
+      TestProject(TestDataPaths.PSD_SAMPLE_GROOVY),
+      TestProject(TestDataPaths.MULTI_FLAVOR), // TODO(b/178796251): The snaphot does not include `proguardFiles`.
+      TestProject(TestDataPaths.COMPOSITE_BUILD),
+      TestProject(TestDataPaths.NON_STANDARD_SOURCE_SETS, "/application"),
+      TestProject(TestDataPaths.LINKED, "/firstapp"),
+      TestProject(TestDataPaths.KOTLIN_KAPT),
+      TestProject(TestDataPaths.LINT_CUSTOM_CHECKS)
     )
   }
-
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -92,9 +90,9 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO)))
 
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/lintModels"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android-lint/testData/snapshots/lintModels"
 
   @Test
   fun testLintModels() {

@@ -19,4 +19,14 @@ import com.android.testutils.TestUtils;
 
 public final class TestDataPaths {
   public static final String TEST_DATA_ROOT = TestUtils.resolveWorkspacePath("tools/adt/idea/android-lint/testData").toString();
+  public static final String BASIC_CMAKE_APP = "projects/basicCmakeApp";
+  public static final String COMPOSITE_BUILD = "projects/compositeBuild";
+  public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String LINKED = "projects/linked";
+  public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
+  public static final String MULTI_FLAVOR = "projects/multiFlavor";
+  public static final String NON_STANDARD_SOURCE_SETS = "projects/nonStandardSourceSets";
+  public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
+  public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
 }

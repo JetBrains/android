@@ -37,6 +37,15 @@ iml_module(
         "AndroidLintCustomCheckTest": {
             "test_filter": "com.android.tools.idea.lint.AndroidLintCustomCheckTest",
         },
+        "LintModelSnapshotComparisonTest": {
+            # keep sorted
+            "data": [
+                "//prebuilts/studio/sdk:cmake",
+                "//prebuilts/studio/sdk:ndk",
+            ],
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.lint.model.LintModelSnapshotComparisonTest",
+        },
         "AndroidLintGradleTest": {
             "test_filter": "com.android.tools.idea.lint.AndroidLintGradleTest",
         },
@@ -81,6 +90,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
     ],
 )
 
@@ -92,11 +102,21 @@ maven_repository(
         "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
+        "@maven//:androidx.appcompat.appcompat_1.0.2",
+        "@maven//:androidx.appcompat.appcompat_1.1.0",
+        "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
+        "@maven//:androidx.core.core-ktx_1.0.1",
+        "@maven//:androidx.test.espresso.espresso-core_3.2.0",
+        "@maven//:androidx.test.ext.junit_1.1.1",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
+        "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
+        "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
         "@maven//:com.android.support.multidex-instrumentation_1.0.2",
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
+        "@maven//:com.google.dagger.dagger-compiler_2.6",
+        "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
     ],
