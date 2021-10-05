@@ -87,7 +87,9 @@ class InspectorClientLauncher(
 
   init {
     processes.addSelectedProcessListeners(executor) {
-      handleProcess(processes.selectedProcess, processes.isAutoConnected)
+      if (!project.isDisposed) {
+        handleProcess(processes.selectedProcess, processes.isAutoConnected)
+      }
     }
 
     Disposer.register(parentDisposable) {

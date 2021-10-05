@@ -16,10 +16,13 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -30,21 +33,30 @@ import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
+import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.project.TestProjectManager
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.TemporaryDirectory
+import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
@@ -201,5 +213,76 @@ class LayoutInspectorToolWindowFactorySettingsTest {
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
     val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
     assertThat(contentPanel.viewSettings).isInstanceOf(InspectorDeviceViewSettings::class.java)
+  }
+}
+
+class LayoutInspectorToolWindowFactoryDisposeTest {
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val adbRule = FakeAdbRule()
+
+  @Test
+  fun testResetSelectedProcessAfterProjectIsClosed() {
+    val device = MODERN_DEVICE
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
+                         DeviceState.HostConnectionType.USB)
+    ApplicationManager.getApplication().replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
+    val service = AppInspectionDiscoveryService.instance
+    val discovery = TestProcessDiscovery()
+    `when`(service.apiServices).thenReturn(mock())
+    `when`(service.apiServices.processDiscovery).thenReturn(discovery)
+
+    // In this test we want to close the project BEFORE the tear down of this test method.
+    // Existing project rules do not allow this since they assume the project is closed in the tear down.
+    // Create and close the project explicitly instead:
+    val project = createProject()
+    try {
+      val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+      LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
+      val component = toolWindow.contentManager.selectedContent?.component!!
+      waitForCondition(25L, TimeUnit.SECONDS) {
+        ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+      }
+      val deviceViewPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewPanel>()
+      val processes = deviceViewPanel.processes!!
+      RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
+      discovery.fireConnected(MODERN_PROCESS)
+
+      // In this test we want to close the project BEFORE the tear down of this test method.
+      // Existing project rules do not allow this since they assume the project is closed in the tear down.
+      // Create and close the project explicitly instead:
+      runInEdtAndWait {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
+
+      closeProject(project)
+
+      // This should not cause already disposed errors:
+      processes.selectedProcess = null
+    }
+    finally {
+      if (project.isOpen) {
+        closeProject(project)
+      }
+    }
+  }
+
+  private fun createProject(): ProjectEx {
+    val projectFile = TemporaryDirectory.generateTemporaryPath("project_dispose_project${ProjectFileType.DOT_DEFAULT_EXTENSION}")
+    val options = createTestOpenProjectOptions(runPostStartUpActivities = false).copy(preloadServices = false)
+    return (ProjectManager.getInstance() as TestProjectManager).openProject(projectFile, options) as ProjectEx
+  }
+
+  private fun closeProject(project: Project) {
+    runInEdtAndWait {
+      PlatformTestUtil.forceCloseProjectWithoutSaving(project)
+      Disposer.dispose(project)
+    }
   }
 }
