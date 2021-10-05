@@ -19,6 +19,7 @@ import com.android.ide.common.blame.SourceFilePosition
 import com.android.manifmerger.Actions
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB
 import com.android.tools.idea.util.toIoFile
@@ -39,7 +40,7 @@ class ManifestActionLocationTest {
 
   private val mergedManifest get() : MergedManifestSnapshot {
     return MergedManifestManager
-      .getMergedManifestSupplier(projectRule.gradleModule(":app"))
+      .getMergedManifestSupplier(projectRule.gradleModule(":app").getMainModule())
       .get()
       .get(2, TimeUnit.SECONDS)
   }
@@ -71,7 +72,7 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_navigationFile() {
     val browsableRecord = mergedManifest.getOnlyNodeRecord("category#android.intent.category.BROWSABLE")
-    val browsablePosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app"), browsableRecord)
+    val browsablePosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), browsableRecord)
 
     assertThat(browsablePosition.file.sourceFile).isNotNull()
     assertThat(browsablePosition.file.sourceFile)
@@ -84,7 +85,7 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_libraryManifest() {
     val metaDataRecord = mergedManifest.getOnlyNodeRecord("meta-data#libMetaData")
-    val metaDataPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app"), metaDataRecord)
+    val metaDataPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), metaDataRecord)
 
     assertThat(metaDataPosition.file.sourceFile).isNotNull()
     assertThat(metaDataPosition.file.sourceFile)
@@ -99,7 +100,7 @@ class ManifestActionLocationTest {
   @Test
   fun getActionLocation_primaryManifest() {
     val launcherRecord = mergedManifest.getOnlyNodeRecord("action#android.intent.action.MAIN")
-    val launcherPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app"), launcherRecord)
+    val launcherPosition = ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), launcherRecord)
 
     assertThat(launcherPosition.file.sourceFile).isNotNull()
     assertThat(launcherPosition.file.sourceFile)
