@@ -105,6 +105,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   COMPOSE_RUNTIME("androidx.compose.runtime", "runtime", false),
   COMPOSE_TOOLING("androidx.compose.ui", "ui-tooling", false),
   COMPOSE_TOOLING_PREVIEW("androidx.compose.ui", "ui-tooling-preview", false),
+  JETBRAINS_COMPOSE_TOOLING_PREVIEW("org.jetbrains.compose", "ui-tooling-preview", false),
 
   // Kotlin
   KOTLIN_STDLIB("org.jetbrains.kotlin", "kotlin-stdlib", false),

@@ -104,14 +104,18 @@ val PREVIEW_PARAMETER_FQNS = setOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE.prev
                                    ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.previewParameterAnnotationName)
 
 private val UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT = GoogleMavenArtifactId.COMPOSE_TOOLING_PREVIEW.getCoordinate("+")
+private val JETBRAINS_COMPOSE_TOOLING_PREVIEW_ARTIFACT = GoogleMavenArtifactId.JETBRAINS_COMPOSE_TOOLING_PREVIEW.getCoordinate("+")
 
 /**
- * Returns if the given [Module] imports the [UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT]. This means that the API and implementation
- * of the preview will be in separate artifacts.
+ * Returns if the given [Module] imports the [UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT] or [JETBRAINS_COMPOSE_TOOLING_PREVIEW_ARTIFACT]. This
+ * means that the API and implementation of the preview will be in separate artifacts.
  */
 private fun Module.hasUiPreviewArtifacts(): Boolean =
   CachedValuesManager.getManager(project).getCachedValue(this) {
-    val hasArtifact = runReadAction { getModuleSystem().getResolvedDependency(UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT) != null }
+    val hasArtifact = runReadAction {
+      getModuleSystem().getResolvedDependency(UI_COMPOSE_TOOLING_PREVIEW_ARTIFACT) != null
+      || getModuleSystem().getResolvedDependency(JETBRAINS_COMPOSE_TOOLING_PREVIEW_ARTIFACT) != null
+    }
     // Cached value until there's been a sync.
     CachedValueProvider.Result.create(hasArtifact, ProjectSyncModificationTracker.getInstance(project))
   }
