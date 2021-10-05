@@ -203,7 +203,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   public void testJavaLibraryModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = ModuleSystemUtil.getMainModule(TestModuleUtil.findAppModule(getProject()));
 
     // dependency should be set on the module not the compiled jar.
     // 'app' -> 'javalib1' -> 'javalib2'
