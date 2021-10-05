@@ -19,6 +19,7 @@ import com.android.manifmerger.ManifestModel
 import com.android.manifmerger.XmlNode
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -54,7 +55,7 @@ class ManifestPanelContentTest : GradleIntegrationTest {
   fun testContent() {
     val projectRoot = prepareGradleProject(TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB, "project")
     openPreparedProject("project") { project ->
-      val appModule = project.gradleModule(":app") ?: error("Cannot find :app module")
+      val appModule = project.gradleModule(":app")?.getMainModule() ?: error("Cannot find :app module")
       val appModuleFacet = appModule.androidFacet ?: error("Cannot find the facet for :app")
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
