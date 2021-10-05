@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.messages
 
 import com.intellij.openapi.util.text.StringUtil
-import kotlin.math.max
 
 private const val DEFAULT_LENGTH = 35
 private const val MIN_LENGTH = 10
@@ -25,17 +24,17 @@ private const val PREFIX_LEN = 6
 /**
  * Provides formatting for the app name.
  */
-internal class AppNameFormat(maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
-  @Transient // Exclude from serialization
-  private val dupAppName = "".padEnd(maxLength + 1)
-  private val maxLength = max(MIN_LENGTH, maxLength)
+internal class AppNameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
+  init {
+    assert(maxLength >= MIN_LENGTH)
+  }
 
   fun format(appName: String, pid: Int, previousPid: Int?): String {
     if (!enabled) {
       return ""
     }
     if (hideDuplicates && pid == previousPid) {
-      return dupAppName
+      return "".padEnd(maxLength + 1)
     }
     if (appName == "?" || appName == "") {
       return "pid-$pid".padEnd(maxLength + 1)

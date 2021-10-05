@@ -15,33 +15,29 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.google.gson.annotations.Expose
 import com.intellij.openapi.util.text.StringUtil
-import kotlin.math.max
 
 private const val DEFAULT_LENGTH = 23
 private const val MIN_LENGTH = 10
 private const val PREFIX_LEN = 6
+
 /**
  * Provides formatting for the log tag.
  */
-internal class TagFormat(maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
-  @Transient // Exclude from serialization
-  private val noTag = "<no-tag>".padEnd(maxLength + 1)
-  @Transient // Exclude from serialization
-  private val dupTag = "".padEnd(maxLength + 1)
-
-  private val maxLength = max(MIN_LENGTH, maxLength)
+internal class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
+  init {
+    assert(maxLength >= MIN_LENGTH)
+  }
 
   fun format(tag: String, previousTag: String?): String {
     if (!enabled) {
       return ""
     }
     if (hideDuplicates && tag == previousTag) {
-      return dupTag
+      return "".padEnd(maxLength + 1)
     }
     if (tag == "") {
-      return noTag
+      return "<no-tag>".padEnd(maxLength + 1)
     }
     if (tag.length > maxLength) {
       return StringUtil.shortenTextWithEllipsis(tag, maxLength, maxLength - PREFIX_LEN) + " "
