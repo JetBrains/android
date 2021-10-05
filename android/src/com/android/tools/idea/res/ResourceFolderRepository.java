@@ -251,11 +251,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * The remaining resources are then loaded by parsing XML files that were not present in the cache or were newer
    * than their cached versions.
    * <p>
-   * If a significant (determined by {@link #CACHE_STALENESS_THRESHOLD}} percentage of resources was loaded by parsing
+   * If a significant (determined by {@link #CACHE_STALENESS_THRESHOLD}) percentage of resources was loaded by parsing
    * XML files and {@code cachingData.cacheCreationExecutor} is not null, the new cache file is created using that
    * executor, possibly after this method has already returned.
    * <p>
-   * After creation the contents of the repository are maintained to be up to date by listening to VFS and PSI events.
+   * After creation the contents of the repository are maintained to be up-to-date by listening to VFS and PSI events.
    * <p>
    * NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method.
    */
@@ -521,7 +521,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   /**
    * If the attribute value has the form "@+id/<i>name</i>" and the <i>name</i> part is a valid
-   * resource name, returns it. Otherwise returns null.
+   * resource name, returns it. Otherwise, returns null.
    */
   @Nullable
   private String createIdNameFromAttribute(@NotNull XmlAttribute attribute) {
@@ -1650,7 +1650,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   assert tag instanceof XmlTag : tag;
                   XmlTag xmlTag = (XmlTag)tag;
                   String attributeName = xmlAttribute.getName();
-                  // We could also special case handling of editing the type attribute, and the parent attribute,
+                  // We could also special-case handling of editing the type attribute, and the parent attribute,
                   // but editing these is rare enough that we can just stick with the fallback full file scan for those
                   // scenarios.
                   if (isItemElement(xmlTag) && attributeName.equals(ATTR_NAME)) {
@@ -1893,7 +1893,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     @Override
-    public final void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
       TRACER.log(() -> "IncrementalUpdatePsiListener.beforeChildrenChange " + psiToVirtual(event.getFile()));
       myIgnoreChildrenChanged = false;
     }
