@@ -17,13 +17,12 @@ package com.android.tools.idea.editors
 
 import com.intellij.application.options.editor.CheckboxDescriptor
 import com.intellij.application.options.editor.checkBox
-import com.intellij.openapi.options.BoundConfigurable
-import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.PropertyBinding
-import com.intellij.ui.layout.panel
+import com.intellij.openapi.options.UiDslUnnamedConfigurable
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.layout.*
 import org.jetbrains.android.util.AndroidBundle
 
-class AndroidEditorAppearanceConfigurable: BoundConfigurable(AndroidBundle.message("android.editor.settings.appearance.title")) {
+class AndroidEditorAppearanceConfigurable : UiDslUnnamedConfigurable.Simple() {
 
   private val settings = AndroidEditorAppearanceSettings.getInstance()
 
@@ -32,13 +31,9 @@ class AndroidEditorAppearanceConfigurable: BoundConfigurable(AndroidBundle.messa
     PropertyBinding({ settings.state.enableFlagsForLanguages }, { settings.state.enableFlagsForLanguages = it })
   )
 
-  override fun createPanel(): DialogPanel {
-    return panel {
-      row {
-        titledRow(AndroidBundle.message("android.editor.settings.appearance.title")) {
-          row { checkBox(checkboxDescriptor) }
-        }
-      }
+  override fun Panel.createContent() {
+    group(AndroidBundle.message("android.editor.settings.appearance.title")) {
+      row { checkBox(checkboxDescriptor) }
     }
   }
 }
