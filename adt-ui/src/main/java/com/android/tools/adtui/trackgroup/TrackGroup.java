@@ -173,7 +173,6 @@ public class TrackGroup extends AspectObserver {
     myTrackTitleOverlay.setOpaque(false);
     MouseEventHandler trackTitleMouseEventHandler = new TrackTitleMouseEventHandler();
     myTrackTitleOverlay.addMouseListener(trackTitleMouseEventHandler);
-    myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES));
     if (groupModel.getBoxSelectionModel() != null) {
