@@ -339,6 +339,7 @@ iml_module(
         "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
         "//tools/base/common:studio.android.sdktools.common.testfixtures[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java[test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
     ],
 )
 

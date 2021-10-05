@@ -25,6 +25,7 @@ import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProv
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.wearpairing.await
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
@@ -73,6 +74,7 @@ abstract class AndroidWearConfigurationExecutorBase(private val environment: Exe
     return runContentDescriptor
   }
 
+  @VisibleForTesting
   abstract fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor?
 
   private fun getDevices(stats: RunStats): List<IDevice> {
@@ -97,6 +99,14 @@ abstract class AndroidWearConfigurationExecutorBase(private val environment: Exe
       throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
     }
     return devices
+  }
+
+  fun getApplicationInstaller(): ApplicationInstaller {
+    return ApplicationInstaller(configuration)
+  }
+
+  fun getDebugSessionStarter(): DebugSessionStarter {
+    return DebugSessionStarter(environment)
   }
 
   class EmptyProcessHandler : ProcessHandler() {
