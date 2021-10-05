@@ -144,6 +144,7 @@
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
     <orderEntry type="module" module-name="android.sdktools.common.testfixtures" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.deployer" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

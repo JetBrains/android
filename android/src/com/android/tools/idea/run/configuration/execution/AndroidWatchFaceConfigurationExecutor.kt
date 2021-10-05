@@ -48,7 +48,7 @@ class AndroidWatchFaceConfigurationExecutor(private val environment: ExecutionEn
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
 
-    val applicationInstaller = ApplicationInstaller(configuration)
+    val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     devices.forEach {
       indicator.checkCanceled()
@@ -60,7 +60,7 @@ class AndroidWatchFaceConfigurationExecutor(private val environment: ExecutionEn
     }
     indicator.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      DebugSessionStarter(environment).attachDebuggerToClient(devices.single(), console, indicator)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console, indicator)
     }
     else {
       invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }
