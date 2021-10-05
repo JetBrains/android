@@ -162,10 +162,10 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
   @Nullable
   private String getManifestPackage(@NotNull ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
-    Manifest manifest = domElement.getParentOfType(Manifest.class, true);
+    Manifest manifest = domElement.getParentOfType(Manifest.class, false);
     String manifestPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
-    if (manifestPackage == null && myUseManifestBasePackage) {
+    if ((manifest != null && manifestPackage == null) || myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
         manifestPackage = AndroidManifestUtils.getPackageName(module);
@@ -365,7 +365,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
   @Nullable
   public String toString(@Nullable PsiClass psiClass, ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
-    Manifest manifest = domElement.getParentOfType(Manifest.class, true);
+    Manifest manifest = domElement.getParentOfType(Manifest.class, false);
     final String packageName = manifest == null ? null : manifest.getPackage().getValue();
     return classToString(psiClass, packageName, "");
   }
