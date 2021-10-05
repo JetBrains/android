@@ -29,15 +29,17 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidLibrary = AndroidLibraryWrapper(source)
 
 private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
+  private val file = lib.artifact
+
   @Suppress("FileComparisons")
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
-    return lib.artifact == (other as? LibraryWrapper<*>)?.lib?.artifact
+    return file == (other as? LibraryWrapper<*>)?.lib?.artifact
   }
 
   override fun hashCode(): Int {
-    return lib.artifact.hashCode()
+    return file.hashCode()
   }
 }
 
