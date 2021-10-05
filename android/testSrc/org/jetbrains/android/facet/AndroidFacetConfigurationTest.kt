@@ -27,11 +27,8 @@ import org.mockito.Mockito.mock
 class AndroidFacetConfigurationTest : AndroidTestCase() {
 
   fun testChangingModelFiresEvent() {
-    val module = myFixture.module
     val model = mock(AndroidModuleModel::class.java)
-
-    val connection = module.messageBus.connect()
-
+    val connection = myFixture.project.messageBus.connect()
     var eventReceived = false
 
     connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
@@ -40,7 +37,7 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
       }
     })
 
-    AndroidModel.set(module.androidFacet!!, model)
+    AndroidModel.set(myFixture.module.androidFacet!!, model)
     connection.deliverImmediately()
     connection.disconnect()
 

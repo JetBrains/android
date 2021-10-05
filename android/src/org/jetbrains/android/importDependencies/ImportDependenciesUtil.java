@@ -62,7 +62,7 @@ public class ImportDependenciesUtil {
               importDependenciesForMarkedModules(project, updateBackwardDependencies);
             }
             else {
-              final MessageBusConnection connection = module.getMessageBus().connect();
+              final MessageBusConnection connection = project.getMessageBus().connect(module);
               connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
                 @Override
                 public void moduleAdded(@NotNull final Project project, @NotNull final Module addedModule) {
