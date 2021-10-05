@@ -56,7 +56,7 @@ class BasicCompileTest {
     var output = ByteArray(0)
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(
       LiveEditService.MethodReference(file, function))) {
-      _: String, _: String, bytes: ByteArray ->
+      _: String, _: String, bytes: ByteArray, _: Map<String, ByteArray> ->
       output = bytes
       done.countDown()
     }

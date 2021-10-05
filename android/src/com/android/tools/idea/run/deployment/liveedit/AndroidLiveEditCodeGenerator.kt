@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.analyzer.AnalysisResult.Companion.compilationError
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -29,6 +30,7 @@ import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageVersionSettings
@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.project.platform
+import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
@@ -58,12 +61,15 @@ class AndroidLiveEditCodeGenerator {
     KotlinToJvmSignatureMapper::class.java.classLoader
   ).iterator().next()
 
+  fun interface CodeGenCallback {
+    operator fun invoke(className: String, methodSignature: String, classData: ByteArray, supportClasses: Map<String, ByteArray>)
+  }
+
   /**
    * Compile a given set of MethodReferences to Java .class files and invoke a callback upon completion.
    */
   @Trace
-  fun compile(project: Project, methods: List<LiveEditService.MethodReference>,
-              callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) {
+  fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback) {
 
     // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
     // that multiple change events of the same file can be queue up. We keep track of what we have deploy
@@ -148,6 +154,9 @@ class AndroidLiveEditCodeGenerator {
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = langVersion
 
+    // TODO: Resolve this using the project itself, somehow.
+    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, "app_debug")
+
     val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
     if (useComposeIR) {
       // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
@@ -180,14 +189,26 @@ class AndroidLiveEditCodeGenerator {
   /**
    * Pick out what classes we need from the generated list of .class files and invoke the callback.
    */
-  fun deployLiveEditToDevice(targetFunction : KtNamedFunction, bindingContext : BindingContext, compilerOutput : List<OutputFile>,
-                             callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) : Boolean {
+  fun deployLiveEditToDevice(targetFunction: KtNamedFunction,
+                             bindingContext: BindingContext,
+                             compilerOutput: List<OutputFile>,
+                             callback: CodeGenCallback): Boolean {
     val methodSignature = functionSignature(bindingContext, targetFunction)
 
+    var elem: PsiElement = targetFunction
+    while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
+      if (elem.parent == null) {
+        throw LiveEditUpdateException.internalError("Could not find a non-null named method");
+      }
+      elem = elem.parent
+    }
+
+    val function: KtNamedFunction = elem
+
     // Class name can be either the class containing the function fragment or a KtFile
-    var className = KtNamedDeclarationUtil.getParentFqName(targetFunction).toString()
-    if (targetFunction.isTopLevel) {
-      val grandParent : KtFile = targetFunction.parent as KtFile
+    var className = KtNamedDeclarationUtil.getParentFqName(function).toString()
+    if (function.isTopLevel) {
+      val grandParent: KtFile = function.parent as KtFile
       className = grandParent.javaFileFacadeFqName.toString()
     }
 
@@ -200,13 +221,19 @@ class AndroidLiveEditCodeGenerator {
     }
 
     // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
-    val internalClassName = className.replace(".", "/") + ".class"
+    val internalClassName = className.replace(".", "/")
+    var primaryClass = ByteArray(0)
+    val supportClasses = mutableMapOf<String, ByteArray>()
     for (c in compilerOutput) {
-      if (!c.relativePath.contains(internalClassName)) {
-        continue
+      if (c.relativePath == "$internalClassName.class") {
+        primaryClass = c.asByteArray()
       }
-      callback(className, methodSignature, c.asByteArray())
+      else if (c.relativePath.endsWith(".class")) {
+        val name = c.relativePath.substringBefore(".class")
+        supportClasses[name] = c.asByteArray()
+      }
     }
+    callback(internalClassName, methodSignature, primaryClass, supportClasses)
     return true
   }
 
