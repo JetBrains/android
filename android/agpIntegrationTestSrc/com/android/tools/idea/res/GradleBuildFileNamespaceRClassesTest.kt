@@ -18,13 +18,20 @@ package com.android.tools.idea.res
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.testing.insertText
+import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiClass
 import com.intellij.testFramework.VfsTestUtil
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import java.io.File
 
 /**
@@ -73,6 +80,20 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
 
+    VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "lib/src/main/java/com/example/foo/libmodule/BasicActivity.java",
+      // language=Java
+      """
+        package com.example.foo.libmodule;
+
+        import android.app.Activity;
+
+        public class BasicActivity extends Activity {
+        }
+      """.trimIndent()
+    )
+
     // Setting the library module namespace via the build.gradle, which should take priority over the package name in AndroidManifest.xml
     File(projectRoot, "lib/build.gradle").appendText("""
       android {
@@ -85,6 +106,52 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
     waitForResourceRepositoryUpdates(project.findAppModule())
+
+    myFixture.enableInspections(AndroidDomInspection())
+  }
+
+  fun testManifestActivityXml() {
+    val virtualFile = project.guessProjectDir()!!.findFileByRelativePath("lib/src/main/AndroidManifest.xml")
+    myFixture.openFileInEditor(virtualFile!!)
+
+    // Checking that the basic AndroidManifest.xml file resolves correctly.
+    myFixture.checkHighlighting()
+
+
+    // Add activity to the Manifest tag.
+    myFixture.moveCaret("""package="com.example.projectwithappandlib.lib">|""")
+    myFixture.editor.executeAndSave {
+      insertText("""
+
+        <application>
+          <activity
+              android:name="com.example.foo.libmodule.BasicActivity" />
+        </application>
+      """.trimIndent())
+    }
+    myFixture.checkHighlighting()
+
+    // Remove the package attribute from the Manifest tag
+    myFixture.editor.executeAndSave {
+      replaceText(
+        """<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.projectwithappandlib.lib">""",
+        """<manifest xmlns:android="http://schemas.android.com/apk/res/android">""")
+    }
+
+    myFixture.checkHighlighting()
+
+    // Remove the package prefix to the class name
+    myFixture.editor.executeAndSave {
+      replaceText(
+        """com.example.foo.libmodule.BasicActivity""",
+        """.BasicActivity""")
+    }
+
+    myFixture.checkHighlighting()
+    myFixture.moveCaret("Basic|Activity")
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(PsiClass::class.java)
+    assertThat((elementAtCaret as PsiClass).name).isEqualTo("BasicActivity")
   }
 
   fun testAppResources() {
