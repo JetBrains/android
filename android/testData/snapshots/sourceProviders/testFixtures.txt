@@ -1,4 +1,3 @@
-MODULE: testTestFixtures
 MODULE: testTestFixtures.app
     by Facet:
         main (IDEA)

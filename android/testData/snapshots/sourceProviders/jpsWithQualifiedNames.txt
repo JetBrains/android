@@ -122,6 +122,3 @@ MODULE: MyApplication
         CurrentUnitTestSourceProviders:
         CurrentAndroidTestSourceProviders:
         CurrentTestFixturesSourceProviders:
-MODULE: justLib
-MODULE: justLib.sub1
-MODULE: justLib.sub2

@@ -1,4 +1,3 @@
-MODULE: AS36_noiml
 MODULE: AS36_noiml.app
     by Facet:
         main (IDEA)
@@ -666,7 +665,6 @@ MODULE: AS36_noiml.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36_noiml.features
 MODULE: AS36_noiml.features.dynamicfeature
     by Facet:
         main (IDEA)
@@ -1905,7 +1903,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36_noiml.libs
 MODULE: AS36_noiml.libs.android_library
     by Facet:
         main (IDEA)
@@ -2573,4 +2570,3 @@ MODULE: AS36_noiml.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36_noiml.libs.java_lib

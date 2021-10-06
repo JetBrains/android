@@ -1,4 +1,3 @@
-MODULE: TestCompositeLib1
 MODULE: TestCompositeLib1.app
     by Facet:
         main (IDEA)
@@ -1333,7 +1332,6 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: TestCompositeLib3
 MODULE: TestCompositeLib3.app
     by Facet:
         main (IDEA)
@@ -2668,11 +2666,6 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: com.test.compositeNest3.compositeNest
-MODULE: composite2
-MODULE: composite4
-MODULE: compositeNest
-MODULE: testCompositeBuild
 MODULE: testCompositeBuild.app
     by Facet:
         main (IDEA)
