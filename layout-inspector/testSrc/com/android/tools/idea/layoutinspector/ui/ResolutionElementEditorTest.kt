@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -60,6 +59,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LookAndFeel
 import javax.swing.UIManager
+import javax.swing.plaf.metal.MetalLookAndFeel
+import javax.swing.plaf.metal.MetalTheme
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 
@@ -82,9 +83,6 @@ class ResolutionElementEditorTest {
     getEditor(editors, 1).isVisible = false
     checkImage(editors, "Closed")
   }
-
-  @get:Rule
-  val ignoreTests = IgnoreTestRule()
 
   @Test
   fun testPaintOpen() {
@@ -230,16 +228,24 @@ class ResolutionElementEditorTest {
 
 class IntelliJLafRule : ExternalResource() {
   private var laf: LookAndFeel? = null
+  private var theme: MetalTheme? = null
 
   override fun before() {
     laf = UIManager.getLookAndFeel()
+    // If the current LaF is MetalLookAndFeel, we also need to save away the theme, which provides the colors and fonts to MetalLookAndFeel,
+    // since IntelliJLaf changes is.
+    theme = MetalLookAndFeel.getCurrentTheme()
     // Clear out anything set explicitly by previous tests
     UIManager.getDefaults().clear()
     UIManager.setLookAndFeel(IntelliJLaf())
   }
 
   override fun after() {
+    UIManager.getDefaults().clear()
+
+    MetalLookAndFeel.setCurrentTheme(theme)
     UIManager.setLookAndFeel(laf)
     laf = null
+    theme = null
   }
 }
