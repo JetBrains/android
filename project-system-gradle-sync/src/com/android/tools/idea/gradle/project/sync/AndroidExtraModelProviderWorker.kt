@@ -614,8 +614,12 @@ internal class AndroidExtraModelProviderWorker(
 
       if (syncOptions.flags.studioFlagUseV2BuilderModels && canFetchV2Models == true) {
         // In V2, we get the variants from AndroidModule.v2Variants.
-        val variant = module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant } ?: return null
-        val basicVariant = module.v2BasicVariants?.firstOrNull { it.name == moduleConfiguration.variant } ?: return null
+        val variant =
+          module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant } ?:
+          throw IllegalArgumentException("Variant '${moduleConfiguration.variant}' Does not exist.")
+        val basicVariant =
+          module.v2BasicVariants?.firstOrNull { it.name == moduleConfiguration.variant } ?:
+          throw IllegalArgumentException("Variant '${moduleConfiguration.variant}' Does not exist.")
         variantName = variant.name
 
         // Request VariantDependencies model for the variant's dependencies.
