@@ -1,4 +1,3 @@
-MODULE: testNestedProjects
 MODULE: testNestedProjects.app
     by Facet:
         main (IDEA)
@@ -2308,7 +2307,6 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.jav
 MODULE: testNestedProjects.lib
     by Facet:
         main (IDEA)
@@ -5923,7 +5921,6 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testNestedProjects.nested2.trans
 MODULE: testNestedProjects.nested2.trans.deep2
     by Facet:
         main (IDEA)

@@ -1,4 +1,3 @@
-MODULE: testSimpleApplication
 MODULE: testSimpleApplication.app
     by Facet:
         main (IDEA)

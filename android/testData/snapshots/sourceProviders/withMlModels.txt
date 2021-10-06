@@ -1,4 +1,3 @@
-MODULE: testWithMlModels
 MODULE: testWithMlModels.app
     by Facet:
         main (IDEA)

@@ -1,4 +1,3 @@
-MODULE: AS36
 MODULE: AS36.app
     by Facet:
         main (IDEA)
@@ -666,7 +665,6 @@ MODULE: AS36.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36.features
 MODULE: AS36.features.dynamicfeature
     by Facet:
         main (IDEA)
@@ -1905,7 +1903,6 @@ MODULE: AS36.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36.libs
 MODULE: AS36.libs.android_library
     by Facet:
         main (IDEA)
@@ -2573,4 +2570,3 @@ MODULE: AS36.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: AS36.libs.java_lib

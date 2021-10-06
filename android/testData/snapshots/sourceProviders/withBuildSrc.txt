@@ -1,4 +1,3 @@
-MODULE: testWithBuildSrc
 MODULE: testWithBuildSrc.app
     by Facet:
         main (IDEA)
@@ -666,6 +665,3 @@ MODULE: testWithBuildSrc.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testWithBuildSrc.buildSrc
-MODULE: testWithBuildSrc.buildSrc.lib1
-MODULE: testWithBuildSrc.buildSrc.lib2
