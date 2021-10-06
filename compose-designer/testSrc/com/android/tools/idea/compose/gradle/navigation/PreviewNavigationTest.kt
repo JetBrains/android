@@ -44,7 +44,7 @@ class PreviewNavigationTest {
   @Test
   fun testComposableNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.module
+    val module = facet.mainModule
 
     renderPreviewElementForResult(
       facet,
@@ -95,7 +95,7 @@ class PreviewNavigationTest {
   @Test
   fun testInProjectNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.module
+    val module = facet.mainModule
 
     renderPreviewElementForResult(
       facet,
@@ -122,7 +122,7 @@ class PreviewNavigationTest {
   @Test
   fun testDuplicateFileNavigation() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.module
+    val module = facet.mainModule
 
     renderPreviewElementForResult(
       facet,
