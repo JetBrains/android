@@ -33,8 +33,10 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   fun testRuleIsActive() {
     val groupingRules = getActiveGroupingRules(myFixture.project)
     assertThat(groupingRules.filterIsInstance(ComponentGroupingRule::class.java)).isNotEmpty()
+/* b/202330008
     assertThat(groupingRules.indexOfFirst { it is ComponentGroupingRule })
       .isLessThan(groupingRules.indexOfFirst { it is UsageTypeGroupingRule })
+b/202330008 */
   }
 
   // TODO(b/161888480): parameterize by Groovy/KotlinScript
