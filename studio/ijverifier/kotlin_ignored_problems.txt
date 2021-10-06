@@ -12,20 +12,21 @@ Package 'kotlinx.io' is not found
 // Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
 Package 'android.os' is not found
 
-
 // The incremental compiler is referenced, but not reachable in the IDE.
 .*org.jetbrains.kotlin.incremental.*
-
-
 
 // We do not bundle the Maven plugin (and Kotlin's dependency on Maven is optional).
 Package 'org.jetbrains.idea.maven.plugins' is not found
 Package 'org.jetbrains.idea.maven.project' is not found
+Package 'org.jetbrains.idea.maven.wizards' is not found
 
 Package 'org.jetbrains.kotlin.fir.lightTree' is not found
 
 // Known issue, but currently unreachable at runtime.
 Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented
 
-// b/201574409
-.*unresolved field com.intellij.internal.statistic.eventLog.EventLogConfiguration.INSTANCE.*
+// b/201282111
+Access to unresolved class com.intellij.testIntegration.createTest.CreateTestUtils
+Illegal invocation of private method kotlin.io.path.PathsKt__PathUtilsKt.getPathString.*
+Invocation of unresolved constructor com.intellij.debugger.jdi.GeneratedLocation.*
+Invocation of unresolved method com.intellij.util.XmlDomReader.readXmlAsModel.*
