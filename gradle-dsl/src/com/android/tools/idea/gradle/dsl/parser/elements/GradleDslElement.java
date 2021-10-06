@@ -78,6 +78,16 @@ public interface GradleDslElement extends AnchorProvider {
   @NotNull
   GradleNameElement getNameElement();
 
+  /**
+   * Sets the name element of this element to {@code name}.  Note that this is almost certainly not what is needed, and you most
+   * likely should be using a {@link #rename} method, which performs a rename of the element.  This method is for associating a
+   * different name with an existing element after-the-fact, for example because of name normalization between an external data language
+   * and generated java objects.
+   *
+   * @param name the new name element.
+   */
+  void setNameElement(@NotNull GradleNameElement name);
+
   void rename(@NotNull String newName);
 
   void rename(@NotNull List<String> hierarchicalName);

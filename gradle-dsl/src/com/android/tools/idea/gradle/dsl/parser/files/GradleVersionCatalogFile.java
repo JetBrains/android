@@ -22,9 +22,13 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleVersionCatalogFile extends GradleDslFile {
@@ -47,6 +51,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
   public void parse() {
     myGradleDslParser.parse();
     replaceVersionRefsWithInjections();
+    mapAliasesToAccessors();
   }
 
   protected void replaceVersionRefsWithInjections() {
@@ -87,6 +92,36 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     }
     if (plugins != null) {
       plugins.getPropertyElements(GradleDslExpressionMap.class).forEach(versionRefReplacer);
+    }
+  }
+
+  protected void mapAliasesToAccessors() {
+    GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
+    GradleDslExpressionMap plugins = getPropertyElement("plugins", GradleDslExpressionMap.class);
+    Pattern pattern = Pattern.compile("[_-]");
+    Function<GradleDslExpressionMap, BiConsumer<String, GradleDslElement>> aliasConstructorFactory =
+      (map) -> (BiConsumer<String, GradleDslElement>)(name, element) -> {
+        String[] split = pattern.split(name);
+        if (split.length > 1) {
+          map.hideProperty(element);
+          GradleDslExpressionMap current = map;
+          for (int i = 0; i < split.length - 1; i++) {
+            GradleDslExpressionMap next = current.getPropertyElement(split[i], GradleDslExpressionMap.class);
+            if (next == null) {
+              next = new GradleDslExpressionMap(current, GradleNameElement.fake(split[i]));
+              current.addParsedElement(next);
+            }
+            current = next;
+          }
+          element.setNameElement(GradleNameElement.fake(split[split.length - 1]));
+          current.addParsedElement(element);
+        }
+      };
+    if (libraries != null) {
+      libraries.getPropertyElements().forEach(aliasConstructorFactory.apply(libraries));
+    }
+    if (plugins != null) {
+      plugins.getPropertyElements().forEach(aliasConstructorFactory.apply(plugins));
     }
   }
 }
