@@ -167,8 +167,10 @@ fun Project.getAndroidModulesForDisplay(additionalFilter: ((Module) -> Boolean)?
  *
  * Note: A copy of AndroidFacet is attached to all source set modules so we need to filter only the ones belong to holder modules here.
  */
-fun Project.getAndroidFacets(): List<AndroidFacet> {
-  return ProjectFacetManager.getInstance(this).getFacets(AndroidFacet.ID).filter { facet ->
+fun Project?.getAndroidFacets(): List<AndroidFacet> {
+  return this?.let {
+    ProjectFacetManager.getInstance(this).getFacets(AndroidFacet.ID).filter { facet ->
     facet.module.isHolderModule()
-  }
+    }
+  } ?: listOf()
 }

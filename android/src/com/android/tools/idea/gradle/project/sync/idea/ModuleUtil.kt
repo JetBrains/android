@@ -90,12 +90,16 @@ object ModuleUtil {
 
 }
 
-fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
-    val moduleName = getModuleName(artifactName)
-    val suffix = ":$moduleName"
-    if (this.endsWith(suffix)) {
-      this.removeSuffix(suffix)
-    } else {
-      null
-    }
-  } ?: this
+fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceSetSuffix(":")
+
+fun String.removeSourceSetSuffixFromModuleName() : String = removeSourceSetSuffix(".")
+
+private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
+  val moduleName = getModuleName(artifactName)
+  val suffix = "$delimiter$moduleName"
+  if (this.endsWith(suffix)) {
+    this.removeSuffix(suffix)
+  } else {
+    null
+  }
+} ?: this

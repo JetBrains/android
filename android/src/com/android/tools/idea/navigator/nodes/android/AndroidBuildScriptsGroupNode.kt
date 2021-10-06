@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.android
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.projectView.ViewSettings
@@ -36,7 +37,6 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import icons.GradleIcons
 import org.jetbrains.android.facet.AndroidRootUtil
-import java.util.ArrayList
 
 class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   : ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
@@ -55,7 +55,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   private fun getBuildScriptsWithQualifiers(): Map<VirtualFile, String> {
     val buildScripts = mutableMapOf<VirtualFile, String>()
     for (module in ModuleManager.getInstance(myProject).modules) {
-      val moduleName = getPrefixForModule(module) + module.name
+      val moduleName = getPrefixForModule(module) + module.getHolderModule().name
       val gradleBuildFile = GradleUtil.getGradleBuildFile(module)
       if (gradleBuildFile != null) {
         buildScripts[gradleBuildFile] = moduleName
@@ -65,7 +65,7 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
       for (file in findAllGradleScriptsInModule(module)) {
         buildScripts[file] =
           if (file.fileType === getProguardFileType()) {
-            String.format("ProGuard Rules for %1\$s", module.name)
+            String.format("ProGuard Rules for %1\$s", module.getHolderModule().name)
           }
           else {
             moduleName
