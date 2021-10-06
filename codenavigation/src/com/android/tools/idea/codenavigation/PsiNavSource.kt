@@ -30,46 +30,50 @@ import com.intellij.psi.util.ClassUtil
  */
 class PsiNavSource(private val project: Project): NavSource {
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
+    var psiClass = findClass(location) ?: return null
+
+    if (location.lineNumber >= 0) {
+      // If the specified CodeLocation has a line number, navigatable is that line
+      return OpenFileDescriptor(project,
+                                psiClass.navigationElement.containingFile.virtualFile,
+                                location.lineNumber,
+                                0)
+    }
+
+    // If we fail to find the method, fall back to the class.
+    return findMethod(psiClass, location) ?: psiClass
+  }
+
+  /**
+   * Looks for the class definition that covers [location]. Returns null if no class can be
+   * found (e.g. not java/kotlin code).
+   */
+  private fun findClass(location: CodeLocation): PsiClass? {
     if (location.className.isNullOrEmpty()) {
       return null
     }
 
     val manager = PsiManager.getInstance(project)
+
     var psiClass = ClassUtil.findPsiClassByJVMName(manager, location.className!!);
 
-    if (psiClass == null) {
-      if (location.lineNumber >= 0) {
-        // There has been at least one case where the PsiManager could not find an inner class in
-        // Kotlin code, which caused us to abort navigating. However, if we have the outer class
-        // (which is easier for PsiManager to find) and a line number, that's enough information to
-        // help us navigate. So, to be more robust against PsiManager error, we try one more time.
-        psiClass = ClassUtil.findPsiClassByJVMName(manager, location.outerClassName!!);
-      }
+    if (psiClass == null && location.lineNumber >= 0) {
+      // There has been at least one case where the PsiManager could not find an inner class in
+      // Kotlin code, which caused us to abort navigating. However, if we have the outer class
+      // (which is easier for PsiManager to find) and a line number, that's enough information to
+      // help us navigate. So, to be more robust against PsiManager error, we try one more time.
+      psiClass = ClassUtil.findPsiClassByJVMName(manager, location.outerClassName!!);
     }
 
-    if (psiClass == null) {
-      return null;
-    }
-
-    if (location.lineNumber >= 0) {
-      // If the specified CodeLocation has a line number, navigatable is that line
-      return OpenFileDescriptor(project, psiClass.navigationElement.containingFile.virtualFile, location.lineNumber, 0);
-    }
-
-    if (location.methodName != null && location.signature != null) {
-      // If it has both method name and signature, navigatable is the corresponding method
-      val method = findMethod(psiClass, location.methodName!!, location.signature!!);
-
-      if (method != null) {
-        return method
-      }
-    }
-
-    // Otherwise, navigatable is the class
-    return psiClass;
+    return psiClass
   }
 
-  private fun findMethod(psiClass: PsiClass, methodName: String, signature: String): PsiMethod? {
-    return psiClass.findMethodsByName(methodName, true).firstOrNull{ signature == TraceSignatureConverter.getTraceSignature(it) }
+  private fun findMethod(psiClass: PsiClass, location: CodeLocation,): PsiMethod? {
+    if (location.methodName == null || location.signature == null) {
+      return null
+    }
+
+    val methods = psiClass.findMethodsByName(location.methodName, true)
+    return methods.firstOrNull{ location.signature == TraceSignatureConverter.getTraceSignature(it) }
   }
 }
