@@ -75,7 +75,7 @@ class DataBindingPackageFinderTest {
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    val moduleDescriptor = facet.module.toDescriptor()!!
+    val moduleDescriptor = facet.mainModule.toDescriptor()!!
     val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
                                                                 NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
     val context = classDescriptor.findPsi()!!

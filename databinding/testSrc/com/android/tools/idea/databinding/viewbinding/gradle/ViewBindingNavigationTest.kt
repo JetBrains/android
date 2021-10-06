@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
@@ -82,7 +83,7 @@ class ViewBindingNavigationTest {
   fun navigateLightViewBindingClass() {
     assertThat(editorManager.selectedFiles).isEmpty()
 
-    val moduleDescriptor = projectRule.project.findAppModule().toDescriptor()!!
+    val moduleDescriptor = projectRule.project.findAppModule().getMainModule().toDescriptor()!!
     val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
                                                                 NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
     val context = classDescriptor.findPsi()!!
@@ -110,7 +111,7 @@ class ViewBindingNavigationTest {
   fun navigateLightViewBindingField() {
     assertThat(editorManager.selectedFiles).isEmpty()
 
-    val moduleDescriptor = projectRule.project.findAppModule().toDescriptor()!!
+    val moduleDescriptor = projectRule.project.findAppModule().getMainModule().toDescriptor()!!
     val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
                                                                 NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
     val context = classDescriptor.findPsi()!!

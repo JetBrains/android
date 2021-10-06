@@ -89,7 +89,7 @@ class ViewBindingEnabledTest {
     ResourceRepositoryManager.getAppResources(facet)
 
     // Context needed for searching for light classes
-    val moduleDescriptor = facet.module.toDescriptor()!!
+    val moduleDescriptor = facet.mainModule.toDescriptor()!!
     val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
                                                                 NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
     val context = classDescriptor.findPsi()!!
