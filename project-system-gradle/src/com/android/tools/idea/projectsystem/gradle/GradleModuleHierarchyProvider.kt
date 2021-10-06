@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -28,6 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ModuleRootManager
+import org.jetbrains.android.facet.AndroidFacet
 
 class GradleModuleHierarchyProvider(private val project: Project) {
   private var moduleSubmodules: Map<ComponentManager, List<Module>>? = null // Keys: Modules and the project.
@@ -116,8 +118,9 @@ class GradleModuleHierarchyProvider(private val project: Project) {
       hierarchyIdToSubmodulesMap[projectRootHierarchyId]
         ?.singleOrNull()
         ?.takeIf {
-          // If there is only one top level module and it is empty, flatten it.
-          ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty()
+          // If there is only one top level module and it is empty, flatten it. In module per source the top level module will be empty of
+          // sources so we also need to check that is has no facets before we flatten.
+          ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && AndroidFacet.getInstance(it) == null
         }
 
     if (emptyOnlyRootModule != null) {

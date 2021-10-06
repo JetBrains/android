@@ -240,7 +240,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertNotNull(dir);
 
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    assertThat(modules).hasLength(1);
 
     String projectName = getProject().getName();
     String expected = projectName + "\n" +
@@ -273,9 +272,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
     PsiDirectory dir = getBaseFolder();
     assertNotNull(dir);
-
-    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    assertThat(modules).hasLength(3);
 
     String projectName = getProject().getName();
     String expected = projectName + "\n" +
