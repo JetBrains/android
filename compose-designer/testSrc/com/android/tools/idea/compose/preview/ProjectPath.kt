@@ -17,3 +17,4 @@ package com.android.tools.idea.compose.preview
 
 const val TEST_DATA_PATH = "tools/adt/idea/compose-designer/testData"
 const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
+const val COMPOSITE_COMPOSE_PROJECT_PATH = "projects/CompositeComposeApplication"
