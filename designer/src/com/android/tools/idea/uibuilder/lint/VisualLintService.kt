@@ -123,7 +123,6 @@ fun inflate(param: InflationParam): CompletableFuture<RenderResult> {
   return renderService.taskBuilder(param.facet, param.config)
     .withPsiFile(param.file)
     .withLayoutScanner(false)
-    .withLayoutScannerOptimization(false)
     .withLogger(logger)
     .build().thenCompose { newTask ->
       if (newTask == null) {

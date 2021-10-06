@@ -371,7 +371,6 @@ public class RenderService implements Disposable {
     private boolean isShadowEnabled = true;
     private boolean useHighQualityShadows = true;
     private boolean enableLayoutScanner = false;
-    private boolean enableLayoutScannerOptimization = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
@@ -481,11 +480,6 @@ public class RenderService implements Disposable {
 
     public RenderTaskBuilder withLayoutScanner(Boolean enableLayoutScanner) {
       this.enableLayoutScanner = enableLayoutScanner;
-      return this;
-    }
-
-    public RenderTaskBuilder withLayoutScannerOptimization(Boolean enableScannerOptimization) {
-      this.enableLayoutScannerOptimization = enableScannerOptimization;
       return this;
     }
 
@@ -687,8 +681,7 @@ public class RenderService implements Disposable {
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
-            .setEnableLayoutScanner(enableLayoutScanner)
-            .setEnableLayoutScannerOptimization(enableLayoutScannerOptimization);
+            .setEnableLayoutScanner(enableLayoutScanner);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

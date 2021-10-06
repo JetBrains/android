@@ -17,10 +17,8 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
-import com.android.tools.idea.validator.ValidatorResult
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
-import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 
 class RenderATFBasePerfgateTest : AndroidTestCase() {

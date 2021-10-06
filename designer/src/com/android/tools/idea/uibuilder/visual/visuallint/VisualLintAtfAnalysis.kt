@@ -77,9 +77,6 @@ class VisualLintAtfAnalysis(
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
         return validateAndUpdateLint(renderResult, validated)
       }
-      is ValidatorResult -> {
-        return validateAndUpdateLint(renderResult, validatorResult)
-      }
       else -> {
         // Result not available.
         return ArrayList<VisualLintAtfIssue>()
@@ -94,7 +91,6 @@ class VisualLintAtfAnalysis(
 
     val issues = ArrayList<VisualLintAtfIssue>()
 
-    var result: ValidatorResult? = null
     try {
       val components = model.components
       if (components.isEmpty()) {
@@ -116,8 +112,6 @@ class VisualLintAtfAnalysis(
           }
         }
       }
-
-      result = validatorResult
     } finally {
       renderMetric.renderMs = renderResult.stats.renderDurationMs
       renderMetric.scanMs = validatorResult.metric.mHierarchyCreationMs

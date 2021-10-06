@@ -47,12 +47,6 @@ interface LayoutScannerConfiguration {
   var isLayoutScannerEnabled: Boolean
 
   /**
-   * New experimental settings to always enable scanner instead of only when it is user triggered.
-   * It takes effect only when [isLayoutScannerEnabled] is already on.
-   */
-  var isScannerAlwaysOn: Boolean
-
-  /**
    * Determines default behaviour on whether the scanner result should be integrated with issue panel.
    * If true, it'll be integrated automatically. If false, results will not be used for anything.
    */
@@ -67,10 +61,6 @@ interface LayoutScannerConfiguration {
         get() = false
         set(value) { }
 
-      override var isScannerAlwaysOn: Boolean
-        get() = false
-        set(value) {}
-
       override var isIntegrateWithDefaultIssuePanel: Boolean
         get() = false
         set(value) {}
@@ -82,8 +72,6 @@ interface LayoutScannerConfiguration {
 class LayoutScannerEnabled : LayoutScannerConfiguration {
 
   override var isLayoutScannerEnabled: Boolean = StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get()
-
-  override var isScannerAlwaysOn: Boolean = StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get()
 
   override var isIntegrateWithDefaultIssuePanel: Boolean = true
 }
