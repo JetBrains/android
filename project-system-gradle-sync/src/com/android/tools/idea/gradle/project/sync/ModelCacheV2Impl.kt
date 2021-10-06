@@ -1052,38 +1052,16 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     includeInBundle = model.includeInBundle
   )
 
-  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getV2BooleanFlag(
-    flag: AndroidGradlePluginProjectFlags.BooleanFlag
-  ): Boolean = this[flag] ?: flag.legacyDefault
-
-  fun createV2IdeAndroidGradlePluginProjectFlagsImpl(
-    booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>?
-  ): IdeAndroidGradlePluginProjectFlagsImpl {
-    return if (booleanFlagMap != null) {
-      IdeAndroidGradlePluginProjectFlagsImpl(
-        applicationRClassConstantIds =
-        booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS),
-        testRClassConstantIds = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS),
-        transitiveRClasses = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
-        usesCompose = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
-        mlModelBindingEnabled = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING),
-        unifiedTestPlatformEnabled = booleanFlagMap.getV2BooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
-      )
-    }
-    else {
-      IdeAndroidGradlePluginProjectFlagsImpl(
-        applicationRClassConstantIds = false,
-        testRClassConstantIds = false,
-        transitiveRClasses = false,
-        usesCompose = false,
-        mlModelBindingEnabled = false,
-        unifiedTestPlatformEnabled = false,
-      )
-    }
-  }
-
   fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
-    createV2IdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
+     IdeAndroidGradlePluginProjectFlagsImpl(
+        applicationRClassConstantIds =
+        AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
+        testRClassConstantIds = AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.getValue(flags),
+        transitiveRClasses = AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS.getValue(flags),
+        usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
+        mlModelBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING.getValue(flags),
+        unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
+      )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
     // TODO(b/187504821): is the number of supported project type in V2 reduced ? this is a restricted list compared to V1.
