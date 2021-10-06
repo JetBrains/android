@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.imagepool.ImagePool
-import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
@@ -301,7 +301,7 @@ fun getRenderMetric(task: RenderTask, resultVerifier: (RenderResult) -> Unit): P
 
 fun verifyValidatorResult(result: RenderResult) {
   val validatorResult = result.validatorResult
-  TestCase.assertTrue(validatorResult is ValidatorResult)
+  TestCase.assertTrue(validatorResult is ValidatorHierarchy)
 }
 
 fun ImagePool.Image.getPixel(x: Int, y: Int) = this.getCopy(x, y, 1, 1)!!.getRGB(0, 0)

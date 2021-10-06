@@ -118,10 +118,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
           listeners.forEach { it.lintUpdated(null) }
           return
         }
-        validateAndUpdateLint(renderResult, LayoutValidator.validate(validatorResult), model, surface)
-      }
-      is ValidatorResult -> {
-        validateAndUpdateLint(renderResult, validatorResult, model, surface)
+        updateLint(renderResult, LayoutValidator.validate(validatorResult), model, surface)
       }
       else -> {
         // Result not available.
@@ -130,7 +127,8 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
     }
   }
 
-  private fun validateAndUpdateLint(
+  @VisibleForTesting
+  fun updateLint(
     renderResult: RenderResult,
     validatorResult: ValidatorResult,
     model: NlModel,

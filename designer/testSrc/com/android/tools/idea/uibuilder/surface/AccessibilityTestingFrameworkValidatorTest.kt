@@ -21,7 +21,9 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
+import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.idea.validator.ValidatorUtil
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ReadAction
 import com.intellij.psi.PsiFile
@@ -33,16 +35,17 @@ import java.util.stream.Collectors
 
 class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
+  companion object {
+    private val TEST_POLICY = ValidatorData.Policy(
+      EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
+                 ValidatorData.Type.RENDER),
+      EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING))
+  }
+
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
     RenderTestUtil.beforeRenderTestCase()
-    val policy = ValidatorData.Policy(
-      EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
-                 ValidatorData.Type.RENDER),
-      EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING)
-    )
-    LayoutValidator.updatePolicy(policy)
   }
 
   @Throws(Exception::class)
@@ -59,15 +62,15 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
   fun testRenderHasResult() {
     val result = renderAndResult(DUP_BOUNDS_LAYOUT)
+    val validatorResult = getValidatorResult(result)
 
-    val validatorResult = result.validatorResult
     assertNotNull(validatorResult)
     assertTrue(validatorResult is ValidatorResult)
   }
 
   fun testDupBounds() {
     val result = renderAndResult(DUP_BOUNDS_LAYOUT)
-    val validatorResult = result.validatorResult as ValidatorResult
+    val validatorResult = getValidatorResult(result)
 
     val dupBounds = filter(validatorResult.issues, "DuplicateClickableBoundsCheck")
     assertEquals(1, dupBounds.size)
@@ -75,7 +78,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
   fun testTextContrastSimple() {
     val result = renderAndResult(TEXT_COLOR_CONTRAST_SIMPLE)
-    val validatorResult = result.validatorResult as ValidatorResult
+    val validatorResult = getValidatorResult(result)
 
     val textContrast = filter(validatorResult.issues, "TextContrastCheck")
     assertEquals(1, textContrast.size)
@@ -83,7 +86,7 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
   fun testTextContrastComplex() {
     val result = renderAndResult(TEXT_COLOR_CONTRAST_COMPLEX)
-    val validatorResult = result.validatorResult as ValidatorResult
+    val validatorResult = getValidatorResult(result)
 
     val textContrast = filter(validatorResult.issues, "TextContrastCheck")
     assertEquals(4, textContrast.size)
@@ -112,6 +115,10 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     finally {
       task!!.dispose()
     }
+  }
+
+  private fun getValidatorResult(result: RenderResult): ValidatorResult {
+    return ValidatorUtil.generateResults(TEST_POLICY, result.validatorResult as ValidatorHierarchy)
   }
 
   private fun filter(
