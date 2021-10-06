@@ -78,9 +78,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 
-  private fun isTestMode(): Boolean =
-    ApplicationManager.getApplication()?.isUnitTestMode != false
-
   @TestOnly
   internal fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
     virtualDevicesProvider = virtualDevices
@@ -100,7 +97,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   @WorkerThread
   private fun loadSettings() {
-    if (isTestMode()) return
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
     WearPairingSettings.getInstance().apply {
@@ -137,7 +133,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   }
 
   private fun saveSettings() {
-    if (isTestMode()) return
     val pairedDevicesState = mutableListOf<PairingDeviceState>()
     val pairedDeviceConnectionsState = ArrayList<PairingConnectionsState>()
 
