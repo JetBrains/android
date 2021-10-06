@@ -36,7 +36,6 @@ internal fun PairingDeviceState.toPairingDevice(connectionSate: ConnectionState)
     isEmulator = isEmulator,
     isWearDevice = isWearDevice,
     hasPlayStore = hasPlayStore,
-    isPaired = true,
     state = connectionSate
   )
 

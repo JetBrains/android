@@ -67,8 +67,8 @@ public final class DeviceTableCellRendererTest {
   public void getTableCellRendererComponentDeviceIsPaired() throws InterruptedException {
     // Arrange
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
-    PairingDevice wearDevice = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE, false);
-    PairingDevice phoneDevice = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE, false);
+    PairingDevice wearDevice = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE);
+    PairingDevice phoneDevice = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE);
     IDevice device = Mockito.mock(IDevice.class);
 
     assert renderer.getPairedLabel().getIcon() == null;

@@ -32,15 +32,14 @@ data class PairingDevice(
   val isWearDevice: Boolean,
   val hasPlayStore: Boolean,
   val state: ConnectionState,
-  val isPaired: Boolean,
 ) {
   // This field is declared outside the main constructor because it should not be used for equals/hash. Kotlin doesn't have a better way.
   lateinit var launch: (Project?) -> ListenableFuture<IDevice>
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE
 
-  fun disconnectedCopy(isPaired: Boolean = false): PairingDevice {
-    val res = copy(state = ConnectionState.DISCONNECTED, isPaired = isPaired)
+  fun disconnectedCopy(): PairingDevice {
+    val res = copy(state = ConnectionState.DISCONNECTED)
     res.launch = { Futures.immediateFailedFuture(RuntimeException("DISCONNECTED")) }
     return res
   }

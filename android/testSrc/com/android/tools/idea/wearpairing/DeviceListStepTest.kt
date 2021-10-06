@@ -55,11 +55,11 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   private val model = WearDevicePairingModel()
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ONLINE, isPaired = false
+    state = ONLINE
   )
   private val wearDevice = PairingDevice(
     deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ONLINE, isPaired = false
+    state = ONLINE
   )
 
   override fun setUp() {
@@ -200,7 +200,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"),
       phoneDevice.copy(deviceID = "id4", displayName = "My Phone4", apiLevel = 29),
       phoneDevice.copy(deviceID = "id5", displayName = "My Phone5", isEmulator = true, hasPlayStore = false),
-      phoneDevice.copy(deviceID = "id6", displayName = "My Phone6", isPaired = true, state = DISCONNECTED),
+      phoneDevice.copy(deviceID = "id6", displayName = "My Phone6", state = DISCONNECTED),
       phoneDevice.copy(deviceID = "id7", displayName = "My Phone7"),
     ))
 
@@ -233,9 +233,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
-    model.phoneList.set(listOf(
-      phoneDevice.copy(isPaired = true),
-    ))
+    model.phoneList.set(listOf(phoneDevice))
     fakeUi.layoutAndDispatchEvents()
 
     val phoneList = Mockito.spy(fakeUi.getPhoneList())

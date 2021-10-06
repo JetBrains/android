@@ -181,14 +181,21 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   @Synchronized
   fun getPairedDevices(deviceID: String): PhoneWearPair? = pairedDevicesTable[deviceID]
 
-  suspend fun createPairedDeviceBridge(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice, connect: Boolean = true) {
+  @Synchronized
+  fun isPaired(deviceID: String): Boolean = pairedDevicesTable.containsKey(deviceID)
+
+  suspend fun createPairedDeviceBridge(phone: PairingDevice,
+                                       phoneDevice: IDevice,
+                                       wear: PairingDevice,
+                                       wearDevice: IDevice,
+                                       connect: Boolean = true) {
     LOG.warn("Starting device bridge {connect = $connect}")
     removePairedDevices(wear.deviceID, restartWearGmsCore = false)
 
     val hostPort = NetUtils.tryToFindAvailableSocketPort(5602)
     val phoneWearPair = PhoneWearPair(
-      phone = phone.disconnectedCopy(isPaired = true),
-      wear = wear.disconnectedCopy(isPaired = true),
+      phone = phone.disconnectedCopy(),
+      wear = wear.disconnectedCopy(),
       allDevicesOnline = true,
       hostPort = hostPort
     )
@@ -273,7 +280,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     // Collect list of all available AVDs
     virtualDevicesProvider().filter { it.isWearOrPhone() }.forEach { avdInfo ->
       val deviceID = avdInfo.name
-      deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID, isPaired(deviceID))
+      deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID)
     }
 
     // Collect list of all connected devices. Enrich data with previous collected AVDs.
@@ -356,8 +363,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     phoneWearPair.allDevicesOnline = bothDeviceOnline
   }
 
-  private fun isPaired(deviceID: String): Boolean = pairedDevicesTable.containsKey(deviceID)
-
   private suspend fun addDisconnectedPairedDeviceIfMissing(device: PairingDevice, deviceTable: HashMap<String, PairingDevice>) {
     val deviceID = device.deviceID
     if (!deviceTable.contains(deviceID)) {
@@ -419,13 +424,12 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
     isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(HardwareFeature.WATCH),
     state = if (isOnline) ConnectionState.ONLINE else ConnectionState.OFFLINE,
     hasPlayStore = avdDevice?.hasPlayStore ?: false,
-    isPaired = isPared
   ).apply {
     launch = { Futures.immediateFuture(this@toPairingDevice) }
   }
 }
 
-private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): PairingDevice {
+private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
   return PairingDevice(
     deviceID = deviceID,
     displayName = displayName,
@@ -434,7 +438,6 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
     isWearDevice = SystemImage.WEAR_TAG == tag,
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
-    isPaired = isPared
   ).apply {
     launch = { project -> AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, this@toPairingDevice) }
   }

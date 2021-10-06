@@ -37,11 +37,11 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   private val model = WearDevicePairingModel()
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE, isPaired = false
+    state = ConnectionState.ONLINE
   )
   private val wearDevice = PairingDevice(
     deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE, isPaired = false
+    state = ConnectionState.ONLINE
   )
 
   override fun setUp() {
@@ -74,7 +74,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldShowIfPreviousPairingIsActive() {
-    val previousPairedWear = wearDevice.copy(deviceID = "id3", isPaired = true)
+    val previousPairedWear = wearDevice.copy(deviceID = "id3")
     val iDevice = Mockito.mock(IDevice::class.java)
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
 
