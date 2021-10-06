@@ -50,18 +50,18 @@ internal class UnpairDeviceAction(
 
     val deviceID = avdInfo?.name ?: return
 
-    if (WearPairingManager.getPairedDevices(deviceID) == null) {
-      Messages.showMessageDialog(project, "Not paired yet. Please pair device first.", "Unpair Device", Messages.getInformationIcon())
-    }
-    else {
+    if (WearPairingManager.isPaired(deviceID)) {
       GlobalScope.launch(AndroidDispatchers.ioThread) {
         WearPairingManager.removePairedDevices(deviceID)
       }
+    }
+    else {
+      Messages.showMessageDialog(project, "Not paired yet. Please pair device first.", "Unpair Device", Messages.getInformationIcon())
     }
   }
 
   override fun isEnabled(): Boolean {
     val deviceID = avdInfo?.name ?: return false
-    return WearPairingManager.getPairedDevices(deviceID) != null
+    return WearPairingManager.isPaired(deviceID)
   }
 }

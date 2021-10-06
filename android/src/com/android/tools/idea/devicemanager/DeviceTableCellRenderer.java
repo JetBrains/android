@@ -118,7 +118,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myPairedLabel.setForeground(foreground);
 
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      boolean paired = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString()) != null;
+      boolean paired = WearPairingManager.INSTANCE.isPaired(device.getKey().toString());
       setIcon(myPairedLabel, paired ? StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN : null, selected);
       myPairedLabel.setVisible(paired);
     }

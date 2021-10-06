@@ -23,11 +23,11 @@ import org.junit.Test
 class WearPairingSettingsTest {
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE, isPaired = false
+    state = ConnectionState.ONLINE
   )
   private val wearDevice = PairingDevice(
     deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE, isPaired = false
+    state = ConnectionState.ONLINE
   )
 
   @Before

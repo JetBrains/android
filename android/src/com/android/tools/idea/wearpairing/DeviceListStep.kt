@@ -215,7 +215,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
               gridx = 1
             }
           )
-          if (value.isPaired) {
+          if (WearPairingManager.isPaired(value.deviceID)) {
             add(JBLabel(getIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN, isSelected)))
           }
 
@@ -292,7 +292,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
           val phoneWearPair = WearPairingManager.getPairedDevices(listDevice.deviceID)
-          if (listDevice.isPaired && phoneWearPair != null) {
+          if (phoneWearPair != null) {
             val peerDevice = if (phoneWearPair.phone.deviceID == listDevice.deviceID) phoneWearPair.wear else phoneWearPair.phone
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
