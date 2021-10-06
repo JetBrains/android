@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle
 
+import com.android.tools.idea.compose.preview.COMPOSITE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
@@ -25,11 +26,14 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
@@ -45,6 +49,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
+import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
 class BuildTest {
@@ -118,5 +124,25 @@ class BuildTest {
     }
     assertFalse(hasBeenBuiltSuccessfully(psiFilePointer))
     assertFalse(hasExistingClassFile(psiFile))
+  }
+
+  @Test
+  fun testCompositeBuildsCorrectly() {
+    projectRule.load(COMPOSITE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION, preLoad = { projectRoot ->
+      // Copy SimpleComposableApplication to this project to be able to make a composite. The composite project settings.gradle
+      // will point to the SimpleComposableApplication
+      val simpleComposableAppPath = projectRule.resolveTestDataPath(SIMPLE_COMPOSE_PROJECT_PATH)
+      val destination = File(projectRoot, "SimpleComposeApplication")
+      FileUtil.copyDir(simpleComposableAppPath, destination)
+      defaultPatchPreparedProject(File(projectRule.project.basePath), null, null, DEFAULT_KOTLIN_VERSION, *listOf<File>().toTypedArray())
+    })
+    val project = projectRule.project
+    val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/app/src/main/java/google/simpleapplication/MainActivity.kt",
+                                                ProjectRootManager.getInstance(project).contentRoots[0])!!
+    val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
+      SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))
+    }
+    runAndWaitForBuildToComplete { requestBuild(project, listOf(activityFile), false) }
+    assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
   }
 }
