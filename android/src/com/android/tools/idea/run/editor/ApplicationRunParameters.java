@@ -6,6 +6,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Preconditions;
@@ -109,7 +110,8 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       @Nullable
       @Override
       public Module getModule() {
-        return myModuleSelector.getModule();
+        Module selectedModule = myModuleSelector.getModule();
+        return selectedModule == null ? null : ModuleSystemUtil.getMainModule(selectedModule);
       }
     };
 
@@ -155,11 +157,6 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
         myDynamicFeaturesParameters.updateBasedOnInstantState(myModuleSelector.getModule(), myInstantAppDeployCheckBox.isSelected());
       }
     }
-  }
-
-  @Nullable
-  public Module getModule() {
-    return myModuleSelector.getModule();
   }
 
   /**
