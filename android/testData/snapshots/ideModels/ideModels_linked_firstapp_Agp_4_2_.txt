@@ -2268,6 +2268,8 @@ MODULE                        : My_First_App.app
             defaultArguments              : -P
             defaultArguments              : -jvm-target
             defaultArguments              : 1.8
+MODULE                        : My_First_App.app.androidTest
+MODULE                        : My_First_App.app.main
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4429,3 +4431,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             defaultArguments              : -P
             defaultArguments              : -jvm-target
             defaultArguments              : 1.8
+MODULE                        : My_First_App.app.mysharedlibrary.androidTest
+MODULE                        : My_First_App.app.mysharedlibrary.main
+MODULE                        : My_First_App.app.mysharedlibrary.unitTest
+MODULE                        : My_First_App.app.unitTest

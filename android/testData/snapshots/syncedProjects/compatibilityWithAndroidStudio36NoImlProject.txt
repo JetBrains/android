@@ -8,7 +8,9 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/AS36_noiml.iml
         ModuleTypeName                : JAVA_MODULE
@@ -22,6 +24,11 @@ PROJECT                       : AS36_noiml
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : AS36_noiml.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
         ExternalModuleGroup           : AS36_noiml
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -75,37 +82,52 @@ PROJECT                       : AS36_noiml
             TypeId                        : android-gradle
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/app/src/main/java
-            JavaResource                  : file://<PROJECT>/app/src/main/res
-            JavaSource (test)             : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -122,6 +144,146 @@ PROJECT                       : AS36_noiml
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+    MODULE                        : AS36_noiml.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+            JavaResource                  : file://<PROJECT>/app/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
@@ -136,28 +298,13 @@ PROJECT                       : AS36_noiml
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36_noiml.libs.android_library
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
@@ -186,37 +333,124 @@ PROJECT                       : AS36_noiml
         LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
-        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+    MODULE                        : AS36_noiml.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.app
+            main                          : AS36_noiml.app.main
+            unitTest                      : AS36_noiml.app.unitTest
+            androidTest                   : AS36_noiml.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+            JavaSource (test)             : file://<PROJECT>/app/src/test/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
     MODULE                        : AS36_noiml.features
         ExternalModuleGroup           : AS36_noiml
@@ -225,7 +459,9 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/AS36_noiml.features.iml
         ModuleTypeName                : JAVA_MODULE
@@ -242,6 +478,11 @@ PROJECT                       : AS36_noiml
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : AS36_noiml.features.dynamicfeature
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
         ExternalModuleGroup           : AS36_noiml.features
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :features:dynamicfeature
@@ -297,31 +538,49 @@ PROJECT                       : AS36_noiml
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.features.dynamicfeature.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature:androidTest
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTest/assets [-]
@@ -339,6 +598,52 @@ PROJECT                       : AS36_noiml
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
+    MODULE                        : AS36_noiml.features.dynamicfeature.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature:main
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/debug/java [-]
@@ -355,6 +660,36 @@ PROJECT                       : AS36_noiml
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+    MODULE                        : AS36_noiml.features.dynamicfeature.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature
+            main                          : AS36_noiml.features.dynamicfeature.main
+            unitTest                      : AS36_noiml.features.dynamicfeature.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature:unitTest
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature/src/test/java [-]
@@ -377,8 +712,14 @@ PROJECT                       : AS36_noiml
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36_noiml.app
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature.main
     MODULE                        : AS36_noiml.features.dynamicfeature2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
         ExternalModuleGroup           : AS36_noiml.features
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :features:dynamicfeature2
@@ -434,31 +775,49 @@ PROJECT                       : AS36_noiml
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature2/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.features.dynamicfeature2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature2:androidTest
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/assets [-]
@@ -476,6 +835,52 @@ PROJECT                       : AS36_noiml
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
+    MODULE                        : AS36_noiml.features.dynamicfeature2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature2:main
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/debug/java [-]
@@ -492,6 +897,36 @@ PROJECT                       : AS36_noiml
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/features/dynamicfeature2/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/features/dynamicfeature2/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.app.main
+    MODULE                        : AS36_noiml.features.dynamicfeature2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.features.dynamicfeature2
+            main                          : AS36_noiml.features.dynamicfeature2.main
+            unitTest                      : AS36_noiml.features.dynamicfeature2.unitTest
+            androidTest                   : AS36_noiml.features.dynamicfeature2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :features:dynamicfeature2:unitTest
+        LinkedProjectPath             : <PROJECT>/features/dynamicfeature2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features.dynamicfeature2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/features/dynamicfeature2/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/features/dynamicfeature2/src/test/java [-]
@@ -514,7 +949,8 @@ PROJECT                       : AS36_noiml
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36_noiml.app
+        ORDER_ENTRY                   : AS36_noiml.app.main
+        ORDER_ENTRY                   : AS36_noiml.features.dynamicfeature2.main
     MODULE                        : AS36_noiml.libs
         ExternalModuleGroup           : AS36_noiml
         ExternalModuleVersion         : unspecified
@@ -522,7 +958,9 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/libs
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36_noiml.libs.iml
         ModuleTypeName                : JAVA_MODULE
@@ -539,6 +977,11 @@ PROJECT                       : AS36_noiml
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : AS36_noiml.libs.android_library
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
         ExternalModuleGroup           : AS36_noiml.libs
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :libs:android_library
@@ -592,37 +1035,52 @@ PROJECT                       : AS36_noiml
             TypeId                        : android-gradle
             GradlePath                    : :libs:android_library
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library
-            JavaSource (test)             : file://<PROJECT>/libs/android_library/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/libs/android_library/src/main/java
-            JavaResource                  : file://<PROJECT>/libs/android_library/src/main/res
-            JavaSource (test)             : file://<PROJECT>/libs/android_library/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/android_library/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/android_library/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.libs.android_library.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :libs:android_library:androidTest
+        LinkedProjectPath             : <PROJECT>/libs/android_library
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/androidTest
+            JavaSource (test)             : file://<PROJECT>/libs/android_library/src/androidTest/java
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTest/assets [-]
@@ -639,6 +1097,146 @@ PROJECT                       : AS36_noiml
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+    MODULE                        : AS36_noiml.libs.android_library.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :libs:android_library:main
+        LinkedProjectPath             : <PROJECT>/libs/android_library
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/main
+            JavaSource                    : file://<PROJECT>/libs/android_library/src/main/java
+            JavaResource                  : file://<PROJECT>/libs/android_library/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/debug/java [-]
@@ -653,28 +1251,13 @@ PROJECT                       : AS36_noiml
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/android_library/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/libs/android_library/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : AS36_noiml.libs.java_lib
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
@@ -703,37 +1286,124 @@ PROJECT                       : AS36_noiml
         LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
-        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+    MODULE                        : AS36_noiml.libs.android_library.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : AS36_noiml.libs.android_library
+            main                          : AS36_noiml.libs.android_library.main
+            unitTest                      : AS36_noiml.libs.android_library.unitTest
+            androidTest                   : AS36_noiml.libs.android_library.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :libs:android_library:unitTest
+        LinkedProjectPath             : <PROJECT>/libs/android_library
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.android_library.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/test
+            JavaSource (test)             : file://<PROJECT>/libs/android_library/src/test/java
+        CONENT_ENTRY                  : file://<PROJECT>/libs/android_library/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/android_library/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/android_library/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.libs.android_library.main
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
     MODULE                        : AS36_noiml.libs.java_lib
         ExternalModuleGroup           : AS36_noiml.libs
@@ -755,15 +1425,50 @@ PROJECT                       : AS36_noiml
             TypeId                        : java-gradle
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib
-            JavaSource                    : file://<PROJECT>/libs/java_lib/src/main/java
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/java_lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/java_lib/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.libs.java_lib.main
+        ExternalModuleGroup           : AS36_noiml.libs
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :libs:java_lib:main
+        LinkedProjectPath             : <PROJECT>/libs/java_lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/main
+            JavaSource                    : file://<PROJECT>/libs/java_lib/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/java_lib/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : AS36_noiml.libs.java_lib.test
+        ExternalModuleGroup           : AS36_noiml.libs
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :libs:java_lib:test
+        LinkedProjectPath             : <PROJECT>/libs/java_lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.test.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/java_lib/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/java_lib/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : AS36_noiml.libs.java_lib.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : AS36_noiml.app

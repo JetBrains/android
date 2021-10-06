@@ -2,6 +2,11 @@ PROJECT                       : My Application
     PROJECT_JDK                   : jbr-<JAVA_VERSION>
         Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : My_Application
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : My_Application
+            main                          : My_Application.main
+            unitTest                      : My_Application.unitTest
+            androidTest                   : My_Application.androidTest
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : My Application
@@ -55,36 +60,52 @@ PROJECT                       : My Application
             TypeId                        : android-gradle
             GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>
-            JavaSource (test)             : file://<PROJECT>/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/src/main/java
-            JavaResource                  : file://<PROJECT>/src/main/res
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : My_Application.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : My_Application
+            main                          : My_Application.main
+            unitTest                      : My_Application.unitTest
+            androidTest                   : My_Application.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : My Application:androidTest
+        LinkedProjectPath             : <PROJECT>
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/My_Application.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/My_Application.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest
+            JavaSource (test)             : file://<PROJECT>/src/androidTest/java
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/assets [-]
@@ -101,6 +122,142 @@ PROJECT                       : My Application
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./lib1/liba.jar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: ./lib2/liba.jar [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : My_Application.lib.main
+        ORDER_ENTRY                   : My_Application.main
+    MODULE                        : My_Application.lib
+        ExternalModuleGroup           : My Application
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :lib
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/My_Application.lib.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            GradlePath                    : :lib
+        FACET                         : Java-Gradle
+            TypeId                        : java-gradle
+            Buildable                     : true
+        CONENT_ENTRY                  : file://<PROJECT>/lib
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : My_Application.lib.main
+        ExternalModuleGroup           : My Application
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :lib:main
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/My_Application.lib.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+            JavaSource                    : file://<PROJECT>/lib/src/main/java
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY
+                *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
+        LIBRARY
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY
+                *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+    MODULE                        : My_Application.lib.test
+        ExternalModuleGroup           : My Application
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :lib:test
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/My_Application.lib.test.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY
+                *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
+        LIBRARY
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY
+                *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+        ORDER_ENTRY                   : My_Application.lib.main
+    MODULE                        : My_Application.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : My_Application
+            main                          : My_Application.main
+            unitTest                      : My_Application.unitTest
+            androidTest                   : My_Application.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : My Application:main
+        LinkedProjectPath             : <PROJECT>
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/My_Application.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/My_Application.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main
+            JavaSource                    : file://<PROJECT>/src/main/java
+            JavaResource                  : file://<PROJECT>/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
@@ -115,6 +272,38 @@ PROJECT                       : My Application
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./lib1/liba.jar [=]
+        LIBRARY                       : Gradle: ./lib2/liba.jar [=]
+        ORDER_ENTRY                   : My_Application.lib.main
+    MODULE                        : My_Application.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : My_Application
+            main                          : My_Application.main
+            unitTest                      : My_Application.unitTest
+            androidTest                   : My_Application.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : My Application:unitTest
+        LinkedProjectPath             : <PROJECT>
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/My_Application.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/My_Application.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/java [-]
@@ -138,39 +327,11 @@ PROJECT                       : My Application
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./lib1/liba.jar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
-        ORDER_ENTRY                   : My_Application.lib
-    MODULE                        : My_Application.lib
-        ExternalModuleGroup           : My Application
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :lib
-        LinkedProjectPath             : <PROJECT>/lib
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/My_Application.lib.iml
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android-Gradle
-            TypeId                        : android-gradle
-            GradlePath                    : :lib
-        FACET                         : Java-Gradle
-            TypeId                        : java-gradle
-            Buildable                     : true
-        CONENT_ENTRY                  : file://<PROJECT>/lib
-            JavaSource                    : file://<PROJECT>/lib/src/main/java
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
-        JDK                           : <NAME_CUT> JavaSDK
-        *isInherited                  : true
-        ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: liba [=]
-        LIBRARY                       : Gradle: liba_1 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : My_Application.lib.main
+        ORDER_ENTRY                   : My_Application.main
     RUN_CONFIGURATION             : My_Application
         *class*                       : AndroidRunConfiguration
         ModuleName                    : My_Application
@@ -179,8 +340,4 @@ PROJECT                       : My Application
         LIBRARY                       : Gradle: ./lib1/liba.jar
             *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
         LIBRARY                       : Gradle: ./lib2/liba.jar
-            *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
-        LIBRARY                       : Gradle: liba
-            *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY                       : Gradle: liba_1
             *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/

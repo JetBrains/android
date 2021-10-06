@@ -8,7 +8,9 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testSimpleApplicationWithAgp3_3_2.iml
         ModuleTypeName                : JAVA_MODULE
@@ -22,6 +24,11 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testSimpleApplicationWithAgp3_3_2.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testSimpleApplicationWithAgp3_3_2.app
+            main                          : testSimpleApplicationWithAgp3_3_2.app.main
+            unitTest                      : testSimpleApplicationWithAgp3_3_2.app.unitTest
+            androidTest                   : testSimpleApplicationWithAgp3_3_2.app.androidTest
         ExternalModuleGroup           : testSimpleApplicationWithAgp3_3_2
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -75,37 +82,52 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
             TypeId                        : android-gradle
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/app/src/main/java
-            JavaResource                  : file://<PROJECT>/app/src/main/res
-            JavaSource (test)             : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testSimpleApplicationWithAgp3_3_2.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testSimpleApplicationWithAgp3_3_2.app
+            main                          : testSimpleApplicationWithAgp3_3_2.app.main
+            unitTest                      : testSimpleApplicationWithAgp3_3_2.app.unitTest
+            androidTest                   : testSimpleApplicationWithAgp3_3_2.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSimpleApplicationWithAgp3_3_2.app.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/apt/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/compileDebugAndroidTestAidl/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/compileDebugAndroidTestRenderscript/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/apt/androidTest/debug [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/apt/debug [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/apt/test/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -120,6 +142,142 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+    MODULE                        : testSimpleApplicationWithAgp3_3_2.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testSimpleApplicationWithAgp3_3_2.app
+            main                          : testSimpleApplicationWithAgp3_3_2.app.main
+            unitTest                      : testSimpleApplicationWithAgp3_3_2.app.unitTest
+            androidTest                   : testSimpleApplicationWithAgp3_3_2.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSimpleApplicationWithAgp3_3_2.app.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/apt/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+            JavaResource                  : file://<PROJECT>/app/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/compileDebugAidl/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/compileDebugRenderscript/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/apt/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
@@ -132,19 +290,6 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -160,14 +305,6 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
@@ -191,23 +328,119 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+        LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+    MODULE                        : testSimpleApplicationWithAgp3_3_2.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testSimpleApplicationWithAgp3_3_2.app
+            main                          : testSimpleApplicationWithAgp3_3_2.app.main
+            unitTest                      : testSimpleApplicationWithAgp3_3_2.app.unitTest
+            androidTest                   : testSimpleApplicationWithAgp3_3_2.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSimpleApplicationWithAgp3_3_2.app.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/apt/test/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+            JavaSource (test)             : file://<PROJECT>/app/src/test/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/apt/test/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
-        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.apache.http.legacy [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
@@ -367,8 +600,6 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
             *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0
             *CLASSES                      : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY                       : Gradle: org.apache.http.legacy
-            *CLASSES                      : jar://<ANDROID_SDK>/platforms/android-30/optional/org.apache.http.legacy.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3

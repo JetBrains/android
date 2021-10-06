@@ -711,6 +711,9 @@ MODULE                        : TestCompositeLib1.app
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : TestCompositeLib1.app.androidTest
+MODULE                        : TestCompositeLib1.app.main
+MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
     Dir                           : <ROOT>/TestCompositeLib1/lib
     ModulePath                    : lib
@@ -1416,6 +1419,9 @@ MODULE                        : TestCompositeLib1.lib
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : TestCompositeLib1.lib.androidTest
+MODULE                        : TestCompositeLib1.lib.main
+MODULE                        : TestCompositeLib1.lib.unitTest
 MODULE                        : TestCompositeLib3
 MODULE                        : TestCompositeLib3.app
     Dir                           : <ROOT>/TestCompositeLib3/app
@@ -2117,6 +2123,9 @@ MODULE                        : TestCompositeLib3.app
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : TestCompositeLib3.app.androidTest
+MODULE                        : TestCompositeLib3.app.main
+MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
     Dir                           : <ROOT>/TestCompositeLib3/lib
     ModulePath                    : lib
@@ -2757,10 +2766,21 @@ MODULE                        : TestCompositeLib3.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
+MODULE                        : TestCompositeLib3.lib.androidTest
+MODULE                        : TestCompositeLib3.lib.main
+MODULE                        : TestCompositeLib3.lib.unitTest
 MODULE                        : com.test.compositeNest3.compositeNest
+MODULE                        : com.test.compositeNest3.compositeNest.main
+MODULE                        : com.test.compositeNest3.compositeNest.test
 MODULE                        : composite2
+MODULE                        : composite2.main
+MODULE                        : composite2.test
 MODULE                        : composite4
+MODULE                        : composite4.main
+MODULE                        : composite4.test
 MODULE                        : compositeNest
+MODULE                        : compositeNest.main
+MODULE                        : compositeNest.test
 MODULE                        : project
 MODULE                        : project.app
     Dir                           : <ROOT>/app
@@ -3480,6 +3500,9 @@ MODULE                        : project.app
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     Dir                           : <ROOT>/lib
     ModulePath                    : lib
@@ -4164,3 +4187,6 @@ MODULE                        : project.lib
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest

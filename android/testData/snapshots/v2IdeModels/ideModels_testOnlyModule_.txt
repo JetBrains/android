@@ -324,6 +324,9 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.test
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1060,6 +1063,7 @@ MODULE                        : project.test
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+MODULE                        : project.test.main
 MODULE                        : project.test2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1794,3 +1798,4 @@ MODULE                        : project.test2
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+MODULE                        : project.test2.main

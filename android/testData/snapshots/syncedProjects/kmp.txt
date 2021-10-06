@@ -8,7 +8,9 @@ PROJECT                       : kotlinMultiPlatform
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kotlinMultiPlatform.iml
         ModuleTypeName                : JAVA_MODULE
@@ -22,6 +24,11 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : kotlinMultiPlatform.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.app
+            main                          : kotlinMultiPlatform.app.main
+            unitTest                      : kotlinMultiPlatform.app.unitTest
+            androidTest                   : kotlinMultiPlatform.app.androidTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -74,6 +81,34 @@ PROJECT                       : kotlinMultiPlatform
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             GradlePath                    : :app
+        CONENT_ENTRY                  : file://<PROJECT>/app
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+    MODULE                        : kotlinMultiPlatform.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.app
+            main                          : kotlinMultiPlatform.app.main
+            unitTest                      : kotlinMultiPlatform.app.unitTest
+            androidTest                   : kotlinMultiPlatform.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ApiLevel                      : 1.5
@@ -117,37 +152,26 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
-        CONENT_ENTRY                  : file://<PROJECT>/app
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/app/src/main/java
-            JavaSource (test)             : file://<PROJECT>/app/src/test/java
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -164,6 +188,182 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.app.main
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+    MODULE                        : kotlinMultiPlatform.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.app
+            main                          : kotlinMultiPlatform.app.main
+            unitTest                      : kotlinMultiPlatform.app.unitTest
+            androidTest                   : kotlinMultiPlatform.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ApiLevel                      : 1.5
+            CompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.5
+            MergedCompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (JVM_1_8)
+            UseProjectSettings            : false
+            Version                       : 4
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
@@ -179,21 +379,6 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -209,10 +394,6 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
@@ -236,21 +417,189 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: junit:junit:4.12 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+    MODULE                        : kotlinMultiPlatform.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.app
+            main                          : kotlinMultiPlatform.app.main
+            unitTest                      : kotlinMultiPlatform.app.unitTest
+            androidTest                   : kotlinMultiPlatform.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ApiLevel                      : 1.5
+            CompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.5
+            MergedCompilerArguments
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (JVM_1_8)
+            UseProjectSettings            : false
+            Version                       : 4
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+            JavaSource (test)             : file://<PROJECT>/app/src/test/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.app.main
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     MODULE                        : kotlinMultiPlatform.module2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.module2
+            main                          : kotlinMultiPlatform.module2.main
+            unitTest                      : kotlinMultiPlatform.module2.unitTest
+            androidTest                   : kotlinMultiPlatform.module2.androidTest
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :module2
@@ -393,31 +742,54 @@ PROJECT                       : kotlinMultiPlatform
             JavaResource (test)           : file://<PROJECT>/module2/src/testRelease/resources [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
+    MODULE                        : kotlinMultiPlatform.module2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.module2
+            main                          : kotlinMultiPlatform.module2.main
+            unitTest                      : kotlinMultiPlatform.module2.unitTest
+            androidTest                   : kotlinMultiPlatform.module2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :module2:androidTest
+        LinkedProjectPath             : <PROJECT>/module2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidAndroidTest
+            JavaSource (test)             : file://<PROJECT>/module2/src/androidAndroidTest/kotlin
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidAndroidTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidAndroidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidAndroidTest/assets [-]
@@ -432,20 +804,6 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidAndroidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidAndroidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidAndroidTestDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTest/java [-]
@@ -456,43 +814,10 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -512,12 +837,16 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
+            Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     MODULE                        : kotlinMultiPlatform.module2.commonMain
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -574,8 +903,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (JVM_1_8)/JS/Native (general)
             UseProjectSettings            : false
             Version                       : 4
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -639,8 +967,7 @@ PROJECT                       : kotlinMultiPlatform
             Platform                      : JVM (JVM_1_8)/JS/Native (general)
             UseProjectSettings            : false
             Version                       : 4
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
@@ -649,6 +976,171 @@ PROJECT                       : kotlinMultiPlatform
             VersionString                 : 1.5.31-release-556
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
+    MODULE                        : kotlinMultiPlatform.module2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.module2
+            main                          : kotlinMultiPlatform.module2.main
+            unitTest                      : kotlinMultiPlatform.module2.unitTest
+            androidTest                   : kotlinMultiPlatform.module2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :module2:main
+        LinkedProjectPath             : <PROJECT>/module2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidDebug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+    MODULE                        : kotlinMultiPlatform.module2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : kotlinMultiPlatform.module2
+            main                          : kotlinMultiPlatform.module2.main
+            unitTest                      : kotlinMultiPlatform.module2.unitTest
+            androidTest                   : kotlinMultiPlatform.module2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :module2:unitTest
+        LinkedProjectPath             : <PROJECT>/module2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/kotlin
+            JavaSource (test)             : file://<PROJECT>/module2/src/androidTest/kotlin
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/rs [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTest/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/rs [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidTestDebug/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : kotlinMultiPlatform.app

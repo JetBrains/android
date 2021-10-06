@@ -2357,6 +2357,9 @@ MODULE                        : kotlinMultiPlatform.app
             defaultArguments              : -P
             defaultArguments              : -jvm-target
             defaultArguments              : 1.8
+MODULE                        : kotlinMultiPlatform.app.androidTest
+MODULE                        : kotlinMultiPlatform.app.main
+MODULE                        : kotlinMultiPlatform.app.unitTest
 MODULE                        : kotlinMultiPlatform.module2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2900,5 +2903,8 @@ MODULE                        : kotlinMultiPlatform.module2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : kotlinMultiPlatform.module2.androidTest
 MODULE                        : kotlinMultiPlatform.module2.commonMain
 MODULE                        : kotlinMultiPlatform.module2.commonTest
+MODULE                        : kotlinMultiPlatform.module2.main
+MODULE                        : kotlinMultiPlatform.module2.unitTest

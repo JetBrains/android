@@ -106,6 +106,9 @@ MODULE                        : project.app
                 ArtifactAddress               : artifacts::library:unspecified
                 LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.library
     Dir                           : <ROOT>/library
     ModulePath                    : library
@@ -300,6 +303,18 @@ MODULE                        : project.library-remote
                 ArtifactAddress               : artifacts::library-remote:unspecified
                 LintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library-remote
+MODULE                        : project.library-remote.androidTest
+MODULE                        : project.library-remote.main
+MODULE                        : project.library-remote.unitTest
+MODULE                        : project.library.androidTest
+MODULE                        : project.library.main
+MODULE                        : project.library.unitTest
 MODULE                        : project.lint
+MODULE                        : project.lint.main
+MODULE                        : project.lint.test
 MODULE                        : project.lintpublish
 MODULE                        : project.lintpublish-remote
+MODULE                        : project.lintpublish-remote.main
+MODULE                        : project.lintpublish-remote.test
+MODULE                        : project.lintpublish.main
+MODULE                        : project.lintpublish.test

@@ -8,7 +8,9 @@ PROJECT                       : testPsdSampleRenamingModule
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdSampleRenamingModule.iml
         ModuleTypeName                : JAVA_MODULE
@@ -22,6 +24,11 @@ PROJECT                       : testPsdSampleRenamingModule
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testPsdSampleRenamingModule.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.app
+            main                          : testPsdSampleRenamingModule.app.main
+            unitTest                      : testPsdSampleRenamingModule.app.unitTest
+            androidTest                   : testPsdSampleRenamingModule.app.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -83,35 +90,55 @@ PROJECT                       : testPsdSampleRenamingModule
             TypeId                        : android-gradle
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource                    : file://<PROJECT>/app/src/main/java
-            JavaResource                  : file://<PROJECT>/app/src/main/res
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.app
+            main                          : testPsdSampleRenamingModule.app.main
+            unitTest                      : testPsdSampleRenamingModule.app.unitTest
+            androidTest                   : testPsdSampleRenamingModule.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdSampleRenamingModule.app.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasicBar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestBasicBarDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -161,6 +188,148 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.app.main
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib.main
+    MODULE                        : testPsdSampleRenamingModule.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.app
+            main                          : testPsdSampleRenamingModule.app.main
+            unitTest                      : testPsdSampleRenamingModule.app.unitTest
+            androidTest                   : testPsdSampleRenamingModule.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdSampleRenamingModule.app.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/bar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/basic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/basicBar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/basicBarDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+            JavaResource                  : file://<PROJECT>/app/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/bar/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/bar/java [-]
@@ -207,6 +376,76 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
+        LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
+        LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib.main
+    MODULE                        : testPsdSampleRenamingModule.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.app
+            main                          : testPsdSampleRenamingModule.app.main
+            unitTest                      : testPsdSampleRenamingModule.app.unitTest
+            androidTest                   : testPsdSampleRenamingModule.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdSampleRenamingModule.app.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testBar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testBasic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testBasicBar [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testBasicBarDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
@@ -262,67 +501,79 @@ PROJECT                       : testPsdSampleRenamingModule
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-        LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-        LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
-        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: junit:junit:4.12 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
-            Scope                         : Test
-        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.app.main
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib.main
     MODULE                        : testPsdSampleRenamingModule.dyn_feature
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.dyn_feature
+            main                          : testPsdSampleRenamingModule.dyn_feature.main
+            unitTest                      : testPsdSampleRenamingModule.dyn_feature.unitTest
+            androidTest                   : testPsdSampleRenamingModule.dyn_feature.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :dyn_feature
@@ -378,31 +629,49 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.dyn_feature.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.dyn_feature
+            main                          : testPsdSampleRenamingModule.dyn_feature.main
+            unitTest                      : testPsdSampleRenamingModule.dyn_feature.unitTest
+            androidTest                   : testPsdSampleRenamingModule.dyn_feature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :dyn_feature:androidTest
+        LinkedProjectPath             : <PROJECT>/dyn_feature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.dyn_feature.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.dyn_feature.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testPsdSampleRenamingModule.dyn_feature.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTest/assets [-]
@@ -420,6 +689,51 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.dyn_feature.main
+    MODULE                        : testPsdSampleRenamingModule.dyn_feature.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.dyn_feature
+            main                          : testPsdSampleRenamingModule.dyn_feature.main
+            unitTest                      : testPsdSampleRenamingModule.dyn_feature.unitTest
+            androidTest                   : testPsdSampleRenamingModule.dyn_feature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :dyn_feature:main
+        LinkedProjectPath             : <PROJECT>/dyn_feature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.dyn_feature.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.dyn_feature.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testPsdSampleRenamingModule.dyn_feature.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/debug/java [-]
@@ -436,6 +750,35 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/dyn_feature/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/dyn_feature/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.dyn_feature.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.dyn_feature
+            main                          : testPsdSampleRenamingModule.dyn_feature.main
+            unitTest                      : testPsdSampleRenamingModule.dyn_feature.unitTest
+            androidTest                   : testPsdSampleRenamingModule.dyn_feature.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :dyn_feature:unitTest
+        LinkedProjectPath             : <PROJECT>/dyn_feature
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.dyn_feature.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.dyn_feature.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testPsdSampleRenamingModule.dyn_feature.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/dyn_feature/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/dyn_feature/src/test/java [-]
@@ -458,6 +801,7 @@ PROJECT                       : testPsdSampleRenamingModule
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.dyn_feature.main
     MODULE                        : testPsdSampleRenamingModule.jav
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
@@ -480,14 +824,54 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/jav
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.jav.main
+        ExternalModuleGroup           : testPsdSampleRenamingModule
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :jav:main
+        LinkedProjectPath             : <PROJECT>/jav
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/jav/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/jav/src/main/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/jav/src/main/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.jav.test
+        ExternalModuleGroup           : testPsdSampleRenamingModule
+        ExternalModuleType            : sourceSet
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :jav:test
+        LinkedProjectPath             : <PROJECT>/jav
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.test.iml
+        ModuleTypeName                : JAVA_MODULE
+        CONENT_ENTRY                  : file://<PROJECT>/jav/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/jav/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/jav/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.jav.main
     MODULE                        : testPsdSampleRenamingModule.lib
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.lib
+            main                          : testPsdSampleRenamingModule.lib.main
+            unitTest                      : testPsdSampleRenamingModule.lib.unitTest
+            androidTest                   : testPsdSampleRenamingModule.lib.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :lib
@@ -541,35 +925,51 @@ PROJECT                       : testPsdSampleRenamingModule
             TypeId                        : android-gradle
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
-            JavaSource                    : file://<PROJECT>/lib/src/main/java
-            JavaResource                  : file://<PROJECT>/lib/src/main/res
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.lib.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.lib
+            main                          : testPsdSampleRenamingModule.lib.main
+            unitTest                      : testPsdSampleRenamingModule.lib.unitTest
+            androidTest                   : testPsdSampleRenamingModule.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:androidTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.lib.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.lib.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testPsdSampleRenamingModule.lib.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
@@ -587,6 +987,114 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.jav.main
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib.main
+    MODULE                        : testPsdSampleRenamingModule.lib.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.lib
+            main                          : testPsdSampleRenamingModule.lib.main
+            unitTest                      : testPsdSampleRenamingModule.lib.unitTest
+            androidTest                   : testPsdSampleRenamingModule.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:main
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.lib.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.lib.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testPsdSampleRenamingModule.lib.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main
+            JavaSource                    : file://<PROJECT>/lib/src/main/java
+            JavaResource                  : file://<PROJECT>/lib/src/main/res
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
@@ -601,22 +1109,6 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -653,8 +1145,120 @@ PROJECT                       : testPsdSampleRenamingModule
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
-        ORDER_ENTRY                   : testPsdSampleRenamingModule.jav
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.jav.main
+    MODULE                        : testPsdSampleRenamingModule.lib.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.lib
+            main                          : testPsdSampleRenamingModule.lib.main
+            unitTest                      : testPsdSampleRenamingModule.lib.unitTest
+            androidTest                   : testPsdSampleRenamingModule.lib.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :lib:unitTest
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.lib.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.lib.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testPsdSampleRenamingModule.lib.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:collections:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:customview:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:loader:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:print:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-annotations:<VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.jav.main
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.lib.main
     MODULE                        : testPsdSampleRenamingModule.nested1
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1
+            main                          : testPsdSampleRenamingModule.nested1.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested1
@@ -710,31 +1314,49 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/nested1
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested1.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1
+            main                          : testPsdSampleRenamingModule.nested1.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:androidTest
+        LinkedProjectPath             : <PROJECT>/nested1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testPsdSampleRenamingModule.nested1.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTest/assets [-]
@@ -752,45 +1374,19 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/androidTestDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested1.main
     MODULE                        : testPsdSampleRenamingModule.nested1.deep
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1.deep
+            main                          : testPsdSampleRenamingModule.nested1.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.deep.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule.nested1
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested1:deep
@@ -846,31 +1442,49 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested1.deep.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1.deep
+            main                          : testPsdSampleRenamingModule.nested1.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:deep:androidTest
+        LinkedProjectPath             : <PROJECT>/nested1/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.deep.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.deep.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testPsdSampleRenamingModule.nested1.deep.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTest/assets [-]
@@ -888,6 +1502,51 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested1.deep.main
+    MODULE                        : testPsdSampleRenamingModule.nested1.deep.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1.deep
+            main                          : testPsdSampleRenamingModule.nested1.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:deep:main
+        LinkedProjectPath             : <PROJECT>/nested1/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.deep.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.deep.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testPsdSampleRenamingModule.nested1.deep.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/debug/java [-]
@@ -904,6 +1563,35 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/deep/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/deep/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested1.deep.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1.deep
+            main                          : testPsdSampleRenamingModule.nested1.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:deep:unitTest
+        LinkedProjectPath             : <PROJECT>/nested1/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.deep.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.deep.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testPsdSampleRenamingModule.nested1.deep.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/deep/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/deep/src/test/java [-]
@@ -926,7 +1614,119 @@ PROJECT                       : testPsdSampleRenamingModule
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested1.deep.main
+    MODULE                        : testPsdSampleRenamingModule.nested1.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1
+            main                          : testPsdSampleRenamingModule.nested1.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:main
+        LinkedProjectPath             : <PROJECT>/nested1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testPsdSampleRenamingModule.nested1.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested1/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested1/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested1.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested1
+            main                          : testPsdSampleRenamingModule.nested1.main
+            unitTest                      : testPsdSampleRenamingModule.nested1.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested1.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested1:unitTest
+        LinkedProjectPath             : <PROJECT>/nested1
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested1.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested1.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testPsdSampleRenamingModule.nested1.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested1/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested1/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested1/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested1.main
     MODULE                        : testPsdSampleRenamingModule.nested2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2
+            main                          : testPsdSampleRenamingModule.nested2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2
@@ -986,31 +1786,51 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/nested2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2
+            main                          : testPsdSampleRenamingModule.nested2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:androidTest
+        LinkedProjectPath             : <PROJECT>/nested2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testPsdSampleRenamingModule.nested2.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestBasicDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTest/assets [-]
@@ -1044,77 +1864,19 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/androidTestDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/shaders [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/aidl [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/assets [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/rs [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.main
     MODULE                        : testPsdSampleRenamingModule.nested2.deep
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.deep
+            main                          : testPsdSampleRenamingModule.nested2.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.deep.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule.nested2
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2:deep
@@ -1170,31 +1932,49 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested2.deep.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.deep
+            main                          : testPsdSampleRenamingModule.nested2.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:deep:androidTest
+        LinkedProjectPath             : <PROJECT>/nested2/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.deep.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.deep.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testPsdSampleRenamingModule.nested2.deep.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTest/assets [-]
@@ -1212,6 +1992,51 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.deep.main
+    MODULE                        : testPsdSampleRenamingModule.nested2.deep.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.deep
+            main                          : testPsdSampleRenamingModule.nested2.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:deep:main
+        LinkedProjectPath             : <PROJECT>/nested2/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.deep.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.deep.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testPsdSampleRenamingModule.nested2.deep.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/debug/java [-]
@@ -1228,6 +2053,35 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/deep/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/deep/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested2.deep.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.deep
+            main                          : testPsdSampleRenamingModule.nested2.deep.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.deep.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.deep.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:deep:unitTest
+        LinkedProjectPath             : <PROJECT>/nested2/deep
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.deep.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.deep.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testPsdSampleRenamingModule.nested2.deep.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/deep/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/deep/src/test/java [-]
@@ -1250,6 +2104,85 @@ PROJECT                       : testPsdSampleRenamingModule
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.deep.main
+    MODULE                        : testPsdSampleRenamingModule.nested2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2
+            main                          : testPsdSampleRenamingModule.nested2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:main
+        LinkedProjectPath             : <PROJECT>/nested2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testPsdSampleRenamingModule.nested2.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/basic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/basicDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basic/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basic/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/basicDebug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/basicDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
     MODULE                        : testPsdSampleRenamingModule.nested2.trans
         ExternalModuleGroup           : testPsdSampleRenamingModule.nested2
         ExternalModuleVersion         : unspecified
@@ -1257,7 +2190,9 @@ PROJECT                       : testPsdSampleRenamingModule
         LinkedProjectPath             : <PROJECT>/nested2/trans
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.trans [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.trans [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testPsdSampleRenamingModule.nested2.trans.iml
         ModuleTypeName                : JAVA_MODULE
@@ -1274,6 +2209,11 @@ PROJECT                       : testPsdSampleRenamingModule
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testPsdSampleRenamingModule.nested2.trans.deep2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.trans.deep2
+            main                          : testPsdSampleRenamingModule.nested2.trans.deep2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.trans.deep2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.trans.deep2.androidTest
         ExternalModuleGroup           : testPsdSampleRenamingModule.nested2.trans
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2:trans:deep2
@@ -1329,31 +2269,49 @@ PROJECT                       : testPsdSampleRenamingModule
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested2.trans.deep2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.trans.deep2
+            main                          : testPsdSampleRenamingModule.nested2.trans.deep2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.trans.deep2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.trans.deep2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:trans:deep2:androidTest
+        LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.trans.deep2.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.trans.deep2.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testPsdSampleRenamingModule.nested2.trans.deep2.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets [-]
@@ -1371,6 +2329,51 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.trans.deep2.main
+    MODULE                        : testPsdSampleRenamingModule.nested2.trans.deep2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.trans.deep2
+            main                          : testPsdSampleRenamingModule.nested2.trans.deep2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.trans.deep2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.trans.deep2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:trans:deep2:main
+        LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.trans.deep2.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.trans.deep2.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testPsdSampleRenamingModule.nested2.trans.deep2.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/main
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/debug/java [-]
@@ -1387,6 +2390,35 @@ PROJECT                       : testPsdSampleRenamingModule
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/nested2/trans/deep2/src/main/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/main/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/nested2/trans/deep2/src/main/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : testPsdSampleRenamingModule.nested2.trans.deep2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2.trans.deep2
+            main                          : testPsdSampleRenamingModule.nested2.trans.deep2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.trans.deep2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.trans.deep2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:trans:deep2:unitTest
+        LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.trans.deep2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.trans.deep2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testPsdSampleRenamingModule.nested2.trans.deep2.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/trans/deep2/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/trans/deep2/src/test/java [-]
@@ -1409,6 +2441,71 @@ PROJECT                       : testPsdSampleRenamingModule
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.trans.deep2.main
+    MODULE                        : testPsdSampleRenamingModule.nested2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testPsdSampleRenamingModule.nested2
+            main                          : testPsdSampleRenamingModule.nested2.main
+            unitTest                      : testPsdSampleRenamingModule.nested2.unitTest
+            androidTest                   : testPsdSampleRenamingModule.nested2.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :nested2:unitTest
+        LinkedProjectPath             : <PROJECT>/nested2
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testPsdSampleRenamingModule.nested2.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/testBasic [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/testBasicDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/nested2/src/testDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasic/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasic/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testBasicDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testBasicDebug/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/nested2/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/nested2/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        ORDER_ENTRY                   : testPsdSampleRenamingModule.nested2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testPsdSampleRenamingModule.app

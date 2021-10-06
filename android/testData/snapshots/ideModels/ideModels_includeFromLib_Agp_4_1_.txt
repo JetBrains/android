@@ -2818,6 +2818,9 @@ MODULE                        : navgraph.app
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : navgraph.app.androidTest
+MODULE                        : navgraph.app.main
+MODULE                        : navgraph.app.unitTest
 MODULE                        : navgraph.lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5605,3 +5608,6 @@ MODULE                        : navgraph.lib
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : navgraph.lib.androidTest
+MODULE                        : navgraph.lib.main
+MODULE                        : navgraph.lib.unitTest

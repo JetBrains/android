@@ -696,6 +696,8 @@ MODULE                        : My_First_App.app
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : My_First_App.app.androidTest
+MODULE                        : My_First_App.app.main
 MODULE                        : My_First_App.app.mysharedlibrary
     Dir                           : <ROOT>/shared/mysharedlibrary
     ModulePath                    : mysharedlibrary
@@ -1393,3 +1395,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : My_First_App.app.mysharedlibrary.androidTest
+MODULE                        : My_First_App.app.mysharedlibrary.main
+MODULE                        : My_First_App.app.mysharedlibrary.unitTest
+MODULE                        : My_First_App.app.unitTest

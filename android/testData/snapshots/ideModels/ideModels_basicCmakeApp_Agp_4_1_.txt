@@ -317,3 +317,57 @@ MODULE                        : project.app
             AbiName                       : x86
             BuildRootFolderMap
                 x86                           : <ROOT>/app/.cxx/cmake/release/x86 [-]
+MODULE                        : project.app.androidTest
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    ModelVersion                  : 4.1.0
+    ApiVersion                    : 3
+    Name                          : app
+    DefaultNdkVersion             : 21.1.6352462
+    NdkVersion                    : 21.4.7075529
+    BuildSystems                  : cmake
+    VariantInfos
+        debug
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/debug/x86
+        release
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/release/x86 [-]
+MODULE                        : project.app.main
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    ModelVersion                  : 4.1.0
+    ApiVersion                    : 3
+    Name                          : app
+    DefaultNdkVersion             : 21.1.6352462
+    NdkVersion                    : 21.4.7075529
+    BuildSystems                  : cmake
+    VariantInfos
+        debug
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/debug/x86
+        release
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/release/x86 [-]
+MODULE                        : project.app.unitTest
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    ModelVersion                  : 4.1.0
+    ApiVersion                    : 3
+    Name                          : app
+    DefaultNdkVersion             : 21.1.6352462
+    NdkVersion                    : 21.4.7075529
+    BuildSystems                  : cmake
+    VariantInfos
+        debug
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/debug/x86
+        release
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/release/x86 [-]

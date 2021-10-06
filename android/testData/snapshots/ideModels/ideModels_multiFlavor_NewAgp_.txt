@@ -2121,3 +2121,6 @@ MODULE                        : MultiFlavor.app
                             Variant                       : firstAbcSecondAbcDebug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : MultiFlavor.app.androidTest
+MODULE                        : MultiFlavor.app.main
+MODULE                        : MultiFlavor.app.unitTest

@@ -8,7 +8,9 @@ PROJECT                       : MultiFlavor
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/MultiFlavor.iml
         ModuleTypeName                : JAVA_MODULE
@@ -22,6 +24,11 @@ PROJECT                       : MultiFlavor
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : MultiFlavor.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : MultiFlavor.app
+            main                          : MultiFlavor.app.main
+            unitTest                      : MultiFlavor.app.unitTest
+            androidTest                   : MultiFlavor.app.androidTest
         ExternalModuleGroup           : MultiFlavor
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -83,43 +90,56 @@ PROJECT                       : MultiFlavor
             TypeId                        : android-gradle
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
-            JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java
-            JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java2
-            JavaSource                    : file://<PROJECT>/app/src/main/java
-            JavaResource                  : file://<PROJECT>/app/src/main/res
-            JavaSource                    : file://<PROJECT>/app/src/secondAbc/java
-            JavaSource (test)             : file://<PROJECT>/app/src/test/java
-            JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbc/java
-            JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/java
-            JavaSource (test)             : file://<PROJECT>/app/src/testSecondAbc/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
-            Generated                     : true
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : MultiFlavor.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : MultiFlavor.app
+            main                          : MultiFlavor.app.main
+            unitTest                      : MultiFlavor.app.unitTest
+            androidTest                   : MultiFlavor.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:androidTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor.app.androidTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor.app.androidTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.androidTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest
+            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbc [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTestSecondAbc [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-            Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-            Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
-            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
-            Generated                     : true
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
@@ -168,6 +188,140 @@ PROJECT                       : MultiFlavor
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestSecondAbc/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestSecondAbc/rs [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestSecondAbc/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.core:core:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : MultiFlavor.app.main
+    MODULE                        : MultiFlavor.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : MultiFlavor.app
+            main                          : MultiFlavor.app.main
+            unitTest                      : MultiFlavor.app.unitTest
+            androidTest                   : MultiFlavor.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:main
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor.app.main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor.app.main [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.main.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbc [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbcSecondAbc
+            JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java
+            JavaSource                    : file://<PROJECT>/app/src/firstAbcSecondAbc/java2
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/firstAbcSecondAbcDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+            JavaResource                  : file://<PROJECT>/app/src/main/res
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/secondAbc
+            JavaSource                    : file://<PROJECT>/app/src/secondAbc/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
@@ -213,6 +367,69 @@ PROJECT                       : MultiFlavor
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/secondAbc/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/rs [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/secondAbc/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+        LIBRARY                       : Gradle: androidx.core:core:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+    MODULE                        : MultiFlavor.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : MultiFlavor.app
+            main                          : MultiFlavor.app.main
+            unitTest                      : MultiFlavor.app.unitTest
+            androidTest                   : MultiFlavor.app.androidTest
+        ExternalModuleType            : sourceSet
+        LinkedProjectId               : :app:unitTest
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor.app.unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor.app.unitTest [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.unitTest.iml
+        ModuleTypeName                : JAVA_MODULE
+        HIDDEN FACET                  : Android
+        CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test
+            JavaSource (test)             : file://<PROJECT>/app/src/test/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbc [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbcSecondAbc
+            JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbc/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug
+            JavaSource (test)             : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/java
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/testSecondAbc
+            JavaSource (test)             : file://<PROJECT>/app/src/testSecondAbc/java
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
@@ -264,59 +481,62 @@ PROJECT                       : MultiFlavor
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
-        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
-            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
-            Scope                         : Test
-        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
-            Scope                         : Test
+        ORDER_ENTRY                   : MultiFlavor.app.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : MultiFlavor.app

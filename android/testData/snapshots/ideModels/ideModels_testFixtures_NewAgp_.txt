@@ -2154,6 +2154,9 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2677,3 +2680,6 @@ MODULE                        : project.lib
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest

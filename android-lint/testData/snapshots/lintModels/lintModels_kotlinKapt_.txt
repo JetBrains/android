@@ -415,6 +415,9 @@ MODULE                        : MainActivity.app
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : MainActivity.app.androidTest
+MODULE                        : MainActivity.app.main
+MODULE                        : MainActivity.app.unitTest
 MODULE                        : MainActivity.lib
     Dir                           : <ROOT>/lib
     ModulePath                    : lib
@@ -1109,3 +1112,6 @@ MODULE                        : MainActivity.lib
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 ArtifactAddress               : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
+MODULE                        : MainActivity.lib.androidTest
+MODULE                        : MainActivity.lib.main
+MODULE                        : MainActivity.lib.unitTest

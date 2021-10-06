@@ -321,6 +321,9 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -617,6 +620,9 @@ MODULE                        : project.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest
 MODULE                        : project.otherlib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -897,3 +903,6 @@ MODULE                        : project.otherlib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.otherlib.androidTest
+MODULE                        : project.otherlib.main
+MODULE                        : project.otherlib.unitTest

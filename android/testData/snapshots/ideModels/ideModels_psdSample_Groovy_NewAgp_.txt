@@ -2604,6 +2604,9 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
@@ -2895,7 +2898,12 @@ MODULE                        : project.dyn_feature
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.dyn_feature.androidTest
+MODULE                        : project.dyn_feature.main
+MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
+MODULE                        : project.jav.main
+MODULE                        : project.jav.test
 MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4745,6 +4753,9 @@ MODULE                        : project.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5036,6 +5047,7 @@ MODULE                        : project.nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5332,6 +5344,11 @@ MODULE                        : project.nested1.deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested1.deep.androidTest
+MODULE                        : project.nested1.deep.main
+MODULE                        : project.nested1.deep.unitTest
+MODULE                        : project.nested1.main
+MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5771,6 +5788,7 @@ MODULE                        : project.nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6062,6 +6080,10 @@ MODULE                        : project.nested2.deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.deep.androidTest
+MODULE                        : project.nested2.deep.main
+MODULE                        : project.nested2.deep.unitTest
+MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
     ModelVersion                  : <AGP_VERSION>
@@ -6354,3 +6376,7 @@ MODULE                        : project.nested2.trans.deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.nested2.trans.deep2.androidTest
+MODULE                        : project.nested2.trans.deep2.main
+MODULE                        : project.nested2.trans.deep2.unitTest
+MODULE                        : project.nested2.unitTest

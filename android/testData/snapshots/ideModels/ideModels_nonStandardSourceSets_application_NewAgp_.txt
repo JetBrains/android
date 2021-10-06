@@ -2053,3 +2053,6 @@ MODULE                        : application.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/application
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : application.app.androidTest
+MODULE                        : application.app.main
+MODULE                        : application.app.unitTest

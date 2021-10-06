@@ -835,6 +835,9 @@ MODULE                        : project.app
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
                 ArtifactAddress               : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
+MODULE                        : project.app.androidTest
+MODULE                        : project.app.main
+MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
     Dir                           : <ROOT>/dyn_feature
     ModulePath                    : dyn_feature
@@ -930,7 +933,12 @@ MODULE                        : project.dyn_feature
             LintModelLibrary              : LocalLibrary(:dyn_feature)
                 ArtifactAddress               : artifacts::dyn_feature:unspecified
                 ProjectPath                   : :dyn_feature
+MODULE                        : project.dyn_feature.androidTest
+MODULE                        : project.dyn_feature.main
+MODULE                        : project.dyn_feature.unitTest
 MODULE                        : project.jav
+MODULE                        : project.jav.main
+MODULE                        : project.jav.test
 MODULE                        : project.lib
     Dir                           : <ROOT>/lib
     ModulePath                    : lib
@@ -1571,6 +1579,9 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
+MODULE                        : project.lib.androidTest
+MODULE                        : project.lib.main
+MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
     Dir                           : <ROOT>/nested1
     ModulePath                    : nested1
@@ -1667,6 +1678,7 @@ MODULE                        : project.nested1
                 ArtifactAddress               : artifacts::nested1:unspecified
                 LintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested1
+MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     Dir                           : <ROOT>/nested1/deep
     ModulePath                    : deep
@@ -1765,6 +1777,11 @@ MODULE                        : project.nested1.deep
                 ArtifactAddress               : artifacts::nested1:deep:unspecified
                 LintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested1:deep
+MODULE                        : project.nested1.deep.androidTest
+MODULE                        : project.nested1.deep.main
+MODULE                        : project.nested1.deep.unitTest
+MODULE                        : project.nested1.main
+MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
     Dir                           : <ROOT>/nested2
     ModulePath                    : nested2
@@ -1881,6 +1898,7 @@ MODULE                        : project.nested2
                 ArtifactAddress               : artifacts::nested2:unspecified
                 LintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2
+MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     Dir                           : <ROOT>/nested2/deep
     ModulePath                    : deep
@@ -1977,6 +1995,10 @@ MODULE                        : project.nested2.deep
                 ArtifactAddress               : artifacts::nested2:deep:unspecified
                 LintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2:deep
+MODULE                        : project.nested2.deep.androidTest
+MODULE                        : project.nested2.deep.main
+MODULE                        : project.nested2.deep.unitTest
+MODULE                        : project.nested2.main
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
     Dir                           : <ROOT>/nested2/trans/deep2
@@ -2074,3 +2096,7 @@ MODULE                        : project.nested2.trans.deep2
                 ArtifactAddress               : artifacts::nested2:trans:deep2:unspecified
                 LintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2:trans:deep2
+MODULE                        : project.nested2.trans.deep2.androidTest
+MODULE                        : project.nested2.trans.deep2.main
+MODULE                        : project.nested2.trans.deep2.unitTest
+MODULE                        : project.nested2.unitTest

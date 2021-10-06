@@ -1074,6 +1074,9 @@ MODULE                        : MainActivity.app
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
             generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
             generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
+MODULE                        : MainActivity.app.androidTest
+MODULE                        : MainActivity.app.main
+MODULE                        : MainActivity.app.unitTest
 MODULE                        : MainActivity.lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -3235,3 +3238,6 @@ MODULE                        : MainActivity.lib
             defaultArguments              : -P
             defaultArguments              : -jvm-target
             defaultArguments              : 1.8
+MODULE                        : MainActivity.lib.androidTest
+MODULE                        : MainActivity.lib.main
+MODULE                        : MainActivity.lib.unitTest

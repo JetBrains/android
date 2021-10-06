@@ -57,7 +57,8 @@ public class CreateNewMobileProjectTest {
   @Test
   public void createNewMobileProject() {
     IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
-    assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app");
+    assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
+                                                          "Test_Application.app.unitTest", "Test_Application.app.androidTest");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
