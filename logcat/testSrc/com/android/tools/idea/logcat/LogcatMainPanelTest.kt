@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -89,9 +90,11 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
-    assertThat(toolbar.actions).hasSize(2)
-    assertThat(toolbar.actions[0]).isInstanceOf(HeaderFormatOptionsAction::class.java)
-    assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
+    assertThat(toolbar.actions.map { it::class }).containsExactly(
+      ScrollToTheEndToolbarAction::class,
+      HeaderFormatOptionsAction::class,
+      Separator::class,
+    ).inOrder()
   }
 
   @RunsInEdt
@@ -164,6 +167,45 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
     ))
+  }
+
+  @Test
+  fun appendMessages_scrollToEnd() = runBlocking {
+    runInEdtAndWait {
+      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+    }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      @Suppress("ConvertLambdaToReference")
+      assertThat(logcatMainPanel.editor.isCaretAtBottom()).isTrue()
+    }
+  }
+
+  @Test
+  fun appendMessages_notAtBottom_doesNotScrollToEnd() = runBlocking {
+    runInEdtAndWait {
+      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+    }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.editor.caretModel.moveToOffset(0)
+    }
+    logcatMainPanel.messageProcessor.appendMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      @Suppress("ConvertLambdaToReference")
+      assertThat(logcatMainPanel.editor.isCaretAtBottom()).isFalse()
+    }
   }
 
   @RunsInEdt

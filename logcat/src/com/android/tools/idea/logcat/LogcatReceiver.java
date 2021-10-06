@@ -126,7 +126,10 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
 
       // Parse new lines and send log messages
       Batch batch = parseNewLines(myPreviousHeader, myPreviousLines, newLines);
-      myLogcatListener.onLogMessagesReceived(batch.myMessages);
+      if (!batch.myMessages.isEmpty()) {
+        // This can happen if we received just a single line which is then sent in the next batch.
+        myLogcatListener.onLogMessagesReceived(batch.myMessages);
+      }
 
       // Save for next batch
       myPreviousHeader = batch.myLastHeader;

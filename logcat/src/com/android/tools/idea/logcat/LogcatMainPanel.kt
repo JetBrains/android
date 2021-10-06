@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
@@ -46,12 +47,16 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 
 /**
@@ -64,6 +69,7 @@ internal class LogcatMainPanel(
   state: LogcatPanelConfig?,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
+
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
   private val documentAppender = DocumentAppender(project, editor.document)
@@ -77,6 +83,7 @@ internal class LogcatMainPanel(
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
+  private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
 
   init {
     editor.installPopupHandler(object : ContextMenuPopupHandler() {
@@ -110,6 +117,41 @@ internal class LogcatMainPanel(
         logcatReader = null
       }
     }, this)
+
+    initScrollToEndStateHandling()
+  }
+
+  /**
+   * Derived from similar code in ConsoleViewImpl.
+   *
+   * The purpose of this code is to 'not scroll to end' when the caret is at the end **but** the user has scrolled away from the bottom of
+   * the file.
+   *
+   * aalbert: In theory, it seems like it should be possible to determine the state of the scroll bar directly and see if it's at the
+   * bottom, but when I attempted that, it did not quite work. The code in `isScrollAtBottom()` doesn't always return the expected result.
+   *
+   * Specifically, on the second batch of text appended to the document, the expression "`scrollBar.maximum - scrollBar.visibleAmount`" is
+   * equal to "`position + <some small number>`" rather than to "`position`" exactly.
+   */
+  private fun initScrollToEndStateHandling() {
+    val mouseListener: MouseAdapter = object : MouseAdapter() {
+      override fun mousePressed(e: MouseEvent) {
+        updateScrollToEndState(true)
+      }
+
+      override fun mouseDragged(e: MouseEvent) {
+        updateScrollToEndState(false)
+      }
+
+      override fun mouseWheelMoved(e: MouseWheelEvent) {
+        if (e.isShiftDown) return  // ignore horizontal scrolling
+        updateScrollToEndState(false)
+      }
+    }
+    val scrollPane = editor.scrollPane
+    scrollPane.addMouseWheelListener(mouseListener)
+    scrollPane.verticalScrollBar.addMouseListener(mouseListener)
+    scrollPane.verticalScrollBar.addMouseMotionListener(mouseListener)
   }
 
   private suspend fun processMessages(messages: List<LogCatMessage>) {
@@ -127,8 +169,14 @@ internal class LogcatMainPanel(
     if (!isActive) {
       return@withContext
     }
+    // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
+    val shouldStickToEnd = !ignoreCaretAtBottom && editor.isCaretAtBottom()
+    ignoreCaretAtBottom = false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will be false.
     documentAppender.appendToDocument(buffer)
-    EditorUtil.scrollToTheEnd(editor, true)
+
+    if (shouldStickToEnd) {
+      scrollToEnd()
+    }
   }
 
   override fun dispose() {
@@ -145,8 +193,28 @@ internal class LogcatMainPanel(
 
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {
+      add(ScrollToTheEndToolbarAction(editor).apply {
+        val text = LogcatBundle.message("logcat.scroll.to.end.text")
+        templatePresentation.text = StringUtil.toTitleCase(text)
+        templatePresentation.description = text
+      })
       add(HeaderFormatOptionsAction(project, formattingOptions, this@LogcatMainPanel::refreshDocument))
     }
+  }
+
+  // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
+  @UiThread
+  private fun updateScrollToEndState(useImmediatePosition: Boolean) {
+    val scrollAtBottom = editor.isScrollAtBottom(useImmediatePosition)
+    val caretAtBottom = editor.isCaretAtBottom()
+    if (!scrollAtBottom && caretAtBottom) {
+      ignoreCaretAtBottom = true
+    }
+  }
+
+  private fun scrollToEnd() {
+    EditorUtil.scrollToTheEnd(editor, true)
+    ignoreCaretAtBottom = false
   }
 
   companion object {
@@ -176,4 +244,17 @@ internal class LogcatMainPanel(
       return editor
     }
   }
+}
+
+@VisibleForTesting
+@UiThread
+internal fun EditorEx.isCaretAtBottom() = document.let {
+  it.getLineNumber(caretModel.offset) >= it.lineCount - 1
+}
+
+@UiThread
+private fun EditorEx.isScrollAtBottom(useImmediatePosition: Boolean): Boolean {
+  val scrollBar = scrollPane.verticalScrollBar
+  val position = if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
+  return scrollBar.maximum - scrollBar.visibleAmount == position
 }
