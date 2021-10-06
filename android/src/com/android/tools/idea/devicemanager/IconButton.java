@@ -17,9 +17,11 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.util.ui.JBDimension;
+import java.awt.Component;
 import java.awt.Dimension;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 public final class IconButton extends JButton {
@@ -36,6 +38,15 @@ public final class IconButton extends JButton {
     setPreferredSize(size);
 
     myIcon = icon;
+  }
+
+  public @NotNull Component getTableCellComponent(@NotNull JTable table, boolean selected, boolean focused) {
+    setBackground(Tables.getBackground(table, selected));
+    setBorder(Tables.getBorder(selected, focused));
+    setForeground(Tables.getForeground(table, selected));
+    setSelectedInTableCell(selected);
+
+    return this;
   }
 
   public void setSelectedInTableCell(boolean selected) {

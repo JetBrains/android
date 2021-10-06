@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 @UiThread
 final class PhysicalDeviceTableModel extends AbstractTableModel {
-  private static final boolean SPLIT_ACTIONS_ENABLED = false;
+  static final boolean SPLIT_ACTIONS_ENABLED = false;
 
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
@@ -56,8 +56,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
   }
 
-  private static final class ActivateDeviceFileExplorerWindowValue {
-    private static final ActivateDeviceFileExplorerWindowValue INSTANCE = new ActivateDeviceFileExplorerWindowValue();
+  static final class ActivateDeviceFileExplorerWindowValue {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final ActivateDeviceFileExplorerWindowValue INSTANCE = new ActivateDeviceFileExplorerWindowValue();
 
     private ActivateDeviceFileExplorerWindowValue() {
     }

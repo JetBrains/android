@@ -21,7 +21,9 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import java.awt.Point;
 import java.util.Collections;
@@ -66,28 +68,42 @@ final class PhysicalDeviceTable extends JBTable implements Table {
     mySizeWidthToFit = sizeWidthToFit;
     model.addTableModelListener(event -> sizeApiTypeAndActionsColumnWidthsToFit());
 
-    setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
+    if (PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      Project project = panel.getProject();
+      assert project != null;
+
+      setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellEditor(project));
+      setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellRenderer());
+    }
+    else {
+      setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
+      setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
+    }
+
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
-    setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
-    ActionMap map = getActionMap();
+    if (!PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      ActionMap map = getActionMap();
 
-    map.put("selectNextColumn", new SelectNextColumnAction());
-    map.put("selectNextColumnCell", new SelectNextColumnCellAction());
-    map.put("selectNextRow", new SelectNextRowAction());
-    map.put("selectPreviousColumn", new SelectPreviousColumnAction());
-    map.put("selectPreviousColumnCell", new SelectPreviousColumnCellAction());
-    map.put("selectPreviousRow", new SelectPreviousRowAction());
+      map.put("selectNextColumn", new SelectNextColumnAction());
+      map.put("selectNextColumnCell", new SelectNextColumnCellAction());
+      map.put("selectNextRow", new SelectNextRowAction());
+      map.put("selectPreviousColumn", new SelectPreviousColumnAction());
+      map.put("selectPreviousColumnCell", new SelectPreviousColumnCellAction());
+      map.put("selectPreviousRow", new SelectPreviousRowAction());
+    }
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
 
     tableHeader.setReorderingAllowed(false);
     tableHeader.setResizingAllowed(false);
 
-    addMouseMotionListener(new ActionsTableCellEditorMouseMotionListener(this));
+    if (!PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      addMouseMotionListener(new ActionsTableCellEditorMouseMotionListener(this));
+    }
   }
 
   private void sizeApiTypeAndActionsColumnWidthsToFit() {
