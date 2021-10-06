@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.ui.JBColor;
@@ -41,6 +42,16 @@ public class BorderLayer extends Layer {
       g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
       g2d.draw(screenShape);
       return;
+    }
+
+    // When screen rotation feature is enabled, we want to hide the border.
+    DesignSurface surface = myScreenView.getSurface();
+    if (surface instanceof NlDesignSurface) {
+      NlDesignSurface nlSurface = (NlDesignSurface) surface;
+      float degree = nlSurface.getRotateSurfaceDegree();
+      if (!Float.isNaN(degree)) {
+        return;
+      }
     }
 
     BorderPainter.paint(g2d, myScreenView);

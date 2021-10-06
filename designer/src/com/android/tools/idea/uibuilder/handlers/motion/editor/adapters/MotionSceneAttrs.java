@@ -37,6 +37,8 @@ public class MotionSceneAttrs {
   public static final String ATTR_ANDROID_TRANSLATIONZ = "translationZ";
   public static final String ATTR_ANDROID_ELEVATION = SdkConstants.ATTR_ELEVATION;
 
+  public static final String ATTR_TOOLS_SCREEN_ROTATION = "screenRotation";
+
   public static final String ATTR_ANDROID_LAYOUT_WIDTH = SdkConstants.ATTR_LAYOUT_WIDTH;
   public static final String ATTR_ANDROID_LAYOUT_HEIGHT = SdkConstants.ATTR_LAYOUT_HEIGHT;
   public static final String ATTR_ANDROID_LAYOUT_MARGIN_LEFT = SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;

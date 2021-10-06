@@ -86,6 +86,15 @@ public class SceneLayer extends Layer {
         paintBackground(g, sceneContext);
       }
 
+      // When screen rotation feature is enabled, we want to hide the relevant drawings.
+      DesignSurface sufrace = mySceneView.getSurface();
+      if (sufrace instanceof NlDesignSurface) {
+        NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
+        float degree = nlSurface.getRotateSurfaceDegree();
+        if (!Float.isNaN(degree)) {
+          return;
+        }
+      }
       // Draw the components
       myDisplay.draw(sceneContext, g, mySceneView.getScene());
     }

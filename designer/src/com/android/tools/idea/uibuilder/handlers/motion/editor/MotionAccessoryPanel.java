@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JPanel;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,6 +91,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private boolean mShowPath = true;
   private boolean myUpdatingSelectionInLayoutEditor = false;
   private boolean myUpdatingSelectionFromLayoutEditor = false;
+
+  // For screen rotation when draging in timeline panel
+  private float myStartDegree = Float.NaN;
+  private float myEndDegree = Float.NaN;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -233,9 +238,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           case MOTION_PROGRESS: {
             myMotionHelper.setProgress(pos);
             mLastProgress = pos;
+            applyRotation();
           }  break;
           case MOTION_SCRUB:
             surface.setAnimationScrubbing(true);
+            startScreenRotating();
             //noinspection fallthrough
           case MOTION_PLAY: {
             LayoutlibSceneManager manager = surface.getSceneManager();
@@ -248,6 +255,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             surface.setAnimationScrubbing(false);
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.requestLayoutAndRenderAsync(false);
+            stopScreenRotating();
           } break;
         }
       }
@@ -708,5 +716,60 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   public MotionSceneTag getMotionScene() {
     return myMotionScene;
+  }
+
+  /**
+   * start rotating the surface when the tool attributes are set properly
+   */
+  private void startScreenRotating() {
+    myStartDegree = Float.NaN;
+    myEndDegree = Float.NaN;
+
+    if (mLastSelection != MotionEditorSelector.Type.TRANSITION) {
+      applyRotation();
+      return;
+    }
+
+    MTag startConstraintSet = null;
+    MTag endConstraintSet = null;
+    if (myLastSelectedTags != null && myLastSelectedTags.length > 0) {
+      startConstraintSet = mMotionEditor.getMeModel().findStartConstraintSet(myLastSelectedTags[0]);
+      endConstraintSet = mMotionEditor.getMeModel().findEndConstraintSet(myLastSelectedTags[0]);
+    }
+
+    // fetch the starting and ending degrees from startConstraintSet and endConstraintSet, respectively.
+    if (startConstraintSet != null && endConstraintSet != null) {
+        String startScreenRotation = startConstraintSet.getAttributeValue(MotionSceneAttrs.ATTR_TOOLS_SCREEN_ROTATION);
+        String endScreenRotation = endConstraintSet.getAttributeValue(MotionSceneAttrs.ATTR_TOOLS_SCREEN_ROTATION);
+
+        if (startScreenRotation != null && NumberUtils.isParsable(startScreenRotation)) {
+          myStartDegree = Float.parseFloat(startScreenRotation);
+        }
+        if (endScreenRotation != null && NumberUtils.isParsable(endScreenRotation)) {
+          myEndDegree = Float.parseFloat(endScreenRotation);
+        }
+    }
+    applyRotation();
+  }
+
+  /**
+   * actual function that apply screen (surface) rotation
+   */
+  private void applyRotation() {
+    /*
+     * if myStartDegree is NaN or myEndDegree is NaN, rotationDegree would also become NaN
+     * Otherwise, mLastProgress will be mapped to value in the range between myStartDegree and myEndDegree
+     */
+    float rotationDegree = myStartDegree + mLastProgress * (myEndDegree - myStartDegree);
+    myDesignSurface.setRotateSufaceDegree(rotationDegree);
+  }
+
+  /**
+   * stop rotating the surface, and resume the surface to the original orientation
+   */
+  private void stopScreenRotating() {
+    myStartDegree = Float.NaN;
+    myEndDegree = Float.NaN;
+    myDesignSurface.setRotateSufaceDegree(Float.NaN);
   }
 }
