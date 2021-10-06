@@ -128,12 +128,6 @@ public class AndroidJavaDocRenderer {
     return render(module, configuration, ResourceUrl.create(type, name, framework));
   }
 
-  /** Renders the Javadoc for a resource of given type and name. */
-  @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
-    return render(module, null, url);
-  }
-
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource. */
   @Nullable
   public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceUrl url) {
@@ -244,14 +238,10 @@ public class AndroidJavaDocRenderer {
     protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
-    protected ResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
       myConfiguration = configuration;
-    }
-    protected ResourceValueRenderer(Module module) {
-      this(module, null);
     }
 
     public void setSmall(boolean small) {
@@ -468,7 +458,6 @@ public class AndroidJavaDocRenderer {
       if (items.size() == 1) {
         renderToHtml(builder, items.get(0), url, true, items.get(0).value);
       } else {
-        //noinspection SpellCheckingInspection
         builder.beginTable("valign=\"top\"");
 
         boolean haveFlavors = haveFlavors(items);
@@ -514,7 +503,6 @@ public class AndroidJavaDocRenderer {
                               @Nullable ItemInfo info,
                               @Nullable ResourceUrl url,
                               boolean showResolution) {
-      //noinspection SpellCheckingInspection
       builder.addHtml("<td valign=\"top\">");
       if (attribute != null) {
         builder.addHtml("<").addHtml(attribute).addHtml(">");

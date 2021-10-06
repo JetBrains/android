@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.javadoc;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.lint.client.api.LintClient;
+import com.android.utils.FileUtils;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
@@ -56,10 +58,30 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
     PsiElement docTargetElement =
-        DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+      DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));
+  }
+
+  public void testBrokenCustomDrawableJava() {
+    // Layout lib cannot render the custom drawable here, so it should show an error.
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/customDrawable.xml", "res/drawable/ic_launcher.xml");
+    checkDoc("/javadoc/drawables/Activity1.java",
+             "src/p1/p2/Activity.java", actualDoc -> {
+        assertThat(actualDoc).contains("Couldn't render");
+        assertThat(actualDoc).doesNotContain("render.png");
+      });
+  }
+
+  public void testWebPDrawableJava() {
+    // WebP images need to be rendered by layoutlib, so should show the rendered PNG.
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
+    checkDoc("/javadoc/drawables/Activity1.java",
+             "src/p1/p2/Activity.java", actualDoc -> {
+        assertThat(actualDoc).contains("render.png");
+        assertThat(actualDoc).doesNotContain("Couldn't render");
+      });
   }
 
   public void testString1Java() {

@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.converters.AttributeValueDocumentationProvider;
@@ -433,7 +434,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return null;
     }
 
-    return AndroidJavaDocRenderer.render(module, url);
+    return AndroidJavaDocRenderer.render(module, null, url);
   }
 
   @Override
