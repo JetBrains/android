@@ -52,7 +52,7 @@ class ComponentGroupingRuleProvider : UsageGroupingRuleProvider {
 }
 
 class ComponentGroupingRule : SingleParentUsageGroupingRule() {
-  override fun getParentGroupFor(usage: Usage, targets: Array<out UsageTarget>?): UsageGroup? {
+  override fun getParentGroupFor(usage: Usage, targets: Array<out UsageTarget>): UsageGroup? {
     // TODO(xof): arguably we should have AgpComponentUsageInfo here
     val usageInfo = (usage as? UsageInfo2UsageAdapter)?.usageInfo as? GradleBuildModelUsageInfo ?: return null
     val wrappedElement = (usageInfo as? GradleBuildModelUsageInfo)?.element as? WrappedPsiElement ?: return null
@@ -70,14 +70,14 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun getIcon(isOpen: Boolean): Icon? = null
+  override fun getIcon(): Icon? = null
   override fun getFileStatus(): FileStatus? = null
   override fun update() {}
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
   override fun isValid(): Boolean = true
 
-  override fun getText(view: UsageView?): String = usageName
+  override fun getPresentableGroupText(): String = usageName
 
   override fun compareTo(other: UsageGroup?): Int = when (other) {
     is ComponentUsageGroup -> usageName.compareTo(other.usageName)
