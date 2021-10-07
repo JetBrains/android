@@ -49,6 +49,7 @@ MODULE                        : My_First_App.app
         IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
+            Name                          : main
             ApplicationId                 : com.example.firstapp
             VersionCode                   : 1
             VersionName                   : 1.0
@@ -101,6 +102,7 @@ MODULE                        : My_First_App.app
                     ShadersDirectories            : <ROOT>/firstapp/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -147,6 +149,7 @@ MODULE                        : My_First_App.app
                     JniLibsDirectories            : <ROOT>/firstapp/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/firstapp/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2308,6 +2311,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             VersionCode                   : 1
             VersionName                   : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2359,6 +2363,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     ShadersDirectories            : <ROOT>/shared/mysharedlibrary/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -2405,6 +2410,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     JniLibsDirectories            : <ROOT>/shared/mysharedlibrary/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/shared/mysharedlibrary/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false

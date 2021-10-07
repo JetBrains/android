@@ -62,6 +62,13 @@ DependenciesInfo
     IncludeInBundle               : true
 DefaultConfig
     ProductFlavor
+        Name                          : main
+        ApplicationIdSuffix           : defaultSuffix
+        VersionNameSuffix             : vns
+        ManifestPlaceholders
+            aa                            : aaa
+            bb                            : bbb
+            cc                            : true
         ApplicationId                 : com.example.psd.sample.app.default
         VersionCode                   : 1
         VersionName                   : 1.0
@@ -122,6 +129,7 @@ DefaultConfig
                 ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
 BuildTypes
     BuildType
+        Name                          : debug
         IsDebuggable                  : true
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -174,6 +182,12 @@ BuildTypes
                 JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
     BuildType
+        Name                          : release
+        ApplicationIdSuffix           : suffix
+        VersionNameSuffix             : vsuffix
+        ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+        ProguardFiles                 : <ROOT>/app/proguard-rules.txt
+        ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
         IsDebuggable                  : false
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -226,6 +240,8 @@ BuildTypes
                 JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
     BuildType
+        Name                          : specialRelease
+        VersionNameSuffix             : vnsSpecial
         IsDebuggable                  : false
         IsJniDebuggable               : false
         IsRenderscriptDebuggable      : false
@@ -279,6 +295,7 @@ BuildTypes
                 ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
 ProductFlavors
     ProductFlavor
+        Name                          : basic
         Dimension                     : foo
         ApplicationId                 : com.example.psd.sample.app
         VectorDrawables
@@ -327,6 +344,8 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
     ProductFlavor
+        Name                          : paid
+        VersionNameSuffix             : vnsFoo
         Dimension                     : foo
         ApplicationId                 : com.example.psd.sample.app.paid
         VersionCode                   : 2
@@ -391,6 +410,8 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
     ProductFlavor
+        Name                          : bar
+        ApplicationIdSuffix           : barSuffix
         Dimension                     : bar
         VectorDrawables
     SourceProvider
@@ -438,6 +459,7 @@ ProductFlavors
                 JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                 ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
     ProductFlavor
+        Name                          : otherBar
         Dimension                     : bar
         resourceConfigurations        : en
         resourceConfigurations        : hdpi

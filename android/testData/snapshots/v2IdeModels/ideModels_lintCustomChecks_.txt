@@ -52,6 +52,7 @@ MODULE                        : project.app
     lintChecksJars                : <ROOT>/lint/build/libs/lint.jar [-]
     DefaultConfig
         ProductFlavor
+            Name                          : main
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
@@ -106,6 +107,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -158,6 +160,7 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -376,6 +379,7 @@ MODULE                        : project.library
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
@@ -430,6 +434,7 @@ MODULE                        : project.library
                     ShadersDirectories            : <ROOT>/library/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -482,6 +487,7 @@ MODULE                        : project.library
                     JniLibsDirectories            : <ROOT>/library/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -670,6 +676,7 @@ MODULE                        : project.library-remote
         Enabled                       : false
     DefaultConfig
         ProductFlavor
+            Name                          : main
             MinSdkVersion
                 ApiLevel                      : 16
                 ApiString                     : 16
@@ -724,6 +731,7 @@ MODULE                        : project.library-remote
                     ShadersDirectories            : <ROOT>/library-remote/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -776,6 +784,7 @@ MODULE                        : project.library-remote
                     JniLibsDirectories            : <ROOT>/library-remote/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false

@@ -50,6 +50,7 @@ MODULE                        : application.app
         IncludeInBundle               : true
     DefaultConfig
         ProductFlavor
+            Name                          : main
             ApplicationId                 : google.simpleapplication
             VersionCode                   : 1
             VersionName                   : 1.0
@@ -101,6 +102,7 @@ MODULE                        : application.app
                     ShadersDirectories            : <ROOT>/application/app/src/test/shaders [-]
     BuildTypes
         BuildType
+            Name                          : debug
             IsDebuggable                  : true
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false
@@ -147,6 +149,7 @@ MODULE                        : application.app
                     JniLibsDirectories            : <ROOT>/application/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/testDebug/shaders [-]
         BuildType
+            Name                          : release
             IsDebuggable                  : false
             IsJniDebuggable               : false
             IsRenderscriptDebuggable      : false

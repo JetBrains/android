@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
@@ -367,7 +368,33 @@ private fun ProjectDumper.dump(ideProductFlavorContainer: IdeProductFlavorContai
     }
 }
 
+private fun ProjectDumper.dump(ideBaseConfig: IdeBaseConfig) {
+  prop("Name") { ideBaseConfig.name }
+  prop("ApplicationIdSuffix") { ideBaseConfig.applicationIdSuffix }
+  prop("VersionNameSuffix") { ideBaseConfig.versionNameSuffix }
+  prop("IsMultiDexEnabled") { ideBaseConfig.multiDexEnabled?.toString() }
+  if ( ideBaseConfig.resValues.isNotEmpty()) {
+    head("ResValues")
+    nest {
+      ideBaseConfig.resValues.forEach { (key, value) -> prop(key) { "(${value.type}, ${value.name}, ${value.value})" }
+      }
+    }
+  }
+
+  ideBaseConfig.proguardFiles.forEach { prop("ProguardFiles") { it.path.toPrintablePath() } }
+  ideBaseConfig.consumerProguardFiles.forEach { prop("ConsumerProguardFiles") { it.path.toPrintablePath() } }
+  if (ideBaseConfig.manifestPlaceholders.isNotEmpty()) {
+    head("ManifestPlaceholders")
+    nest {
+      ideBaseConfig.manifestPlaceholders.forEach { (key, value) ->
+        prop(key) { value }
+      }
+    }
+  }
+}
+
 private fun ProjectDumper.dump(ideProductFlavor: IdeProductFlavor) {
+  dump(ideProductFlavor as IdeBaseConfig)
   prop("Dimension") { ideProductFlavor.dimension }
   prop("ApplicationId") { ideProductFlavor.applicationId }
   prop("VersionCode") { ideProductFlavor.versionCode?.toString() }
@@ -434,6 +461,7 @@ private fun ProjectDumper.dump(extraSourceProvider: IdeSourceProviderContainer) 
 private fun ProjectDumper.dump(ideBuildTypeContainer: IdeBuildTypeContainer) {
   head("BuildType")
     nest {
+      dump(ideBuildTypeContainer.buildType as IdeBaseConfig)
       prop("IsDebuggable") { ideBuildTypeContainer.buildType.isDebuggable.toString() }
       prop("IsJniDebuggable") { ideBuildTypeContainer.buildType.isJniDebuggable.toString() }
       prop("IsRenderscriptDebuggable") { ideBuildTypeContainer.buildType.isRenderscriptDebuggable.toString() }
