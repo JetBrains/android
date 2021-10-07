@@ -44,12 +44,13 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   abstract val componentBaseClassesFqNames: Array<String>
   val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(AndroidJavaDebugger.ID)
 
-  override fun getConfigurationEditor() = AndroidWearConfigurationEditor(project, this)
+  override fun getConfigurationEditor():AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
   override fun checkConfiguration() {
     configurationModule.checkForWarning()
     // If module is null `configurationModule.checkForWarning()` will throw an error
     val module = configurationModule.module!!
     AndroidFacet.getInstance(module) ?: throw RuntimeConfigurationError(AndroidBundle.message("no.facet.error", module.name))
+    componentName ?: throw RuntimeConfigurationError("$userVisibleComponentTypeName is not chosen")
   }
 
   override fun writeExternal(element: Element) {
