@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -191,15 +192,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.applyPluginIfNone(plugin)
 
     if (revision != null) {
-      // Check if pluginManagement.plugins block is declared
-      val settingsPluginsModel = projectSettingsModel?.pluginManagement()?.plugins()?.also { it.psiElement ?: return } ?: return
+      val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
+                                              ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
+                                              ?: return
 
       val pluginCoordinate =  "$plugin:$plugin.gradle.plugin:$revision"
       val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).version?.toString() ?: revision
-      val targetPluginModel = settingsPluginsModel.plugins().firstOrNull { it.name().toString() == plugin }
+      val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
       if (targetPluginModel == null) {
-        settingsPluginsModel.applyPlugin(plugin, resolvedVersion)
+        pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
       }
       else {
         val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
@@ -212,8 +214,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
-    if (projectSettingsModel?.pluginManagement()?.plugins()?.psiElement != null) {
-      return // If plugins are being declared on Settings, we skip this since all work is handled in [applyPlugin]
+    if (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null) {
+      // If plugins are being declared on Settings or using plugins block in top-level build.gradle,
+      // we skip this since all work is handled in [applyPlugin]
+      return
     }
 
     val resolvedCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
@@ -239,6 +243,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         targetDependencyModel.version().setValue(toBeAddedDependency.version ?: "")
       }
     }
+  }
+
+  private fun maybeGetPluginsFromSettings(): PluginsModel? {
+    return projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
+  }
+
+  private fun maybeGetPluginsFromProject(): PluginsModel? {
+    return projectGradleBuildModel?.takeIf { it.pluginsPsiElement != null }
   }
 
   /**

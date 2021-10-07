@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.renderIf
 
 private fun isEap(kotlinVersion: String) = setOf("rc", "eap", "-M").any { it in kotlinVersion }
@@ -25,10 +24,8 @@ fun kotlinEapRepoBlock(kotlinVersion: String) = renderIf(isEap(kotlinVersion)) {
 }
 
 fun androidProjectGradleSettings(appTitle: String,
-                                 generateKotlin: Boolean,
                                  kotlinVersion: String,
-                                 useGradleKts: Boolean,
-                                 gradlePluginVersion: GradlePluginVersion): String {
+                                 useGradleKts: Boolean): String {
   require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {
     val escapedAppTitle = appTitle.replace("$", "\\$")
@@ -40,11 +37,6 @@ pluginManagement {
     google()
     mavenCentral()
     ${kotlinEapRepoBlock(kotlinVersion)}
-  }
-  plugins {
-    id 'com.android.application' version '$gradlePluginVersion'
-    id 'com.android.library' version '$gradlePluginVersion'
-    ${renderIf(generateKotlin) { "id 'org.jetbrains.kotlin.android' version '$kotlinVersion'" }}
   }
 }
 dependencyResolutionManagement {

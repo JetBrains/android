@@ -1516,8 +1516,8 @@ inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableF
 }
 
 // HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"
-fun updatePluginsResolutionManagement(origContent: String): String {
-  fun findPluginVersion(pluginId: String): String? = origContent.lines()
+fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: String): String {
+  fun findPluginVersion(pluginId: String): String? = pluginDefinitions.lines()
     .firstOrNull { it.contains(pluginId) && it.contains("version") }
     ?.replace(" apply false", "")?.replace("'", "")
     ?.substringAfterLast(" ")

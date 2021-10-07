@@ -127,7 +127,7 @@ data class ProjectChecker(
     val settingsOrigContent = settingsFile.readText()
 
     val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
-      .run { updatePluginsResolutionManagement(this) }
+      .run { updatePluginsResolutionManagement(this, newContent) }
 
     settingsFile.writeText(settingsOrigContent, settingsNewContent)
 
