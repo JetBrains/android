@@ -24,6 +24,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.model.AndroidModel;
@@ -246,6 +247,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
     }
     return errors;
+  }
+
+  @Override
+  public boolean isTestConfiguration() {
+    return true;
+  }
+
+  @NotNull
+  @Override
+  public TestCompileType getTestCompileMode() {
+    return TestCompileType.ANDROID_TESTS;
   }
 
   private static int getTestSourceRootCount(@NotNull Module module) {
