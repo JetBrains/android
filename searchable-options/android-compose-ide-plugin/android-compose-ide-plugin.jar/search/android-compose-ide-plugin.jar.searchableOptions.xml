@@ -1,13 +1,14 @@
 <options>
   <configurable id="editor.preferences.completion" configurable_name="Code Completion">
     <option name="compose" hit="Compose" />
-    <option name="auto-completion" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="compose" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="enable" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="enhanced" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="jetpack" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="using" hit="Enable enhanced auto-completion when using Jetpack Compose" />
-    <option name="when" hit="Enable enhanced auto-completion when using Jetpack Compose" />
+    <option name="auto" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="completion" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="compose" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="enable" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="enhanced" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="jetpack" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="using" hit="Enable enhanced auto completion when using Jetpack Compose" />
+    <option name="when" hit="Enable enhanced auto completion when using Jetpack Compose" />
   </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Compose" configurable_name="Compose">
     <option name="compose" hit="Compose" />
