@@ -101,6 +101,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import one.util.streamex.StreamEx;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -542,7 +543,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
 
-    TestCompileType testCompileType = TestCompileType.get(configuration.getType().getId());
+    TestCompileType testCompileType = TestCompileType.NONE;
+    if (configuration instanceof PreferGradleMake) {
+      testCompileType = ((PreferGradleMake)configuration).getTestCompileMode();
+    }
+    else if (AndroidBuildCommonUtils.isTestConfiguration(configuration.getType().getId())) {
+      testCompileType = TestCompileType.UNIT_TESTS;
+    }
+
     if (testCompileType == TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       return new DefaultGradleBuilder(modules, gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);

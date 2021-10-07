@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileTypeUtilKt.getArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
@@ -158,14 +159,6 @@ public class GradleTaskFinder {
     return ArrayListMultimap.create(tasks);
   }
 
-  private static boolean canAssembleModules(@NotNull Module[] modules) {
-    if (modules.length == 0) {
-      return false;
-    }
-    Project project = modules[0].getProject();
-    return !GradleSyncState.getInstance(project).lastSyncFailed();
-  }
-
   private static void findAndAddGradleBuildTasks(@NotNull Module module,
                                                  @NotNull BuildMode buildMode,
                                                  @NotNull Set<String> tasks,
@@ -207,7 +200,7 @@ public class GradleTaskFinder {
           // Add assemble tasks for tests.
           if (testCompileType != TestCompileType.ALL) {
             if (androidModel != null) {
-              for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+              for (IdeBaseArtifact artifact : getArtifacts(testCompileType, androidModel.getSelectedVariant())) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
               }
             }
@@ -234,7 +227,7 @@ public class GradleTaskFinder {
                    androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
             // Instrumented test support for Dynamic Features: Add assembleDebugAndroidTest tasks
             if (testCompileType == TestCompileType.ANDROID_TESTS) {
-              for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+              for (IdeBaseArtifact artifact : getArtifacts(testCompileType, androidModel.getSelectedVariant())) {
                 addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
               }
             }
@@ -244,7 +237,7 @@ public class GradleTaskFinder {
           addAfterSyncTasks(tasks, gradlePath, properties);
           if (androidModel != null) {
             addAfterSyncTasksForTestArtifacts(tasks, gradlePath, testCompileType, androidModel);
-            for (IdeBaseArtifact artifact : testCompileType.getArtifacts(androidModel.getSelectedVariant())) {
+            for (IdeBaseArtifact artifact : getArtifacts(testCompileType, androidModel.getSelectedVariant())) {
               addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
             }
           }
@@ -312,7 +305,7 @@ public class GradleTaskFinder {
                                                         @NotNull TestCompileType testCompileType,
                                                         @NotNull AndroidModuleModel androidModel) {
     IdeVariant variant = androidModel.getSelectedVariant();
-    Collection<IdeBaseArtifact> testArtifacts = testCompileType.getArtifacts(variant);
+    Collection<IdeBaseArtifact> testArtifacts = getArtifacts(testCompileType, variant);
     for (IdeBaseArtifact artifact : testArtifacts) {
       for (String taskName : artifact.getIdeSetupTaskNames()) {
         addTaskIfSpecified(tasks, gradlePath, taskName);
@@ -354,7 +347,7 @@ public class GradleTaskFinder {
         .collect(Collectors.joining(", "))
       + (modules.length > MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE ? "..." : "");
     String logMessage =
-      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s. Tests: %s.", logModuleNames, mode, type.getName());
+      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s. Tests: %s.", logModuleNames, mode, type.getDisplayName());
     getLogger().warn(logMessage);
 
     String moduleNames =
@@ -365,7 +358,7 @@ public class GradleTaskFinder {
         .collect(Collectors.joining(", "))
       + (modules.length > 5 ? "..." : "");
     String message =
-      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s. <br>Tests: %s.", moduleNames, mode, type.getName());
+      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s. <br>Tests: %s.", moduleNames, mode, type.getDisplayName());
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Android Gradle Tasks")
       .createNotification(message, NotificationType.WARNING)
