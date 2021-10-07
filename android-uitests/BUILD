@@ -2499,3 +2499,19 @@ java_test(
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
+
+# fat test
+java_test(
+    name = "ImportMlModelTest",
+    data = COMMON_DATA + [
+        "//prebuilts/tools/common/mlkit/testData",
+    ] + glob([
+        "testData/SimpleApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.mlmodels.ImportMlModelTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
