@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.ddms.DeviceContext.DeviceSelectionListener
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 
 /**
@@ -54,14 +53,14 @@ abstract class DeviceConnectionListener : DeviceSelectionListener {
     if (this.device != device || changeMask != IDevice.CHANGE_STATE || deviceState == device.state) {
       return
     }
-
+    deviceState = device.state
     if (deviceState == IDevice.DeviceState.DISCONNECTED) {
-      this.device = null
-      deviceState = null
+      runInEdt { onDeviceDisconnected(device) }
     }
     else if (deviceState == IDevice.DeviceState.ONLINE) {
-      deviceState = device.state
-      runInEdt { onDeviceConnected(device) }
+      runInEdt {
+        onDeviceConnected(device)
+      }
     }
   }
 
