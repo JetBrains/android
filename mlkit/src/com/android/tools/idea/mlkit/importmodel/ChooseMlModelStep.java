@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.LARGE;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -30,6 +31,7 @@ import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.mlkit.MlConstants;
@@ -178,7 +180,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @Override
   protected void onProceeding() {
     super.onProceeding();
-    File mlDirectory = ((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2().getMlModelsDirectories().get(0);
+    File mlDirectory = getMlDirectory(((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2());
     getModel().mlDirectory.set(mlDirectory.getAbsolutePath());
   }
 
@@ -211,12 +213,22 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @Nullable
   private VirtualFile findExistingModelFile(@NotNull String fileName) {
     VirtualFile directory =
-      VfsUtil.findFileByIoFile(((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2().getMlModelsDirectories().get(0), false);
+      VfsUtil.findFileByIoFile(getMlDirectory(((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2()), false);
     if (directory == null || !directory.exists()) {
       return null;
     }
 
     return directory.findChild(fileName);
+  }
+
+  private static File getMlDirectory(AndroidModulePaths androidModulePaths) {
+    List<File> mlDirectories = androidModulePaths.getMlModelsDirectories();
+    if (!mlDirectories.isEmpty()) {
+      return mlDirectories.get(0);
+    }
+
+    // If mlModelBinding is not enabled, then custom path is not set up, we can predict the ml directory using manifest directory.
+    return new File(androidModulePaths.getManifestDirectory(), SdkConstants.FD_ML_MODELS);
   }
 
   private static boolean isValidTfliteModel(@NotNull File file) {
