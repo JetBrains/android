@@ -20,10 +20,11 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.BOTH
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.messages.TimestampFormat.NO_TIMESTAMP
-import com.android.tools.idea.logcat.messages.TimestampFormat.TIME
+import com.android.tools.idea.logcat.messages.TimestampFormat
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -64,7 +65,8 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun actionPerformed_dialogInitialized() {
-    val formattingOptions = FormattingOptions(TIME, BOTH, TagFormat(), AppNameFormat())
+    val formattingOptions = FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(),
+                                              AppNameFormat())
     var isShowTimestamp = false
     var isShowDate = true
     val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) {}
@@ -83,7 +85,8 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun actionPerformed_ok() {
-    val formattingOptions = FormattingOptions(TIME, BOTH, TagFormat(), AppNameFormat())
+    val formattingOptions =
+      FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
     var refreshCount = 0
     val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) { refreshCount++ }
 
@@ -92,13 +95,14 @@ class HeaderFormatOptionsActionTest {
       dialogWrapper.clickDefaultButton()
     }
 
-    assertThat(formattingOptions.timestampFormat).isEqualTo(NO_TIMESTAMP)
+    assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = false))
     assertThat(refreshCount).isEqualTo(1)
   }
 
   @Test
   fun actionPerformed_cancel() {
-    val formattingOptions = FormattingOptions(TIME, BOTH, TagFormat(), AppNameFormat())
+    val formattingOptions =
+      FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
     var refreshCount = 0
     val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) { refreshCount++ }
 
@@ -107,7 +111,7 @@ class HeaderFormatOptionsActionTest {
       dialogWrapper.doCancelAction()
     }
 
-    assertThat(formattingOptions.timestampFormat).isEqualTo(TIME)
+    assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = true))
     assertThat(refreshCount).isEqualTo(0)
   }
 }

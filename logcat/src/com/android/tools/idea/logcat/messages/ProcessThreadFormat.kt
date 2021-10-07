@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
+
 /**
  * Provides formatting for the process & thread ids
  */
-internal enum class ProcessThreadFormat(val format: (Int, Int) -> String) {
-  // According to /proc/sys/kernel/[pid_max/threads-max], the max values of pid/tid are 32768/57136
-  NO_IDS({ _, _ -> "" }),
-  PID({ pid: Int, _: Int -> "%-5d ".format(pid) }),
-  BOTH({ pid: Int, tid: Int -> "%5d-%-5d ".format(pid, tid) }),
+internal data class ProcessThreadFormat(val style: Style = BOTH, val enabled: Boolean = true) {
+  enum class Style(val format: (Int, Int) -> String) {
+    PID({ pid: Int, _: Int -> "%-5d ".format(pid) }),
+    BOTH({ pid: Int, tid: Int -> "%5d-%-5d ".format(pid, tid) }),
+  }
+
+  fun format(pid: Int, tid: Int) = if (enabled) style.format(pid, tid) else ""
 }

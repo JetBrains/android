@@ -20,13 +20,13 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.BOTH
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.NO_IDS
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.PID
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TagFormat
-import com.android.tools.idea.logcat.messages.TimestampFormat.DATETIME
-import com.android.tools.idea.logcat.messages.TimestampFormat.NO_TIMESTAMP
-import com.android.tools.idea.logcat.messages.TimestampFormat.TIME
+import com.android.tools.idea.logcat.messages.TimestampFormat
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -49,8 +49,8 @@ class HeaderFormatOptionsDialogTest {
   val rule = RuleChain(projectRule, EdtRule())
 
   private val formattingOptions = FormattingOptions(
-    DATETIME,
-    BOTH,
+    TimestampFormat(DATETIME, enabled = true),
+    ProcessThreadFormat(BOTH, enabled = true),
     TagFormat(maxLength = 20, hideDuplicates = true, enabled = true),
     AppNameFormat(maxLength = 20, hideDuplicates = true, enabled = true))
 
@@ -73,17 +73,18 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun initialState_timestampDisabled() {
-    formattingOptions.timestampFormat = NO_TIMESTAMP
+    formattingOptions.timestampFormat = TimestampFormat(DATETIME, enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showTimestampCheckBox.isSelected).isFalse()
       assertThat(showDateCheckBox.isEnabled).isFalse()
+      assertThat(showDateCheckBox.isSelected).isTrue()
     }
   }
 
   @Test
   fun initialState_timestampDateTime() {
-    formattingOptions.timestampFormat = DATETIME
+    formattingOptions.timestampFormat = TimestampFormat(DATETIME)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showTimestampCheckBox.isSelected).isTrue()
@@ -94,18 +95,18 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun initialState_timestampTime() {
-    formattingOptions.timestampFormat = TIME
+    formattingOptions.timestampFormat = TimestampFormat(DATETIME)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showTimestampCheckBox.isSelected).isTrue()
       assertThat(showDateCheckBox.isEnabled).isTrue()
-      assertThat(showDateCheckBox.isSelected).isFalse()
+      assertThat(showDateCheckBox.isSelected).isTrue()
     }
   }
 
   @Test
   fun toggle_timestamp() {
-    formattingOptions.timestampFormat = NO_TIMESTAMP
+    formattingOptions.timestampFormat = TimestampFormat(enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       showTimestampCheckBox.isSelected = true
@@ -117,38 +118,39 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun apply_timestamp() {
-    formattingOptions.timestampFormat = NO_TIMESTAMP
+    formattingOptions.timestampFormat = TimestampFormat(enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(dialog.applyToTimestamp {
         showTimestampCheckBox.isSelected = true
         showDateCheckBox.isSelected = true
-      }).isEqualTo(DATETIME)
+      }).isEqualTo(TimestampFormat(DATETIME, enabled = true))
 
       assertThat(dialog.applyToTimestamp {
         showTimestampCheckBox.isSelected = false
-      }).isEqualTo(NO_TIMESTAMP)
+      }).isEqualTo(TimestampFormat(DATETIME, enabled = false))
 
       assertThat(dialog.applyToTimestamp {
         showTimestampCheckBox.isSelected = true
         showDateCheckBox.isSelected = false
-      }).isEqualTo(TIME)
+      }).isEqualTo(TimestampFormat(TIME, enabled = true))
     }
   }
 
   @Test
   fun initialState_idsDisabled() {
-    formattingOptions.processThreadFormat = NO_IDS
+    formattingOptions.processThreadFormat = ProcessThreadFormat(BOTH, enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showProcessIdsCheckBox.isSelected).isFalse()
       assertThat(showThreadIdCheckBox.isEnabled).isFalse()
+      assertThat(showThreadIdCheckBox.isSelected).isTrue()
     }
   }
 
   @Test
   fun initialState_idsBoth() {
-    formattingOptions.processThreadFormat = BOTH
+    formattingOptions.processThreadFormat = ProcessThreadFormat(BOTH)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showProcessIdsCheckBox.isSelected).isTrue()
@@ -159,7 +161,7 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun initialState_idsPid() {
-    formattingOptions.processThreadFormat = PID
+    formattingOptions.processThreadFormat = ProcessThreadFormat(PID)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(showProcessIdsCheckBox.isSelected).isTrue()
@@ -170,7 +172,7 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun toggle_ids() {
-    formattingOptions.processThreadFormat = NO_IDS
+    formattingOptions.processThreadFormat = ProcessThreadFormat(enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       showProcessIdsCheckBox.isSelected = true
@@ -182,22 +184,22 @@ class HeaderFormatOptionsDialogTest {
 
   @Test
   fun apply_ids() {
-    formattingOptions.processThreadFormat = NO_IDS
+    formattingOptions.processThreadFormat = ProcessThreadFormat(PID, enabled = false)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(dialog.applyToIds {
         showProcessIdsCheckBox.isSelected = true
         showThreadIdCheckBox.isSelected = true
-      }).isEqualTo(BOTH)
+      }).isEqualTo(ProcessThreadFormat(BOTH, enabled = true))
 
       assertThat(dialog.applyToIds {
         showProcessIdsCheckBox.isSelected = false
-      }).isEqualTo(NO_IDS)
+      }).isEqualTo(ProcessThreadFormat(BOTH, enabled = false))
 
       assertThat(dialog.applyToIds {
         showProcessIdsCheckBox.isSelected = true
         showThreadIdCheckBox.isSelected = false
-      }).isEqualTo(PID)
+      }).isEqualTo(ProcessThreadFormat(PID, enabled = true))
     }
   }
 
@@ -332,8 +334,8 @@ class HeaderFormatOptionsDialogTest {
   @Test
   fun sampleText() {
     formattingOptions.apply {
-      timestampFormat = NO_TIMESTAMP
-      processThreadFormat = NO_IDS
+      timestampFormat = TimestampFormat(TIME, enabled = false)
+      processThreadFormat = ProcessThreadFormat(PID, enabled = false)
       tagFormat = TagFormat(maxLength = 23, hideDuplicates = false, enabled = false)
       appNameFormat = AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
     }
@@ -346,15 +348,15 @@ class HeaderFormatOptionsDialogTest {
       """.trimIndent().prependIndent(" ").plus("\n"))
 
       showTimestampCheckBox.isSelected = true
-      showThreadIdCheckBox.isSelected = true
+      showProcessIdsCheckBox.isSelected = true
       showTagCheckBox.isSelected = true
       showAppNameCheckBox.isSelected = true
 
       assertThat(dialog.sampleEditor.document.text).isEqualTo("""
-        11:00:14.234 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
-        11:00:14.234 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
-        11:00:14.234 ExampleTag2             com.example.app2                     W  Sample logcat message 3.
-        11:00:14.234 ExampleTag2             com.example.app2                     E  Sample logcat message 4.
+        11:00:14.234 27217 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
+        11:00:14.234 27217 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
+        11:00:14.234 24395 ExampleTag2             com.example.app2                     W  Sample logcat message 3.
+        11:00:14.234 24395 ExampleTag2             com.example.app2                     E  Sample logcat message 4.
 
       """.trimIndent())
 
