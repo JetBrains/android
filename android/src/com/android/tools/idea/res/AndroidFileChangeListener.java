@@ -385,7 +385,7 @@ public class AndroidFileChangeListener implements Disposable {
   static class MyFileDocumentManagerListener implements FileDocumentManagerListener {
     private final ResourceFolderRegistry myRegistry;
 
-    private MyFileDocumentManagerListener(ResourceFolderRegistry registry) {
+    private MyFileDocumentManagerListener(@NotNull ResourceFolderRegistry registry) {
       myRegistry = registry;
     }
 
