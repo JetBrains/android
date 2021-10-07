@@ -25,12 +25,21 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     reloadedMessages++
   }
 
-  override suspend fun processMessages(messages: List<LogCatMessage>) {
-    TODO("Not yet implemented")
+  override fun clearMessageView() {
+    messageBatches.clear()
   }
 
+  override fun isMessageViewEmpty(): Boolean = messageBatches.isEmpty()
+
+  override suspend fun processMessages(messages: List<LogCatMessage>) {}
+
   override suspend fun appendMessages(textAccumulator: TextAccumulator) {
-    messageBatches.add(textAccumulator.text.trim().split("\n"))
+    val list: List<String> = textAccumulator.text.trim().split("\n")
+    messageBatches.add(list)
+  }
+
+  fun appendMessage(message: String) {
+    messageBatches.add(listOf(message))
   }
 
   override fun dispose() {}

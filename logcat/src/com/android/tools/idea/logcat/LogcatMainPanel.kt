@@ -21,8 +21,10 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -194,6 +196,7 @@ internal class LogcatMainPanel(
 
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {
+      add(ClearLogcatAction(this@LogcatMainPanel))
       add(ScrollToTheEndToolbarAction(editor).apply {
         val text = LogcatBundle.message("logcat.scroll.to.end.text")
         templatePresentation.text = StringUtil.toTitleCase(text)
@@ -202,6 +205,18 @@ internal class LogcatMainPanel(
       add(HeaderFormatOptionsAction(project, this@LogcatMainPanel, formattingOptions))
     }
   }
+
+  @UiThread
+  override fun clearMessageView() {
+    AndroidCoroutineScope(this, ioThread).launch {
+      logcatReader?.clearLogcat()
+      withContext(uiThread) {
+        editor.document.setText("")
+      }
+    }
+  }
+
+  override fun isMessageViewEmpty() = editor.document.textLength == 0
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread

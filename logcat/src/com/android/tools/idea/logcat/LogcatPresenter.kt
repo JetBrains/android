@@ -24,10 +24,30 @@ import com.intellij.openapi.Disposable
  * Encapsulates the presentation of Logcat messages.
  */
 internal interface LogcatPresenter : Disposable {
+  /**
+   * Reloads messages from the backlog into the view
+   */
   @UiThread
   fun reloadMessages()
 
+  /**
+   * Clears the message view
+   */
+  @UiThread
+  fun clearMessageView()
+
+  /**
+   * Returns true if the message view is empty
+   */
+  fun isMessageViewEmpty(): Boolean
+
+  /**
+   * Processes incoming messages from logcat
+   */
   suspend fun processMessages(messages: List<LogCatMessage>)
 
+  /**
+   * Emits formatted text to the message view
+   */
   suspend fun appendMessages(textAccumulator: TextAccumulator)
 }

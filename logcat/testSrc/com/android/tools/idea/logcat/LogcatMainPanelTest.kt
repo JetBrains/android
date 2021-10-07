@@ -20,6 +20,8 @@ import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -43,6 +45,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
@@ -59,6 +62,8 @@ import java.awt.Dimension
 import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
@@ -68,8 +73,10 @@ import javax.swing.JPopupMenu
 class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
 
+  private val executor = Executors.newCachedThreadPool()
+
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
+  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor))
 
   private lateinit var logcatMainPanel: LogcatMainPanel
 
@@ -91,6 +98,7 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
     assertThat(toolbar.actions.map { it::class }).containsExactly(
+      ClearLogcatAction::class,
       ScrollToTheEndToolbarAction::class,
       HeaderFormatOptionsAction::class,
       Separator::class,
@@ -231,6 +239,39 @@ class LogcatMainPanelTest {
     finally {
       ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
     }
+  }
+
+  @RunsInEdt
+  @Test
+  fun isMessageViewEmpty_emptyDocument() {
+    logcatMainPanel = logcatMainPanel()
+    logcatMainPanel.editor.document.setText("")
+
+    assertThat(logcatMainPanel.isMessageViewEmpty()).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun isMessageViewEmpty_notEmptyDocument() {
+    logcatMainPanel = logcatMainPanel()
+    logcatMainPanel.editor.document.setText("not-empty")
+
+    assertThat(logcatMainPanel.isMessageViewEmpty()).isFalse()
+  }
+
+  @Test
+  fun clearMessageView() {
+    runInEdtAndWait {
+      logcatMainPanel = logcatMainPanel()
+      logcatMainPanel.editor.document.setText("not-empty")
+    }
+
+    logcatMainPanel.clearMessageView()
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    runInEdtAndWait { }
+    assertThat(logcatMainPanel.editor.document.text).isEmpty()
+    // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
 
   private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {

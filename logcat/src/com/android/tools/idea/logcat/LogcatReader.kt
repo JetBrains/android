@@ -18,9 +18,11 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.run.LoggingReceiver
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.runBlocking
@@ -69,6 +71,10 @@ internal class LogcatReader(private val device: IDevice, logcatPresenter: Logcat
         device.executeShellCommand("logcat -v long -v epoch", logcatReceiver)
       }
     }
+  }
+
+  fun clearLogcat() {
+    device.executeShellCommand("logcat -c", LoggingReceiver(thisLogger()))
   }
 
   override fun dispose() {}
