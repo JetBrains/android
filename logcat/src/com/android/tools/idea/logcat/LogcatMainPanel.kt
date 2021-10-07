@@ -107,6 +107,7 @@ internal class LogcatMainPanel(
         logcatReader?.let {
           Disposer.dispose(it)
         }
+        editor.document.setText("")
         logcatReader = LogcatReader(device, this@LogcatMainPanel, this@LogcatMainPanel::processMessages).also(LogcatReader::start)
       }
 
