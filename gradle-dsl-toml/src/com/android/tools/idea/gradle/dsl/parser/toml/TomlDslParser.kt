@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
@@ -38,12 +39,14 @@ import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlKeyValueOwner
 import org.toml.lang.psi.TomlLiteral
+import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlRecursiveVisitor
 import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.TomlTableHeader
 import org.toml.lang.psi.TomlValue
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
+import java.math.BigDecimal
 
 class TomlDslParser(
   val psiFile: TomlFile,
@@ -122,7 +125,12 @@ class TomlDslParser(
   }
 
   override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
-    return null
+    return when (literal) {
+      is String -> TomlPsiFactory(context.dslFile.project, true).createLiteral("\"$literal\"")
+      is Int, is Boolean, is BigDecimal -> TomlPsiFactory(context.dslFile.project, true).createLiteral(literal.toString())
+      is ReferenceTo -> null // TODO(b/200280395): we might need this to set versions to version.refs?
+      else -> null
+    }
   }
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) {
