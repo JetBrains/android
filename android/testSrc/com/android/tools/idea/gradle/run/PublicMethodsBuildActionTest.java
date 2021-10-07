@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.run;
 
 import static org.junit.Assert.fail;
 
-import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashSet;
