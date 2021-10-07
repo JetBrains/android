@@ -375,34 +375,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @Override
-  public boolean hasResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myChildren.size() == 1) {
-        return myChildren.get(0).hasResources(namespace, type);
-      }
-
-      if (this instanceof SingleNamespaceResourceRepository) {
-        if (namespace.equals(((SingleNamespaceResourceRepository)this).getNamespace())) {
-          for (ResourceRepository child : myChildren) {
-            if (child.hasResources(namespace, type)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-
-      Collection<SingleNamespaceResourceRepository> repositories = myRepositoriesByNamespace.get(namespace);
-      for (ResourceRepository repository : repositories) {
-        if (repository.hasResources(namespace, type)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  @Override
   public void dispose() {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
