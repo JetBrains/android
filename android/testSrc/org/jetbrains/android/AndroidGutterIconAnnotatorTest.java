@@ -44,6 +44,7 @@ import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -82,6 +83,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
     myFixture.copyFileToProject("annotator/ic_launcher.png", "res/drawable/ic_launcher.png");
+    myFixture.copyFileToProject("annotator/customDrawable.xml", "res/drawable/customDrawable.xml");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
@@ -258,10 +260,17 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoImage(highlightInfo, "annotator/ic_actionModeCutDrawable_thumbnail.png");
   }
 
-  public void testAnimatedSelectorFallbackIcon() throws Exception {
-    // Reference to an animated selector drawable from a layout file.
+  public void testAnimatedSelectorRenderedIcon() throws Exception {
+    // Reference to an animated selector drawable from a layout file, rendered by layoutlib
     HighlightInfo highlightInfo =
       findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "@drawable/animated_selector", XmlAttributeValue.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_rendered_image.png");
+  }
+
+  public void testBrokenDrawableFallbackIcon() throws Exception {
+    // Reference to a broken custom drawable from a layout file, not rendered by layoutlib, so the fallback icon is used
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "@drawable/customDrawable", XmlAttributeValue.class);
     checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
   }
 

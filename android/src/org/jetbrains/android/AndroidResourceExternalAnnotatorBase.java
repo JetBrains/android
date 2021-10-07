@@ -155,13 +155,12 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (drawable == null) {
       return null;
     }
-    VirtualFile bitmap = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
-    bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    if (bitmap != null) {
+    VirtualFile resourceFile = AndroidAnnotatorUtil.resolveDrawableFile(drawable, resourceResolver, facet);
+    if (resourceFile != null) {
       // Updating the GutterIconCache in the background thread to include the icon.
-      GutterIconCache.getInstance().getIcon(bitmap, resourceResolver, facet);
+      GutterIconCache.getInstance().getIcon(resourceFile, resourceResolver, facet);
     }
-    return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, bitmap, configuration);
+    return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, resourceFile, configuration);
   }
 
   @Nullable

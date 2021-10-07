@@ -89,7 +89,7 @@ import org.xmlpull.v1.XmlPullParser;
  * Static methods to be used by Android annotators.
  */
 public class AndroidAnnotatorUtil {
-  static final int MAX_ICON_SIZE = 20000;
+  static final int MAX_ICON_FILE_SIZE = 20000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;
 
@@ -108,17 +108,17 @@ public class AndroidAnnotatorUtil {
     Project project = facet.getModule().getProject();
     VirtualFile file = IdeResourcesUtil.resolveDrawable(resourceResolver, resourceValue, project);
     if (file != null && file.getPath().endsWith(DOT_XML)) {
-      file = pickBitmapFromXml(file, resourceResolver, project, facet, resourceValue);
+      file = pickRenderableFileFromXML(file, resourceResolver, project, facet, resourceValue);
     }
-    return pickBestBitmap(file);
+    return pickSmallestDpiFile(file);
   }
 
   @Nullable
-  private static VirtualFile pickBitmapFromXml(@NotNull VirtualFile file,
-                                               @NotNull ResourceResolver resourceResolver,
-                                               @NotNull Project project,
-                                               @NotNull AndroidFacet facet,
-                                               @NotNull ResourceValue resourceValue) {
+  private static VirtualFile pickRenderableFileFromXML(@NotNull VirtualFile file,
+                                                       @NotNull ResourceResolver resourceResolver,
+                                                       @NotNull Project project,
+                                                       @NotNull AndroidFacet facet,
+                                                       @NotNull ResourceValue resourceValue) {
     try {
       XmlPullParser parser = FileResourceReader.createXmlPullParser(file);
       if (parser == null) {
@@ -162,16 +162,9 @@ public class AndroidAnnotatorUtil {
           source = parser.getAttributeValue(ANDROID_URI, ATTR_DRAWABLE);
           break;
 
-        case "layer-list":
-        case "level-list":
-        case "selector":
-        case "shape":
-        case "transition":
-          return file;
-
         default:
-          // <set>, <drawable> etc - no bitmap to be found.
-          return null;
+          // <set>, <drawable> etc - no bitmap to be found. These need to rendered by layoutlib.
+          return file;
       }
       if (source == null) {
         return null;
@@ -187,12 +180,12 @@ public class AndroidAnnotatorUtil {
   }
 
   @Nullable
-  public static VirtualFile pickBestBitmap(@Nullable VirtualFile bitmap) {
-    if (bitmap != null && bitmap.exists()) {
+  public static VirtualFile pickSmallestDpiFile(@Nullable VirtualFile resourceFile) {
+    if (resourceFile != null && resourceFile.exists()) {
       // Pick the smallest resolution, if possible! E.g. if the theme resolver located
       // drawable-hdpi/foo.png, and drawable-mdpi/foo.png pick that one instead (and ditto
       // for -ldpi etc)
-      VirtualFile smallest = findSmallestDpiVersion(bitmap);
+      VirtualFile smallest = findSmallestDpiVersion(resourceFile);
       if (smallest != null) {
         return smallest;
       }
@@ -200,9 +193,9 @@ public class AndroidAnnotatorUtil {
       // TODO: For XML drawables, look in the rendered output to see if there's a DPI version we can use:
       // These are found in  ${module}/build/generated/res/pngs/debug/drawable-*dpi
 
-      long length = bitmap.getLength();
-      if (length < MAX_ICON_SIZE) {
-        return bitmap;
+      long length = resourceFile.getLength();
+      if (length < MAX_ICON_FILE_SIZE) {
+        return resourceFile;
       }
     }
 
@@ -241,7 +234,7 @@ public class AndroidAnnotatorUtil {
           if (folder != null) {
             bitmap = folder.findChild(fileName);
             if (bitmap != null) {
-              if (bitmap.getLength() > MAX_ICON_SIZE) {
+              if (bitmap.getLength() > MAX_ICON_FILE_SIZE) {
                 // No point continuing the loop; the other densities will be too big too.
                 return null;
               }

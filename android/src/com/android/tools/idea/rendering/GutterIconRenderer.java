@@ -40,7 +40,6 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
 import com.intellij.util.io.URLUtil;
-import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.MouseInfo;
@@ -75,7 +74,8 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
    * @param element          {@link PsiElement} being annotated, usually an XML attribute or tag.
    * @param resourceResolver {@link ResourceResolver} instance used to resolve resources from the active theme.
    * @param facet            the {@link AndroidFacet} for the active module.
-   * @param file             the bitmap file to render in the gutter, when null, a fallback icon will be rendered instead. See {@link #getIcon()}.
+   * @param file             the resource file to render in the gutter. Can be an XML file or bitmap. When null, a fallback icon will be
+   *                         rendered instead. See {@link #getIcon()}.
    * @param configuration    Android {@link Configuration} associated with the containing file of the annotated element.
    */
   public GutterIconRenderer(@NotNull PsiElement element,
@@ -97,7 +97,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
     Icon icon = myFile != null
                 ? GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet)
                 : StudioIcons.LayoutEditor.Properties.IMAGE_PICKER;
-    return icon == null ? EmptyIcon.ICON_0 : icon;
+    return icon == null ? StudioIcons.LayoutEditor.Properties.IMAGE_PICKER : icon;
   }
 
   @Override

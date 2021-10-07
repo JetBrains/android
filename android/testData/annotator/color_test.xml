@@ -16,4 +16,5 @@
     <View android:background="@drawable/animated_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <View android:background="?android:attr/actionMenuTextColor" android:layout_width="wrap_content" android:layout_height="wrap_content" />
     <View android:background="?android:attr/buttonCornerRadius" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <View android:background="@drawable/customDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 </LinearLayout>

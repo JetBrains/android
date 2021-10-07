@@ -502,7 +502,7 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
 }
 
 private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
-  val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
+  val bitmap = AndroidAnnotatorUtil.pickSmallestDpiFile(resolveDrawable(value, project)) ?: return null
   return GutterIconCache.getInstance().getIcon(bitmap, this, facet)
 }
 
