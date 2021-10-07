@@ -12,25 +12,30 @@
     <option name="module" path="ActionManager" hit="Add C++ to Module" />
     <option name="to" path="ActionManager" hit="Add C++ to Module" />
     <option name="add" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
+    <option name="build" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="built" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="c" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="cmake" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="code" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="module" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="ndk-build" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
+    <option name="ndk" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="or" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="this" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="to" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="with" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="add" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
-    <option name="right-to-left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
+    <option name="left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
+    <option name="right" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="rtl" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="support" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
+    <option name="to" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="add" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="left" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="possible" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="right-to-left" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="right" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="rtl" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="support" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="to" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="where" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="add" path="ActionManager" hit="Add sample data file" />
     <option name="data" path="ActionManager" hit="Add sample data file" />
@@ -121,9 +126,9 @@
     <option name="convert" path="ActionManager" hit="Convert to WebP..." />
     <option name="to" path="ActionManager" hit="Convert to WebP..." />
     <option name="webp" path="ActionManager" hit="Convert to WebP..." />
-    <option name="9-patch" path="ActionManager" hit="Create 9-Patch file..." />
     <option name="create" path="ActionManager" hit="Create 9-Patch file..." />
     <option name="file" path="ActionManager" hit="Create 9-Patch file..." />
+    <option name="patch" path="ActionManager" hit="Create 9-Patch file..." />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -286,12 +291,13 @@
     <option name="project" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="with" path="ActionManager" hit="Link C++ Project with Gradle" />
     <option name="an" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
+    <option name="build" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="c" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="cmake" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="external" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="gradle" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="link" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="ndk-build" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
+    <option name="ndk" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="or" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="project" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="with" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
@@ -317,9 +323,10 @@
     <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
-    <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="non" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="r" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="to" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="namespaces" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="resource" path="ActionManager" hit="Migrate to Resource Namespaces..." />
@@ -330,11 +337,12 @@
     <option name="to" path="ActionManager" hit="Migrates app to AppCompat" />
     <option name="classes" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="migrates" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
-    <option name="non-transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
+    <option name="non" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="project" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="r" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="the" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="to" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
+    <option name="transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="use" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="androidx" path="ActionManager" hit="Migrates to AndroidX package names" />
     <option name="migrates" path="ActionManager" hit="Migrates to AndroidX package names" />
@@ -408,12 +416,13 @@
     <option name="device" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="devices" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="dialog" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
+    <option name="fi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="open" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="over" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="pairing" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="the" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="which" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
-    <option name="wi-fi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
+    <option name="wi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="manager" path="ActionManager" hit="Open the Resource Manager" />
     <option name="open" path="ActionManager" hit="Open the Resource Manager" />
     <option name="resource" path="ActionManager" hit="Open the Resource Manager" />
@@ -428,9 +437,10 @@
     <option name="wear" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="overview" path="ActionManager" hit="Overview" />
     <option name="devices" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
+    <option name="fi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="pair" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="using" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
-    <option name="wi-fi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
+    <option name="wi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="power" path="ActionManager" hit="Power" />
     <option name="back" path="ActionManager" hit="Press the Back button" />
     <option name="button" path="ActionManager" hit="Press the Back button" />
@@ -473,8 +483,8 @@
     <option name="new" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="out" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="pulls" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
+    <option name="related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="style" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
-    <option name="style-related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="them" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="project" path="ActionManager" hit="Rebuild Project" />
     <option name="rebuild" path="ActionManager" hit="Rebuild Project" />
@@ -502,12 +512,10 @@
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
     <option name="rotate" path="ActionManager" hit="Rotate Right" />
-    <option name="90" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
     <option name="by" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
     <option name="clockwise" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
     <option name="degrees" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
     <option name="rotate" path="ActionManager" hit="Rotate clockwise by 90 degrees" />
-    <option name="90" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
     <option name="by" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
     <option name="counterclockwise" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
     <option name="degrees" path="ActionManager" hit="Rotate counterclockwise by 90 degrees" />
@@ -634,19 +642,19 @@
     <option name="literals" hit="Literals decorations" />
   </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
-    <option name="" hit=" Existing ADB server port:" />
-    <option name="adb" hit=" Existing ADB server port:" />
-    <option name="existing" hit=" Existing ADB server port:" />
-    <option name="port" hit=" Existing ADB server port:" />
-    <option name="server" hit=" Existing ADB server port:" />
+    <option name="" hit=" Existing ADB server port " />
+    <option name="adb" hit=" Existing ADB server port " />
+    <option name="existing" hit=" Existing ADB server port " />
+    <option name="port" hit=" Existing ADB server port " />
+    <option name="server" hit=" Existing ADB server port " />
     <option name="adb" hit="ADB server lifecycle management" />
     <option name="lifecycle" hit="ADB server lifecycle management" />
     <option name="management" hit="ADB server lifecycle management" />
     <option name="server" hit="ADB server lifecycle management" />
-    <option name="adb" hit="Android Debug Bridge (adb)" />
-    <option name="android" hit="Android Debug Bridge (adb)" />
-    <option name="bridge" hit="Android Debug Bridge (adb)" />
-    <option name="debug" hit="Android Debug Bridge (adb)" />
+    <option name="adb" hit="Android Debug Bridge  adb " />
+    <option name="android" hit="Android Debug Bridge  adb " />
+    <option name="bridge" hit="Android Debug Bridge  adb " />
+    <option name="debug" hit="Android Debug Bridge  adb " />
     <option name="and" hit="Automatically start and manage server" />
     <option name="automatically" hit="Automatically start and manage server" />
     <option name="manage" hit="Automatically start and manage server" />
@@ -686,24 +694,24 @@
     <option name="show" hit="Show application logcat messages in Run Console" />
   </configurable>
   <configurable id="emulator" configurable_name="Emulator">
-    <option name="" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="a" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="android" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="application" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="as" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="cause" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="emulator" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="enabling" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="in" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="launch" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="otherwise" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="setting" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="standalone" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="this" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="to" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="tool" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="will" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
-    <option name="window" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="a" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="android" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="application" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="as" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="cause" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="emulator" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="enabling" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="in" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="launch" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="otherwise" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="setting" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="standalone" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="this" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="to" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="tool" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="will" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
+    <option name="window" hit="   Enabling this setting will cause Android Emulator to launch in a tool window  Otherwise Android Emulator will launch as a standalone application    " />
     <option name="ask" hit="Ask before deleting" />
     <option name="before" hit="Ask before deleting" />
     <option name="deleting" hit="Ask before deleting" />
@@ -718,110 +726,110 @@
     <option name="launch" hit="Launch in a tool window" />
     <option name="tool" hit="Launch in a tool window" />
     <option name="window" hit="Launch in a tool window" />
-    <option name="configuration" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="current" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="encountering" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="incompatible" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="snapshots" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="the" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
-    <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
+    <option name="configuration" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="current" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="encountering" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="incompatible" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="snapshots" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="the" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="when" hit="When encountering snapshots incompatible with the current configuration " />
+    <option name="with" hit="When encountering snapshots incompatible with the current configuration " />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
-    <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="changes" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="fails" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="perform" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="run" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="when" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
-    <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="changes" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="code" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="fails" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="perform" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="run" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
-    <option name="when" hit="Automatically perform &quot;Run&quot; when Apply Code Changes fails" />
+    <option name="apply" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="automatically" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="changes" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="fails" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="perform" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="run" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="when" hit="Automatically perform  Run  when Apply Changes fails" />
+    <option name="apply" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="automatically" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="changes" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="code" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="fails" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="perform" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="run" hit="Automatically perform  Run  when Apply Code Changes fails" />
+    <option name="when" hit="Automatically perform  Run  when Apply Code Changes fails" />
     <option name="deployment" hit="Deployment" />
-    <option name="an" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="app" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="apply" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="automatic" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="change" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="changes" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="enabling" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="if" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="incompatible" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="is" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="of" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="only" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="options" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="rerun" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="there" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="these" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="trigger" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="using" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="when" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="your" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes." />
-    <option name="activity" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="changes" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="example" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="for" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="in" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="made" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="method" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="oncreate" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="s" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="see" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="to" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="you" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="your" hit="For example, to see changes you made in your Activity's onCreate() method." />
-    <option name="app" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="apply" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="cases" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="changes" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="code" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="in" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="manually" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="might" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="need" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="or" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="restart" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="see" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="some" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="succeeds" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="to" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="when" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="you" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
-    <option name="your" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
+    <option name="an" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="app" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="apply" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="automatic" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="change" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="changes" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="enabling" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="if" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="incompatible" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="is" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="of" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="only" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="options" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="rerun" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="there" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="these" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="trigger" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="using" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="when" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="your" hit="Enabling these options trigger an automatic rerun of your app only if there is an incompatible change when using Apply Changes " />
+    <option name="activity" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="changes" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="example" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="for" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="in" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="made" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="method" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="oncreate" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="s" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="see" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="to" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="you" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="your" hit="For example  to see changes you made in your Activity s onCreate   method " />
+    <option name="app" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="apply" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="cases" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="changes" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="code" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="in" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="manually" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="might" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="need" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="or" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="restart" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="see" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="some" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="succeeds" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="to" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="when" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="you" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
+    <option name="your" hit="In some cases  when Apply Changes or Apply Code Changes succeeds  you might need to manually restart your app to see your changes " />
   </configurable>
   <configurable id="testing.instrumented.configuration" configurable_name="Testing">
-    <option name="android" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="run" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="tests" hit="Run Android Instrumented Tests using Gradle." />
-    <option name="using" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="android" hit="Run Android Instrumented Tests using Gradle " />
+    <option name="gradle" hit="Run Android Instrumented Tests using Gradle " />
+    <option name="instrumented" hit="Run Android Instrumented Tests using Gradle " />
+    <option name="run" hit="Run Android Instrumented Tests using Gradle " />
+    <option name="tests" hit="Run Android Instrumented Tests using Gradle " />
+    <option name="using" hit="Run Android Instrumented Tests using Gradle " />
     <option name="testing" hit="Testing" />
   </configurable>
   <configurable id="android.live.literals" configurable_name="Live Edit of literals">
-    <option name="" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="after" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="building" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="can" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="edit" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="enabling" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="feature" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="is" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="literals" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="live" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="of" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="properly" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="required" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="so" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="the" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
-    <option name="work" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="after" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="building" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="can" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="edit" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="enabling" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="feature" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="is" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="literals" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="live" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="of" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="properly" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="required" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="so" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="the" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
+    <option name="work" hit="   Building is required after enabling live edit of literals so the feature can work properly    " />
     <option name="edit" hit="Enable Live Edit of literals" />
     <option name="enable" hit="Enable Live Edit of literals" />
     <option name="literals" hit="Enable Live Edit of literals" />
@@ -833,115 +841,115 @@
     <option name="of" hit="Live Edit of literals" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
-    <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="an" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="are" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="automatically" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="available" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="below" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="check" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="details" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="developer" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="display" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="for" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="ide" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="installed" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="of" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="once" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="package" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="sdk" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="show" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="the" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="to" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="tool" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="tools" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="updates" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="versions" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="will" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
-    <option name="" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="an" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="and" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="android" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="api" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="automatically" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="by" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="check" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="components" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="default" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="details" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="display" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="each" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="for" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="ide" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="includes" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="individual" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="installed" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="level" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="once" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="package" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="pertaining" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="platform" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="sdk" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="show" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="sources" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="the" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="to" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="updates" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="will" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display individual SDK components. " />
-    <option name="" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="add" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="add-on" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="add-ons" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="adding" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="additional" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="android" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="are" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="can" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="check" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="checked" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="extra" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="for" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="manager" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="new" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="not" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="or" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="packages" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="sdk" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="site" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="sites" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="studio" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="the" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="these" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="tools" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="unchecked" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="updates" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="when" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
-    <option name="will" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools. When unchecked, the Android Studio SDK Manager will not check the site for updates. Adding additional add-on updates sites can add new add-ons or extra SDK packages. " />
+    <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="an" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="are" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="automatically" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="available" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="below" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="check" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="details" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="developer" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="display" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="for" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="ide" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="installed" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="of" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="once" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="package" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="sdk" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="show" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="the" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="to" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="tool" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="tools" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="updates" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="versions" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="will" path="SDK Tools" hit=" Below are the available SDK developer tools  Once installed  the IDE will automatically check for updates  Check  show package details  to display available versions of an SDK Tool  " />
+    <option name="" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="an" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="and" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="android" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="api" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="automatically" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="by" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="check" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="components" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="default" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="details" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="display" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="each" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="for" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="ide" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="includes" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="individual" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="installed" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="level" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="once" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="package" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="pertaining" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="platform" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="sdk" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="show" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="sources" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="the" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="to" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="updates" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="will" path="SDK Platforms" hit=" Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default  Once installed  the IDE will automatically check for updates  Check  show package details  to display individual SDK components  " />
+    <option name="" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="add" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="adding" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="additional" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="android" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="are" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="can" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="check" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="checked" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="extra" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="for" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="manager" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="new" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="not" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="on" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="ons" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="or" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="packages" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="sdk" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="site" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="sites" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="studio" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="the" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="these" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="tools" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="unchecked" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="updates" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="when" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
+    <option name="will" path="SDK Update Sites" hit=" These are the sites checked for Android SDK Updates  Tools  When unchecked  the Android Studio SDK Manager will not check the site for updates  Adding additional add on updates sites can add new add ons or extra SDK packages  " />
     <option name="android" hit="Android SDK" />
     <option name="sdk" hit="Android SDK" />
-    <option name="android" hit="Android SDK Location:" />
-    <option name="location" hit="Android SDK Location:" />
-    <option name="sdk" hit="Android SDK Location:" />
+    <option name="android" hit="Android SDK Location " />
+    <option name="location" hit="Android SDK Location " />
+    <option name="sdk" hit="Android SDK Location " />
     <option name="diff" path="SDK Update Sites" hit="Disable SDK diff patching" />
     <option name="disable" path="SDK Update Sites" hit="Disable SDK diff patching" />
     <option name="patching" path="SDK Update Sites" hit="Disable SDK diff patching" />
     <option name="sdk" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="be" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="fetched" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="force" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="http" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="https" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="sources" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="to" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
-    <option name="using" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
+    <option name="be" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="fetched" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="force" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="http" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="https" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="sources" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="to" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
+    <option name="using" path="SDK Update Sites" hit="Force https       sources to be fetched using http      " />
     <option name="hide" path="SDK Platforms" hit="Hide Obsolete Packages" />
     <option name="obsolete" path="SDK Platforms" hit="Hide Obsolete Packages" />
     <option name="packages" path="SDK Platforms" hit="Hide Obsolete Packages" />
-    <option name="loading" path="SDK Update Sites" hit="Loading sources..." />
-    <option name="sources" path="SDK Update Sites" hit="Loading sources..." />
-    <option name="for" path="SDK Platforms" hit="Looking for updates..." />
-    <option name="looking" path="SDK Platforms" hit="Looking for updates..." />
-    <option name="updates" path="SDK Platforms" hit="Looking for updates..." />
+    <option name="loading" path="SDK Update Sites" hit="Loading sources   " />
+    <option name="sources" path="SDK Update Sites" hit="Loading sources   " />
+    <option name="for" path="SDK Platforms" hit="Looking for updates   " />
+    <option name="looking" path="SDK Platforms" hit="Looking for updates   " />
+    <option name="updates" path="SDK Platforms" hit="Looking for updates   " />
     <option name="and" hit="Manager for the Android SDK and Tools used by the IDE" />
     <option name="android" hit="Manager for the Android SDK and Tools used by the IDE" />
     <option name="by" hit="Manager for the Android SDK and Tools used by the IDE" />
@@ -976,92 +984,87 @@
     <option name="location" hit="Download location" />
   </configurable>
   <configurable id="memory.settings" configurable_name="Memory Settings">
-    <option name="" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="allocate" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="allocating" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="amount" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="android" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="as" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="configure" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="core" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="daemon" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="degrade" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="for" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="gradle" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="ide" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="little" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="maximum" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="memory" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="might" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="much" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="of" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="or" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="os" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="performance" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="processes" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="ram" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="should" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="similar" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="studio" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="such" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="the" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="to" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="too" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes, such as the core IDE or Gradle daemon. Similar to allocating too little memory, allocating too much memory might degrade performance.  " />
-    <option name="" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="a" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="all" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="android" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="any" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="applies" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="before" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="changes" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="effect" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="global" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="heap" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="ide" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="is" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="its" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="need" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="open" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="projects" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="restart" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="setting" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="size" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="studio" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="take" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="that" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="the" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="this" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="to" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="using" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="you" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect. " />
-    <option name="1024" hit="1024" />
-    <option name="1280" hit="1280" />
-    <option name="2048" hit="2048" />
-    <option name="3072" hit="3072" />
-    <option name="4096" hit="4096" />
+    <option name="" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="allocate" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="allocating" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="amount" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="android" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="as" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="configure" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="core" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="daemon" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="degrade" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="for" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="gradle" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="ide" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="little" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="maximum" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="memory" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="might" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="much" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="of" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="or" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="os" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="performance" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="processes" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="ram" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="should" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="similar" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="studio" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="such" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="the" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="to" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="too" hit="  Configure the maximum amount of RAM the OS should allocate for Android Studio processes  such as the core IDE or Gradle daemon  Similar to allocating too little memory  allocating too much memory might degrade performance   " />
+    <option name="" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="a" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="all" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="android" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="any" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="applies" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="before" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="changes" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="effect" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="global" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="heap" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="ide" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="is" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="its" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="need" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="open" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="projects" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="restart" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="setting" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="size" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="studio" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="take" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="that" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="the" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="this" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="to" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="using" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
+    <option name="you" hit=" This is a global setting that applies to all projects you open using Android Studio  You need to restart the IDE before any changes to its heap size take effect  " />
     <option name="daemon" hit="Daemon Heap Size Settings" />
     <option name="heap" hit="Daemon Heap Size Settings" />
     <option name="settings" hit="Daemon Heap Size Settings" />
     <option name="size" hit="Daemon Heap Size Settings" />
-    <option name="daemon" hit="Gradle daemon max heap size:" />
-    <option name="gradle" hit="Gradle daemon max heap size:" />
-    <option name="heap" hit="Gradle daemon max heap size:" />
-    <option name="max" hit="Gradle daemon max heap size:" />
-    <option name="size" hit="Gradle daemon max heap size:" />
+    <option name="daemon" hit="Gradle daemon max heap size " />
+    <option name="gradle" hit="Gradle daemon max heap size " />
+    <option name="heap" hit="Gradle daemon max heap size " />
+    <option name="max" hit="Gradle daemon max heap size " />
+    <option name="size" hit="Gradle daemon max heap size " />
     <option name="heap" hit="IDE Heap Size Settings" />
     <option name="ide" hit="IDE Heap Size Settings" />
     <option name="settings" hit="IDE Heap Size Settings" />
     <option name="size" hit="IDE Heap Size Settings" />
-    <option name="heap" hit="IDE max heap size:" />
-    <option name="ide" hit="IDE max heap size:" />
-    <option name="max" hit="IDE max heap size:" />
-    <option name="size" hit="IDE max heap size:" />
-    <option name="daemon" hit="Kotlin daemon max heap size:" />
-    <option name="heap" hit="Kotlin daemon max heap size:" />
-    <option name="kotlin" hit="Kotlin daemon max heap size:" />
-    <option name="max" hit="Kotlin daemon max heap size:" />
-    <option name="size" hit="Kotlin daemon max heap size:" />
+    <option name="heap" hit="IDE max heap size " />
+    <option name="ide" hit="IDE max heap size " />
+    <option name="max" hit="IDE max heap size " />
+    <option name="size" hit="IDE max heap size " />
+    <option name="daemon" hit="Kotlin daemon max heap size " />
+    <option name="heap" hit="Kotlin daemon max heap size " />
+    <option name="kotlin" hit="Kotlin daemon max heap size " />
+    <option name="max" hit="Kotlin daemon max heap size " />
+    <option name="size" hit="Kotlin daemon max heap size " />
     <option name="label" hit="Label" />
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
@@ -1071,45 +1074,50 @@
     <option name="androidmanifest" hit="AndroidManifest" />
     <option name="annotationtype" hit="AnnotationType" />
     <option name="application" hit="Application" />
-    <option name="broadcast_receiver" hit="Broadcast_Receiver" />
+    <option name="broadcast" hit="Broadcast_Receiver" />
+    <option name="receiver" hit="Broadcast_Receiver" />
     <option name="class" hit="Class" />
     <option name="enum" hit="Enum" />
     <option name="fragment" hit="Fragment" />
     <option name="interface" hit="Interface" />
-    <option name="remote_interface" hit="Remote_Interface" />
+    <option name="interface" hit="Remote_Interface" />
+    <option name="remote" hit="Remote_Interface" />
     <option name="service" hit="Service" />
     <option name="singleton" hit="Singleton" />
     <option name="default" hit="default" />
     <option name="layoutresourcefile" hit="layoutResourceFile" />
-    <option name="layoutresourcefile_vertical" hit="layoutResourceFile_vertical" />
+    <option name="layoutresourcefile" hit="layoutResourceFile_vertical" />
+    <option name="vertical" hit="layoutResourceFile_vertical" />
     <option name="navigationresourcefile" hit="navigationResourceFile" />
     <option name="resourcefile" hit="resourceFile" />
     <option name="valueresourcefile" hit="valueResourceFile" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Compiler">
-    <option name="" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="android" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="are" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="compiling" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="for" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="gradle-based" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="note" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="projects" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="settings" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="these" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="used" hit="  Note:  These settings are used for  compiling  Gradle-based Android projects. " />
-    <option name="command-line" hit="Command-line Options:" />
-    <option name="options" hit="Command-line Options:" />
-    <option name="compile" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="heap" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="in" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="independent" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="larger" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="may" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="modules" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="parallel" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
+    <option name="" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="android" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="are" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="based" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="compiling" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="for" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="gradle" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="note" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="projects" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="settings" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="these" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="used" hit="  Note   These settings are used for  compiling  Gradle based Android projects  " />
+    <option name="command" hit="Command line Options " />
+    <option name="line" hit="Command line Options " />
+    <option name="options" hit="Command line Options " />
+    <option name="compile" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="heap" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="in" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="independent" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="larger" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="may" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="modules" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="parallel" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="require" hit="Compile independent modules in parallel  may require larger heap size " />
+    <option name="size" hit="Compile independent modules in parallel  may require larger heap size " />
     <option name="compiler" hit="Compiler" />
     <option name="after" hit="Continue the build after failures" />
     <option name="build" hit="Continue the build after failures" />
@@ -1118,26 +1126,26 @@
     <option name="the" hit="Continue the build after failures" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
-    <option name="" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="are" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="considered" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="experimental" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="features" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="for" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="note" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="a" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="allows" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="deploying" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="device" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="elements" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="emulator" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="individual" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="or" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="preview" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="to" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="are" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="considered" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="experimental" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="features" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="for" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="note" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="settings" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="that" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="these" hit="  Note   These settings are for features that are considered  experimental   " />
+    <option name="a" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="allows" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="deploying" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="device" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="elements" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="emulator" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="individual" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="or" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="preview" hit="Allows deploying individual  Preview elements to a device or emulator" />
+    <option name="to" hit="Allows deploying individual  Preview elements to a device or emulator" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
@@ -1148,14 +1156,14 @@
     <option name="not" hit="Do not build Gradle task list during Gradle sync" />
     <option name="sync" hit="Do not build Gradle task list during Gradle sync" />
     <option name="task" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="deploy" hit="Enable @Preview deploy to device" />
-    <option name="device" hit="Enable @Preview deploy to device" />
-    <option name="enable" hit="Enable @Preview deploy to device" />
-    <option name="preview" hit="Enable @Preview deploy to device" />
-    <option name="to" hit="Enable @Preview deploy to device" />
-    <option name="enable" hit="Enable @Preview picker" />
-    <option name="picker" hit="Enable @Preview picker" />
-    <option name="preview" hit="Enable @Preview picker" />
+    <option name="deploy" hit="Enable  Preview deploy to device" />
+    <option name="device" hit="Enable  Preview deploy to device" />
+    <option name="enable" hit="Enable  Preview deploy to device" />
+    <option name="preview" hit="Enable  Preview deploy to device" />
+    <option name="to" hit="Enable  Preview deploy to device" />
+    <option name="enable" hit="Enable  Preview picker" />
+    <option name="picker" hit="Enable  Preview picker" />
+    <option name="preview" hit="Enable  Preview picker" />
     <option name="enable" hit="Enable Live Layout Inspector" />
     <option name="inspector" hit="Enable Live Layout Inspector" />
     <option name="layout" hit="Enable Live Layout Inspector" />
@@ -1167,16 +1175,17 @@
     <option name="interactive" hit="Enable interactive preview" />
     <option name="preview" hit="Enable interactive preview" />
     <option name="experimental" hit="Experimental" />
-    <option name="animation" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="animations" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="compose" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="defined" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="frame-by-frame" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="framework" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="inspection" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="of" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="the" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
-    <option name="using" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
+    <option name="animation" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="animations" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="by" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="compose" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="defined" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="frame" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="framework" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="inspection" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="of" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="the" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
+    <option name="using" hit="Frame by frame inspection of animations defined using the Compose animation framework" />
     <option name="gradle" hit="Gradle" />
     <option name="compose" hit="Jetpack Compose" />
     <option name="jetpack" hit="Jetpack Compose" />
@@ -1189,26 +1198,26 @@
     <option name="preview" hit="Live preview to test gestures" />
     <option name="test" hit="Live preview to test gestures" />
     <option name="to" hit="Live preview to test gestures" />
-    <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="for" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="from" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="gutter" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="popup" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="preview" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="the" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="tools" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="with" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="annotation" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="editing" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="editor" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="for" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="from" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="gutter" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="popup" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="preview" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="the" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="tools" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
+    <option name="with" hit="Popup with editing tools for  Preview annotation from the Editor gutter" />
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />
     <option name="specified" hit="Specified location" />
-    <option name="gradle" hit="Trace Gradle import with profile:" />
-    <option name="import" hit="Trace Gradle import with profile:" />
-    <option name="profile" hit="Trace Gradle import with profile:" />
-    <option name="trace" hit="Trace Gradle import with profile:" />
-    <option name="with" hit="Trace Gradle import with profile:" />
+    <option name="gradle" hit="Trace Gradle import with profile " />
+    <option name="import" hit="Trace Gradle import with profile " />
+    <option name="profile" hit="Trace Gradle import with profile " />
+    <option name="trace" hit="Trace Gradle import with profile " />
+    <option name="with" hit="Trace Gradle import with profile " />
     <option name="dependency" hit="Use new dependency mechanism during Gradle sync" />
     <option name="during" hit="Use new dependency mechanism during Gradle sync" />
     <option name="gradle" hit="Use new dependency mechanism during Gradle sync" />
@@ -1218,25 +1227,26 @@
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
   </configurable>
   <configurable id="android.dex.compiler" configurable_name="Android Compilers">
-    <option name="--core-library" hit="Add &quot;--core-library&quot; flag" />
-    <option name="add" hit="Add &quot;--core-library&quot; flag" />
-    <option name="flag" hit="Add &quot;--core-library&quot; flag" />
-    <option name="additional" hit="Additional VM options:" />
-    <option name="options" hit="Additional VM options:" />
-    <option name="vm" hit="Additional VM options:" />
+    <option name="add" hit="Add    core library  flag" />
+    <option name="core" hit="Add    core library  flag" />
+    <option name="flag" hit="Add    core library  flag" />
+    <option name="library" hit="Add    core library  flag" />
+    <option name="additional" hit="Additional VM options " />
+    <option name="options" hit="Additional VM options " />
+    <option name="vm" hit="Additional VM options " />
     <option name="android" hit="Android Compilers" />
     <option name="compilers" hit="Android Compilers" />
     <option name="dex" hit="DEX" />
     <option name="force" hit="Force jumbo mode" />
     <option name="jumbo" hit="Force jumbo mode" />
     <option name="mode" hit="Force jumbo mode" />
-    <option name="heap" hit="Maximum heap size (MB):" />
-    <option name="maximum" hit="Maximum heap size (MB):" />
-    <option name="mb" hit="Maximum heap size (MB):" />
-    <option name="size" hit="Maximum heap size (MB):" />
+    <option name="heap" hit="Maximum heap size  MB  " />
+    <option name="maximum" hit="Maximum heap size  MB  " />
+    <option name="mb" hit="Maximum heap size  MB  " />
+    <option name="size" hit="Maximum heap size  MB  " />
     <option name="optimize" hit="Optimize" />
     <option name="proguard" hit="ProGuard" />
-    <option name="options" hit="VM options:" />
-    <option name="vm" hit="VM options:" />
+    <option name="options" hit="VM options " />
+    <option name="vm" hit="VM options " />
   </configurable>
 </options>

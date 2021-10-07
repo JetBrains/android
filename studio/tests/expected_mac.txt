@@ -584,7 +584,7 @@ Android Studio Preview.app/Contents/lib/javax.annotation-api-1.3.2.jar
 Android Studio Preview.app/Contents/lib/jaxb-api-2.3.1.jar
 Android Studio Preview.app/Contents/lib/jaxb-runtime-2.3.1.jar
 Android Studio Preview.app/Contents/lib/jaxen-1.2.0.jar
-Android Studio Preview.app/Contents/lib/jb-jdi-2.11.jar
+Android Studio Preview.app/Contents/lib/jb-jdi-2.12.jar
 Android Studio Preview.app/Contents/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.5.jar
 Android Studio Preview.app/Contents/lib/jcip-annotations-1.0.jar
 Android Studio Preview.app/Contents/lib/jcodings-1.0.55.jar
@@ -2825,12 +2825,12 @@ Android Studio Preview.app/Contents/plugins/google-login-as/lib/javax.servlet-ap
 Android Studio Preview.app/Contents/plugins/google-samples/lib/google-samples.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-6.8.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-6.8.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-6.8.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-7.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-7.1.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-7.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-api.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-6.8.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
 Android Studio Preview.app/Contents/plugins/hg4idea/lib/hg4idea.jar
 Android Studio Preview.app/Contents/plugins/java-decompiler/lib/java-decompiler.jar
