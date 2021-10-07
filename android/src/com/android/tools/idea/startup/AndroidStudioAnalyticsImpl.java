@@ -22,6 +22,9 @@ import com.android.tools.analytics.HighlightingStats;
 import com.android.tools.analytics.StudioUpdateAnalyticsUtil;
 import com.android.tools.analytics.UsageTracker;
 import com.android.utils.ILogger;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.OptInToMetrics;
+import com.google.wireless.android.sdk.stats.OptOutOfMetrics;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.ConsentOptionsProvider;
@@ -120,16 +123,30 @@ public class AndroidStudioAnalyticsImpl extends AndroidStudioAnalytics {
     try {
       if (allowed == AnalyticsSettings.getOptedIn()) {
         updated = false;
-      } else {
+      }
+      else {
+        if (!allowed) {
+          UsageTracker.log(AndroidStudioEvent.newBuilder()
+                             .setKind(AndroidStudioEvent.EventKind.OPTOUT_METRICS)
+                             .setOptOutOfMetrics(OptOutOfMetrics.newBuilder())
+          );
+        }
         AnalyticsSettings.setOptedIn(allowed);
         AnalyticsSettings.saveSettings();
         updated = true;
       }
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       getAndroidLogger().error(e, "Unable to update analytics settings");
     }
     if (updated) {
       initializeAndroidStudioUsageTrackerAndPublisher();
+      if (allowed) {
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.OPTIN_METRICS)
+                           .setOptInToMetrics(OptInToMetrics.newBuilder())
+        );
+      }
     }
   }
 
