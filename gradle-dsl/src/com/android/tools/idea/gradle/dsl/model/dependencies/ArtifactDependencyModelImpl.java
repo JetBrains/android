@@ -219,7 +219,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                               @Nullable GradleDslClosure configurationElement,
                               @NotNull Maintainer maintainer,
                               @Nullable String platformMethodName) {
-      if (dslElement.getLiteral("name", String.class) == null) {
+      if (dslElement.getLiteral("name", String.class) == null && dslElement.getLiteral("module", String.class) == null) {
         return null; // not a artifact dependency element.
       }
 
@@ -243,12 +243,22 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Override
     @NotNull
     public ResolvedPropertyModel name() {
+      GradleDslLiteral module = myDslElement.getPropertyElement("module", GradleDslLiteral.class);
+      if (module != null) {
+        FakeElement element = new FakeArtifactElement(myDslElement, GradleNameElement.fake("name"), module, ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName, false);
+        return GradlePropertyModelBuilder.create(element).addTransform(new FakeElementTransform()).buildResolved();
+      }
       return GradlePropertyModelBuilder.create(myDslElement, "name").buildResolved();
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel group() {
+      GradleDslLiteral module = myDslElement.getPropertyElement("module", GradleDslLiteral.class);
+      if (module != null) {
+        FakeElement element = new FakeArtifactElement(myDslElement, GradleNameElement.fake("group"), module, ArtifactDependencySpec::getGroup, ArtifactDependencySpecImpl::setGroup, false);
+        return GradlePropertyModelBuilder.create(element).addTransform(new FakeElementTransform()).buildResolved();
+      }
       return GradlePropertyModelBuilder.create(myDslElement, "group").buildResolved();
     }
 

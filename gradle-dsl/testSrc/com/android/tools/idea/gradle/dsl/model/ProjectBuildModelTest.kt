@@ -433,6 +433,25 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testVersionCatalogModuleNotationVariableResolution() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_MODULE_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val dependencies = buildModel.dependencies()
+      val artifacts = dependencies.artifacts()
+      assertSize(1, artifacts)
+      assertEquals("com.example:example:1.2.3", artifacts[0].compactNotation())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -469,6 +488,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
     VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION("versionCatalogMapNotation.toml"),
+    VERSION_CATALOG_MODULE_NOTATION("versionCatalogModuleNotation.toml"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

@@ -1,0 +1,2 @@
+[libraries]
+adep = { module = 'com.example:example', version = '1.2.3' }
