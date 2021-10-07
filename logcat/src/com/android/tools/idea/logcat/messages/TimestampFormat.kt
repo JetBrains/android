@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
@@ -25,18 +27,21 @@ import java.util.Locale
 /**
  * Provides formatting for the timestamp
  */
-internal enum class TimestampFormat(val format: (Instant, ZoneId) -> String) {
-  NO_TIMESTAMP({ _, _ -> "" }),
+internal data class TimestampFormat(val style: Style = DATETIME, val enabled: Boolean = true) {
+  enum class Style(val formatter: DateTimeFormatter) {
+    /**
+     * 1970-01-01 04:00:01.000
+     */
+    DATETIME(DATE_TIME_FORMATTER),
 
-  /**
-   * 1970-01-01 04:00:01.000
-   */
-  DATETIME({ instant, zoneId -> DATE_TIME_FORMATTER.format(java.time.LocalDateTime.ofInstant(instant, zoneId)) }),
+    /**
+     * 04:00:01.000
+     */
+    TIME(TIME_FORMATTER),
+  }
 
-  /**
-   * 04:00:01.000
-   */
-  TIME({ instant, zoneId -> TIME_FORMATTER.format(java.time.LocalDateTime.ofInstant(instant, zoneId)) }),
+  fun format(instant: Instant, zoneId: ZoneId): String =
+    if (enabled) style.formatter.format(LocalDateTime.ofInstant(instant, zoneId)) else ""
 }
 
 private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()

@@ -18,10 +18,9 @@ package com.android.tools.idea.logcat.messages
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.NO_IDS
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.PID
-import com.android.tools.idea.logcat.messages.TimestampFormat.NO_TIMESTAMP
-import com.android.tools.idea.logcat.messages.TimestampFormat.TIME
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Instant
@@ -66,7 +65,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_timeOnly() {
     val textAccumulator = TextAccumulator()
-    formattingOptions.timestampFormat = TIME
+    formattingOptions.timestampFormat = TimestampFormat(TIME, enabled = true)
 
     messageFormatter.formatMessages(
       textAccumulator,
@@ -81,7 +80,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_noTimestamp() {
     val textAccumulator = TextAccumulator()
-    formattingOptions.timestampFormat = NO_TIMESTAMP
+    formattingOptions.timestampFormat = TimestampFormat(DATETIME, enabled = false)
 
     messageFormatter.formatMessages(
       textAccumulator,
@@ -93,7 +92,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_pidOnly() {
     val textAccumulator = TextAccumulator()
-    formattingOptions.processThreadFormat = PID
+    formattingOptions.processThreadFormat = ProcessThreadFormat(PID, enabled = true)
 
     messageFormatter.formatMessages(
       textAccumulator,
@@ -112,7 +111,7 @@ class MessageFormatterTest {
   @Test
   fun formatMessages_noIds() {
     val textAccumulator = TextAccumulator()
-    formattingOptions.processThreadFormat = NO_IDS
+    formattingOptions.processThreadFormat = ProcessThreadFormat(enabled = false)
 
     messageFormatter.formatMessages(
       textAccumulator,

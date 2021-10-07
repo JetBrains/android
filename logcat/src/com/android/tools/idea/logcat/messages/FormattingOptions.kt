@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.BOTH
-import com.android.tools.idea.logcat.messages.TimestampFormat.DATETIME
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 
 /**
  * Formatting options of a Logcat panel.
  */
 internal data class FormattingOptions(
-  var timestampFormat: TimestampFormat = DATETIME,
-  var processThreadFormat: ProcessThreadFormat = BOTH,
+  var timestampFormat: TimestampFormat = TimestampFormat(DATETIME),
+  var processThreadFormat: ProcessThreadFormat = ProcessThreadFormat(BOTH, enabled = true),
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
 )

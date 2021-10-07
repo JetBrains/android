@@ -28,14 +28,14 @@ import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageFormatter
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.BOTH
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.NO_IDS
-import com.android.tools.idea.logcat.messages.ProcessThreadFormat.PID
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
-import com.android.tools.idea.logcat.messages.TimestampFormat.DATETIME
-import com.android.tools.idea.logcat.messages.TimestampFormat.NO_TIMESTAMP
-import com.android.tools.idea.logcat.messages.TimestampFormat.TIME
+import com.android.tools.idea.logcat.messages.TimestampFormat
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
+import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
@@ -77,20 +77,20 @@ private val sampleMessages = listOf(
 internal class HeaderFormatOptionsDialog(private val project: Project, formattingOptions: FormattingOptions) : Disposable {
   private val showDateCheckBox = createCheckbox(
     LogcatBundle.message("logcat.header.options.show.date"),
-    formattingOptions.timestampFormat == DATETIME)
+    formattingOptions.timestampFormat.style == DATETIME)
 
   private val showTimestampCheckBox = createCheckbox(
     LogcatBundle.message("logcat.header.options.show.timestamp"),
-    formattingOptions.timestampFormat != NO_TIMESTAMP,
+    formattingOptions.timestampFormat.enabled,
     showDateCheckBox)
 
   private val showThreadIdCheckBox = createCheckbox(
     LogcatBundle.message("logcat.header.options.show.tid"),
-    formattingOptions.processThreadFormat == BOTH)
+    formattingOptions.processThreadFormat.style == BOTH)
 
   private val showProcessIdsCheckBox = createCheckbox(
     LogcatBundle.message("logcat.header.options.show.pids"),
-    formattingOptions.processThreadFormat != NO_IDS,
+    formattingOptions.processThreadFormat.enabled,
     showThreadIdCheckBox)
 
   private val hideDuplicateTagsCheckBox = createCheckbox(
@@ -151,16 +151,8 @@ internal class HeaderFormatOptionsDialog(private val project: Project, formattin
    */
   fun applyTo(formattingOptions: FormattingOptions) {
     formattingOptions.apply {
-      timestampFormat = when {
-        !showTimestampCheckBox.isSelected -> NO_TIMESTAMP
-        showDateCheckBox.isSelected -> DATETIME
-        else -> TIME
-      }
-      processThreadFormat = when {
-        !showProcessIdsCheckBox.isSelected -> NO_IDS
-        showThreadIdCheckBox.isSelected -> BOTH
-        else -> PID
-      }
+      timestampFormat = TimestampFormat(if (showDateCheckBox.isSelected) DATETIME else TIME, showTimestampCheckBox.isSelected)
+      processThreadFormat = ProcessThreadFormat(if (showThreadIdCheckBox.isSelected) BOTH else PID, showProcessIdsCheckBox.isSelected)
       tagFormat = TagFormat(tagSpinnerModel.value as Int, hideDuplicateTagsCheckBox.isSelected, showTagCheckBox.isSelected)
       appNameFormat = AppNameFormat(
         appNameSpinnerModel.value as Int, hideDuplicateAppNamesCheckBox.isSelected, showAppNameCheckBox.isSelected)
