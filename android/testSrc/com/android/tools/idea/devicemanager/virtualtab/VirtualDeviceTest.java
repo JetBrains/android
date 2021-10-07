@@ -36,6 +36,7 @@ public final class VirtualDeviceTest {
       .setName("Google Pixel 3")
       .setOnline(true)
       .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     assertEquals(new VirtualDeviceName("Pixel_3_API_30"), device.getKey());
@@ -53,6 +54,7 @@ public final class VirtualDeviceTest {
       .setName("Wear OS Round")
       .setOnline(false)
       .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     assertEquals(new VirtualDeviceName("Wear_OS_Round_API_30"), device.getKey());
@@ -70,6 +72,7 @@ public final class VirtualDeviceTest {
       .setName("Android TV (1080p)")
       .setOnline(false)
       .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     assertEquals(new VirtualDeviceName("Android_TV_1080p_API_30"), device.getKey());
@@ -87,6 +90,7 @@ public final class VirtualDeviceTest {
       .setName("Automotive (1024p landscape)")
       .setOnline(false)
       .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     assertEquals(new VirtualDeviceName("Automotive_1024p_landscape_API_30"), device.getKey());

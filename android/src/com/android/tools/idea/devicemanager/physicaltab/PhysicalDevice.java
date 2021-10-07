@@ -40,7 +40,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull String myNameOverride;
-  private final @NotNull String myApi;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
   private final @Nullable Resolution myResolution;
@@ -51,7 +50,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   public static final class Builder extends Device.Builder {
     private @Nullable Instant myLastOnlineTime;
     private @NotNull String myNameOverride = "";
-    private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
     private @Nullable Resolution myResolution;
@@ -140,10 +138,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     myLastOnlineTime = builder.myLastOnlineTime;
     myNameOverride = builder.myNameOverride;
-
-    assert builder.myApi != null;
-    myApi = builder.myApi;
-
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPower = builder.myPower;
     myResolution = builder.myResolution;
@@ -168,10 +162,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   @Override
   public boolean isOnline() {
     return !myConnectionTypes.isEmpty();
-  }
-
-  @NotNull String getApi() {
-    return myApi;
   }
 
   @NotNull Collection<@NotNull ConnectionType> getConnectionTypes() {

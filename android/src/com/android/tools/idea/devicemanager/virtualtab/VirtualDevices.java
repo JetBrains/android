@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
@@ -37,6 +38,7 @@ final class VirtualDevices {
   @VisibleForTesting
   static @NotNull Device build(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
     IdDisplay tag = device.getTag();
+    AndroidVersion version = device.getAndroidVersion();
 
     return new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName(device.getName()))
@@ -44,7 +46,8 @@ final class VirtualDevices {
       .setType(getType(tag))
       .setName(device.getDisplayName())
       .setOnline(isAvdRunning.test(device))
-      .setTarget(Targets.toString(device.getAndroidVersion(), tag))
+      .setTarget(Targets.toString(version, tag))
+      .setApi(Integer.toString(version.getApiLevel()))
       .build();
   }
 

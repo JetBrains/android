@@ -26,12 +26,14 @@ public abstract class Device {
   protected final @NotNull DeviceType myType;
   protected final @NotNull String myName;
   protected final @NotNull String myTarget;
+  protected final @NotNull String myApi;
 
   protected static abstract class Builder {
     protected @Nullable Key myKey;
     protected @NotNull DeviceType myType = DeviceType.PHONE;
     protected @Nullable String myName;
     protected @Nullable String myTarget;
+    protected @Nullable String myApi;
 
     protected abstract @NotNull Device build();
   }
@@ -47,6 +49,9 @@ public abstract class Device {
 
     assert builder.myTarget != null;
     myTarget = builder.myTarget;
+
+    assert builder.myApi != null;
+    myApi = builder.myApi;
   }
 
   public final @NotNull Key getKey() {
@@ -67,6 +72,10 @@ public abstract class Device {
 
   public final @NotNull String getTarget() {
     return myTarget;
+  }
+
+  public final @NotNull String getApi() {
+    return myApi;
   }
 
   public static @Nullable Resolution getDp(int density, @Nullable Resolution resolution) {

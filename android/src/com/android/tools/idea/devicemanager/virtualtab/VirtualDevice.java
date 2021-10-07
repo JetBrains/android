@@ -60,6 +60,11 @@ final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setApi(@NotNull String api) {
+      myApi = api;
+      return this;
+    }
+
     @Override
     protected @NotNull VirtualDevice build() {
       return new VirtualDevice(this);
