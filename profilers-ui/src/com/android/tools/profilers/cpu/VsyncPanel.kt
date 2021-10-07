@@ -129,8 +129,6 @@ object VsyncPanel {
         }
       }
 
-      override fun setBorder(border: Border?) { /* ignore request, sticking to empty border */ }
-
     }.apply {
       add(content)
       fun modelChanged() {

@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
@@ -61,7 +62,7 @@ public class Track {
     JBUI.Borders.customLine(StudioColorsKt.getSelectionBackground(), SELECTION_BORDER_PX, SELECTION_BORDER_PX, SELECTION_BORDER_PX, 0),
     false);
   private static final Border CONTENT_BORDER_DEFAULT = JBUI.Borders.customLine(
-    StudioColorsKt.getPrimaryContentBackground(), SELECTION_BORDER_PX, 0, SELECTION_BORDER_PX, 0);
+    UIUtil.TRANSPARENT_COLOR, SELECTION_BORDER_PX, 0, SELECTION_BORDER_PX, 0);
   private static final Border CONTENT_BORDER_SELECTED = JBUI.Borders.customLine(
     StudioColorsKt.getSelectionBackground(), SELECTION_BORDER_PX, 0, SELECTION_BORDER_PX, 0);
 
