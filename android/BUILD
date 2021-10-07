@@ -452,7 +452,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.0.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.0.1",
+        "@maven//:androidx.compose.ui.ui-tooling_1.0.3",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
         "@maven//:androidx.core.core-ktx_1.0.1",

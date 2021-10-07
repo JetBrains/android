@@ -304,7 +304,7 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   fun testComposeActivity() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
-      projectData.kotlinVersion = "1.5.21"
+      projectData.kotlinVersion = "1.5.30"
       moduleData.category = Category.Compose
     }
     checkCreateTemplate("Empty Compose Activity", withSpecificKotlin) // Compose is always Kotlin
