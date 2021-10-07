@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -67,6 +68,9 @@ fun ProjectDumper.dumpAndroidIdeModel(
       head("MODULE") { module.name }
       nest {
         AndroidModuleModel.get(module)?.let { it ->
+          // Skip all but holders to prevent needless spam in the snapshots. All modules
+          // point to the same facet.
+          if (!module.isHolderModule()) return@let
           dump(it.androidProject)
           // Dump all the fetched Ide variants.
           head("IdeVariants")

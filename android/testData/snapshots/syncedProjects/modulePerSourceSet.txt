@@ -115,51 +115,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicBarDebug
-            AssembleTaskName              : assembleBasicBarDebug
-            CompileJavaTaskName           : compileBasicBarDebugSources
-            - AfterSyncTask               : generateBasicBarDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/bar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBarDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBarDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebugAndroidTest/out [-]
@@ -347,51 +303,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicBarDebug
-            AssembleTaskName              : assembleBasicBarDebug
-            CompileJavaTaskName           : compileBasicBarDebugSources
-            - AfterSyncTask               : generateBasicBarDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/bar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBarDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBarDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/basicBarDebug/out [-]
@@ -524,51 +436,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicBarDebug
-            AssembleTaskName              : assembleBasicBarDebug
-            CompileJavaTaskName           : compileBasicBarDebugSources
-            - AfterSyncTask               : generateBasicBarDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/bar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBar/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBarDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBar/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasicBarDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 0
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/testBar [-]
@@ -784,43 +652,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 6
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -881,43 +713,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 6
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -977,43 +773,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 6
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/testDebug [-]
@@ -1190,43 +950,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1348,43 +1072,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -1475,43 +1163,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/testDebug [-]
@@ -1685,43 +1337,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1849,43 +1465,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -1946,43 +1526,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -2042,43 +1586,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/testDebug [-]
@@ -2124,43 +1632,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -2220,43 +1692,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/testDebug [-]
@@ -2373,47 +1809,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicDebug
-            AssembleTaskName              : assembleBasicDebug
-            CompileJavaTaskName           : compileBasicDebugSources
-            - AfterSyncTask               : generateBasicDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basicDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasicDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebugAndroidTest/out [-]
@@ -2559,43 +1955,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -2656,43 +2016,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -2752,43 +2076,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/testDebug [-]
@@ -2834,47 +2122,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicDebug
-            AssembleTaskName              : assembleBasicDebug
-            CompileJavaTaskName           : compileBasicDebugSources
-            - AfterSyncTask               : generateBasicDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basicDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasicDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/renderscript_source_output_dir/basicDebug/out [-]
@@ -3044,43 +2292,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
@@ -3141,43 +2353,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.main.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
@@ -3237,43 +2413,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : debug
-            AssembleTaskName              : assembleDebug
-            CompileJavaTaskName           : compileDebugSources
-            - AfterSyncTask               : generateDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/testDebug [-]
@@ -3319,47 +2459,7 @@ PROJECT                       : testModulePerSourceSet
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
-        FACET                         : Android
-            TypeId                        : android
-            SelectedBuildVariant          : basicDebug
-            AssembleTaskName              : assembleBasicDebug
-            CompileJavaTaskName           : compileBasicDebugSources
-            - AfterSyncTask               : generateBasicDebugSources
-            AllowUserConfiguration        : false
-            GenFolderRelativePathApt      : /gen
-            GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basic/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basicDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/resValues/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasicDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
-            AssetsFolderRelativePath      : /src/main/assets
-            LibsFolderRelativePath        : /libs
-            UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
-            ProjectType                   : 1
-            RunProcessResourcesMavenTask  : true
-            PackTestCode                  : false
-            RunProguard                   : false
-            ProguardLogsFolderRelativePath          : /proguard_logs
-            UseCustomManifestPackage      : false
-            EnableManifestMerging         : false
-            EnablePreDexing               : true
-            CompileCustomGeneratedSources : true
-            EnableSourcesAutogeneration   : true
-            EnableMultiDex                : false
-            MinimalMainDex                : false
-            IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        HIDDEN FACET                  : Android
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/testBasic [-]

@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
@@ -54,6 +56,7 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.util.text.nullize
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
@@ -105,7 +108,14 @@ private fun ProjectDumper.dump(module: Module) {
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
-    FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach { dump(it) }
+    FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach {
+      // Don't print the AndroidFact for every module only print the holder modules, they will be the same for all modules produced
+      // from the same Gradle project.
+      if (it.typeId == AndroidFacet.ID && !(it as AndroidFacet).shouldDumpFullFacet()) {
+        head("HIDDEN FACET") { it.name }
+        return@forEach
+      } else dump(it)
+    }
     val moduleRootManager = ModuleRootManager.getInstance(module)
     prop("ExternalSource.DisplayName") { moduleRootManager.externalSource?.displayName?.takeUnless { it == "Gradle" } }
     prop("ExternalSource.Id") { moduleRootManager.externalSource?.id?.takeUnless { it == "GRADLE" } }
@@ -449,6 +459,15 @@ private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGrou
     prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
     prop("testFixtures") { linkedAndroidModuleGroup.testFixtures?.name }
   }
+}
+
+private fun AndroidFacet.shouldDumpFullFacet() : Boolean {
+  val holderFacet = holderModule.androidFacet
+  // Display the holder facet
+  if (holderFacet == this || holderFacet == null) return true
+  if (holderFacet.configuration.state.SELECTED_BUILD_VARIANT != configuration.state.SELECTED_BUILD_VARIANT) return true
+  if (AndroidModuleModel.get(module) != AndroidModuleModel.get(holderFacet.module)) return true
+  return false
 }
 
 private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)
