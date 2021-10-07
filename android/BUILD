@@ -588,13 +588,8 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",
         },
-        "GradleSyncKtsIntegrationTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "com.android.tools.idea.gradle.project.sync.GradleSyncKtsIntegrationTest",
-            "tags": ["no_windows"],
-        },
         "other": {
-            "shard_count": 4,
+            "shard_count": 3,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
