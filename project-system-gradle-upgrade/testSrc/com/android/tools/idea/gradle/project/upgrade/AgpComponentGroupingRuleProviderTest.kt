@@ -33,10 +33,8 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   fun testRuleIsActive() {
     val groupingRules = getActiveGroupingRules(myFixture.project)
     assertThat(groupingRules.filterIsInstance(ComponentGroupingRule::class.java)).isNotEmpty()
-/* b/202330008
     assertThat(groupingRules.indexOfFirst { it is ComponentGroupingRule })
       .isLessThan(groupingRules.indexOfFirst { it is UsageTypeGroupingRule })
-b/202330008 */
   }
 
   // TODO(b/161888480): parameterize by Groovy/KotlinScript
@@ -211,7 +209,7 @@ b/202330008 */
     val usageViewSettings = UsageViewSettings.instance
     val list = ArrayList<UsageGroupingRule>(providers.size)
     for (provider in providers) {
-      list.addAll(provider.getActiveRules(project, usageViewSettings))
+      list.addAll(provider.getActiveRules(project, usageViewSettings, null))
     }
 
     list.sortBy { it.rank }
