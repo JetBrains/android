@@ -33,19 +33,17 @@ import com.android.resources.ResourceType.PLURALS
 import com.android.resources.ResourceType.STRING
 import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
-import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.idea.model.Namespacing
 import com.intellij.openapi.module.Module
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.gradle.get
 import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import java.util.Arrays
 import java.util.Comparator
 import java.util.EnumMap
-import java.util.concurrent.atomic.AtomicLong
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
