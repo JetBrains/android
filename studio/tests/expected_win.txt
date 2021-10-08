@@ -5,7 +5,6 @@ android-studio/bin/IdeaWin32.dll
 android-studio/bin/IdeaWin64.dll
 android-studio/bin/WinProcessListHelper.exe
 android-studio/bin/WinShellIntegrationBridge.dll
-android-studio/bin/appInfo.xml
 android-studio/bin/append.bat
 android-studio/bin/appletviewer.policy
 android-studio/bin/breakgen.dll
@@ -603,7 +602,7 @@ android-studio/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.5.jar
 android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
-android-studio/lib/jediterm-pty-2.47.jar
+android-studio/lib/jediterm-pty-2.47.2.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jing-20030619.jar
 android-studio/lib/jna-platform.jar
@@ -2275,7 +2274,7 @@ android-studio/plugins/java-i18n/lib/java-i18n.jar
 android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
 android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/completion-ranking-java-0.3.4.jar
-android-studio/plugins/java/lib/debugger-memory-agent-1.0.32.jar
+android-studio/plugins/java/lib/debugger-memory-agent-1.0.35.jar
 android-studio/plugins/java/lib/ecj-4.16.jar
 android-studio/plugins/java/lib/java-api.jar
 android-studio/plugins/java/lib/java-impl.jar

@@ -159,25 +159,25 @@
   </configurable>
   <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />
-    <option name="compose" hit="Compose files " />
-    <option name="files" hit="Compose files " />
+    <option name="compose" hit="Compose files:" />
+    <option name="files" hit="Compose files:" />
     <option name="default" hit="Default Editor Mode" />
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
     <option name="design" hit="Design" />
     <option name="design" hit="Design Tools" />
     <option name="tools" hit="Design Tools" />
-    <option name="drawables" hit="Drawables " />
-    <option name="files" hit="Other Kotlin files " />
-    <option name="kotlin" hit="Other Kotlin files " />
-    <option name="other" hit="Other Kotlin files " />
-    <option name="e" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="g" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="layout" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="menu" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="navigation" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="other" hit="Other Resources  e g  Layout  Menu  Navigation  " />
-    <option name="resources" hit="Other Resources  e g  Layout  Menu  Navigation  " />
+    <option name="drawables" hit="Drawables:" />
+    <option name="files" hit="Other Kotlin files:" />
+    <option name="kotlin" hit="Other Kotlin files:" />
+    <option name="other" hit="Other Kotlin files:" />
+    <option name="e" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="g" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="layout" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="menu" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="design" hit="Show lint icons on design surface" />
     <option name="icons" hit="Show lint icons on design surface" />
     <option name="lint" hit="Show lint icons on design surface" />

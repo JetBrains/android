@@ -26,7 +26,4 @@ Package 'org.jetbrains.kotlin.fir.lightTree' is not found
 Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented
 
 // b/201282111
-Access to unresolved class com.intellij.testIntegration.createTest.CreateTestUtils
 Illegal invocation of private method kotlin.io.path.PathsKt__PathUtilsKt.getPathString.*
-Invocation of unresolved constructor com.intellij.debugger.jdi.GeneratedLocation.*
-Invocation of unresolved method com.intellij.util.XmlDomReader.readXmlAsModel.*

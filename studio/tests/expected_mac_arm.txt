@@ -5,7 +5,6 @@ Android Studio Preview.app/Contents/Resources/NOTICE.txt
 Android Studio Preview.app/Contents/Resources/build.txt
 Android Studio Preview.app/Contents/Resources/product-info.json
 Android Studio Preview.app/Contents/Resources/studio.icns
-Android Studio Preview.app/Contents/bin/appInfo.xml
 Android Studio Preview.app/Contents/bin/appletviewer.policy
 Android Studio Preview.app/Contents/bin/brokenPlugins.db
 Android Studio Preview.app/Contents/bin/format.sh
@@ -610,7 +609,7 @@ Android Studio Preview.app/Contents/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389
 Android Studio Preview.app/Contents/lib/jcip-annotations-1.0.jar
 Android Studio Preview.app/Contents/lib/jcodings-1.0.55.jar
 Android Studio Preview.app/Contents/lib/jdkAnnotations.jar
-Android Studio Preview.app/Contents/lib/jediterm-pty-2.47.jar
+Android Studio Preview.app/Contents/lib/jediterm-pty-2.47.2.jar
 Android Studio Preview.app/Contents/lib/jetCheck-0.2.2.jar
 Android Studio Preview.app/Contents/lib/jing-20030619.jar
 Android Studio Preview.app/Contents/lib/jna-platform.jar
@@ -2859,7 +2858,7 @@ Android Studio Preview.app/Contents/plugins/java-i18n/lib/java-i18n.jar
 Android Studio Preview.app/Contents/plugins/java-ide-customization/lib/java-ide-customization.jar
 Android Studio Preview.app/Contents/plugins/java/lib/aether-dependency-resolver.jar
 Android Studio Preview.app/Contents/plugins/java/lib/completion-ranking-java-0.3.4.jar
-Android Studio Preview.app/Contents/plugins/java/lib/debugger-memory-agent-1.0.32.jar
+Android Studio Preview.app/Contents/plugins/java/lib/debugger-memory-agent-1.0.35.jar
 Android Studio Preview.app/Contents/plugins/java/lib/ecj-4.16.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-api.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-impl.jar

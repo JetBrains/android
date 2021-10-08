@@ -19,23 +19,23 @@
     <option name="txt" path="ActionManager" hit="Show files that are not explicitly mentioned in CMakeLists.txt files in this project." />
   </configurable>
   <configurable id="editor.preferences.folding" configurable_name="Code Folding">
-    <option name="" hit=" JNI mangled function name " />
-    <option name="function" hit=" JNI mangled function name " />
-    <option name="jni" hit=" JNI mangled function name " />
-    <option name="mangled" hit=" JNI mangled function name " />
-    <option name="name" hit=" JNI mangled function name " />
+    <option name="" hit=" JNI-mangled function name " />
+    <option name="function" hit=" JNI-mangled function name " />
+    <option name="jni" hit=" JNI-mangled function name " />
+    <option name="mangled" hit=" JNI-mangled function name " />
+    <option name="name" hit=" JNI-mangled function name " />
   </configurable>
   <configurable id="debugger.stepping" configurable_name="Stepping">
-    <option name="always" hit="Always do smart step into  Java and Kotlin " />
-    <option name="and" hit="Always do smart step into  Java and Kotlin " />
-    <option name="do" hit="Always do smart step into  Java and Kotlin " />
-    <option name="into" hit="Always do smart step into  Java and Kotlin " />
-    <option name="java" hit="Always do smart step into  Java and Kotlin " />
-    <option name="kotlin" hit="Always do smart step into  Java and Kotlin " />
-    <option name="smart" hit="Always do smart step into  Java and Kotlin " />
-    <option name="step" hit="Always do smart step into  Java and Kotlin " />
-    <option name="auto" hit="Hybrid Auto Debugger" />
-    <option name="debugger" hit="Hybrid Auto Debugger" />
-    <option name="hybrid" hit="Hybrid Auto Debugger" />
+    <option name="always" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="and" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="do" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="into" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="java" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="kotlin" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="smart" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="step" hit="Always do smart step into (Java and Kotlin)" />
+    <option name="auto" hit="Hybrid/Auto Debugger" />
+    <option name="debugger" hit="Hybrid/Auto Debugger" />
+    <option name="hybrid" hit="Hybrid/Auto Debugger" />
   </configurable>
 </options>

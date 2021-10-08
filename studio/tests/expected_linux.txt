@@ -1,7 +1,6 @@
 android-studio/Install-Linux-tar.txt
 android-studio/LICENSE.txt
 android-studio/NOTICE.txt
-android-studio/bin/appInfo.xml
 android-studio/bin/appletviewer.policy
 android-studio/bin/brokenPlugins.db
 android-studio/bin/format.sh
@@ -500,7 +499,7 @@ android-studio/lib/bcpkix-jdk15on-1.68.jar
 android-studio/lib/bcprov-jdk15on-1.68.jar
 android-studio/lib/blockmap-1.0.2.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-212.4746.92.2112.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-212.5080.55.2112.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-3.0.2.jar
 android-studio/lib/cds/classesLogAgent.jar
@@ -588,7 +587,7 @@ android-studio/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.5.jar
 android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
-android-studio/lib/jediterm-pty-2.47.jar
+android-studio/lib/jediterm-pty-2.47.2.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jffi-1.2.19-native.jar
 android-studio/lib/jffi-1.2.19.jar
@@ -2845,7 +2844,7 @@ android-studio/plugins/java-i18n/lib/java-i18n.jar
 android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
 android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/completion-ranking-java-0.3.4.jar
-android-studio/plugins/java/lib/debugger-memory-agent-1.0.32.jar
+android-studio/plugins/java/lib/debugger-memory-agent-1.0.35.jar
 android-studio/plugins/java/lib/ecj-4.16.jar
 android-studio/plugins/java/lib/java-api.jar
 android-studio/plugins/java/lib/java-impl.jar
