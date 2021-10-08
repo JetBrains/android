@@ -810,6 +810,28 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(mySubModuleBuildFile, TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_EXPECTED)
   }
 
+  @Test
+  fun testAddBuildscriptBlockBeforePlugins() {
+    writeToBuildFile(TestFile.ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS)
+
+    val buildModel = gradleBuildModel
+    buildModel.buildscript().ext().findProperty("foo").setValue(1)
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS_EXPECTED)
+  }
+
+  @Test
+  fun testAddExtBlockAfterBuildscriptAndPlugins() {
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("foo").setValue(1)
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ADD_PROPERTIES_TO_EMPTY_EXPECTED("addPropertiesToEmptyExpected"),
     CREATE_PROPERTY_MIDDLE("createPropertyMiddle"),
@@ -869,6 +891,10 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES("addConfigurationsBeforeDependencies"),
     ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_EXPECTED("addConfigurationsBeforeDependenciesExpected"),
     ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_WITH_ALLPROJECTS("addConfigurationsBeforeDependenciesWithAllprojects"),
+    ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS("addBuildscriptBlockBeforePlugins"),
+    ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS_EXPECTED("addBuildscriptBlockBeforePluginsExpected"),
+    ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS("addExtBlockAfterBuildscriptAndPlugins"),
+    ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED("addExtBlockAfterBuildscriptAndPluginsExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
