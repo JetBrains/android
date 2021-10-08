@@ -43,9 +43,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ProjectWithKotlinTestUtil {
 
-  public static final String CLASS_NAME = "KotlinClass";
-  public static final String KOTLIN_EXTENSION = ".kt";
-  public static final String FILE_NAME = "KotlinFile";
   public static final String APP = "app";
   public static final String SRC = "src";
   public static final String MAIN = "main";
@@ -53,9 +50,18 @@ public class ProjectWithKotlinTestUtil {
   public static final String MENU_FILE = "File";
   public static final String MENU_NEW = "New";
   public static final String KOTLIN_FILE_CLASS = "Kotlin Class/File";
+  public static final String KOTLIN_EXTENSION = ".kt";
+  public static final String CLASS_NAME = "KotlinClass";
+  public static final String FILE_NAME = "KotlinFile";
   public static final String INTERFACE_NAME = "KotlinInterface";
   public static final String ENUM_NAME = "KotlinEnum";
   public static final String OBJECT_NAME = "KotlinObject";
+  // Types for Kotlin File/Class
+  public static final String TYPE_CLASS = "Class";
+  public static final String TYPE_FILE = "File";
+  public static final String TYPE_INTERFACE = "Interface";
+  public static final String TYPE_ENUMCLASS = "Enum Class";
+  public static final String TYPE_OBJECT = "Object";
   public static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
 
@@ -69,11 +75,11 @@ public class ProjectWithKotlinTestUtil {
 
     ProjectViewFixture.PaneFixture projectPane = ideFrameFixture.getProjectView().selectProjectPane();
 
-    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, CLASS_NAME, "Class");
-    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, FILE_NAME, "File");
-    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, INTERFACE_NAME, "Interface");
-    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, ENUM_NAME, "Enum class");
-    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, OBJECT_NAME, "Object");
+    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, CLASS_NAME, TYPE_CLASS);
+    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, FILE_NAME, TYPE_FILE);
+    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, INTERFACE_NAME, TYPE_INTERFACE);
+    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, ENUM_NAME, TYPE_ENUMCLASS);
+    newKotlinFileAndClass(projectPane, ideFrameFixture, projectDirName, packageName, OBJECT_NAME, TYPE_OBJECT);
 
     if (!withKotlinSupport) {
       EditorNotificationPanelFixture editorNotificationPanelFixture =
