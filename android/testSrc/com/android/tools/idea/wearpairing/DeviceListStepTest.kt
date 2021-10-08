@@ -42,6 +42,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseEvent
+import java.util.function.BooleanSupplier
 import javax.swing.JEditorPane
 import javax.swing.JMenuItem
 import javax.swing.Popup
@@ -264,10 +265,21 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val phoneList = fakeUi.getPhoneList()
 
     fun getListItemTooltip(index: Int): String? {
-      val cellRect = phoneList.getCellBounds(index, index)
-      val p = Point(cellRect.width / 2, cellRect.y + cellRect.height / 2)
-      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, p.x, p.y, 0, false, 0)
-      return phoneList.getToolTipText(mouseEvent)
+      val rect = phoneList.getCellBounds(index, index)
+      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, rect.width / 2, rect.y + rect.height / 2, 0, false, 0)
+      phoneList.mouseListeners.forEach { it.mouseEntered(mouseEvent) } // Simulate mouse enter
+      phoneList.mouseListeners.forEach { it.mousePressed(mouseEvent) } // Fix javax.swing.ToolTipManager memory/focus leak
+      val installed = phoneList.getClientProperty("JComponent.helpTooltip") // HelpTooltip.TOOLTIP_PROPERTY is private
+      installed.javaClass.superclass.getDeclaredField("masterPopupOpenCondition").apply { // "description" is private, use reflection
+        isAccessible = true
+        if (!(get(installed) as BooleanSupplier).asBoolean) {
+          return null
+        }
+      }
+      installed.javaClass.superclass.getDeclaredField("description").apply { // "description" is private, use reflection
+        isAccessible = true
+        return get(installed)?.toString()
+      }
     }
 
     assertThat(getListItemTooltip(0)).contains("Wear pairing requires API level >= 30")
@@ -280,6 +292,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val deviceListStep = DeviceListStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceListStep).build()
     Disposer.register(testRootDisposable, modelWizard)
+    Disposer.register(testRootDisposable, deviceListStep)
     invokeStrategy.updateAllSteps()
 
     modelWizard.contentPanel.size = Dimension(600, 400)

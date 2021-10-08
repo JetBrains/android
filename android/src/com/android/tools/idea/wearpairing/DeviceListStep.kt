@@ -18,6 +18,7 @@ package com.android.tools.idea.wearpairing
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
+import com.android.tools.adtui.util.HelpTooltipForList
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -26,7 +27,6 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.ProgressManager
@@ -39,7 +39,6 @@ import com.intellij.ui.CollectionListModel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.TooltipWithClickableLinks
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBPanel
@@ -61,6 +60,7 @@ import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
+import java.net.URL
 import javax.swing.BoxLayout
 import javax.swing.DefaultListSelectionModel
 import javax.swing.Icon
@@ -74,7 +74,6 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.isRightMouseButton
 import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
-import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
 
@@ -175,6 +174,13 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
 
   private fun createDeviceListPanel(title: String, listName: String, emptyTextTitle: String): DeviceListPanel {
     val list = createList(listName)
+    HelpTooltipForList<PairingDevice>().installOnList(this, list) { listIndex, helpTooltip ->
+        val tooltip = list.model.getElementAt(listIndex).getTooltip() ?: return@installOnList false
+        helpTooltip.setDescription(tooltip)
+        helpTooltip.setBrowserLink(message("wear.assistant.device.list.tooltip.learn.more"), URL(WEAR_DOCS_LINK))
+        true
+      }
+
     return DeviceListPanel(title, list, createEmptyListPanel(list, emptyTextTitle))
   }
 
@@ -221,10 +227,6 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
 
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, isSelected)
-          toolTipText = value.getTooltip()?.let {
-            val learnMore = message("wear.assistant.device.list.tooltip.learn.more")
-            """<html>$it<br><a href="$WEAR_DOCS_LINK">$learnMore</a>"""
-          }
           border = empty(4, 16)
         }
       }
@@ -390,7 +392,6 @@ private class TooltipList<E> : JBList<E>() {
 
   // Tooltip manager keeps requesting cell items when the mouse moves (even inside the same item!). Keep the last few in memory.
   private val cellRendererCache = FixedHashMap<CellRendererItem<E>, Component>(8)
-  private val tooltipCache = hashMapOf<String, TooltipWithClickableLinks>()
 
   override fun setCellRenderer(cellRenderer: ListCellRenderer<in E>) {
     super.setCellRenderer { list, value, index, isSelected, cellHasFocus ->
@@ -400,17 +401,7 @@ private class TooltipList<E> : JBList<E>() {
     }
   }
 
-  override fun getToolTipText(event: MouseEvent?): String? {
-    // Do nothing if tooltip already showing (or it will dismiss, making pressing the link very hard)
-    val manager = IdeTooltipManager.getInstance().takeIf { !it.hasCurrent() } ?: return null
-    val toolTipText = super.getToolTipText(event)
-    val tooltip = toolTipText?.let { tooltipCache.getOrPut(toolTipText) { TooltipForBrowser(this, toolTipText) } }
-
-    tooltip?.point = event?.point
-    manager.setCustomTooltip(this, tooltip)
-
-    return toolTipText
-  }
+  override fun getToolTipText(event: MouseEvent?): String? = null
 }
 
 private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, val emptyListPanel: JPanel) : JPanel(BorderLayout()) {
