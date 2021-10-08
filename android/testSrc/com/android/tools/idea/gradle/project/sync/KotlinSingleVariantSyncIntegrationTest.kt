@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKaptModel
+import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKotlinModel
+import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.externalSystem.model.DataNode
-import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerExtension
-import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.gradle.KotlinGradleModel
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -48,33 +43,22 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun kotlinSingleVariantSync() {
-    registerTestHelperProjectResolver()
+    registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") {
-      assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kotlinSourceSets["app"].orEmpty()).containsExactly(
-        "debugAndroidTest", "debug", "debugUnitTest"
-      )
+    openPreparedProject("project") { project ->
+      assertThat(getKotlinModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+        .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
     }
   }
 
   @Test
   fun kaptSingleVariantSync() {
-    registerTestHelperProjectResolver()
+    registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") {
-      assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kaptSourceSets["app"].orEmpty()).containsExactly(
-        "debugAndroidTest", "debug", "debugUnitTest"
-      )
+    openPreparedProject("project") { project ->
+      assertThat(getKaptModel(project.gradleModule(":app")!!)?.testSourceSetNames().orEmpty())
+        .containsExactly("debugAndroidTest", "debug", "debugUnitTest")
     }
-  }
-
-  private fun registerTestHelperProjectResolver() {
-    ApplicationManager.getApplication().registerExtension(
-      @Suppress("UnstableApiUsage")
-      GradleProjectResolverExtension.EP_NAME,
-      KotlinSingleVariantSyncTestProjectResolverExtension(), // Note: a new instance is created by the external system.
-      projectRule.fixture.testRootDisposable
-    )
   }
 
   override fun getName(): String = testName.methodName
@@ -82,23 +66,3 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
   override fun getAdditionalRepos(): Collection<File> = emptyList()
 }
-
-class KotlinSingleVariantSyncTestProjectResolverExtension : AbstractProjectResolverExtension() {
-  companion object {
-    val kotlinSourceSets = mutableMapOf<String, MutableSet<String>>()
-    val kaptSourceSets = mutableMapOf<String, MutableSet<String>>()
-  }
-
-  override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
-    val kotlinGradleModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)
-    if (kotlinGradleModel != null) {
-      kotlinSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kotlinGradleModel.compilerArgumentsBySourceSet.keys)
-    }
-    val kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
-    if (kaptGradleModel != null) {
-      kaptSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kaptGradleModel.sourceSets.map { it.sourceSetName })
-    }
-    super.populateModuleExtraModels(gradleModule, ideModule)
-  }
-}
-
