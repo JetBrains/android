@@ -20,6 +20,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.rd.attach
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
@@ -34,6 +35,11 @@ class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExten
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[module.name]
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[module.name]
 
+    fun reset() {
+      kotlinModels.clear()
+      kaptModels.clear()
+    }
+
     fun registerTestHelperProjectResolver(disposable: Disposable) {
       ApplicationManager.getApplication().registerExtension(
         @Suppress("UnstableApiUsage")
@@ -41,6 +47,7 @@ class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExten
         CaptureKotlinModelsProjectResolverExtension(), // Note: a new instance is created by the external system.
         disposable
       )
+      disposable.attach { reset() }
     }
   }
 
