@@ -19,10 +19,11 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.process.ProcessOutputType;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.io.BaseOutputReader;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,6 +39,11 @@ public class EmulatorProcessHandler extends BaseOSProcessHandler {
     ProcessTerminatedListener.attach(this);
   }
 
+  @Override
+  protected @NotNull BaseOutputReader.Options readerOptions() {
+    return BaseOutputReader.Options.forMostlySilentProcess();
+  }
+
   private class ConsoleListener extends ProcessAdapter {
     @Override
     public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
@@ -46,7 +52,7 @@ public class EmulatorProcessHandler extends BaseOSProcessHandler {
         LOG.info("Emulator: " + text.trim());
       }
 
-      if (ProcessOutputTypes.SYSTEM.equals(outputType) && isProcessTerminated()) {
+      if (ProcessOutputType.SYSTEM.equals(outputType) && isProcessTerminated()) {
         Integer exitCode = getExitCode();
         if (exitCode != null && exitCode != 0) {
           LOG.warn("Emulator terminated with exit code " + exitCode);
