@@ -53,16 +53,28 @@ class PsiNavSource(private val project: Project): NavSource {
       return null
     }
 
+    // TODO: CodeLocation.Builder allows for the class name to be null, however all uses of the
+    //  builder use non-null values. Further more, the class name was assumed to always be non-null.
+    //  Once the nullability of this value has been clarified, either remove this check or remove
+    //  this TODO.
+    if (location.className == null) {
+      return null;
+    }
+
+    var className = location.className!!
+
     val manager = PsiManager.getInstance(project)
 
-    var psiClass = ClassUtil.findPsiClassByJVMName(manager, location.className!!);
+    var psiClass = ClassUtil.findPsiClassByJVMName(manager, className)
 
     if (psiClass == null && location.lineNumber >= 0) {
       // There has been at least one case where the PsiManager could not find an inner class in
       // Kotlin code, which caused us to abort navigating. However, if we have the outer class
       // (which is easier for PsiManager to find) and a line number, that's enough information to
       // help us navigate. So, to be more robust against PsiManager error, we try one more time.
-      psiClass = ClassUtil.findPsiClassByJVMName(manager, location.outerClassName!!);
+
+      var outerClassName = CodeLocation.getOuterClass(className);
+      psiClass = ClassUtil.findPsiClassByJVMName(manager, outerClassName);
     }
 
     return psiClass

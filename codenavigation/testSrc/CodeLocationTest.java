@@ -21,14 +21,20 @@ import org.junit.Test;
 
 public class CodeLocationTest {
   @Test
-  public void testGetOuterClassName() {
-    CodeLocation simpleClass = new CodeLocation.Builder("outerClass").build();
-    assertThat(simpleClass.getOuterClassName()).isEqualTo("outerClass");
+  public void extractOuterClassFromSimpleClass() {
+    String outerClassName = CodeLocation.getOuterClass("outerClass");
+    assertThat(outerClassName).isEqualTo("outerClass");
+  }
 
-    CodeLocation innerClass = new CodeLocation.Builder("outerClass$innerClass").build();
-    assertThat(innerClass.getOuterClassName()).isEqualTo("outerClass");
+  @Test
+  public void extractOuterClassFromInnerClass() {
+    String outerClassName = CodeLocation.getOuterClass("outerClass$innerClass");
+    assertThat(outerClassName).isEqualTo("outerClass");
+  }
 
-    CodeLocation anonymousClass = new CodeLocation.Builder("outerClass$innerClass$1").build();
-    assertThat(anonymousClass.getOuterClassName()).isEqualTo("outerClass");
+  @Test
+  public void extractOuterClassFromAnonymousClass() {
+    String outerClassName = CodeLocation.getOuterClass("outerClass$innerClass$1");
+    assertThat(outerClassName).isEqualTo("outerClass");
   }
 }

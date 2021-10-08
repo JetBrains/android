@@ -81,23 +81,6 @@ public final class CodeLocation {
     return myClassName;
   }
 
-  /**
-   * Convenience method for stripping all inner classes (e.g. anything following the first "$")
-   * from {@link #getClassName()}. If this code location's class is already an outer class, its
-   * name is returned as is.
-   */
-  @Nullable
-  public String getOuterClassName() {
-    if (myClassName == null) {
-      return null;
-    }
-    int innerCharIndex = myClassName.indexOf('$');
-    if (innerCharIndex < 0) {
-      innerCharIndex = myClassName.length();
-    }
-    return myClassName.substring(0, innerCharIndex);
-  }
-
   @Nullable
   public String getFileName() {
     return myFileName;
@@ -258,5 +241,16 @@ public final class CodeLocation {
     public CodeLocation build() {
       return new CodeLocation(this);
     }
+  }
+
+  /**
+   * Convenience method for stripping all inner classes (e.g. anything following the first "$")
+   * from a Java class name. If it is already the outer class name, the class name is returned
+   * as-is.
+   */
+  @NotNull
+  public static String getOuterClass(@NotNull String className) {
+    int innerCharIndex = className.indexOf('$');
+    return innerCharIndex < 0 ? className : className.substring(0, innerCharIndex);
   }
 }
