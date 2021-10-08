@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import FakeLogcatPresenter
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
@@ -49,6 +51,8 @@ class HeaderFormatOptionsActionTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
+  private val fakeLogcatPresenter = FakeLogcatPresenter()
+
   @Before
   fun setUp() {
     enableHeadlessDialogs(projectRule.project)
@@ -56,7 +60,7 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun presentation() {
-    val action = HeaderFormatOptionsAction(projectRule.project, FormattingOptions()) { }
+    val action = headerFormatOptionsAction()
 
     assertThat(action.templatePresentation.text).isEqualTo("Header Format")
     assertThat(action.templatePresentation.description).isEqualTo("Configure header formatting options")
@@ -69,7 +73,7 @@ class HeaderFormatOptionsActionTest {
                                               AppNameFormat())
     var isShowTimestamp = false
     var isShowDate = true
-    val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) {}
+    val action = headerFormatOptionsAction(formattingOptions = formattingOptions)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       val showTimestamp = dialogWrapper.getCheckBox("Show timestamp")
@@ -87,8 +91,7 @@ class HeaderFormatOptionsActionTest {
   fun actionPerformed_ok() {
     val formattingOptions =
       FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
-    var refreshCount = 0
-    val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) { refreshCount++ }
+    val action = headerFormatOptionsAction(fakeLogcatPresenter, formattingOptions)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       dialogWrapper.getCheckBox("Show timestamp").isSelected = false
@@ -96,15 +99,14 @@ class HeaderFormatOptionsActionTest {
     }
 
     assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = false))
-    assertThat(refreshCount).isEqualTo(1)
+    assertThat(fakeLogcatPresenter.reloadedMessages).isEqualTo(1)
   }
 
   @Test
   fun actionPerformed_cancel() {
     val formattingOptions =
       FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(), AppNameFormat())
-    var refreshCount = 0
-    val action = HeaderFormatOptionsAction(projectRule.project, formattingOptions) { refreshCount++ }
+    val action = headerFormatOptionsAction(fakeLogcatPresenter, formattingOptions)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
       dialogWrapper.getCheckBox("Show timestamp").isSelected = false
@@ -112,8 +114,13 @@ class HeaderFormatOptionsActionTest {
     }
 
     assertThat(formattingOptions.timestampFormat).isEqualTo(TimestampFormat(TIME, enabled = true))
-    assertThat(refreshCount).isEqualTo(0)
+    assertThat(fakeLogcatPresenter.reloadedMessages).isEqualTo(0)
   }
+
+  private fun headerFormatOptionsAction(
+    logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
+    formattingOptions: FormattingOptions = FormattingOptions(),
+  ) = HeaderFormatOptionsAction(projectRule.project, logcatPresenter, formattingOptions)
 }
 
 private fun DialogWrapper.getCheckBox(text: String) =

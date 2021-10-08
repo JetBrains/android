@@ -30,11 +30,7 @@ import java.util.concurrent.Executors
 /**
  * Starts a background thread that reads logcat messages and sends them back to the caller.
  */
-class LogcatReader(
-  private val device: IDevice,
-  disposableParent: Disposable,
-  appendMessages: suspend (List<LogCatMessage>) -> Unit
-) : Disposable {
+internal class LogcatReader(private val device: IDevice, logcatPresenter: LogcatPresenter) : Disposable {
 
   // TODO(b/200160304): Until we switch to a coroutine friendly logcat execution function, we use the legacy version which blocks a thread.
   //  Since we can run arbitrarily many logcat windows, we can't block threads from the standard pools, especially not the seemingly
@@ -53,13 +49,13 @@ class LogcatReader(
         // When the logcat reading code is converted properly to coroutines, we will already be in the
         // proper scope here and will suspend on a full channel or flow.
         runBlocking(workerThread) {
-          appendMessages(messages)
+          logcatPresenter.processMessages(messages)
         }
       }
     })
 
   init {
-    Disposer.register(disposableParent, this)
+    Disposer.register(logcatPresenter, this)
   }
 
   fun start() {

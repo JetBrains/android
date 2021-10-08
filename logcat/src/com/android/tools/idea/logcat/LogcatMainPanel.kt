@@ -68,7 +68,7 @@ internal class LogcatMainPanel(
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   zoneId: ZoneId = ZoneId.systemDefault()
-) : BorderLayoutPanel(), SplittingTabsStateProvider, Disposable {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
@@ -79,7 +79,7 @@ internal class LogcatMainPanel(
   private val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
 
   @VisibleForTesting
-  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, this::appendToDocument)
+  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages)
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
@@ -108,7 +108,7 @@ internal class LogcatMainPanel(
           Disposer.dispose(it)
         }
         editor.document.setText("")
-        logcatReader = LogcatReader(device, this@LogcatMainPanel, this@LogcatMainPanel::processMessages).also(LogcatReader::start)
+        logcatReader = LogcatReader(device, this@LogcatMainPanel).also(LogcatReader::start)
       }
 
       override fun onDeviceDisconnected(device: IDevice) {
@@ -155,7 +155,7 @@ internal class LogcatMainPanel(
     scrollPane.verticalScrollBar.addMouseMotionListener(mouseListener)
   }
 
-  private suspend fun processMessages(messages: List<LogCatMessage>) {
+  override suspend fun processMessages(messages: List<LogCatMessage>) {
     messageBacklog.addAll(messages)
     messageProcessor.appendMessages(messages)
   }
@@ -166,14 +166,14 @@ internal class LogcatMainPanel(
       deviceContext.selectedClient?.clientData?.packageName,
       formattingOptions))
 
-  private suspend fun appendToDocument(buffer: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
+  override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
     if (!isActive) {
       return@withContext
     }
     // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
     val shouldStickToEnd = !ignoreCaretAtBottom && editor.isCaretAtBottom()
     ignoreCaretAtBottom = false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will be false.
-    documentAppender.appendToDocument(buffer)
+    documentAppender.appendToDocument(textAccumulator)
 
     if (shouldStickToEnd) {
       scrollToEnd()
@@ -185,7 +185,7 @@ internal class LogcatMainPanel(
   }
 
   @UiThread
-  fun refreshDocument() {
+  override fun reloadMessages() {
     editor.document.setText("")
     AndroidCoroutineScope(this, AndroidDispatchers.workerThread).launch {
       messageProcessor.appendMessages(messageBacklog.messages)
@@ -199,7 +199,7 @@ internal class LogcatMainPanel(
         templatePresentation.text = StringUtil.toTitleCase(text)
         templatePresentation.description = text
       })
-      add(HeaderFormatOptionsAction(project, formattingOptions, this@LogcatMainPanel::refreshDocument))
+      add(HeaderFormatOptionsAction(project, this@LogcatMainPanel, formattingOptions))
     }
   }
 
