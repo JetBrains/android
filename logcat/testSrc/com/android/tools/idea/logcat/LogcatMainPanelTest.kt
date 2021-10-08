@@ -81,7 +81,7 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun createsComponents() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
+    logcatMainPanel = logcatMainPanel()
 
     val borderLayout = logcatMainPanel.layout as BorderLayout
 
@@ -100,7 +100,7 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun setsUpEditor() {
-    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
+    logcatMainPanel = logcatMainPanel()
 
     assertThat(logcatMainPanel.editor.gutterComponentEx.isPaintBackground).isFalse()
     val editorSettings = logcatMainPanel.editor.settings
@@ -122,7 +122,7 @@ class LogcatMainPanelTest {
   fun setsDocumentCyclicBuffer() {
     // Set a buffer of 1k
     System.setProperty("idea.cycle.buffer.size", "1")
-    logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null)
+    logcatMainPanel = logcatMainPanel()
     val document = logcatMainPanel.editor.document as DocumentImpl
 
     // Insert 2000 chars
@@ -140,7 +140,7 @@ class LogcatMainPanelTest {
   @Test
   fun appendMessages() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+      logcatMainPanel = logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan"))
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
@@ -160,24 +160,22 @@ class LogcatMainPanelTest {
   @Test
   fun appendMessages_disposedEditor() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+      logcatMainPanel = logcatMainPanel()
       Disposer.dispose(logcatMainPanel)
     }
 
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-    ))
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
   }
 
   @Test
   fun appendMessages_scrollToEnd() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+      logcatMainPanel = logcatMainPanel()
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+      logCatMessage(),
+      logCatMessage(),
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
@@ -189,18 +187,14 @@ class LogcatMainPanelTest {
   @Test
   fun appendMessages_notAtBottom_doesNotScrollToEnd() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), state = null, ZoneId.of("Asia/Yerevan"))
+      logcatMainPanel = logcatMainPanel()
     }
 
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-    ))
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
     logcatMainPanel.messageProcessor.onIdle {
       logcatMainPanel.editor.caretModel.moveToOffset(0)
     }
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
-    ))
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference")
@@ -225,7 +219,7 @@ class LogcatMainPanelTest {
         latestPopup = FakeActionPopupMenu(it.getArgument(1))
         latestPopup
       }
-      logcatMainPanel = LogcatMainPanel(projectRule.project, popupActionGroup, LogcatColors(), state = null).apply {
+      logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
         size = Dimension(100, 100)
       }
       val fakeUi = FakeUi(logcatMainPanel)
@@ -254,4 +248,11 @@ class LogcatMainPanelTest {
       throw UnsupportedOperationException()
     }
   }
+
+  private fun logcatMainPanel(
+    popupActionGroup: ActionGroup = EMPTY_GROUP,
+    logcatColors: LogcatColors = LogcatColors(),
+    state: LogcatPanelConfig? = null,
+    zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
+  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, zoneId)
 }
