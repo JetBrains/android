@@ -1,0 +1,896 @@
+MODULE                        : project
+MODULE                        : project.app
+    ModelVersion                  : 4.1.0
+    ProjectType                   : PROJECT_TYPE_APP
+    CompileTarget                 : android-30
+    BuildFolder                   : <ROOT>/app/build
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : true
+    GroupId                       : project
+    AaptOptions
+        NameSpacing                   : REQUIRED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.7
+        TargetCompatibility           : 1.7
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    VariantNames                  : debug
+    VariantNames                  : release
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            ApplicationId                 : testData.namespaces
+            VersionCode                   : 1
+            VersionName                   : 1.0
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : 30
+                ApiString                     : 30
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/app/src/main/java
+            ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
+            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
+            ResDirectories                : <ROOT>/app/src/main/res
+            AssetsDirectories             : <ROOT>/app/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTest/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/test/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
+                    ResDirectories                : <ROOT>/app/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
+            ResDirectories                : <ROOT>/app/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/release/java [-]
+            ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
+            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
+            ResDirectories                : <ROOT>/app/src/release/res [-]
+            AssetsDirectories             : <ROOT>/app/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : testData.namespaces
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            ProjectPath                   : :app
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            ProjectPath                   : :app
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.lib
+    ModelVersion                  : 4.1.0
+    ProjectType                   : PROJECT_TYPE_LIBRARY
+    CompileTarget                 : android-30
+    BuildFolder                   : <ROOT>/lib/build
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : project
+    AaptOptions
+        NameSpacing                   : REQUIRED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.7
+        TargetCompatibility           : 1.7
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    VariantNames                  : debug
+    VariantNames                  : release
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            VersionCode                   : 1
+            VersionName                   : 1.0
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : 30
+                ApiString                     : 30
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/lib/src/main/java [-]
+            ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
+            AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
+            ResDirectories                : <ROOT>/lib/src/main/res
+            AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/lib/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/androidTest/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/test/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/lib/src/debug/java [-]
+            ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
+            ResDirectories                : <ROOT>/lib/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/lib/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/lib/src/release/java [-]
+            ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
+            AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
+            ResDirectories                : <ROOT>/lib/src/release/res [-]
+            AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.lib
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+MODULE                        : project.otherlib
+    ModelVersion                  : 4.1.0
+    ProjectType                   : PROJECT_TYPE_LIBRARY
+    CompileTarget                 : android-30
+    BuildFolder                   : <ROOT>/otherlib/build
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : project
+    AaptOptions
+        NameSpacing                   : REQUIRED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.7
+        TargetCompatibility           : 1.7
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : true
+        AestRClassConstantIds         : true
+        TransitiveRClasses            : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    VariantNames                  : debug
+    VariantNames                  : release
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            VersionCode                   : 1
+            VersionName                   : 1.0
+            MinSdkVersion
+                ApiLevel                      : 19
+                ApiString                     : 19
+            TargetSdkVersion
+                ApiLevel                      : 30
+                ApiString                     : 30
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/otherlib/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/otherlib/src/main/java [-]
+            ResourcesDirectories          : <ROOT>/otherlib/src/main/resources [-]
+            AidlDirectories               : <ROOT>/otherlib/src/main/aidl [-]
+            RenderscriptDirectories       : <ROOT>/otherlib/src/main/rs [-]
+            ResDirectories                : <ROOT>/otherlib/src/main/res
+            AssetsDirectories             : <ROOT>/otherlib/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/otherlib/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/otherlib/src/main/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/otherlib/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/androidTest/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/androidTest/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/androidTest/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/androidTest/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/androidTest/shaders [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/otherlib/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/test/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/test/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/test/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/test/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/test/shaders [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/otherlib/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/otherlib/src/debug/java [-]
+            ResourcesDirectories          : <ROOT>/otherlib/src/debug/resources [-]
+            AidlDirectories               : <ROOT>/otherlib/src/debug/aidl [-]
+            RenderscriptDirectories       : <ROOT>/otherlib/src/debug/rs [-]
+            ResDirectories                : <ROOT>/otherlib/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/otherlib/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/otherlib/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/otherlib/src/debug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/otherlib/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/androidTestDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/androidTestDebug/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/androidTestDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/androidTestDebug/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/androidTestDebug/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/otherlib/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/testDebug/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/testDebug/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/testDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/testDebug/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/testDebug/shaders [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/otherlib/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/otherlib/src/release/java [-]
+            ResourcesDirectories          : <ROOT>/otherlib/src/release/resources [-]
+            AidlDirectories               : <ROOT>/otherlib/src/release/aidl [-]
+            RenderscriptDirectories       : <ROOT>/otherlib/src/release/rs [-]
+            ResDirectories                : <ROOT>/otherlib/src/release/res [-]
+            AssetsDirectories             : <ROOT>/otherlib/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/otherlib/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/otherlib/src/release/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestRelease
+                    Manifest                      : <ROOT>/otherlib/src/androidTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/androidTestRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/androidTestRelease/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/androidTestRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/androidTestRelease/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/androidTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/androidTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/androidTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/androidTestRelease/shaders [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/otherlib/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/otherlib/src/testRelease/java [-]
+                    ResourcesDirectories          : <ROOT>/otherlib/src/testRelease/resources [-]
+                    AidlDirectories               : <ROOT>/otherlib/src/testRelease/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/otherlib/src/testRelease/rs [-]
+                    ResDirectories                : <ROOT>/otherlib/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/otherlib/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/otherlib/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/otherlib/src/testRelease/shaders [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.otherlib
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debug/out [-]
+                Level2Dependencies
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/rs/debug [-]
+                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/resValues/debug [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+                AdditionalClassesFolders      : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/otherlib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/rs/androidTest/debug [-]
+                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/resValues/androidTest/debug [-]
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                Level2Dependencies
+                    ModuleDependencies
+                        ModuleDependency
+                            LintJars                      : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :otherlib
+                            Variant                       : debug
+                            BuildId                       : <ROOT>
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar

@@ -85,7 +85,12 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       TestProject(TestProjectToSnapshotPaths.TEST_FIXTURES, skipV1toV2Comparison = true),
       // Ignore comparing the variant name for module dependencies because this is not always provided by V1 models.
       TestProject(TestProjectToSnapshotPaths.TEST_ONLY_MODULE, v1toV2PropertiesToSkip = setOf("ModuleDependencies/ModuleDependency/Variant")),
-      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM)
+      TestProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM),
+      TestProject(TestProjectToSnapshotPaths.MULTI_FLAVOR),
+      // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984. more info b/111168382.
+      TestProject(TestProjectToSnapshotPaths.NAMESPACES, skipV1toV2Comparison = true),
+      TestProject(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
+      TestProject(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES)
     )
   }
 

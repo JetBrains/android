@@ -19,9 +19,12 @@ public final class TestProjectToSnapshotPaths {
   public static final String KOTLIN_MULTIPLATFORM = "projects/kotlinMultiplatform";
   public static final String LINKED = "projects/linked";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
+  public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String MULTI_FLAVOR = "projects/multiFlavor";
+  public static final String NAMESPACES = "projects/namespaces";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
+  public static final String INCLUDE_FROM_LIB = "projects/includeFromLib";
   public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
   public static final String NON_STANDARD_SOURCE_SETS = "projects/nonStandardSourceSets";

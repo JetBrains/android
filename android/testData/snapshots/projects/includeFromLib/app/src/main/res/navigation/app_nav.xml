@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav"
+    app:startDestination="@id/pageOneFragment">
+
+    <fragment
+        android:id="@+id/pageOneFragment"
+        android:name="com.example.navgraph.PageOneFragment"
+        android:label="fragment_page_one"
+        tools:layout="@layout/fragment_page_one" >
+        <action
+            android:id="@+id/action_pageOneFragment_to_lib_nav"
+            app:destination="@id/lib_nav" />
+    </fragment>
+    <include app:graph="@navigation/lib_nav" />
+</navigation>
