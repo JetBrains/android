@@ -850,11 +850,11 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
 }
 
 fun GradleVersion?.upgradeLabelText() = when (this) {
-  null -> "Upgrading Android Gradle Plugin from unknown version to"
-  else -> "Upgrading Android Gradle Plugin from version $this to"
+  null -> "Upgrade Android Gradle Plugin from unknown version to"
+  else -> "Upgrade Android Gradle Plugin from version $this to"
 }
 
 fun GradleVersion?.contentDisplayName() = when (this) {
-  null -> "Upgrading project from unknown AGP"
-  else -> "Upgrading project from AGP $this"
+  null -> "Upgrade project from unknown AGP"
+  else -> "Upgrade project from AGP $this"
 }
