@@ -226,8 +226,8 @@ private object KotlinLiteralTemplateConstantEvaluator : ConstantEvaluator {
     }
     else {
       TextRange(
-        element.entries.map { it.textRange.start }.min() ?: 0,
-        element.entries.map { it.textRange.end }.max() ?: 0
+        element.entries.map { it.textRange.start }.minOrNull() ?: 0,
+        element.entries.map { it.textRange.end }.maxOrNull() ?: 0
       )
     }
   }

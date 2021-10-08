@@ -32,7 +32,7 @@ class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
   val axisComponentModel: AxisComponentModel
 
   init {
-    val maxValue = dataSeries.asSequence().map { it.value }.max() ?: 0
+    val maxValue = dataSeries.asSequence().map { it.value }.maxOrNull() ?: 0
     val yRange = Range(0.0, maxValue.toDouble())
     axisComponentModel = ResizingAxisComponentModel.Builder(yRange, axisFormatter).build()
     memoryCounterSeries = RangedContinuousSeries(

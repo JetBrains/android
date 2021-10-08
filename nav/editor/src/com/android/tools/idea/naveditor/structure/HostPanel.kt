@@ -323,7 +323,7 @@ private class HostPanelLayoutManager : LayoutManager {
   }
 
   override fun minimumLayoutSize(parent: Container): Dimension {
-    val width = ((parent.components.map { it.preferredSize.width }.max() ?: 0) / 0.7).toInt()
+    val width = ((parent.components.map { it.preferredSize.width }.maxOrNull() ?: 0) / 0.7).toInt()
     val height = parent.components.sumBy { it.preferredSize.height } + SPACING_TOTAL
     return Dimension(width, height)
   }

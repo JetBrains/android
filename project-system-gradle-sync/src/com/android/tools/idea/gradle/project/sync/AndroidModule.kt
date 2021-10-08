@@ -182,7 +182,7 @@ class  NativeVariantsAndroidModule private constructor(
 
 @UsedInBuildAction
 fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
-  if (contains(defaultValue)) defaultValue else minBy { it }
+  if (contains(defaultValue)) defaultValue else minByOrNull { it }
 
 @UsedInBuildAction
 private fun collectIdentifiers(variants: Collection<IdeVariant>): List<ArtifactIdentifier> {

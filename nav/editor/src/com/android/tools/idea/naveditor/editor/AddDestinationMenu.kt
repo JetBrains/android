@@ -315,7 +315,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.iconWidth }.max() ?: 0
+          maxIconWidth = dests.map { it.iconWidth }.maxOrNull() ?: 0
           val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(

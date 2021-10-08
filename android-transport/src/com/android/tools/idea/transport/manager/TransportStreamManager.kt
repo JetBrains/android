@@ -152,7 +152,7 @@ class TransportStreamChannel(
             .sortedWith(query.sortOrder)
             .filter { event -> event.timestamp >= lastTimeStamp && query.filter(event) }
           filtered.forEach { event -> emit(StreamEvent(event)) }
-          val maxTimeEvent = filtered.maxBy { it.timestamp }
+          val maxTimeEvent = filtered.maxByOrNull { it.timestamp }
           maxTimeEvent?.let { lastTimeStamp = kotlin.math.max(lastTimeStamp, it.timestamp + 1) }
         }
       }

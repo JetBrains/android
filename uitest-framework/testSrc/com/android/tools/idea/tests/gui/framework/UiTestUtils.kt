@@ -72,7 +72,7 @@ internal fun ContainerFixture<*>.clickToolButton(titlePrefix: String) {
       robot()
         .finder()
         .findAll(target(), matcher<ActionButton> { it.matches() })
-        .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
+        .minByOrNull { button -> generateSequence<Container>(button) { it.parent }.count() }
       ?: robot().finder().find<ActionButton>(target()) { it.matches() })
   Wait.seconds(1).expecting("Enabled").until { button.isEnabled }
   button.click()

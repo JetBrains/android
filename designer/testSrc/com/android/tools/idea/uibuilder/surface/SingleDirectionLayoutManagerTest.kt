@@ -151,7 +151,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
       TestPositionableContent(width = 50, height = 200),
       TestPositionableContent(width = 100, height = 150))
 
-    val maxWidth = sceneViews.map { it.width }.max()!!
+    val maxWidth = sceneViews.map { it.width }.maxOrNull()!!
     val minX = (availableWidth / 2) - (maxWidth / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->
@@ -187,7 +187,7 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
       TestPositionableContent(width = 50, height = 200),
       TestPositionableContent(width = 100, height = 150))
 
-    val maxHeight = sceneViews.map { it.height }.max()!!
+    val maxHeight = sceneViews.map { it.height }.maxOrNull()!!
     val minY = (availableHeight / 2) - (maxHeight / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->

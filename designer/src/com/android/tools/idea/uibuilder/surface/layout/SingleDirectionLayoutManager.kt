@@ -168,4 +168,4 @@ class VerticalOnlyLayoutManager(@SwingCoordinate horizontalPadding: Int,
 
 // Helper functions to improve readability
 private fun Collection<PositionableContent>.sumOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).sum()
-private fun Collection<PositionableContent>.maxOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).max()
+private fun Collection<PositionableContent>.maxOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).maxOrNull()

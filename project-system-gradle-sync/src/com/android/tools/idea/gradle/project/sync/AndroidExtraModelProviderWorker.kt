@@ -882,7 +882,7 @@ private fun createAndroidModule(
     for (flavorDimension in flavorDimensions) {
       val defaultProductFlavorName = productFlavors.firstOrNull { it.dimension == flavorDimension && it.isDefault == true }?.name ?:
                                  // if no productFlavor is marked isDefault within the dimension, then we get the first one in an alphabetical order.
-                                 productFlavors.filter { it.dimension == flavorDimension }.minBy { it.name }?.name
+                                 productFlavors.filter { it.dimension == flavorDimension }.minByOrNull { it.name }?.name
 
       if (defaultProductFlavorName != null) defaultFlavors.add(defaultProductFlavorName)
     }

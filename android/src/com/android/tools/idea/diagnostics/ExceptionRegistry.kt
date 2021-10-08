@@ -131,7 +131,7 @@ object ExceptionRegistry {
       if (leafNodes.isEmpty()) {
         return null
       }
-      return leafNodes.maxBy { it.count } as StackTrace
+      return leafNodes.maxByOrNull { it.count } as StackTrace
     }
   }
 

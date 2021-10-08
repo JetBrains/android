@@ -49,7 +49,7 @@ fun List<ComposeViewInfo>.findHitWithDepth(x: Int, y: Int, depth: Int = 0): Coll
 fun ComposeViewInfo.findDeepestHits(x: Int, y: Int): Collection<ComposeViewInfo> =
   findHitWithDepth(x, y)
     .groupBy { it.first }
-    .maxBy { it.key }
+    .maxByOrNull { it.key }
     ?.value
     ?.map { it.second }
     ?.toList() ?: emptyList()

@@ -38,13 +38,13 @@ interface BackgroundTaskInspectorTracker {
 fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): BackgroundTaskInspectorEvent.ChainInfo {
   val depthMap = mutableMapOf<String, Int>()
   for (work in this) {
-    depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.max() ?: 0) + 1
+    depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.maxOrNull() ?: 0) + 1
   }
   val worksCountByDepth = this.groupBy { depthMap[it.id] }.map { it.value.size }
   return BackgroundTaskInspectorEvent.ChainInfo.newBuilder()
     .setDependencyCount(sumBy { it.dependentsCount })
-    .setMaxDepth(depthMap.values.max() ?: 0)
-    .setMaxWidth(worksCountByDepth.max() ?: 0)
+    .setMaxDepth(depthMap.values.maxOrNull() ?: 0)
+    .setMaxWidth(worksCountByDepth.maxOrNull() ?: 0)
     .setWorkerCount(size)
     .build()
 }

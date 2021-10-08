@@ -222,12 +222,12 @@ abstract class AbstractGradleSyncPerfTestCase {
 
   private fun logSummary(name: String, values: ArrayList<Long>, log: Logger) {
     log.info("$name average: ${values.average()}")
-    log.info("$name min: ${values.min()}")
-    log.info("$name max: ${values.max()}")
+    log.info("$name min: ${values.minOrNull()}")
+    log.info("$name max: ${values.maxOrNull()}")
   }
 
   private fun showHistogram(values: ArrayList<Long>, log: Logger) {
-    val maximum = values.max()
+    val maximum = values.maxOrNull()
     if (maximum == null) {
       log.info("***NO VALUES WERE CAPTURED***")
       return

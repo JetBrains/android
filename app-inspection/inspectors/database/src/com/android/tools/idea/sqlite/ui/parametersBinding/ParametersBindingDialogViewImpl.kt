@@ -94,7 +94,7 @@ class ParametersBindingDialogViewImpl(
     }
 
     val labelSizes = parameterResolutionPanels.map { it.parameterNameLabel.preferredSize.width } + statementLabel.preferredSize.width
-    val maxLabelWidth = labelSizes.max() ?: 0
+    val maxLabelWidth = labelSizes.maxOrNull() ?: 0
     val finalMaxLabelWidth = boundMaxLabelWidth(maxLabelWidth)
     statementLabel.setFixedWidth(finalMaxLabelWidth)
     parameterResolutionPanels.forEach { it.parameterNameLabel.setFixedWidth(finalMaxLabelWidth) }

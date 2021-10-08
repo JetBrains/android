@@ -34,7 +34,7 @@ data class ResourceAssetSet(
    * Return the asset in this set with the highest density
    */
   fun getHighestDensityAsset(): Asset {
-    return designAssets.maxBy { asset ->
+    return designAssets.maxByOrNull { asset ->
       asset.qualifiers
         .filterIsInstance<DensityQualifier>()
         .map { densityQualifier -> densityQualifier.value.dpiValue }

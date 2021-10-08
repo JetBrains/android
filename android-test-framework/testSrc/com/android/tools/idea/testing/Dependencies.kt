@@ -89,7 +89,7 @@ object Dependencies {
     // TODO: Also update the API above such that Androidx only will have to specify the artifactId. Not: "appcompat/appcompat"
     private fun loadLatestVersion(folder: File) {
       val name = folder.name
-      val version = folder.list().map { GradleVersion.parse(it) }.max() ?: error("No versions found in folder: ${folder.path}")
+      val version = folder.list().map { GradleVersion.parse(it) }.maxOrNull() ?: error("No versions found in folder: ${folder.path}")
       val versionFolder = File(folder, version.toString())
       val aarFile = File(versionFolder, "$name-$version.aar")
       val aarDir = FileUtil.createTempDirectory(name, "_exploded")
