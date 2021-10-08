@@ -87,7 +87,7 @@ class ResourceExplorerTest {
       .selectTab("Drawable")
       .clickAddButton()
 
-    ide.openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+    ide.openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, "Vector Asset")
       .switchToClipArt()
       .chooseIcon()
       .filterByNameAndSelect("android")
