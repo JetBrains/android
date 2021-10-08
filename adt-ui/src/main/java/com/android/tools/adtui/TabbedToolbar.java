@@ -42,6 +42,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class TabbedToolbar extends JPanel {
   private final JPanel myTabsPanel = new JPanel();
   @Nullable private TabLabel myActiveTab;
   @Nullable private TabLabel myMouseOverTab;
+  private final HorizontalScrollView myTabScrollView = new HorizontalScrollView(myTabsPanel);
   // Caching value as it can change each time we add a new child.
   // Note: We cannot reference preferred height from TabLabel as it causes a circular dependency.
   // Note: If we do not set the preferred height of the child the label is not framed properly.
@@ -72,7 +74,7 @@ public class TabbedToolbar extends JPanel {
     // [Title][Padding][(Tab)(Tab)(Tab)              ][(Action)(Action)]
     setLayout(new TabularLayout("Fit,5px,*,Fit", "*"));
     add(title, new TabularLayout.Constraint(0, 0));
-    add(myTabsPanel, new TabularLayout.Constraint(0, 2));
+    add(myTabScrollView, new TabularLayout.Constraint(0, 2));
     add(myActionPanel, new TabularLayout.Constraint(0, 3));
   }
 
@@ -152,6 +154,7 @@ public class TabbedToolbar extends JPanel {
     // Cache preferred height of control so we can properly adjust child elements sizes.
     myPreferredHeight = getPreferredSize().height;
     selectTab(tab, selectedListener);
+    myTabScrollView.scrollTo(myTabsPanel.getWidth());
   }
 
   /**
@@ -206,6 +209,15 @@ public class TabbedToolbar extends JPanel {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);
         closeButton.addActionListener((e) -> onClosed.doAction());
         add(closeButton, BorderLayout.EAST);
+        // Also close with middle click
+        addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+            if (SwingUtilities.isMiddleMouseButton(e)) {
+              onClosed.doAction();
+            }
+          }
+        });
       }
     }
 
