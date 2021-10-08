@@ -48,6 +48,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.tests.iml" filepath="$PROJECT_DIR$/../../base/lint/studio-checks/android.sdktools.lint.studio-checks.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.testinfrastructure.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.testinfrastructure.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.tests.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-tests/android.sdktools.lint.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-typedef-remover/android.sdktools.lint.typedef-remover.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" filepath="$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" filepath="$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" filepath="$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" />
