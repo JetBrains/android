@@ -55,7 +55,7 @@ class DesignAssetImporter {
         .forEach { (folderName, importingAsset) ->
           copyAssetsInFolder(folderName, importingAsset, resFolder)
         }
-    }, emptyArray())
+    })
   }
 
   /**
