@@ -249,7 +249,6 @@ public class Stamper {
 
     String buildTxt = readFile(platform, resourcePath + "build.txt", null);
     String appInfo = readFile(platform, basePath + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml");
-    String appInfoUnpacked = readFile(platform, basePath + "bin/appInfo.xml", null);
 
     String info = null;
     if (os.equals("linux")) {
@@ -263,12 +262,10 @@ public class Stamper {
     buildTxt = buildTxt.replaceAll("__BUILD_NUMBER__", bid);
     String buildDate = formatBuildDate(buildVersion);
     appInfo = stampAppInfo(buildDate, buildTxt, micro, patch, full, eap, appInfo);
-    appInfoUnpacked = stampAppInfo(buildDate, buildTxt, micro, patch, full, eap, appInfoUnpacked);
 
     try (ZipArchiveOutputStream zip = new ZipArchiveOutputStream(new FileOutputStream(out))) {
       writeFile(zip, buildTxt, resourcePath + "build.txt", null);
       writeFile(zip, appInfo, basePath + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml");
-      writeFile(zip, appInfoUnpacked, basePath + "bin/appInfo.xml", null);
 
       if (os.equals("linux")) {
         writeFile(zip, info, basePath + "product-info.json", null);

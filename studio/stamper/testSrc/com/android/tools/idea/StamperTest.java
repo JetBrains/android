@@ -184,8 +184,6 @@ public class StamperTest {
      Path stable = createFile("info.txt", "BUILD_EMBED_LABEL 3333");
      Path vol =createFile("volatile.txt", "BUILD_TIMESTAMP 1597877532");
      Path platform = createZip("platform.zip",
-                               "bin/appInfo.xml", "<build number=\"AI-__BUILD__\" date=\"__BUILD_DATE__\">\n" +
-                                                  "<version major=\"4\" minor=\"3\" micro=\"2\" patch=\"1\" full=\"a\" eap=\"false\" >",
                                "build.txt", "AI-1234.__BUILD_NUMBER__",
                                "product-info.json", "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
                                "lib/resources.jar!idea/AndroidStudioApplicationInfo.xml", "<build number=\"AI-__BUILD__\" date=\"__BUILD_DATE__\">\n" +
@@ -207,8 +205,6 @@ public class StamperTest {
        "build.txt", "AI-1234.3333",
        "lib/resources.jar!idea/AndroidStudioApplicationInfo.xml", "<build number=\"AI-1234.3333\" date=\"202008192252\">\n" +
                                                                   "<version major=\"4\" minor=\"3\" micro=\"33\" patch=\"44\" full=\"{0} Canary 5\" eap=\"true\" >",
-                         "bin/appInfo.xml", "<build number=\"AI-1234.3333\" date=\"202008192252\">\n" +
-                                            "<version major=\"4\" minor=\"3\" micro=\"33\" patch=\"44\" full=\"{0} Canary 5\" eap=\"true\" >",
                          "product-info.json", "Info 3333 3333"),
         readZip(res));
    }
@@ -218,8 +214,6 @@ public class StamperTest {
      Path stable = createFile("info.txt", "BUILD_EMBED_LABEL 3333");
      Path vol =createFile("volatile.txt", "BUILD_TIMESTAMP 1597877532");
      Path platform = createZip("platform.zip",
-       "Contents/bin/appInfo.xml", "<build number=\"AI-__BUILD__\" date=\"__BUILD_DATE__\">\n" +
-                                   "<version major=\"4\" minor=\"3\" micro=\"2\" patch=\"1\" full=\"a\" eap=\"false\" >",
        "Contents/Resources/build.txt", "AI-1234.__BUILD_NUMBER__",
        "Contents/Info.plist", "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
        "Contents/lib/resources.jar!idea/AndroidStudioApplicationInfo.xml", "<build number=\"AI-__BUILD__\" date=\"__BUILD_DATE__\">\n" +
@@ -241,8 +235,6 @@ public class StamperTest {
                            "Contents/Resources/build.txt", "AI-1234.3333",
                            "Contents/lib/resources.jar!idea/AndroidStudioApplicationInfo.xml", "<build number=\"AI-1234.3333\" date=\"202008192252\">\n" +
                                                                                                "<version major=\"4\" minor=\"3\" micro=\"33\" patch=\"44\" full=\"{0} Canary 5\" eap=\"true\" >",
-                           "Contents/bin/appInfo.xml", "<build number=\"AI-1234.3333\" date=\"202008192252\">\n" +
-                                                    "<version major=\"4\" minor=\"3\" micro=\"33\" patch=\"44\" full=\"{0} Canary 5\" eap=\"true\" >",
                            "Contents/Info.plist", "Info 3333 3333"),
      readZip(res));
    }
