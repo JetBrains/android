@@ -22,8 +22,6 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.util.EditorUtil.openEditor
-import com.android.tools.idea.util.EditorUtil.selectEditor
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
 import com.google.common.io.Files
@@ -39,6 +37,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import org.jetbrains.android.uipreview.EditorUtil.openEditor
+import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException

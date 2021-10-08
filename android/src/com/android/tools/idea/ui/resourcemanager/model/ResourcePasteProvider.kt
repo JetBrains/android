@@ -39,7 +39,7 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.android.tools.idea.res.ensureNamespaceImported
-import com.android.tools.idea.util.EditorUtil
+import com.android.tools.idea.util.ReformatUtil
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.project.Project
@@ -163,7 +163,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
         setAttribute(SdkConstants.ATTR_LAYOUT, resourceReference)
         collapseIfEmpty()
-        EditorUtil.reformatAndRearrange(parent.project, this)
+        ReformatUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -183,7 +183,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, dimensionValue)
         setSrcAttribute(dependsOnAppCompat, this, resourceReference)
         collapseIfEmpty()
-        EditorUtil.reformatAndRearrange(parent.project, this)
+        ReformatUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -245,7 +245,7 @@ class ResourcePasteProvider : PasteProvider {
     val dependsOnAppCompat = dependsOnAppCompat(xmlTag)
     runWriteAction {
       setSrcAttribute(dependsOnAppCompat, xmlTag, resourceReference)
-      EditorUtil.reformatAndRearrange(xmlTag.project, xmlTag)
+      ReformatUtil.reformatAndRearrange(xmlTag.project, xmlTag)
     }
     return true
   }

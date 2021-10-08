@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.util
 
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
-import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine
-import org.jetbrains.android.uipreview.AndroidEditorSettings
 import java.io.File
 
-object EditorUtil {
+object ReformatUtil {
   @JvmStatic
   fun reformatRearrangeAndSave(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
@@ -100,40 +93,5 @@ object EditorUtil {
     if (keepDocumentLocked) {
       psiDocumentManager.commitDocument(document)
     }
-  }
-
-  /**
-   * Opens the specified file in the editor
-   *
-   * @param project The project which contains the given file.
-   * @param vFile   The file to open
-   */
-  @JvmStatic
-  fun openEditor(project: Project, vFile: VirtualFile) {
-    val descriptor =
-      if (vFile.fileType === XmlFileType.INSTANCE && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
-        OpenFileDescriptor(project, vFile, 0)
-      }
-      else {
-        OpenFileDescriptor(project, vFile)
-      }
-    FileEditorManager.getInstance(project).openEditor(descriptor, true)
-  }
-
-  /**
-   * Selects the specified file in the project view.
-   * **Note:** Must be called with read access.
-   *
-   * @param project the project
-   * @param file    the file to select
-   */
-  @JvmStatic
-  fun selectEditor(project: Project, file: VirtualFile) {
-    ApplicationManager.getApplication().assertReadAccessAllowed()
-
-    val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
-    val currentPane = ProjectView.getInstance(project).currentProjectViewPane ?: return
-
-    ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false)
   }
 }

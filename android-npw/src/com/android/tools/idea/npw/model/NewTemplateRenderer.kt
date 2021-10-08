@@ -20,7 +20,7 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.util.EditorUtil
+import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -71,7 +71,7 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor): Boolean {
 
   if (!c.dryRun) {
     ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
-    EditorUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
+    ReformatUtil.reformatRearrangeAndSave(c.project, c.targetFiles)
   }
 
   return success
