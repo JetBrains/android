@@ -177,7 +177,7 @@ class ViewPropertiesDataGenerator(
 
   private fun fromColor(property: Property): String? {
     val intValue = fromInt32(property) ?: return null
-    return colorToString(Color(intValue))
+    return colorToString(Color(intValue, true))
   }
 
   private fun fromKnownObjectType(property: Property): String? {
