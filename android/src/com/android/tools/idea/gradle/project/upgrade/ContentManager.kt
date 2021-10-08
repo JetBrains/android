@@ -679,10 +679,9 @@ class ContentManager(val project: Project) {
       layout = HorizontalLayout(5)
       add(upgradeLabel)
       add(versionTextField)
-      // TODO(xof): make these buttons come in a platform-dependent order
-      add(refreshButton)
       add(okButton)
       add(previewButton)
+      add(refreshButton)
       add(messageLabel)
     }
 
