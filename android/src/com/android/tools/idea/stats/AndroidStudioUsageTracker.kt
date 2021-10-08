@@ -462,25 +462,6 @@ object AndroidStudioUsageTracker {
    * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
    */
   private class ProjectLifecycleTracker : ProjectLifecycleListener {
-    override fun beforeProjectLoaded(project: Project) {
-      val projectsOpen = ProjectManager.getInstance().openProjects.size
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(EventKind.STUDIO_PROJECT_OPENED)
-                         .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                   .setProjectsOpen(projectsOpen)))
-
-
-    }
-
-    override fun afterProjectClosed(project: Project) {
-      val projectsOpen = ProjectManager.getInstance().openProjects.size
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(EventKind.STUDIO_PROJECT_CLOSED)
-                         .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                   .setProjectsOpen(projectsOpen)))
-
-    }
-
     // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
     override fun projectComponentsInitialized(project: Project) {
       val service = ToolWindowTrackerService.getInstance(project)
