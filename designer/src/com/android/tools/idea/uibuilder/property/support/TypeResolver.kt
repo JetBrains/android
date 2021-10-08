@@ -217,9 +217,13 @@ object TypeResolver {
       SdkConstants.ATTR_TRACK_TINT,
       "boxStrokeErrorColor",
       "checkedIconTint",
+      "collapsedTitleTextColor",
+      "dividerColor",
+      "expandedTitleTextColor",
       "haloColor",
       "placeholderTextColor",
       "prefixTextColor",
+      "subheaderColor",
       "suffixTextColor",
       "thumbColor",
       "thumbStrokeColor",
@@ -258,6 +262,8 @@ object TypeResolver {
       SdkConstants.ATTR_ELEVATION -> NlPropertyType.DIMENSION
 
       SdkConstants.ATTR_MENU -> NlPropertyType.MENU
+
+      SdkConstants.ATTR_BACKGROUND_TINT_MODE -> NlPropertyType.ENUM
 
       // tools
       // TODO: Figure out a way to map this using ToolsAttributeUtil

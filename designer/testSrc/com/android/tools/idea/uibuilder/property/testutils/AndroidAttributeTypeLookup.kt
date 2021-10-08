@@ -62,6 +62,7 @@ object AndroidAttributeFact {
       "closeIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "closeIconVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "collapsedSize" -> return NlPropertyType.DIMENSION
+      "collapsedTitleTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "contentPadding" -> return NlPropertyType.DIMENSION
       "contentPaddingBottom" -> return NlPropertyType.DIMENSION
       "contentPaddingEnd" -> return NlPropertyType.DIMENSION
@@ -72,11 +73,15 @@ object AndroidAttributeFact {
       "cornerRadius" -> return NlPropertyType.DIMENSION
       "counterOverflowTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "counterTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "dividerInsetStart" -> return NlPropertyType.DIMENSION
+      "dividerInsetEnd" -> return NlPropertyType.DIMENSION
+      "drawerLayoutCornerSize" -> return NlPropertyType.DIMENSION
       "endIconCheckable" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "endIconContentDescription" -> return NlPropertyType.STRING
       "endIconDrawable" -> return NlPropertyType.DRAWABLE
       "endIconMode" -> return NlPropertyType.ENUM
       "endIconTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "endIconTintMode" -> return NlPropertyType.ENUM
       "endIconTintMode" -> return NlPropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "errorContentDescription" -> return NlPropertyType.STRING
@@ -85,6 +90,7 @@ object AndroidAttributeFact {
       "errorIconTintMode" -> return NlPropertyType.ENUM
       "errorTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "expandedHintEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "expandedTitleTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "extendMotionSpec" -> return NlPropertyType.ANIMATOR
       "extraMultilineHeightEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "fabAlignmentMode" -> return NlPropertyType.ENUM
@@ -114,7 +120,9 @@ object AndroidAttributeFact {
       "insetLeft" -> return NlPropertyType.DIMENSION
       "insetRight" -> return NlPropertyType.DIMENSION
       "insetTop" -> return NlPropertyType.DIMENSION
+      "itemActiveIndicatorStyle" -> return NlPropertyType.STYLE
       "itemMaxLines" -> return NlPropertyType.INTEGER
+      "itemMinHeight" -> return NlPropertyType.DIMENSION
       "itemRippleColor" -> return NlPropertyType.COLOR_STATE_LIST
       "itemShapeAppearance" -> return NlPropertyType.STYLE
       "itemShapeAppearanceOverlay" -> return NlPropertyType.STYLE
@@ -124,10 +132,13 @@ object AndroidAttributeFact {
       "itemShapeInsetStart" -> return NlPropertyType.DIMENSION
       "itemShapeInsetTop" -> return NlPropertyType.DIMENSION
       "itemSpacing" -> return NlPropertyType.DIMENSION
+      "itemPaddingBottom" -> return NlPropertyType.DIMENSION
+      "itemPaddingTop" -> return NlPropertyType.DIMENSION
       "labelBehavior" -> return NlPropertyType.ENUM
       "labelStyle" -> return NlPropertyType.STYLE
       "layout_collapseMode" -> return NlPropertyType.ENUM
       "layout_collapseParallaxMultiplier" -> return NlPropertyType.FLOAT
+      "layout_scrollEffect" -> return NlPropertyType.ENUM
       "layout_scrollFlags" -> return NlPropertyType.FLAGS
       "layout_scrollInterpolator" -> return NlPropertyType.INTERPOLATOR
       "liftOnScrollTargetViewId" -> return NlPropertyType.ID
@@ -160,6 +171,10 @@ object AndroidAttributeFact {
       "statusBarForeground" -> return NlPropertyType.DRAWABLE
       "strokeColor" -> return NlPropertyType.COLOR_STATE_LIST
       "strokeWidth" -> return NlPropertyType.DIMENSION
+      "subheaderColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "subheaderInsetEnd" -> return NlPropertyType.DIMENSION
+      "subheaderInsetStart" -> return NlPropertyType.DIMENSION
+      "subheaderTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "subtitleCentered" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "suffixText" -> return NlPropertyType.STRING
       "suffixTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
@@ -204,6 +219,7 @@ object AndroidAttributeFact {
       "thumbStrokeColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbStrokeWidth" -> return NlPropertyType.DIMENSION
       "tickVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "topInsetScrimEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "trackColor" -> return NlPropertyType.COLOR_STATE_LIST
       "trackColorActive" -> return NlPropertyType.COLOR_STATE_LIST
       "trackColorInactive" -> return NlPropertyType.COLOR_STATE_LIST
@@ -220,6 +236,7 @@ object AndroidAttributeFact {
       "itemIconTint" -> return NlPropertyType.DRAWABLE
       "itemTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "itemTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "itemVerticalPadding" -> return NlPropertyType.DIMENSION
       "menu" -> return NlPropertyType.MENU
       "boxBackgroundColor" -> return NlPropertyType.COLOR
       "boxBackgroundMode" -> return NlPropertyType.ENUM
@@ -575,6 +592,7 @@ object AndroidAttributeFact {
       "borderLeft" -> return NlPropertyType.DIMENSION
       "borderRight" -> return NlPropertyType.DIMENSION
       "borderTop" -> return NlPropertyType.DIMENSION
+      "bottomInsetScrimEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "bottomOffset" -> return NlPropertyType.DIMENSION
       "button" -> return NlPropertyType.DRAWABLE
       "buttonTint" -> return NlPropertyType.COLOR_STATE_LIST
@@ -673,8 +691,10 @@ object AndroidAttributeFact {
       "disableDependentsState" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "disabledAlpha" -> return NlPropertyType.FLOAT
       "divider" -> return NlPropertyType.DRAWABLE
+      "dividerColor" -> return NlPropertyType.COLOR_STATE_LIST
       "dividerHeight" -> return NlPropertyType.DIMENSION
       "dividerPadding" -> return NlPropertyType.DIMENSION
+      "dividerThickness" -> return NlPropertyType.DIMENSION
       "documentLaunchMode" -> return NlPropertyType.INTEGER
       "drawSelectorOnTop" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "drawableAlpha" -> return NlPropertyType.INTEGER

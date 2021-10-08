@@ -24,6 +24,7 @@ import static com.android.SdkConstants.CHIP_GROUP;
 import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.MATERIAL_TOOLBAR;
 import static com.android.SdkConstants.NAVIGATION_VIEW;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
@@ -58,7 +59,6 @@ import javax.swing.event.ListDataListener;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class DataModelTest extends AndroidTestCase {
@@ -72,12 +72,7 @@ public class DataModelTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
-      when(myDependencyManager.useAndroidXDependencies()).thenAnswer(new Answer<Boolean>() {
-      @Override
-      public Boolean answer(@NotNull InvocationOnMock invocation) {
-        return myUseAndroidxDependencies;
-      }
-    });
+      when(myDependencyManager.useAndroidXDependencies()).thenAnswer((Answer<Boolean>)invocation -> myUseAndroidxDependencies);
     myDataModel = new DataModel(getTestRootDisposable(), myDependencyManager);
     myCategoryListModel = myDataModel.getCategoryListModel();
     myItemListModel = myDataModel.getItemListModel();
@@ -210,8 +205,8 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
       "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
-      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
-      "<include>", "FragmentContainerView", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
+      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "MaterialToolbar", "TabLayout", "TabItem",
+      "ViewStub", "<include>", "FragmentContainerView", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }
 
   public void testSearch() {
@@ -252,11 +247,11 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.setFilterPattern("material");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
-    assertThat(getMatchCounts()).containsExactly(10, 1, 3, 6).inOrder();
+    assertThat(getMatchCounts()).containsExactly(11, 1, 3, 7).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
       "TextInputLayout", "ChipGroup", "Chip", "FloatingActionButton", "AppBarLayout", "BottomAppBar", "NavigationView",
-      "BottomNavigationView", "TabLayout", "TabItem").inOrder();
+      "BottomNavigationView", "MaterialToolbar", "TabLayout", "TabItem").inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("TextInputLayout");
     assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(TEXT_INPUT_LAYOUT.newName());
@@ -265,10 +260,10 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(CHIP_GROUP, CHIP, FLOATING_ACTION_BUTTON.newName());
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "TabLayout", "TabItem").inOrder();
+      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "MaterialToolbar", "TabLayout", "TabItem").inOrder();
     assertThat(getElementsAsTagNames(myItemListModel)).containsExactly(
-      APP_BAR_LAYOUT.newName(), BOTTOM_APP_BAR, NAVIGATION_VIEW.newName(), BOTTOM_NAVIGATION_VIEW.newName(), TAB_LAYOUT.newName(),
-      TAB_ITEM.newName()).inOrder();
+      APP_BAR_LAYOUT.newName(), BOTTOM_APP_BAR, NAVIGATION_VIEW.newName(), BOTTOM_NAVIGATION_VIEW.newName(), MATERIAL_TOOLBAR,
+      TAB_LAYOUT.newName(), TAB_ITEM.newName()).inOrder();
   }
 
   public void testMenuType() {
@@ -291,7 +286,7 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.setFilterPattern("material");
     assertThat(getElementsAsStrings(myCategoryListModel))
       .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Containers").inOrder();
-    assertThat(getMatchCounts()).containsExactly(10, 1, 3, 6).inOrder();
+    assertThat(getMatchCounts()).containsExactly(11, 1, 3, 7).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
     assertThat(myItemListModel.getElementAt(0).getTagName()).isEqualTo(TEXT_INPUT_LAYOUT.newName());
   }
