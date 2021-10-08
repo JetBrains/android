@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
+import com.android.tools.idea.validator.LayoutValidator
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
@@ -29,6 +30,10 @@ class RenderATFBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
+    // Enabling this will retrieve text character locations from TextView to improve the
+    // accuracy of TextContrastCheck in ATF. However, it can burden the render time quite alot
+    // specially if the view contains a long text.
+    LayoutValidator.setObtainCharacterLocations(false)
     RenderTestUtil.beforeRenderTestCase()
 
     layoutFile = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).virtualFile
