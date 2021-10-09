@@ -250,6 +250,13 @@ public class StudioIcons {
       public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/toolbar/volume-down.svg"); // 16x16
       public static final Icon VOLUME_UP = load("/studio/icons/emulator/toolbar/volume-up.svg"); // 16x16
     }
+
+    public static class Menu {
+      public static final Icon MODE_DESKTOP = load("/studio/icons/emulator/menu/mode-desktop.svg"); // 16x16
+      public static final Icon MODE_FOLDABLE = load("/studio/icons/emulator/menu/mode-foldable.svg"); // 16x16
+      public static final Icon MODE_PHONE = load("/studio/icons/emulator/menu/mode-phone.svg"); // 16x16
+      public static final Icon MODE_TABLET = load("/studio/icons/emulator/menu/mode-tablet.svg"); // 16x16
+    }
   }
 
   public static class LayoutEditor {
