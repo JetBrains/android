@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
+import java.awt.EventQueue
 import kotlin.math.roundToInt
 
 /**
- * Common superclass of [EmulatorRotateLeftAction] and [EmulatorRotateRightAction].
+ * Rotates the emulator left or right.
  */
-abstract class EmulatorRotateAction : AbstractEmulatorAction() {
-  @UiThread
-  fun rotate(event: AnActionEvent, degrees: Float) {
+sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmulatorAction() {
+  override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
     val rotation = emulatorView.displayRotation
-    val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + degrees)
+    val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + rotationAngleDegrees)
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
       .addData(0F)
@@ -43,8 +42,10 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
       .setValue(parameters)
       .build()
     emulatorController.setPhysicalModel(rotationModel, object: EmptyStreamObserver<Empty>() {
-      override fun onNext(response: Empty) {
-        emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+      override fun onCompleted() {
+        EventQueue.invokeLater {
+          emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
+        }
       }
     })
   }
@@ -70,4 +71,7 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
       else -> angle
     }
   }
+
+  class Left : EmulatorRotateAction(90F)
+  class Right : EmulatorRotateAction(-90F)
 }

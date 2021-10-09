@@ -47,9 +47,9 @@
               icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
       <action id="android.emulator.volume.down.button" class="com.android.tools.idea.emulator.actions.EmulatorVolumeDownButtonAction"
               icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
-      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateLeftAction"
+      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.actions.EmulatorRotateAction$Left"
               icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
-      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
+      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateAction$Right"
               icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
       <action id="android.emulator.folding.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowFoldingControlsAction"
               icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls"/>
