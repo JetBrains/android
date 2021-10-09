@@ -1164,6 +1164,88 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
+     * Creates a fake AVD folder for Resizable API 32.
+     */
+    @JvmStatic
+    fun createResizableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
+      val avdId = "Resizable_API_32"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=800M
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=virtualscene
+          hw.camera.front=emulated
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name = resizable
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=Portrait
+          hw.keyboard=yes
+          hw.lcd.density = 420
+          hw.lcd.height = 2208
+          hw.lcd.width = 1768
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=yes
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=no
+          hw.trackBall=no
+          image.sysdir.1 = system-images/android-32/google_apis/x86_64/
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          sdcard.size=512M
+          showDeviceFrame=yes
+          skin.dynamic=yes
+          skin.name=1768x2208
+          skin.path=_no_skin
+          tag.display=Google APIs
+          tag.id=google_apis
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.width = 1768
+          hw.lcd.height = 2208
+          hw.lcd.density = 420
+          hw.ramSize = 2048
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = true
+          hw.accelerometer = false
+          hw.gyroscope = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = true
+          hw.sdCard.path = ${avdFolder}/sdcard.img
+          android.sdk.root = $sdkFolder
+          hw.initialOrientation = Portrait
+          hw.device.name = resizable
+          hw.resizable.configs = phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
+          """.trimIndent()
+
+      return createAvd(avdFolder, configIni, hardwareIni)
+    }
+
+    /**
      * Creates a fake AVD folder for Android Wear Round API 28. The skin path in config.ini is absolute.
      */
     @JvmStatic

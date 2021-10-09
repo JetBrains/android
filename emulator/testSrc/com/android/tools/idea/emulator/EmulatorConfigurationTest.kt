@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.emulator.control.DisplayMode.DisplayModeValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.idea.emulator.EmulatorConfiguration.DisplayMode
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
@@ -53,6 +55,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.rollable).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
+    assertThat(config?.displayModes).isEmpty()
   }
 
   @Test
@@ -76,6 +79,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.rollable).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
+    assertThat(config?.displayModes).isEmpty()
   }
 
   @Test
@@ -99,6 +103,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.rollable).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
+    assertThat(config?.displayModes).isEmpty()
   }
 
   @Test
@@ -122,5 +127,33 @@ class EmulatorConfigurationTest {
     assertThat(config?.rollable).isTrue()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
+    assertThat(config?.displayModes).isEmpty()
+  }
+
+  @Test
+  fun testResizable() {
+    // Prepare.
+    val avdFolder = FakeEmulator.createResizableAvd(avdParentFolder, sdkFolder)
+
+    // Act.
+    val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
+
+    // Assert.
+    assertThat(config).isNotNull()
+    assertThat(config?.avdFolder).isEqualTo(avdFolder)
+    assertThat(config?.avdName).isEqualTo("Resizable API 32")
+    assertThat(config?.displayWidth).isEqualTo(1768)
+    assertThat(config?.displayHeight).isEqualTo(2208)
+    assertThat(config?.density).isEqualTo(420)
+    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.hasAudioOutput).isTrue()
+    assertThat(config?.foldable).isFalse()
+    assertThat(config?.rollable).isFalse()
+    assertThat(config?.hasOrientationSensors).isTrue()
+    assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
+    assertThat(config?.displayModes).containsExactly(DisplayMode(DisplayModeValue.PHONE, 1080, 2340),
+                                                     DisplayMode(DisplayModeValue.FOLDABLE, 1768, 2208),
+                                                     DisplayMode(DisplayModeValue.TABLET, 1920, 1200),
+                                                     DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080))
   }
 }
