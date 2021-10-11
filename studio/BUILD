@@ -577,27 +577,20 @@ py_test(
     ],
 )
 
-py_binary(
+java_binary(
     name = "stamper",
-    srcs = ["stamper.py"],
+    srcs = ["stamper/src/com/android/tools/idea/Stamper.java"],
+    main_class = "com.android.tools.idea.Stamper",
     visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:org.apache.commons.commons-compress",
+    ],
 )
 
 py_binary(
     name = "check_plugin",
     srcs = ["check_plugin.py"],
     visibility = ["//visibility:public"],
-)
-
-py_test(
-    name = "tools_test",
-    srcs = ["tools_test.py"],
-    tags = [
-        "no_mac",
-        "no_windows",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [":stamper"],
 )
 
 java_binary(
@@ -719,5 +712,19 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.studio.stamper",
+    srcs = ["stamper/src"],
+    iml_files = ["stamper/intellij.android.studio.stamper.iml"],
+    test_srcs = ["stamper/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/tools/common/m2:junit-4.13.2[test]",
+        "//prebuilts/tools/common/m2:commons-compress-1.20",
     ],
 )
