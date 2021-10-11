@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceMenuAction
+import com.android.tools.idea.configurations.DeviceMenuAction2
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.NlActionManager
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -66,7 +68,8 @@ abstract class SwitchDeviceAction: AnAction() {
 class NextDeviceAction private constructor(): SwitchDeviceAction() {
 
   override fun switchDevice(config: Configuration) {
-    val devices = DeviceMenuAction.getSortedDevicesInMenu(config)
+    val devices = getSortedDevices(config)
+
     if (devices.isEmpty()) {
       return
     }
@@ -89,7 +92,7 @@ class NextDeviceAction private constructor(): SwitchDeviceAction() {
 class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
 
   override fun switchDevice(config: Configuration) {
-    val devices = DeviceMenuAction.getSortedDevicesInMenu(config)
+    val devices = getSortedDevices(config)
     if (devices.isEmpty()) {
       return
     }
@@ -106,5 +109,14 @@ class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
     fun getInstance(): PreviousDeviceAction {
       return ActionManager.getInstance().getAction(DesignerActions.ACTION_PREVIOUS_DEVICE) as PreviousDeviceAction
     }
+  }
+}
+
+private fun getSortedDevices(config: Configuration): List<Device> {
+  return if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
+    DeviceMenuAction2.getSortedMajorDevices(config)
+  }
+  else {
+    DeviceMenuAction.getSortedDevicesInMenu(config)
   }
 }

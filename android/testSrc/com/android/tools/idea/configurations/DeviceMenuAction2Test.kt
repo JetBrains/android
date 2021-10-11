@@ -129,17 +129,13 @@ class DeviceMenuAction2Test {
         5.1" WVGA (480 × 800 dp, mdpi)
         5.4" FWVGA (480 × 854 dp, mdpi)
         Resizable (411 × 891 dp, xxhdpi)
-        Phone (411 × 891 dp, xxhdpi)
         6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
-        Foldable (674 × 841 dp, xxhdpi)
         7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
         7.4" Rollable (610 × 925 dp, xxhdpi)
         7.6" Fold-in with outer display (674 × 841 dp, xxhdpi)
         8" Fold-out (838 × 945 dp, xxhdpi)
-        Tablet (1280 × 800 dp, xxhdpi)
         10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
         13.5" Freeform (1707 × 960 dp, hdpi)
-        Desktop (1920 × 1080 dp, xxhdpi)
     Add Device Definition
 """
     Truth.assertThat(actual).isEqualTo(expected)

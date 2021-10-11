@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
@@ -135,8 +136,9 @@ public class DeviceMenuAction extends DropDownAction {
     return StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE;
   }
 
+  @VisibleForTesting
   @Override
-  protected boolean updateActions(@NotNull DataContext context) {
+  public boolean updateActions(@NotNull DataContext context) {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
@@ -336,7 +338,8 @@ public class DeviceMenuAction extends DropDownAction {
     abstract public Device getDevice();
   }
 
-  static class SetDeviceAction extends DeviceAction {
+  @VisibleForTesting
+  public static class SetDeviceAction extends DeviceAction {
     @NotNull protected final Device myDevice;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,

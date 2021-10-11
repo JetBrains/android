@@ -90,7 +90,7 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
         isWear(it) -> DeviceGroup.WEAR
         isTv(it) -> DeviceGroup.TV
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)
-        isMobile(it) -> DeviceGroup.GENERIC
+        isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC
         else -> DeviceGroup.OTHER
       }
     }
