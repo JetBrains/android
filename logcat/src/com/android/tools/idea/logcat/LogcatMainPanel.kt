@@ -33,7 +33,11 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.intellij.execution.filters.CompositeFilter
+import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleBuffer
+import com.intellij.execution.impl.ConsoleViewUtil
+import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -41,6 +45,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
@@ -50,6 +55,7 @@ import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
@@ -60,6 +66,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
+import kotlin.math.max
 
 /**
  * The top level Logcat panel.
@@ -69,12 +76,14 @@ internal class LogcatMainPanel(
   private val popupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
+  hyperlinkHighlighterFactory: (EditorEx) -> HyperlinkHighlighter = ::HyperlinkHighlighterImpl,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
-  private val documentAppender = DocumentAppender(project, editor.document)
+  private val document = editor.document
+  private val documentAppender = DocumentAppender(project, document)
   private val deviceContext = DeviceContext()
   private val formattingOptions = state?.formattingOptions ?: FormattingOptions()
   private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
@@ -87,6 +96,10 @@ internal class LogcatMainPanel(
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
+  private val hyperlinkHighlighter = hyperlinkHighlighterFactory(editor)
+  private val hyperlinkFilters =
+    CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
+
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
 
   init {
@@ -111,7 +124,7 @@ internal class LogcatMainPanel(
         logcatReader?.let {
           Disposer.dispose(it)
         }
-        editor.document.setText("")
+        document.setText("")
         logcatReader = LogcatReader(device, this@LogcatMainPanel).also(LogcatReader::start)
       }
 
@@ -177,7 +190,15 @@ internal class LogcatMainPanel(
     // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
     val shouldStickToEnd = !ignoreCaretAtBottom && editor.isCaretAtBottom()
     ignoreCaretAtBottom = false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will be false.
+    // Mark the end for post-processing. Adding text changes the lines due to the cyclic buffer.
+    val endMarker: RangeMarker = document.createRangeMarker(document.textLength, document.textLength)
+
     documentAppender.appendToDocument(textAccumulator)
+
+    val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
+    endMarker.dispose()
+    val endLine = max(0, document.lineCount - 1)
+    hyperlinkHighlighter.highlightHyperlinks(hyperlinkFilters, startLine, endLine)
 
     if (shouldStickToEnd) {
       scrollToEnd()
@@ -190,7 +211,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun reloadMessages() {
-    editor.document.setText("")
+    document.setText("")
     AndroidCoroutineScope(this, workerThread).launch {
       messageProcessor.appendMessages(messageBacklog.messages)
     }
@@ -218,7 +239,7 @@ internal class LogcatMainPanel(
       messageBacklog.messages.clear()
       logcatReader?.start()
       withContext(uiThread) {
-        editor.document.setText("")
+        document.setText("")
         withContext(workerThread) {
           messageProcessor.appendMessages(messageBacklog.messages)
         }
@@ -226,7 +247,7 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun isMessageViewEmpty() = editor.document.textLength == 0
+  override fun isMessageViewEmpty() = document.textLength == 0
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread
@@ -252,7 +273,7 @@ internal class LogcatMainPanel(
       val document = (editorFactory as EditorFactoryImpl).createDocument(true)
       UndoUtil.disableUndoFor(document)
       val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
-      editor.document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
+      document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
       val editorSettings = editor.settings
       editorSettings.isAllowSingleLogicalLineFolding = true
       editorSettings.isLineMarkerAreaShown = false
@@ -269,6 +290,27 @@ internal class LogcatMainPanel(
 
       return editor
     }
+  }
+}
+
+/**
+ * Wrapper interface around [EditorHyperlinkSupport] to allow for testing.
+ */
+internal interface HyperlinkHighlighter {
+  /**
+   * Highlight hyperlinks in an [EditorEx].
+   *
+   * @param filter A [Filter] used by the [EditorHyperlinkSupport] implementation
+   * @param startLine Start line of region to process (zero based)
+   * @param startLine End line of region to process (zero based)
+   */
+  fun highlightHyperlinks(filter: Filter, startLine: Int, endLine: Int)
+}
+
+private class HyperlinkHighlighterImpl(editor: EditorEx) : HyperlinkHighlighter {
+  private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
+  override fun highlightHyperlinks(filter: Filter, startLine: Int, endLine: Int) {
+    editorHyperlinkSupport.highlightHyperlinks(filter, startLine, endLine)
   }
 }
 
