@@ -18,57 +18,36 @@ package com.android.tools.idea.run.deployment
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.ide.HelpTooltip
 import org.jetbrains.android.util.AndroidBundle
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-internal class UpdatableDeviceHelpTooltip : HelpTooltip() {
+internal class UpdatableDeviceHelpTooltip {
   private var myCompatibility: LaunchCompatibility? = null
+  private var owner: JComponent? = null
 
-  init {
-    createMouseListeners()
-  }
-
-  private fun createCustomMouseListener(): MouseAdapter {
-    return object : MouseAdapter() {
-      override fun mouseEntered(event: MouseEvent) {
-        if (myCompatibility == null || myCompatibility!!.state == LaunchCompatibility.State.OK) {
-          return
-        }
-        myMouseListener.mouseEntered(event)
-      }
-
-      override fun mouseExited(event: MouseEvent) = myMouseListener.mouseExited(event)
-
-      override fun mouseMoved(event: MouseEvent) {
-        if (myCompatibility == null || myCompatibility!!.state == LaunchCompatibility.State.OK) {
-          return
-        }
-        myMouseListener.mouseMoved(event)
-      }
-    }
-  }
-
-  override fun installOn(component: JComponent) {
-    val listener = createCustomMouseListener()
-    component.addMouseListener(listener)
-    component.addMouseMotionListener(listener)
+  fun installOn(component: JComponent) {
+    owner = component
   }
 
   fun updateTooltip(device: Device) {
     val compatibility = device.launchCompatibility
-    if (compatibility == myCompatibility) {
+    if (owner == null || compatibility == myCompatibility) {
       return
     }
+
+    cancel()
     myCompatibility = compatibility
-    hidePopup(true)
-    updateTooltip(device, this)
-    initPopupBuilder(this)
+
+    val helpTooltip = HelpTooltip()
+    if (updateTooltip(device, helpTooltip)) {
+      helpTooltip.installOn(owner!!)
+    }
   }
 
   fun cancel() {
     myCompatibility = null
-    hidePopup(true)
+    if (owner != null) {
+      HelpTooltip.dispose(owner!!)
+    }
   }
 }
 
