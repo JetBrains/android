@@ -28,6 +28,8 @@ import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
@@ -41,6 +43,7 @@ import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.kotlin.KotlinUClassLiteralExpression
+import org.jetbrains.uast.toUElement
 
 
 /**
@@ -63,7 +66,7 @@ internal fun UAnnotation.isPreviewAnnotation() = ReadAction.compute<Boolean, Thr
  */
 internal fun UAnnotation.toPreviewElement(overrideGroupName: String? = null): PreviewElement? = ReadAction.compute<PreviewElement?, Throwable> {
   if (isPreviewAnnotation()) {
-    val uMethod = getContainingUMethod()
+    val uMethod = getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
     uMethod?.let {
       // The method must also be annotated with @Composable
       if (it.uAnnotations.any { annotation -> COMPOSABLE_FQ_NAMES.contains(annotation.qualifiedName) }) {

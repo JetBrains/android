@@ -54,7 +54,8 @@ fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
   fun isFullNamePreviewAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
     annotations.any { previewFqn ->
-      annotation.text.startsWith("@$previewFqn")
+      // In brackets annotations don't start with '@', but typical annotations do. Normalize them by removing it
+      annotation.text.removePrefix("@").startsWith("$previewFqn")
     }
 
   val psiFile = PsiManager.getInstance(project).findFile(vFile)
