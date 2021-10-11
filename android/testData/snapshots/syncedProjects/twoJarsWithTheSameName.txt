@@ -137,20 +137,8 @@ PROJECT                       : My Application
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: ./lib1/liba.jar
-            LibraryLevel                  : project
-            IsModuleLevel                 : false
-            Scope                         : Compile
-            IsExported                    : false
-            Name                          : Gradle: ./lib1/liba.jar [=]
-            *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY                       : Gradle: ./lib2/liba.jar
-            LibraryLevel                  : project
-            IsModuleLevel                 : false
-            Scope                         : Compile
-            IsExported                    : false
-            Name                          : Gradle: ./lib2/liba.jar [=]
-            *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+        LIBRARY                       : Gradle: ./lib1/liba.jar [=]
+        LIBRARY                       : Gradle: ./lib2/liba.jar [=]
         ORDER_ENTRY                   : My_Application.lib
     MODULE                        : My_Application.lib
         ExternalModuleGroup           : My Application
@@ -181,21 +169,18 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: liba
-            LibraryLevel                  : project
-            IsModuleLevel                 : false
-            Scope                         : Compile
-            IsExported                    : false
-            Name                          : Gradle: liba [=]
-            *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY                       : Gradle: liba_1
-            LibraryLevel                  : project
-            IsModuleLevel                 : false
-            Scope                         : Compile
-            IsExported                    : false
-            Name                          : Gradle: liba_1 [=]
-            *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+        LIBRARY                       : Gradle: liba [=]
+        LIBRARY                       : Gradle: liba_1 [=]
     RUN_CONFIGURATION             : My_Application
         *class*                       : AndroidRunConfiguration
         ModuleName                    : My_Application
         Module                        : My_Application
+    LIBRARY_TABLE
+        LIBRARY                       : Gradle: ./lib1/liba.jar
+            *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
+        LIBRARY                       : Gradle: ./lib2/liba.jar
+            *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+        LIBRARY                       : Gradle: liba
+            *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
+        LIBRARY                       : Gradle: liba_1
+            *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/

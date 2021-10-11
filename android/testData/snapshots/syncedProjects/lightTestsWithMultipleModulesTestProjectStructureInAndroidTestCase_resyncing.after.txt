@@ -257,15 +257,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             HomePath                      : <ANDROID_SDK>
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: com.example:library:1.0
-            LibraryLevel                  : project
-            IsModuleLevel                 : false
-            Scope                         : Compile
-            IsExported                    : false
-            Name                          : Gradle: com.example:library:1.0 [=]
-            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/manifest.xml [-]
-            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/res [-]
-            *CLASSES                      : jar://<TEMP>/.gradle/libraryFolder/api.jar!/ [-]
+        LIBRARY                       : Gradle: com.example:library:1.0 [=]
     MODULE                        : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing
         LinkedProjectId               : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing
         LinkedProjectPath             : <TEMP>
@@ -290,3 +282,8 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         *class*                       : AndroidRunConfiguration
         ModuleName                    : lib
         Module                        : lib
+    LIBRARY_TABLE
+        LIBRARY                       : Gradle: com.example:library:1.0
+            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/manifest.xml [-]
+            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/res [-]
+            *CLASSES                      : jar://<TEMP>/.gradle/libraryFolder/api.jar!/ [-]
