@@ -18,22 +18,18 @@ package com.android.tools.idea.logcat
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.DevicePanel
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.Component
-import java.awt.LayoutManager
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import javax.swing.GroupLayout
-import javax.swing.GroupLayout.Alignment.CENTER
+import java.awt.Dimension
+import java.awt.FlowLayout
+import java.awt.FlowLayout.LEFT
 import javax.swing.JPanel
 
 /**
  * A header for the Logcat panel.
  */
-internal class LogcatHeaderPanel(project: Project, deviceContext: DeviceContext) : JPanel() {
+internal class LogcatHeaderPanel(project: Project, deviceContext: DeviceContext) : JPanel(FlowLayout(LEFT)) {
   private val deviceComboBox: Component
-  private val clientComboBox: Component
 
   init {
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
@@ -41,48 +37,7 @@ internal class LogcatHeaderPanel(project: Project, deviceContext: DeviceContext)
     //  It's not yet clear if we will and up using DevicePanel or not, so will not make changes to it just yet.
     val devicePanel = DevicePanel(project, deviceContext)
     deviceComboBox = devicePanel.deviceComboBox
-    clientComboBox = devicePanel.clientComboBox
-
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(event: ComponentEvent) {
-        layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
-      }
-    })
-  }
-
-  private fun createWideLayout(): LayoutManager {
-    val layout = GroupLayout(this)
-    val minimumWidth = ComboBox<String>().minimumSize.width
-    val maxWidth = JBUI.scale(400)
-
-    layout.autoCreateContainerGaps = true
-    layout.autoCreateGaps = true
-
-    layout.setHorizontalGroup(
-      layout.createSequentialGroup()
-        .addComponent(deviceComboBox, minimumWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(clientComboBox, minimumWidth, GroupLayout.DEFAULT_SIZE, maxWidth))
-    layout.setVerticalGroup(
-      layout.createParallelGroup(CENTER)
-        .addComponent(deviceComboBox)
-        .addComponent(clientComboBox))
-    return layout
-  }
-
-  private fun createNarrowLayout(): LayoutManager {
-    val layout = GroupLayout(this)
-
-    layout.autoCreateContainerGaps = true
-    layout.autoCreateGaps = true
-
-    layout.setHorizontalGroup(
-      layout.createParallelGroup()
-        .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createSequentialGroup().addComponent(clientComboBox)))
-    layout.setVerticalGroup(
-      layout.createSequentialGroup()
-        .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createParallelGroup(CENTER).addComponent(clientComboBox)))
-    return layout
+    deviceComboBox.preferredSize = Dimension(JBUI.scale(300), deviceComboBox.minimumSize.height)
+    add(deviceComboBox)
   }
 }
