@@ -254,6 +254,10 @@ public class AndroidFileChangeListener implements Disposable {
         return true;
       }
     }
+    // Do not test getFileType() as this will differ depending on whether the toml plugin is active or not.
+    if (file.getName().endsWith(".versions.toml")) {
+      return true;
+    }
     if (file.getFileType() == PropertiesFileType.INSTANCE) {
       if (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName())) {
         return true;

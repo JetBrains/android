@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
+import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
@@ -325,6 +326,16 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     }), false, false, getAppBuildFile());
   }
 
+  public void testModifiedWhenVersionCatalogFileChanged() throws Exception {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG);
+    VirtualFile libs = findOrCreateFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getChildren().length).isGreaterThan(0);
+      PsiElement firstCopy = file.getChildren()[0].copy();
+      file.getChildren()[0].add(firstCopy);
+    }, true, libs);
+  }
+
   public void testIsGradleFileWithBuildDotGradleFile() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
     assertTrue(myGradleFiles.isGradleFile(psiFile));
@@ -353,6 +364,11 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   public void testIsGradleFileWithRenamedKts() {
     PsiFile psiFile = PsiFileFactory.getInstance(getProject())
       .createFileFromText("app.gradle.kts", FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
+    assertTrue(myGradleFiles.isGradleFile(psiFile));
+  }
+
+  public void testIsGradleFileWithVersionsToml() {
+    PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
     assertTrue(myGradleFiles.isGradleFile(psiFile));
   }
 

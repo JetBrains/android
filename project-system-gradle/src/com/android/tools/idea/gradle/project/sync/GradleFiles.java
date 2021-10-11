@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -351,7 +352,7 @@ public class GradleFiles {
     String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
     File rootFolderPath = getBaseDirPath(myProject);
     VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
-    Runnable settingsAndPropertiesRunnable = () -> {
+    Runnable projectWideFilesRunnable = () -> {
       for (String fileName : fileNames) {
         ProgressManager.checkCanceled();
         File filePath = new File(rootFolderPath, fileName);
@@ -362,13 +363,27 @@ public class GradleFiles {
           }
         }
       }
+      ProgressManager.checkCanceled();
+      File gradlePath = new File(rootFolderPath, "gradle");
+      if (gradlePath.isDirectory()) {
+        File[] gradleFiles = gradlePath.listFiles((dir, name) -> name.endsWith(".versions.toml"));
+        for (File tomlFile : gradleFiles) {
+          ProgressManager.checkCanceled();
+          if (tomlFile.isFile()) {
+            VirtualFile virtualFile = VfsUtil.findFileByIoFile(tomlFile, false);
+            if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+            }
+          }
+        }
+      }
     };
     if (rootFolder != null) {
-      Future settingsAndPropertiesFuture = executorService.submit(
-        () -> progressManager.executeProcessUnderProgress(settingsAndPropertiesRunnable, progressIndicator)
+      Future projectWideFilesFuture = executorService.submit(
+        () -> progressManager.executeProcessUnderProgress(projectWideFilesRunnable, progressIndicator)
       );
       try {
-        settingsAndPropertiesFuture.get();
+        projectWideFilesFuture.get();
       } catch (InterruptedException | ExecutionException e) {
         /* ignored */
       }
