@@ -23,6 +23,7 @@
         </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/2.5.8/checker-qual-2.5.8.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
