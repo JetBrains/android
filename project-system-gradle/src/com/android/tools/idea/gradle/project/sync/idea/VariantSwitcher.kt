@@ -231,8 +231,6 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
   val holderModuleNodes = findAllRecursively(this, ProjectKeys.MODULE)
   val roots = holderModuleNodes.filter { !it.data.id.contains(':') }.associateBy { it.data.id }
 
-  val sourceSetModuleNodes = findAllRecursively(this, GradleSourceSetData.KEY)
-
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
       val androidModel = AndroidModuleModel.findFromModuleDataNode(node) ?: return@mapNotNull null

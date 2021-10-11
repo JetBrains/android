@@ -16,11 +16,10 @@
 package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
-import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
@@ -41,11 +40,11 @@ import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModu
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
@@ -56,7 +55,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -70,10 +68,8 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.io.File
-import java.util.HashSet
 import java.util.concurrent.TimeUnit
 
 /**
@@ -115,10 +111,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
       mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
 
-      val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
-        modelsProvider.findIdeModule(dataNode.data)
-      }
-
+      val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
         nonAndroidModules.remove<Module>(module)
         val facetModel = modelsProvider.getModifiableFacetModel(module)
@@ -226,9 +219,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         IdeSdks.getInstance()
       )
 
-      val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
-        modelsProvider.findIdeModule(dataNode.data)
-      }
+      val modules = mainIdeModule.getAllLinkedModules()
       modules.forEach { module ->
         module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
       }
