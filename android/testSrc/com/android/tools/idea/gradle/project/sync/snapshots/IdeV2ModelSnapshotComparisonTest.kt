@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -108,8 +109,15 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
         projectName.template,
         "project"
       )
+      CaptureKotlinModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
       openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
-        val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper -> projectDumper.dumpAndroidIdeModel(project) }
+        val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
+          projectDumper.dumpAndroidIdeModel(
+            project,
+            kotlinModels = { CaptureKotlinModelsProjectResolverExtension.getKotlinModel(it) },
+            kaptModels = { CaptureKotlinModelsProjectResolverExtension.getKaptModel(it) }
+          )
+        }
         assertIsEqualToSnapshot(dump)
       }
     }

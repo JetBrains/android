@@ -843,6 +843,255 @@ MODULE                        : MainActivity.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    KotlinGradleModel
+        hasKotlinPlugin               : true
+        implements                    :
+        kotlinTarget                  : kotlin-android
+        gradleUserHome                : <GRADLE>
+        kotlinTaskProperties          : debug
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/app/src/debug/kotlin [-]
+            pureKotlinSourceFolders       : <ROOT>/app/src/debug/java [-]
+            pluginVersion                 : 1.5.30
+        kotlinTaskProperties          : debugAndroidTest
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/app/src/debugAndroidTest/kotlin [-]
+            pluginVersion                 : 1.5.30
+        kotlinTaskProperties          : debugUnitTest
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/app/src/debugUnitTest/kotlin [-]
+            pluginVersion                 : 1.5.30
+        compilerArgumentsBySourceSet  : debug
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debug
+            currentArguments              : -module-name
+            currentArguments              : app_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -module-name
+            defaultArguments              : app_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
+        compilerArgumentsBySourceSet  : debugAndroidTest
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-integration-1.3.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-library-1.3.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kxml2-2.3.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javawriter-2.1.1.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jsr305-2.0.1.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
+            currentArguments              : -Xfriend-paths
+                -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+            currentArguments              : -module-name
+            currentArguments              : app_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -Xfriend-paths
+                -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+            defaultArguments              : -module-name
+            defaultArguments              : app_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
+        compilerArgumentsBySourceSet  : debugUnitTest
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/dagger-2.6.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/javax.inject-1.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
+            currentArguments              : -Xfriend-paths
+                -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+            currentArguments              : -module-name
+            currentArguments              : app_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -Xfriend-paths
+                -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
+                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+            defaultArguments              : -module-name
+            defaultArguments              : app_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
+    kaptGradleModel
+        buildDirectory                : <ROOT>/app/build [-]
+        sourceSets                    : debug
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debug [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
+        sourceSets                    : debugAndroidTest
+            isTest                        : true
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debugAndroidTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
+        sourceSets                    : debugUnitTest
+            isTest                        : true
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
 MODULE                        : MainActivity.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2750,3 +2999,274 @@ MODULE                        : MainActivity.lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    KotlinGradleModel
+        hasKotlinPlugin               : true
+        implements                    :
+        kotlinTarget                  : kotlin-android
+        gradleUserHome                : <GRADLE>
+        kotlinTaskProperties          : debug
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/lib/src/debug/kotlin [-]
+            pureKotlinSourceFolders       : <ROOT>/lib/src/debug/java [-]
+            pluginVersion                 : 1.5.30
+        kotlinTaskProperties          : debugAndroidTest
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/lib/src/debugAndroidTest/kotlin [-]
+            pluginVersion                 : 1.5.30
+        kotlinTaskProperties          : debugUnitTest
+            incremental                   : true
+            pureKotlinSourceFolders       : <ROOT>/lib/src/debugUnitTest/kotlin [-]
+            pluginVersion                 : 1.5.30
+        compilerArgumentsBySourceSet  : debug
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debug
+            currentArguments              : -module-name
+            currentArguments              : lib_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -module-name
+            defaultArguments              : lib_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
+        compilerArgumentsBySourceSet  : debugAndroidTest
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
+            currentArguments              : -Xfriend-paths
+                -                             : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+            currentArguments              : -module-name
+            currentArguments              : lib_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -Xfriend-paths
+                -                             : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+            defaultArguments              : -module-name
+            defaultArguments              : lib_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
+        compilerArgumentsBySourceSet  : debugUnitTest
+            currentArguments              : -Xallow-no-source-files
+            currentArguments              : -classpath
+            currentArguments              :
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
+                -                             : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
+                -                             : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
+                -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
+                -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
+                -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
+                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
+                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+            currentArguments              : -d
+            currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
+            currentArguments              : -Xfriend-paths
+                -                             : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+            currentArguments              : -module-name
+            currentArguments              : lib_debug
+            currentArguments              : -no-jdk
+            currentArguments              : -no-reflect
+            currentArguments              : -no-stdlib
+            currentArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            currentArguments              : -P
+            currentArguments              : -jvm-target
+            currentArguments              : 1.8
+            defaultArguments              : -Xfriend-paths
+                -                             : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
+                -                             : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                -                             : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
+            defaultArguments              : -module-name
+            defaultArguments              : lib_debug
+            defaultArguments              : -no-reflect
+            defaultArguments              : -no-stdlib
+            defaultArguments              : -Xplugin
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                -                             : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+            defaultArguments              : -P
+            defaultArguments              : -jvm-target
+            defaultArguments              : 1.8
