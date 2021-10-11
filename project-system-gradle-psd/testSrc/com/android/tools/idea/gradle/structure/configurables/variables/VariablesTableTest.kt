@@ -107,7 +107,7 @@ class VariablesTableTest {
       val tableModel = variablesTable.tableModel
 
       val rootNode = tableModel.root as DefaultMutableTreeNode
-      assertThat(rootNode.childCount, equalTo(11))
+      assertThat(rootNode.childCount, equalTo(12))
 
       val buildScriptNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
       assertThat(tableModel.getValueAt(buildScriptNode, 0) as String, equalTo("project (build script)"))
@@ -174,6 +174,11 @@ class VariablesTableTest {
       assertThat(tableModel.getValueAt(nested2Deep2Node, 1), equalTo(ParsedValue.NotSet))
       assertThat(nested2Deep2Node.childCount, equalTo(1))
       assertThat(variablesTable.tree.isExpanded(TreePath(nested2Deep2Node.path)), equalTo(false))
+
+      val versionCatalogNode = rootNode.getChildAt(11) as DefaultMutableTreeNode
+      assertThat(tableModel.getValueAt(versionCatalogNode, 0) as String, equalTo("project (version catalog)"))
+      assertThat(versionCatalogNode.childCount, equalTo(1))
+      assertThat(variablesTable.tree.isExpanded(TreePath(versionCatalogNode.path)), equalTo(false))
 
       val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
       for (column in 0..1) {

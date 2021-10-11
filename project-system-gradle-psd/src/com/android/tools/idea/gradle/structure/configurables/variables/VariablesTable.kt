@@ -767,7 +767,8 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     listOf(RootModuleShadowNode(project.buildScriptVariables)) +
     listOf(RootModuleShadowNode(project.variables)) +
-    project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
+    project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) } +
+    listOf(RootModuleShadowNode(project.versionCatalogVariables))
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = project.modules.onChange(disposable, listener)

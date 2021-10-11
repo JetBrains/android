@@ -109,6 +109,7 @@ open class PsVariables (
       is PsProject -> from.parsedModel.projectBuildModel?.ext()
       is PsModule -> from.parsedModel?.ext()
       is PsBuildScript -> from.parsedModel?.ext()
+      is PsVersionCatalog -> from.parsedModel?.versions("libs")
       else -> throw IllegalStateException()
     }
 }

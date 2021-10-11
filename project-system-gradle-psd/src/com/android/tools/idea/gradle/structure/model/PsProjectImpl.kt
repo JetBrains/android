@@ -42,11 +42,14 @@ class PsProjectImpl(
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val buildScriptVariables: PsVariables
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
+  final override val versionCatalogVariables: PsVariables
+  @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
   val buildScript : PsBuildScript = PsBuildScript(this)
+  val versionCatalog : PsVersionCatalog = PsVersionCatalog(this)
   override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 
   override val parent: PsModel? = null
@@ -64,6 +67,7 @@ class PsProjectImpl(
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     buildScriptVariables = PsVariables(buildScript, "$name (build script)", "Build Script: $name", null)
+    versionCatalogVariables = PsVariables(versionCatalog, "$name (version catalog)", "Version Catalog: $name", null)
     variables = PsVariables(this, "$name (project)", "Project: $name", buildScriptVariables)
     moduleCollection = PsModuleCollection(this)
   }
@@ -114,6 +118,7 @@ class PsProjectImpl(
       parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
       variables.refresh()
       buildScriptVariables.refresh()
+      versionCatalogVariables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
     }
