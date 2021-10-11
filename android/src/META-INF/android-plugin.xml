@@ -32,8 +32,6 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
-    <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
-    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>

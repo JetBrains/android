@@ -378,4 +378,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
     <lintIdeSupport implementation="com.android.tools.idea.lint.AndroidLintIdeSupport"/>
   </extensions>
+
+  <actions>
+    <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.lint.actions.CallGraphAction"/>
+    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.lint.actions.WrongThreadInterproceduralAction"/>
+  </actions>
 </idea-plugin>
