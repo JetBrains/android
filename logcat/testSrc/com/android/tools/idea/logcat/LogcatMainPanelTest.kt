@@ -271,6 +271,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
+    assertThat(logcatMainPanel.messageBacklog.messages).isEmpty()
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
 

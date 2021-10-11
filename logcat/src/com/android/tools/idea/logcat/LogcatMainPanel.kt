@@ -20,9 +20,9 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
@@ -78,7 +78,9 @@ internal class LogcatMainPanel(
   private val deviceContext = DeviceContext()
   private val formattingOptions = state?.formattingOptions ?: FormattingOptions()
   private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
-  private val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
+
+  @VisibleForTesting
+  internal val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages)
@@ -189,7 +191,7 @@ internal class LogcatMainPanel(
   @UiThread
   override fun reloadMessages() {
     editor.document.setText("")
-    AndroidCoroutineScope(this, AndroidDispatchers.workerThread).launch {
+    AndroidCoroutineScope(this, workerThread).launch {
       messageProcessor.appendMessages(messageBacklog.messages)
     }
   }
@@ -209,9 +211,17 @@ internal class LogcatMainPanel(
   @UiThread
   override fun clearMessageView() {
     AndroidCoroutineScope(this, ioThread).launch {
-      logcatReader?.clearLogcat()
+      logcatReader?.let {
+        it.stop()
+        it.clearLogcat()
+      }
+      messageBacklog.messages.clear()
+      logcatReader?.start()
       withContext(uiThread) {
         editor.document.setText("")
+        withContext(workerThread) {
+          messageProcessor.appendMessages(messageBacklog.messages)
+        }
       }
     }
   }
