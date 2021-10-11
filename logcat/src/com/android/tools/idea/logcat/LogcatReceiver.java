@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
+import static com.android.ddmlib.Log.LogLevel.INFO;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 
 import com.android.ddmlib.IDevice;
@@ -28,6 +29,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +66,8 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
    * Prefix to use for the stack trace "Caused by:" lines.
    */
   private static final @NotNull String STACK_TRACE_CAUSE_LINE_PREFIX = " ";
+  private static final String SYSTEM_LINE_PREFIX = "--------- beginning of ";
+
   private final @NotNull LogCatHeaderParser myLogCatHeaderParser;
   private final @NotNull IDevice myDevice;
   private final @NotNull StackTraceExpander myStackTraceExpander;
@@ -177,6 +181,10 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
 
     ImmutableList.Builder<LogCatMessage> batchMessages = new ImmutableList.Builder<>();
     for (String line : newLines) {
+      if (isSystemLine(line)) {
+        batchMessages.add(new LogCatMessage(new LogCatHeader(INFO, /* pid=*/ 0, /* tid=*/ 0, "System", "Logcat", Instant.now()), line));
+        continue;
+      }
       line = fixLine(line);
 
       LogCatHeader header = myLogCatHeaderParser.parseHeader(line, myDevice);
@@ -197,6 +205,10 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
       }
     }
     return new Batch(batchMessages.build(), activeHeader, activeLines);
+  }
+
+  private static boolean isSystemLine(String line) {
+    return line.startsWith(SYSTEM_LINE_PREFIX);
   }
 
   @NotNull
