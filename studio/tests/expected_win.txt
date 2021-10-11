@@ -1957,9 +1957,6 @@ android-studio/plugins/android/resources/simpleperf/armeabi-v7a/simpleperf
 android-studio/plugins/android/resources/simpleperf/windows-x86_64/libsimpleperf_report.dll
 android-studio/plugins/android/resources/simpleperf/windows-x86_64/libwinpthread-1.dll
 android-studio/plugins/android/resources/simpleperf/windows-x86_64/simpleperf.exe
-android-studio/plugins/android/resources/simpleperf/windows/libsimpleperf_report.dll
-android-studio/plugins/android/resources/simpleperf/windows/libwinpthread-1.dll
-android-studio/plugins/android/resources/simpleperf/windows/simpleperf.exe
 android-studio/plugins/android/resources/simpleperf/x86/simpleperf
 android-studio/plugins/android/resources/simpleperf/x86_64/simpleperf
 android-studio/plugins/android/resources/trace_agent.jar
