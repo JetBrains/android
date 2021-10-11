@@ -17,21 +17,19 @@ package com.android.tools.idea.run.deployment
 
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.ide.HelpTooltip
-import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JList
 
-internal open class UpdatableDeviceHelpTooltip : HelpTooltip() {
+internal class UpdatableDeviceHelpTooltip : HelpTooltip() {
   private var myCompatibility: LaunchCompatibility? = null
 
   init {
     createMouseListeners()
   }
 
-  protected open fun createCustomMouseListener(): MouseAdapter {
+  private fun createCustomMouseListener(): MouseAdapter {
     return object : MouseAdapter() {
       override fun mouseEntered(event: MouseEvent) {
         if (myCompatibility == null || myCompatibility!!.state == LaunchCompatibility.State.OK) {
@@ -57,20 +55,15 @@ internal open class UpdatableDeviceHelpTooltip : HelpTooltip() {
     component.addMouseMotionListener(listener)
   }
 
-  protected fun updateTooltip(device: Device) {
+  fun updateTooltip(device: Device) {
     val compatibility = device.launchCompatibility
     if (compatibility == myCompatibility) {
       return
     }
     myCompatibility = compatibility
     hidePopup(true)
-
-    val title = when (compatibility.state) {
-      LaunchCompatibility.State.OK -> return
-      LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
-      LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
-    }
-    initPopupBuilder(HelpTooltip().setTitle(title).setDescription(compatibility.reason))
+    updateTooltip(device, this)
+    initPopupBuilder(this)
   }
 
   fun cancel() {
@@ -79,34 +72,15 @@ internal open class UpdatableDeviceHelpTooltip : HelpTooltip() {
   }
 }
 
-internal class UpdatableDeviceHelpTooltipForList : UpdatableDeviceHelpTooltip() {
-  private fun getDeviceForEvent(event: MouseEvent): Device? {
-    val list = event.component as JList<*>
-    val index = list.locationToIndex(event.point)
-    val action = (list.model.getElementAt(index) as ActionItem).action
-
-    return when (action) {
-      is SelectDeviceAction -> action.device
-      is SnapshotActionGroup -> action.device
-      else -> null
-    }
+internal fun updateTooltip(device: Device, helpTooltip: HelpTooltip): Boolean {
+  val title = when (device.launchCompatibility.state) {
+    LaunchCompatibility.State.OK -> return false
+    LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
+    LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
   }
 
-  override fun createCustomMouseListener(): MouseAdapter {
-    val listener = super.createCustomMouseListener()
+  helpTooltip.setTitle(title)
+  helpTooltip.setDescription(device.launchCompatibility.reason)
 
-    return object : MouseAdapter() {
-      override fun mouseEntered(event: MouseEvent) {
-        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
-        listener.mouseEntered(event)
-      }
-
-      override fun mouseExited(event: MouseEvent) = listener.mouseExited(event)
-
-      override fun mouseMoved(event: MouseEvent) {
-        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
-        listener.mouseMoved(event)
-      }
-    }
-  }
+  return true
 }

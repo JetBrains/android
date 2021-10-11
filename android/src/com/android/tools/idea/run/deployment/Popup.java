@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.adtui.util.HelpTooltipForList;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
@@ -32,7 +35,6 @@ import javax.swing.ListModel;
 import org.jetbrains.annotations.NotNull;
 
 final class Popup extends ActionGroupPopup {
-  private final @NotNull UpdatableDeviceHelpTooltipForList myTooltipForList;
 
   Popup(@NotNull ActionGroup group, @NotNull DataContext context, @NotNull Runnable runnable) {
     super(null, group, context, false, true, true, false, runnable, 30, null, null, true);
@@ -43,8 +45,16 @@ final class Popup extends ActionGroupPopup {
 
     list.setCellRenderer(new CellRenderer(this));
     list.setName("deviceAndSnapshotComboBoxList");
-    myTooltipForList = new UpdatableDeviceHelpTooltipForList();
-    myTooltipForList.installOn(list);
+    new HelpTooltipForList<ActionItem>().installOnList(this, list, (listIndex, tooltip) -> {
+      AnAction action = list.getModel().getElementAt(listIndex).getAction();
+      if (action instanceof SelectDeviceAction) {
+        return UpdatableDeviceHelpTooltipKt.updateTooltip(((SelectDeviceAction)action).getDevice(), tooltip);
+      }
+      if (action instanceof SnapshotActionGroup) {
+        return UpdatableDeviceHelpTooltipKt.updateTooltip(((SnapshotActionGroup)action).getDevice(), tooltip);
+      }
+      return false;
+    });
 
     ActionMap map = list.getActionMap();
 
@@ -55,7 +65,7 @@ final class Popup extends ActionGroupPopup {
   @Override
   protected void disposeAllParents(@NotNull InputEvent event) {
     // There is case when a tooltip is scheduled to show, but the popup is already closed (disposeAllParents is called).
-    myTooltipForList.cancel();
+    HelpTooltip.dispose(getList());
     super.disposeAllParents(event);
   }
 
