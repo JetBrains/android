@@ -16,12 +16,23 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
 
   GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile versionCatalogFile) {
     super(versionCatalogFile);
+  }
+
+  @Override
+  public @NotNull ExtModel versions() {
+    GradleDslExpressionMap versionsDslElement = myGradleDslFile.ensurePropertyElementAt(
+      new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new), 0);
+    return new ExtModelImpl(versionsDslElement);
   }
 }

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,10 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
  */
 public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel {
   public ExtModelImpl(@NotNull ExtDslElement dslElement) {
+    super(dslElement);
+  }
+
+  public ExtModelImpl(@NotNull GradleDslExpressionMap dslElement) {
     super(dslElement);
   }
 
