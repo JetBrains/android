@@ -714,6 +714,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = copy(artifact::getAdditionalClassesFolders, ::deduplicateFile).toList(),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      unresolvedDependencies = emptyList(),
       applicationId = artifact.applicationId,
       generatedResourceFolders = copy(artifact::getGeneratedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
@@ -758,6 +759,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       multiFlavorSourceProvider = copyNewModel(artifact::getMultiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = copy(artifact::getAdditionalClassesFolders, ::deduplicateFile).toList(),
       level2Dependencies = dependenciesFrom(artifact, variantName, androidModuleId),
+      unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
     )

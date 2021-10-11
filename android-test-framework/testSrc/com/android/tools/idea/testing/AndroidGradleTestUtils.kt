@@ -601,6 +601,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
@@ -639,6 +640,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,
@@ -677,6 +679,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = true,
     level2Dependencies = dependencies,
+    unresolvedDependencies = emptyList(),
     mockablePlatformJar = mockablePlatformJar
   )
 }
@@ -700,6 +703,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     mutableGeneratedSourceFolders = mutableListOf(),
     isTestArtifact = false,
     level2Dependencies = dependenciesStub,
+    unresolvedDependencies = emptyList(),
     applicationId = "applicationId",
     signingConfigName = "defaultConfig",
     isSigned = false,

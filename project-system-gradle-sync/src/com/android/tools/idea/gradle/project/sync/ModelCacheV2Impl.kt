@@ -48,6 +48,7 @@ import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.ide.SourceSetContainer
 import com.android.builder.model.v2.ide.TestInfo
 import com.android.builder.model.v2.ide.TestedTargetVariant
+import com.android.builder.model.v2.ide.UnresolvedDependency
 import com.android.builder.model.v2.ide.Variant
 import com.android.builder.model.v2.ide.VectorDrawablesOptions
 import com.android.builder.model.v2.ide.ViewBindingOptions
@@ -82,6 +83,7 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -112,6 +114,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -655,6 +658,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   ): IdeDependencies {
     return createFromDependencies(artifactDependencies, libraries, buildNameMap)
   }
+  fun unresolvedDependenciesFrom(unresolvedDependencies: List<UnresolvedDependency>): List<IdeUnresolvedDependencies> {
+    return unresolvedDependencies.map { IdeUnresolvedDependenciesImpl(it.name, it.cause) }
+  }
 
   fun convertV2Execution(execution: TestInfo.Execution?): IdeTestOptions.Execution? {
     return if (execution == null) null
@@ -712,6 +718,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       multiFlavorSourceProvider = copyNewModel(basicArtifact::multiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = dependenciesFrom(artifactDependencies, libraries, buildNameMap),
+      unresolvedDependencies = copyNewModel(artifactDependencies::unresolvedDependencies, ::unresolvedDependenciesFrom) ?: emptyList(),
       applicationId = "",
       generatedResourceFolders = copy(artifact::generatedResourceFolders, ::deduplicateFile).distinct(),
       signingConfigName = artifact.signingConfigName,
@@ -759,6 +766,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       multiFlavorSourceProvider = copyNewModel(basicArtifact::multiFlavorSourceProvider, ::sourceProviderFrom),
       additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = dependenciesFrom(variantDependencies, libraries, buildNameMap),
+      unresolvedDependencies = copyNewModel(variantDependencies::unresolvedDependencies, ::unresolvedDependenciesFrom) ?: emptyList(),
       mockablePlatformJar = copy(artifact::mockablePlatformJar),
       isTestArtifact = name == "_unit_test_"
     )

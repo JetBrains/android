@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import java.io.File
 
 data class IdeAndroidArtifactImpl(
@@ -39,6 +39,7 @@ data class IdeAndroidArtifactImpl(
   private val mutableGeneratedSourceFolders: MutableList<File>,
   override val isTestArtifact: Boolean,
   override val level2Dependencies: IdeDependencies,
+  override val unresolvedDependencies: List<IdeUnresolvedDependencies>,
   override val applicationId: String,
   override val signingConfigName: String?,
   override val isSigned: Boolean,

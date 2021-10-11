@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
@@ -346,8 +347,22 @@ internal class AndroidExtraModelProviderWorker(
             controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
           }
 
+          // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
+          val v2UnresolvedDependenciesIssues = if (module is AndroidModule) {
+            module.unresolvedDependencies.map {
+              IdeSyncIssueImpl(
+                message = "Unresolved dependencies",
+                data = "Failed to resolve: ${it.name}",
+                multiLineMessage = it.cause?.lines(),
+                severity = IdeSyncIssue.SEVERITY_ERROR,
+                type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
+              ) }
+          } else {
+            emptyList()
+          }
+
           if (syncIssues != null) {
-            module.setSyncIssues(syncIssues)
+            module.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues)
           }
         }
       }
@@ -525,6 +540,7 @@ internal class AndroidExtraModelProviderWorker(
 
       preModuleDependencies.filterNotNull().forEach { result ->
         result.module.syncedVariant = result.ideVariant
+        result.module.unresolvedDependencies = result.unresolvedDependencies
         result.module.syncedNativeVariant = when (val nativeVariantAbiResult = result.nativeVariantAbi) {
           is NativeVariantAbiResult.V1 -> nativeVariantAbiResult.variantAbi
           is NativeVariantAbiResult.V2 -> null
@@ -593,7 +609,8 @@ internal class AndroidExtraModelProviderWorker(
     val module: AndroidModule,
     val ideVariant: IdeVariant,
     val nativeVariantAbi: NativeVariantAbiResult,
-    val moduleDependencies: List<ModuleConfiguration>
+    val moduleDependencies: List<ModuleConfiguration>,
+    val unresolvedDependencies: List<IdeUnresolvedDependencies>
   )
 
   /**
@@ -683,6 +700,15 @@ internal class AndroidExtraModelProviderWorker(
         }
       }
 
+      fun getUnresolvedDependencies(): List<IdeUnresolvedDependencies> {
+         val unresolvedDependencies = mutableListOf<IdeUnresolvedDependencies>()
+        unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
+        ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+        ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+
+        return unresolvedDependencies
+      }
+
       /**
        * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
        * real dependencies of each feature module variant are we can only guess.
@@ -700,7 +726,8 @@ internal class AndroidExtraModelProviderWorker(
         module,
         ideVariant,
         nativeVariantAbi,
-        generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
+        generateDirectModuleDependencies() + generateDynamicFeatureDependencies(),
+        getUnresolvedDependencies()
       )
     }
   }

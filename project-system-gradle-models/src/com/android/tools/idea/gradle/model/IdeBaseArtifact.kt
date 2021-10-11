@@ -91,6 +91,7 @@ interface IdeBaseArtifact : Serializable {
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
   val level2Dependencies: IdeDependencies
+  val unresolvedDependencies: List<IdeUnresolvedDependencies>
 
   // See: http://b/71706169
   fun addGeneratedSourceFolder(generatedSourceFolder: File)

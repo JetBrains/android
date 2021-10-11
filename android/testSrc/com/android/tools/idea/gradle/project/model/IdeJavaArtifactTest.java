@@ -47,6 +47,7 @@ public class IdeJavaArtifactTest {
           (List)original.getGeneratedSourceFolders(),
           false,
           new IdeDependenciesImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()),
+          Collections.emptyList(),
           original.getMockablePlatformJar()
     );
         assertEqualsOrSimilar(original, copy);
