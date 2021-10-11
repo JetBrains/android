@@ -1087,6 +1087,11 @@ class EmulatorView(
         return // Ignore empty screenshot.
       }
 
+      if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
+        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.width} image contains ${response.image.size()} bytes")
+        return
+      }
+
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
