@@ -32,6 +32,13 @@ object ComposeRenderErrorContributor {
     }
   } ?: false
 
+  private fun isViewModelStackTrace(throwable: Throwable?): Boolean = throwable?.let { throwable ->
+    throwable.stackTrace.any {
+      (it.methodName == "viewModel" || it.className.endsWith("ViewModelProvider") || it.className.endsWith("ViewModelKt"))
+      && it.className.startsWith("androidx.lifecycle")
+    }
+  } ?: false
+
   /**
    * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable. This means that the user probably
    * added one or more previews and a build is needed.
@@ -42,6 +49,7 @@ object ComposeRenderErrorContributor {
 
   @JvmStatic
   fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
+    isViewModelStackTrace(throwable) ||
     isComposeNotFoundThrowable(throwable) ||
     isCompositionLocalStackTrace(throwable)
 
@@ -53,6 +61,21 @@ object ComposeRenderErrorContributor {
       .filter { it.tag == ILayoutLog.TAG_INFLATE }
       .mapNotNull {
         when {
+          isViewModelStackTrace(it.throwable) -> {
+            RenderErrorModel.Issue.builder()
+              .setSeverity(HighlightSeverity.INFORMATION)
+              .setSummary("Failed to instantiate a ViewModel")
+              .setHtmlContent(HtmlBuilder()
+                                .addLink("This preview uses a ", "ViewModel", ". ",
+                                         "https://developer.android.com/topic/libraries/architecture/viewmodel")
+                                .add("ViewModels often trigger operations not supported by Compose Preview, " +
+                                     "such as database access, I/O operations, or network requests. ")
+                                .addLink("You can ", "read more", " about preview limitations in our external documentation.",
+                                          // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
+                                         "https://developer.android.com/jetpack/compose/tooling")
+                                .addShowException(linkManager, logger.module?.project, it.throwable)
+              )
+          }
           isCompositionLocalStackTrace(it.throwable) -> {
             RenderErrorModel.Issue.builder()
               .setSeverity(HighlightSeverity.INFORMATION)
