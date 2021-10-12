@@ -1,1 +1,0 @@
-This module is shared between external JPS build process and IDE
