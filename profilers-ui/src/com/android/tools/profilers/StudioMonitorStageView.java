@@ -260,8 +260,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       case DEBUGGABLE:
         return DismissibleMessage.of(getStage().getStudioProfilers(),
                                      SHOW_DEBUGGABLE_MESSAGE,
-                                     "Timing data from debuggable processes may deviate from real world performance." +
-                                     " A profileable process may be more suitable.",
+                                     "Timing data from debuggable processes will deviate significantly from real" +
+                                     " world performance. A profileable process may be more suitable.",
                                      SupportLevel.DOC_LINK,
                                      ProfilerColors.NOTIFICATION_BACKGROUND);
       case PROFILEABLE:
