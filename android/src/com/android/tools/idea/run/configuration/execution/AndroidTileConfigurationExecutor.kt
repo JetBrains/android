@@ -54,10 +54,8 @@ class AndroidTileConfigurationExecutor(private val environment: ExecutionEnviron
       val app = applicationInstaller.installAppOnDevice(it, indicator, console)
       val receiver = TileIndexReceiver(indicator, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      if (receiver.tileIndex == null) {
-        throw ExecutionException("Tile index is not found")
-      }
-      val command = "$SHOW_TILE_COMMAND ${receiver.tileIndex!! + 1}"
+      val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
+      val command = "$SHOW_TILE_COMMAND $tileIndex"
       console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
       it.executeShellCommand(command, NullOutputReceiver(), 5, TimeUnit.SECONDS)
     }

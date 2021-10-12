@@ -70,7 +70,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
 
     // Test final command of showing Tile after installation and activation.
     Mockito.verify(device).executeShellCommand(
-      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 2"),
+      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1"),
       any(IShellOutputReceiver::class.java),
       any(),
       any()
@@ -110,7 +110,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
 
     // Test final command of showing Tile after installation and activation.
     Mockito.verify(device).executeShellCommand(
-      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 2"),
+      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1"),
       any(IShellOutputReceiver::class.java),
       any(),
       any()
