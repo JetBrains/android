@@ -897,12 +897,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
       }
 
-
-      if (buildFile.getParentModuleBuildFile() == null) {
-        return null; // This is the root project build.gradle file and there is no further path to look up.
-      }
-
-      // Try to resolve in the root project gradle.properties file.
       GradleBuildFile rootProjectBuildFile = buildFile;
       while (true) {
         GradleBuildFile parentModuleDslFile = rootProjectBuildFile.getParentModuleBuildFile();
@@ -911,8 +905,15 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
         rootProjectBuildFile = parentModuleDslFile;
       }
+
       GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(rootProjectBuildFile, text);
       if (versionCatalogElement != null) return versionCatalogElement;
+
+      if (buildFile == rootProjectBuildFile) {
+        return null; // This is the root project build.gradle file and there is no further path to look up.
+      }
+
+      // Try to resolve in the root project gradle.properties file.
       return resolveReferenceInPropertiesFile(rootProjectBuildFile, text);
     }
     return null;

@@ -129,6 +129,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
   protected VirtualFile myBuildSrcBuildFile;
+  protected VirtualFile myVersionCatalogFile;
 
   protected VirtualFile myProjectBasePath;
 
@@ -237,9 +238,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       assertTrue(mySubModulePropertiesFile.isWritable());
 
       VirtualFile buildSrcDirPath = myProjectBasePath.createChildDirectory(this, "buildSrc");
-      assertTrue(myProjectBasePath.isDirectory());
+      assertTrue(buildSrcDirPath.isDirectory());
       myBuildSrcBuildFile = buildSrcDirPath.createChildData(this, getBuildFileName());
       assertTrue(myBuildSrcBuildFile.isWritable());
+
+      VirtualFile gradlePath = myProjectBasePath.createChildDirectory(this, "gradle");
+      assertTrue(gradlePath.isDirectory());
+      myVersionCatalogFile = gradlePath.createChildData(this, "libs.versions.toml");
+      assertTrue(myVersionCatalogFile.isWritable());
 
       // Setup the project and the module as a Gradle project system so that their build files could be found.
       ExternalSystemModulePropertyManager
@@ -309,6 +315,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildSrcBuildFile);
+  }
+
+  protected void writeToVersionCatalogFile(@NotNull TestFileName filename) throws IOException {
+    final File testFile = filename.toFile(myTestDataResolvedPath, "");
+    VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
+
+    saveFileUnderWrite(myVersionCatalogFile, loadText(virtualTestFile));
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
