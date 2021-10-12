@@ -26,6 +26,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.folding.FoldingDetector
+import com.android.tools.idea.logcat.folding.FoldingDetectorImpl
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -43,6 +45,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.undo.UndoUtil
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.RangeMarker
@@ -77,6 +80,7 @@ internal class LogcatMainPanel(
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   hyperlinkHighlighterFactory: (EditorEx) -> HyperlinkHighlighter = ::HyperlinkHighlighterImpl,
+  foldingDetectorFactory: (Editor) -> FoldingDetector = { editor -> FoldingDetectorImpl(project, editor) },
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -99,7 +103,7 @@ internal class LogcatMainPanel(
   private val hyperlinkHighlighter = hyperlinkHighlighterFactory(editor)
   private val hyperlinkFilters =
     CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
-
+  private val foldingUpdater = foldingDetectorFactory(editor)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
 
   init {
@@ -199,6 +203,7 @@ internal class LogcatMainPanel(
     endMarker.dispose()
     val endLine = max(0, document.lineCount - 1)
     hyperlinkHighlighter.highlightHyperlinks(hyperlinkFilters, startLine, endLine)
+    foldingUpdater.detectFoldings(startLine, endLine)
 
     if (shouldStickToEnd) {
       scrollToEnd()

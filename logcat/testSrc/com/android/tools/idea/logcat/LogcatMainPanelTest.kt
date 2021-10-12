@@ -27,6 +27,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.folding.FoldingDetector
+import com.android.tools.idea.logcat.folding.FoldingDetectorImpl
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -43,6 +45,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.util.Disposer
@@ -90,6 +93,7 @@ class LogcatMainPanelTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor))
   private val mockHyperlinkHighlighter = mock<HyperlinkHighlighter>()
+  private val mockFoldingDetector = mock<FoldingDetector>()
 
   private lateinit var logcatMainPanel: LogcatMainPanel
 
@@ -305,6 +309,10 @@ class LogcatMainPanelTest {
     }
   }
 
+  /**
+   *  The purpose this test is to ensure that we are calling the HyperlinkHighlighter with the correct line range. It does not test user on
+   *  any visible effect.
+   */
   @Test
   fun hyperlinks_range() = runBlocking {
     runInEdtAndWait {
@@ -321,6 +329,10 @@ class LogcatMainPanelTest {
     }
   }
 
+  /**
+   *  The purpose this test is to ensure that we are calling the HyperlinkHighlighter with the correct line range. It does not test user on
+   *  any visible effect.
+   */
   @Test
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
     System.setProperty("idea.cycle.buffer.size", "1")
@@ -357,6 +369,48 @@ class LogcatMainPanelTest {
     }
   }
 
+  /**
+   *  The purpose this test is to ensure that we are calling the FoldingDetector with the correct line range. It does not test user on any
+   *  visible effect.
+   */
+  @Test
+  fun foldings_range() = runBlocking {
+    runInEdtAndWait {
+      logcatMainPanel = logcatMainPanel(foldingDetectorFactory = { mockFoldingDetector })
+    }
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
+    logcatMainPanel.messageProcessor.onIdle {}
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      verify(mockFoldingDetector).detectFoldings(eq(0), eq(1))
+      verify(mockFoldingDetector).detectFoldings(eq(1), eq(2))
+    }
+  }
+
+  /**
+   *  The purpose this test is to ensure that we are calling the FoldingDetector with the correct line range. It does not test user on any
+   *  visible effect.
+   */
+  @Test
+  fun foldings_rangeWithCyclicBuffer() = runBlocking {
+    System.setProperty("idea.cycle.buffer.size", "1")
+    runInEdtAndWait {
+      logcatMainPanel = logcatMainPanel(foldingDetectorFactory = { mockFoldingDetector })
+    }
+    val longMessage = "message".padStart(1000, '-')
+
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage(message = longMessage)))
+    logcatMainPanel.messageProcessor.onIdle {} // force flush
+    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage(message = longMessage)))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      verify(mockFoldingDetector, times(2)).detectFoldings(eq(0), eq(1))
+    }
+  }
+
+
   private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {
     override fun getComponent(): JPopupMenu {
       throw UnsupportedOperationException()
@@ -378,6 +432,7 @@ class LogcatMainPanelTest {
     logcatColors: LogcatColors = LogcatColors(),
     state: LogcatPanelConfig? = null,
     hyperlinkHighlighter: HyperlinkHighlighter = mock(),
+    foldingDetectorFactory: (Editor) -> FoldingDetector = { editor -> FoldingDetectorImpl(projectRule.project, editor) },
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, { hyperlinkHighlighter }, zoneId)
+  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, { hyperlinkHighlighter }, foldingDetectorFactory, zoneId)
 }
