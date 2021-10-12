@@ -414,7 +414,7 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      return ApplicationManager.getApplication().runReadAction((Computable<Object>)() -> {
+      return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
         final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
         PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
 
