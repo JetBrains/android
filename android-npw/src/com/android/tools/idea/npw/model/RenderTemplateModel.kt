@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -198,7 +197,8 @@ class RenderTemplateModel private constructor(
 
       if (newTemplate.category == Category.Compose) {
         // Compose requires this specific Kotlin
-        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.5.31"
+        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion =
+          getComposeKotlinVersion(isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3))
       }
 
       val context = RenderingContext(
@@ -273,5 +273,7 @@ class RenderTemplateModel private constructor(
       else
         Language.Java
     }
+
+    fun getComposeKotlinVersion(isMaterial3: Boolean): String = if (isMaterial3) "1.5.31" else "1.5.30"
   }
 }
