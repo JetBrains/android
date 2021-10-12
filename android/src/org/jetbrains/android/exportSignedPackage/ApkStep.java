@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.compiler.CompileScope;
@@ -209,7 +210,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   public String getHelpId() {
-    return "reference.android.reference.extract.signed.package.specify.apk.location";
+    return AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing";
   }
 
   @Override

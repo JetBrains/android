@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito
 
@@ -46,5 +48,13 @@ class ChooseBundleOrApkStepTest : PlatformTestCase() {
     assertTrue(chooseStep.myBundleButton.isEnabled)
     assertFalse(chooseStep.myBundleButton.isSelected)
     assertTrue(chooseStep.myApkButton.isSelected)
+  }
+
+  fun testGetHelpId() {
+    val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
+    Mockito.`when`(wizard.project).thenReturn(myProject)
+
+    val chooseStep = ChooseBundleOrApkStep(wizard)
+    assertThat(chooseStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
   }
 }

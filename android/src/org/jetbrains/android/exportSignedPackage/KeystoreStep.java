@@ -8,6 +8,7 @@ import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.credentialStore.CredentialAttributes;
@@ -414,7 +415,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   @Override
   public String getHelpId() {
-    return "reference.android.reference.extract.signed.package.specify.keystore";
+    return AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing#generate-key";
   }
 
   @Override
