@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
 import com.android.tools.idea.rendering.RenderTestUtil.withRenderTask
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.util.androidFacet
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.facet.AndroidFacet
 
 class NamespacedRenderTest : AndroidGradleTestCase() {
+  lateinit var facet : AndroidFacet
+
   override fun setUp() {
     super.setUp()
     RenderTestUtil.beforeRenderTestCase()
     loadProject(TestProjectPaths.NAMESPACES)
+    facet = getModule("app").getMainModule().androidFacet!!
   }
 
   override fun tearDown() {
@@ -38,7 +44,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
 
   fun testSimpleStrings() {
     checkRendering(
-      myAndroidFacet,
+      facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!,
       getTestDataPath() + "/layouts/namespaced/simple_strings.png"
     )
@@ -46,7 +52,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
 
   fun testAttrsFromLib() {
     withRenderTask(
-      myAndroidFacet,
+      facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
       "@style/AttrsFromLib"
     ) {
@@ -56,7 +62,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
 
   fun testParentFromLib() {
     withRenderTask(
-      myAndroidFacet,
+      facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
       "@style/ParentFromLib"
     ) {
