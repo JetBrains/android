@@ -25,5 +25,5 @@ Package 'org.jetbrains.kotlin.fir.lightTree' is not found
 // Known issue, but currently unreachable at runtime.
 Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContainingLibrary.* not implemented
 
-// b/201282111
+// Referenced by org.jetbrains.kotlin.idea.vcs.BunchFileCheckInHandlerFactory (unused in Studio)
 Illegal invocation of private method kotlin.io.path.PathsKt__PathUtilsKt.getPathString.*
