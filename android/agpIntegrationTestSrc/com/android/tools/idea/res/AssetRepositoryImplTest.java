@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import java.io.BufferedReader;
@@ -43,11 +44,12 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     loadProject("aarAsset".equals(getTestName(true)) ?
                 TestProjectPaths.LOCAL_AARS_AS_MODULES :
                 TestProjectPaths.DEPENDENT_MODULES);
-    assertNotNull(myAndroidFacet);
-    myAppRepo = new AssetRepositoryImpl(myAndroidFacet);
+    AndroidFacet facet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("app")));
+    assertNotNull(facet);
+    myAppRepo = new AssetRepositoryImpl(facet);
 
 
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), false);
+    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), false);
     if (dependentFacets.isEmpty()) {
       myLibRepo = null;
       return;

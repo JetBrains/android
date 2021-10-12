@@ -218,11 +218,14 @@ public class AssetRepositoryImpl extends AssetRepository {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
+    AndroidFacet holderFacet = AndroidFacet.getInstance(facet.getHolderModule());
     Stream<VirtualFile> sampleDataDirs = Stream.of(
       ResourceContent.getSampleDataBaseDir(),
-      ResourceContent.getSampleDataUserDir(facet)
+      ResourceContent.getSampleDataUserDir(facet),
+      (holderFacet == null) ? null : ResourceContent.getSampleDataUserDir(holderFacet)
     )
       .filter(Objects::nonNull)
+      .distinct()
       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
       .filter(Objects::nonNull);
 
