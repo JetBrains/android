@@ -855,10 +855,13 @@ public final class StudioFlags {
     true
   );
 
+  // b/202709703: Disable jb_formatters (which is used to pull Natvis) temporarily, because
+  // the latest changes in cidr-debugger cause the jb_formatters to conflict with the
+  // built-in lldb formatters.
   public static final Flag<Boolean> ENABLE_LLDB_NATVIS = Flag.create(
     NDK, "lldb.natvis", "Use NatVis visualizers in native debugger",
     "If enabled, native debugger formats variables using NatVis files found in the project.",
-    true
+    false
   );
   //endregion
 
