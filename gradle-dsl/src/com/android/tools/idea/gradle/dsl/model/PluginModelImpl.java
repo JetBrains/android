@@ -23,11 +23,11 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.InexpressiblePrope
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginNameTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginAliasTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.psi.PsiElement;
@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
 public class PluginModelImpl implements PluginModel {
+  @NonNls public static final String ALIAS = "alias";
   @NonNls private static final String APPLY = "apply";
   @NonNls public static final String ID = "id";
   @NonNls public static final String KOTLIN = "kotlin";
@@ -99,6 +100,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel name() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new PluginAliasTransform(ID))
       .addTransform(new PluginNameTransform())
       .buildResolved();
   }
@@ -107,6 +109,7 @@ public class PluginModelImpl implements PluginModel {
   @Override
   public ResolvedPropertyModel version() {
     return GradlePropertyModelBuilder.create(myCompleteElement)
+      .addTransform(new PluginAliasTransform(VERSION))
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
       .addTransform(new InexpressiblePropertyTransform())

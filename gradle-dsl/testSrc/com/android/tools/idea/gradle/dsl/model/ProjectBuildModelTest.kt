@@ -509,6 +509,31 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testVersionCatalogPluginsDsl() {
+    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
+    try {
+      writeToBuildFile(TestFile.VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE)
+      writeToVersionCatalogFile(TestFile.VERSION_CATALOG_PLUGINS_NOTATION)
+
+      val pbm = projectBuildModel
+      val buildModel = pbm.projectBuildModel!!
+      val appliedPlugins = buildModel.appliedPlugins()
+      assertSize(0, appliedPlugins)
+      val plugins = buildModel.plugins()
+      assertSize(2, plugins)
+      assertEquals("com.android.application", plugins[0].name().toString())
+      assertEquals("7.1.0", plugins[0].version().toString())
+
+      assertEquals("com.android.library", plugins[1].name().toString())
+      assertEquals("7.1.0", plugins[1].version().toString())
+    }
+    finally {
+      StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
+    }
+  }
+
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -544,12 +569,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     CONTEXT_AGP_VERSION("contextAgpVersion"),
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
     VERSION_CATALOG_ALIAS_MAPPING_BUILD_FILE("versionCatalogAliasMappingBuildFile"),
+    VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE("versionCatalogPluginsDslBuildFile"),
     VERSION_CATALOG_COMPACT_NOTATION("versionCatalogCompactNotation.toml"),
     VERSION_CATALOG_GROUP_COMPACT_NOTATION("versionCatalogGroupCompactNotation.toml"),
     VERSION_CATALOG_MAP_NOTATION("versionCatalogMapNotation.toml"),
     VERSION_CATALOG_MODULE_NOTATION("versionCatalogModuleNotation.toml"),
     VERSION_CATALOG_MAP_VERSION_REF_NOTATION("versionCatalogMapVersionRefNotation.toml"),
     VERSION_CATALOG_MODULE_VERSION_REF_NOTATION("versionCatalogModuleVersionRefNotation.toml"),
+    VERSION_CATALOG_PLUGINS_NOTATION("versionCatalogPluginsNotation.toml"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

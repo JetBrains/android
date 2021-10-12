@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.PLUGIN;
 import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ID;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
+import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -46,7 +47,9 @@ import org.jetbrains.annotations.Nullable;
  * - plugins { id 'foo' apply false }
  * - plugins { id 'foo' version '1.2.3' apply true }
  * - plugins { kotlin("foo") }
- * (and a list form that I haven't yet found a concrete example of)
+ * - plugins { alias(libs.plugins.foo) }, handled by {@link PluginAliasTransform}
+ * - plugins { alias(libs.plugins.foo) apply true }, handled by {@link PluginAliasTransform}
+ * (and a list form that I haven't yet found a concrete example of, handled by {@link PluginModelImpl#create}
  */
 public class PluginNameTransform extends PropertyTransform {
   public PluginNameTransform() {

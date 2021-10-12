@@ -1,0 +1,6 @@
+[versions]
+agp = '7.1.0'
+
+[plugins]
+app = { id = 'com.android.application', version = '7.1.0' }
+lib = { id = 'com.android.library', version.ref = 'agp' }
