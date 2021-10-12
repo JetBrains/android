@@ -22,12 +22,17 @@ import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class IconButtonTableCellEditor extends AbstractCellEditor implements TableCellEditor {
   final @NotNull IconButton myButton;
   private final @NotNull Object myValue;
 
-  IconButtonTableCellEditor(@NotNull Icon icon, @NotNull String tooltipText, @NotNull Object value) {
+  IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value) {
+    this(icon, value, null);
+  }
+
+  IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
 
     myButton.setOpaque(true);

@@ -64,8 +64,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
   }
 
-  private static final class RemoveValue {
-    private static final RemoveValue INSTANCE = new RemoveValue();
+  static final class RemoveValue {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final RemoveValue INSTANCE = new RemoveValue();
 
     private RemoveValue() {
     }

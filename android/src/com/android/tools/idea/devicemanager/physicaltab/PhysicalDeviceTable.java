@@ -22,6 +22,7 @@ import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
@@ -73,7 +74,10 @@ final class PhysicalDeviceTable extends JBTable implements Table {
       assert project != null;
 
       setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellEditor(project));
+      setDefaultEditor(RemoveValue.class, new RemoveButtonTableCellEditor(panel));
+
       setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellRenderer());
+      setDefaultRenderer(RemoveValue.class, new RemoveButtonTableCellRenderer());
     }
     else {
       setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));

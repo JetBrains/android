@@ -15,24 +15,14 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.IconButton;
+import com.intellij.icons.AllIcons;
 import java.awt.Component;
-import javax.swing.Icon;
 import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-class IconButtonTableCellRenderer implements TableCellRenderer {
-  final @NotNull IconButton myButton;
-
-  IconButtonTableCellRenderer(@NotNull Icon icon) {
-    this(icon, null);
-  }
-
-  IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
-    myButton = new IconButton(icon);
-    myButton.setToolTipText(tooltipText);
+final class RemoveButtonTableCellRenderer extends IconButtonTableCellRenderer {
+  RemoveButtonTableCellRenderer() {
+    super(AllIcons.Actions.GC);
   }
 
   @Override
@@ -42,6 +32,12 @@ class IconButtonTableCellRenderer implements TableCellRenderer {
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    return myButton.getTableCellComponent(table, selected, focused);
+    super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
+    boolean online = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex).isOnline();
+
+    myButton.setEnabled(!online);
+    myButton.setToolTipText(online ? "Connected devices can not be removed from the list." : "Remove this offline device from the list.");
+
+    return myButton;
   }
 }
