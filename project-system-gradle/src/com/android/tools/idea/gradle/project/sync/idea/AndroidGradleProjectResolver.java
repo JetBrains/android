@@ -782,7 +782,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       libraryFilePaths = LibraryFilePaths.getInstance(project);
     }
 
-    Function<GradleProjectPath, ModuleData> moduleDataLookup = myModuleDataByGradlePath::get;
+    Function<GradleProjectPath, ModuleData> moduleDataLookup = (gradleProjectPath) -> {
+      // In the case when model v2 is enabled and module per source set is disabled, we might get a query to resolve a dependency on
+      // a testFixtures module. As testFixtures relies on module per source set, we resolve the dependency to the main module instead.
+      if (!isModulePerSourceSetEnabled() && gradleProjectPath.getSourceSet() == IdeModuleSourceSet.TEST_FIXTURES) {
+        return myModuleDataByGradlePath.get(
+          new GradleProjectPath(gradleProjectPath.getBuildRoot(), gradleProjectPath.getPath(), IdeModuleSourceSet.MAIN));
+      }
+      return myModuleDataByGradlePath.get(gradleProjectPath);
+    };
 
     Function<String, AdditionalArtifactsPaths> artifactLookup = (artifactId) -> {
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
