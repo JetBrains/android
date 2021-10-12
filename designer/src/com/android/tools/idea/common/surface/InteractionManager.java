@@ -423,7 +423,9 @@ public class InteractionManager implements Disposable {
         return;
       }
       else if (SwingUtilities.isMiddleMouseButton(event)) {
-        startInteraction(new MousePressedEvent(event, getInteractionInformation()), new PanInteraction(mySurface));
+        Pannable pannable = (Pannable)mySurface.getData(PANNABLE_KEY.getName());
+        startInteraction(new MousePressedEvent(event, getInteractionInformation()),
+                         new PanInteraction(pannable == null ? mySurface : pannable));
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         return;
       }
@@ -765,7 +767,8 @@ public class InteractionManager implements Disposable {
 
   private void setPanning(@NotNull InteractionEvent event, boolean panning) {
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
-      startInteraction(event, new PanInteraction(mySurface));
+      Pannable pannable = (Pannable)mySurface.getData(PANNABLE_KEY.getName());
+      startInteraction(event, new PanInteraction(pannable == null ? mySurface : pannable));
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
