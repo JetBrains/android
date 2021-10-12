@@ -123,7 +123,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
-    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet.getHolderModule());
     PsiDirectory sampleDataPsi = getPsiDirectory(project, moduleSystem.getSampleDataDirectory());
     if (sampleDataPsi != null) {
       result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));

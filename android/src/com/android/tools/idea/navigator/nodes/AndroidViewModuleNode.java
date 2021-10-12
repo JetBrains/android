@@ -19,6 +19,7 @@ import static com.intellij.util.containers.ContainerUtil.emptyList;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -28,7 +29,9 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.Collection;
@@ -105,6 +108,21 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
   @Override
   public boolean contains(@NotNull VirtualFile file) {
     if (super.contains(file)) return true;
+
+    // We also need to check extra content roots from the source set modules since the super method is only based off the
+    // holders roots.
+    Module module = getValue();
+    List<Module> sourceSetModules = ModuleSystemUtil.getAllLinkedModules(module);
+    for (Module m : sourceSetModules) {
+      // The module from getValue() has already been checked by super.contains
+      if (m == module) {
+        continue;
+      }
+      for (VirtualFile root : ModuleRootManager.getInstance(m).getContentRoots()) {
+        if (VfsUtilCore.isAncestor(root, file, false)) return true;
+      }
+    }
+
     // TODO(b/156361020): This is relative slow and should be replaces with a better module system based implementation. However, this code
     //                    is usually invoked on relatively small number of roots of the incoming file-system-change-notification.
     return createSubmoduleNodes().stream().anyMatch(it -> (it instanceof ProjectViewNode) && ((ProjectViewNode<?>)it).contains(file));
