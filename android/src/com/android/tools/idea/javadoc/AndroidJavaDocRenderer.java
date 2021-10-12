@@ -316,7 +316,7 @@ public class AndroidJavaDocRenderer {
         AndroidModuleModel androidModel = AndroidModuleModel.get(reachableFacet);
         if (androidModel != null) {
           hasGradleModel = true;
-          String facetModuleName = reachableFacet.getModule().getName();
+          String facetModuleName = reachableFacet.getHolderModule().getName();
           assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
           IdeVariant selectedVariant = androidModel.getSelectedVariant();
