@@ -33,7 +33,7 @@ class ComposeWarning(private val project: Project) {
       val message = if (apiLevel < 29) {
         "To see compose nodes in the inspector please use a device with API >= 29"
       } else {
-        "Cannot display compose nodes, try to restart the application"
+        "Cannot display compose nodes, try restarting the application"
       }
       val bannerService = InspectorBannerService.getInstance(project)
       bannerService.setNotification(message, listOf(bannerService.DISMISS_ACTION))

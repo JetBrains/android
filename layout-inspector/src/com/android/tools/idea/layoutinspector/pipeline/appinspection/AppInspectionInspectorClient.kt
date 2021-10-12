@@ -57,6 +57,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -116,7 +117,10 @@ class AppInspectionInspectorClient(
       when {
         t is ConnectionFailedException -> t.message!!
         process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        else -> "Unknown error"
+        else -> {
+          Logger.getInstance(AppInspectionInspectorClient::class.java).warn(t)
+          "Unknown error"
+        }
       }
     )
   }

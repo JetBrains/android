@@ -94,7 +94,7 @@ class ComposeWarningTest {
   @Test
   fun testComposeAppWithLegacyDeviceWithModernApiLevel() {
     composeWarning.performCheck(createClientFor(MODERN_DEVICE, "com.example.app"))
-    assertThat(lastNotification?.message).isEqualTo("Cannot display compose nodes, try to restart the application")
+    assertThat(lastNotification?.message).isEqualTo("Cannot display compose nodes, try restarting the application")
   }
 
   private fun createClientFor(device: DeviceDescriptor, appName: String): LegacyClient {
