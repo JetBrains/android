@@ -34,7 +34,7 @@ class BenchmarkLinkListener(private val project: Project) : HyperlinkListener {
         // TODO (gijosh): Check if we have a task that is currently pulling the file
         return
       }
-      val virtualFileTrace = LocalFileSystem.getInstance().findFileByIoFile(localFile)
+      val virtualFileTrace = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(localFile)
       if (virtualFileTrace != null) {
         val providerList = FileEditorProviderManager.getInstance().getProviders(project, virtualFileTrace)
         if (providerList.isNotEmpty()) {
