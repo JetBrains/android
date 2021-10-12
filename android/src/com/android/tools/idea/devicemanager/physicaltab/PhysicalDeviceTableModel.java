@@ -40,7 +40,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   private static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
   private static final int REMOVE_MODEL_COLUMN_INDEX = 4;
-  private static final int MORE_MODEL_COLUMN_INDEX = 5;
+  private static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 5;
 
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
@@ -72,10 +72,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
   }
 
-  private static final class MoreValue {
-    private static final MoreValue INSTANCE = new MoreValue();
+  static final class PopUpMenuValue {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final PopUpMenuValue INSTANCE = new PopUpMenuValue();
 
-    private MoreValue() {
+    private PopUpMenuValue() {
     }
   }
 
@@ -233,7 +234,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
           return "Actions";
         case REMOVE_MODEL_COLUMN_INDEX:
-        case MORE_MODEL_COLUMN_INDEX:
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
           return "";
         default:
           throw new AssertionError(modelColumnIndex);
@@ -267,8 +268,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
           return ActivateDeviceFileExplorerWindowValue.class;
         case REMOVE_MODEL_COLUMN_INDEX:
           return RemoveValue.class;
-        case MORE_MODEL_COLUMN_INDEX:
-          return MoreValue.class;
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return PopUpMenuValue.class;
         default:
           throw new AssertionError(modelColumnIndex);
       }
@@ -297,7 +298,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
           return false;
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         case REMOVE_MODEL_COLUMN_INDEX:
-        case MORE_MODEL_COLUMN_INDEX:
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
           return true;
         default:
           throw new AssertionError(modelColumnIndex);
@@ -323,8 +324,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
           return ActivateDeviceFileExplorerWindowValue.INSTANCE;
         case REMOVE_MODEL_COLUMN_INDEX:
           return RemoveValue.INSTANCE;
-        case MORE_MODEL_COLUMN_INDEX:
-          return MoreValue.INSTANCE;
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return PopUpMenuValue.INSTANCE;
         default:
           throw new AssertionError(modelColumnIndex);
       }
