@@ -449,7 +449,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void populateHostGraphicsDropDown() {
     myHostGraphics.removeAllItems();
-    GpuMode otherMode = gpuOtherMode(getSelectedApiLevel(), isIntel(), isGoogleApiSelected(), SystemInfo.isMac);
+    GpuMode otherMode = gpuOtherMode(getSelectedApiLevel(), isIntel(), isGoogleApiSelected());
 
     myHostGraphics.addItem(GpuMode.AUTO);
     myHostGraphics.addItem(GpuMode.HOST);
@@ -458,7 +458,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @VisibleForTesting
   static
-  GpuMode gpuOtherMode(int apiLevel, boolean isIntel, boolean isGoogle, boolean isMac) {
+  GpuMode gpuOtherMode(int apiLevel, boolean isIntel, boolean isGoogle) {
     boolean supportGuest = (apiLevel >= 23) && isIntel && isGoogle;
     GpuMode otherMode = GpuMode.OFF;
     if (supportGuest) {

@@ -204,17 +204,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   }
 
   public void testGpuOtherMode() {
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
+    assertEquals(SWIFT, gpuOtherMode(23, true, true));
 
-    assertEquals(OFF, gpuOtherMode(22, false, true, false));
-    assertEquals(OFF, gpuOtherMode(22, true, true, false));
-    assertEquals(OFF, gpuOtherMode(22, true, false, false));
-    assertEquals(OFF, gpuOtherMode(23, true, false, false));
+    assertEquals(OFF, gpuOtherMode(22, false, true));
+    assertEquals(OFF, gpuOtherMode(22, true, true));
+    assertEquals(OFF, gpuOtherMode(22, true, false));
+    assertEquals(OFF, gpuOtherMode(23, true, false));
 
-    assertEquals(OFF, gpuOtherMode(22, true, true, true));
-    assertEquals(OFF, gpuOtherMode(23, true, false, true));
-    assertEquals(OFF, gpuOtherMode(23, false, false, true));
+    assertEquals(OFF, gpuOtherMode(23, false, false));
   }
 
   public void testAutomotiveDevice() {

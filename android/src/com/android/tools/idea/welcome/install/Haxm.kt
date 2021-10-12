@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.sdklib.devices.Storage
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.observable.core.IntProperty
@@ -41,18 +42,12 @@ class Haxm(
   installationIntention: InstallationIntention,
   isCustomInstall: ScopedStateStore.Key<Boolean>
 ) : Vm(InstallerInfo, installationIntention, isCustomInstall) {
-  override val installUrl = if (SystemInfo.isWindows) HAXM_WINDOWS_INSTALL_URL else HAXM_MAC_INSTALL_URL
+  override val installUrl =
+    if (SystemInfo.isWindows) HAXM_WINDOWS_INSTALL_URL
+    else throw WizardException(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS.problem)
   override val filePrefix = "haxm"
 
   private val emulatorMemoryMb: IntProperty = IntValueProperty(getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize()))
-
-  @Throws(WizardException::class)
-  override fun getMacBaseCommandLine(source: File): GeneralCommandLine {
-    // The new executable now requests admin access and executes the shell script. We need to make sure both exist and are executable.
-    ensureExistsAndIsExecutable(source, "silent_install.sh")
-    val executable = ensureExistsAndIsExecutable(source, "HAXM installation")
-    return GeneralCommandLine(executable.absolutePath).withWorkDirectory(source)
-  }
 
   override fun createSteps(): Collection<DynamicWizardStep> =
     setOf(if (installationIntention === InstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)

@@ -31,7 +31,6 @@ import kotlin.math.min
 
 const val HAXM_DOCUMENTATION_URL = "https://github.com/intel/haxm"
 const val HAXM_WINDOWS_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-Windows"
-const val HAXM_MAC_INSTALL_URL = "https://github.com/intel/haxm/wiki/Installation-Instructions-on-macOS"
 const val GVM_WINDOWS_INSTALL_URL = "https://github.com/google/android-emulator-hypervisor-driver-for-amd-processors"
 
 /**
