@@ -499,7 +499,7 @@ android-studio/lib/bcpkix-jdk15on-1.68.jar
 android-studio/lib/bcprov-jdk15on-1.68.jar
 android-studio/lib/blockmap-1.0.2.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-212.5080.55.2112.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-212.5284.40.2112.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-3.0.2.jar
 android-studio/lib/cds/classesLogAgent.jar
@@ -582,7 +582,7 @@ android-studio/lib/javax.annotation-api-1.3.2.jar
 android-studio/lib/jaxb-api-2.3.1.jar
 android-studio/lib/jaxb-runtime-2.3.1.jar
 android-studio/lib/jaxen-1.2.0.jar
-android-studio/lib/jb-jdi-2.12.jar
+android-studio/lib/jb-jdi-2.13.jar
 android-studio/lib/jcef-89.0.12-g2b76680-chromium-89.0.4389.90-api-1.5.jar
 android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
