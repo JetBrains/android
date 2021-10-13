@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -34,10 +35,14 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.file.Path;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -299,6 +304,21 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
       CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(),
                                         PsiModificationTracker.MODIFICATION_COUNT,
                                         ModuleClassLoaderOverlays.getInstance(module)));
+  }
+
+  @Override
+  public Enumeration<URL> getResources(String name) throws IOException {
+    // The ModuleClassLoader overrides getResources to allow user code to access resources that are part of the libraries.
+    // Instead of loading from the plugin class loader, we redirect the request to load it from the project libraries.
+    return myImpl.getResources(name);
+  }
+
+  @Nullable
+  @Override
+  public URL getResource(String name) {
+    // The ModuleClassLoader overrides getResources to allow user code to access resources that are part of the libraries.
+    // Instead of loading from the plugin class loader, we redirect the request to load it from the project libraries.
+    return myImpl.getResource(name);
   }
 
   public boolean isClassLoaded(@NotNull String className) {
