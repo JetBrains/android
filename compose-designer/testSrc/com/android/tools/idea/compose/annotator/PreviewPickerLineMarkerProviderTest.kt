@@ -24,18 +24,14 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
-import com.intellij.lang.LanguageExtensionPoint
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
-import com.intellij.testFramework.runInEdtAndWait
 import org.apache.commons.lang.StringUtils
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -50,7 +46,7 @@ import org.junit.runners.Parameterized
 import kotlin.test.assertEquals
 
 @RunWith(Parameterized::class)
-class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+class PreviewPickerLineMarkerProviderTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -58,14 +54,21 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
     val namespaces = namespaceVariations
   }
 
-  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
+  private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
+  private val previewToolingPackage = previewAnnotationPackage
 
-  private val FILE_PATH = "src/main/Test.kt"
+  private val filePath = "src/main/Test.kt"
 
   @get:Rule
-  val rule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
-                                composableAnnotationPackage = composableAnnotationPackage)
+  val rule = ComposeProjectRule(
+    previewAnnotationPackage = previewAnnotationPackage,
+    composableAnnotationPackage = composableAnnotationPackage
+  )
+
+  private val fixture get() = rule.fixture
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Before
   fun setup() {
@@ -73,14 +76,14 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    registerPreviewPickerAnnotator()
+    fixture.registerLanguageExtensionPoint(LineMarkerProviders.getInstance(), PreviewPickerLineMarkerProvider(), KotlinLanguage.INSTANCE)
 
-    rule.fixture.addFileToProject(
-      FILE_PATH,
+    fixture.addFileToProject(
+      filePath,
       // language=kotlin
       """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $composableAnnotationFqName
+        import $previewToolingPackage.Preview
 
         @Composable
         fun composable1() {}
@@ -98,51 +101,68 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
 
   @After
   fun teardown() {
-    StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(false)
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(false)
+    StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
 
+  @RunsInEdt
   @Test
-  fun gutterIconActionOnPreview() {
-    runInEdtAndWait {
-      val psiFile = rule.findPsiFile(FILE_PATH)
-      rule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+  fun gutterIconOnCorrectAnnotation() {
+    val psiFile = rule.findPsiFile(filePath)
+    fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
-      rule.fixture.doHighlighting()
-      getAndAssertPreviewLineMarker()
+    fixture.doHighlighting()
+    getAndAssertPreviewLineMarker()
 
-      rule.fixture.moveCaret("\"my group\"\n)|\n@Composable")
-      rule.fixture.type('\n')
-      rule.fixture.type('\n')
+    fixture.moveCaret("\"my group\"\n)|\n@Composable")
+    // The Modifier should still hold even after adding whitespace, and the LineMarker should be available
+    fixture.type('\n')
+    fixture.type('\n')
 
-      rule.fixture.doHighlighting()
-      val previewLineMarkerInfo = getAndAssertPreviewLineMarker()
-      val validAnnotation = psiFile.findValidPreviewAnnotation()
-      assertEquals(validAnnotation.startOffset, previewLineMarkerInfo.startOffset)
-      assertEquals(validAnnotation.endOffset, previewLineMarkerInfo.endOffset)
-      assertEquals(COMPOSE_PREVIEW_ANNOTATION_NAME, previewLineMarkerInfo.element!!.text)
-    }
+    fixture.doHighlighting()
+    val previewLineMarkerInfo = getAndAssertPreviewLineMarker()
+    val validAnnotation = psiFile.findValidPreviewAnnotation()
+    assertEquals(validAnnotation.startOffset, previewLineMarkerInfo.startOffset)
+    assertEquals(validAnnotation.endOffset, previewLineMarkerInfo.endOffset)
+    assertEquals(COMPOSE_PREVIEW_ANNOTATION_NAME, previewLineMarkerInfo.element!!.text)
   }
 
-  private fun registerPreviewPickerAnnotator() {
-    val pickerAnnotatorEp: LanguageExtensionPoint<LineMarkerProvider> =
-      LanguageExtensionPoint(KotlinLanguage.INSTANCE.id, ComposePreviewPickerAnnotator())
-    val extensionPoint: ExtensionPoint<LanguageExtensionPoint<LineMarkerProvider>> =
-      ApplicationManager.getApplication().extensionArea.getExtensionPoint(LineMarkerProviders.EP_NAME)
+  @RunsInEdt
+  @Test
+  fun lineMarkerAvailabilityOnVariedDeviceConfiguration() {
+    val psiFile = rule.findPsiFile(filePath)
+    fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
 
-    extensionPoint.registerExtension(pickerAnnotatorEp, rule.fixture.testRootDisposable)
+    fixture.moveCaret("\"my group\"|\n)\n@Composable")
+
+    // Type incomplete device spec
+    fixture.type(",\ndevice = \"spec:shape=Normal\"")
+    fixture.doHighlighting()
+    assertMissingLineMarkers()
+
+    fixture.moveCaret("spec:shape=Normal|\"")
+    fixture.type(",width=1080,height=1920,unit=px,dpi=480") // Type the rest of a correct Device spec.
+    fixture.doHighlighting()
+    getAndAssertPreviewLineMarker()
+  }
+
+  private fun assertMissingLineMarkers() {
+    assert(getPreviewLineMarkers().isEmpty())
   }
 
   private fun getAndAssertPreviewLineMarker(): LineMarkerInfo<*> {
-    val previewLineMarkerInfos =
-      DaemonCodeAnalyzerImpl.getLineMarkers(rule.fixture.editor.document, rule.project).filter { lineMarkerInfo ->
-        lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
-      }
+    val previewLineMarkerInfos = getPreviewLineMarkers()
+
     assertEquals(1, previewLineMarkerInfos.size)
     val previewLineMarkerInfo = previewLineMarkerInfos.first()
     assertEquals("Preview Picker", previewLineMarkerInfo.createGutterRenderer().clickAction!!.templateText)
     return previewLineMarkerInfo
   }
+
+  private fun getPreviewLineMarkers(): List<LineMarkerInfo<*>> =
+    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter { lineMarkerInfo ->
+      lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
+    }
 }
 
 private fun PsiFile.findValidPreviewAnnotation(): PsiElement =
@@ -151,8 +171,3 @@ private fun PsiFile.findValidPreviewAnnotation(): PsiElement =
     val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", 2) + 1
     checkNotNull(PsiTreeUtil.findElementOfClassAtOffset(this, indexOfElement, KtNameReferenceExpression::class.java, true))
   }
-
-private fun ComposeProjectRule.findPsiFile(tempDirPath: String): PsiFile {
-  val file = checkNotNull(fixture.findFileInTempDir(tempDirPath))
-  return checkNotNull(PsiManager.getInstance(project).findFile(file))
-}

@@ -86,6 +86,14 @@
                      key="inspection.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.device.spec.name"
+                     level="ERROR"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
@@ -97,7 +105,7 @@
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
     <codeInsight.lineMarkerProvider
         language="kotlin"
-        implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
+        implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerLineMarkerProvider"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>

@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
@@ -25,7 +24,6 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Psi
 import com.android.tools.idea.compose.preview.toPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -53,7 +51,7 @@ import javax.swing.Icon
  *
  * Returns a [LineMarkerInfo] that brings up a properties panel to edit the annotation.
  */
-class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
+class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   private val log = Logger.getInstance(this.javaClass)
 
   override fun getName(): String = message("picker.preview.annotator.name")
@@ -64,29 +62,26 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     if (element !is LeafPsiElement) return null
     if (element.tokenType != KtTokens.IDENTIFIER) return null
     if (!element.isValid) return null
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) return null
-    if (!StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()) return null
-    if (!ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled) return null
-    if (element.getModuleSystem()?.usesCompose != true) return null
+    if (element.getModuleSystem()?.isPickerEnabled() != true) return null
     if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 
-    val parentElement = element.parentOfType<KtAnnotationEntry>() ?: return null
-    val uElement = (parentElement.toUElement() as? UAnnotation) ?: return null
+    val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null
+    val uElement = (annotationEntry.toUElement() as? UAnnotation)?.takeIf { it.isPreviewAnnotation() } ?: return null
 
-    if (uElement.isPreviewAnnotation()) {
-      val previewElement = uElement.toPreviewElement() ?: run {
-        log.warn("Couldn't obtain PreviewElement from Preview annotation")
-        return null
-      }
-      val module = parentElement.module ?: run {
-        log.warn("Couldn't obtain current module")
-        return null
-      }
-      val info = createInfo(element, element.textRange, parentElement.project, module, previewElement)
-      NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
-      return info
+    // Do not show the picker if there are any syntax issues with the annotation
+    if (PreviewAnnotationCheck.checkPreviewAnnotationIfNeeded(annotationEntry).hasIssues) return null
+
+    val previewElement = uElement.toPreviewElement() ?: run {
+      log.warn("Couldn't obtain PreviewElement from Preview annotation")
+      return null
     }
-    return null
+    val module = element.module ?: run {
+      log.warn("Couldn't obtain current module")
+      return null
+    }
+    val info = createInfo(element, element.textRange, element.project, module, previewElement)
+    NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
+    return info
   }
 
   /**
