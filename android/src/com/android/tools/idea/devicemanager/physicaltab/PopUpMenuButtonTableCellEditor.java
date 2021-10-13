@@ -18,20 +18,21 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
-import java.util.function.Supplier;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.jetbrains.annotations.NotNull;
 
-final class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
-  PopUpMenuButtonTableCellEditor(@NotNull Supplier<@NotNull Iterable<@NotNull JMenuItem>> newItems) {
+abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
+  PopUpMenuButtonTableCellEditor() {
     super(AllIcons.Actions.More, PopUpMenuValue.INSTANCE);
 
     myButton.addActionListener(event -> {
       JPopupMenu menu = new JBPopupMenu();
 
-      newItems.get().forEach(menu::add);
+      newItems().forEach(menu::add);
       menu.show(myButton, 0, myButton.getHeight());
     });
   }
+
+  abstract @NotNull Iterable<@NotNull JMenuItem> newItems();
 }
