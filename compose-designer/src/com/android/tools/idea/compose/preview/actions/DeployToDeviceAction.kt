@@ -91,6 +91,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
                                    }
     (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
       .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
+    RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 
