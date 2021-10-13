@@ -57,7 +57,7 @@ class AndroidTileConfigurationExecutor(private val environment: ExecutionEnviron
       val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
       val command = "$SHOW_TILE_COMMAND $tileIndex"
       console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(command, NullOutputReceiver(), 5, TimeUnit.SECONDS)
+      it.executeShellCommand(command, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
     }
     indicator.checkCanceled()
     val runContentDescriptor = if (isDebug) {

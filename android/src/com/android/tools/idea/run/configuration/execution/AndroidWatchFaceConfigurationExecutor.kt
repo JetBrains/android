@@ -56,7 +56,7 @@ class AndroidWatchFaceConfigurationExecutor(private val environment: ExecutionEn
       val receiver = AndroidLaunchReceiver(indicator, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       console.print("$ adb shell command $SHOW_WATCH_FACE_COMMAND", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(SHOW_WATCH_FACE_COMMAND, NullOutputReceiver(), 5, TimeUnit.SECONDS)
+      it.executeShellCommand(SHOW_WATCH_FACE_COMMAND, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
     }
     indicator.checkCanceled()
     val runContentDescriptor = if (isDebug) {
