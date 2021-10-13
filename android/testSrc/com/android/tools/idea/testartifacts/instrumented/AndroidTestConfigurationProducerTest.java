@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testartifacts.TestConfigurationTesting;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -40,6 +41,7 @@ import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
@@ -159,10 +161,12 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   }
 
   public void testCanCreateAndroidTestConfigurationFromFromTestOnlyModule() throws Exception {
-    loadProject(TEST_ONLY_MODULE, "test");
+    loadProject(TEST_ONLY_MODULE);
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("test")));
+    assertNotNull(mainTestFacet);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
-    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertEmpty(runConfig.checkConfiguration(mainTestFacet));
   }
 
   public void testCanCreateAndroidTestConfigurationWhenOriginalConfigExists() throws Exception {
