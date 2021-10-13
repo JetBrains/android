@@ -40,6 +40,7 @@ import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.analysis.AndroidFrameTimelineAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
@@ -350,9 +351,20 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
       addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+
+      CpuAnalysisModel<?> jankModel = AndroidFrameTimelineAnalysisModel.of(capture);
       CpuAnalysisModel<?> framesModel = FramesAnalysisModel.of(capture);
-      if (framesModel != null) {
-        addPinnedCpuAnalysisModel(framesModel);
+
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isJankDetectionUiEnabled()) {
+        if (jankModel != null) {
+          addPinnedCpuAnalysisModel(jankModel);
+        } else if (framesModel != null) {
+          addPinnedCpuAnalysisModel(framesModel);
+        }
+      } else {
+        if (framesModel != null) {
+          addPinnedCpuAnalysisModel(framesModel);
+        }
       }
     }
     if (getStudioProfilers().getSession().getPid() == 0) {

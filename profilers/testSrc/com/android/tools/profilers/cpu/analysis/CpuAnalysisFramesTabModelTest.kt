@@ -16,12 +16,9 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profilers.cpu.CpuCapture
-import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
+import com.android.tools.profilers.cpu.analysis.MockCaptureUtils.CPU_CAPTURE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 import javax.swing.RowSorter
 import javax.swing.SortOrder
 
@@ -78,52 +75,5 @@ class CpuAnalysisFramesTabModelTest {
     assertThat(tableModel.getValueAt(1, 0)).isEqualTo(3)
     assertThat(tableModel.getValueAt(2, 0)).isEqualTo(2)
     assertThat(tableModel.getValueAt(3, 0)).isEqualTo(1)
-  }
-
-  private companion object {
-    fun makeFrame(frameNumber: Int, timestamp: Long, duration: Long, depth: Int): TraceProcessor.AndroidFrameEventsResult.FrameEvent =
-      TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder()
-        .setFrameNumber(frameNumber)
-        .setTimestampNanoseconds(timestamp)
-        .setDurationNanoseconds(duration)
-        .setDepth(depth)
-        .build()
-
-    val LAYERS = listOf(
-      TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
-        .setLayerName("com.example.MainActivity#0")
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Display")
-                    .addFrameEvent(makeFrame(1, 10000, 27000, 0))
-                    .addFrameEvent(makeFrame(2, 27000, 33000, 0))
-                    .addFrameEvent(makeFrame(3, 33000, 42000, 0))
-                    .addFrameEvent(makeFrame(4, 42000, 50000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("App")
-                    .addFrameEvent(makeFrame(1, 0, 5000, 0))
-                    .addFrameEvent(makeFrame(2, 10000, 10000, 0))
-                    .addFrameEvent(makeFrame(3, 20000, 3000, 0))
-                    .addFrameEvent(makeFrame(4, 30000, 4000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("GPU")
-                    .addFrameEvent(makeFrame(1, 5000, 1000, 0))
-                    .addFrameEvent(makeFrame(2, 20000, 2000, 0))
-                    .addFrameEvent(makeFrame(3, 25000, 3000, 0))
-                    .addFrameEvent(makeFrame(4, 35000, 4000, 0)))
-        .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
-                    .setPhaseName("Composition")
-                    .addFrameEvent(makeFrame(1, 7000, 3000, 0))
-                    .addFrameEvent(makeFrame(2, 25000, 2000, 0))
-                    .addFrameEvent(makeFrame(3, 30000, 3000, 0))
-                    .addFrameEvent(makeFrame(4, 40000, 2000, 0)))
-        .build()
-    )
-
-    val SYSTEM_TRACE_DATA: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(getAndroidFrameLayers()).thenReturn(LAYERS)
-    }
-    val CPU_CAPTURE: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
-      Mockito.`when`(systemTraceData).thenReturn(SYSTEM_TRACE_DATA)
-    }
   }
 }

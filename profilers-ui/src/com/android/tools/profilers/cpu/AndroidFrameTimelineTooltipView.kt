@@ -55,10 +55,10 @@ class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFr
     null -> container.isVisible = false
     else -> {
       container.isVisible = true
-      typeLabel.isVisible = event.actualEndUs > event.expectedEndUs
+      typeLabel.isVisible = event.isJank
       typeLabel.text = event.appJankType.getTitle()
       frameLabel.text = "Frame: ${event.surfaceFrameToken}"
-      durationlabel.text = "Duration: ${TimeFormatter.getSemiSimplifiedClockString(event.actualEndUs - event.expectedStartUs)}"
+      durationlabel.text = "Duration: ${TimeFormatter.getSingleUnitDurationString(event.actualDurationUs)}"
       expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(event.expectedEndUs)}"
     }
   }

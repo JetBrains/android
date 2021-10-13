@@ -81,6 +81,7 @@ public class CpuAnalysisPanel extends AspectObserver {
     myTabViewsBinder.bind(CpuThreadAnalysisEventsTabModel.class, CpuAnalysisEventsTab::new);
     myTabViewsBinder.bind(CaptureNodeAnalysisEventsTabModel.class, CpuAnalysisEventsTab::new);
     myTabViewsBinder.bind(CpuAnalysisFramesTabModel.class, CpuAnalysisFramesTab::new);
+    myTabViewsBinder.bind(AndroidFrameTimelineAnalysisModel.Tab.class, AndroidFrameTimelineTab::new);
   }
 
   @NotNull

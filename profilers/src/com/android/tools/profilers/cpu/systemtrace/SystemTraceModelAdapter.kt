@@ -183,7 +183,10 @@ data class AndroidFrameTimelineEvent(
   val appJankType: PerfettoTrace.FrameTimelineEvent.JankType,
   val onTimeFinish: Boolean,
   val gpuComposition: Boolean,
-)
+) {
+  val actualDurationUs get() = actualEndUs - expectedStartUs
+  val isJank get() = appJankType != PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE
+}
 
 /**
  * Given a list of events X with starts and ends, return a list of padded events SeriesData<Y>,

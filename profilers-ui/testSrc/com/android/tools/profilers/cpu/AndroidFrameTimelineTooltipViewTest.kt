@@ -51,7 +51,7 @@ class AndroidFrameTimelineTooltipViewTest {
       assertThat(tooltipView.headingText).isEqualTo("00:00.001")
       assertThat(tooltipView.container.isVisible).isTrue()
       checkText("Frame: 42")
-      checkText("Duration: 00:00.002")
+      checkText("Duration: 2 ms")
       checkText("Deadline missed")
     }
 
@@ -65,24 +65,22 @@ class AndroidFrameTimelineTooltipViewTest {
       assertThat(tooltipView.headingText).isEqualTo("00:00.001")
       assertThat(tooltipView.container.isVisible).isTrue()
       checkText("Frame: 43")
-      checkText("Duration: 00:00.002")
+      checkText("Duration: 2 ms")
       checkText("Buffer stuffing")
     }
   }
 }
 
-val FAKE_EVENT_0: AndroidFrameTimelineEvent = Mockito.mock(AndroidFrameTimelineEvent::class.java).also {
-  Mockito.`when`(it.surfaceFrameToken).thenReturn(42L)
-  Mockito.`when`(it.expectedStartUs).thenReturn(1000L)
-  Mockito.`when`(it.expectedEndUs).thenReturn(2000L)
-  Mockito.`when`(it.actualEndUs).thenReturn(3000L)
-  Mockito.`when`(it.appJankType).thenReturn(PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED)
-}
+val FAKE_EVENT_0 =
+  AndroidFrameTimelineEvent(42L, 42L,
+                            1000L, 2000L, 3000L, "",
+                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
+                            false, false)
 
-val FAKE_EVENT_1: AndroidFrameTimelineEvent = Mockito.mock(AndroidFrameTimelineEvent::class.java).also {
-  Mockito.`when`(it.surfaceFrameToken).thenReturn(43L)
-  Mockito.`when`(it.expectedStartUs).thenReturn(1500L)
-  Mockito.`when`(it.expectedEndUs).thenReturn(3000L)
-  Mockito.`when`(it.actualEndUs).thenReturn(3500L)
-  Mockito.`when`(it.appJankType).thenReturn(PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING)
-}
+val FAKE_EVENT_1 =
+  AndroidFrameTimelineEvent(43L, 43L,
+  1500L, 3000L, 3500L, "",
+                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
+                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
+                            false, false)

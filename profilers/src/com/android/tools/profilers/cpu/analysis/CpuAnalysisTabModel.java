@@ -40,6 +40,7 @@ public class CpuAnalysisTabModel<T> {
     EVENTS("Events"),
     OCCURRENCES("Occurrences"),
     FRAMES("All Frames"),
+    JANKS("Janky Frames"),
     LOGS("Logs");
 
     /**
