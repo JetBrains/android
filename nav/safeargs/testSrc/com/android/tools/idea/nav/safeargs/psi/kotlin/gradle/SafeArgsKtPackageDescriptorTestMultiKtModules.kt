@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.psi.kotlin.classesInScope
+import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
@@ -67,7 +68,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     projectRule.requestSyncAndWait()
 
     // check contents when providing app package name in app module.
-    val appModule = fixture.project.findAppModule()
+    val appModule = fixture.project.findAppModule().getMainModule()
     val appModuleDescriptor = appModule.toDescriptor()
 
     val classesMetadataAppPackageInApp = appModuleDescriptor!!
@@ -95,7 +96,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     )
 
     // check contents for library module
-    val libModule = fixture.project.findModule("mylibrary")
+    val libModule = fixture.project.findModule("mylibrary").getMainModule()
     val libModuleDescriptor = libModule.toDescriptor()
 
     val classesMetadataInLib = libModuleDescriptor!!
@@ -109,7 +110,7 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     )
 
     // check contents for excluded library module
-    val libModuleExcluded = fixture.project.findModule("mylibraryexcluded")
+    val libModuleExcluded = fixture.project.findModule("mylibraryexcluded").getMainModule()
     val libModuleExcludedDescriptor = libModuleExcluded.toDescriptor()
 
     val classesMetadataInLibExcluded = libModuleExcludedDescriptor!!
