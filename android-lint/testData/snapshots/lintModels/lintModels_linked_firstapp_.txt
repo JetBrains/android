@@ -972,6 +972,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API 30
+        - ConsumerProguardFiles       : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
         SourceProviders
             ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/shared/mysharedlibrary/src/main/java [-]

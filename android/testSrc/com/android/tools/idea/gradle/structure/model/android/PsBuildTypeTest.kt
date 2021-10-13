@@ -155,8 +155,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
       val consumerProGuardFiles = PsBuildType.BuildTypeDescriptors.consumerProGuardFiles.bind(buildType).getValue()
       assertThat(consumerProGuardFiles.parsedValue.asTestValue(), equalTo(listOf(File("other.pro"))))
-      // TODO(b/72814329): Resolved values are not yet supported on list properties.
-      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf()))
+      assertThat(consumerProGuardFiles.resolved.asTestValue(), equalTo(listOf(File(appModule.rootDir!!,"other.pro"))))
     }
   }
 

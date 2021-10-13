@@ -230,6 +230,8 @@ MODULE                        : MultiFlavor.app
             a                             : firstAbc
             b                             : debug
             c                             : secondAbc
+        - ProguardFiles               : <ROOT>/app/default.pro [-]
+        - ProguardFiles               : <ROOT>/app/debug.pro [-]
         SourceProviders
             ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/app/src/main/java
