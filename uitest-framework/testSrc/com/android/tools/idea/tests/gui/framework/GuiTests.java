@@ -72,7 +72,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -663,7 +662,7 @@ public final class GuiTests {
     Collection<ProgressIndicator> progressIndicators = getIndicatorsCollection();
     return progressIndicators.stream()
       .map(ProgressIndicator::getText)
-      .filter(Objects::nonNull)
+      .filter(text -> isNotEmpty(text))
       .collect(Collectors.joining(","));
   }
 
