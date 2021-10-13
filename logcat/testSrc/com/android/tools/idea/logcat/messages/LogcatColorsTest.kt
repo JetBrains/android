@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.Log
+import com.android.ddmlib.Log.LogLevel.WARN
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
@@ -35,6 +36,18 @@ class LogcatColorsTest {
   fun logLevelColors_areJBColor() {
     for (level in Log.LogLevel.values()) {
       assertJBColors(logcatColors.getLogLevelColor(level)!!)
+    }
+  }
+
+  @Test
+  fun messageColors_areJBColor() {
+    for (level in Log.LogLevel.values()) {
+      if (level.ordinal < WARN.ordinal) {
+        assertThat(logcatColors.getMessageColor(level)).isNull()
+      }
+      else {
+        assertJBColors(logcatColors.getMessageColor(level)!!)
+      }
     }
   }
 

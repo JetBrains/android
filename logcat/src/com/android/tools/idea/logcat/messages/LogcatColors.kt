@@ -20,6 +20,7 @@ import com.android.ddmlib.Log.LogLevel
 import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.ui.DarculaColors
 import com.intellij.ui.JBColor
 import com.jetbrains.rd.util.concurrentMapOf
 import java.awt.Color
@@ -55,9 +56,14 @@ internal class LogcatColors {
   private val tagColors = concurrentMapOf<Int, TextAttributes>()
 
   /**
-   * Map a [Log.LogLevel] to a [TextAttributes] object.
+   * Map a [Log.LogLevel] to a [TextAttributes] object for rendering a log level.
    */
   internal fun getLogLevelColor(level: LogLevel) = LEVEL_COLORS[level]
+
+  /**
+   * Map a [Log.LogLevel] to a [TextAttributes] object for rendering a message.
+   */
+  internal fun getMessageColor(level: LogLevel) = MESSAGE_COLORS[level]
 
   /**
    * Map a Logcat tag to a [TextAttributes] object.
@@ -74,15 +80,20 @@ internal class LogcatColors {
   }
 }
 
+// TODO(aalbert): All these colors are temporary until UX defines the proper ones.
+
 // TODO(aalbert): Remove when https://youtrack.jetbrains.com/issue/IDEA-277131 is fixed.
 val white = JBColor(Color(254, 254, 254), JBColor.background())
 val black = JBColor(Color(1, 1, 1), JBColor.foreground())
+val red = JBColor(Color(254, 0, 0), DarculaColors.RED)
+val warning: JBColor = JBColor(Color(210, 105, 0), Color.orange)
+val error: JBColor = red
 
 private val LEVEL_VERBOSE = TextAttributes().apply { foregroundColor = white; backgroundColor = black }
 private val LEVEL_DEBUG = TextAttributes().apply { foregroundColor = white; backgroundColor = JBColor.BLUE }
 private val LEVEL_INFO = TextAttributes().apply { foregroundColor = black; backgroundColor = JBColor.GREEN }
-private val LEVEL_WARNING = TextAttributes().apply { foregroundColor = black; backgroundColor = JBColor.YELLOW }
-private val LEVEL_ERROR = TextAttributes().apply { foregroundColor = white; backgroundColor = JBColor.RED }
+private val LEVEL_WARNING = TextAttributes().apply { foregroundColor = black; backgroundColor = warning }
+private val LEVEL_ERROR = TextAttributes().apply { foregroundColor = white; backgroundColor = error }
 private val LEVEL_ASSERT = LEVEL_ERROR
 
 private val LEVEL_COLORS = mapOf(
@@ -92,4 +103,17 @@ private val LEVEL_COLORS = mapOf(
   LogLevel.WARN to LEVEL_WARNING,
   LogLevel.ERROR to LEVEL_ERROR,
   LogLevel.ASSERT to LEVEL_ASSERT,
+)
+
+private val MESSAGE_WARNING = TextAttributes().apply { foregroundColor = warning }
+private val MESSAGE_ERROR = TextAttributes().apply { foregroundColor = error }
+private val MESSAGE_ASSERT = MESSAGE_ERROR
+
+private val MESSAGE_COLORS = mapOf(
+  LogLevel.VERBOSE to null,
+  LogLevel.DEBUG to null,
+  LogLevel.INFO to null,
+  LogLevel.WARN to MESSAGE_WARNING,
+  LogLevel.ERROR to MESSAGE_ERROR,
+  LogLevel.ASSERT to MESSAGE_ASSERT,
 )

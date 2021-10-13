@@ -16,6 +16,12 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.Log
+import com.android.ddmlib.Log.LogLevel.ASSERT
+import com.android.ddmlib.Log.LogLevel.DEBUG
+import com.android.ddmlib.Log.LogLevel.ERROR
+import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.ddmlib.Log.LogLevel.VERBOSE
+import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
@@ -43,12 +49,12 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 20001, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 20001, "com.example.app1", "Tag2", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 20001, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 20001, "com.example.app1", "Tag2", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -69,7 +75,7 @@ class MessageFormatterTest {
 
     messageFormatter.formatMessages(
       textAccumulator,
-      listOf(LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
+      listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
 
     assertThat(textAccumulator.text).isEqualTo("""
       04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
@@ -84,7 +90,7 @@ class MessageFormatterTest {
 
     messageFormatter.formatMessages(
       textAccumulator,
-      listOf(LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
+      listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message")))
 
     assertThat(textAccumulator.text).isEqualTo("    1-2     Tag1                    com.example.app1                     W  message\n")
   }
@@ -97,8 +103,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -116,8 +122,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -135,8 +141,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -153,7 +159,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -170,9 +176,9 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag2", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag2", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -191,7 +197,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -208,8 +214,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.long.company.name.app2", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.long.company.name.app2", "Tag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -226,8 +232,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "?", "Tag", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "", "Tag", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "Tag", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "", "Tag", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -245,9 +251,9 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 2, 2, "com.example.app2", "Tag2", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app2", "Tag2", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -266,7 +272,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", timestamp), "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -290,12 +296,33 @@ class MessageFormatterTest {
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "V", logcatColors.getLogLevelColor(Log.LogLevel.VERBOSE),
-      "D", logcatColors.getLogLevelColor(Log.LogLevel.DEBUG),
-      "I", logcatColors.getLogLevelColor(Log.LogLevel.INFO),
-      "W", logcatColors.getLogLevelColor(Log.LogLevel.WARN),
-      "E", logcatColors.getLogLevelColor(Log.LogLevel.ERROR),
-      "A", logcatColors.getLogLevelColor(Log.LogLevel.ASSERT),
+      "V", logcatColors.getLogLevelColor(VERBOSE),
+      "D", logcatColors.getLogLevelColor(DEBUG),
+      "I", logcatColors.getLogLevelColor(INFO),
+      "W", logcatColors.getLogLevelColor(WARN),
+      "E", logcatColors.getLogLevelColor(ERROR),
+      "A", logcatColors.getLogLevelColor(ASSERT),
+    )
+  }
+
+  @Test
+  fun formatMessages_messageColors() {
+    val messages = mutableListOf<LogCatMessage>()
+    for (level in Log.LogLevel.values()) {
+      messages.add(LogCatMessage(LogCatHeader(level, 1, 2, "app", "tag", timestamp), "message-${level.name}"))
+    }
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(textAccumulator, messages)
+
+    // Filter the ranges corresponding to a LogLevel and build a map level -> color.
+    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" message-.*\n".toRegex()) }
+      .associate { it.getText(textAccumulator.text).trim() to it.data }
+
+    assertThat(textAttributes).containsExactly(
+      "message-WARN", logcatColors.getMessageColor(WARN),
+      "message-ERROR", logcatColors.getMessageColor(ERROR),
+      "message-ASSERT", logcatColors.getMessageColor(ASSERT),
     )
   }
 
@@ -305,7 +332,7 @@ class MessageFormatterTest {
     val messages = mutableListOf<LogCatMessage>()
     val numTags = 10
     for (t in 1..numTags) {
-      messages.add(LogCatMessage(LogCatHeader(Log.LogLevel.INFO, 1, 2, "app", "tag$t", timestamp), "message"))
+      messages.add(LogCatMessage(LogCatHeader(INFO, 1, 2, "app", "tag$t", timestamp), "message"))
     }
     val textAccumulator = TextAccumulator()
 
@@ -327,8 +354,8 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
-        LogCatMessage(LogCatHeader(Log.LogLevel.WARN, 1, 2, "app2", "tag2", timestamp), "message2"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", timestamp), "message2"),
       ))
 
     textAccumulator.hintRanges.forEach {
