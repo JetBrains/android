@@ -518,9 +518,8 @@ class EmulatorView(
     val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
     val title = "Emulator is out of date"
     val message = "Please update the Android Emulator"
-    val notification =
-        EMULATOR_NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING, null)
-    notification.collapseActionsDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
+    val notification = EMULATOR_NOTIFICATION_GROUP.createNotification(title, XmlStringUtil.wrapInHtml(message), NotificationType.WARNING)
+    notification.collapseDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
     notification.addAction(object : NotificationAction("Check for updates") {
       override fun actionPerformed(event: AnActionEvent, notification: Notification) {
         notification.expire()
