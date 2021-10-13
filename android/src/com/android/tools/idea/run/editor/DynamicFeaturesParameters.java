@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -228,7 +227,7 @@ public class DynamicFeaturesParameters {
       else {
         return;
       }
-      myTableModel.addRow(new DynamicFeatureRow(module, true, false, FeatureType.BASE_FEATURE));
+      myTableModel.addRow(new DynamicFeatureRow(baseFeature, true, false, FeatureType.BASE_FEATURE));
     }
   }
 

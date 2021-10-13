@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
@@ -45,13 +47,13 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,12 +89,13 @@ public class DynamicAppUtils {
       return null;
     }
 
-    return Arrays.stream(ModuleManager.getInstance(module.getProject()).getModules())
-      .filter(baseModule -> {
-        AndroidModuleModel baseModel = AndroidModuleModel.get(baseModule);
+    return ProjectSystemUtil.getAndroidFacets(module.getProject()).stream()
+      .filter(facet -> {
+        AndroidModuleModel baseModel = AndroidModuleModel.get(facet);
         return baseModel != null && baseModel.getAndroidProject().getDynamicFeatures().contains(gradlePath);
       })
       .findFirst()
+      .map(AndroidFacet::getHolderModule)
       .orElse(null);
   }
 
@@ -132,7 +135,10 @@ public class DynamicAppUtils {
       return ImmutableList.of();
     }
 
-    return selectFeatureModules(ModuleManager.getInstance(featureModule.getProject()).getModuleDependentModules(featureModule).stream());
+    // We need to remove modules that belong to the same Gradle project as the feature module e.g the  androidTest and unitTest modules
+    return selectFeatureModules(removeModulesIntheSameGradleProject(
+      ModuleManager.getInstance(featureModule.getProject()).getModuleDependentModules(ModuleSystemUtil.getMainModule(featureModule))
+        .stream(), featureModule));
   }
 
   /**
@@ -149,7 +155,14 @@ public class DynamicAppUtils {
       return ImmutableList.of();
     }
 
-    return selectFeatureModules(Stream.of(ModuleRootManager.getInstance(featureModule).getDependencies()));
+    // We need to remove modules that belong to the same Gradle project as the feature module e.g the  androidTest and unitTest modules
+    return selectFeatureModules(removeModulesIntheSameGradleProject(
+      Stream.of(ModuleRootManager.getInstance(ModuleSystemUtil.getMainModule(featureModule)).getDependencies()), featureModule));
+  }
+
+  @NotNull
+  public static Stream<Module> removeModulesIntheSameGradleProject(@NotNull Stream<Module> modules, @NotNull Module moduleOfProjectToRemove) {
+    return modules.filter(m -> ModuleSystemUtil.getHolderModule(m) != ModuleSystemUtil.getHolderModule(moduleOfProjectToRemove));
   }
 
   /**
@@ -332,32 +345,33 @@ public class DynamicAppUtils {
 
   @NotNull
   private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
-    return Arrays.stream(ModuleManager.getInstance(project).getModules())
-      .map(module -> {
+    return ProjectSystemUtil.getAndroidFacets(project).stream()
+      .map(facet -> {
         // Check the module is a "dynamic feature"
-        AndroidModuleModel model = AndroidModuleModel.get(module);
+        AndroidModuleModel model = AndroidModuleModel.get(facet);
         if (model == null) {
           return null;
         }
         if (model.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return null;
         }
-        String gradlePath = getGradlePath(module);
+        String gradlePath = getGradlePath(facet.getHolderModule());
         if (gradlePath == null) {
           return null;
         }
-        return Pair.create(gradlePath, module);
+        return Pair.create(gradlePath, facet.getHolderModule());
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(p -> p.first, p -> p.second, DynamicAppUtils::handleModuleAmbiguity));
   }
 
   /**
-   * Finds the modules in a stream that are either legacy or dynamic features.
+   * Finds the modules in a stream that are either legacy or dynamic features. If there are multiple modules belonging to the same
+   * dynamic feature (i.e Gradle Project) this method will only return the holder modules.
    */
   @NotNull
   private static List<Module> selectFeatureModules(Stream<Module> moduleStream) {
-    return moduleStream.filter(module -> {
+    return moduleStream.map(ModuleSystemUtil::getHolderModule).distinct().filter(module -> {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel == null) {
         return false;
