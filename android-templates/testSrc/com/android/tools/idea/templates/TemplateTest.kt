@@ -559,9 +559,10 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   @TemplateCheck
   fun testNewFiles() {
     checkCreateTemplate("AIDL File")
-    checkCreateTemplate("App Actions XML File")
+    checkCreateTemplate("App Actions XML File (deprecated)")
     checkCreateTemplate("Layout XML File")
     checkCreateTemplate("Values XML File")
+    checkCreateTemplate("Shortcuts XML File")
   }
 
   @TemplateCheck

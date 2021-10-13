@@ -248,7 +248,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
       "RenderScript Folder" -> TemplateType.RENDER_SCRIPT_FOLDER
       "Content Provider" -> TemplateType.CONTENT_PROVIDER
       "Android Manifest File" -> TemplateType.ANDROID_MANIFEST_FILE
-      "App Actions XML File" -> TemplateType.APP_ACTIONS_XML_FILE
+      "App Actions XML File (deprecated)" -> TemplateType.APP_ACTIONS_XML_FILE
+      "Shortcuts XML File" -> TemplateType.SHORTCUTS_XML_FILE
       else -> TemplateType.CUSTOM_TEMPLATE
     }
 
