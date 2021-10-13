@@ -23,6 +23,8 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 
+private val internalComponent = object : JComponent() {}
+
 /**
  * A noop implementation of [ConsoleView].
  *
@@ -31,16 +33,13 @@ import javax.swing.JComponent
  *
  * This is so that we can ignore non-relevant ConsoleFolding extensions such as GitProgressOutputConsoleFolding etc.
  */
+
 internal class ConsoleViewForFolding : ConsoleView {
   override fun dispose() {}
 
-  override fun getComponent(): JComponent {
-    throw NotImplementedError()
-  }
+  override fun getComponent(): JComponent = internalComponent
 
-  override fun getPreferredFocusableComponent(): JComponent {
-    throw NotImplementedError()
-  }
+  override fun getPreferredFocusableComponent(): JComponent = internalComponent
 
   override fun print(text: String, contentType: ConsoleViewContentType) {}
 

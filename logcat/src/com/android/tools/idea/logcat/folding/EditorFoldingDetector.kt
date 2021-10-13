@@ -76,7 +76,7 @@ private val consoleView = ConsoleViewForFolding()
 internal class EditorFoldingDetector(
   private val project: Project,
   private val editor: Editor,
-  consoleFoldings: List<ConsoleFolding> = ConsoleFolding.EP_NAME.extensionList,
+  consoleFoldings: List<ConsoleFolding> = ConsoleFolding.EP_NAME.extensionList + ExceptionFolding(),
 ) : FoldingDetector {
   private val document = editor.document
   private val activeConsoleFoldings = consoleFoldings.filter { it.isEnabledForConsole(consoleView) }

@@ -23,6 +23,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatHeaderParser;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.logcat.folding.StackTraceExpander;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -57,20 +58,10 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   @VisibleForTesting
   static final int DELAY_MILLIS = 100;
 
-  /**
-   * Prefix to use for stack trace lines.
-   */
-  private static final @NotNull String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
-
-  /**
-   * Prefix to use for the stack trace "Caused by:" lines.
-   */
-  private static final @NotNull String STACK_TRACE_CAUSE_LINE_PREFIX = " ";
   private static final String SYSTEM_LINE_PREFIX = "--------- beginning of ";
 
   private final @NotNull LogCatHeaderParser myLogCatHeaderParser;
   private final @NotNull IDevice myDevice;
-  private final @NotNull StackTraceExpander myStackTraceExpander;
   private final @NotNull LogcatListener myLogcatListener;
   private volatile boolean myCanceled;
   private final @NotNull Executor mySequentialExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("LogcatReceiver", 1);
@@ -86,7 +77,6 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   LogcatReceiver(@NotNull IDevice device, @NotNull Disposable parentDisposable, @NotNull LogcatListener listener) {
     myLogCatHeaderParser = new LogCatHeaderParser();
     myDevice = device;
-    myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
     myLogcatListener = listener;
     Disposer.register(parentDisposable, this);
     myAlarm = new TempSafeAlarm(POOLED_THREAD, this);
@@ -199,7 +189,6 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
 
       if (header != null) {
         // It's a header, flush active lines.
-        myStackTraceExpander.reset();
         if (!activeLines.isEmpty()) {
           if (activeHeader != null) {
             batchMessages.add(new LogCatMessage(activeHeader, joinLines(activeLines)));
@@ -209,7 +198,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
         activeHeader = header;
       }
       else {
-        activeLines.addAll(myStackTraceExpander.process(line));
+        activeLines.add(line);
       }
     }
     return new Batch(batchMessages.build(), activeHeader, activeLines);
@@ -220,8 +209,8 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   }
 
   @NotNull
-  private static String joinLines(@NotNull List<@NotNull String> activeLines) {
-    return StringUtil.trim(String.join("\n", activeLines), ch -> ch != '\n');
+  private String joinLines(@NotNull List<@NotNull String> activeLines) {
+    return StringUtil.trim(String.join("\n", StackTraceExpander.process(activeLines)), ch -> ch != '\n');
   }
 
   @Override
