@@ -65,30 +65,30 @@ else {
  * invalidation has completed.
  * If [forceLayout] is true, a `View#requestLayout` will be sent to the `ComposeViewAdapter` to force a relayout of the whole view.
  */
-internal fun RenderResult?.invalidateCompositions(forceLayout: Boolean) = RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-    val composeViewAdapter = findComposeViewAdapter() ?: return@runAsyncAction
-    try {
-      val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
-      val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
-        it.isAccessible = true
-        it.get(null)
-      }
-      val saveStateAndDisposeMethod = hotReloaderInstance.javaClass.getDeclaredMethod("saveStateAndDispose", Any::class.java).also {
-        it.isAccessible = true
-      }
-      val loadStateAndCompose = hotReloaderInstance.javaClass.getDeclaredMethod("loadStateAndCompose", Any::class.java).also {
-        it.isAccessible = true
-      }
-      val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
-      loadStateAndCompose.invoke(hotReloaderInstance, state)
-      if (forceLayout) {
-        composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
-      }
+internal fun LayoutlibSceneManager.invalidateCompositions(forceLayout: Boolean) = executeInRenderSession {
+  val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSession
+  try {
+    val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
+    val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
+      it.isAccessible = true
+      it.get(null)
     }
-    catch (t: Throwable) {
-      Logger.getInstance(RenderResult::class.java).warn(t)
+    val saveStateAndDisposeMethod = hotReloaderInstance.javaClass.getDeclaredMethod("saveStateAndDispose", Any::class.java).also {
+      it.isAccessible = true
+    }
+    val loadStateAndCompose = hotReloaderInstance.javaClass.getDeclaredMethod("loadStateAndCompose", Any::class.java).also {
+      it.isAccessible = true
+    }
+    val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
+    loadStateAndCompose.invoke(hotReloaderInstance, state)
+    if (forceLayout) {
+      composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
     }
   }
+  catch (t: Throwable) {
+    Logger.getInstance(RenderResult::class.java).warn(t)
+  }
+}
 
 /**
  * Returns all the [LayoutlibSceneManager] belonging to the [DesignSurface].

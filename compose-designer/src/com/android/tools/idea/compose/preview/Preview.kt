@@ -421,7 +421,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
       surface.layoutlibSceneManagers.forEach { sceneManager ->
         // This invalidates the current compositions to ensure the render re-composes the layout
-        sceneManager.renderResult
+        sceneManager
           .invalidateCompositions(forceLayout = animationInspection.get())
           .thenCompose {
             sceneManager.executeCallbacks()

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -47,6 +48,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -606,6 +608,52 @@ public class RenderTaskTest extends AndroidTestCase {
       } catch (Exception ex) {
         throw new RuntimeException(ex);
       }
+    });
+  }
+
+  /**
+   * Returns the value of {@code android.content.res.Resources.mSystem} via reflection.
+   */
+  @Nullable
+  private static Object getMSystemValue(@NotNull RenderTask task) {
+    try {
+      Class<?> resourcesClass = task.getLayoutlibCallback().findClass("android.content.res.Resources");
+      Field mSystemField = resourcesClass.getDeclaredField("mSystem");
+      mSystemField.setAccessible(true);
+      return mSystemField.get(null);
+    }
+    catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public void testRunRenderActionWithSessionHasAccessToResources() {
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      // This ensures the render session is initialized.
+      task.render().join();
+
+      // Check that runAsyncRenderAction runs without the session.
+      task.runAsyncRenderAction(() -> {
+        assertNull(getMSystemValue(task));
+        return null;
+      }).join();
+
+      // When running under a session, mSystem will be initialized.
+      task.runAsyncRenderActionWithSession(() -> {
+        assertNotNull(getMSystemValue(task));
+      }).join();
     });
   }
 }

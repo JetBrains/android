@@ -1347,6 +1347,27 @@ public class RenderTask {
     }
   }
 
+  /**
+   * Similar to {@link #runAsyncRenderAction(Callable)} but executes it under a {@link RenderSession}. This allows the
+   * given block to access resources since they are setup before executing it.
+   * @return A {@link CompletableFuture} that completes when the block finalizes.
+   */
+  @NotNull
+  public CompletableFuture<Void> runAsyncRenderActionWithSession(@NotNull Runnable block) {
+    if (isDisposed.get()) {
+      return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+    }
+    RenderSession renderSession = myRenderSession;
+    if (renderSession == null) {
+      return immediateFailedFuture(new IllegalStateException("No RenderSession available"));
+    }
+    return runAsyncRenderAction(() -> {
+      renderSession.execute(block);
+
+      return null;
+    });
+  }
+
   @VisibleForTesting
   void setCrashReporter(@NotNull CrashReporter crashReporter) {
     myCrashReporter = crashReporter;
