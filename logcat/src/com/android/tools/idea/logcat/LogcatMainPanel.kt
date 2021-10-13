@@ -26,8 +26,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
-import com.android.tools.idea.logcat.folding.FoldingDetectorImpl
+import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
+import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
@@ -35,11 +37,7 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
-import com.intellij.execution.filters.CompositeFilter
-import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleBuffer
-import com.intellij.execution.impl.ConsoleViewUtil
-import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -62,7 +60,6 @@ import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
@@ -77,14 +74,22 @@ import kotlin.math.max
 
 /**
  * The top level Logcat panel.
+ *
+ * @param project the [Project]
+ * @param popupActionGroup An [ActionGroup] to add to the right-click menu of the panel
+ * @param logcatColors Provides colors for rendering messages
+ * @param state State to restore or null to use the default state
+ * @param hyperlinkDetector A [HyperlinkDetector] or null to create the default one. For testing.
+ * @param foldingDetector A [FoldingDetector] or null to create the default one. For testing.
+ * @param zoneId A [ZoneId] or null to create the default one. For testing.
  */
 internal class LogcatMainPanel(
   project: Project,
   private val popupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
-  hyperlinkHighlighterFactory: (EditorEx) -> HyperlinkHighlighter = ::HyperlinkHighlighterImpl,
-  foldingDetectorFactory: (Editor) -> FoldingDetector = { editor -> FoldingDetectorImpl(project, editor) },
+  hyperlinkDetector: HyperlinkDetector? = null,
+  foldingDetector: FoldingDetector? = null,
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable, DataProvider {
 
@@ -104,10 +109,8 @@ internal class LogcatMainPanel(
   private val headerPanel = LogcatHeaderPanel(project, deviceContext)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
-  private val hyperlinkHighlighter = hyperlinkHighlighterFactory(editor)
-  private val hyperlinkFilters =
-    CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
-  private val foldingUpdater = foldingDetectorFactory(editor)
+  private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
+  private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
 
   init {
@@ -206,8 +209,8 @@ internal class LogcatMainPanel(
     val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
     endMarker.dispose()
     val endLine = max(0, document.lineCount - 1)
-    hyperlinkHighlighter.highlightHyperlinks(hyperlinkFilters, startLine, endLine)
-    foldingUpdater.detectFoldings(startLine, endLine)
+    hyperlinkDetector.detectHyperlinks(startLine, endLine)
+    foldingDetector.detectFoldings(startLine, endLine)
 
     if (shouldStickToEnd) {
       scrollToEnd()
@@ -310,30 +313,9 @@ internal class LogcatMainPanel(
   }
 }
 
-/**
- * Wrapper interface around [EditorHyperlinkSupport] to allow for testing.
- */
-internal interface HyperlinkHighlighter {
-  /**
-   * Highlight hyperlinks in an [EditorEx].
-   *
-   * @param filter A [Filter] used by the [EditorHyperlinkSupport] implementation
-   * @param startLine Start line of region to process (zero based)
-   * @param startLine End line of region to process (zero based)
-   */
-  fun highlightHyperlinks(filter: Filter, startLine: Int, endLine: Int)
-}
-
-private class HyperlinkHighlighterImpl(editor: EditorEx) : HyperlinkHighlighter {
-  private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
-  override fun highlightHyperlinks(filter: Filter, startLine: Int, endLine: Int) {
-    editorHyperlinkSupport.highlightHyperlinks(filter, startLine, endLine)
-  }
-}
-
 @VisibleForTesting
 @UiThread
-internal fun EditorEx.isCaretAtBottom() = document.let {
+internal fun Editor.isCaretAtBottom() = document.let {
   it.getLineNumber(caretModel.offset) >= it.lineCount - 1
 }
 

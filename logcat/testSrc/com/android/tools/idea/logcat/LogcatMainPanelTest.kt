@@ -20,7 +20,6 @@ import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.capture
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -28,14 +27,10 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.folding.FoldingDetector
-import com.android.tools.idea.logcat.folding.FoldingDetectorImpl
+import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.filters.CompositeFilter
-import com.intellij.execution.filters.Filter
-import com.intellij.execution.impl.ConsoleViewUtil
-import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionManager
@@ -45,12 +40,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -63,8 +56,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
@@ -93,7 +84,7 @@ class LogcatMainPanelTest {
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor))
-  private val mockHyperlinkHighlighter = mock<HyperlinkHighlighter>()
+  private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
 
   private lateinit var logcatMainPanel: LogcatMainPanel
@@ -294,23 +285,6 @@ class LogcatMainPanelTest {
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
 
-  @Test
-  fun hyperlinks_usesCorrectFilters() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(hyperlinkHighlighter = mockHyperlinkHighlighter)
-    }
-    val filterCaptor: ArgumentCaptor<Filter> = ArgumentCaptor.forClass(Filter::class.java)
-
-    logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
-
-    val expectedFilters = ConsoleViewUtil.computeConsoleFilters(projectRule.project, null, GlobalSearchScope.allScope(projectRule.project))
-    logcatMainPanel.messageProcessor.onIdle {
-      verify(mockHyperlinkHighlighter).highlightHyperlinks(capture(filterCaptor), anyInt(), anyInt())
-      val compositeFilter = filterCaptor.value as CompositeFilter
-      assertThat(compositeFilter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
-    }
-  }
-
   /**
    *  The purpose this test is to ensure that we are calling the HyperlinkHighlighter with the correct line range. It does not test user on
    *  any visible effect.
@@ -318,7 +292,7 @@ class LogcatMainPanelTest {
   @Test
   fun hyperlinks_range() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(hyperlinkHighlighter = mockHyperlinkHighlighter)
+      logcatMainPanel = logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -326,8 +300,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockHyperlinkHighlighter).highlightHyperlinks(any(Filter::class.java), eq(0), eq(1))
-      verify(mockHyperlinkHighlighter).highlightHyperlinks(any(Filter::class.java), eq(1), eq(2))
+      verify(myMockHyperlinkDetector).detectHyperlinks(eq(0), eq(1))
+      verify(myMockHyperlinkDetector).detectHyperlinks(eq(1), eq(2))
     }
   }
 
@@ -339,7 +313,7 @@ class LogcatMainPanelTest {
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
     System.setProperty("idea.cycle.buffer.size", "1")
     runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(hyperlinkHighlighter = mockHyperlinkHighlighter)
+      logcatMainPanel = logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -348,26 +322,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage(message = longMessage)))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockHyperlinkHighlighter, times(2)).highlightHyperlinks(any(Filter::class.java), eq(0), eq(1))
-    }
-  }
-
-  @Test
-  fun hyperlinks_areHighlighted() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = LogcatMainPanel(projectRule.project, EMPTY_GROUP, LogcatColors(), null)
-    }
-
-    logcatMainPanel.messageProcessor.appendMessages(listOf(
-      logCatMessage(message = "http://www.google.com"),
-    ))
-
-    logcatMainPanel.messageProcessor.onIdle {
-      val hyperlinkSupport = EditorHyperlinkSupport.get(logcatMainPanel.editor)
-      hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
-      assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
-        logcatMainPanel.editor.document.text.substring(it.startOffset, it.endOffset)
-      }).containsExactly("http://www.google.com")
+      verify(myMockHyperlinkDetector, times(2)).detectHyperlinks(eq(0), eq(1))
     }
   }
 
@@ -378,7 +333,7 @@ class LogcatMainPanelTest {
   @Test
   fun foldings_range() = runBlocking {
     runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(foldingDetectorFactory = { mockFoldingDetector })
+      logcatMainPanel = logcatMainPanel(foldingDetector = mockFoldingDetector)
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -399,7 +354,7 @@ class LogcatMainPanelTest {
   fun foldings_rangeWithCyclicBuffer() = runBlocking {
     System.setProperty("idea.cycle.buffer.size", "1")
     runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(foldingDetectorFactory = { mockFoldingDetector })
+      logcatMainPanel = logcatMainPanel(foldingDetector = mockFoldingDetector)
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -433,8 +388,8 @@ class LogcatMainPanelTest {
     popupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
     state: LogcatPanelConfig? = null,
-    hyperlinkHighlighter: HyperlinkHighlighter = mock(),
-    foldingDetectorFactory: (Editor) -> FoldingDetector = { editor -> FoldingDetectorImpl(projectRule.project, editor) },
+    hyperlinkDetector: HyperlinkDetector? = null,
+    foldingDetector: FoldingDetector? = null,
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, { hyperlinkHighlighter }, foldingDetectorFactory, zoneId)
+  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, hyperlinkDetector, foldingDetector, zoneId)
 }

@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat.folding
-
-import com.android.annotations.concurrency.UiThread
+package com.android.tools.idea.logcat.hyperlinks
 
 /**
- * Detects foldings in a region of text.
+ * Interface for detecting hyperlinks.
  */
-internal interface FoldingDetector {
+internal interface HyperlinkDetector {
   /**
-   * Detects foldings in a region of text.
+   * Detects hyperlinks in a region of text.
    *
    * @param startLine Start line of region to process (zero based)
    * @param endLine End line of region to process (zero based)
    */
-  @UiThread
-  fun detectFoldings(startLine: Int, endLine: Int)
+  fun detectHyperlinks(startLine: Int, endLine: Int)
 }

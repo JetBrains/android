@@ -73,7 +73,7 @@ private val consoleView = ConsoleViewForFolding()
  * <1 internal line>
  * ```
  */
-internal class FoldingDetectorImpl(
+internal class EditorFoldingDetector(
   private val project: Project,
   private val editor: Editor,
   consoleFoldings: List<ConsoleFolding> = ConsoleFolding.EP_NAME.extensionList,

@@ -32,10 +32,10 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Tests for [FoldingDetectorImpl]
+ * Tests for [EditorFoldingDetector]
  */
 @RunsInEdt
-class FoldingDetectorImplTest {
+class EditorFoldingDetectorTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
@@ -242,7 +242,7 @@ class FoldingDetectorImplTest {
 
   @Test
   fun detectFoldings_defaultFoldings() {
-    val foldingDetector = FoldingDetectorImpl(projectRule.project, editor)
+    val foldingDetector = EditorFoldingDetector(projectRule.project, editor)
     editor.document.setText("""
       at java.lang.reflect.Method.invoke(Native Method)
     """.trimIndent())
@@ -254,7 +254,7 @@ class FoldingDetectorImplTest {
   }
 
   private fun foldingDetector(editor: Editor, consoleFoldings: List<ConsoleFolding>) =
-    FoldingDetectorImpl(projectRule.project, editor, consoleFoldings)
+    EditorFoldingDetector(projectRule.project, editor, consoleFoldings)
 }
 
 private fun FoldRegion.toFoldInfo(editor: Editor) = FoldInfo(editor.document.text.substring(startOffset, endOffset), placeholderText)
