@@ -30,6 +30,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
 import java.awt.FlowLayout
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
+import com.android.tools.idea.common.editor.DesignerEditorToolbar
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -70,7 +71,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
                                                   minTimeMs: Long,
                                                   initialMaxTimeMs: Long,
                                                   toolbarType: AnimationToolbarType)
-  : JPanel(), AnimationController, Disposable {
+  : DesignerEditorToolbar(), AnimationController, Disposable {
   private val myAnimationListener: AnimationListener
   private val myPlayButton: JButton
   private val myPauseButton: JButton
@@ -425,6 +426,14 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         }
       }
     }
+  }
+
+  override fun activate() {
+    // We pause the animation when deactivated, however, we don't resume the animation automatically.
+  }
+
+  override fun deactivate() {
+    pause()
   }
 }
 
