@@ -56,9 +56,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     override fun actionPerformed(e: AnActionEvent) = selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
   }
 
-  override fun isShowFloatingToolbar(): Boolean {
-    return false
-  }
+  override fun isShowFloatingToolbar() = false
 
   private val navigateRightAction = object : AnAction() {
     override fun actionPerformed(e: AnActionEvent) = selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
