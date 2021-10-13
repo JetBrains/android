@@ -101,8 +101,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
-  @Nullable private DesignerEditorToolbar myBottomComponent;
-
+  @Nullable private JComponent myBottomComponent;
   /**
    * Whether we listened to a gradle sync that happened after model creation. {@link #initNeleModel} calls {@link #initNeleModelWhenSmart}
    * when a Gradle Sync has happened in the project. In some situations, we want to make sure to listen to the gradle sync that happens only
@@ -139,16 +138,16 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    * @param surface a function that produces a design surface given a design editor panel. Ideally, this panel is passed to the function.
    * @param modelProvider a model provider to provide a {@link NlModel} for this editor.
    * @param toolWindowDefinitions list of tool windows to be added to the workbench.
-   * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a
-   *                             {@link DesignerEditorToolbar} to be added on the bottom of this panel. The component might be associated
-   *                             with the model, so we need to listen to modelChanged events and update it as needed.
+   * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
+   *                             be added on the bottom of this panel. The component might be associated with the model, so we need to
+   *                             listen to modelChanged events and update it as needed.
    * @param defaultEditorPanelState default {@link State] to initialize the panel to.
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull ModelProvider modelProvider,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
-                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, DesignerEditorToolbar> bottomModelComponent,
+                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
     super(new BorderLayout());
     myEditor = editor;
@@ -229,14 +228,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     if (currentState != State.DEACTIVATED && !myIsModelInitializated.getAndSet(true)) {
       // We might have delayed some initialization until the surface was not in the DEACTIVATED state. Run it now.
       ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
-    }
-    if (myBottomComponent != null) {
-      if (currentState == State.DEACTIVATED) {
-        myBottomComponent.deactivate();
-      }
-      else {
-        myBottomComponent.activate();
-      }
     }
   }
 
@@ -409,16 +400,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
 
   public void activate() {
     mySurface.activate();
-    if (myBottomComponent != null) {
-      myBottomComponent.activate();
-    }
   }
 
   public void deactivate() {
     mySurface.deactivate();
-    if (myBottomComponent != null) {
-      myBottomComponent.deactivate();
-    }
   }
 
   @NotNull
