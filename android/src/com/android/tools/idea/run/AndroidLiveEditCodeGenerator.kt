@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
@@ -29,12 +30,14 @@ import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
+import org.jetbrains.kotlin.idea.project.platform
+import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -60,104 +63,149 @@ class AndroidLiveEditCodeGenerator {
   @Trace
   fun compile(project: Project, methods: List<LiveEditService.MethodReference>,
               callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) {
+
+    // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
+    // that multiple change events of the same file can be queue up. We keep track of what we have deploy
+    // so we don't compile the same file twice.
     val compiled = HashSet<PsiFile>()
     for (method in methods) {
       val root = method.file
+
       if (root !is KtFile || compiled.contains(root)) {
         continue
       }
+      val inputs = listOf(root)
 
-      val filesToAnalyze = listOf(root)
-
+      // A compile is always going to be a ReadAction because it reads an KtFile completely.
       ApplicationManager.getApplication().runReadAction {
-        val kotlinCacheService = KotlinCacheService.getInstance(project)
-        val resolution = kotlinCacheService.getResolutionFacade(filesToAnalyze,
-                                                                JvmPlatforms.unspecifiedJvmPlatform)
+        // Three steps process:
 
-        val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
-          resolution.analyzeWithAllCompilerChecks(filesToAnalyze)
-        }
+        // 1) Compute binding context based on any previous cached analysis results.
+        //    On small edits of previous analyzed project, this operation should be below 30ms or so.
+        var resolution = fetchResolution(project, inputs)
+        var bindingContext = analyze(inputs, resolution) ?: return@runReadAction
 
-        if (analysisResult.isError()) {
-          println("Live Edit: resolution analysis error\n ${analysisResult.error.message}")
-          return@runReadAction
-        }
+        // 2) Invoke the backend with the inputs and the binding context computed from step 1.
+        //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
+        //    complexity of the input .kt file.
+        var classes = backendCodeGen(project, resolution, bindingContext, inputs, root.languageVersionSettings)
 
-        var bindingContext = analysisResult.bindingContext
+        // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
+        //    decide which classes we want to send to the device along with what extra meta-information the
+        //    agent need.
+        if (!deployLiveEditToDevice(method.function, bindingContext, classes, callback)) return@runReadAction
 
-        for (diagnostic in bindingContext.diagnostics) {
-          if (diagnostic.severity == Severity.ERROR) {
-            println("Live Edit: resolution analysis error\n $diagnostic")
-            return@runReadAction
-          }
-        }
-
-        val compilerConfiguration = CompilerConfiguration()
-
-        compilerConfiguration.languageVersionSettings = root.languageVersionSettings
-
-        val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
-        if (useComposeIR) {
-          // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-          compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
-        }
-
-        val generationStateBuilder = GenerationState.Builder(project,
-                                                      ClassBuilderFactories.BINARIES,
-                                                      resolution.moduleDescriptor,
-                                                      bindingContext,
-                                                      filesToAnalyze,
-                                                      compilerConfiguration);
-
-        if (useComposeIR) {
-          generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(PhaseConfig(jvmPhases)))
-        }
-
-        val generationState = generationStateBuilder.build();
-
-        val methodSignature = functionSignature(bindingContext, method.function)
-
-        // Class name can be either the class containing the function fragment or a KtFile
-        var className = KtNamedDeclarationUtil.getParentFqName(method.function).toString()
-        if (method.function.isTopLevel) {
-          val grandParent : KtFile = method.function.parent as KtFile
-          className = grandParent.javaFileFacadeFqName.toString()
-        }
-
-        if (className.isEmpty() || methodSignature.isEmpty()) {
-          return@runReadAction
-        }
-
-        com.android.tools.tracer.Trace.begin("KotlinCodegenFacade").use {
-          try {
-            KotlinCodegenFacade.compileCorrectFiles(generationState)
-          } catch (e : Throwable) {
-            handleCompilerErrors(e)
-            return@runReadAction
-          }
-          compiled.add(root)
-        }
-        val classes = generationState.factory.asList();
-        if (classes.isEmpty()) {
-          // TODO: Error reporting.
-          print(" We don't have successful classes");
-          return@runReadAction
-        }
-
-        // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
-        val internalClassName = className.replace(".", "/") + ".class"
-        for (c in classes) {
-          if (!c.relativePath.contains(internalClassName)) {
-            continue
-          }
-          for (m in methods) {
-            callback(className, methodSignature, c.asByteArray())
-            // TODO: Deal with multiple requests
-            break
-          }
-        }
+        compiled.add(root)
       }
     }
+  }
+
+  /**
+   * Fetch the resolution based on the cached service.
+   */
+  fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
+    val kotlinCacheService = KotlinCacheService.getInstance(project)
+    return kotlinCacheService.getResolutionFacade(input, project.platform!!)
+  }
+
+  /**
+   * Compute the BindingContext of the input file that can be used for code generation.
+   *
+   * This function needs to be done in a read action.
+   */
+  fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext? {
+    val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
+      resolution.analyzeWithAllCompilerChecks(input)
+    }
+
+    if (analysisResult.isError()) {
+      println("Live Edit: resolution analysis error\n ${analysisResult.error.message}")
+      return null
+    }
+
+    for (diagnostic in analysisResult.bindingContext.diagnostics) {
+      if (diagnostic.severity == Severity.ERROR) {
+        println("Live Edit: resolution analysis error\n $diagnostic")
+        return null
+      }
+    }
+
+    return analysisResult.bindingContext
+  }
+
+  /**
+   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
+   * the extension point to generate code for @composable functions.
+   */
+  fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext,
+                     input: List<KtFile>, langVersion: LanguageVersionSettings): List<OutputFile> {
+    val compilerConfiguration = CompilerConfiguration()
+    compilerConfiguration.languageVersionSettings = langVersion
+
+    val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
+    if (useComposeIR) {
+      // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
+      compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
+    }
+
+    val generationStateBuilder = GenerationState.Builder(project,
+                                                         ClassBuilderFactories.BINARIES,
+                                                         resolution.moduleDescriptor,
+                                                         bindingContext,
+                                                         input,
+                                                         compilerConfiguration);
+
+    if (useComposeIR) {
+      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(PhaseConfig(jvmPhases)))
+    }
+
+    val generationState = generationStateBuilder.build();
+
+    try {
+      KotlinCodegenFacade.compileCorrectFiles(generationState)
+    } catch (e : Throwable) {
+      handleCompilerErrors(e)
+      return emptyList()
+    }
+
+    return generationState.factory.asList();
+  }
+
+  /**
+   * Pick out what classes we need from the generated list of .class files and invoke the callback.
+   */
+  fun deployLiveEditToDevice(targetFunction : KtNamedFunction, bindingContext : BindingContext, compilerOutput : List<OutputFile>,
+                             callback: (className: String, methodSignature: String, classData: ByteArray) -> Unit) : Boolean {
+    val methodSignature = functionSignature(bindingContext, targetFunction)
+
+    // Class name can be either the class containing the function fragment or a KtFile
+    var className = KtNamedDeclarationUtil.getParentFqName(targetFunction).toString()
+    if (targetFunction.isTopLevel) {
+      val grandParent : KtFile = targetFunction.parent as KtFile
+      className = grandParent.javaFileFacadeFqName.toString()
+    }
+
+    if (className.isEmpty() || methodSignature.isEmpty()) {
+      // TODO: Error reporting.
+      print("Empty class name / method signature.")
+      return false
+    }
+
+    if (compilerOutput.isEmpty()) {
+      // TODO: Error reporting.
+      print("No compiler output.")
+      return false
+    }
+
+    // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
+    val internalClassName = className.replace(".", "/") + ".class"
+    for (c in compilerOutput) {
+      if (!c.relativePath.contains(internalClassName)) {
+        continue
+      }
+      callback(className, methodSignature, c.asByteArray())
+    }
+    return true
   }
 
   fun handleCompilerErrors(e : Throwable) {
