@@ -62,13 +62,20 @@ public interface Resources extends AndroidDomElement {
   DeclareStyleable addDeclareStyleable();
 
   List<Attr> getAttrs();
+
   Attr addAttr();
 
   List<Item> getItems();
+
   Item addItem();
 
   List<Overlayable> getOverlayables();
+
   Overlayable addOverlayable();
+
+  List<Macro> getMacros();
+
+  Macro addMacro();
 
   List<AndroidDomElement> getEatComments();
 }
