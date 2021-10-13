@@ -380,7 +380,7 @@ class SessionsViewTest {
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
     assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(3) // the process + no other debuggables + no other profileables
-    val processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
+    val processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40) (debuggable)" }
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
   }
 
@@ -405,7 +405,7 @@ class SessionsViewTest {
     var selectionAction = mySessionsView.processSelectionAction
     var processAction2 = selectionAction.childrenActions
       .first { c -> c.text == "Manufacturer1 Model1" }.childrenActions
-      .first { c -> c.text == "Process2 (20)" }
+      .first { c -> c.text == "Process2 (20) (debuggable)" }
     processAction2.actionPerformed(ActionEvent(processAction2, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device1)
     assertThat(myProfilers.process).isEqualTo(process2)
@@ -415,7 +415,7 @@ class SessionsViewTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var processAction3 = selectionAction.childrenActions
       .first { c -> c.text == "Manufacturer2 Model2" }.childrenActions
-      .first { c -> c.text == "Process3 (10)" }
+      .first { c -> c.text == "Process3 (10) (debuggable)" }
     processAction3.actionPerformed(ActionEvent(processAction3, 0, ""))
     assertThat(myProfilers.device).isEqualTo(device2)
     assertThat(myProfilers.process).isEqualTo(process3)
