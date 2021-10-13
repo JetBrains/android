@@ -25,10 +25,10 @@ MODULE                        : application.app
             ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/application/app/build/generated/res/rs/debug [-]
             - GeneratedResourceFolders    : <ROOT>/application/app/build/generated/res/resValues/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/source/buildConfig/debug [-]
+            - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/ap_generated_sources/debug/out [-]
             Dependencies
                 CompileDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
@@ -181,9 +181,9 @@ MODULE                        : application.app
         ApplicationId                 :
         - GeneratedResourceFolders    : <ROOT>/application/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedResourceFolders    : <ROOT>/application/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/source/buildConfig/androidTest/debug [-]
+        - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies

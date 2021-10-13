@@ -248,10 +248,10 @@ MODULE                        : TestCompositeLib1.app
                 ClassFolder                   : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
@@ -849,9 +849,9 @@ MODULE                        : TestCompositeLib1.app
                 ClassFolder                   : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -2275,10 +2275,10 @@ MODULE                        : TestCompositeLib1.lib
                 ClassFolder                   : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
@@ -2839,9 +2839,9 @@ MODULE                        : TestCompositeLib1.lib
                 ClassFolder                   : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -4220,10 +4220,10 @@ MODULE                        : TestCompositeLib3.app
                 ClassFolder                   : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
@@ -4813,9 +4813,9 @@ MODULE                        : TestCompositeLib3.app
                 ClassFolder                   : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -6223,10 +6223,10 @@ MODULE                        : TestCompositeLib3.lib
                 ClassFolder                   : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                     AndroidLibraries
@@ -6758,9 +6758,9 @@ MODULE                        : TestCompositeLib3.lib
                 ClassFolder                   : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 Level2Dependencies
@@ -8093,10 +8093,10 @@ MODULE                        : project.app
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
@@ -8699,9 +8699,9 @@ MODULE                        : project.app
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -10409,10 +10409,10 @@ MODULE                        : project.lib
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
@@ -10961,9 +10961,9 @@ MODULE                        : project.lib
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
