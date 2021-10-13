@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
+import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
@@ -117,6 +118,7 @@ class LogcatMainPanelTest {
     assertThat(toolbar.actions.map { it::class }).containsExactly(
       ClearLogcatAction::class,
       ScrollToTheEndToolbarAction::class,
+      ToggleUseSoftWrapsToolbarAction::class,
       HeaderFormatOptionsAction::class,
       Separator::class,
     ).inOrder()

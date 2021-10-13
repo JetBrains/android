@@ -43,6 +43,8 @@ import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.Editor
@@ -50,11 +52,13 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
+import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
+import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
@@ -82,7 +86,7 @@ internal class LogcatMainPanel(
   hyperlinkHighlighterFactory: (EditorEx) -> HyperlinkHighlighter = ::HyperlinkHighlighterImpl,
   foldingDetectorFactory: (Editor) -> FoldingDetector = { editor -> FoldingDetectorImpl(project, editor) },
   zoneId: ZoneId = ZoneId.systemDefault()
-) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable, DataProvider {
 
   @VisibleForTesting
   internal val editor: EditorEx = createEditor(project)
@@ -230,6 +234,7 @@ internal class LogcatMainPanel(
         templatePresentation.text = StringUtil.toTitleCase(text)
         templatePresentation.description = text
       })
+      add(ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE))
       add(HeaderFormatOptionsAction(project, this@LogcatMainPanel, formattingOptions))
     }
   }
@@ -253,6 +258,13 @@ internal class LogcatMainPanel(
   }
 
   override fun isMessageViewEmpty() = document.textLength == 0
+
+  override fun getData(dataId: String): Any? {
+    return when {
+      CommonDataKeys.EDITOR.`is`(dataId) -> editor
+      else -> null
+    }
+  }
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread
