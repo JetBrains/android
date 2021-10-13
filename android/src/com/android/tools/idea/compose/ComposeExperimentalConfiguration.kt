@@ -29,7 +29,7 @@ import com.intellij.openapi.project.ProjectManager
 @Service
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
-    var isAnimationPreviewEnabled by property(false)
+    var isAnimationPreviewEnabled by property(true)
     var isDeployToDeviceEnabled by property(true)
     var isInteractiveEnabled by property(true)
     var isPreviewPickerEnabled by property(true)
