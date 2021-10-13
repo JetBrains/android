@@ -56,19 +56,19 @@ public class PluginsBlockModelImpl extends GradleDslBlockModel implements Plugin
     literal.setElementType(REGULAR);
     literal.setValue(plugin.trim());
     myDslElement.setNewElement(literal);
-    return new PluginModelImpl(literal, literal);
+    return new PluginModelImpl(literal);
   }
 
   @Override
   public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply) {
     GradleDslInfixExpression expression = new GradleDslInfixExpression(myDslElement, null);
-    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin.trim());
+    expression.setNewLiteral(ID, plugin.trim());
     expression.setNewLiteral(VERSION, version);
     if (apply != null) {
       expression.setNewLiteral(APPLY, apply);
     }
     myDslElement.setNewElement(expression);
-    return new PluginModelImpl(expression, idLiteral);
+    return new PluginModelImpl(expression);
   }
 
   @Override

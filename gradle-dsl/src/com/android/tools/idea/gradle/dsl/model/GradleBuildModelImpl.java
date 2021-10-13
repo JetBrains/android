@@ -140,7 +140,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       applyMap.setNewElement(literal);
       applyDslElement.setNewElement(applyMap);
 
-      return new PluginModelImpl(applyMap, literal);
+      return new PluginModelImpl(applyMap);
     }
 
     Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(pluginsDslElement));
@@ -160,7 +160,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     literal.setValue(plugin.trim());
     pluginsDslElement.setNewElement(literal);
 
-    return new PluginModelImpl(literal, literal);
+    return new PluginModelImpl(literal);
   }
 
   @Override
@@ -177,7 +177,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
 
     // id '<plugin>'
-    GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin);
+    expression.setNewLiteral(ID, plugin);
     // ... version '<version>'
     expression.setNewLiteral(VERSION, version);
     // ... apply <boolean>
@@ -187,7 +187,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // link everything up
     pluginsElement.setNewElement(expression);
 
-    return new PluginModelImpl(expression, idLiteral);
+    return new PluginModelImpl(expression);
   }
 
   @Override
