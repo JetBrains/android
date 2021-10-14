@@ -98,7 +98,7 @@ class ExportAndroidTestResultsAction :
           project,
           ExecutionBundle.message("export.test.results.file.exists.message", file.name),
           ExecutionBundle.message("export.test.results.file.exists.title"),
-          TestRunnerBundle.message("inspections.settings.overwrite.action.text"),
+          TestRunnerBundle.message("export.test.results.overwrite.button.text"),
           CommonBundle.getCancelButtonText(), Messages.getQuestionIcon()
         ) == Messages.OK) {
         return file
