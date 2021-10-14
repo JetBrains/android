@@ -21,6 +21,8 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Window
+import java.awt.event.InputEvent
+import java.awt.event.MouseEvent
 import javax.swing.JPopupMenu
 
 class ReliableRobot(private val baseRobot: Robot) : Robot by baseRobot {
@@ -33,39 +35,51 @@ class ReliableRobot(private val baseRobot: Robot) : Robot by baseRobot {
     waitForIdle()
   }
 
+  private fun clickAndWait(times: Int = 1, action: () -> Unit)  {
+    fun InputEvent.isOurs(): AwaitedEventKind {
+        if (this !is MouseEvent ) return AwaitedEventKind.UNKNOWN
+        println("E: $this ; $clickCount =?= $times")
+        return (if (
+          (id == MouseEvent.MOUSE_RELEASED && button == 1 || id == MouseEvent.MOUSE_CLICKED)
+          && (clickCount == times
+              || (clickCount == 0 && times == 1)  // We do not receive counts in popups.
+             )
+        ) AwaitedEventKind.AWAITED_DONE else AwaitedEventKind.UNKNOWN)
+    }
+    println("Clicking>")
+    actAndWaitFor(
+      isAwaitedEvent = InputEvent::isOurs,
+      performAction = action
+    )
+    println("<clicked")
+  }
+
   override fun click(c: Component) {
-    baseRobot.click(c)
-    waitForIdle()
+    clickAndWait { baseRobot.click(c) }
   }
 
   override fun click(c: Component, button: MouseButton) {
-    baseRobot.click(c, button)
-    waitForIdle()
+    clickAndWait { baseRobot.click(c, button) }
   }
 
   override fun doubleClick(c: Component) {
-    baseRobot.doubleClick(c)
-    waitForIdle()
+    clickAndWait(times = 2) { baseRobot.doubleClick(c) }
   }
 
   override fun click(c: Component, button: MouseButton, times: Int) {
-    baseRobot.click(c, button, times)
-    waitForIdle()
+    clickAndWait(times = times) { baseRobot.click(c, button, times) }
   }
 
   override fun click(c: Component, where: Point) {
-    baseRobot.click(c, where)
-    waitForIdle()
+    clickAndWait { baseRobot.click(c, where) }
   }
 
   override fun click(c: Component, where: Point, button: MouseButton, times: Int) {
-    baseRobot.click(c, where, button, times)
-    waitForIdle()
+    clickAndWait(times = times) { baseRobot.click(c, where, button, times) }
   }
 
   override fun click(where: Point, button: MouseButton, times: Int) {
-    baseRobot.click(where, button, times)
-    waitForIdle()
+    clickAndWait(times = times) { baseRobot.click(where, button, times) }
   }
 
   override fun enterText(text: String) {

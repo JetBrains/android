@@ -19,6 +19,7 @@ import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWait
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.Project;
@@ -28,6 +29,7 @@ import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.fest.swing.core.Robot;
@@ -65,6 +67,7 @@ class MenuFixture {
   }
 
   private void doInvokeMenuPath(@NotNull String[] path, boolean isContextual, int wait) {
+    System.out.printf("Attempting to open menu path: %s%n", String.join(" / ", path));
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
 
@@ -72,7 +75,6 @@ class MenuFixture {
     // already been shut down.
     Robot robot = (wait > 0) ? fixupWaiting(myRobot) : myRobot;
 
-    robot.waitForIdle(); // UI events can trigger modifications of the menu contents
     long started = System.currentTimeMillis();
 
     int initialPopups = isContextual ? 1 : robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size();
@@ -83,16 +85,23 @@ class MenuFixture {
       // Close any previously opened popups.
       while (
         robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size() > initialPopups && popupsToClose > 0) {
+        System.out.println("Attempting to close a previously opened menu");
         robot.pressAndReleaseKey(KeyEvent.VK_ESCAPE);
         popupsToClose--;
       }
       popupsToClose = 0;
 
       Collection<JPopupMenu> initiallyVisible = robot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing());
-      assertEquals(
-        String.format("Cannot open menu %s. Incorrect number of initially visible popups: %d (Expected: %d)",
-                      String.join(" / ", path), initiallyVisible.size(), initialPopups),
-        initialPopups, initiallyVisible.size());
+      if (initialPopups != initiallyVisible.size()) {
+        if (initialPopups == initiallyVisible.size() + 1) {
+          Pause.pause();
+        continue;
+        } else {
+          fail(
+            String.format("Cannot open menu %s. Incorrect number of initially visible popups: %d (Expected: %d)",
+                          String.join(" / ", path), initiallyVisible.size(), initialPopups));
+        }
+      }
 
       // Check whether the timeout has expired after we closed all previously opened popups.
       if (System.currentTimeMillis() - started > wait * 3000L) {
@@ -105,8 +114,12 @@ class MenuFixture {
       // popups are visible.
       for (int i = 0; i < segmentCount; i++) {
         String segment = path[i];
+        System.out.printf("Opening segment: %s%n", segment);
         Collection<JMenuItem> menuItems = robot.finder().findAll(root, Matchers.byText(JMenuItem.class, segment));
-        if (menuItems.isEmpty()) continue tryAgain;
+        if (menuItems.isEmpty()) {
+          System.out.println("No menu items found");
+          continue tryAgain;
+        }
         JMenuItem menuItem = ContainerUtil.getOnlyItem(menuItems);
         GuiTask.execute(() -> menuItem.requestFocus());
         robot.waitForIdle();
@@ -129,7 +142,11 @@ class MenuFixture {
             Pause.pause();
           }
           while (counter-- > 0);
-          if (expectedCount != popups.size()) continue tryAgain;
+
+          if (expectedCount != popups.size()) {
+            System.out.printf("Trying again because expectedCount: %d != popups.size: %d.%n", expectedCount, popups.size());
+            continue tryAgain;
+          }
         }
       }
       break;

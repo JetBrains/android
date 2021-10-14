@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
+import com.android.utils.TraceUtils
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -29,10 +30,12 @@ import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import sun.awt.PeerEvent
+import java.awt.AWTEvent
 import java.awt.Container
 import java.awt.KeyboardFocusManager
 import java.awt.Robot
 import java.awt.Toolkit
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -40,7 +43,15 @@ import kotlin.concurrent.withLock
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
-fun waitForIdle() {
+fun waitForIdle() = actAndWaitFor(
+  isAwaitedEvent = InputEvent::isSyncKeyEvent,
+  performAction = ::sendSynKeyEvents
+)
+
+fun actAndWaitFor(
+  isAwaitedEvent: InputEvent.() -> AwaitedEventKind,
+  performAction: () -> Unit
+) {
   fun getDetails() =
     try {
       buildString {
@@ -54,7 +65,7 @@ fun waitForIdle() {
     }
 
   try {
-    oneFullSync()
+    oneFullSync(isAwaitedEvent, performAction)
   }
   catch (e: WaitTimedOutError) {
     throw WaitTimedOutError("${e.message}\n${getDetails()}")
@@ -93,10 +104,27 @@ private val awtRobot = Robot()
 private const val SYNC_KEY_CODE = KeyEvent.VK_F11
 private const val SYNC_KEY_TIMEOUT_SEC = 3
 
-private fun oneFullSync() {
+enum class AwaitedEventKind(val done: Boolean, val consume: Boolean) {
+  UNKNOWN(done = false, consume = false),
+  AWAITED_CONSUME_AND_CONTINUE(done = false, consume = true),
+  AWAITED_DONE(done = true, consume = false),
+  AWAITED_CONSUME_AND_DONE(done = true, consume = true),
+}
+
+private fun oneFullSync(
+  isAwaitedEvent: InputEvent.() -> AwaitedEventKind,
+  performAction: () -> Unit
+) {
   val lock = ReentrantLock()
   val condition = lock.newCondition()
   val start = System.currentTimeMillis()
+
+  fun testAndLog(message: String, body: () -> Boolean) =
+    body().also {
+      if (it) {
+        println("Skipping wait for sync even: $message")
+      }
+    }
 
   fun xQueueSync() {
     var done = false
@@ -104,31 +132,40 @@ private fun oneFullSync() {
 
     do {
       val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-      if (focusManager.focusOwner?.isShowing != true) return // Nowhere to send key presses to.
-      val activeWindow = focusManager.activeWindow?.takeIf { it.isShowing } ?: return // Nowhere to send key presses to.
+      if (testAndLog("focusManager.focusOwner?.isShowing != true")
+        { focusManager.focusOwner?.isShowing != true }) return // Nowhere to send key presses to.
+
+      val activeWindow = focusManager
+                           .activeWindow
+                           ?.takeUnless { testAndLog("!it.isShowing") { !it.isShowing } }
+                         ?: return // Nowhere to send key presses to.
       val d = Disposer.newDisposable()
       try {
-        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-          if (e is KeyEvent && e.keyCode == SYNC_KEY_CODE) {
-            if (e.id == KeyEvent.KEY_RELEASED) {
+        fun handleEvent(e: AWTEvent): Boolean {
+          if (done) return false
+          if (e !is InputEvent) return false
+          val awaitedEventKind = e.isAwaitedEvent()
+          if (awaitedEventKind.done) {
               lock.withLock { done = true; condition.signalAll() }
-            }
-            e.consume()
-            true
           }
-          else false
-        }, d)
-        awtRobot.keyPress(SYNC_KEY_CODE)
-        awtRobot.keyRelease(SYNC_KEY_CODE)
+          if (awaitedEventKind.consume) e.consume()
+          return awaitedEventKind.consume
+        }
+
+        IdeEventQueue.getInstance().addDispatcher(::handleEvent, d)
+
+        performAction()
         lock.withLock {
           do {
             condition.await(100, TimeUnit.MILLISECONDS)
 
+            if (!done &&
             // Changing the active window might eat key presses/releases. It happens when closing a project, for example.
-            if (focusManager.activeWindow !== activeWindow) break
-            if (focusManager.focusOwner?.isShowing != true) break
-            if (!activeWindow.isShowing) {
+              testAndLog("focusManager.activeWindow !== activeWindow") { focusManager.activeWindow !== activeWindow } ||
+              testAndLog("focusManager.focusOwner?.isShowing != true") { focusManager.focusOwner?.isShowing != true } ||
               // Closing a project may bring us into this erroneous state when a closed frame remains active and focus is nowhere.
+              testAndLog("!activeWindow.isShowing") { !activeWindow.isShowing }
+            ) {
               break;
             }
           }
@@ -141,7 +178,7 @@ private fun oneFullSync() {
     }
     while (shouldContinue())
     if (!done) {
-      println("Sync key KEY_RELEASED event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...");
+      println("Awaited event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...\n\n${TraceUtils.getCurrentStack()}");
     }
   }
 
@@ -171,6 +208,20 @@ private fun oneFullSync() {
   eventQueueSync()
 }
 
+private fun InputEvent.isSyncKeyEvent(): AwaitedEventKind {
+  return if (this is KeyEvent && this.keyCode == SYNC_KEY_CODE) {
+    if (this.id == KeyEvent.KEY_RELEASED) {
+      return AwaitedEventKind.AWAITED_CONSUME_AND_DONE
+    }
+    AwaitedEventKind.AWAITED_CONSUME_AND_CONTINUE
+  }
+  else AwaitedEventKind.UNKNOWN
+}
+
+private fun sendSynKeyEvents() {
+  awtRobot.keyPress(SYNC_KEY_CODE)
+  awtRobot.keyRelease(SYNC_KEY_CODE)
+}
 fun JListFixture.dragAndClickItem(text: String) {
   drag(text)
   clickItem(text)
