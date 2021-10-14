@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding.project
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
@@ -47,7 +48,6 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   private val viewBindingEnabledModules: CachedValue<List<AndroidFacet>>
 
   private val moduleManager get() = ModuleManager.getInstance(project)
-  private val facetManager get() = ProjectFacetManager.getInstance(project)
   private val dataBindingTracker get() = DataBindingUtil.getDataBindingEnabledTracker()
   private val viewBindingTracker get() = project.getViewBindingEnabledTracker()
 
@@ -56,7 +56,7 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
-        val facets = facetManager.getFacets(AndroidFacet.ID)
+        val facets = project.getAndroidFacets()
           .filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled() }
 
         CachedValueProvider.Result.create(facets, dataBindingTracker, viewBindingTracker, moduleManager)

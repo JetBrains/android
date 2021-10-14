@@ -54,7 +54,7 @@ private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIG
 class LayoutBindingModuleCache(private val module: Module) {
   companion object {
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.module.getService(LayoutBindingModuleCache::class.java)!!
+    fun getInstance(facet: AndroidFacet) = facet.mainModule.getService(LayoutBindingModuleCache::class.java)!!
   }
 
   private val lock = Any()
