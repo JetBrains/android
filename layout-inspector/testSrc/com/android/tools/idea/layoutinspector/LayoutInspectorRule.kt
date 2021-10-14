@@ -48,6 +48,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
@@ -136,13 +137,35 @@ class LegacyClientProvider(
 class LayoutInspectorRule(
   private val clientProvider: InspectorClientProvider,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
-  val launcherExecutor: Executor = MoreExecutors.directExecutor(),
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
 
   lateinit var launcher: InspectorClientLauncher
     private set
   private val launcherDisposable = Disposer.newDisposable()
+
+  private val launcherExecutor = Executor { runnable ->
+    if (launchSynchronously) {
+      runnable.run()
+    }
+    else {
+      Thread {
+        runnable.run()
+        asyncLaunchLatch.countDown()
+      }.start()
+    }
+  }
+
+  /**
+   * Set this to false if the test requires the launcher to execute on a different thread.
+   * Use [asyncLaunchLatch] to make sure the thread finished.
+   */
+  var launchSynchronously = true
+
+  /**
+   * Use this latch to control the execution of background launchers
+   */
+  lateinit var asyncLaunchLatch: CountDownLatch
 
   /**
    * Convenience accessor, as this property is used a lot

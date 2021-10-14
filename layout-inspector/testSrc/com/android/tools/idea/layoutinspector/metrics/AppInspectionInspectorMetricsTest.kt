@@ -55,20 +55,7 @@ class AppInspectionInspectorMetricsTest {
   val disposableRule = DisposableRule()
 
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private var launchSynchronously = true
-  private lateinit var asyncLaunchLatch: CountDownLatch
-
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(), launcherExecutor = { runnable ->
-    if (launchSynchronously) {
-      runnable.run()
-    }
-    else {
-      Thread {
-        runnable.run()
-        asyncLaunchLatch.countDown()
-      }.start()
-    }
-  }) { it.name == MODERN_PROCESS.name }
+  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { it.name == MODERN_PROCESS.name }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
@@ -153,7 +140,7 @@ class AppInspectionInspectorMetricsTest {
 
   @Test
   fun testInitialRenderLogging() {
-    launchSynchronously = false
+    inspectorRule.launchSynchronously = false
     inspectionRule.viewInspector.listenWhen({ true }) {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
@@ -161,9 +148,9 @@ class AppInspectionInspectorMetricsTest {
     val getUsages = { usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
 
-    asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    asyncLaunchLatch.await()
+    inspectorRule.asyncLaunchLatch.await()
     waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
@@ -190,16 +177,16 @@ class AppInspectionInspectorMetricsTest {
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
     // disconnecting causes two separate events
-    asyncLaunchLatch = CountDownLatch(2)
+    inspectorRule.asyncLaunchLatch = CountDownLatch(2)
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
-    asyncLaunchLatch.await()
+    inspectorRule.asyncLaunchLatch.await()
     waitForCondition(1, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
 
-    asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    asyncLaunchLatch.await()
-    asyncLaunchLatch = CountDownLatch(1)
+    inspectorRule.asyncLaunchLatch.await()
+    inspectorRule.asyncLaunchLatch = CountDownLatch(1)
     waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
