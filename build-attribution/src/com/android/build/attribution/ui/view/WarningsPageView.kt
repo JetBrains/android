@@ -104,11 +104,20 @@ class WarningsPageView(
 
     override fun create(pageId: WarningsPageId): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
       name = "details-${pageId}"
-      val scrollPane = JBScrollPane().apply {
-        border = JBUI.Borders.empty()
-        setViewportView(detailPagesFactory.createDetailsPage(pageId))
+
+
+      val detailsPage = detailPagesFactory.createDetailsPage(pageId)
+      //TODO(mlazeba): refactor to be more general. page should request scroll or even move scroll creation to the pages.
+      if (pageId == WarningsPageId.jetifierUsageWarningRoot) {
+        add(detailsPage, BorderLayout.CENTER)
       }
-      add(scrollPane, BorderLayout.CENTER)
+      else {
+        val scrollPane = JBScrollPane().apply {
+          border = JBUI.Borders.empty()
+          setViewportView(detailsPage)
+        }
+        add(scrollPane, BorderLayout.CENTER)
+      }
     }
   }
 

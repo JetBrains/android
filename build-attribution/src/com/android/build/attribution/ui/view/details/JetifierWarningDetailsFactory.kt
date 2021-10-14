@@ -20,200 +20,265 @@ import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.JetifierUsageProjectStatus
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.attribution.CheckJetifierResult
-import com.intellij.find.FindModel
-import com.intellij.find.findInProject.FindInProjectManager
-import com.intellij.ide.CommonActionsManager
-import com.intellij.ide.DefaultTreeExpander
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.ui.ColoredTreeCellRenderer
-import com.intellij.ui.PopupHandler
+import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.OnePixelSplitter
+import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.ui.TableSpeedSearch
+import com.intellij.ui.components.JBPanel
+import com.intellij.ui.table.TableView
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.PlatformIcons.LIBRARY_ICON
+import com.intellij.util.ui.ColumnInfo
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.ListTableModel
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import java.awt.BorderLayout
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import javax.swing.JButton
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.JTree
-import javax.swing.SwingConstants
+import javax.swing.ListSelectionModel
+import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
 
 class JetifierWarningDetailsFactory(
   private val actionHandlers: ViewActionHandlers
 ) {
 
   fun createPage(data: JetifierUsageAnalyzerResult): JPanel = when (data.projectStatus) {
-    JetifierUsedCheckRequired -> createCheckRequiredPage()
-    JetifierCanBeRemoved -> createJetifierNotRequiredPage()
-    is JetifierRequiredForLibraries -> createJetifierRequiredForLibrariesPage(data.projectStatus)
+    JetifierUsedCheckRequired -> createJetifierWarningPage(data)
+    JetifierCanBeRemoved -> createJetifierWarningPage(data)
+    is JetifierRequiredForLibraries -> createJetifierWarningPage(data)
     JetifierNotUsed -> JPanel()
     AnalyzerNotRun -> JPanel()
   }
 
-  private fun createCheckRequiredPage() = JPanel().apply {
-    layout = VerticalLayout(10, SwingConstants.LEFT)
+  private fun createJetifierWarningPage(data: JetifierUsageAnalyzerResult) = JPanel().apply {
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE)
+    val headerStatus = when (data.projectStatus) {
+      JetifierUsedCheckRequired -> "Check if you need Jetifier in your project"
+      is JetifierRequiredForLibraries -> "Some project dependencies require Jetifier"
+      JetifierCanBeRemoved -> "Jetifier flag can be removed"
+      JetifierNotUsed -> error("Warning should not be shown in this state.")
+      AnalyzerNotRun -> error("Warning should not be shown in this state.")
+    }
+
+    val callToActionLine = when (data.projectStatus) {
+      // The following dependencies are recognized as support libraries: com.android.support, com.android.databinding, android.arch.
+      JetifierUsedCheckRequired -> "To disable Jetifier your project should have no dependencies on legacy support libraries. " +
+                                   "Run check to see if you have any of such dependencies in your project."
+      is JetifierRequiredForLibraries -> when (val size = data.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size) {
+                                           1 -> "Check found a declared dependency that requires legacy support libraries. " +
+                                                "To disable jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative."
+                                           else -> "Check found $size declared dependencies that require legacy support libraries. " +
+                                                   "To disable jetifier you need to upgrade them to versions that do not require legacy support libraries or find other alternatives."
+                                         } + " Run check again to include latest changes to project files."
+      JetifierCanBeRemoved -> "Last check did not find any dependencies that require Jetifier in your project. " +
+                              "You can safely remove 'android.enableJetifier' flag."
+      JetifierNotUsed -> error("Warning should not be shown in this state.")
+      AnalyzerNotRun -> error("Warning should not be shown in this state.")
+    }
+
     val contentHtml = """
-          <b>Confirm need for Jetifier flag in your project</b>
-          Your project’s gradle.settings file includes ‘enableJetifier’. This flag is needed
-          to enable AndroidX for libraries that don’t support it natively. $learnMoreLink.
-  
-          Your project may no longer need this flag and could save build time by removing it.
-          Click the button below to verify if enableJetifier is needed.
+          <b>$headerStatus</b>
+          
+          Your project’s gradle.properties file includes 'android.enableJetifier=true'. This flag is needed to enable AndroidX for libraries that don’t support it natively.  $learnMoreLink.
+          
+          Removing Jetifier could reduce project build time. $callToActionLine
         """.trimIndent().insertBRTags()
-    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
-    add(JButton("Check Jetifier").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
+    val header = htmlTextLabelWithFixedLines(contentHtml, linksHandler)
+    val runCheckButton = JButton("Run Jetifier check").apply { addActionListener { actionHandlers.runCheckJetifierTask() } }
+    val result = createCheckJetifierResultPresentation(data.projectStatus)
+
+    layout = GridBagLayout()
+    add(header, GridBagConstraints().apply {
+      gridx = 0
+      gridy = 0
+      weightx = 1.0
+      fill = GridBagConstraints.HORIZONTAL
+    })
+    add(runCheckButton, GridBagConstraints().apply {
+      gridx = 1
+      gridy = 0
+      weightx = 0.0
+      insets = JBUI.insetsLeft(10)
+      anchor = GridBagConstraints.SOUTHWEST
+    })
+    add(result, GridBagConstraints().apply {
+      gridx = 0
+      gridy = 1
+      gridwidth = GridBagConstraints.REMAINDER
+      weightx = 1.0
+      weighty = 1.0
+      insets = JBUI.insetsTop(10)
+      fill = GridBagConstraints.BOTH
+    })
+
   }
 
-  private fun createJetifierNotRequiredPage() = JPanel().apply {
-    layout = VerticalLayout(10, SwingConstants.LEFT)
-    val linksHandler = HtmlLinksHandler(actionHandlers)
-    val removeJetifierLink = linksHandler.actionLink("Remove enableJetifier", "remove") {
-      actionHandlers.turnJetifierOffInProperties()
-    }
-    val contentHtml = """
-      <b>Remove Jetifier flag</b>
-      Your project’s gradle.settings includes enableJetifier. This flag is not needed by your project
-      and removing it will improve build performance.
-      
-      $removeJetifierLink
-      """.trimIndent().insertBRTags()
-    add(htmlTextLabelWithFixedLines(contentHtml, linksHandler))
-  }
+  private fun createCheckJetifierResultPresentation(projectState: JetifierUsageProjectStatus) = JPanel().apply {
+    name = "jetifier-libraries-list"
+    layout = BorderLayout()
+    val resultsTable = TableView(object : ListTableModel<String>() {
+      init {
+        columnInfos = arrayOf(object : ColumnInfo<String, String>("Declared Dependencies Requiring Jetifier") {
+          override fun valueOf(item: String?): String? {
+            return item
+          }
 
-  private fun createJetifierRequiredForLibrariesPage(data: JetifierRequiredForLibraries) = JPanel().apply {
-    layout = VerticalLayout(10, SwingConstants.LEFT)
-    val contentHtml = """
-      <b>Jetifier flag is needed by some libraries in your project</b>
-      The following libraries rely on the ‘enableJetifier’ flag to work with AndroidX.
-      Please consider upgrading to versions of these libraries that directly depend
-      on AndroidX. Please contact the library authors to request native AndroidX support,
-      if it’s not available yet.
-      """.trimIndent().insertBRTags()
-    val root = createLibsTree(data.checkJetifierResult)
-    val tree = Tree(root).apply {
-      isRootVisible = false
-      cellRenderer = LibsTreeCellRenderer()
-    }
-    DefaultActionGroup().let { group ->
-      val treeExpander = DefaultTreeExpander(tree)
-      group.add(FindSelectedLibUsagesAction(tree))
-      group.addSeparator()
-      group.add(CommonActionsManager.getInstance().createExpandAllAction(treeExpander, this))
-      group.add(CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, this))
-      PopupHandler.installPopupMenu(tree, group, ActionPlaces.POPUP)
-    }
-    add(htmlTextLabelWithFixedLines(contentHtml))
-    add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })
-    add(tree)
-  }
-
-  private fun createLibsTree(checkJetifierResult: CheckJetifierResult) = DefaultMutableTreeNode().also { root ->
-    val nodes = mutableMapOf<String, DefaultMutableTreeNode>()
-
-    checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence().forEach {
-      nodes.computeIfAbsent(it.key) { dependency -> LibTreeNode(LibDescriptor(dependency)) }.apply {
-        (userObject as LibDescriptor).usedDirectly = true
+          override fun getRenderer(item: String?): TableCellRenderer {
+            return object : ColoredTableCellRenderer() {
+              override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+                icon = LIBRARY_ICON
+                isIconOpaque = true
+                setFocusBorderAroundIcon(true)
+                setPaintFocusBorder(false)
+                // TODO set tooltip text?
+                append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+              }
+            }
+          }
+        })
+        isSortable = true
       }
+    })
 
-      it.value.dependencyPath.elements.drop(1).forEach { dependency ->
-        nodes.computeIfAbsent(dependency) { LibTreeNode(LibDescriptor(dependency)) }.apply {
-          (userObject as LibDescriptor).usedTransitively = true
+    resultsTable.resetDefaultFocusTraversalKeys()
+    resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    when (projectState) {
+      is JetifierRequiredForLibraries -> {
+        resultsTable.listTableModel.items = projectState.checkJetifierResult.dependenciesDependingOnSupportLibs.keys.sorted()
+        resultsTable.updateColumnSizes()
+      }
+      is JetifierUsedCheckRequired -> {
+        resultsTable.emptyText.apply {
+          appendText("Run check", SimpleTextAttributes.LINK_ATTRIBUTES) {
+            actionHandlers.runCheckJetifierTask()
+          }
+          appendText(" to see if you need Jetifier in your project.")
+        }
+      }
+      is JetifierCanBeRemoved -> {
+        resultsTable.emptyText.apply {
+          clear()
+          appendText("No dependencies require jetifier, ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          appendText("remove 'android.enableJetifier' flag.", SimpleTextAttributes.LINK_ATTRIBUTES) {
+            actionHandlers.turnJetifierOffInProperties()
+          }
         }
       }
     }
+    resultsTable.autoCreateRowSorter = true
+    resultsTable.setShowGrid(false)
+    resultsTable.tableHeader.reorderingAllowed = false
 
-    fun DefaultMutableTreeNode.addPath(path: List<String>) {
-      if (path.isEmpty()) return
-      nodes[path.first()]?.let {
-        it.addPath(path.drop(1))
-        add(it)
+    val dependencyTreeModel = DefaultTreeModel(null)
+    val treeHeader = JBPanel<JBPanel<*>>().apply {
+      layout = BorderLayout()
+      background = UIUtil.getTreeBackground()
+      border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
+      val label = JLabel("Context")
+      label.border = JBUI.Borders.emptyLeft(8)
+      withPreferredHeight(28)
+      withMaximumHeight(28)
+      withMinimumHeight(28)
+      add(label, BorderLayout.CENTER)
+    }
+    val treeCellRenderer = DependenciesStructureTreeRenderer()
+    val tree = Tree(dependencyTreeModel).apply {
+      isRootVisible = false
+      rowHeight = JBUI.scale(24)
+      cellRenderer = treeCellRenderer
+    }
+
+    resultsTable.selectionModel.addListSelectionListener {
+      if (projectState is JetifierRequiredForLibraries) {
+        val newRoot = DefaultMutableTreeNode()
+        val selectedDependency = resultsTable.selection.singleOrNull()
+        if (selectedDependency != null) {
+          projectState.checkJetifierResult.dependenciesDependingOnSupportLibs[selectedDependency]?.let {
+            val descriptors = it.dependencyPath.elements.map { DependencyDescriptor(it) }
+            descriptors.last().supportLibrary = true
+            descriptors.first().declaredDependency = true
+            descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->
+              DependencyTreeNode(descriptor).also { parentNode.add(it) }
+            }
+          }
+        }
+        dependencyTreeModel.setRoot(newRoot)
+        TreeUtil.expandAll(tree)
       }
     }
-    checkJetifierResult.dependenciesDependingOnSupportLibs.asSequence().forEach {
-      val reversedPath = it.value.dependencyPath.elements.reversed().run { if (size > 1) drop(1) else this }
-      root.addPath(reversedPath)
+
+    val librariesStructurePanel = ScrollPaneFactory.createScrollPane().apply {
+      setColumnHeaderView(treeHeader)
+      setViewportView(tree)
+
     }
+    val splitter = OnePixelSplitter(false, 0.5f)
+    splitter.firstComponent = ScrollPaneFactory.createScrollPane(resultsTable)
+    splitter.secondComponent = librariesStructurePanel
+
+    add(splitter, BorderLayout.CENTER)
+
+    TableSpeedSearch(resultsTable)
   }
 
-  private class LibsTreeCellRenderer : ColoredTreeCellRenderer() {
-    override fun customizeCellRenderer(
-      tree: JTree,
-      value: Any?,
-      selected: Boolean,
-      expanded: Boolean,
-      leaf: Boolean,
-      row: Int,
-      hasFocus: Boolean
-    ) {
-      val node = value as DefaultMutableTreeNode
-      val userObj = node.userObject
-      if (userObj is LibDescriptor) {
-        append(userObj.fullName)
-        append(userObj.usageSuffix, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-      }
-    }
-  }
 
-  private class LibTreeNode(val libDescriptor: LibDescriptor) : DefaultMutableTreeNode(libDescriptor) {
+  private class DependencyTreeNode(val descriptor: DependencyDescriptor) : DefaultMutableTreeNode(descriptor) {
     override fun toString(): String {
-      return libDescriptor.fullName
+      return descriptor.fullName
     }
   }
 
-  class LibDescriptor(
+  class DependencyDescriptor(
     /** Full dependency name in 'group:name:version' format. */
     val fullName: String,
   ) {
-    var usedDirectly: Boolean = false
-    var usedTransitively: Boolean = false
-    val usageSuffix: String
+    var declaredDependency: Boolean = false
+    var supportLibrary: Boolean = false
+    val prefix: String
       get() = when {
-        usedDirectly && usedTransitively -> " used directly and transitively"
-        usedDirectly -> " used directly"
-        usedTransitively -> " used transitively"
-        else -> ""
+        declaredDependency -> ""
+        supportLibrary -> "depends on "
+        else -> "via "
       }
-
-    /**
-     * Returns only 'group:name' part of this dependency.
-     */
-    val groupAndName: String
-      get() = fullName.substringBeforeLast(":")
   }
 
-  private class FindSelectedLibUsagesAction(val tree: Tree) : AnAction("Find Usages") {
-    override fun update(e: AnActionEvent) {
-      val libPresentation = (TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent as? LibTreeNode)?.libDescriptor
-      if (libPresentation?.usedDirectly == true) {
-        e.presentation.text = "Find Usages of ${libPresentation.groupAndName}"
+  private class DependenciesStructureTreeRenderer() : NodeRenderer() {
+
+    override fun customizeCellRenderer(tree: JTree,
+                                       value: Any?,
+                                       selected: Boolean,
+                                       expanded: Boolean,
+                                       leaf: Boolean,
+                                       row: Int,
+                                       hasFocus: Boolean) {
+      val node = value as DefaultMutableTreeNode
+      val userObj = node.userObject as? DependencyDescriptor
+      if (userObj == null) {
+        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
       }
       else {
-        e.presentation.isVisible = false
+        icon = LIBRARY_ICON
+        append(userObj.prefix, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
+        append(userObj.fullName)
       }
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-      val selectedLib = (TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent as? LibTreeNode)?.libDescriptor ?: return
-      val project = CommonDataKeys.PROJECT.getData(e.dataContext)
-
-      val findModel = FindModel().apply {
-        FindModel.initStringToFind(this, selectedLib.groupAndName)
-        isReplaceState = false
-        searchContext = FindModel.SearchContext.IN_STRING_LITERALS
-      }
-      FindInProjectManager.getInstance(project).findInProject({ null }, findModel)
     }
   }
 }
