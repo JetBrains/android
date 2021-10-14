@@ -658,6 +658,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   ): IdeDependencies {
     return createFromDependencies(artifactDependencies, libraries, buildNameMap)
   }
+
   fun unresolvedDependenciesFrom(unresolvedDependencies: List<UnresolvedDependency>): List<IdeUnresolvedDependencies> {
     return unresolvedDependencies.map { IdeUnresolvedDependenciesImpl(it.name, it.cause) }
   }
