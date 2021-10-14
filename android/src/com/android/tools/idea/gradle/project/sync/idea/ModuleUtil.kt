@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.groovy.util.removeUserData
 
 object ModuleUtil {
   @JvmStatic
@@ -59,6 +60,8 @@ object ModuleUtil {
   @JvmStatic
   fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
     val holderModule = dataToModuleMap(data) ?: return
+    // Clear the links, this prevents old links from being used
+    holderModule.removeUserData(LINKED_ANDROID_MODULE_GROUP)
     if (!holderModule.project.isModulePerSourceSetEnabled()) return
     var unitTestModule : Module? = null
     var androidTestModule : Module? = null
