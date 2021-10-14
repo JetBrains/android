@@ -52,8 +52,8 @@ import org.jetbrains.annotations.Nullable;
 public class TabbedToolbar extends JPanel {
   private final JPanel myActionPanel = new JPanel();
   private final JPanel myTabsPanel = new JPanel();
-  private int myActiveTab;
-  private int myMouseOverTab;
+  @Nullable private TabLabel myActiveTab;
+  @Nullable private TabLabel myMouseOverTab;
   // Caching value as it can change each time we add a new child.
   // Note: We cannot reference preferred height from TabLabel as it causes a circular dependency.
   // Note: If we do not set the preferred height of the child the label is not framed properly.
@@ -115,7 +115,7 @@ public class TabbedToolbar extends JPanel {
       @Override
       public void mouseEntered(MouseEvent e) {
         super.mouseEntered(e);
-        myMouseOverTab = tab.hashCode();
+        myMouseOverTab = tab;
         // Need to repaint to show proper background color.
         repaint();
       }
@@ -123,7 +123,7 @@ public class TabbedToolbar extends JPanel {
       @Override
       public void mouseExited(MouseEvent e) {
         super.mouseExited(e);
-        myMouseOverTab = 0;
+        myMouseOverTab = null;
         // Need to repaint to reset background color.
         repaint();
       }
@@ -131,12 +131,12 @@ public class TabbedToolbar extends JPanel {
     tab.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
-        myMouseOverTab = tab.hashCode();
+        myMouseOverTab = tab;
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        myMouseOverTab = 0;
+        myMouseOverTab = null;
       }
     });
     tab.addKeyListener(new KeyAdapter() {
@@ -172,7 +172,7 @@ public class TabbedToolbar extends JPanel {
   }
 
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
-    myActiveTab = tab.hashCode();
+    myActiveTab = tab;
     listener.doAction();
   }
 
@@ -219,7 +219,7 @@ public class TabbedToolbar extends JPanel {
       GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAAHintForSwingComponent());
 
       // 1) Adjust our background color before painting for hover effect.
-      if (myMouseOverTab == hashCode()) {
+      if (myMouseOverTab == this) {
         setBackground(myHighlightColor);
       }
       else {
@@ -230,7 +230,7 @@ public class TabbedToolbar extends JPanel {
       super.paintComponent(g);
 
       // 3) Draw focused state for active tab.
-      if (myActiveTab == hashCode()) {
+      if (myActiveTab == this) {
         Rectangle bounds = this.getBounds();
         int selectedHeight = JBUIScale.scale(2);
         g.setColor(myFocusedColor);
