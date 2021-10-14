@@ -397,7 +397,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (androidModels != null) {
       androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidModels);
       issueData = androidModels.getSyncIssues();
-      ndkModuleModel = maybeCreateNdkModuleModel(moduleName, rootModulePath, androidModels);
+      String ndkModuleName = moduleName + ((isModulePerSourceSetEnabled()) ? "." + ModuleUtil.getModuleName(androidModel.getMainArtifact()) : "");
+      ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
