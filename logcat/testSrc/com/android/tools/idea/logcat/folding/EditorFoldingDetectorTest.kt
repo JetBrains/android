@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.folding
 
-import com.android.tools.idea.logcat.LogcatMainPanel
+import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ConsoleFolding
 import com.intellij.execution.ui.ConsoleView
@@ -41,7 +41,7 @@ class EditorFoldingDetectorTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  private val editor by lazy { LogcatMainPanel.createEditor(projectRule.project) }
+  private val editor by lazy { createLogcatEditor(projectRule.project) }
 
   @After
   fun tearDown() {

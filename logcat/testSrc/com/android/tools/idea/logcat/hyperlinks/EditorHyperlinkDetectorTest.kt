@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.logcat.LogcatMainPanel
+import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -39,7 +39,7 @@ class EditorHyperlinkDetectorTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  private val editor by lazy { LogcatMainPanel.createEditor(projectRule.project) }
+  private val editor by lazy { createLogcatEditor(projectRule.project) }
 
   @After
   fun tearDown() {

@@ -22,7 +22,6 @@ import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatMainPanel
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -36,6 +35,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
+import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
@@ -132,7 +132,7 @@ internal class HeaderFormatOptionsDialog(private val project: Project, formattin
   private val sampleMessageFormatter = MessageFormatter(sampleFormattingOptions, LogcatColors(), sampleZoneId)
 
   @VisibleForTesting
-  var sampleEditor = LogcatMainPanel.createEditor(project)
+  var sampleEditor = createLogcatEditor(project)
 
   val dialogWrapper = dialog(
     project = project,

@@ -37,6 +37,9 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.util.isCaretAtBottom
+import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -44,10 +47,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.command.undo.UndoUtil
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
@@ -55,7 +55,6 @@ import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
-import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -94,7 +93,7 @@ internal class LogcatMainPanel(
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable, DataProvider {
 
   @VisibleForTesting
-  internal val editor: EditorEx = createEditor(project)
+  internal val editor: EditorEx = createLogcatEditor(project)
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document)
   private val deviceContext = DeviceContext()
@@ -283,45 +282,4 @@ internal class LogcatMainPanel(
     EditorUtil.scrollToTheEnd(editor, true)
     ignoreCaretAtBottom = false
   }
-
-  companion object {
-    /**
-     * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
-     */
-    fun createEditor(project: Project): EditorEx {
-      val editorFactory = EditorFactory.getInstance()
-      val document = (editorFactory as EditorFactoryImpl).createDocument(true)
-      UndoUtil.disableUndoFor(document)
-      val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
-      document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
-      val editorSettings = editor.settings
-      editorSettings.isAllowSingleLogicalLineFolding = true
-      editorSettings.isLineMarkerAreaShown = false
-      editorSettings.isIndentGuidesShown = false
-      editorSettings.isLineNumbersShown = false
-      editorSettings.isFoldingOutlineShown = true
-      editorSettings.isAdditionalPageAtBottom = false
-      editorSettings.additionalColumnsCount = 0
-      editorSettings.additionalLinesCount = 0
-      editorSettings.isRightMarginShown = false
-      editorSettings.isCaretRowShown = false
-      editorSettings.isShowingSpecialChars = false
-      editor.gutterComponentEx.isPaintBackground = false
-
-      return editor
-    }
-  }
-}
-
-@VisibleForTesting
-@UiThread
-internal fun Editor.isCaretAtBottom() = document.let {
-  it.getLineNumber(caretModel.offset) >= it.lineCount - 1
-}
-
-@UiThread
-private fun EditorEx.isScrollAtBottom(useImmediatePosition: Boolean): Boolean {
-  val scrollBar = scrollPane.verticalScrollBar
-  val position = if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
-  return scrollBar.maximum - scrollBar.visibleAmount == position
 }

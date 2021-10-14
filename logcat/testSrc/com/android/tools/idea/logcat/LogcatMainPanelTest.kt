@@ -29,6 +29,7 @@ import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -113,26 +114,6 @@ class LogcatMainPanelTest {
       HeaderFormatOptionsAction::class,
       Separator::class,
     ).inOrder()
-  }
-
-  @RunsInEdt
-  @Test
-  fun setsUpEditor() {
-    logcatMainPanel = logcatMainPanel()
-
-    assertThat(logcatMainPanel.editor.gutterComponentEx.isPaintBackground).isFalse()
-    val editorSettings = logcatMainPanel.editor.settings
-    assertThat(editorSettings.isAllowSingleLogicalLineFolding).isTrue()
-    assertThat(editorSettings.isLineMarkerAreaShown).isFalse()
-    assertThat(editorSettings.isIndentGuidesShown).isFalse()
-    assertThat(editorSettings.isLineNumbersShown).isFalse()
-    assertThat(editorSettings.isFoldingOutlineShown).isTrue()
-    assertThat(editorSettings.isAdditionalPageAtBottom).isFalse()
-    assertThat(editorSettings.additionalColumnsCount).isEqualTo(0)
-    assertThat(editorSettings.additionalLinesCount).isEqualTo(0)
-    assertThat(editorSettings.isRightMarginShown).isFalse()
-    assertThat(editorSettings.isCaretRowShown).isFalse()
-    assertThat(editorSettings.isShowingSpecialChars).isFalse()
   }
 
   @RunsInEdt
