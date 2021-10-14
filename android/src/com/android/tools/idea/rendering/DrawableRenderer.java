@@ -25,7 +25,7 @@ import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -68,7 +68,7 @@ public class DrawableRenderer implements Disposable {
    * @param facet the Android facet
    */
   public DrawableRenderer(@NotNull AndroidFacet facet) {
-    this(facet, ThemeEditorUtils.getConfigurationForModule(facet.getModule()));
+    this(facet, ConfigurationManager.getConfigurationForModule(facet.getModule()));
   }
 
   /**
