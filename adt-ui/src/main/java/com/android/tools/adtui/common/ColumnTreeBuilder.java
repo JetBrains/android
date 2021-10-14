@@ -39,6 +39,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -72,6 +73,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.AbstractLayoutCache;
+import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -228,6 +230,40 @@ public class ColumnTreeBuilder {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
     setTreeUi(hoverListener);
+
+    // Do not select header rows which do not represent any meaningful data.
+    if (myHeaderRowCellRenderer != null) {
+      myTree.setSelectionModel(new DefaultTreeSelectionModel() {
+        private boolean isLastComponentNotHeader(TreePath path) {
+          // A Path to header row contains exact 2 components: root and itself.
+          return path.getPathCount() != 2;
+        }
+
+        @Override
+        public void addSelectionPath(TreePath path) {
+          if (isLastComponentNotHeader(path)) {
+            super.addSelectionPath(path);
+          }
+        }
+
+        @Override
+        public void addSelectionPaths(TreePath[] paths) {
+          super.addSelectionPaths(Arrays.stream(paths).filter(this::isLastComponentNotHeader).toArray(TreePath[]::new));
+        }
+
+        @Override
+        public void setSelectionPath(TreePath path) {
+          if (isLastComponentNotHeader(path)) {
+            super.setSelectionPath(path);
+          }
+        }
+
+        @Override
+        public void setSelectionPaths(TreePath[] pPaths) {
+          super.setSelectionPaths(Arrays.stream(pPaths).filter(this::isLastComponentNotHeader).toArray(TreePath[]::new));
+        }
+      });
+    }
 
     myTree.addPropertyChangeListener(evt -> {
       if (evt.getPropertyName().equals("UI")) {

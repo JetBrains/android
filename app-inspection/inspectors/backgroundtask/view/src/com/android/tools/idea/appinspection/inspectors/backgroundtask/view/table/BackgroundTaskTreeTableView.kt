@@ -158,7 +158,11 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
       else {
         val entry = selectionModel.selectedEntry ?: return@addTreeSelectionListener
         val node = treeModel.getTreeNode(entry.id) ?: return@addTreeSelectionListener
-        tree.selectionModel.selectionPath = TreePath(node.path)
+        val treePath = TreePath(node.path)
+        // Do not select collapsed row to avoid unintentional expansion.
+        if (tree.isExpanded(treePath)) {
+          tree.selectionModel.selectionPath = treePath
+        }
       }
     }
 
