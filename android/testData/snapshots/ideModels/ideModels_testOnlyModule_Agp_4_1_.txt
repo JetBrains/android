@@ -223,6 +223,7 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.android.app
             MainArtifact
@@ -410,6 +411,7 @@ MODULE                        : project.test
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestApplicationId             : com.example.android.app.testmodule
             DeprecatedPreMergedApplicationId        : com.example.android.app.testmodule
@@ -1166,6 +1168,7 @@ MODULE                        : project.test2
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.android.test2
             MainArtifact

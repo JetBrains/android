@@ -226,6 +226,7 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=19, codename=null, apiString=19)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : google.simpleapplication
             MainArtifact

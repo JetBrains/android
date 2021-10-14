@@ -248,6 +248,7 @@ MODULE                        : navgraph.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -3074,6 +3075,7 @@ MODULE                        : navgraph.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact

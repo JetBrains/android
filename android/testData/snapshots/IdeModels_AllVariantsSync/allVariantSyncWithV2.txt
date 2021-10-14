@@ -635,6 +635,7 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-bar-debug
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -2629,6 +2630,7 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-otherBar-debug
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test
@@ -4630,6 +4632,7 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-bar-debug
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test
@@ -6628,6 +6631,7 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-bar-specialRelease
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -7954,6 +7958,7 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-otherBar-specialRelease
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test
@@ -9287,6 +9292,7 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-otherBar-release
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test
@@ -10621,6 +10627,7 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-otherBar-specialRelease
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -11950,6 +11957,7 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-otherBar-debug
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -13947,6 +13955,7 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-bar-release
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -15274,6 +15283,7 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-otherBar-release
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
         MaxSdkVersion                 : 26
         TestApplicationId             : com.example.psd.sample.app.default.test
@@ -16604,6 +16614,7 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-bar-release
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test
@@ -17935,6 +17946,7 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-bar-specialRelease
         InstantAppCompatible          : false
+        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
         TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
         MaxSdkVersion                 : 25
         TestApplicationId             : com.example.psd.sample.app.paid.test

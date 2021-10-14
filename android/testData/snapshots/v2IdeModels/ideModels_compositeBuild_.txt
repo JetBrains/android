@@ -248,6 +248,7 @@ MODULE                        : TestCompositeLib1.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -2200,6 +2201,7 @@ MODULE                        : TestCompositeLib1.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -4073,6 +4075,7 @@ MODULE                        : TestCompositeLib3.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -6001,6 +6004,7 @@ MODULE                        : TestCompositeLib3.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -7791,6 +7795,7 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
@@ -10032,6 +10037,7 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact

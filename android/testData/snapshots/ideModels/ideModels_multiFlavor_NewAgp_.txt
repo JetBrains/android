@@ -550,6 +550,7 @@ MODULE                        : MultiFlavor.app
             BuildType                     : debug
             DisplayName                   : firstAbc-secondAbc-debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             ProductFlavors                : firstAbc
             ProductFlavors                : secondAbc

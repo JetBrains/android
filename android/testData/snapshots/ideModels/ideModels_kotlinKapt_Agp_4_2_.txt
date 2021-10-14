@@ -226,6 +226,7 @@ MODULE                        : MainActivity.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.mainactivity
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -1288,6 +1289,7 @@ MODULE                        : MainActivity.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.lib
             MainArtifact

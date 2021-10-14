@@ -226,6 +226,7 @@ MODULE                        : TestCompositeLib1.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2238,6 +2239,7 @@ MODULE                        : TestCompositeLib1.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite1
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -4169,6 +4171,7 @@ MODULE                        : TestCompositeLib3.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -6157,6 +6160,7 @@ MODULE                        : TestCompositeLib3.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite3
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -8005,6 +8009,7 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.compositeapp
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -10306,6 +10311,7 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.test.composite0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner

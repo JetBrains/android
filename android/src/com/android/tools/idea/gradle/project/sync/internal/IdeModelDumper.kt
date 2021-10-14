@@ -172,8 +172,7 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
       prop("BuildType") { ideVariant.buildType }
       prop("DisplayName") { ideVariant.displayName }
       prop("InstantAppCompatible") { ideVariant.instantAppCompatible.toString() }
-      // TODO(193515353): Add minSdkVersion once it is made notNull.
-      //prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
+      prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
       prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
       prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
       prop("TestApplicationId") { ideVariant.testApplicationId }
