@@ -888,54 +888,6 @@ fun clamp(i: Int, min: Int, max: Int): Int {
 }
 
 /**
- * Returns the list of all resource names that can be used as a value for one of the [ResourceType] in completionTypes,
- * optionally sorting/not sorting the results.
- */
-@JvmOverloads
-fun getCompletionFromTypes(
-  facet: AndroidFacet, completionTypes: Set<ResourceType>,
-  sort: Boolean = true
-): List<String> {
-  val types = Sets.newEnumSet(completionTypes, ResourceType::class.java)
-
-  // Use drawables for mipmaps
-  if (types.contains(ResourceType.MIPMAP)) {
-    types.add(ResourceType.DRAWABLE)
-  }
-  else if (types.contains(ResourceType.DRAWABLE)) {
-    types.add(ResourceType.MIPMAP)
-  }
-
-  val completionTypesContainsColor = types.contains(ResourceType.COLOR)
-  if (types.contains(ResourceType.DRAWABLE)) {
-    // The Drawable type accepts colors as value but not color state lists.
-    types.add(ResourceType.COLOR)
-  }
-
-  val repoManager = ResourceRepositoryManager.getInstance(facet)
-  val appResources = repoManager.appResources
-  val frameworkResources = repoManager.getFrameworkResources(emptySet())
-
-  val resources = ArrayList<String>(500)
-  for (type in types) {
-    // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
-    // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
-    // For any other ResourceType, we always include file resources.
-    val includeFileResources = type != ResourceType.COLOR || completionTypesContainsColor
-    if (frameworkResources != null) {
-      addFrameworkItems(resources, type, includeFileResources, frameworkResources)
-    }
-    addProjectItems(resources, type, includeFileResources, appResources, facet)
-  }
-
-  if (sort) {
-    resources.sortWith(Comparator(::compareResourceReferences))
-  }
-
-  return resources
-}
-
-/**
  * Return all the IDs in an XML file.
  */
 fun findIdsInFile(file: PsiFile): Set<String> {

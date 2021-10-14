@@ -295,24 +295,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertThat(iconFile.exists()).isTrue();
   }
 
-  public void testGetCompletionFromTypes() {
-    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
-    myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
-
-    List<String> colorOnly = IdeResourcesUtil.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.COLOR));
-    List<String> drawableOnly = IdeResourcesUtil.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.DRAWABLE));
-    List<String> colorAndDrawable =
-      IdeResourcesUtil.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE));
-    List<String> dimenOnly = IdeResourcesUtil.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.DIMEN));
-
-    assertThat(colorOnly).containsAllOf("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
-    assertThat(drawableOnly).containsAllOf("@color/myColor1", "@color/myColor2", "@android:drawable/menuitem_background");
-    assertThat(colorAndDrawable)
-      .containsAllOf("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
-                     "@android:drawable/menuitem_background");
-    assertThat(dimenOnly).containsAllOf("@dimen/myAlpha", "@dimen/myDimen");
-  }
-
   public void testResolveEmptyStatelist() {
     VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
