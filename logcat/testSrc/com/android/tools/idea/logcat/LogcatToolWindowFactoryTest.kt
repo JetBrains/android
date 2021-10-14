@@ -17,13 +17,26 @@ package com.android.tools.idea.logcat
 
 import org.junit.Test
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.TagFormat
+import com.google.gson.Gson
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import org.junit.After
+import org.junit.Rule
 
+@RunsInEdt
 class LogcatToolWindowFactoryTest {
-  private val project = mock<Project>()
+  private val projectRule = ProjectRule()
+
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
 
   @After
   fun tearDown() {
@@ -32,19 +45,57 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun shouldBeAvailable_isFalse() {
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(project)).isFalse()
+    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isFalse()
   }
 
   @Test
   fun shouldBeAvailable_obeysFlag_true() {
     StudioFlags.LOGCAT_V2_ENABLE.override(true)
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(project)).isTrue()
+    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isTrue()
   }
 
   @Test
   fun shouldBeAvailable_obeysFlag_false() {
     StudioFlags.LOGCAT_V2_ENABLE.override(false)
-    assertThat(LogcatToolWindowFactory().shouldBeAvailable(project)).isFalse()
+    assertThat(LogcatToolWindowFactory().shouldBeAvailable(projectRule.project)).isFalse()
   }
 
+  @Test
+  fun generateTabName_noPreExistingNames() {
+    assertThat(LogcatToolWindowFactory().generateTabName(emptySet())).isEqualTo("Logcat")
+  }
+
+  @Test
+  fun generateTabName_defaultNameAlreadyUsed() {
+    assertThat(LogcatToolWindowFactory().generateTabName(setOf("Logcat"))).isEqualTo("Logcat (2)")
+  }
+
+  @Test
+  fun createChildComponent_isLogcatMainPanel() {
+    val childComponent = LogcatToolWindowFactory()
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = null)
+
+    assertThat(childComponent).isInstanceOf(LogcatMainPanel::class.java)
+    Disposer.dispose(childComponent as Disposable)
+  }
+
+  @Test
+  fun createChildComponent_parsesState() {
+    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)))
+
+    val logcatMainPanel = LogcatToolWindowFactory()
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = Gson().toJson(logcatPanelConfig)) as LogcatMainPanel
+
+    assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingOptions)
+    Disposer.dispose(logcatMainPanel)
+  }
+
+  @Test
+  fun createChildComponent_invalidState() {
+    val logcatMainPanel = LogcatToolWindowFactory()
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = "invalid state") as LogcatMainPanel
+
+    assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
+    Disposer.dispose(logcatMainPanel)
+  }
 }

@@ -28,10 +28,13 @@ import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
+import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
+import com.google.gson.Gson
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionManager
@@ -50,11 +53,11 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
 import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
@@ -80,25 +83,20 @@ import javax.swing.JPopupMenu
  */
 class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
-
   private val executor = Executors.newCachedThreadPool()
+  private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor))
+  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule)
+
   private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
-
-  private lateinit var logcatMainPanel: LogcatMainPanel
-
-  @After
-  fun tearDown() {
-    runInEdtAndWait { Disposer.dispose(logcatMainPanel) }
-  }
+  private val gson = Gson()
 
   @RunsInEdt
   @Test
   fun createsComponents() {
-    logcatMainPanel = logcatMainPanel()
+    val logcatMainPanel = logcatMainPanel()
 
     val borderLayout = logcatMainPanel.layout as BorderLayout
 
@@ -121,7 +119,7 @@ class LogcatMainPanelTest {
   fun setsDocumentCyclicBuffer() {
     // Set a buffer of 1k
     System.setProperty("idea.cycle.buffer.size", "1")
-    logcatMainPanel = logcatMainPanel()
+    val logcatMainPanel = logcatMainPanel()
     val document = logcatMainPanel.editor.document as DocumentImpl
 
     // Insert 2000 chars
@@ -138,8 +136,8 @@ class LogcatMainPanelTest {
    */
   @Test
   fun appendMessages() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan"))
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan"))
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
@@ -158,9 +156,10 @@ class LogcatMainPanelTest {
 
   @Test
   fun appendMessages_disposedEditor() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel()
-      Disposer.dispose(logcatMainPanel)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also {
+        Disposer.dispose(it)
+      }
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -168,9 +167,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun appendMessages_scrollToEnd() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel()
-    }
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(
       logCatMessage(),
@@ -185,9 +182,7 @@ class LogcatMainPanelTest {
 
   @Test
   fun appendMessages_notAtBottom_doesNotScrollToEnd() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel()
-    }
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
     logcatMainPanel.messageProcessor.onIdle {
@@ -218,7 +213,7 @@ class LogcatMainPanelTest {
         latestPopup = FakeActionPopupMenu(it.getArgument(1))
         latestPopup
       }
-      logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
+      val logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
         size = Dimension(100, 100)
       }
       val fakeUi = FakeUi(logcatMainPanel)
@@ -235,7 +230,7 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun isMessageViewEmpty_emptyDocument() {
-    logcatMainPanel = logcatMainPanel()
+    val logcatMainPanel = logcatMainPanel()
     logcatMainPanel.editor.document.setText("")
 
     assertThat(logcatMainPanel.isMessageViewEmpty()).isTrue()
@@ -244,7 +239,7 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun isMessageViewEmpty_notEmptyDocument() {
-    logcatMainPanel = logcatMainPanel()
+    val logcatMainPanel = logcatMainPanel()
     logcatMainPanel.editor.document.setText("not-empty")
 
     assertThat(logcatMainPanel.isMessageViewEmpty()).isFalse()
@@ -252,9 +247,10 @@ class LogcatMainPanelTest {
 
   @Test
   fun clearMessageView() {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel()
-      logcatMainPanel.editor.document.setText("not-empty")
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also {
+        it.editor.document.setText("not-empty")
+      }
     }
 
     logcatMainPanel.clearMessageView()
@@ -272,8 +268,8 @@ class LogcatMainPanelTest {
    */
   @Test
   fun hyperlinks_range() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -293,8 +289,8 @@ class LogcatMainPanelTest {
   @Test
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
     System.setProperty("idea.cycle.buffer.size", "1")
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -313,8 +309,8 @@ class LogcatMainPanelTest {
    */
   @Test
   fun foldings_range() = runBlocking {
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(foldingDetector = mockFoldingDetector)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(foldingDetector = mockFoldingDetector)
     }
 
     logcatMainPanel.messageProcessor.appendMessages(listOf(logCatMessage()))
@@ -334,8 +330,8 @@ class LogcatMainPanelTest {
   @Test
   fun foldings_rangeWithCyclicBuffer() = runBlocking {
     System.setProperty("idea.cycle.buffer.size", "1")
-    runInEdtAndWait {
-      logcatMainPanel = logcatMainPanel(foldingDetector = mockFoldingDetector)
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(foldingDetector = mockFoldingDetector)
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -348,6 +344,44 @@ class LogcatMainPanelTest {
     }
   }
 
+  @RunsInEdt
+  @Test
+  fun getState() {
+    val logcatMainPanel = logcatMainPanel()
+    logcatMainPanel.formattingOptions.tagFormat = TagFormat(15)
+
+    val logcatPanelConfig = gson.fromJson(logcatMainPanel.getState(), LogcatPanelConfig::class.java)
+    assertThat(logcatPanelConfig.formattingOptions.tagFormat.maxLength).isEqualTo(15)
+  }
+
+  @RunsInEdt
+  @Test
+  fun appliesState() {
+    val logcatMainPanel = logcatMainPanel(state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17))))
+
+    // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow initializing it.
+    assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
+  }
+
+  @Test
+  fun reloadMessages() {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel().also {
+        it.editor.document.setText("Some previous text")
+      }
+    }
+    logcatMainPanel.messageBacklog.addAll(listOf(logCatMessage(message = "message")))
+
+    runInEdtAndWait(logcatMainPanel::reloadMessages)
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text)
+        .isEqualTo("1970-01-01 04:00:00.000     1-2     ExampleTag              com.example.app                      I  message\n")
+
+    }
+  }
 
   private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {
     override fun getComponent(): JPopupMenu {
@@ -372,5 +406,8 @@ class LogcatMainPanelTest {
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
-  ) = LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, hyperlinkDetector, foldingDetector, zoneId)
+  ): LogcatMainPanel =
+    LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, hyperlinkDetector, foldingDetector, zoneId).also {
+      Disposer.register(projectRule.project, it)
+    }
 }

@@ -20,7 +20,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.components.StoragePathMacros
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 
 /**
  * Configuration for a logcat panel.
@@ -28,16 +28,12 @@ import com.intellij.openapi.diagnostic.Logger
  * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
  *
  * @param deviceSerial the serial number of the device monitored by this panel
- * @param packageName the package name of the app monitored by this panel
  */
 internal data class LogcatPanelConfig(
   var deviceSerial: String?,
-  var packageName: String?,
   var formattingOptions: FormattingOptions,
 ) {
   companion object {
-    private val gson = Gson()
-
     /**
      * Decodes a JSON string into a [LogcatPanelConfig].
      */
@@ -46,7 +42,7 @@ internal data class LogcatPanelConfig(
         gson.fromJson(json, LogcatPanelConfig::class.java)
       }
       catch (e: JsonSyntaxException) {
-        Logger.getInstance(LogcatPanelConfig::class.java).warn("Invalid state", e)
+        thisLogger().warn("Invalid state", e)
         null
       }
     }
@@ -62,3 +58,5 @@ internal data class LogcatPanelConfig(
     fun toJson(config: LogcatPanelConfig): String = gson.toJson(config).replace(Regex("(?<!\\\\)\""), "'")
   }
 }
+
+private val gson = Gson()

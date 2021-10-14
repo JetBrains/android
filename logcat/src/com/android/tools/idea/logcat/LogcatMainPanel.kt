@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
@@ -60,6 +61,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.tools.SimpleActionGroup
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -97,7 +99,9 @@ internal class LogcatMainPanel(
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document)
   private val deviceContext = DeviceContext()
-  private val formattingOptions = state?.formattingOptions ?: FormattingOptions()
+
+  @VisibleForTesting
+  internal val formattingOptions = state?.formattingOptions ?: FormattingOptions()
   private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
 
   @VisibleForTesting
@@ -190,7 +194,6 @@ internal class LogcatMainPanel(
   override fun getState(): String = LogcatPanelConfig.toJson(
     LogcatPanelConfig(
       deviceContext.selectedDevice?.serialNumber,
-      deviceContext.selectedClient?.clientData?.packageName,
       formattingOptions))
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
