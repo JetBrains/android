@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.io.FilePaths;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -69,7 +70,7 @@ public class DependenciesExtractor {
       if (isNotEmpty(gradlePath)) {
         Module module = moduleFinder.findModuleFromLibrary(library);
         if (module != null) {
-          ModuleDependency dependency = new ModuleDependency(module);
+          ModuleDependency dependency = new ModuleDependency(ModuleSystemUtil.getMainModule(module));
           dependencies.add(dependency);
         }
       }
