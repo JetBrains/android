@@ -35,14 +35,22 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.io.File
 
-class ApplicationInstaller(private val project: Project) {
-  private val LOG = Logger.getInstance(this::class.java)
-
+interface ApplicationInstaller {
   fun installAppOnDevice(device: IDevice,
                          appId: String,
                          apksPaths: List<String>,
                          installFlags: String,
-                         infoReceiver: (String) -> Unit = {}): App {
+                         infoReceiver: (String) -> Unit = {}): App
+}
+
+class ApplicationInstallerImpl(private val project: Project) : ApplicationInstaller {
+  private val LOG = Logger.getInstance(this::class.java)
+
+  override fun installAppOnDevice(device: IDevice,
+                                  appId: String,
+                                  apksPaths: List<String>,
+                                  installFlags: String,
+                                  infoReceiver: (String) -> Unit): App {
     val deployer = getDeployer(device, infoReceiver)
 
     try {

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
+import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
@@ -70,7 +71,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
 
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
-  override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
-    return null
+  override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState {
+    return AndroidComplicationConfigurationExecutor(environment)
   }
 }

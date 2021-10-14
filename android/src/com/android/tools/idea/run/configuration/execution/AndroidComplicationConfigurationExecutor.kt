@@ -17,7 +17,10 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -30,13 +33,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicator
 import java.util.concurrent.TimeUnit
 
-
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
-
-  companion object {
-    val SHOW_WATCH_FACE_COMMAND =
-      "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
-  }
+class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor? {
@@ -48,16 +45,23 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
 
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
+    val watchFaceInfo = "${(configuration as AndroidComplicationConfiguration).watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
     devices.forEach {
       indicator.checkCanceled()
-      indicator.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) {
-        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
+      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) { info ->
+        console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
       }
+      indicator.checkCanceled()
+      val appWatchFace = installWatchApp(it)
+
       val receiver = AndroidLaunchReceiver(indicator, console)
-      app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      console.print("$ adb shell $SHOW_WATCH_FACE_COMMAND", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(SHOW_WATCH_FACE_COMMAND, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
+      configuration.chosenSlots.forEach { slot ->
+        app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
+                              receiver)
+      }
+      appWatchFace.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
+      console.print("$ adb shell ${AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND}", ConsoleViewContentType.NORMAL_OUTPUT)
+      it.executeShellCommand(AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND, receiver, 5, TimeUnit.SECONDS)
     }
     indicator.checkCanceled()
     val runContentDescriptor = if (isDebug) {
@@ -68,5 +72,10 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
 
     return runContentDescriptor
+  }
+
+  private fun installWatchApp(device: IDevice): App {
+    val watchFaceInfo = (configuration as AndroidComplicationConfiguration).watchFaceInfo
+    return getApplicationInstaller().installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "")
   }
 }

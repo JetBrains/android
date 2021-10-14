@@ -50,7 +50,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     // Mock installation that returns app.
     // Mock app component activation.
     val app = Mockito.mock(App::class.java)
-    val appInstaller = getMockApplicationInstaller(app)
+    val appInstaller = TestApplicationInstaller(appId, app)
     Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
     val device = getMockDevice()
@@ -81,13 +81,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     // Mock app component activation.
     val app = Mockito.mock(App::class.java)
 
-    // Mock installation that returns app.
-    val appInstaller = getMockApplicationInstaller(app)
-
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
-    Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
+    // Mock installation that returns app.
+    Mockito.doReturn(TestApplicationInstaller(appId, app)).`when`(executor).getApplicationInstaller()
     // Mock debugSessionStarter.
-    Mockito.`when`(executor.getDebugSessionStarter()).thenReturn(Mockito.mock(DebugSessionStarter::class.java))
+    Mockito.doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
     val device = getMockDevice()
     executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))

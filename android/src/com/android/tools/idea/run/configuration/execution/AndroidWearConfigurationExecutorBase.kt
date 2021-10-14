@@ -102,7 +102,7 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
   }
 
   fun getApplicationInstaller(): ApplicationInstaller {
-    return ApplicationInstaller(project)
+    return ApplicationInstallerImpl(project)
   }
 
   fun getDebugSessionStarter(): DebugSessionStarter {

@@ -48,10 +48,10 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
 
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    devices.forEach {
+    devices.forEach { device ->
       indicator.checkCanceled()
       indicator.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) {
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
       val receiver = TileIndexReceiver(indicator, console)
@@ -59,7 +59,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
       val command = "$SHOW_TILE_COMMAND $tileIndex"
       console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(command, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
+      device.executeShellCommand(command, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
     }
     indicator.checkCanceled()
     val runContentDescriptor = if (isDebug) {

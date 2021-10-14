@@ -32,6 +32,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.ProgressIndicator
 import org.mockito.Mockito
+import org.mockito.Mockito.doReturn
 import org.mockito.invocation.InvocationOnMock
 
 class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
@@ -62,7 +63,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
 
     val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
     // Mock installation that returns app.
-    val appInstaller = getMockApplicationInstaller(app)
+    val appInstaller = TestApplicationInstaller(appId, app)
     Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
     val device = getMockDevice()
@@ -100,10 +101,9 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
 
     val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
     // Mock installation that returns app.
-    val applicationInstaller = getMockApplicationInstaller(app)
-    Mockito.`when`(executor.getApplicationInstaller()).thenReturn(applicationInstaller)
+    doReturn(TestApplicationInstaller(appId, app)).`when`(executor).getApplicationInstaller()
     // Mock debugSessionStarter.
-    Mockito.`when`(executor.getDebugSessionStarter()).thenReturn(Mockito.mock(DebugSessionStarter::class.java))
+    doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
     val device = getMockDevice()
     executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
