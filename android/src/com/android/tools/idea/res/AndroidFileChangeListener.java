@@ -366,7 +366,7 @@ public class AndroidFileChangeListener implements Disposable {
         return childName;
       }
       PathString path = FileExtensions.toPathString(parent).resolve(childName);
-      return path.subpath(max(path.getNameCount(), 4), path.getNameCount()).getNativePath();
+      return path.subpath(max(path.getNameCount() - 4, 0), path.getNameCount()).getNativePath();
     }
 
     private static void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
