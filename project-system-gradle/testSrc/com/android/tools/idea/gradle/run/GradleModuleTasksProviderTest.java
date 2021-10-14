@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ListMultimap;
@@ -31,7 +32,7 @@ public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
 
   public void testUnitTestsInDependenciesAreNotCompiled() throws Exception {
     loadProject(JAVA_LIB);
-    Module app = TestModuleUtil.findAppModule(getProject());
+    Module app = ModuleSystemUtil.getMainModule(TestModuleUtil.findAppModule(getProject()));
     GradleModuleTasksProvider gradleModuleTasksProvider = new GradleModuleTasksProvider(new Module[]{app});
     ListMultimap<Path, String> tasksMultiMap = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
     List<String> tasks = tasksMultiMap.get(Paths.get(ExternalSystemApiUtil.getExternalRootProjectPath(app)));

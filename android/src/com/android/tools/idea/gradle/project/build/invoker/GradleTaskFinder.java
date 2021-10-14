@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -47,6 +47,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
@@ -164,8 +165,24 @@ public class GradleTaskFinder {
                                                  @NotNull Set<String> tasks,
                                                  @NotNull TestCompileType testCompileType) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
+    // TODO(b/203237539)
     if (gradleFacet == null) {
-      return;
+      if (ModuleUtil.isModulePerSourceSetEnabled(module.getProject())) {
+        int lastIndexOfDot = module.getName().lastIndexOf(".");
+        if (lastIndexOfDot > 0) {
+          String parentModuleName = module.getName().substring(0, lastIndexOfDot);
+          Module parentModule = ModuleManager.getInstance(module.getProject()).findModuleByName(parentModuleName);
+          if (parentModule != null) {
+            gradleFacet = GradleFacet.getInstance(parentModule);
+            module = parentModule;
+          }
+        }
+        if (gradleFacet == null) {
+          return;
+        }
+      } else {
+        return;
+      }
     }
 
     String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
