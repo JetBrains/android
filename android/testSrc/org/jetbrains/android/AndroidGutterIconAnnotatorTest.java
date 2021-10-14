@@ -44,7 +44,6 @@ import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -52,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -61,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
+@SuppressWarnings("UseJBColor")
 public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
   @Override
@@ -274,11 +275,19 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoImage(highlightInfo, "annotator/ic_fallback_thumbnail.png");
   }
 
-  public void testColorThemeAttributeNoGutterRenderer() {
+  public void testColorThemeAttribute() {
     // Reference to a color theme attribute from a layout file.
     HighlightInfo highlightInfo =
-      findHighlightInfo("res/layout/color_test.xml", "?android:attr/actionMenuTextColor", XmlAttributeValue.class);
-    assertThat(highlightInfo.getGutterIconRenderer()).isNull();
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?android:attr/actionMenuTextColor", XmlAttributeValue.class);
+
+    //noinspection InspectionUsingGrayColors
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(
+      new Color(255, 255, 255, 128),
+      new Color(255, 255, 255, 255),
+      new Color(0, 0, 0),
+      new Color(0, 0, 0),
+      new Color(0, 0, 0),
+      new Color(255, 255, 255)));
   }
 
   public void testDrawableGutterActionInCode() throws IOException {
@@ -329,6 +338,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(highlightInfo.getGutterIconRenderer()).isInstanceOf(GutterIconRenderer.class);
     AnAction action = ((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction();
     assertThat(action).isInstanceOf(NavigationTargetProvider.class);
+    assert action != null;
     return ((NavigationTargetProvider)action).getNavigationTarget();
   }
 
@@ -337,7 +347,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     if (!expected.isAbsolute()) {
       expected = new File(getTestDataPath(), expectedImage);
     }
-    checkHighlightInfoImage(highlightInfo, VfsUtil.findFileByIoFile(expected, false));
+    checkHighlightInfoImage(highlightInfo, Objects.requireNonNull(VfsUtil.findFileByIoFile(expected, false)));
   }
 
   private void checkHighlightInfoImage(@NotNull HighlightInfo highlightInfo, @NotNull VirtualFile expectedImage) throws IOException {
@@ -349,7 +359,8 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
 
     // Go through the same process as the real annotator, to handle retina correctly.
-    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet));
+    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(
+      Objects.requireNonNull(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet)));
     assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 
@@ -374,7 +385,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(icon).isInstanceOf(MultipleColorIcon.class);
     MultipleColorIcon colorIcon = (MultipleColorIcon)icon;
     List<Color> color = colorIcon.getColors();
-    assertThat(color).isEqualTo(expectedColors);;
+    assertThat(color).isEqualTo(expectedColors);
   }
 
   @NotNull

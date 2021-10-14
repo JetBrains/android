@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
@@ -132,7 +133,7 @@ class ResourceActionsTest {
 
   private fun createColorPicker(
     initialColor: Color?,
-    initialColorResource: ResourceReference?,
+    initialColorResource: ResourceValue?,
     configuration: Configuration?,
     resourcePickerSources: List<ResourcePickerSources>,
     restoreFocusComponent: Component?,
@@ -147,7 +148,7 @@ class ResourceActionsTest {
   @Suppress("unused")
   private class TestColorPicker(
     val initialColor: Color?,
-    val initialColorResource: ResourceReference?,
+    val initialColorResource: ResourceValue?,
     val configuration: Configuration?,
     val resourcePickerSources: List<ResourcePickerSources>,
     val restoreFocusComponent: Component?,

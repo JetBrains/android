@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -94,7 +95,7 @@ fun createResourcePickerDialog(
  */
 fun createAndShowColorPickerPopup(
   initialColor: Color?,
-  initialColorResource: ResourceReference?,
+  initialColorResource: ResourceValue?,
   configuration: Configuration?,
   resourcePickerSources: List<ResourcePickerSources>,
   restoreFocusComponent: Component?,

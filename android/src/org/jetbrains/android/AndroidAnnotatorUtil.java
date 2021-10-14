@@ -21,7 +21,6 @@ import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.DOT_XML;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -292,10 +291,10 @@ public class AndroidAnnotatorUtil {
   }
 
   public static class ColorRenderer extends GutterIconRenderer {
-    @NotNull private PsiElement myElement;
+    @NotNull private final PsiElement myElement;
     @Nullable private final Color myColor;
     @NotNull private final ResourceResolver myResolver;
-    @Nullable private final ResourceReference myResourceReference;
+    @Nullable private final ResourceValue myResourceValue;
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
@@ -305,13 +304,13 @@ public class AndroidAnnotatorUtil {
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
                          @NotNull ResourceResolver resolver,
-                         @Nullable ResourceReference resourceReference,
+                         @Nullable ResourceValue resourceValue,
                          boolean hasCustomColor,
                          @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
       myResolver = resolver;
-      myResourceReference = resourceReference;
+      myResourceValue = resourceValue;
 
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
@@ -322,11 +321,10 @@ public class AndroidAnnotatorUtil {
     @NotNull
     @Override
     public Icon getIcon() {
-      if (myResourceReference != null && myElement.isValid()) {
+      if (myResourceValue != null && myElement.isValid()) {
         AndroidFacet facet = AndroidFacet.getInstance(myElement);
         if (facet != null) {
-          ResourceValue value = myResolver.getUnresolvedResource(myResourceReference);
-          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, value, facet.getModule().getProject());
+          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, facet.getModule().getProject());
           if (!colors.isEmpty()) {
             MultipleColorIcon icon = new MultipleColorIcon();
             icon.setColors(colors);
@@ -399,7 +397,7 @@ public class AndroidAnnotatorUtil {
       // TODO: When the color is color state, open color picker with resource tab and select it.
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
-        myResourceReference,
+        myResourceValue,
         myConfigurationRef.get(),
         pickerSources,
         null,
