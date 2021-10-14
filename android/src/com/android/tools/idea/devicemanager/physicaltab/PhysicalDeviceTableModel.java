@@ -38,9 +38,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   static final int TYPE_MODEL_COLUMN_INDEX = 2;
   static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
-  private static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
-  private static final int REMOVE_MODEL_COLUMN_INDEX = 4;
-  private static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 5;
+  static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 3;
+  static final int REMOVE_MODEL_COLUMN_INDEX = 4;
+  static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 5;
 
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
@@ -232,7 +232,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         case TYPE_MODEL_COLUMN_INDEX:
           return "Type";
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
-          return "Actions";
         case REMOVE_MODEL_COLUMN_INDEX:
         case POP_UP_MENU_MODEL_COLUMN_INDEX:
           return "";

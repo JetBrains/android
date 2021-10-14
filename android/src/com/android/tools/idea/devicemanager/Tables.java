@@ -106,20 +106,22 @@ public final class Tables {
   }
 
   public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
+    sizeWidthToFit(table, viewColumnIndex, JBUIScale.scale(65));
+  }
+
+  public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex, int minWidth) {
     TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
-    int width = getPreferredColumnWidth(table, viewColumnIndex);
+    int width = getPreferredColumnWidth(table, viewColumnIndex, minWidth);
 
     column.setMinWidth(width);
     column.setMaxWidth(width);
     column.setPreferredWidth(width);
   }
 
-  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex) {
+  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex, int minWidth) {
     OptionalInt width = IntStream.range(-1, table.getRowCount())
       .map(viewRowIndex -> getPreferredCellWidth(table, viewRowIndex, viewColumnIndex))
       .max();
-
-    int minWidth = JBUIScale.scale(65);
 
     if (!width.isPresent()) {
       return minWidth;

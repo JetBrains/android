@@ -33,10 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -105,7 +102,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
-                                      PhysicalDevicePanelTest::newPhysicalDeviceTable,
+                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       mySupplier,
                                       this::newSetDevices);
 
@@ -124,7 +121,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
-                                      PhysicalDevicePanelTest::newPhysicalDeviceTable,
+                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       mySupplier,
                                       this::newSetDevices);
 
@@ -138,17 +135,6 @@ public final class PhysicalDevicePanelTest {
     // @formatter:on
 
     assertEquals(data, myPanel.getTable().getData());
-  }
-
-  private static @NotNull PhysicalDeviceTable newPhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    BiConsumer<JTable, Integer> sizeWidthToFit = (table, viewColumnIndex) -> {
-    };
-
-    return new PhysicalDeviceTable(panel,
-                                   new PhysicalDeviceTableModel(),
-                                   sizeWidthToFit,
-                                   () -> Mockito.mock(TableCellRenderer.class),
-                                   () -> Mockito.mock(TableCellRenderer.class));
   }
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {

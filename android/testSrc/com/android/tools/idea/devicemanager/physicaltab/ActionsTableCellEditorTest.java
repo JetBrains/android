@@ -24,13 +24,11 @@ import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,12 +62,6 @@ public final class ActionsTableCellEditorTest {
 
   @Mock
   private @NotNull EditDeviceNameDialog myDialog;
-
-  @Mock
-  private @NotNull TableCellRenderer myDeviceRenderer;
-
-  @Mock
-  private @NotNull TableCellRenderer myActionsRenderer;
 
   @Mock
   private @NotNull CellEditorListener myListener;
@@ -131,11 +123,7 @@ public final class ActionsTableCellEditorTest {
   public void editDeviceName() {
     // Arrange
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-
-    BiConsumer<JTable, Integer> sizeWidthToFit = (t, v) -> {
-    };
-
-    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model, sizeWidthToFit, () -> myDeviceRenderer, () -> myActionsRenderer);
+    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model);
 
     Mockito.when(myPanel.getProject()).thenReturn(myProject);
     Mockito.when(myPanel.getTable()).thenReturn(table);
