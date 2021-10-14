@@ -88,7 +88,7 @@ class AndroidLiveEditCodeGenerator {
         // 2) Invoke the backend with the inputs and the binding context computed from step 1.
         //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
         //    complexity of the input .kt file.
-        var classes = backendCodeGen(project, resolution, bindingContext, inputs, root.languageVersionSettings)
+        var classes = backendCodeGen(project, resolution, bindingContext, inputs, AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))
 
         // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
         //    decide which classes we want to send to the device along with what extra meta-information the
