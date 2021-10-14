@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import FakeLogcatPresenter
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions

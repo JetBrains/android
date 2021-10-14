@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import FakeLogcatPresenter
+import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons

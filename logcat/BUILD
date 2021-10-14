@@ -6,7 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.logcat.iml"],
     resources = ["resources"],
-    test_class = "com.android.tools.idea.logcat.LogcatTestSuite",
+    test_class = "com.android.tools.idea.LogcatTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

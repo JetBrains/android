@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import FakeLogcatPresenter
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
