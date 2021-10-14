@@ -25,7 +25,6 @@ import com.intellij.execution.filters.TextConsoleBuilder
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
@@ -35,8 +34,11 @@ abstract class AndroidWearConfigurationExecutorBaseTest : AndroidTestCase() {
   protected fun getMockApplicationInstaller(app: App?): ApplicationInstaller {
     val appInstaller = Mockito.mock(ApplicationInstaller::class.java)
     Mockito
-      .`when`(appInstaller.installAppOnDevice(MockitoKt.any(IDevice::class.java), MockitoKt.any(ProgressIndicator::class.java),
-                                              MockitoKt.any(ConsoleView::class.java)))
+      .`when`(appInstaller.installAppOnDevice(
+        MockitoKt.any(IDevice::class.java), MockitoKt.any(String::class.java),
+        MockitoKt.any(List::class.java) as List<String>, MockitoKt.any(String::class.java),
+        Mockito.any(Function::class.java) as (String) -> Unit
+      ))
       .thenReturn(app)
     return appInstaller
   }

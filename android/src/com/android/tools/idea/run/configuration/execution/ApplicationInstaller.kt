@@ -26,40 +26,29 @@ import com.android.tools.deployer.MetricsRecorder
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.DeploymentService
 import com.android.tools.idea.run.IdeService
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicator
-import org.jetbrains.android.util.AndroidBundle
+import com.intellij.openapi.project.Project
 import java.io.File
 
-/**
- * Installs app corresponded to given [AndroidWearConfiguration].
- */
-class ApplicationInstaller(private val configuration: AndroidWearConfiguration) {
-  private val project = configuration.project
+class ApplicationInstaller(private val project: Project) {
   private val LOG = Logger.getInstance(this::class.java)
-  private val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName ?: throw RuntimeException(
-    "Cannot get ApplicationIdProvider")
 
-  fun installAppOnDevice(device: IDevice, indicator: ProgressIndicator, console: ConsoleView): App {
-    indicator.text = "Installing app"
-    val deployer = getDeployer(device) { console.print(it, ConsoleViewContentType.NORMAL_OUTPUT) }
-    val apkInfo = getApkInfo(device)
-    val pathsToInstall = apkInfo.files.map { it.apkFile.path }
+  fun installAppOnDevice(device: IDevice,
+                         appId: String,
+                         apksPaths: List<String>,
+                         installFlags: String,
+                         infoReceiver: (String) -> Unit = {}): App {
+    val deployer = getDeployer(device, infoReceiver)
 
     try {
-      val result = deployer.install(appId, pathsToInstall, getInstallOptions(device, appId), Deployer.InstallMode.DELTA)
+      val result = deployer.install(appId, apksPaths, getInstallOptions(device, appId, installFlags), Deployer.InstallMode.DELTA)
       if (result.skippedInstall) {
-        console.print("App restart successful without requiring a re-install.", ConsoleViewContentType.NORMAL_OUTPUT)
+        infoReceiver("App restart successful without requiring a re-install.")
       }
       return result.app
     }
@@ -106,7 +95,9 @@ class ApplicationInstaller(private val configuration: AndroidWearConfiguration) 
   }
 
 
-  private fun getInstallOptions(device: IDevice, appId: String): InstallOptions { // All installations default to allow debuggable APKs
+  private fun getInstallOptions(device: IDevice,
+                                appId: String,
+                                installFlags: String): InstallOptions { // All installations default to allow debuggable APKs
     val options = InstallOptions.builder().setAllowDebuggable()
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
@@ -119,18 +110,11 @@ class ApplicationInstaller(private val configuration: AndroidWearConfiguration) 
     // Skip verification if possible.
     options.setSkipVerification(device, appId)
 
-    if (!configuration.installFlags.isEmpty()) {
-      options.setUserInstallOptions(configuration.installFlags.trim().split("\\s+").toTypedArray())
+    if (installFlags.isNotEmpty()) {
+      options.setUserInstallOptions(installFlags.trim().split("\\s+").toTypedArray())
     }
 
     return options.build()
-  }
-
-  private fun getApkInfo(device: IDevice): ApkInfo {
-    val apkProvider = project.getProjectSystem().getApkProvider(configuration) ?: throw ExecutionException(
-      AndroidBundle.message("android.run.configuration.not.supported",
-                            configuration.name)) // There is no test ApkInfo for AndroidWatchFaceConfiguration, thus it should be always single ApkInfo. Only App.
-    return apkProvider.getApks(device).single()
   }
 }
 

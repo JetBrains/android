@@ -44,9 +44,9 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-abstract class AndroidWearConfigurationExecutorBase(private val environment: ExecutionEnvironment) : RunProfileState {
+abstract class AndroidWearConfigurationExecutorBase(protected val environment: ExecutionEnvironment) : RunProfileState {
 
-  protected val configuration = environment.runProfile as AndroidWearConfiguration
+  val configuration = environment.runProfile as AndroidWearConfiguration
   protected val project = configuration.project
   protected val facet = AndroidFacet.getInstance(configuration.configurationModule.module!!)!!
   protected val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
@@ -102,11 +102,18 @@ abstract class AndroidWearConfigurationExecutorBase(private val environment: Exe
   }
 
   fun getApplicationInstaller(): ApplicationInstaller {
-    return ApplicationInstaller(configuration)
+    return ApplicationInstaller(project)
   }
 
   fun getDebugSessionStarter(): DebugSessionStarter {
     return DebugSessionStarter(environment)
+  }
+
+  protected fun getApkPaths(device: IDevice): List<String> {
+    val apkProvider = project.getProjectSystem().getApkProvider(configuration) ?: throw ExecutionException(
+      AndroidBundle.message("android.run.configuration.not.supported",
+                            configuration.name)) // There is no test ApkInfo for AndroidWatchFaceConfiguration, thus it should be always single ApkInfo. Only App.
+    return apkProvider.getApks(device).single().files.map { it.apkFile.path }
   }
 
   class EmptyProcessHandler : ProcessHandler() {

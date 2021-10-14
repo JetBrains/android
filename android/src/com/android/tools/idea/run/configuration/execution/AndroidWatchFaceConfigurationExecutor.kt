@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.deployer.model.component.AppComponent
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -32,11 +31,10 @@ import com.intellij.openapi.progress.ProgressIndicator
 import java.util.concurrent.TimeUnit
 
 
-class AndroidWatchFaceConfigurationExecutor(private val environment: ExecutionEnvironment) :
-  AndroidWearConfigurationExecutorBase(environment) {
+class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
 
   companion object {
-    private val SHOW_WATCH_FACE_COMMAND =
+    val SHOW_WATCH_FACE_COMMAND =
       "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
   }
 
@@ -52,7 +50,10 @@ class AndroidWatchFaceConfigurationExecutor(private val environment: ExecutionEn
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     devices.forEach {
       indicator.checkCanceled()
-      val app = applicationInstaller.installAppOnDevice(it, indicator, console)
+      indicator.text = "Installing app"
+      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) {
+        console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
+      }
       val receiver = AndroidLaunchReceiver(indicator, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       console.print("$ adb shell command $SHOW_WATCH_FACE_COMMAND", ConsoleViewContentType.NORMAL_OUTPUT)
