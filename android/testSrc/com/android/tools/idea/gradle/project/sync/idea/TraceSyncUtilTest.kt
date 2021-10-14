@@ -20,46 +20,56 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.createTraceProfileFile
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.findAgentJar
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.updateTraceArgsInFile
-import com.android.tools.idea.testing.IdeComponents
-import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.diagnostic.VMOptions
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
+import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.rules.TempDirectory
+import org.junit.After
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 
-class TraceSyncUtilTest : HeavyPlatformTestCase() {
+class TraceSyncUtilTest : BareTestFixtureTestCase() {
+  @JvmField @Rule val tempDir = TempDirectory()
+
   private lateinit var settings: GradleExperimentalSettings
+  private lateinit var vmFile: Path
 
-  override fun setUp() {
-    super.setUp()
-    settings = IdeComponents(project).mockApplicationService(GradleExperimentalSettings::class.java)
+  @Before
+  fun setUp() {
+    settings = mock(GradleExperimentalSettings::class.java)
+    ApplicationManager.getApplication().replaceService(GradleExperimentalSettings::class.java, settings, testRootDisposable)
+    vmFile = tempDir.newFile("studio.vmoptions").toPath()
+    System.setProperty("jb.vmOptionsFile", vmFile.toString())
+  }
+
+  @After
+  fun tearDown() {
+    System.clearProperty("jb.vmOptionsFile")
   }
 
   @Test
   fun testAddTraceJvmArgsWithTraceDisabled() {
     settings.TRACE_GRADLE_SYNC = false
     val agentJar = findAgentJar()
-    val originalOptions = "-Xms256m\n" +
-                          "-Xmx1280m\n" +
-                          "-XX:ReservedCodeCacheSize=240m\n" +
-                          "-Djava.net.preferIPv4Stack=true\n" +
-                          "-javaagent:${agentJar}=/tmp/text.profile\n"
-
-    val vmFile = FileUtil.createTempFile("studio", ".vmoptions")
-    vmFile.deleteOnExit()
-    writeToFile(vmFile, originalOptions)
+    val originalOptions = listOf("-Xms256m", "-Xmx1280m", "-Djava.net.preferIPv4Stack=true")
+    Files.write(vmFile, originalOptions + "-javaagent:${agentJar}=/tmp/text.profile", VMOptions.getFileCharset())
 
     // Invoke method to test.
-    updateTraceArgsInFile(vmFile)
+    updateTraceArgsInFile()
 
     // Verify that -javaagent line is removed.
-    val updatedOptions = vmFile.readText()
-    assertThat(updatedOptions).isEqualTo("-Xms256m\n" +
-                                         "-Xmx1280m\n" +
-                                         "-XX:ReservedCodeCacheSize=240m\n" +
-                                         "-Djava.net.preferIPv4Stack=true\n")
+    val updatedOptions = Files.readAllLines(vmFile, VMOptions.getFileCharset())
+    assertThat(updatedOptions).isEqualTo(originalOptions)
   }
 
   @Test
@@ -67,25 +77,15 @@ class TraceSyncUtilTest : HeavyPlatformTestCase() {
     settings.TRACE_GRADLE_SYNC = true
     settings.TRACE_PROFILE_SELECTION = DEFAULT
     val agentJar = findAgentJar()
-    val originalOptions = "-Xms256m\n" +
-                          "-Xmx1280m\n" +
-                          "-XX:ReservedCodeCacheSize=240m\n" +
-                          "-Djava.net.preferIPv4Stack=true"
-
-    val vmFile = FileUtil.createTempFile("studio", ".vmoptions")
-    vmFile.deleteOnExit()
-    writeToFile(vmFile, originalOptions)
+    val originalOptions = listOf("-Xms256m", "-Xmx1280m", "-Djava.net.preferIPv4Stack=true")
+    Files.write(vmFile, originalOptions, VMOptions.getFileCharset())
 
     // Invoke method to test.
-    updateTraceArgsInFile(vmFile)
+    updateTraceArgsInFile()
 
     // Verify that -javaagent line is added.
-    val updatedOptions = vmFile.readText()
-    assertThat(updatedOptions).startsWith("-Xms256m\n" +
-                                          "-Xmx1280m\n" +
-                                          "-XX:ReservedCodeCacheSize=240m\n" +
-                                          "-Djava.net.preferIPv4Stack=true\n" +
-                                          "-javaagent:${agentJar}=")
+    val updatedOptions = Files.readAllLines(vmFile, VMOptions.getFileCharset()).joinToString("\n")
+    assertThat(updatedOptions).startsWith((originalOptions + "-javaagent:${agentJar}=").joinToString("\n"))
   }
 
   @Test
