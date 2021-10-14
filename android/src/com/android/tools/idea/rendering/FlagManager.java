@@ -20,10 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
-import com.android.tools.idea.editors.AndroidEditorAppearanceState;
 import com.google.common.collect.Maps;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
@@ -32,7 +29,6 @@ import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.Map;
 import javax.swing.Icon;
-import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 

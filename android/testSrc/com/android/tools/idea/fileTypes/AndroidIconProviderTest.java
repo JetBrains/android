@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
+import com.android.tools.idea.rendering.AndroidEditorAppearanceSettings;
 import com.android.tools.idea.rendering.FlagManager;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
