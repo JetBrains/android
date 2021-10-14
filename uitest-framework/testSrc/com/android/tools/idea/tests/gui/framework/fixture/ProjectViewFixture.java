@@ -243,7 +243,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     public IdeFrameFixture deletePath(@NotNull final String... pathSegments) {
       return clickPath(MouseButton.RIGHT_BUTTON, pathSegments)
-        .openFromMenu(DeleteDialogFixture::find, "Delete...")
+        .openFromContextualMenu(DeleteDialogFixture::find, "Delete...")
         .unsafeDelete();
     }
   }
