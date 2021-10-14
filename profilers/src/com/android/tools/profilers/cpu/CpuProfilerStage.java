@@ -103,6 +103,13 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    */
   private static final CaptureDetails.Type DEFAULT_CAPTURE_DETAILS = CaptureDetails.Type.CALL_CHART;
 
+  /**
+   * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
+   * we want to preserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
+   */
+  @VisibleForTesting static final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
+    new ArtInstrumentedConfiguration("Debug API (Java)");
+
   private final CpuThreadsModel myThreadsStates;
   private final CpuKernelModel myCpuKernelModel;
   private final ClampedAxisComponentModel myCpuUsageAxis;
@@ -743,6 +750,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         setProfilerMode(ProfilerMode.EXPANDED);
         // When going to CAPTURING state need to keep the recording options model in sync.
         // This is needed when a startup recording or API recording has started.
+        if (isApiInitiatedTracingInProgress() && !myRecordingOptionsModel.isRecording()) {
+          RecordingOption option = addConfiguration(API_INITIATED_TRACING_PROFILING_CONFIG);
+          myRecordingOptionsModel.getCustomConfigurationModel().setSelectedItem(option);
+          myRecordingOptionsModel.selectCurrentCustomConfiguration();
+        }
         myRecordingOptionsModel.setRecording();
       }
     }
@@ -865,10 +877,13 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   public void refreshRecordingConfigurations() {
     myRecordingOptionsModel.clearConfigurations();
     // Add custom configs.
-    for (ProfilingConfiguration configuration : myProfilerConfigModel.getCustomProfilingConfigurationsDeviceFiltered()) {
-      myRecordingOptionsModel.addConfigurations(
-        new RecordingOption(configuration.getName(), "", () -> startRecordingConfig(configuration), this::stopCapturing));
-    }
+    myProfilerConfigModel.getCustomProfilingConfigurationsDeviceFiltered().forEach(this::addConfiguration);
+  }
+
+  private RecordingOption addConfiguration(ProfilingConfiguration config) {
+    RecordingOption option = new RecordingOption(config.getName(), "", () -> startRecordingConfig(config), this::stopCapturing);
+    myRecordingOptionsModel.addConfigurations(option);
+    return option;
   }
 
   private void startRecordingConfig(ProfilingConfiguration config) {

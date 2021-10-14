@@ -887,6 +887,24 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void rightOptionSelectedForApiInitTracing() {
+    // API-initiated tracing starts.
+    Cpu.CpuTraceConfiguration apiTracingConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build();
+    addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, apiTracingConfig);
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    assertThat(myStage.isApiInitiatedTracingInProgress()).isTrue();
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+    assertThat(myStage.getRecordingModel().getSelectedOption().getTitle())
+      .isEqualTo(CpuProfilerStage.API_INITIATED_TRACING_PROFILING_CONFIG.getName());
+  }
+
+  @Test
   public void setAndSelectCaptureShouldStopStreamingMode() throws IOException, ExecutionException, InterruptedException {
     // Capture has changed, keeps the same type of details
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
