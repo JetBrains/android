@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.SetColorBlindModeAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
@@ -101,12 +102,13 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
     group.addSeparator();
     if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-      DeviceMenuAction2 menuAction2 = new DeviceMenuAction2(() -> mySurface.getConfigurations().stream().findFirst().orElse(null));
+      DeviceMenuAction2 menuAction2 = new DeviceMenuAction2(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
+                                                            (oldDevice, newDevice) -> mySurface.zoomToFit());
       appendShortcutText(menuAction2, NextDeviceAction.getInstance());
       group.add(menuAction2);
     }
     else {
-      DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
+      DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration, (oldDevice, newDevice) -> mySurface.zoomToFit());
       appendShortcutText(menuAction, NextDeviceAction.getInstance());
       group.add(menuAction);
     }

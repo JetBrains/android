@@ -18,6 +18,7 @@ package com.android.tools.idea.common.actions
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceMenuAction
@@ -55,10 +56,10 @@ abstract class SwitchDeviceAction: AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(NlActionManager.LAYOUT_EDITOR)
     val config = surface.configurations.firstOrNull() ?: return
-    switchDevice(config)
+    switchDevice(surface, config)
   }
 
-  abstract fun switchDevice(config: Configuration)
+  abstract fun switchDevice(surface: DesignSurface, config: Configuration)
 }
 
 
@@ -67,18 +68,21 @@ abstract class SwitchDeviceAction: AnAction() {
  */
 class NextDeviceAction private constructor(): SwitchDeviceAction() {
 
-  override fun switchDevice(config: Configuration) {
+  override fun switchDevice(surface: DesignSurface, config: Configuration) {
     val devices = getSortedDevices(config)
-
     if (devices.isEmpty()) {
       return
     }
+    val currentDevice = config.device
     val nextDevice = when (val index = devices.indexOf(config.device)) {
       -1 -> devices.first() // If current device is not in the list, we navigate to first device
       devices.lastIndex -> devices.first()
       else -> devices[index + 1]
     }
     config.setDevice(nextDevice, true)
+    if (currentDevice != nextDevice) {
+      surface.zoomToFit()
+    }
   }
 
   companion object {
@@ -91,17 +95,21 @@ class NextDeviceAction private constructor(): SwitchDeviceAction() {
 
 class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
 
-  override fun switchDevice(config: Configuration) {
+  override fun switchDevice(surface: DesignSurface, config: Configuration) {
     val devices = getSortedDevices(config)
     if (devices.isEmpty()) {
       return
     }
+    val currentDevice = config.device
     val previousDevice = when (val index = devices.indexOf(config.device)) {
       -1 -> devices.first() // If current device is not in the list, we navigate to first device
       0 -> devices.last()
       else -> devices[index - 1]
     }
     config.setDevice(previousDevice, true)
+    if (currentDevice != previousDevice) {
+      surface.zoomToFit()
+    }
   }
 
   companion object {

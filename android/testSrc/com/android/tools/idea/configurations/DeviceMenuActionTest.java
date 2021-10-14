@@ -49,7 +49,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
 
     ConfigurationHolder holder = () -> configuration;
 
-    DeviceMenuAction menuAction = new DeviceMenuAction(holder);
+    DeviceMenuAction menuAction = new DeviceMenuAction(holder, (oldDevice, newDevice) -> {});
     menuAction.updateActions(DataContext.EMPTY_CONTEXT);
     PresentationFactory presentationFactory = new PresentationFactory();
     Utils.expandActionGroup(false, menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR);

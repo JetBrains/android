@@ -40,11 +40,13 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
 public class DeviceMenuAction extends DropDownAction {
   private static final boolean LIST_RECENT_DEVICES = false;
-  private final ConfigurationHolder myRenderContext;
+  @NotNull private final ConfigurationHolder myRenderContext;
+  @NotNull private final DeviceChangeListener myDeviceChangeListener;
 
-  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
+  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext, @NotNull DeviceChangeListener deviceChangeListener) {
     super("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
+    myDeviceChangeListener = deviceChangeListener;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
   }
@@ -153,7 +155,13 @@ public class DeviceMenuAction extends DropDownAction {
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
           Icon icon = getDeviceClassIcon(device);
-          add(new SetDeviceAction(myRenderContext, label, this::updatePresentation, device, icon, device == current));
+          add(new SetDeviceAction(myRenderContext,
+                                  label,
+                                  this::updatePresentation,
+                                  myDeviceChangeListener,
+                                  device,
+                                  icon,
+                                  device == current));
         }
         addSeparator();
       }
@@ -192,7 +200,13 @@ public class DeviceMenuAction extends DropDownAction {
       add(new DeviceCategory(getGroupTitle(group), null, getDeviceClassIcon(devices.get(0))));
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        add(new SetDeviceAction(myRenderContext, label, this::updatePresentation, device, null, current == device));
+        add(new SetDeviceAction(myRenderContext,
+                                label,
+                                this::updatePresentation,
+                                myDeviceChangeListener,
+                                device,
+                                null,
+                                current == device));
       }
       addSeparator();
     }
@@ -204,7 +218,13 @@ public class DeviceMenuAction extends DropDownAction {
       add(new DeviceCategory(getGroupTitle(DeviceGroup.WEAR), null, getDeviceClassIcon(devices.get(0))));
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
-        add(new SetWearDeviceAction(myRenderContext, label, this::updatePresentation, device, null, current == device));
+        add(new SetWearDeviceAction(myRenderContext,
+                                    label,
+                                    this::updatePresentation,
+                                    myDeviceChangeListener,
+                                    device,
+                                    null,
+                                    current == device));
       }
       addSeparator();
     }
@@ -259,6 +279,7 @@ public class DeviceMenuAction extends DropDownAction {
         genericGroup.add(new SetDeviceAction(myRenderContext,
                                              label,
                                              this::updatePresentation,
+                                             myDeviceChangeListener,
                                              device,
                                              null,
                                              current == device));
@@ -340,15 +361,18 @@ public class DeviceMenuAction extends DropDownAction {
 
   @VisibleForTesting
   public static class SetDeviceAction extends DeviceAction {
+    @NotNull protected final DeviceChangeListener myDeviceChangeListener;
     @NotNull protected final Device myDevice;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
                            @NotNull Consumer<Presentation> updatePresentationCallback,
+                           @NotNull DeviceChangeListener deviceChangeListener,
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
                            final boolean select) {
       super(renderContext, null, updatePresentationCallback);
+      myDeviceChangeListener = deviceChangeListener;
       myDevice = device;
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
@@ -402,6 +426,7 @@ public class DeviceMenuAction extends DropDownAction {
         configuration.getConfigurationManager().selectDevice(myDevice);
       }
       configuration.setDevice(myDevice, true);
+      myDeviceChangeListener.onDeviceChanged(prevDevice, myDevice);
     }
 
     @NotNull
@@ -416,14 +441,16 @@ public class DeviceMenuAction extends DropDownAction {
     public SetWearDeviceAction(@NotNull ConfigurationHolder renderContext,
                                @NotNull final String title,
                                @NotNull Consumer<Presentation> updatePresentationCallback,
+                               @NotNull DeviceChangeListener deviceChangeListener,
                                @NotNull final Device device,
                                @Nullable Icon defaultIcon,
                                final boolean select) {
-      super(renderContext, title, updatePresentationCallback, device, defaultIcon, select);
+      super(renderContext, title, updatePresentationCallback, deviceChangeListener, device, defaultIcon, select);
     }
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      Device prevDevice = configuration.getCachedDevice();
       String newState = null;
 
       // For wear device, we force setup the device state because the orientation must be specific.
@@ -459,6 +486,7 @@ public class DeviceMenuAction extends DropDownAction {
         configuration.getConfigurationManager().selectDevice(myDevice);
       }
       configuration.setDevice(myDevice, true);
+      myDeviceChangeListener.onDeviceChanged(prevDevice, myDevice);
     }
   }
 
@@ -523,5 +551,12 @@ public class DeviceMenuAction extends DropDownAction {
       // TODO: force set orientation for virtual wear os device
       configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
     }
+  }
+
+  /**
+   * The callback when device is changed by the {@link DeviceMenuAction.DeviceAction}.
+   */
+  public interface DeviceChangeListener {
+    void onDeviceChanged(@Nullable Device oldDevice, @Nullable Device newDevice);
   }
 }

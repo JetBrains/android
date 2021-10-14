@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceMenuAction
@@ -47,6 +48,7 @@ class NextDeviceActionTest {
 
     val file = projectRule.fixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
+    val surface = TestDesignSurface(projectRule.project, projectRule.testRootDisposable)
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
@@ -56,12 +58,12 @@ class NextDeviceActionTest {
     config.setDevice(firstDevice, false)
     var index = 1
     while (index < setDeviceActions.size) {
-      nextDeviceAction.switchDevice(config)
+      nextDeviceAction.switchDevice(surface, config)
       assertEquals(setDeviceActions[index].device, config.device)
       index += 1
     }
     // Applying NextDeviceAction to last device will move to the first device.
-    nextDeviceAction.switchDevice(config)
+    nextDeviceAction.switchDevice(surface, config)
     assertEquals(firstDevice, config.device)
   }
 }
@@ -83,6 +85,7 @@ class PreviousDeviceActionTest {
 
     val file = projectRule.fixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
+    val surface = TestDesignSurface(projectRule.project, projectRule.testRootDisposable)
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
@@ -92,22 +95,22 @@ class PreviousDeviceActionTest {
     config.setDevice(lastDevice, false)
     var index = setDeviceActions.lastIndex - 1
     while (index >= 0) {
-      previousDeviceAction.switchDevice(config)
+      previousDeviceAction.switchDevice(surface, config)
       assertEquals(setDeviceActions[index].device, config.device)
       index -= 1
     }
     // Applying PreviousDeviceAction to first device will move to the last device.
-    previousDeviceAction.switchDevice(config)
+    previousDeviceAction.switchDevice(surface, config)
     assertEquals(lastDevice, config.device)
   }
 }
 
 private fun getSetDeviceActions(config: Configuration): List<DeviceMenuAction.SetDeviceAction> {
   val menuAction = if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-    DeviceMenuAction2 { config }.apply { updateActions(DataContext.EMPTY_CONTEXT) }
+    DeviceMenuAction2({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
   }
   else {
-    DeviceMenuAction { config }.apply { updateActions(DataContext.EMPTY_CONTEXT) }
+    DeviceMenuAction({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
   }
 
   return menuAction.getChildren(null)

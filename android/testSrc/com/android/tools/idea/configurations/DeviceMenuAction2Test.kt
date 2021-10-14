@@ -66,7 +66,7 @@ class DeviceMenuAction2Test {
     Mockito.`when`(configuration.module).thenReturn(projectRule.projectRule.module)
     Mockito.`when`(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     val holder = ConfigurationHolder { configuration }
-    val menuAction = DeviceMenuAction2(holder)
+    val menuAction = DeviceMenuAction2(holder) { _, _ -> }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {

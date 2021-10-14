@@ -78,7 +78,8 @@ internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
  * New device menu for layout editor.
  * Because we are going to deprecate [DeviceMenuAction], some of the duplicated codes are not shared between them.
  */
-class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
+class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
+                        private val deviceChangeListener: DeviceMenuAction.DeviceChangeListener)
   : DropDownAction("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES) {
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -141,7 +142,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
     for (device in windowDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null, selected))
     }
 
     val nexusDevices = NEXUS_DEVICE_FILTER(groupedDevices)
@@ -153,7 +159,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
         for (device in sortedDevices) {
           val label = getDeviceLabel(device)
           val selected = device == renderContext.configuration?.device
-          sizeGroup.addAction(DeviceMenuAction.SetDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+          sizeGroup.addAction(DeviceMenuAction.SetDeviceAction(renderContext,
+                                                               label,
+                                                               { updatePresentation(it) },
+                                                               deviceChangeListener,
+                                                               device,
+                                                               null, selected))
         }
       }
       add(group)
@@ -169,7 +180,13 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
       for (device in wearDevices) {
         val label = getDeviceLabel(device)
         val selected = device == renderContext.configuration?.device
-        add(DeviceMenuAction.SetWearDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+        add(DeviceMenuAction.SetWearDeviceAction(renderContext,
+                                                 label,
+                                                 { updatePresentation(it) },
+                                                 deviceChangeListener,
+                                                 device,
+                                                 null,
+                                                 selected))
       }
       addSeparator()
     }
@@ -180,7 +197,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     add(DeviceCategory("TV", "Android TV devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null, selected))
     }
     addSeparator()
   }
@@ -190,7 +212,13 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
     add(DeviceCategory("Auto", "Android Auto devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE))
     for (device in automotiveDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext, getDeviceLabel(device), { updatePresentation(it) }, device, null, selected))
+      add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                           getDeviceLabel(device),
+                                           { updatePresentation(it) },
+                                           deviceChangeListener,
+                                           device,
+                                           null,
+                                           selected))
     }
     addSeparator()
   }
@@ -221,7 +249,13 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder)
       for (device in devices) {
         val label: String = getDeviceLabel(device)
         val selected = device == renderContext.configuration?.device
-        genericGroup.add(DeviceMenuAction.SetDeviceAction(renderContext, label, { updatePresentation(it) }, device, null, selected))
+        genericGroup.add(DeviceMenuAction.SetDeviceAction(renderContext,
+                                                          label,
+                                                          { updatePresentation(it) },
+                                                          deviceChangeListener,
+                                                          device,
+                                                          null,
+                                                          selected))
       }
       add(genericGroup)
     }

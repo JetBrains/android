@@ -82,17 +82,21 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
     if (sourceFile == targetFile) {
       // Same file, just apply the config to it.
-      val configInLayoutEditor = (currentEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+      val surfaceInLayoutEditor = (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+      val configInLayoutEditor = surfaceInLayoutEditor?.models?.firstOrNull()?.configuration
       if (configInLayoutEditor != null) {
         applyConfiguration(configInLayoutEditor, view.configuration)
+        surfaceInLayoutEditor.zoomToFit()
       }
     }
     else {
       // Open another file, or switch to it if it has been open. Then, apply the config to it.
       LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) { newEditor ->
-        val configInDestinationEditor = (newEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+        val configInDestinationEditor = surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
         if (configInDestinationEditor != null) {
           applyConfiguration(configInDestinationEditor, view.configuration)
+          surfaceInDestinationEditor.zoomToFit()
         }
       }
     }
