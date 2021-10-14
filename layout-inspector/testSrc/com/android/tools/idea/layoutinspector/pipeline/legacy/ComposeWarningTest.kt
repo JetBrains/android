@@ -30,22 +30,17 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
-@RunsInEdt
 class ComposeWarningTest {
-  private val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
   private lateinit var model: InspectorModel
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
 
   private val moduleSystem: DefaultModuleSystem
     get() = projectRule.module.getModuleSystem() as DefaultModuleSystem

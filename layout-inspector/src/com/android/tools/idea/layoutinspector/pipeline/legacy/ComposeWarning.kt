@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -45,7 +46,7 @@ class ComposeWarning(private val project: Project) {
     project.allModules().any { module ->
       val facet = AndroidFacet.getInstance(module)
       val manifest = facet?.let { Manifest.getMainManifest(it) }
-      val packageName = manifest?.`package`?.stringValue
+      val packageName = runReadAction { manifest?.`package`?.stringValue }
       packageName == client.process.name
     }
 

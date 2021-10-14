@@ -109,9 +109,7 @@ class LegacyClient(
       Thread.sleep(1000) // wait 1 second
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
-    invokeLater {
-      composeWarning.performCheck(this)
-    }
+    composeWarning.performCheck(this)
   }
 
   override fun refresh() {
