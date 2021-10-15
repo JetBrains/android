@@ -81,13 +81,7 @@ class EmulatorViewRule : TestRule {
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView) {
-    val actionManager = ActionManager.getInstance()
-    val action = actionManager.getAction(actionId)
-    val presentation = Presentation()
-    val event = AnActionEvent(null, TestDataContext(emulatorView), ActionPlaces.UNKNOWN, presentation, actionManager, 0)
-    action.update(event)
-    assertThat(presentation.isEnabledAndVisible).isTrue()
-    action.actionPerformed(event)
+    executeEmulatorAction(actionId, emulatorView, projectRule.project)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {
@@ -96,17 +90,5 @@ class EmulatorViewRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     return flagOverrides.apply(projectRule.apply(emulatorRule.apply(base, description), description), description)
-  }
-
-  private inner class TestDataContext(private val emulatorView: EmulatorView) : DataContext {
-
-    override fun getData(dataId: String): Any? {
-      return when (dataId) {
-        EMULATOR_CONTROLLER_KEY.name -> emulatorView.emulator
-        EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        else -> null
-      }
-    }
   }
 }

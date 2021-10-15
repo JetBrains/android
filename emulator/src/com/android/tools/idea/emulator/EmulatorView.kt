@@ -37,6 +37,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.emulator.EmulatorConfiguration.DisplayMode
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags
@@ -169,9 +170,11 @@ class EmulatorView(
   private val deviceDisplaySize
     get() = displaySize ?: emulator.emulatorConfig.displaySize
   private val currentDisplaySize
-    get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
+    get() = screenshotShape.activeDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion
-    get() = screenshotShape.foldedDisplayRegion ?: Rectangle(deviceDisplaySize)
+    get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
+  internal val displayMode: DisplayMode?
+    get() = screenshotShape.displayMode ?: emulator.emulatorConfig.displayModes.firstOrNull()
 
   /** Count of received display frames. */
   @VisibleForTesting
@@ -1123,10 +1126,15 @@ class EmulatorView(
       stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
+      val displayMode: DisplayMode? = emulator.emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
       val foldedDisplay = imageFormat.foldedDisplay
-      val foldedDisplayRegion = if (foldedDisplay.width == 0 || foldedDisplay.height == 0) null
-                                else Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
-      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, foldedDisplayRegion)
+      val activeDisplayRegion = when {
+        foldedDisplay.width != 0 && foldedDisplay.height != 0 ->
+            Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
+        displayMode != null -> Rectangle(displayMode.width, displayMode.height)
+        else -> null
+      }
+      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode)
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape)
       if (skinLayout == null) {
@@ -1231,7 +1239,11 @@ class EmulatorView(
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation, val foldedDisplayRegion: Rectangle? = null)
+  private data class DisplayShape(val width: Int,
+                                  val height: Int,
+                                  val rotation: SkinRotation,
+                                  val activeDisplayRegion: Rectangle? = null,
+                                  val displayMode: DisplayMode? = null)
 
   private class Stats: Disposable {
     @GuardedBy("this")

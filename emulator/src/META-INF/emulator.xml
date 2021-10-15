@@ -61,6 +61,19 @@
               icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
+      <group id="android.emulator.display.mode" class="com.android.tools.idea.emulator.actions.DisplayModeActionGroup"
+              text="Display Mode" description="Select display mode" popup="true">
+        <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Phone"
+                icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone"/>
+        <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Foldable"
+                icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
+                description="Change display size to match a typical foldable"/>
+        <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Tablet"
+                icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet"/>
+        <action id="android.emulator.display.mode.desktop" class="com.android.tools.idea.emulator.actions.DisplayModeAction$Desktop"
+                icon="StudioIcons.Emulator.Menu.MODE_DESKTOP" text="Desktop" description="Change display size to match a typical desktop"/>
+        <separator/>
+      </group>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"

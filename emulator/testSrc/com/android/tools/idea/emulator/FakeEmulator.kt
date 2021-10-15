@@ -106,6 +106,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
 import javax.imageio.ImageIO
 import kotlin.math.roundToInt
+import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
 /**
@@ -155,6 +156,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         }
       }
     }
+  var displayMode = config.displayModes.firstOrNull { it.width == config.displayWidth && it.height == config.displayHeight }
 
   @Volatile var extendedControlsVisible = false
 
@@ -431,6 +433,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       .setHeight(rotatedImage.height)
       .setRotation(Rotation.newBuilder().setRotation(displayRotation))
     foldedDisplay?.let { imageFormat.foldedDisplay = it }
+    displayMode?.let { imageFormat.displayMode = it.displayModeId }
 
     val response = Image.newBuilder()
       .setImage(ByteString.copyFrom(imageBytes))
@@ -443,6 +446,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     var displayWidth = display.width
     var displayHeight = display.height
     if (displayId == PRIMARY_DISPLAY_ID) {
+      displayMode?.let {
+        displayWidth = it.width
+        displayHeight = it.height
+      }
       foldedDisplay?.let {
         displayWidth = it.width
         displayHeight = it.height
@@ -527,6 +534,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
+    override fun setDisplayMode(request: DisplayModeMessage, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        val changed = displayMode?.displayModeId != request.value
+        displayMode = config.displayModes.firstOrNull { it.displayModeId == request.value }
+        sendEmptyResponse(responseObserver)
+        if (changed) {
+          val screenshotObserver = screenshotStreamObserver ?: return@execute
+          val screenshotRequest = screenshotStreamRequest ?: return@execute
+          sendScreenshot(screenshotRequest, screenshotObserver)
+        }
+      }
+    }
+
     override fun sendKey(request: KeyboardEvent, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         sendEmptyResponse(responseObserver)
@@ -582,15 +602,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         val image = drawDisplayImage(size, displayId)
         val stream = ByteArrayOutputStream()
         ImageIO.write(image, "PNG", stream)
+
+        val imageFormat = ImageFormat.newBuilder()
+          .setFormat(ImgFormat.PNG)
+          .setWidth(image.width)
+          .setHeight(image.height)
+          .setRotation(Rotation.newBuilder().setRotation(displayRotation))
+        displayMode?.let { imageFormat.displayMode = it.displayModeId }
+
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(stream.toByteArray()))
-          .setFormat(ImageFormat.newBuilder()
-                       .setFormat(ImgFormat.PNG)
-                       .setWidth(image.width)
-                       .setHeight(image.height)
-                       .setRotation(Rotation.newBuilder().setRotation(displayRotation))
-          )
-
+          .setFormat(imageFormat)
         sendResponse(responseObserver, response.build())
       }
     }
