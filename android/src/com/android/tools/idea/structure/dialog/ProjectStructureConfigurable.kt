@@ -18,8 +18,8 @@ package com.android.tools.idea.structure.dialog
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
@@ -40,7 +40,6 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.Messages
@@ -104,9 +103,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private var myOpenTimeMs: Long = 0
   private var inDoOK = false
   private var needsSync = false
-
-  private val isDefaultProject: Boolean
-    get() = myProject === ProjectManager.getInstance().defaultProject
 
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
@@ -207,7 +203,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun getId(): String = "android.project.structure"
 
   @Nls
-  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String = if (myProject.isDefault) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
