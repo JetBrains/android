@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.SdkConstants
+import com.android.tools.idea.rendering.classloading.fromPackageNameToBinaryName
 import com.google.common.io.ByteStreams
 
 /**
@@ -28,7 +29,7 @@ class ClassLoaderLoader @JvmOverloads constructor(private val classLoader: Class
                                                   private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> })
   : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
-    val diskName = fqcn.replace('.', '/') + SdkConstants.DOT_CLASS
+    val diskName = fqcn.fromPackageNameToBinaryName() + SdkConstants.DOT_CLASS
     val classUrl = classLoader.getResource(diskName) ?: return null
     // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
     val bytes = classLoader.getResourceAsStream(diskName).use {

@@ -37,12 +37,6 @@ private class RepackageRemapper(packagePrefixes: Collection<String>,
 }
 
 /**
- * Utility method to transform the strings containing the package names in their regular from "a.b.c" to its
- * disk representation "a/b/c".
- */
-private fun String.fromPackageNameToBinaryName(): String = replace(".", "/")
-
-/**
  * [ClassVisitor] that repackages certain classes with a new package name. This allows to have the same class in two separate
  * namespaces so it can
  */

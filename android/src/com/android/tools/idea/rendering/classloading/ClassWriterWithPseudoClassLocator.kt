@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.google.common.base.MoreObjects
+import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -38,8 +40,6 @@ interface PseudoClassLocator {
 object NopClassLocator : PseudoClassLocator {
   override fun locatePseudoClass(classFqn: String): PseudoClass = PseudoClass.objectPseudoClass()
 }
-
-fun String.fromBinaryNameToPackageName(): String = replace("/", ".")
 
 /**
  * An object that represents a class file without using the class loader. This contains the minimum information needed to
@@ -134,6 +134,13 @@ class PseudoClass private constructor(val name: String,
     else
       this
 
+  override fun toString(): String = MoreObjects.toStringHelper(PseudoClass::class.java)
+    .add("name", name)
+    .add("superName", superName)
+    .add("isInterface", isInterface)
+    .add("interfaces", interfaces)
+    .toString()
+
   companion object {
     @TestOnly
     fun forTest(name: String, superName: String, isInterface: Boolean, interfaces: List<String>, locator: PseudoClassLocator) =
@@ -152,6 +159,13 @@ class PseudoClass private constructor(val name: String,
                          (reader.access and Opcodes.ACC_INTERFACE) > 0,
                          reader.interfaces.map { it.fromBinaryNameToPackageName() }.toList(), classLocator)
     }
+
+    fun fromClass(loadClass: Class<*>, classLocator: PseudoClassLocatorForLoader) =
+      PseudoClass(loadClass.canonicalName,
+                  loadClass.superclass?.canonicalName ?: objectPseudoClass.name,
+                  loadClass.isInterface,
+                  loadClass.interfaces.map { it.canonicalName }.toList(), classLocator)
+
 
     /**
      * Returns the [PseudoClass] for the [Object] class.

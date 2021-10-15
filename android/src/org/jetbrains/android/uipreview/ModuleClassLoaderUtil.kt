@@ -66,13 +66,38 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
     .get()
 }
 
+private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
+                                               startsWith("javax.") ||
+                                               startsWith("android.") ||
+                                               startsWith("sun.") ||
+                                               startsWith("org.jetbrains.") ||
+                                               startsWith("com.android.")
+
+
 /**
  * [PseudoClassLocator] that uses the given [DelegatingClassLoader.Loader] to find the `.class` file.
+ * If a class is not found in the [classLoader] loader, this class will try to load it from the given [parentClassLoaderLoader] allowing
+ * to load system classes from it.
  */
 @VisibleForTesting
-class PseudoClassLocatorForLoader(private val classLoader: DelegatingClassLoader.Loader) : PseudoClassLocator {
-  override fun locatePseudoClass(classFqn: String): PseudoClass =
-    PseudoClass.fromByteArray(classLoader.loadClass(classFqn), this)
+class PseudoClassLocatorForLoader @JvmOverloads constructor(
+  private val classLoader: DelegatingClassLoader.Loader,
+  private val parentClassLoader: ClassLoader = PseudoClassLocatorForLoader::class.java.classLoader) : PseudoClassLocator {
+  private val parentClassLoaderLoader = ClassLoaderLoader(parentClassLoader)
+
+  override fun locatePseudoClass(classFqn: String): PseudoClass {
+    if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
+    val bytes = classLoader.loadClass(classFqn) ?: parentClassLoaderLoader.loadClass(classFqn)
+    if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
+
+    // We fall back to loading from the class loader.
+    try {
+      return PseudoClass.fromClass(parentClassLoader.loadClass(classFqn), this)
+    }
+    catch (_: ClassNotFoundException) {
+    }
+    return PseudoClass.objectPseudoClass()
+  }
 }
 
 private val additionalLibraries: List<Path>
