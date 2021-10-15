@@ -36,6 +36,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,20 +64,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
 
     List<NotificationHyperlink> quickFixes = Lists.newArrayList();
     if (dependency == null) {
-      List<String> extraInfo = new ArrayList<>();
-      try {
-        List<String> multiLineMessage = issue.getMultiLineMessage();
-        if (multiLineMessage != null) {
-          extraInfo.addAll(multiLineMessage);
-        }
-      }
-      catch (UnsupportedOperationException ex) {
-        // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
-      }
-
-      if (!extraInfo.isEmpty()) {
-        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(issue.getMessage(), extraInfo));
-      }
 
       if (isOfflineBuildModeEnabled(project)) {
         quickFixes.add(0, new DisableOfflineModeHyperlink());
@@ -102,6 +90,28 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
     }
+
+    List<String> extraInfo = new ArrayList<>();
+    try {
+      List<String> multiLineMessage = issue.getMultiLineMessage();
+      if (multiLineMessage != null && !issue.getMultiLineMessage().isEmpty()) {
+        extraInfo.addAll(multiLineMessage);
+      }
+    }
+    catch (UnsupportedOperationException ex) {
+      // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+    }
+
+    if (!extraInfo.isEmpty()) {
+      try {
+        String encodedMessage = URLEncoder.encode(issue.getMessage(), "UTF-8").replace("+", " ");
+        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(encodedMessage, extraInfo));
+      }
+      catch (UnsupportedEncodingException e) {
+        quickFixes.add(new ShowSyncIssuesDetailsHyperlink(issue.getMessage(), extraInfo));
+      }
+    }
+
     return quickFixes;
   }
 
