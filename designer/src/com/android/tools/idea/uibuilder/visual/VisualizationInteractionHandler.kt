@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
@@ -59,7 +60,13 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
                                              @SwingCoordinate y: Int,
                                              @JdkConstants.InputEventMask modifiersEx: Int) = Unit
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) = Unit
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+    val view = surface.getSceneViewAt(x, y) ?: return
+    val xDp = Coordinates.getAndroidXDip(view, x)
+    val yDp = Coordinates.getAndroidYDip(view, y)
+    val clickedComponent = view.scene.findComponent(view.context, xDp, yDp) ?: return
+    navigateToComponent(clickedComponent.nlComponent, false)
+  }
 
   override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     val view = surface.getSceneViewAt(x, y) ?: return
