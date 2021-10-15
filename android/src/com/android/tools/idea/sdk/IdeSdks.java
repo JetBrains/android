@@ -182,8 +182,7 @@ public class IdeSdks {
       }
     }
 
-    // b/138107196: Accessing the default project instance from integration tests can deadlock if the default project itself
-    // is in the process of being automatically disposed, which is new in IJ 2019.2
+    // TODO(b/203234375): This line should be removed---but then SdkSyncTest fails.
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return null;
     }
@@ -191,7 +190,7 @@ public class IdeSdks {
     // There is a possible case that android sdk which path was applied previously (setAndroidSdkPath()) didn't have any
     // platforms downloaded. Hence, no ide android sdk was created and we can't deduce android sdk location from it.
     // Hence, we fallback to the explicitly stored android sdk path here.
-    PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+    PropertiesComponent component = PropertiesComponent.getInstance();
     String sdkPath = component.getValue(ANDROID_SDK_PATH_KEY);
     if (sdkPath != null) {
       File candidate = new File(sdkPath);
@@ -461,11 +460,8 @@ public class IdeSdks {
         String sdkPath = toCanonicalPath(path.getAbsolutePath());
 
         PropertiesComponent.getInstance(currentProject).setValue(ANDROID_SDK_PATH_KEY, sdkPath);
-        if (!currentProject.isDefault()) {
-          // Store default sdk path for default project as well in order to be able to re-use it for another ide projects if necessary.
-          PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
-          component.setValue(ANDROID_SDK_PATH_KEY, sdkPath);
-        }
+        // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
+        PropertiesComponent.getInstance().setValue(ANDROID_SDK_PATH_KEY, sdkPath);
       }
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
