@@ -16,17 +16,38 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
 import com.intellij.openapi.vfs.CharsetToolkit
-import com.intellij.testFramework.LightJavaCodeInsightTestCase
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.junit.Assert
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 
-abstract class ConfigureProjectTest : LightJavaCodeInsightTestCase() {
+@Ignore
+@RunWith(JUnit4::class)
+abstract class ConfigureProjectTest {
+
+    protected val projectRule = withSdk() //onDisk()
+    @get:Rule
+    val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+
+    protected lateinit var buildFile: VirtualFile
 
   companion object {
     private const val DEFAULT_VERSION = "default_version"
@@ -35,70 +56,79 @@ abstract class ConfigureProjectTest : LightJavaCodeInsightTestCase() {
   }
 
   fun doTest(path: String, extension: String, useAndroidX: Boolean = false) {
+    runWriteAction {
+      buildFile = projectRule.fixture.tempDirFixture.createFile("build.${extension}")
+      Assert.assertTrue(buildFile.isWritable)
+    }
     val testRoot = resolveWorkspacePath("tools/adt/idea/android-kotlin").toFile()
     val file = File(testRoot, "${path}_before.$extension")
     val fileText = loadFile(file, CharsetToolkit.UTF8, true)
-    configureFromFileText(file.name, fileText)
+    runWriteAction {
+      VfsUtil.saveText(buildFile, fileText)
+    }
 
-    val versionFromFile = findStringWithPrefixes(getFile().text, "// VERSION:")
+    val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
     val version = versionFromFile ?: DEFAULT_VERSION
 
-    val project = getProject()
+    val project = projectRule.project
     val collector = createConfigureKotlinNotificationCollector(project)
 
     if (useAndroidX) {
       // Enable AndroidX
-      ApplicationManager.getApplication().runWriteAction {
+      WriteCommandAction.runWriteCommandAction(project) {
         project.setAndroidxProperties()
       }
     }
 
     val configurator = KotlinAndroidGradleModuleConfigurator()
-    configurator.configureModule(getModule(), getFile(), true, version, collector, mutableListOf())
-    configurator.configureModule(getModule(), getFile(), false, version, collector, mutableListOf())
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, true, version, collector, mutableListOf())
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, false, version, collector, mutableListOf())
 
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, getFile().text.replace(version, "\$VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(version, "\$VERSION$"))
 
     if (useAndroidX) {
       // Disable AndroidX
-      ApplicationManager.getApplication().runWriteAction {
+      WriteCommandAction.runWriteCommandAction(project) {
         project.setAndroidxProperties("false")
       }
     }
   }
 
+  @RunsInEdt
   class AndroidGradle : ConfigureProjectTest() {
-    fun testAndroidStudioDefault()                 = doTest("$GRADLE_DIR/androidStudioDefault", "gradle")
-    fun testAndroidStudioDefaultShapshot()         = doTest("$GRADLE_DIR/androidStudioDefaultShapshot", "gradle")
-    fun testAndroidStudioDefaultWithAndroidX()     = doTest("$GRADLE_DIR/androidStudioDefaultWithAndroidX", "gradle", true)
-    fun testBuildConfigs()                         = doTest("$GRADLE_DIR/buildConfigs", "gradle")
-    fun testEmptyDependencyList()                  = doTest("$GRADLE_DIR/emptyDependencyList", "gradle")
-    fun testEmptyFile()                            = doTest("$GRADLE_DIR/emptyFile", "gradle")
-    fun testHelloWorld()                           = doTest("$GRADLE_DIR/helloWorld", "gradle")
-    fun testLibraryFile()                          = doTest("$GRADLE_DIR/libraryFile", "gradle")
-    fun testMissedApplyAndroidStatement()          = doTest("$GRADLE_DIR/missedApplyAndroidStatement", "gradle")
-    fun testMissedBuildscriptBlock()               = doTest("$GRADLE_DIR/missedBuildscriptBlock", "gradle")
-    fun testMissedRepositoriesInBuildscriptBlock() = doTest("$GRADLE_DIR/missedRepositoriesInBuildscriptBlock", "gradle")
-    fun testProductFlavor()                        = doTest("$GRADLE_DIR/productFlavor", "gradle")
+    @Test fun testAndroidStudioDefault()                 = doTest("$GRADLE_DIR/androidStudioDefault", "gradle")
+    @Test fun testAndroidStudioDefaultShapshot()         = doTest("$GRADLE_DIR/androidStudioDefaultShapshot", "gradle")
+    @Test fun testAndroidStudioDefaultWithAndroidX()     = doTest("$GRADLE_DIR/androidStudioDefaultWithAndroidX", "gradle", true)
+    @Test fun testBuildConfigs()                         = doTest("$GRADLE_DIR/buildConfigs", "gradle")
+    @Test fun testEmptyDependencyList()                  = doTest("$GRADLE_DIR/emptyDependencyList", "gradle")
+    @Test fun testEmptyFile()                            = doTest("$GRADLE_DIR/emptyFile", "gradle")
+    @Test fun testHelloWorld()                           = doTest("$GRADLE_DIR/helloWorld", "gradle")
+    @Test fun testLibraryFile()                          = doTest("$GRADLE_DIR/libraryFile", "gradle")
+    @Test fun testMissedApplyAndroidStatement()          = doTest("$GRADLE_DIR/missedApplyAndroidStatement", "gradle")
+    @Test fun testMissedBuildscriptBlock()               = doTest("$GRADLE_DIR/missedBuildscriptBlock", "gradle")
+    @Test fun testMissedRepositoriesInBuildscriptBlock() = doTest("$GRADLE_DIR/missedRepositoriesInBuildscriptBlock", "gradle")
+    @Test fun testProductFlavor()                        = doTest("$GRADLE_DIR/productFlavor", "gradle")
   }
 
+  @RunsInEdt
   class GradleExamples : ConfigureProjectTest() {
-    fun testGradleExample0()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample0", "gradle")
-    fun testGradleExample18() = doTest("$GRADLE_DIR/gradleExamples/gradleExample18", "gradle")
-    fun testGradleExample22() = doTest("$GRADLE_DIR/gradleExamples/gradleExample22", "gradle")
-    fun testGradleExample44() = doTest("$GRADLE_DIR/gradleExamples/gradleExample44", "gradle")
-    fun testGradleExample5()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample5", "gradle")
-    fun testGradleExample50() = doTest("$GRADLE_DIR/gradleExamples/gradleExample50", "gradle")
-    fun testGradleExample58() = doTest("$GRADLE_DIR/gradleExamples/gradleExample58", "gradle")
-    fun testGradleExample65() = doTest("$GRADLE_DIR/gradleExamples/gradleExample65", "gradle")
-    fun testGradleExample8()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample8", "gradle")
+    @Test fun testGradleExample0()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample0", "gradle")
+    @Test fun testGradleExample18() = doTest("$GRADLE_DIR/gradleExamples/gradleExample18", "gradle")
+    @Test fun testGradleExample22() = doTest("$GRADLE_DIR/gradleExamples/gradleExample22", "gradle")
+    @Test fun testGradleExample44() = doTest("$GRADLE_DIR/gradleExamples/gradleExample44", "gradle")
+    @Test fun testGradleExample5()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample5", "gradle")
+    @Test fun testGradleExample50() = doTest("$GRADLE_DIR/gradleExamples/gradleExample50", "gradle")
+    @Test fun testGradleExample58() = doTest("$GRADLE_DIR/gradleExamples/gradleExample58", "gradle")
+    @Test fun testGradleExample65() = doTest("$GRADLE_DIR/gradleExamples/gradleExample65", "gradle")
+    @Test fun testGradleExample8()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample8", "gradle")
   }
 
+  @RunsInEdt
   class AndroidGsk : ConfigureProjectTest() {
-    fun testEmptyFile()  = doTest("$GSK_DIR/emptyFile", "gradle.kts")
-    fun testHelloWorld() = doTest("$GSK_DIR/helloWorld", "gradle.kts")
+    @Test fun testEmptyFile()  = doTest("$GSK_DIR/emptyFile", "gradle.kts")
+    @Test fun testHelloWorld() = doTest("$GSK_DIR/helloWorld", "gradle.kts")
   }
 }

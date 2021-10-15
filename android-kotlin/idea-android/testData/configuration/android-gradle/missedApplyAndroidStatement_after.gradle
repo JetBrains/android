@@ -1,5 +1,7 @@
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     repositories {
         mavenCentral()
     }
@@ -8,7 +10,10 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
-apply plugin: 'kotlin-android'
+
+plugins {
+    id 'org.jetbrains.kotlin.android'
+}
 
 repositories {
     mavenCentral()
@@ -25,6 +30,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:13.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile 'com.android.support:support-v4:13.0.0'
 }

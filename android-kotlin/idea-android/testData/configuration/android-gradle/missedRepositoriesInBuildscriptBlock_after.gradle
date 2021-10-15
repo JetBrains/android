@@ -1,20 +1,28 @@
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.5.+'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
     repositories {
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+            name 'Sonatype OSS Snapshot Repository'
+        }
         mavenCentral()
     }
 }
 apply plugin: 'android'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 repositories {
     mavenCentral()
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+        name 'Sonatype OSS Snapshot Repository'
+    }
 }
 
 android {
@@ -28,8 +36,8 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:13.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile 'com.android.support:support-v4:13.0.0'
 }
 
 // VERSION: $VERSION$

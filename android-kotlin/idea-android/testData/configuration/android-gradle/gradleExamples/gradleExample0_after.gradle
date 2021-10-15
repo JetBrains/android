@@ -1,5 +1,5 @@
 apply plugin: 'android'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 project.ext.fakeProvider = new com.android.tests.basic.buildscript.FakeProvider()
 project.ext.fakeServer = new com.android.tests.basic.buildscript.FakeServer()
@@ -33,12 +33,14 @@ project.afterEvaluate {
 }
 
 dependencies {
-    compile project(':lib')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile project(':lib')
 }
 
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     repositories {
         mavenCentral()
     }
@@ -46,7 +48,4 @@ buildscript {
         classpath 'com.android.tools.build:gradle:0.5.+'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-repositories {
-    mavenCentral()
 }

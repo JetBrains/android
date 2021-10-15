@@ -1,5 +1,7 @@
 buildscript {
-    ext.kotlin_version = '$VERSION$'
+    ext {
+        kotlin_version = '$VERSION$'
+    }
     repositories {
         mavenCentral()
     }
@@ -10,7 +12,7 @@ buildscript {
 }
 
 apply plugin: 'android-library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     target = 'android-16'
@@ -37,9 +39,7 @@ android {
         }
     }
 }
-repositories {
-    mavenCentral()
-}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

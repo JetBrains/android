@@ -1,5 +1,5 @@
 apply plugin: 'android'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 repositories {
     mavenCentral()
@@ -16,15 +16,6 @@ android {
 }
 
 dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:$VERSION$'
     compile 'com.android.support:support-v4:13.0.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-}
-buildscript {
-    ext.kotlin_version = '$VERSION$'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
 }

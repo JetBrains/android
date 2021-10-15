@@ -6,8 +6,13 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -18,17 +23,13 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.DependencyScope
-import com.intellij.openapi.roots.ExternalLibraryDescriptor
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
-import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
-import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
 import org.jetbrains.kotlin.idea.gradleJava.KotlinGradleFacadeImpl
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
@@ -52,30 +53,166 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
-        if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
+      if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
+
+    private fun RepositoriesModel.addRepositoryFor(version: String) {
+        if (version.contains("SNAPSHOT")) {
+            addMavenRepositoryByUrl("https://oss.sonatype.org/content/repositories/snapshots", "Sonatype OSS Snapshot Repository")
+        }
+        else if (version.contains("-M")) {
+            addMavenRepositoryByUrl("https://dl.bintray.com/kotlin/kotlin-eap", "Kotlin EAP Repository")
+        }
+        if (!containsMethodCall("jcenter")) {
+            // Despite the name this doesn't add it if it's already there.
+            addRepositoryByMethodName("mavenCentral")
+        }
+    }
+
+    private fun addToBuildscriptDependencies(moduleBuildModel: GradleBuildModel, version: String): Boolean {
+        moduleBuildModel.buildscript().dependencies().takeIf { it.psiElement != null }
+          ?.let { dependencies -> // known to exist on file
+              val existing = dependencies
+                .artifacts("classpath")
+                .firstOrNull { it.group().forceString() == "org.jetbrains.kotlin" && it.name().forceString() == "kotlin-gradle-plugin" }
+              if (existing == null) {
+                  moduleBuildModel.buildscript().ext().findProperty("kotlin_version").setValue(version)
+                  dependencies.addArtifact("classpath", "org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version")
+                  moduleBuildModel.buildscript().repositories().addRepositoryFor(version)
+                  return true
+              }
+              else {
+                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
+                  if (currentVersion != version) {
+                      existing.version().resolve().setValue(version)
+                      return true
+                  }
+              }
+          }
+        return false
+    }
+
+    private fun addToPluginsBlock(projectBuildModel: ProjectBuildModel, moduleBuildModel: GradleBuildModel, version: String): Boolean {
+        moduleBuildModel.plugins().takeIf { moduleBuildModel.pluginsPsiElement != null }
+          ?.let { plugins -> // known to exist on file
+              val existing = plugins
+                .firstOrNull { it.name().forceString() == "org.jetbrains.kotlin.android" }
+              if (existing == null) {
+                  // TODO(xof): kotlin("android") for kotlin [cosmetic]
+                  moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android", version, false)
+                  // TODO(xof): is this the right place to add this dependency?
+                  projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addRepositoryFor(version)
+                  return true
+              }
+              else {
+                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
+                  if (currentVersion != version) {
+                      existing.version().setValue(version)
+                      return true
+                  }
+              }
+          }
+        return false
+    }
+
+    private fun addToPluginsManagementBlock(
+      projectBuildModel: ProjectBuildModel, moduleBuildModel: GradleBuildModel, version: String
+    ): Boolean {
+        projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
+          ?.let { plugins -> // known to exist on file
+              val existing = plugins.plugins()
+                .firstOrNull { it.name().forceString() == "org.jetbrains.kotlin.android" }
+              if (existing == null) {
+                  // TODO(xof): kotlin("android") for kotlin [cosmetic]
+                  moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android", version)
+                  projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addRepositoryFor(version)
+                  return true
+              }
+              else {
+                  val currentVersion = existing.version().resolve().getValue(STRING_TYPE)
+                  if (currentVersion != version) {
+                      existing.version().setValue(version)
+                      return true
+                  }
+              }
+          }
+        return false
+    }
 
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
-        val manipulator = KotlinGradleFacadeImpl.getManipulator(file, false)
-        val module = ModuleUtil.findModuleForPsiElement(file)?: return false
+        val module = ModuleUtil.findModuleForPsiElement(file) ?: return false
+        val project = module.project
+        val projectBuildModel = ProjectBuildModel.get(project)
+        val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
         val sdk = ModuleRootManager.getInstance(module).sdk
         val jvmTarget = getJvmTarget(sdk, version)
 
-        return if (isTopLevelProjectFile) {
-            manipulator.configureProjectBuildScript(kotlinPluginName, version)
+        if (isTopLevelProjectFile) {
+            // We need to handle the following cases:
+
+            // 1. The top-level project configures plugins through classpath dependencies, with a version possibly indirected
+            //    through a variable:
+            //        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+            // 2. The top-level project configures its plugins through a plugins block in the top-level project file:
+            //        plugins {
+            //            id 'org.jetbrains.kotlin.android' version '1.4.31' apply false // Groovy
+            //            kotlin("android") version "1.4.31" apply false // KotlinScript
+            //        }
+
+            // 3. The top-level project configures plugins through a plugins block in pluginsManagement in settings:
+            //        pluginsManagement {
+            //            plugins {
+            //                id 'org.jetbrains.kotlin.android' version '1.4.31'
+            //                kotlin("android") version "1.4.31"
+            //            }
+            //        }
+            val kotlinPluginAdded = addToBuildscriptDependencies(moduleBuildModel, version) ||
+                                    addToPluginsBlock(projectBuildModel, moduleBuildModel, version) ||
+                                    addToPluginsManagementBlock(projectBuildModel, moduleBuildModel, version)
+
+            // handle an allprojects block if present.
+            if (kotlinPluginAdded) {
+                moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)
+                projectBuildModel.applyChanges()
+            }
+            return kotlinPluginAdded
         }
         else {
             if (file.project.isAndroidx()) {
-                addDependency(manipulator, ANDROIDX_CORE_GROUP, CORE_KTX, "+")
-                addKtxDependenciesFromMap(module, manipulator, androidxKtxLibraryMap)
+                addDependency(moduleBuildModel, ANDROIDX_CORE_GROUP, CORE_KTX, "+")
+                addKtxDependenciesFromMap(module, moduleBuildModel, androidxKtxLibraryMap)
             }
-            addKtxDependenciesFromMap(module, manipulator, nonAndroidxKtxLibraryMap)
-            manipulator.configureModuleBuildScript(
-                    kotlinPluginName,
-                    getKotlinPluginExpression(file.isKtDsl()),
-                    getStdlibArtifactName(sdk, version),
-                    version,
-                    jvmTarget
-            )
+            addKtxDependenciesFromMap(module, moduleBuildModel, nonAndroidxKtxLibraryMap)
+            /*
+            We need to
+            - apply the plugin (it is known to be missing at this point, otherwise we would not be configuring Kotlin in the first place)
+            - add a dependency on the kotlin stdlib, for kotlin versions less than 1.4 (it is added automatically for versions after that)
+            - add an android.kotlinOptions jvmTarget property, if jvmTarget is not null.
+
+            Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
+             */
+            moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
+            if (version == "default_version" /* for tests */ ||
+                GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
+                val stdLibArtifactName = getStdlibArtifactName(sdk, version)
+                val buildModel = projectBuildModel.projectBuildModel
+                val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {
+                      STRING -> if (file.isKtDsl()) "\${extra[\"kotlin_version\"]}" else "\$kotlin_version"
+                      null -> version
+                      else -> version
+                  }
+                val spec = ArtifactDependencySpec.create(stdLibArtifactName, "org.jetbrains.kotlin", versionString)
+                moduleBuildModel.dependencies().addArtifact("implementation", spec)
+            }
+            if (jvmTarget != null) {
+                moduleBuildModel.android().kotlinOptions().jvmTarget().setValue(jvmTarget)
+            }
+            moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)
+            projectBuildModel.projectSettingsModel?.dependencyResolutionManagement()?.repositories()
+              ?.takeIf { it.psiElement != null }?.addRepositoryFor(version)
+
+            projectBuildModel.applyChanges()
+            return true
         }
     }
 
@@ -98,10 +235,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED))
     }
 
-    private fun addDependency(manipulator: GradleBuildScriptManipulator<*>, groupId: String, artifactId: String, version: String) {
-        manipulator.addKotlinLibraryToModuleBuildScript(
-          DependencyScope.COMPILE,
-          ExternalLibraryDescriptor(groupId, artifactId, version, version))
+    private fun addDependency(moduleBuildModel: GradleBuildModel, groupId: String, artifactId: String, version: String) {
+        moduleBuildModel.dependencies().addArtifact("implementation", ArtifactDependencySpec.create(artifactId, groupId, version))
     }
 
     // Return version string of the specified dependency if module depends on it, and null otherwise.
@@ -109,16 +244,17 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         try {
             val coordinate = GradleCoordinate(groupId, artifactId, "+")
             return module.getModuleSystem().getResolvedDependency(coordinate)?.revision
-        } catch (e: DependencyManagementException) {
+        }
+        catch (e: DependencyManagementException) {
             return null
         }
     }
 
-    private fun addKtxDependenciesFromMap(module: Module, manipulator: GradleBuildScriptManipulator<*>, librayMap: Map<String, String>) {
+    private fun addKtxDependenciesFromMap(module: Module, moduleBuildModel: GradleBuildModel, librayMap: Map<String, String>) {
         for ((library, ktxLibrary) in librayMap) {
             val ids = library.split(":")
             val ktxIds = ktxLibrary.split(":")
-            getDependencyVersion(module, ids[0], ids[1])?.let {addDependency(manipulator, ktxIds[0], ktxIds[1], it)}
+            getDependencyVersion(module, ids[0], ids[1])?.let { addDependency(moduleBuildModel, ktxIds[0], ktxIds[1], it) }
         }
     }
 
