@@ -83,11 +83,11 @@ internal class LogcatColors {
 // TODO(aalbert): All these colors are temporary until UX defines the proper ones.
 
 // TODO(aalbert): Remove when https://youtrack.jetbrains.com/issue/IDEA-277131 is fixed.
-val white = JBColor(Color(254, 254, 254), JBColor.background())
-val black = JBColor(Color(1, 1, 1), JBColor.foreground())
-val red = JBColor(Color(254, 0, 0), DarculaColors.RED)
-val warning: JBColor = JBColor(Color(210, 105, 0), Color.orange)
-val error: JBColor = red
+private val white = JBColor(Color(254, 254, 254), JBColor.background())
+private val black = JBColor(Color(1, 1, 1), JBColor.foreground())
+private val red = JBColor(Color(254, 0, 0), DarculaColors.RED)
+private val warning: JBColor = JBColor(Color(210, 105, 0), Color.orange)
+private val error: JBColor = red
 
 private val LEVEL_VERBOSE = TextAttributes().apply { foregroundColor = white; backgroundColor = black }
 private val LEVEL_DEBUG = TextAttributes().apply { foregroundColor = white; backgroundColor = JBColor.BLUE }
