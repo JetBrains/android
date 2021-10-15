@@ -180,7 +180,7 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
 
       head("LibraryResolver")
       nest {
-        libraryResolver.getAllLibraries().forEach { dump(it) }
+        libraryResolver.getAllLibraries().sortedBy { it.artifactAddress }.forEach { dump(it) }
       }
     }
   }
