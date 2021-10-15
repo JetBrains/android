@@ -69,7 +69,7 @@ public class ConvertFromWebpToPngTest {
            .selectAndroidPane()
            .expand(30)
            .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp")
-           .invokeMenuPath("Convert to PNG...");
+           .invokeContextualMenuPath("Convert to PNG...");
 
     MessagesFixture.findByTitle(guiTest.robot(), "Convert from WebP to PNG")
                    .clickYes();

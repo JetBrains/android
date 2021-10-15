@@ -327,6 +327,16 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
+   * Invokes an action by menu path in a contextual menu
+   *
+   * @param path the series of menu names
+   */
+  public IdeFrameFixture invokeContextualMenuPath(@NotNull String... path) {
+    getMenuFixture().invokeContextualMenuPath(path);
+    return this;
+  }
+
+  /**
    * Wait till an path is enabled then invokes the action. Used for menu options that might be disabled or not available at first
    *
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}

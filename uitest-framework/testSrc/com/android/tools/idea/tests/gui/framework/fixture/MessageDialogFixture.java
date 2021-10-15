@@ -34,20 +34,7 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
   @NotNull
   static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title, long secondsToWait) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, title).and(
-      new GenericTypeMatcher<JDialog>(JDialog.class) {
-        @Override
-        protected boolean isMatching(@NotNull JDialog dialog) {
-          DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-          if (wrapper != null) {
-            if (MessageDialog.class.getName().equals(wrapper.getClass().getName())) {
-              wrapperRef.set(wrapper);
-              return true;
-            }
-          }
-          return false;
-        }
-      }), secondsToWait);
+    JDialog dialog = GuiTests.waitUntilShowing(robot, null, Matchers.byTitle(JDialog.class, title),secondsToWait);
     return new MessageDialogFixture(robot, dialog, wrapperRef.get());
   }
 
