@@ -788,21 +788,6 @@ private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> 
   return res == true
 }
 
-private suspend fun IDevice.isCompanionAppInstalled(companionAppId: String): Boolean {
-  val output = runShellCommand("dumpsys package $companionAppId | grep versionName")
-  return output.contains("versionName=")
-}
-
-private suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
-  val phoneDeviceID = phoneDevice.loadNodeID()
-  if (phoneDeviceID.isNotEmpty()) {
-    val wearPattern = "connection to peer node: $phoneDeviceID"
-    val wearOutput = wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
-    return wearOutput.isNotBlank()
-  }
-  return false
-}
-
 private suspend fun checkWearMayNeedFactoryReset(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
   val phoneCloudID = phoneDevice.loadCloudNetworkID()
   val wearCloudID = wearDevice.loadCloudNetworkID()

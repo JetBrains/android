@@ -16,7 +16,6 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
-import com.google.common.annotations.VisibleForTesting
 
 enum class PairingFeature(val minVersion: Int) {
   // Applicable to phone
@@ -40,7 +39,7 @@ private const val OEM_COMPANION_PROPERTY_KEY = "ro.oem.companion_package"
 
 const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 
-private suspend fun IDevice.getVersionCode(appId: String) =
+private suspend fun IDevice.getAppVersionCode(appId: String) =
   VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
 
 suspend fun IDevice.getCompanionAppIdForWatch(): String {
@@ -59,7 +58,7 @@ suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionA
   return when (pairingFeature) {
     PairingFeature.COMPANION_EMULATOR_ACTIVITY ->
       if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID) {
-        (getVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
+        (getAppVersionCode(companionAppId) ?: 0) >= PairingFeature.COMPANION_EMULATOR_ACTIVITY.minVersion
       }
       else {
         true
@@ -67,7 +66,7 @@ suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionA
     PairingFeature.REFRESH_EMULATOR_CONNECTION,
     PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING,
     PairingFeature.REVERSE_PORT_FORWARD ->
-      (getVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
+      (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion
   }
 }
 
