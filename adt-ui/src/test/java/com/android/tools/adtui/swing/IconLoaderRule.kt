@@ -16,6 +16,7 @@
 package com.android.tools.adtui.swing
 
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.IconManager
 import org.junit.rules.ExternalResource
 
 /**
@@ -24,10 +25,12 @@ import org.junit.rules.ExternalResource
 class IconLoaderRule : ExternalResource() {
 
   override fun before() {
+    IconManager.activate(null)
     IconLoader.activate()
   }
 
   override fun after() {
     IconLoader.deactivate()
+    IconManager.deactivate()
   }
 }
