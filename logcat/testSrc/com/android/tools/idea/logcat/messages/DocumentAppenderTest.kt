@@ -45,11 +45,11 @@ class DocumentAppenderTest {
   val rule = RuleChain(projectRule, EdtRule())
 
   private val document: DocumentEx = DocumentImpl("", /* allowUpdatesWithoutWriteAction= */ true)
-  private val documentAppender by lazy { DocumentAppender(projectRule.project, document) }
   private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, /* create= */ false) }
 
   @Test
   fun appendToDocument_appendsText() {
+    val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
     documentAppender.appendToDocument(TextAccumulator().apply { accumulate("Added Text") })
@@ -62,18 +62,104 @@ class DocumentAppenderTest {
 
   @Test
   fun appendToDocument_cyclicBuffer() {
-    document.setCyclicBufferSize(10)
-    document.setText("Start\n")
+    val documentAppender = documentAppender(document, 30)
+    document.setText("""
+      Added Line 1
+      Added Line 2
 
-    documentAppender.appendToDocument(TextAccumulator().apply { accumulate("Added Text") })
+    """.trimIndent())
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("""
+      Added Line 3
+      Added Line 4
+
+    """.trimIndent())
+    })
+  }
+
+  @Test
+  fun appendToDocument_cyclicBuffer_trimsNothing() {
+    val documentAppender = documentAppender(document, 30)
+    document.setText("""
+      Added Line 1
+      Added Line 2
+
+    """.trimIndent())
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("""
+      Added Line 3
+
+    """.trimIndent())
+    })
 
     assertThat(document.text).isEqualTo("""
-      Added Text
+      Added Line 1
+      Added Line 2
+      Added Line 3
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun appendToDocument_cyclicBuffer_appendLongText() {
+    val documentAppender = documentAppender(document, 30)
+    document.setText("""
+      Added Line 1
+      Added Line 2
+
+    """.trimIndent())
+
+    // Cut line is in the middle of the first line
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("""
+      Added Line 3
+      Added Line 4
+      Added Line 5
+
+    """.trimIndent())
+    })
+
+    assertThat(document.text).isEqualTo("""
+      Added Line 3
+      Added Line 4
+      Added Line 5
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun appendToDocument_cyclicBuffer_appendVeryLongText() {
+    val documentAppender = documentAppender(document, 30)
+    document.setText("""
+      Added Line 1
+      Added Line 2
+
+    """.trimIndent())
+
+    // Cut line is in the middle of the second line
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("""
+      Added Line 3
+      Added Line 4
+      Added Line 5
+      Added Line 6
+
+    """.trimIndent())
+    })
+
+    assertThat(document.text).isEqualTo("""
+      Added Line 4
+      Added Line 5
+      Added Line 6
+
     """.trimIndent())
   }
 
   @Test
   fun appendToDocument_setsHighlightRanges() {
+    val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
     documentAppender.appendToDocument(TextAccumulator().apply {
@@ -90,8 +176,8 @@ class DocumentAppenderTest {
 
   @Test
   fun appendToDocument_setsHighlightRanges_ignoresRangesOutsideCyclicBuffer() {
-    // This size will truncate in the middle of the second line
-    document.setCyclicBufferSize(8)
+    // This size will truncate in the beginning of the second line
+    val documentAppender = documentAppender(document, 8)
 
     documentAppender.appendToDocument(TextAccumulator().apply {
       accumulate("abcd\n", blue)
@@ -100,13 +186,14 @@ class DocumentAppenderTest {
     })
 
     assertThat(markupModel.allHighlighters.map(RangeHighlighter::toHighlighterRange)).containsExactly(
-      TextAccumulator.Range(0, 3, red),
-      getHighlighterRangeForText("ijkl\n", blue)
+      getHighlighterRangeForText("efgh\n", red),
+      getHighlighterRangeForText("ijkl\n", blue),
     )
   }
 
   @Test
   fun appendToDocument_setsHintRanges() {
+    val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
     documentAppender.appendToDocument(TextAccumulator().apply {
@@ -131,8 +218,8 @@ class DocumentAppenderTest {
 
   @Test
   fun appendToDocument_setsHintRanges_ignoresRangesOutsideCyclicBuffer() {
-    // This size will truncate in the middle of the second line
-    document.setCyclicBufferSize(8)
+    // This size will truncate in the beginning of the second line
+    val documentAppender = documentAppender(document, 8)
 
     documentAppender.appendToDocument(TextAccumulator().apply {
       accumulate("abcd\n", hint = "foo")
@@ -149,15 +236,49 @@ class DocumentAppenderTest {
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      TextAccumulator.Range(0, 3, "bar"),
-      getHighlighterRangeForText("ijkl\n", "duh")
+      getHighlighterRangeForText("efgh\n", "bar"),
+      getHighlighterRangeForText("ijkl\n", "duh"),
     )
   }
 
+  // There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size.
+  // This test uses a range that IS NOT exactly deleted.
   @Test
   fun appendToDocument_setsHintRanges_removesRangesOutsideCyclicBuffer() {
-    // This size will truncate in the middle of the second line
-    document.setCyclicBufferSize(8)
+    // This size will truncate in the beginning of the second line
+    val documentAppender = documentAppender(document, 8)
+
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("1")
+      accumulate("234\n", hint = "pre")
+    })
+    documentAppender.appendToDocument(TextAccumulator().apply {
+      accumulate("abcd\n", hint = "foo")
+      accumulate("efgh\n", hint = "bar")
+      accumulate("ijkl\n", hint = "duh")
+    })
+
+    System.gc() // Range markers are weak refs so make sure they survive garbage collection
+    val rangeMarkers = mutableListOf<RangeMarker>()
+    document.processRangeMarkers {
+      if (it.getUserData(LOGCAT_HINT_KEY) != null) {
+        rangeMarkers.add(it)
+      }
+      true
+    }
+    assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
+      getHighlighterRangeForText("efgh\n", "bar"),
+      getHighlighterRangeForText("ijkl\n", "duh"),
+    )
+    assertThat(documentAppender.hintRanges).containsExactlyElementsIn(rangeMarkers)
+  }
+
+  // There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size.
+  // This test uses a range that IS exactly deleted.
+  @Test
+  fun appendToDocument_setsHintRanges_removesRangesOutsideCyclicBuffer_exactRange() {
+    // This size will truncate in the beginning of the second line
+    val documentAppender = documentAppender(document, 8)
 
     documentAppender.appendToDocument(TextAccumulator().apply {
       accumulate("1234\n", hint = "pre")
@@ -177,8 +298,8 @@ class DocumentAppenderTest {
       true
     }
     assertThat(rangeMarkers.map(RangeMarker::toHintRange)).containsExactly(
-      TextAccumulator.Range(0, 3, "bar"),
-      getHighlighterRangeForText("ijkl\n", "duh")
+      getHighlighterRangeForText("efgh\n", "bar"),
+      getHighlighterRangeForText("ijkl\n", "duh"),
     )
     assertThat(documentAppender.hintRanges).containsExactlyElementsIn(rangeMarkers)
   }
@@ -190,6 +311,9 @@ class DocumentAppenderTest {
     }
     return TextAccumulator.Range(start, start + text.length, data)
   }
+
+  private fun documentAppender(document: DocumentEx = this.document, maxDocumentSize: Int = Int.MAX_VALUE) = DocumentAppender(
+    projectRule.project, document, maxDocumentSize)
 }
 
 private fun RangeHighlighter.toHighlighterRange() = TextAccumulator.Range(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)

@@ -113,18 +113,15 @@ class LogcatMainPanelTest {
     assertThat(toolbar.actions[4]).isInstanceOf(Separator::class.java)
   }
 
-  @RunsInEdt
   @Test
-  fun setsDocumentCyclicBuffer() {
+  fun setsDocumentCyclicBuffer() = runBlocking {
     // Set a buffer of 1k
     System.setProperty("idea.cycle.buffer.size", "1")
-    val logcatMainPanel = logcatMainPanel()
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     val document = logcatMainPanel.editor.document as DocumentImpl
 
-    // Insert 2000 chars
-    for (i in 1..200) {
-      document.insertString(document.textLength, "123456789\n")
-    }
+    // Insert 20 log lines
+    logcatMainPanel.messageProcessor.appendMessages(List(20) { logCatMessage() })
 
     assertThat(document.text.length).isAtMost(1024)
   }

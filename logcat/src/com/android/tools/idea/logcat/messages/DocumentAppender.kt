@@ -28,7 +28,7 @@ import kotlin.math.max
 
 internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
 
-internal class DocumentAppender(project: Project, private val document: DocumentEx) {
+internal class DocumentAppender(project: Project, private val document: DocumentEx, private val maxDocumentSize: Int) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, /* create= */ true)
 
   /**
@@ -40,12 +40,18 @@ internal class DocumentAppender(project: Project, private val document: Document
 
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
-    // Under extreme conditions, we could be inserting text that is longer than the cyclic buffer.
-    // TODO(aalbert): Consider optimizing by truncating text to not be longer than cyclic buffer.
-    document.insertString(document.textLength, buffer.text)
+    val text = buffer.text
+    if (text.length >= maxDocumentSize) {
+      document.setText("")
+      document.insertString(document.textLength, text.substring(text.lastIndexOf('\n', text.length - maxDocumentSize) + 1))
+    }
+    else {
+      document.insertString(document.textLength, text)
+      trimToSize()
+    }
 
     // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
-    val offset = document.textLength - buffer.text.length
+    val offset = document.textLength - text.length
     for (range in buffer.highlightRanges) {
       range.applyRange(offset) { start, end, textAttributes ->
         markupModel.addRangeHighlighter(start, end, HighlighterLayer.SYNTAX, textAttributes, HighlighterTargetArea.EXACT_RANGE)
@@ -59,11 +65,24 @@ internal class DocumentAppender(project: Project, private val document: Document
       }
     }
 
-    while (!hintRanges.isEmpty() && !hintRanges.first().isValid) {
+    while (!hintRanges.isEmpty() && !hintRanges.first().isReallyValid()) {
       hintRanges.removeFirst()
     }
   }
+
+  /**
+   * Trim the document to size at a line boundary (Based on Document.trimToSize).
+   */
+  private fun trimToSize() {
+    if (document.textLength > maxDocumentSize) {
+      val offset = document.textLength - maxDocumentSize
+      document.deleteString(0, document.immutableCharSequence.lastIndexOf('\n', offset) + 1)
+    }
+  }
 }
+
+// There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size
+private fun RangeMarker.isReallyValid() = isValid && startOffset < endOffset
 
 private fun <T> TextAccumulator.Range<T>.applyRange(offset: Int, apply: (start: Int, end: Int, data: T) -> Unit) {
   val rangeEnd = offset + end

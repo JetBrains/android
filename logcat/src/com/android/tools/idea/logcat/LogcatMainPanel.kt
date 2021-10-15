@@ -94,7 +94,7 @@ internal class LogcatMainPanel(
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
   private val document = editor.document
-  private val documentAppender = DocumentAppender(project, document)
+  private val documentAppender = DocumentAppender(project, document, ConsoleBuffer.getCycleBufferSize())
   private val deviceContext = DeviceContext()
 
   @VisibleForTesting

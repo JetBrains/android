@@ -71,6 +71,8 @@ private val sampleMessages = listOf(
   LogCatMessage(LogCatHeader(ERROR, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp), "Sample logcat message 4."),
 )
 
+private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
+
 /**
  * A dialog for changing the formatting options.
  */
@@ -273,7 +275,7 @@ internal class HeaderFormatOptionsDialog(private val project: Project, formattin
     sampleMessageFormatter.formatMessages(textAccumulator, sampleMessages)
     sampleEditor.document.setReadOnly(false)
     sampleEditor.document.setText("")
-    DocumentAppender(project, sampleEditor.document).appendToDocument(textAccumulator)
+    DocumentAppender(project, sampleEditor.document, MAX_SAMPLE_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)
     sampleEditor.document.setReadOnly(true)
   }
 }

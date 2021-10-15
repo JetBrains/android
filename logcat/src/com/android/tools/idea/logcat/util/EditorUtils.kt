@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
@@ -34,7 +33,6 @@ fun createLogcatEditor(project: Project): EditorEx {
   val document = (editorFactory as EditorFactoryImpl).createDocument(true)
   UndoUtil.disableUndoFor(document)
   val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
-  document.setCyclicBufferSize(ConsoleBuffer.getCycleBufferSize())
   val editorSettings = editor.settings
   editorSettings.isAllowSingleLogicalLineFolding = true
   editorSettings.isLineMarkerAreaShown = false
