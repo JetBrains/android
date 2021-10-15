@@ -111,7 +111,25 @@ public class InfoSection extends JBPanel<InfoSection> {
     InfoSection section = new InfoSection("Paired device");
 
     setText(section.addNameAndValueLabels("Paired with"), otherDevice.getDisplayName());
-    setText(section.addNameAndValueLabels("Status"), pair.getAllDevicesOnline() ? "Connected" : "Offline");
+    String paringStatus;
+    switch (pair.getPairingStatus()) {
+      case OFFLINE:
+        paringStatus = "Offline";
+        break;
+      case CONNECTING:
+        paringStatus = "Connecting";
+        break;
+      case CONNECTED:
+        paringStatus = "Connected";
+        break;
+      case PAIRING_FAILED:
+        paringStatus = "Error pairing";
+        break;
+      default:
+        assert false;
+        paringStatus = "?";
+    }
+    setText(section.addNameAndValueLabels("Status"), paringStatus);
     section.setLayout();
 
     return Optional.of(section);
