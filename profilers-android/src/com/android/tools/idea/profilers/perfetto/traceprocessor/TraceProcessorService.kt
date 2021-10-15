@@ -21,6 +21,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchReques
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult.ResultCase.*
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -235,17 +236,15 @@ class TraceProcessorServiceImpl(
     }
 
     val modelBuilder = TraceProcessorModel.Builder()
-    response.resultList.filter { it.hasProcessMetadataResult() }.forEach { modelBuilder.addProcessMetadata(it.processMetadataResult) }
-    response.resultList.filter { it.hasTraceEventsResult() }.forEach { modelBuilder.addTraceEvents(it.traceEventsResult) }
-    response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
-    response.resultList.filter { it.hasCpuCoreCountersResult() }.forEach { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }
-    response.resultList.filter { it.hasProcessCountersResult() }.forEach { modelBuilder.addProcessCounters(it.processCountersResult) }
-    response.resultList.filter { it.hasAndroidFrameEventsResult() }.forEach {
-      modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult)
-    }
-    response.resultList.filter { it.hasAndroidFrameTimelineResult() }.forEach {
-      modelBuilder.addAndroidFrameTimelineEvents(it.androidFrameTimelineResult)
-    }
+    response.resultList.forEach { when (val case = it.resultCase) {
+      PROCESS_METADATA_RESULT -> modelBuilder.addProcessMetadata(it.processMetadataResult)
+      TRACE_EVENTS_RESULT -> modelBuilder.addTraceEvents(it.traceEventsResult)
+      SCHED_RESULT -> modelBuilder.addSchedulingEvents(it.schedResult)
+      CPU_CORE_COUNTERS_RESULT -> modelBuilder.addCpuCounters(it.cpuCoreCountersResult)
+      PROCESS_COUNTERS_RESULT -> modelBuilder.addProcessCounters(it.processCountersResult)
+      ANDROID_FRAME_EVENTS_RESULT -> modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult)
+      ANDROID_FRAME_TIMELINE_RESULT -> modelBuilder.addAndroidFrameTimelineEvents(it.androidFrameTimelineResult)
+    } }
 
     val model = modelBuilder.build()
 
