@@ -67,13 +67,52 @@ class MultiSelectionModelTest {
     assertThat(selections()).containsExactly(Entry("Key2", setOf(2, 3, 4, 5)))
   }
 
-  private fun<T> testWithObserver(f: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) {
+  @Test
+  fun `removing active selection leaves no active key`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionKey) { model, activeSelection ->
+      assertThat(activeSelection()).isNull()
+      model.setSelection("Key1", setOf(1, 2, 3))
+      assertThat(activeSelection()).isEqualTo("Key1")
+
+      model.setSelection("Key2", setOf(2, 3))
+      assertThat(activeSelection()).isEqualTo("Key2")
+
+      model.removeSelection("Key2")
+      assertThat(activeSelection()).isNull()
+    }
+
+  @Test
+  fun `deselection leaves all selections as-is`() = testWithObserver<Int> { model, selections ->
+    model.setSelection("Key1", setOf(1, 2, 3))
+    model.setSelection("Key2", setOf(2, 3, 4, 5))
+    assertThat(selections()).hasSize(2)
+    model.deselect()
+    assertThat(selections()).hasSize(2)
+    model.deselect()
+    assertThat(selections()).hasSize(2)
+  }
+
+  @Test
+  fun `clearing selections leaves no active key`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionKey) { model, activeSelection ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      assertThat(activeSelection()).isNotNull()
+      model.clearSelection()
+      assertThat(activeSelection()).isNull()
+    }
+
+
+  private fun<T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
+    testWithObserver(MultiSelectionModel<T>::selections, run)
+
+  private fun<T, O> testWithObserver(observe: (MultiSelectionModel<T>) -> O, run: (MultiSelectionModel<T>, () -> O) -> Unit) {
     val model = MultiSelectionModel<T>()
     val observer = AspectObserver()
-    var currentSelections = listOf<Entry<T>>()
+    var observation = observe(model)
     model.addDependency(observer).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION) {
-      currentSelections = model.selections
+      observation = observe(model)
     }
-    f(model) { currentSelections.also { observer.hashCode() /* keep it live */ } }
+    run(model) { observation.also { observer.hashCode() /* keep it live */ } }
   }
 }

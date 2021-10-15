@@ -131,6 +131,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
               multiSelectionModel.setSelection(
                 node.getData(),
                 Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
+            } else {
+              multiSelectionModel.deselect();
             }
             traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }

@@ -40,6 +40,9 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   fun removeSelection(key: Any) {
     if (key in currentSelections) {
       currentSelections.remove(key)
+      if (key == activeSelectionKey) {
+        activeSelectionKey = null
+      }
       changed(Aspect.CHANGE_SELECTION)
     }
   }
@@ -47,6 +50,17 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   fun clearSelection() {
     if (currentSelections.isNotEmpty()) {
       currentSelections.clear()
+      activeSelectionKey = null
+      changed(Aspect.CHANGE_SELECTION)
+    }
+  }
+
+  /**
+   * Make sure no selection is active, but retain all of them.
+   */
+  fun deselect() {
+    if (activeSelectionKey != null) {
+      activeSelectionKey = null
       changed(Aspect.CHANGE_SELECTION)
     }
   }
