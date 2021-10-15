@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.SdkConstants.ANDROID_HOME_ENV
-import com.android.emulator.control.DisplayMode.DisplayModeValue
+import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.thisLogger

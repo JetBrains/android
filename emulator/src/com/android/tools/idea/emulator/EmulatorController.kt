@@ -21,6 +21,7 @@ import com.android.emulator.control.AudioPacket
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.DisplayMode
+import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -313,7 +314,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets the size of the primary display of a resizable AVD.
    */
-  fun setDisplayMode(displayModeValue: DisplayMode.DisplayModeValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setDisplayMode(displayModeValue: DisplayModeValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     val displayMode = DisplayMode.newBuilder().setValue(displayModeValue).build()
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setDisplayMode(${shortDebugString(displayMode)})")

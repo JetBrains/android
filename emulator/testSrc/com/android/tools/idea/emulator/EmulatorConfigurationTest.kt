@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.control.DisplayMode.DisplayModeValue
+import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.emulator.EmulatorConfiguration.DisplayMode
 import com.google.common.jimfs.Jimfs
