@@ -78,7 +78,8 @@ class GotoDeclarationActionTest {
     val stats = SessionStatistics(model, FakeTreeSettings())
     val event = createEvent(model, stats, fromShortcut = true)
     GotoDeclarationAction.actionPerformed(event)
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
+                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     checkStats(stats, keyStrokeCount = 1)
   }
 

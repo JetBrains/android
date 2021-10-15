@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
@@ -28,9 +30,14 @@ import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.JBColor
+import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
 import org.jetbrains.kotlin.idea.util.application.invokeLater
+import org.jetbrains.kotlin.idea.util.application.runReadAction
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 /**
@@ -70,28 +77,46 @@ class LambdaParameterItem(
 ), LinkPropertyItem {
   override val link = object : AnAction("$fileName:$startLineNumber") {
     override fun actionPerformed(event: AnActionEvent) {
-      val location =
-        lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
-      templatePresentation.text = location.source
-      location.navigatable?.let {
-        if (it.canNavigate()) {
-          invokeLater {
-            // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
-            it.navigate(true)
-            LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
-            if (location.source.endsWith(":unknown")) {
-              showBalloonError("Could not determine exact source location", event)
-            }
+      val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
+      executeOnPooledThread {
+        gotoLambdaLocation(this, event, popupLocation)
+      }.also { futureCaptor?.invoke(it) }
+    }
+  }
+
+  /**
+   * Allow tests to control the execution of [gotoLambdaLocation].
+   */
+  @VisibleForTesting
+  var futureCaptor: ((Future<*>) -> Unit)? = null
+
+  @Slow
+  private fun gotoLambdaLocation(action: AnAction, event: AnActionEvent, popupLocation: RelativePoint) {
+    val location = runReadAction {
+      lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
+    }
+    action.templatePresentation.text = location.source
+    location.navigatable?.let {
+      if (runReadAction { it.canNavigate() }) {
+        invokeLater {
+          // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
+          it.navigate(true)
+          LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
+          if (location.source.endsWith(":unknown")) {
+            showBalloonError("Could not determine exact source location", popupLocation)
           }
-          return
         }
+        return
       }
-      showBalloonError("Could not determine source location", event)
+    }
+    invokeLater {
+      showBalloonError("Could not determine source location", popupLocation)
     }
   }
 
   @Suppress("SameParameterValue")
-  private fun showBalloonError(content: String, event: AnActionEvent) {
+  @UiThread
+  private fun showBalloonError(content: String, popupLocation: RelativePoint) {
     val globalScheme = EditorColorsManager.getInstance().globalScheme
     val background = globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND) ?: UIUtil.getToolTipBackground()
     val balloon = JBPopupFactory.getInstance()
@@ -100,7 +125,7 @@ class LambdaParameterItem(
       .setBorderInsets(JBInsets.create(4, 4))
       .setFadeoutTime(TimeUnit.SECONDS.toMillis(4))
       .createBalloon()
-    balloon.show(JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext), Balloon.Position.above)
+    balloon.show(popupLocation, Balloon.Position.above)
   }
 
   override fun clone(): LambdaParameterItem = LambdaParameterItem(

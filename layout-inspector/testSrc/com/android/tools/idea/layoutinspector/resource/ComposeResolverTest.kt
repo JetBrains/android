@@ -51,7 +51,8 @@ class ComposeResolverTest {
     val resolver = ComposeResolver(projectRule.project)
     val navigatable = resolver.findComposableNavigatable(composable)
     navigatable!!.navigate(true)
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp)) {")
+    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
+                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
   }
 
   @RunsInEdt

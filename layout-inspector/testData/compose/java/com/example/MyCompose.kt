@@ -14,10 +14,15 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
-      Column(modifier = Modifier.padding(20.dp)) {
+      Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),
+      ) {
         Text(text = "Hello")
         Greeting("You")
       }
     }
+  }
+
+  private fun selectColumn() {
+    // do something...
   }
 }
