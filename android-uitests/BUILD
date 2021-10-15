@@ -173,7 +173,7 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-gass_20.0.0",
         "@maven//:com.google.android.gms.play-services-maps_17.0.1",
         "@maven//:com.google.android.gms.play-services-wearable_17.1.0",
-        "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_1.3.0",
+        "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.0",
         "@maven//:com.google.android.material.material_1.1.0",
         "@maven//:com.google.android.material.material_1.3.0",
         "@maven//:com.google.android.material.material_1.4.0",
