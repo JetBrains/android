@@ -132,6 +132,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -1127,6 +1128,9 @@ class EmulatorView(
       expectedFrameNumber = response.seq + 1
 
       val displayMode: DisplayMode? = emulator.emulatorConfig.displayModes.firstOrNull { it.displayModeId == imageFormat.displayMode }
+      if (displayMode != null && !checkAspectRatioConsistency(imageFormat, displayMode)) {
+        return
+      }
       val foldedDisplay = imageFormat.foldedDisplay
       val activeDisplayRegion = when {
         foldedDisplay.width != 0 && foldedDisplay.height != 0 ->
@@ -1144,6 +1148,21 @@ class EmulatorView(
         screenshot.skinLayout = skinLayout
         updateDisplayImageOnUiThread(screenshot)
       }
+    }
+
+    private fun checkAspectRatioConsistency(imageFormat: ImageFormat, displayMode: DisplayMode): Boolean {
+      val imageAspectRatio = if (imageFormat.rotation.rotationValue % 2 == 0) imageFormat.width.toDouble() / imageFormat.height
+                             else imageFormat.height.toDouble() / imageFormat.width
+      val displayAspectRatio = displayMode.width.toDouble() / displayMode.height
+      val tolerance = 1.0 / imageFormat.width + 1.0 / imageFormat.height
+      if (abs(imageAspectRatio / displayAspectRatio - 1) > tolerance) {
+        val imageDimensions = if (imageFormat.rotation.rotationValue % 2 == 0) "${imageFormat.width}x${imageFormat.height}"
+                              else "${imageFormat.height}x${imageFormat.width}"
+        LOG.error("Inconsistent ImageMessage: the $imageDimensions display image has different aspect ratio than" +
+                  " the ${displayMode.width}x${displayMode.height} display")
+        return false
+      }
+      return true
     }
 
     private fun computeSkinLayoutOnPooledThread(screenshotWithoutSkin: Screenshot) {
