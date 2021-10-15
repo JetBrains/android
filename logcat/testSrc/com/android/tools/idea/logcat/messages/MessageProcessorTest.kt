@@ -20,6 +20,7 @@ import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
+import com.android.tools.idea.logcat.filters.FullMessageTextFilter
 import com.android.tools.idea.logcat.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -142,9 +143,24 @@ class MessageProcessorTest {
     }
   }
 
-  private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
-    textAccumulator.accumulate("${messages.joinToString("\n", transform = LogCatMessage::message)}\n")
+  @Test
+  fun appendMessages_filters() = runBlocking {
+    val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1")
+    val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2")
+    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter)
+    val batch = listOf(message1, message2)
+    messageProcessor.setFilter(FullMessageTextFilter("tag2"))
+
+    messageProcessor.appendMessages(batch)
+
+    messageProcessor.onIdle {
+      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(message2).mapMessages())
+    }
   }
+}
+
+private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
+  textAccumulator.accumulate("${messages.joinToString("\n", transform = LogCatMessage::message)}\n")
 }
 
 private fun List<LogCatMessage>.mapMessages() = map(LogCatMessage::message)

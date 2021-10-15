@@ -26,6 +26,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.filters.FullMessageTextFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -33,7 +34,6 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
-import com.google.common.truth.Correspondence
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -145,6 +145,29 @@ class LogcatMainPanelTest {
       assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 I  message2
+
+      """.trimIndent())
+    }
+  }
+
+  @Test
+  fun appendMessages_filters() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan"))
+    }
+    logcatMainPanel.processMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    ))
+
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.applyFilter(FullMessageTextFilter("tag1"))
+    }
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
 
       """.trimIndent())
     }

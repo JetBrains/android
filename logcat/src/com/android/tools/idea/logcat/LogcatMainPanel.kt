@@ -26,6 +26,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
@@ -106,7 +107,7 @@ internal class LogcatMainPanel(
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages)
-  private val headerPanel = LogcatHeaderPanel(project, deviceContext)
+  private val headerPanel = LogcatHeaderPanel(project, this, deviceContext)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
@@ -218,6 +219,12 @@ internal class LogcatMainPanel(
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
+  }
+
+  @UiThread
+  override fun applyFilter(logcatFilter: LogcatFilter) {
+    messageProcessor.setFilter(logcatFilter)
+    reloadMessages()
   }
 
   @UiThread

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.TextAccumulator
 
 /*
@@ -39,6 +40,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun reloadMessages() {
     reloadedMessages++
+  }
+
+  override fun applyFilter(logcatFilter: LogcatFilter) {
+    TODO("Not yet implemented")
   }
 
   override fun clearMessageView() {

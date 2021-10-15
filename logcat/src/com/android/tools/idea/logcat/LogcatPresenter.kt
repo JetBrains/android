@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.intellij.openapi.Disposable
 
@@ -29,6 +30,12 @@ internal interface LogcatPresenter : Disposable {
    */
   @UiThread
   fun reloadMessages()
+
+  /**
+   * Applies a filter and reloads
+   */
+  @UiThread
+  fun applyFilter(logcatFilter: LogcatFilter)
 
   /**
    * Clears the message view

@@ -19,6 +19,7 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -45,6 +46,7 @@ internal class MessageProcessor(
   private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
   private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
+  private var logcatFilter = LogcatFilter.NOOP_FILTER
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
   init {
@@ -52,7 +54,7 @@ internal class MessageProcessor(
   }
 
   internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    messageChannel.send(messages)
+    messageChannel.send(logcatFilter.filter(messages))
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
@@ -98,5 +100,9 @@ internal class MessageProcessor(
         }
       }
     }
+  }
+
+  fun setFilter(logcatFilter: LogcatFilter) {
+    this.logcatFilter = logcatFilter
   }
 }
