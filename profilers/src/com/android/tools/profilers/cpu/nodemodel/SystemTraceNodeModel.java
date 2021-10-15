@@ -22,29 +22,51 @@ import org.jetbrains.annotations.NotNull;
  * FlameChart, and CallChart.
  */
 public class SystemTraceNodeModel implements CaptureNodeModel {
-  @NotNull private final String myId;
-  @NotNull private final String myName;
+  @NotNull private final String myCanonicalName;
+  @NotNull private final String myRawName;
 
-  public SystemTraceNodeModel(@NotNull String id, @NotNull String name) {
-    myId = id;
-    myName = name;
+  public SystemTraceNodeModel(@NotNull String canonicalName, @NotNull String rawName) {
+    myCanonicalName = canonicalName;
+    myRawName = rawName;
   }
 
+  /**
+   * @return the canonical name of the trace event with the numbers at the end stripped (e.g. DrawFrame 1234's canonical name is DrawFrame).
+   */
   @Override
   @NotNull
   public String getName() {
-    return myName;
+    return myCanonicalName;
   }
 
+  /**
+   * @return the raw name of the trace event (e.g. DrawFrame 1234).
+   */
+  @Override
+  public @NotNull String getNameWithSuffix() {
+    return myRawName;
+  }
+
+  /**
+   * @return {@link #getName()}.
+   */
   @Override
   @NotNull
   public String getFullName() {
-    return myName;
+    return getName();
+  }
+
+  /**
+   * @return {@link #getNameWithSuffix()}.
+   */
+  @Override
+  public @NotNull String getFullNameWithSuffix() {
+    return getNameWithSuffix();
   }
 
   @Override
   @NotNull
   public String getId() {
-    return myId;
+    return myCanonicalName;
   }
 }

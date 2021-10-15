@@ -44,7 +44,7 @@ public class CpuCaptureNodeTooltipView extends TooltipView {
     long threadDuration = Math.min(totalDuration, Math.max(0, myCaptureNode.getEndThread() - myCaptureNode.getStartThread()));
     long idleDuration = totalDuration - threadDuration;
 
-    JLabel nameLabel = new JLabel(myCaptureNode.getData().getFullName());
+    JLabel nameLabel = new JLabel(myCaptureNode.getData().getFullNameWithSuffix());
     JLabel runningLabel = new JLabel(String.format("Running: %s", TimeFormatter.getSingleUnitDurationString(threadDuration)));
     JLabel idleLabel = new JLabel(String.format("Idle: %s", TimeFormatter.getSingleUnitDurationString(idleDuration)));
     JLabel totalLabel = new JLabel(String.format("Total: %s", TimeFormatter.getSingleUnitDurationString(totalDuration)));

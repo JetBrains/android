@@ -34,8 +34,24 @@ public interface CaptureNodeModel {
   @NotNull
   String getName();
 
+  /**
+   * @return name concatenated by a suffix. The suffix is empty by default.
+   */
+  @NotNull
+  default String getNameWithSuffix() {
+    return getName();
+  }
+
   @NotNull
   String getFullName();
+
+  /**
+   * @return full name concatenated by a suffix. The suffix is empty by default.
+   */
+  @NotNull
+  default String getFullNameWithSuffix() {
+    return getFullName();
+  }
 
   @NotNull
   String getId();

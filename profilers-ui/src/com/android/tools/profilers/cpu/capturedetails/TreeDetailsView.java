@@ -37,6 +37,7 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -54,7 +55,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -443,8 +443,14 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
         }
         else {
           setIcon(PlatformIcons.METHOD_ICON);
-          append(model.getName() + "()", attributes);
-          append(" (" + classOrNamespace + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+          if (model instanceof SystemTraceNodeModel) {
+            // System Trace events are not real methods so don't append "()".
+            append(model.getName());
+          }
+          else {
+            append(model.getName() + "()", attributes);
+            append(" (" + classOrNamespace + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+          }
         }
       }
       else {

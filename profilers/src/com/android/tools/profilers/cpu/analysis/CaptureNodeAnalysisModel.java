@@ -70,7 +70,7 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
   @NotNull
   @Override
   public CpuAnalysisModel<CaptureNodeAnalysisModel> getAnalysisModel() {
-    CpuAnalysisModel<CaptureNodeAnalysisModel> model = new CpuAnalysisModel<>(myNode.getData().getName(), "%d events");
+    CpuAnalysisModel<CaptureNodeAnalysisModel> model = new CpuAnalysisModel<>(myNode.getData().getNameWithSuffix(), "%d events");
     Range nodeRange = getNodeRange();
     Collection<CaptureNode> nodes = Collections.singleton(myNode);
 

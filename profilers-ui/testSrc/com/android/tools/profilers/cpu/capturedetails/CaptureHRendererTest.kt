@@ -355,6 +355,14 @@ class CaptureNodeHRendererTest {
   }
 
   @Test
+  fun testFittingTextForSystemTraceEvents() {
+    checkFittingText(nodeModel = SystemTraceNodeFactory().getNode("DrawFrame 1234"), expectedTexts = listOf(
+      "DrawFrame 1234",
+      "DrawFrame ...",
+    ))
+  }
+
+  @Test
   fun testFittingTextForMalformedMethod() {
     // The name "..B1.1" was returned from simpleperf when profiling a library that linked against
     // libm.so (the c math library)

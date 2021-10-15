@@ -122,12 +122,12 @@ class CaptureNodeDetailTable(captureNodes: List<CaptureNode>,
                             val type: Class<*>,
                             val getValue: (Range) -> (ExtendedCaptureNode) -> Comparable<*>) {
     START_TIME("Start Time", java.lang.Long::class.java,
-               // Display start time relative to capture start time.
+      // Display start time relative to capture start time.
                { range -> { data -> data.node.startGlobal - range.min.toLong() } }),
-    NAME("Name", String::class.java, {{ it.node.data.name }}),
-    WALL_DURATION("Wall Duration", java.lang.Long::class.java,{{ it.node.endGlobal - it.node.startGlobal }}),
-    WALL_SELF_TIME("Wall Self Time", java.lang.Long::class.java, {{ it.selfGlobal }}),
-    CPU_DURATION("CPU Duration", java.lang.Long::class.java, { { it.node.endThread - it.node.startThread }}),
-    CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java, {{ it.selfThread }});
+    NAME("Name", String::class.java, { { it.node.data.nameWithSuffix } }),
+    WALL_DURATION("Wall Duration", java.lang.Long::class.java, { { it.node.endGlobal - it.node.startGlobal } }),
+    WALL_SELF_TIME("Wall Self Time", java.lang.Long::class.java, { { it.selfGlobal } }),
+    CPU_DURATION("CPU Duration", java.lang.Long::class.java, { { it.node.endThread - it.node.startThread } }),
+    CPU_SELF_TIME("CPU Self Time", java.lang.Long::class.java, { { it.selfThread } });
   }
 }
