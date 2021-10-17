@@ -604,14 +604,81 @@ internal class AndroidExtraModelProviderWorker(
            ?: androidModule.defaultVariantName
   }
 
-  private class SyncVariantResult(
+  private class SyncVariantResultCore(
     val moduleConfiguration: ModuleConfiguration,
     val module: AndroidModule,
     val ideVariant: IdeVariant,
     val nativeVariantAbi: NativeVariantAbiResult,
-    val moduleDependencies: List<ModuleConfiguration>,
     val unresolvedDependencies: List<IdeUnresolvedDependencies>
   )
+
+  private class SyncVariantResult(
+    val core: SyncVariantResultCore,
+    val moduleDependencies: List<ModuleConfiguration>
+  ) {
+    val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
+    val module: AndroidModule get() = core.module
+    val ideVariant: IdeVariant get() = core.ideVariant
+    val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
+    val unresolvedDependencies: List<IdeUnresolvedDependencies> get() = core.unresolvedDependencies
+  }
+
+  private fun SyncVariantResultCore.getModuleDependencyConfigurations(selectedVariants: SelectedVariants): List<ModuleConfiguration> {
+    val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
+
+    // Regardless of the current selection in the IDE we try to select the same ABI in all modules the "top" module depends on even
+    // when intermediate modules do not have native code.
+    val abiToPropagate = nativeVariantAbi.abi ?: moduleConfiguration.abi
+
+    val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant, nativeVariantAbi.abi)
+    val variantDiffChange =
+      VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
+
+
+    fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
+      val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
+      val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
+      val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
+
+      val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
+        variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
+      )
+                                      ?: return null
+
+      // Make sure the variant name we guessed in fact exists.
+      if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
+
+      return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
+    }
+
+    fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
+      return ideVariant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
+        val dependencyProject = moduleDependency.projectPath
+        val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
+        val dependencyVariant = moduleDependency.variant
+        if (dependencyVariant != null) {
+          ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
+        }
+        else {
+          propagateVariantSelectionChangeFallback(dependencyModuleId)
+        }
+      }
+    }
+
+    /**
+     * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
+     * real dependencies of each feature module variant are we can only guess.
+     */
+    fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
+      val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
+      return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
+        val featureModuleId = Modules.createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
+        propagateVariantSelectionChangeFallback(featureModuleId)
+      }
+    }
+
+    return generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
+  }
 
   /**
    * Given a [moduleConfiguration] returns an action that fetches variant specific models for the given module+variant and returns the set
@@ -621,7 +688,6 @@ internal class AndroidExtraModelProviderWorker(
     moduleConfiguration: ModuleConfiguration,
     selectedVariants: SelectedVariants
   ): (BuildController) -> SyncVariantResult? {
-    val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
     val module = androidModulesById[moduleConfiguration.id] ?: return { null }
     return fun(controller: BuildController): SyncVariantResult? {
       val ideVariant : IdeVariant?
@@ -662,72 +728,26 @@ internal class AndroidExtraModelProviderWorker(
       abiToRequest = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
       nativeVariantAbi = abiToRequest?.let {
         controller.findNativeVariantAbiModel(modelCache, module, variantName, it) } ?: NativeVariantAbiResult.None
-      // Regardless of the current selection in the IDE we try to select the same ABI in all modules the "top" module depends on even
-      // when intermediate modules do not have native code.
-      val abiToPropagate = nativeVariantAbi.abi ?: moduleConfiguration.abi
-
-      val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant, nativeVariantAbi.abi)
-      val variantDiffChange =
-        VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
-
-      fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
-        val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
-        val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
-        val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
-
-        val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-          variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
-        )
-                                        ?: return null
-
-        // Make sure the variant name we guessed in fact exists.
-        if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
-
-        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
-      }
-
-      fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
-        return ideVariant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
-          val dependencyProject = moduleDependency.projectPath
-          val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
-          val dependencyVariant = moduleDependency.variant
-          if (dependencyVariant != null) {
-            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
-          }
-          else {
-            propagateVariantSelectionChangeFallback(dependencyModuleId)
-          }
-        }
-      }
 
       fun getUnresolvedDependencies(): List<IdeUnresolvedDependencies> {
          val unresolvedDependencies = mutableListOf<IdeUnresolvedDependencies>()
         unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
         ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
         ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-
         return unresolvedDependencies
       }
 
-      /**
-       * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
-       * real dependencies of each feature module variant are we can only guess.
-       */
-      fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
-        val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
-        return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
-          val featureModuleId = Modules.createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
-          propagateVariantSelectionChangeFallback(featureModuleId)
-        }
-      }
-
-      return SyncVariantResult(
+      val syncVariantResultCore = SyncVariantResultCore(
         moduleConfiguration,
         module,
         ideVariant,
         nativeVariantAbi,
-        generateDirectModuleDependencies() + generateDynamicFeatureDependencies(),
         getUnresolvedDependencies()
+      )
+
+      return SyncVariantResult(
+        syncVariantResultCore,
+        syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants),
       )
     }
   }
