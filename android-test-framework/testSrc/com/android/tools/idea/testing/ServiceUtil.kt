@@ -22,7 +22,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 
 /**
- * Registers a service implementation, possibly replacing an existent one. The lifetime of the of
+ * Registers a service implementation, possibly replacing an existent one. The lifetime of
  * the service implementation is controlled by [parentDisposable].
  */
 fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
