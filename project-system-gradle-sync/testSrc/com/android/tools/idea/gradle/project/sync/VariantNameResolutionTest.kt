@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.projectsystem.gradle.sync
+package com.android.tools.idea.gradle.project.sync
 
-import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.*
 import org.junit.Test
 
-class PlaceholderTest {
+class VariantNameResolutionTest {
+
   @Test
-  fun placeholder() {
-    assertThat(true).isTrue()
+  fun `matches`() {
+    // TODO(solodkyy): To be added when sync is split in phases and IDE models can be used instead of the builder models.
   }
 }

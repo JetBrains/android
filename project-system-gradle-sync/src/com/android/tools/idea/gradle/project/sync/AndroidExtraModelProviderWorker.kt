@@ -242,15 +242,25 @@ internal class AndroidExtraModelProviderWorker(
 
     modules.filterIsInstance<AndroidModule>().forEach { androidModulesById[it.id] = it }
 
+    val variantNameResolvers = modules.filterIsInstance<AndroidModule>()
+      .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to it.buildVariantNameResolver() } +
+      modules.filterIsInstance<JavaModule>()
+      .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to {_, _ -> null} }
+
+    fun getVariantNameResolver(buildId: File, projectPath: String): VariantNameResolver =
+      variantNameResolvers.getOrElse(buildId to projectPath) {
+        error("Project identifier cannot be resolved. BuildName: $buildId, ProjectPath: $projectPath")
+      }
+
     when (syncOptions) {
       is SingleVariantSyncActionOptions -> {
         // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
         // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
         // e.g the ones that should be selected by the IDE.
-        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions)
+        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions, ::getVariantNameResolver)
       }
       is AllVariantsSyncActionOptions -> {
-        syncAllVariants(modules.filterIsInstance<AndroidModule>(), syncOptions)
+        syncAllVariants(modules.filterIsInstance<AndroidModule>(), syncOptions, ::getVariantNameResolver)
       }
     }
 
@@ -455,7 +465,8 @@ internal class AndroidExtraModelProviderWorker(
    */
   fun chooseSelectedVariants(
     inputModules: List<AndroidModule>,
-    syncOptions: SingleVariantSyncActionOptions
+    syncOptions: SingleVariantSyncActionOptions,
+    getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver
   ) {
     val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations(inputModules, syncOptions)
 
@@ -474,7 +485,8 @@ internal class AndroidExtraModelProviderWorker(
             .runActions(allModulesToSetUp.map {
               getVariantAndModuleDependenciesAction(
                 it,
-                syncOptions.selectedVariants
+                syncOptions.selectedVariants,
+                getVariantNameResolver
               )
             })
             .filterNotNull()
@@ -513,7 +525,8 @@ internal class AndroidExtraModelProviderWorker(
           else {
             getVariantAndModuleDependenciesAction(
               moduleConfiguration,
-              syncOptions.selectedVariants
+              syncOptions.selectedVariants,
+              getVariantNameResolver
             )
           }
         }
@@ -587,13 +600,14 @@ internal class AndroidExtraModelProviderWorker(
 
   fun syncAllVariants(
     inputModules: List<AndroidModule>,
-    syncOptions: AllVariantsSyncActionOptions
+    syncOptions: AllVariantsSyncActionOptions,
+    variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
   ) {
     val variants =
       actionRunner
         .runActions(inputModules.flatMap { module ->
           module.allVariantNames.orEmpty().map { variant ->
-            getVariantAction(ModuleConfiguration(module.id, variant, abi = null))
+            getVariantAction(ModuleConfiguration(module.id, variant, abi = null), variantNameResolvers)
           }
         })
         .filterNotNull()
@@ -686,9 +700,10 @@ internal class AndroidExtraModelProviderWorker(
    */
   private fun getVariantAndModuleDependenciesAction(
     moduleConfiguration: ModuleConfiguration,
-    selectedVariants: SelectedVariants
+    selectedVariants: SelectedVariants,
+    getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver
   ): (BuildController) -> SyncVariantResult? {
-    val getVariantAction = getVariantAction(moduleConfiguration)
+    val getVariantAction = getVariantAction(moduleConfiguration, getVariantNameResolver)
     return fun(controller: BuildController): SyncVariantResult? {
       val syncVariantResultCore = getVariantAction(controller) ?: return null
       return SyncVariantResult(
@@ -699,7 +714,8 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun getVariantAction(
-    moduleConfiguration: ModuleConfiguration
+    moduleConfiguration: ModuleConfiguration,
+    variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver
   ): (BuildController) -> SyncVariantResultCore? {
     val module = androidModulesById[moduleConfiguration.id] ?: return { null }
     return fun(controller: BuildController): SyncVariantResultCore? {
@@ -726,6 +742,7 @@ internal class AndroidExtraModelProviderWorker(
           variant,
           module.modelVersion,
           variantDependencies,
+          variantNameResolvers,
           module.buildNameMap ?: error("Build name map not available for: ${module.id}")
         )
       }

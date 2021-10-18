@@ -59,6 +59,7 @@ interface ModelCache {
     variant: com.android.builder.model.v2.ide.Variant,
     modelVersion: GradleVersion?,
     variantDependencies: VariantDependencies,
+    variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
     buildNameMap: Map<String, File>
   ): IdeVariantImpl
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
