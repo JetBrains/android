@@ -17,17 +17,27 @@ package com.android.tools.idea.layoutinspector.resource
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.testutils.MockitoKt
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ResourceType
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.resource.data.AppContext
+import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -40,6 +50,32 @@ class ResourceLookupTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test
+  fun testUpdateConfiguration() {
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel())
+    val resourceLookup = ResourceLookup(projectRule.project)
+    val table = TestStringTable()
+    val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
+    val appContext = AppContext(theme)
+    val process = MODERN_DEVICE.createProcess("com.example.test")
+    resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
+    assertThat(resourceLookup.resolver).isNotNull()
+  }
+
+  @Test
+  fun testUpdateConfigurationWithApplicationIdSuffix() {
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.example.test.debug"))
+    val resourceLookup = ResourceLookup(projectRule.project)
+    val table = TestStringTable()
+    val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
+    val appContext = AppContext(theme)
+    val process = MODERN_DEVICE.createProcess("com.example.test.debug")
+    resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
+    assertThat(resourceLookup.resolver).isNotNull()
+  }
+
+  @Test
   fun testSingleColorIcon() {
     val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, null, "Hello Folks", 0)
     val context = object : ViewNodeAndResourceLookup {
@@ -50,6 +86,6 @@ class ResourceLookupTest {
     val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title.drawId, context)
     val icon = context.resourceLookup.resolveAsIcon(property, title)
-    Truth.assertThat(icon).isEqualTo(JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
+    assertThat(icon).isEqualTo(JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }
 }
