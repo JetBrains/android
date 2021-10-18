@@ -345,7 +345,7 @@ internal class AndroidExtraModelProviderWorker(
             module.unresolvedDependencies.map {
               IdeSyncIssueImpl(
                 message = "Unresolved dependencies",
-                data = "Failed to resolve: ${it.name}",
+                data = it.name,
                 multiLineMessage = it.cause?.lines(),
                 severity = IdeSyncIssue.SEVERITY_ERROR,
                 type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
