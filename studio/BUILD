@@ -539,7 +539,7 @@ android_studio(
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     version_eap = True,
-    version_full = "dev CTC build",
+    version_full = "dev build",
     version_micro = 0,
     version_patch = 0,
     visibility = ["//visibility:public"],
