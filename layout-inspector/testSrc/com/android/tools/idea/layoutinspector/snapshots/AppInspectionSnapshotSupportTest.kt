@@ -47,7 +47,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
@@ -124,6 +126,88 @@ class AppInspectionSnapshotSupportTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
+    val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
+    val newModel = InspectorModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel)
+    checkSnapshot(newModel, snapshotLoader)
+  }
+
+  @Test
+  fun saveNonLiveSnapshotImmediately() {
+    // Connect initially in live mode
+    InspectorClientSettings.isCapturingModeOn = true
+    appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      appInspectorRule.viewInspector.connection.sendEvent {
+        rootsEventBuilder.apply {
+          addIds(2L)
+        }
+      }
+
+      appInspectorRule.viewInspector.connection.sendEvent {
+        layoutEventBuilder.apply {
+          ViewString(1, "com.android.internal.policy")
+          ViewString(2, "DecorView")
+          ViewString(3, "demo")
+          ViewString(4, "layout")
+          ViewString(5, "android.widget")
+          ViewString(6, "RelativeLayout")
+          ViewString(12, "http://schemas.android.com/apk/res/myapp")
+
+          Root {
+            id = 2
+            packageName = 1
+            className = 2
+            ViewNode {
+              id = VIEW1
+              packageName = 5
+              className = 6
+              layoutResource = ViewResource(4, 12, 3)
+            }
+          }
+        }
+      }
+      LayoutInspectorViewProtocol.Response.newBuilder().setStartFetchResponse(
+        LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+    }
+
+    appInspectorRule.viewInspector.interceptWhen({ it.hasStopFetchCommand() }) {
+      LayoutInspectorViewProtocol.Response.newBuilder().setStopFetchResponse(
+        LayoutInspectorViewProtocol.StopFetchResponse.getDefaultInstance()).build()
+    }
+
+    inspectorRule.processNotifier.fireConnected(PROCESS)
+    inspectorRule.processes.selectedProcess = PROCESS
+
+    // Now switch to non-live
+    InspectorClientSettings.isCapturingModeOn = false
+    inspectorRule.inspectorClient.stopFetching()
+
+    val startedLatch = CountDownLatch(1)
+    // Try to save the snapshot right away, before we've gotten any events
+    val snapshotThread = thread {
+      startedLatch.countDown()
+      inspectorRule.inspectorClient.saveSnapshot(savePath)
+    }
+
+    // Now send the events
+    startedLatch.await()
+    appInspectorRule.viewInspector.connection.sendEvent {
+      rootsEventBuilder.apply {
+        addIds(1L)
+      }
+    }
+
+    appInspectorRule.viewInspector.connection.sendEvent {
+      createLayoutEvent(layoutEventBuilder)
+    }
+    appInspectorRule.viewInspector.connection.sendEvent {
+      createPropertiesEvent(propertiesEventBuilder)
+    }
+
+    // Wait for saving to complete
+    snapshotThread.join()
+
+    // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
     snapshotLoader.loadFile(savePath, newModel)

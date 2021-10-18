@@ -311,30 +311,30 @@ class ViewLayoutInspectorClient(
       fetchAndSaveSnapshot(path, snapshotMetadata)
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata, model.foldInfo)
+      saveNonLiveSnapshot(path, snapshotMetadata)
     }
     return snapshotMetadata
+  }
+
+  private fun saveNonLiveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
+    // If we just switched to snapshot mode we may not have received data from the device yet. Wait until we have.
+    try {
+      launchWithProgress {
+        while (lastData.isEmpty() || lastProperties.isEmpty() || (composeInspector != null && lastComposeParameters.isEmpty())) {
+          delay(200)
+        }
+      }
+    }
+    catch (ignore: CancellationException) {
+      return
+    }
+    saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata, model.foldInfo)
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
     val start = System.currentTimeMillis()
     try {
-      val job = scope.launch { fetchAndSaveSnapshotAsync(path, snapshotMetadata) } // TODO: error handling
-      // Watch for the progress indicator to be canceled and cancel the fetchAndSave job if so.
-      val progress = ProgressManager.getInstance().progressIndicator
-      scope.launch {
-        while (true) {
-          delay(300)
-          if (progress?.isCanceled == true) {
-            job.cancel()
-            break
-          }
-          if (!job.isActive) {
-            break
-          }
-        }
-      }
-      job.asCompletableFuture().get()
+      launchWithProgress { fetchAndSaveSnapshotAsync(path, snapshotMetadata) }
     }
     catch (cancellationException: CancellationException) {
       snapshotMetadata.saveDuration = System.currentTimeMillis() - start
@@ -343,6 +343,25 @@ class ViewLayoutInspectorClient(
       // Delete the file in case we wrote out partial data
       Files.delete(path)
     }
+  }
+
+  private fun launchWithProgress(runnable: suspend CoroutineScope.() -> Unit) {
+    val job = scope.launch(block = runnable) // TODO: error handling
+    // Watch for the progress indicator to be canceled and cancel the job if so.
+    val progress = ProgressManager.getInstance().progressIndicator
+    scope.launch {
+      while (true) {
+        delay(300)
+        if (progress?.isCanceled == true) {
+          job.cancel()
+          break
+        }
+        if (!job.isActive) {
+          break
+        }
+      }
+    }
+    job.asCompletableFuture().get()
   }
 
   private suspend fun fetchAndSaveSnapshotAsync(path: Path, snapshotMetadata: SnapshotMetadata) {
