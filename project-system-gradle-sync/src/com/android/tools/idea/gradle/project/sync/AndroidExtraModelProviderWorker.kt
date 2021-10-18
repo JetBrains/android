@@ -765,6 +765,7 @@ internal class AndroidExtraModelProviderWorker(
          val unresolvedDependencies = mutableListOf<IdeUnresolvedDependencies>()
         unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
         ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+        ideVariant.testFixturesArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
         ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
         return unresolvedDependencies
       }
