@@ -44,10 +44,8 @@ import com.intellij.execution.impl.ConsoleBuffer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
@@ -61,7 +59,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.tools.SimpleActionGroup
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -92,7 +89,7 @@ internal class LogcatMainPanel(
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
   zoneId: ZoneId = ZoneId.systemDefault()
-) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable, DataProvider {
+) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
@@ -239,7 +236,9 @@ internal class LogcatMainPanel(
         templatePresentation.text = StringUtil.toTitleCase(text)
         templatePresentation.description = text
       })
-      add(ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE))
+      add(object : ToggleUseSoftWrapsToolbarAction(SoftWrapAppliancePlaces.CONSOLE) {
+        override fun getEditor(e: AnActionEvent) = this@LogcatMainPanel.editor
+      })
       add(HeaderFormatOptionsAction(project, this@LogcatMainPanel, formattingOptions))
     }
   }
@@ -263,13 +262,6 @@ internal class LogcatMainPanel(
   }
 
   override fun isMessageViewEmpty() = document.textLength == 0
-
-  override fun getData(dataId: String): Any? {
-    return when {
-      CommonDataKeys.EDITOR.`is`(dataId) -> editor
-      else -> null
-    }
-  }
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread

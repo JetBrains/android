@@ -33,6 +33,7 @@ import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.google.common.truth.Correspondence
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -105,13 +106,11 @@ class LogcatMainPanelTest {
     assertThat(borderLayout.getLayoutComponent(CENTER)).isSameAs(logcatMainPanel.editor.component)
     assertThat(borderLayout.getLayoutComponent(WEST)).isInstanceOf(ActionToolbar::class.java)
     val toolbar = borderLayout.getLayoutComponent(WEST) as ActionToolbar
-    assertThat(toolbar.actions.map { it::class }).containsExactly(
-      ClearLogcatAction::class,
-      ScrollToTheEndToolbarAction::class,
-      ToggleUseSoftWrapsToolbarAction::class,
-      HeaderFormatOptionsAction::class,
-      Separator::class,
-    ).inOrder()
+    assertThat(toolbar.actions[0]).isInstanceOf(ClearLogcatAction::class.java)
+    assertThat(toolbar.actions[1]).isInstanceOf(ScrollToTheEndToolbarAction::class.java)
+    assertThat(toolbar.actions[2]).isInstanceOf(ToggleUseSoftWrapsToolbarAction::class.java)
+    assertThat(toolbar.actions[3]).isInstanceOf(HeaderFormatOptionsAction::class.java)
+    assertThat(toolbar.actions[4]).isInstanceOf(Separator::class.java)
   }
 
   @RunsInEdt
