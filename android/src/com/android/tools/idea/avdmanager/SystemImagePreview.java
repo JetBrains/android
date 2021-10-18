@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.ISystemImage;
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
@@ -40,6 +41,7 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Displays information about a {@link SystemImage}, including its
@@ -60,6 +62,7 @@ public class SystemImagePreview {
   private JSeparator mySeparator;
   private HaxmAlert myHaxmAlert;
   private JBLabel myRecommendedExplanation;
+  private WearOsChinaLocalizedAlert myWearOsChinaLocalizedAlert;
   private SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
@@ -99,11 +102,22 @@ public class SystemImagePreview {
   }
 
   /**
+   * Returns true if the given {@link SystemImagePreview} is a Wear OS image localized for China.
+   */
+  private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
+    return image != null &&
+           SystemImage.WEAR_TAG.getId().equals(image.getTag().getId()) &&
+           ((image.getRemotePackage() != null && image.getRemotePackage().getPath().contains(ISystemImage.WEAR_CN_DIRECTORY)) ||
+           image.getSystemImage().getLocation().toAbsolutePath().toString().contains(SystemImage.WEAR_CN_DIRECTORY));
+  }
+
+  /**
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
     myHaxmAlert.setSystemImageDescription(image);
+    myWearOsChinaLocalizedAlert.setVisible(isChinaLocalizedWearOsImage(image));
     ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
 
     if (image != null) {
@@ -146,6 +160,9 @@ public class SystemImagePreview {
       myAbi.setText(myImageDescription.getAbiType());
     }
   }
+
+  @TestOnly
+  JPanel getRootPanel() { return myRootPanel; }
 
   @VisibleForTesting
   @Nullable
@@ -217,6 +234,7 @@ public class SystemImagePreview {
   private void createUIComponents() {
     myHaxmAlert = new HaxmAlert();
     myHaxmAlert.setSystemImageDescription(myImageDescription);
+    myWearOsChinaLocalizedAlert = new WearOsChinaLocalizedAlert();
   }
 
   private class ApiLevelHyperlinkListener extends HyperlinkAdapter {

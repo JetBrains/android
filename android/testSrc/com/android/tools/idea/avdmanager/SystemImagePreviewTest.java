@@ -28,8 +28,11 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.tools.adtui.swing.FakeUi;
 import com.google.common.collect.ImmutableList;
 
+import java.awt.Dimension;
+import java.util.function.Predicate;
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;
@@ -44,6 +47,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
   private SystemImageDescription mMarshmallowImageDescr;
   private SystemImageDescription mPreviewImageDescr;
+  private SystemImageDescription mWearOsImageDescr;
 
   @Override
   public void setUp() throws Exception {
@@ -76,7 +80,19 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     pkgPreview.setTypeDetails((TypeDetails)detailsPreview);
     fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview));
+    // Fake preview image
+    String wearOsPath = "system-images;android-wear-cn;android-30;google_apis;x86";
+    FakePackage.FakeLocalPackage pkgWearOs = new FakePackage.FakeLocalPackage(wearOsPath, fileOp);
+    DetailsTypes.SysImgDetailsType detailsWearOs =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsWearOs.getTags().add(IdDisplay.create("android-wear", "Wear OS Image"));
+    detailsWearOs.setAbi("x86");
+    detailsWearOs.setVendor(IdDisplay.create("google", "Google"));
+    detailsWearOs.setApiLevel(30);
+    pkgWearOs.setTypeDetails((TypeDetails)detailsWearOs);
+    fileOp.recordExistingFile(pkgWearOs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview, pkgWearOs));
 
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
@@ -90,9 +106,12 @@ public class SystemImagePreviewTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
     ISystemImage previewImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(previewPath, progress).getLocation());
+    ISystemImage wearOsImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(wearOsPath, progress).getLocation());
 
     mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
     mPreviewImageDescr = new SystemImageDescription(previewImage);
+    mWearOsImageDescr = new SystemImageDescription(wearOsImage);
   }
 
   public void testSetImage() {
@@ -109,5 +128,24 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     assertTrue("No icon fetched for Preview API", iconLabel != null && iconLabel.getIcon() != null);
     iconUrl = iconLabel.getIcon().toString();
     assertTrue("Wrong icon fetched for Preview API", iconUrl.contains("Default.png"));
+  }
+
+  public void testLocalizedChinaImages() {
+    SystemImagePreview imagePreview = new SystemImagePreview(null);
+    JPanel rootPanel = new JPanel();
+    rootPanel.setSize(new Dimension(500, 500));
+    rootPanel.add(imagePreview.getRootPanel());
+    FakeUi fakeUi = new FakeUi(rootPanel, 1f, true);
+
+    imagePreview.setImage(mWearOsImageDescr);
+
+    final Predicate<JLabel> chinaLocalizedLabelPredicate =
+      label -> label.isShowing() && "The selected image is a localized version of Wear OS for China".equals(label.getText());
+
+    assertNotNull(fakeUi.findComponent(JLabel.class, chinaLocalizedLabelPredicate));
+
+    // Change the image to
+    imagePreview.setImage(mPreviewImageDescr);
+    assertNull(fakeUi.findComponent(JLabel.class, chinaLocalizedLabelPredicate));
   }
 }
