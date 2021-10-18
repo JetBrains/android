@@ -19,8 +19,9 @@ import com.android.ddmlib.IDevice
 
 enum class PairingFeature(val minVersion: Int) {
   // Applicable to phone
-  // TODO(b/200178792): Enable it with the correct version for C
-  COMPANION_EMULATOR_ACTIVITY(Int.MAX_VALUE /*773302904*/),
+  // Until this version becomes available publicly, it can be downloaded from
+  // https://drive.google.com/file/d/1NoeiVCzLcDrdnkYmAilcWloR1RRleryt/view?usp=sharing&resourcekey=0-kD6zowQGavs9vipS_HOaHw
+  COMPANION_EMULATOR_ACTIVITY(773385010),
 
   // Applicable to phone/watch
   REFRESH_EMULATOR_CONNECTION(213013000),
