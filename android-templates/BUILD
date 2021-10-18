@@ -91,6 +91,7 @@ iml_module(
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
     ],
 )
 
