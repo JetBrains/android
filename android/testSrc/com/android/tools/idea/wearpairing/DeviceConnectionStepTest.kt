@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.waitForCondition
@@ -27,6 +28,7 @@ import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -110,8 +112,8 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
     fakeUi.waitForHeader("Install Wear OS Companion Application")
-    waitForCondition(5, TimeUnit.SECONDS) { usageTracker.usages.isNotEmpty() }
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_INSTALL_WEAR_OS_COMPANION)
+    waitForCondition(5, TimeUnit.SECONDS) { getWearPairingTrackingEvents().isNotEmpty() }
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_INSTALL_WEAR_OS_COMPANION)
   }
 
   @Test
@@ -198,6 +200,9 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   private fun FakeUi.waitForHeader(text: String) = waitForCondition(5, TimeUnit.SECONDS) {
     findComponent<JBLabel> { it.name == "header" && it.text == text } != null
   }
+
+  private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
+    usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
 
   private fun createTestDevice(companionAppVersion: String, gmscoreVersion: Int = Int.MAX_VALUE, companionAppId: String? = null): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)

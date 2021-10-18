@@ -13,66 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/*
- * Copyright (C) 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/*
- * Copyright (C) 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-/*
- * Copyright (C) 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 package com.android.tools.idea.wearpairing
 
@@ -86,8 +26,10 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.google.common.truth.Truth.assertThat
@@ -184,20 +126,22 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       }
     }
 
-    assertThat(usageTracker.usages).hasSize(2)
-    assertThat(usageTracker.usages[0].studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
-    assertThat(usageTracker.usages[0].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
-    assertThat(usageTracker.usages[1].studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
-    assertThat(usageTracker.usages[1].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
+    waitForCondition(5, TimeUnit.SECONDS) { getWearPairingTrackingEvents().size >= 2 }
+    val usages = getWearPairingTrackingEvents()
+    assertThat(usages[0].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
+    assertThat(usages[1].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
   }
 
   private fun FakeUi.clickButton(text: String) = clickOn(findComponent<JButton> { text == it.text }!!)
 
   // The UI loads on asynchronous coroutine, we need to wait
-  private fun FakeUi.waitLabelText(text: String) = com.android.tools.idea.concurrency.waitForCondition(5, TimeUnit.SECONDS) {
+  private fun FakeUi.waitLabelText(text: String) = waitForCondition(5, TimeUnit.SECONDS) {
     invokeStrategy.updateAllSteps()
     findComponent<JBLabel> { it.text == text } != null
   }
+
+  private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
+    usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
 
   private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
     Mockito.`when`(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
