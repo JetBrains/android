@@ -93,6 +93,23 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     return true;
   }
 
+  public void testMacroTags() {
+    // Reference the value of the macro tag which is a color literal, to a color.
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "3F5BBB", XmlTag.class);
+    checkHighlightInfoColor(highlightInfo, new Color(63, 91, 187));
+
+    // Macro tag that references a color
+    HighlightInfo colorHighlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "@color/color2", XmlTag.class);
+    checkHighlightInfoColors(colorHighlightInfo, ImmutableList.of(new Color(48, 63, 159)));
+
+    // Color tag that references a macro, that references a color
+    HighlightInfo macroHighlightInfo =
+      findHighlightInfoWithGutterRenderer("res/values/colors1.xml", "@macro/macro2", XmlTag.class);
+    checkHighlightInfoColors(macroHighlightInfo, ImmutableList.of(new Color(48, 63, 159)));
+  }
+
   public void testDrawableInManifest() throws IOException {
     // Drawable icon in AndroidManifest.xml file.
     HighlightInfo highlightInfo =

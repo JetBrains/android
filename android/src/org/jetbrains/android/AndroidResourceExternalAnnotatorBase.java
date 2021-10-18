@@ -115,7 +115,6 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                 @NotNull ResourceResolver resolver,
                                                                 @NotNull AndroidFacet facet,
                                                                 @NotNull Configuration configuration) {
-    ResourceType type = reference.getResourceType();
     ResourceValue resolvedResource = null;
     if (reference.getResourceType() == ResourceType.ATTR) {
       // Resolve the theme attribute
@@ -132,7 +131,6 @@ public abstract class AndroidResourceExternalAnnotatorBase
           resourceValueType == ResourceType.MIPMAP ||
           resourceValueType == ResourceType.COLOR) {
         resolvedResource = resourceValue;
-        type = resourceValueType;
       }
       else {
         return null;
@@ -144,10 +142,11 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return null;
     }
 
-    if (type == ResourceType.COLOR) {
+    ResourceType renderableValueResourceType = renderableValue.getResourceType();
+    if (renderableValueResourceType == ResourceType.COLOR) {
       return getColorGutterIconRenderer(resolver, renderableValue, facet, element, configuration);
     }
-    else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
+    else if (renderableValueResourceType == ResourceType.DRAWABLE || renderableValueResourceType == ResourceType.MIPMAP) {
       return getDrawableGutterIconRenderer(element, resolver, renderableValue, facet, configuration);
     }
     else {

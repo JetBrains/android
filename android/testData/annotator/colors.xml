@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="color1">#3F51B5</color>
-    <color name="color2">#303F9F</color>
+  <color name="color1">#3F51B5</color>
+  <color name="color2">#303F9F</color>
+  <macro name="macro1">#3F5BBB</macro>
+  <macro name="macro2">@color/color2</macro>
+  <color name="colormacro2">@macro/macro2</color>
 </resources>
