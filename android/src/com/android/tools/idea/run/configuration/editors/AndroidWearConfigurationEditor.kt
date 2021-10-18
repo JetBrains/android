@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.application.options.ModulesComboBox
@@ -25,12 +27,14 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.CellBuilder
+import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.ui.layout.applyToComponent
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.panel
@@ -38,10 +42,12 @@ import com.intellij.ui.layout.selectedValueIs
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.Dimension
+import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
+import javax.swing.JList
 
-class AndroidWearConfigurationEditor(private val project: Project, private val configuration: AndroidWearConfiguration) :
-  SettingsEditor<AndroidWearConfiguration>() {
+open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private val project: Project, private val configuration: T) :
+  SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
   private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
@@ -55,12 +61,13 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
     }
   }
 
-  private lateinit var wearComponentFqNameComboBox: CellBuilder<ComboBox<String>>
-  private var availableComponents = listOf<String>()
+  private lateinit var wearComponentFqNameComboBox: ComboBox<String>
   private var componentName: String? = null
   private var installFlags: String = ""
 
   init {
+    Disposer.register(project, this)
+
     modulesComboBox.addActionListener { event ->
       val module = moduleSelector.module
       val availableComponents = if (module == null) {
@@ -72,14 +79,21 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
           facade.findClass(it, ProjectScope.getAllScope(project))
         }
         surfaceBaseClasses.flatMap { baseClass ->
-          ClassInheritorsSearch.search(baseClass, module.getMainModule().moduleScope, true).findAll().mapNotNull { it.qualifiedName }
+          ClassInheritorsSearch.search(baseClass, module.getMainModule().getModuleSystem().getResolveScope(ScopeType.MAIN), true)
+            .findAll()
+            // TODO: filter base on manifest index.
+            .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
+            .mapNotNull { it.qualifiedName }
         }
       }
-      wearComponentFqNameComboBox.component.model = DefaultComboBoxModel(availableComponents.toTypedArray())
+      wearComponentFqNameComboBox.model = DefaultComboBoxModel(availableComponents.toTypedArray())
+      if (availableComponents.isNotEmpty()) {
+        wearComponentFqNameComboBox.item = availableComponents.first()
+      }
     }
   }
 
-  override fun resetEditorFrom(runConfiguration: AndroidWearConfiguration) {
+  override fun resetEditorFrom(runConfiguration: T) {
     moduleSelector.reset(runConfiguration)
     val componentClass = moduleSelector.findClass(runConfiguration.componentName)
     if (componentClass != null) {
@@ -89,7 +103,7 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
     (component as DialogPanel).reset()
   }
 
-  override fun applyEditorTo(runConfiguration: AndroidWearConfiguration) {
+  override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
     runConfiguration.componentName = componentName
@@ -98,30 +112,53 @@ class AndroidWearConfigurationEditor(private val project: Project, private val c
 
   override fun createEditor() =
     panel {
-      row {
-        label(AndroidBundle.message("android.run.configuration.module.label"))
-        component(modulesComboBox)
-          .constraints(CCFlags.growX, CCFlags.pushX)
-          .applyToComponent {
-            maximumSize = Dimension(400, maximumSize.height)
-          }
-      }
-      row {
-        label(configuration.userVisibleComponentTypeName)
-        wearComponentFqNameComboBox = comboBox(
-          DefaultComboBoxModel(emptyArray<String>()),
-          { componentName },
-          { componentName = it },
-          renderer = SimpleListCellRenderer.create("Module is not chosen") { it.toString() })
-          .enableIf(modulesComboBox.selectedValueIs(null).not())
-          .constraints(CCFlags.growX, CCFlags.pushX)
-          .applyToComponent {
-            maximumSize = Dimension(400, maximumSize.height)
-          }
-      }
-      row {
-        label("Install Flags:")
-        textField(::installFlags).constraints(CCFlags.growX, CCFlags.pushX)
-      }
+      getModuleChooser()
+      getComponentCompoBox()
+      getInstallFlagsTextField()
     }
+
+  protected fun LayoutBuilder.getInstallFlagsTextField() {
+    row {
+      label("Install Flags:")
+      textField({ installFlags }, { installFlags = it }).constraints(CCFlags.growX, CCFlags.pushX)
+    }
+  }
+
+  protected fun LayoutBuilder.getComponentCompoBox() {
+    row {
+      label(configuration.userVisibleComponentTypeName)
+      wearComponentFqNameComboBox = comboBox(
+        DefaultComboBoxModel(emptyArray<String>()),
+        { componentName },
+        { componentName = it },
+        renderer = object : SimpleListCellRenderer<String>() {
+          override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
+            text = when {
+              value != null -> value
+              modulesComboBox.item == null -> "Module is not chosen"
+              else -> "${configuration.userVisibleComponentTypeName} not found"
+            }
+          }
+        })
+        .enableIf(modulesComboBox.selectedValueIs(null).not())
+        .constraints(CCFlags.growX, CCFlags.pushX)
+        .applyToComponent {
+          maximumSize = Dimension(400, maximumSize.height)
+          addPropertyChangeListener("model") {
+            this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
+          }
+        }.component
+    }
+  }
+
+  protected fun LayoutBuilder.getModuleChooser() {
+    row {
+      label(AndroidBundle.message("android.run.configuration.module.label"))
+      component(modulesComboBox)
+        .constraints(CCFlags.growX, CCFlags.pushX)
+        .applyToComponent {
+          maximumSize = Dimension(400, maximumSize.height)
+        }
+    }
+  }
 }
