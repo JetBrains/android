@@ -36,6 +36,7 @@ public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabM
     myViewBinder.bind(FullTraceAnalysisSummaryTabModel.class, FullTraceSummaryDetailsView::new);
     myViewBinder.bind(CpuThreadAnalysisSummaryTabModel.class, CpuThreadSummaryDetailsView::new);
     myViewBinder.bind(CaptureNodeAnalysisSummaryTabModel.class, CaptureNodeSummaryDetailsView::new);
+    myViewBinder.bind(JankAnalysisModel.Summary.class, JankSummaryDetailsView::new);
     initComponents();
   }
 

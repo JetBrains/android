@@ -82,6 +82,7 @@ public class CpuAnalysisPanel extends AspectObserver {
     myTabViewsBinder.bind(CaptureNodeAnalysisEventsTabModel.class, CpuAnalysisEventsTab::new);
     myTabViewsBinder.bind(CpuAnalysisFramesTabModel.class, CpuAnalysisFramesTab::new);
     myTabViewsBinder.bind(AndroidFrameTimelineAnalysisModel.Tab.class, AndroidFrameTimelineTab::new);
+    myTabViewsBinder.bind(JankAnalysisModel.Summary.class, CpuAnalysisSummaryTab::new);
   }
 
   @NotNull
@@ -108,13 +109,13 @@ public class CpuAnalysisPanel extends AspectObserver {
   private void updateComponents() {
     myTabs.clearTabs();
     List<CpuAnalysisModel> pinnedModels = myStage.getPinnedAnalysisModels();
-    List<MultiSelectionModel.Entry<CpuAnalyzable>> selections = myStage.getMultiSelectionModel().getSelections();
+    List<MultiSelectionModel.Entry<CpuAnalyzable<?>>> selections = myStage.getMultiSelectionModel().getSelections();
 
     for (CpuAnalysisModel<?> model : pinnedModels) {
       myTabs.addTab(model.getName(), () -> onSelectAnalysis(model));
     }
 
-    for (MultiSelectionModel.Entry<CpuAnalyzable> selection : selections) {
+    for (MultiSelectionModel.Entry<CpuAnalyzable<?>> selection : selections) {
       CpuAnalysisModel<?> model = merge(selection.getValue().stream().map(CpuAnalyzable::getAnalysisModel));
       myTabs.addTab(model.getName(),
                     () -> onSelectAnalysis(model),

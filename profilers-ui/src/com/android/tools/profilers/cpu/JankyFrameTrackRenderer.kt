@@ -26,6 +26,7 @@ import com.android.tools.adtui.common.otherJank
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.intellij.ui.JBColor
@@ -41,6 +42,11 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
     StateChart(trackModel.dataModel, ::renderJankyFrame).apply {
       addRowIndexChangeListener {
         trackModel.dataModel.activeSeriesIndex = it
+      }
+      addItemClickedListener {
+        it?.let {
+          trackModel.dataModel.multiSelectionModel.setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture)))
+        }
       }
     }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 

@@ -17,11 +17,15 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
+import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito
 import perfetto.protos.PerfettoTrace
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -33,7 +37,8 @@ class AndroidFrameTimelineTooltipViewTest {
       dataRange.set(0.0, 4000.0)
       viewRange.set(0.0, 4000.0)
     }
-    val model = AndroidFrameTimelineModel(listOf(FAKE_EVENT_0, FAKE_EVENT_1), listOf(), timeline.viewRange)
+    val model = AndroidFrameTimelineModel(listOf(FAKE_EVENT_0, FAKE_EVENT_1), listOf(), timeline.viewRange,
+                                          FAKE_SELECTION_MODEL as MultiSelectionModel<CpuAnalyzable<*>>, FAKE_CAPTURE)
     val tooltip = AndroidFrameTimelineTooltip(timeline, model)
     val tooltipView = AndroidFrameTimelineTooltipView(JPanel(), tooltip)
     fun checkText(txt: String) =
@@ -83,3 +88,7 @@ val FAKE_EVENT_1 =
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                             PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
                             onTimeFinish = false, gpuComposition = false, 0)
+
+
+val FAKE_SELECTION_MODEL = Mockito.mock(MultiSelectionModel::class.java)
+val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java)

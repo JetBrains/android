@@ -15,18 +15,22 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.LazyDataSeries
-import perfetto.protos.PerfettoTrace
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
 
 class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEvent>,
                                 vsyncs: List<SeriesData<Long>>,
-                                viewRange: Range) : StateChartModel<AndroidFrameTimelineEvent?>() {
+                                viewRange: Range,
+                                val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+                                val capture: SystemTraceCpuCapture) : StateChartModel<AndroidFrameTimelineEvent?>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 
   var activeSeriesIndex = -1

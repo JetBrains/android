@@ -48,13 +48,13 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final CpuThreadInfo myThreadInfo;
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
-  @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
+  @NotNull private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel;
   @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
 
   public CpuThreadTrackModel(@NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
                              @NotNull Timeline timeline,
-                             @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
+                             @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateTooltip = new CpuThreadsTooltip(timeline);
     // CallChart always uses wall-clock time, a.k.a. ClockType.GLOBAL
@@ -146,7 +146,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   }
 
   @NotNull
-  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+  public MultiSelectionModel<CpuAnalyzable<?>> getMultiSelectionModel() {
     return myMultiSelectionModel;
   }
 

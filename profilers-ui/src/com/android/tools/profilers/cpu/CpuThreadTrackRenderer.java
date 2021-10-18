@@ -70,7 +70,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     traceEventChart.setBackground(UIUtil.TRANSPARENT_COLOR);
     traceEventChart.setDrawDebugInfo(
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
-    MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
+    MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
       CaptureNodeAnalysisModel firstActiveNode = multiSelectionModel.getFirstActiveSelectionItem(CaptureNodeAnalysisModel.class);
       // If a trace event is selected, possibly in another thread track,
