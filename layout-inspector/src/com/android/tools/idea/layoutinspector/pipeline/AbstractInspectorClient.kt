@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.ListenerCollection
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -46,9 +47,9 @@ abstract class AbstractInspectorClient(
       fireState(value)
     }
 
-  private val stateCallbacks = mutableListOf<(InspectorClient.State) -> Unit>()
-  private val errorCallbacks = mutableListOf<(String) -> Unit>()
-  private val treeEventCallbacks = mutableListOf<(Any) -> Unit>()
+  private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
+  private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String) -> Unit>()
+  private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
 
   var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()
     @TestOnly set
