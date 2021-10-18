@@ -80,7 +80,7 @@ public class TrackGroup extends AspectObserver {
   private final JLabel myTitleInfoIcon;
   private final JPanel myOverlay = new JPanel();
   private final JPanel myTrackTitleOverlay = new JPanel();
-  private final DragAndDropList<TrackModel> myTrackList;
+  private final DragAndDropList<TrackModel<?, ?>> myTrackList;
   private final CommonDropDownButton myActionsDropdown;
   private final FlatSeparator mySeparator = new FlatSeparator();
   private final CommonButton myCollapseButton;
@@ -254,7 +254,7 @@ public class TrackGroup extends AspectObserver {
    * @return the underlying JList that displays all tracks.
    */
   @NotNull
-  public DragAndDropList<TrackModel> getTrackList() {
+  public DragAndDropList<TrackModel<?, ?>> getTrackList() {
     return myTrackList;
   }
 
