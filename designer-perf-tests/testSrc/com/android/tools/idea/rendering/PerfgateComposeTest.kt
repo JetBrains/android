@@ -99,6 +99,30 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
   }
 
   @Test
+  fun complexWithBoundsCalculationPerf() {
+    composeTimeBenchmark.measureOperation(listOf(
+      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
+      ElapsedTimeMeasurement(Metric("complex_with_bounds_template_end_to_end_time")),
+      // Measures the memory usage of the render operation end to end.
+      MemoryUseMeasurement(Metric("complex_with_bounds_template_memory_use")),
+      // Measures just the inflate time.
+      InflateTimeMeasurement(Metric("complex_with_bounds_template_inflate_time")),
+      // Measures just the render time.
+      RenderTimeMeasurement(Metric("complex_with_bounds_template_render_time")),
+      // Measures the class loading time.
+      ClassLoadTimeMeasurment(Metric("complex_with_bounds_template_class_total_load_time")),
+      // Measures the class loading time.
+      ClassRewriteTimeMeasurement(Metric("complex_with_bounds_template_class_total_rewrite_time")),
+      // Measures the number of classes loaded.
+      ClassLoadCountMeasurement(Metric("complex_with_bounds_template_class_load_count")),
+      // Measures the class avg loading time.
+      ClassAverageLoadTimeMeasurement(Metric("complex_with_bounds_template_class_avg_load_time"))),
+                                          printSamples = true) {
+      SimpleComposeProjectScenarios.complexRenderScenarioWithBoundsCalculation(projectRule)
+    }
+  }
+
+  @Test
   fun interactiveClickPerf() {
     composeTimeBenchmark.measureOperation(listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.

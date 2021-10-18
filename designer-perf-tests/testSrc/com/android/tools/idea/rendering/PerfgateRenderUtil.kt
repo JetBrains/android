@@ -21,6 +21,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.google.common.collect.LinkedListMultimap
+import com.google.common.math.Quantiles
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.ThrowableComputable
 import junit.framework.TestCase
@@ -200,6 +201,13 @@ internal class PostTouchEventCallbacksExecutionTimeMeasurement(metric: Metric) :
   else null // No time available
 }
 
+@Suppress("UnstableApiUsage")
+private fun Collection<Long>.median() =
+  Quantiles.median().compute(this)
+
+@Suppress("UnstableApiUsage")
+private fun Collection<Long>.p95() =
+  Quantiles.percentiles().index(95).compute(this)
 
 /**
  * Measures the given operation applying the given [MetricMeasurement]s.
@@ -231,7 +239,12 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
     val samples = metricSamples.get(metric.metricName)
     if (samples.isNotEmpty()) {
       if (printSamples) {
-        println("${metric.metricName}: ${samples.joinToString(",") { it.sampleData.toString() }}")
+        val dataPoints = samples.map { it.sampleData }.toList()
+        println(
+          """
+            ${metric.metricName}: ${samples.joinToString(",") { it.sampleData.toString() }}
+              median=${dataPoints.median()} p95=${dataPoints.p95()}
+          """.trimIndent())
       }
       metric.addSamples(this, *samples.toTypedArray())
       metric.commit()
