@@ -29,6 +29,8 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import java.awt.Point;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
@@ -40,6 +42,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
@@ -89,9 +95,6 @@ final class PhysicalDeviceTable extends JBTable implements Table {
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
 
-    tableHeader.setReorderingAllowed(false);
-    tableHeader.setResizingAllowed(false);
-
     if (!PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
       addMouseMotionListener(new ActionsTableCellEditorMouseMotionListener(this));
     }
@@ -100,25 +103,17 @@ final class PhysicalDeviceTable extends JBTable implements Table {
   private void sizeApiTypeAndActionsColumnWidthsToFit() {
     getRowSorter().allRowsChanged();
 
-    sizeWidthToFit(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
-    sizeWidthToFit(PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
+    Tables.sizeWidthToFit(this, apiViewColumnIndex());
+    Tables.sizeWidthToFit(this, typeViewColumnIndex());
 
     if (PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      sizeWidthToFit(PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX, 0);
-      sizeWidthToFit(PhysicalDeviceTableModel.REMOVE_MODEL_COLUMN_INDEX, 0);
-      sizeWidthToFit(PhysicalDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX, 0);
+      Tables.sizeWidthToFit(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0);
+      Tables.sizeWidthToFit(this, removeViewColumnIndex(), 0);
+      Tables.sizeWidthToFit(this, popUpMenuViewColumnIndex(), 0);
     }
     else {
-      sizeWidthToFit(PhysicalDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX);
+      Tables.sizeWidthToFit(this, actionsViewColumnIndex());
     }
-  }
-
-  private void sizeWidthToFit(int modelColumnIndex) {
-    Tables.sizeWidthToFit(this, convertColumnIndexToView(modelColumnIndex));
-  }
-
-  private void sizeWidthToFit(int modelColumnIndex, @SuppressWarnings("SameParameterValue") int minWidth) {
-    Tables.sizeWidthToFit(this, convertColumnIndexToView(modelColumnIndex), minWidth);
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
@@ -144,7 +139,7 @@ final class PhysicalDeviceTable extends JBTable implements Table {
   }
 
   @NotNull PhysicalDevice getDeviceAt(int viewRowIndex) {
-    return (PhysicalDevice)getValueAt(viewRowIndex, convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
+    return (PhysicalDevice)getValueAt(viewRowIndex, deviceViewColumnIndex());
   }
 
   @NotNull ActionsTableCellEditor getActionsCellEditor() {
@@ -163,6 +158,62 @@ final class PhysicalDeviceTable extends JBTable implements Table {
     return IntStream.range(0, getColumnCount())
       .mapToObj(viewColumnIndex -> getValueAt(viewRowIndex, viewColumnIndex))
       .collect(Collectors.toList());
+  }
+
+  @Override
+  protected @NotNull JTableHeader createDefaultTableHeader() {
+    JTableHeader header = super.createDefaultTableHeader();
+
+    if (PhysicalDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      TableColumnModel model = new DefaultTableColumnModel();
+
+      model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
+      model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
+      model.addColumn(columnModel.getColumn(typeViewColumnIndex()));
+
+      Collection<TableColumn> columns = Arrays.asList(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                                                      columnModel.getColumn(removeViewColumnIndex()),
+                                                      columnModel.getColumn(popUpMenuViewColumnIndex()));
+
+      TableColumn column = new MergedTableColumn(columns);
+      column.setHeaderValue("Actions");
+
+      model.addColumn(column);
+      header.setColumnModel(model);
+    }
+
+    header.setReorderingAllowed(false);
+    header.setResizingAllowed(false);
+
+    return header;
+  }
+
+  private int deviceViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
+  }
+
+  private int apiViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
+  }
+
+  private int typeViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
+  }
+
+  private int actionsViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX);
+  }
+
+  private int activateDeviceFileExplorerWindowViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX);
+  }
+
+  private int removeViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.REMOVE_MODEL_COLUMN_INDEX);
+  }
+
+  private int popUpMenuViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.POP_UP_MENU_MODEL_COLUMN_INDEX);
   }
 
   @Override
