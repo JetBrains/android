@@ -20,6 +20,9 @@ import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.profilers.cpu.LazyDataSeries
+import perfetto.protos.PerfettoTrace
+import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
+import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
 
 class JankyFrameModel(layers: List<List<AndroidFrameTimelineEvent>>,
                       vsyncs: List<SeriesData<Long>>,
@@ -42,4 +45,21 @@ class JankyFrameModel(layers: List<List<AndroidFrameTimelineEvent>>,
       addSeries(RangedSeries(viewRange, LazyDataSeries { paddedJankyFrames }))
     }
   }
+}
+
+fun JankType.getTitle() = when (this) {
+  JankType.JANK_APP_DEADLINE_MISSED -> "Deadline missed"
+  JankType.JANK_BUFFER_STUFFING -> "Buffer stuffing"
+  JankType.JANK_UNKNOWN -> "Unknown"
+  JankType.JANK_NONE -> "No jank"
+  else -> "Unspecified"
+}
+
+fun PresentType.getTitle() = when (this) {
+  PresentType.PRESENT_DROPPED -> "Dropped"
+  PresentType.PRESENT_EARLY -> "Early"
+  PresentType.PRESENT_LATE -> "Late"
+  PresentType.PRESENT_ON_TIME -> "On time"
+  PresentType.PRESENT_UNKNOWN -> "Unknown"
+  PresentType.PRESENT_UNSPECIFIED -> "Unspecified"
 }

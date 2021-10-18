@@ -22,10 +22,10 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip
+import com.android.tools.profilers.cpu.systemtrace.getTitle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import javax.swing.JComponent
 
 class JankyFrameTooltipView(parent: JComponent, val tooltip: JankyFrameTooltip): TooltipView(tooltip.timeline) {
@@ -56,13 +56,7 @@ class JankyFrameTooltipView(parent: JComponent, val tooltip: JankyFrameTooltip):
     else -> {
       container.isVisible = true
       typeLabel.isVisible = event.actualEndUs > event.expectedEndUs
-      typeLabel.text = when(event.appJankType) {
-        JankType.JANK_APP_DEADLINE_MISSED -> "Deadline missed"
-        JankType.JANK_BUFFER_STUFFING -> "Buffer stuffing"
-        JankType.JANK_UNKNOWN -> "Unknown"
-        JankType.JANK_NONE -> "No jank"
-        else -> "Unspecified"
-      }
+      typeLabel.text = event.appJankType.getTitle()
       frameLabel.text = "Frame: ${event.surfaceFrameToken}"
       durationlabel.text = "Duration: ${TimeFormatter.getSemiSimplifiedClockString(event.actualEndUs - event.expectedStartUs)}"
       expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(event.expectedEndUs)}"
