@@ -157,6 +157,9 @@ public class RunStats {
       case WATCH_FACE:
         runEventType = RunEvent.AppComponent.WATCH_FACE;
         break;
+      case COMPLICATION:
+        runEventType = RunEvent.AppComponent.COMPLICATION;
+        break;
       default:
         runEventType = RunEvent.AppComponent.UNKNOWN;
     }
