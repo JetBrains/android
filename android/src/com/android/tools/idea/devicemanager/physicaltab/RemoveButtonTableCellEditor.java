@@ -18,20 +18,28 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
+import java.util.function.BiPredicate;
 import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
-  private final @NotNull PhysicalDevicePanel myPanel;
   private Device myDevice;
 
   RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel) {
+    this(panel, RemoveButtonTableCellEditor::askToRemove);
+  }
+
+  @VisibleForTesting
+  RemoveButtonTableCellEditor(@NotNull PhysicalDevicePanel panel, @NotNull BiPredicate<@NotNull Object, @NotNull Project> askToRemove) {
     super(AllIcons.Actions.GC, RemoveValue.INSTANCE);
-    myPanel = panel;
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -40,20 +48,28 @@ final class RemoveButtonTableCellEditor extends IconButtonTableCellEditor {
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-      String message = myDevice + " will be removed from the device manager.";
+      Project project = panel.getProject();
+      assert project != null;
 
-      boolean remove = MessageDialogBuilder.okCancel("Remove " + myDevice + " Device", message)
-        .yesText("Remove")
-        .ask(myPanel.getProject());
-
-      if (!remove) {
+      if (!askToRemove.test(myDevice, project)) {
         fireEditingCanceled();
         return;
       }
 
       fireEditingStopped();
-      myPanel.getTable().getModel().remove(myDevice.getKey());
+      panel.getTable().getModel().remove(myDevice.getKey());
     });
+  }
+
+  private static boolean askToRemove(@NotNull Object device, @NotNull Project project) {
+    return MessageDialogBuilder.okCancel("Remove " + device + " Device", device + " will be removed from the device manager.")
+      .yesText("Remove")
+      .ask(project);
+  }
+
+  @VisibleForTesting
+  @Nullable ChangeEvent getChangeEvent() {
+    return changeEvent;
   }
 
   @Override
