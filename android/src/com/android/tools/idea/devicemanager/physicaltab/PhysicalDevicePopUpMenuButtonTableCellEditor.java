@@ -51,9 +51,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     Collection<JMenuItem> items = new ArrayList<>();
 
     items.add(newPairDeviceItem());
-
-    // TODO(http://b/193748564)
-    // newUnpairDeviceItem().ifPresent(items::add);
+    newUnpairDeviceItem().ifPresent(items::add);
 
     return items;
   }
