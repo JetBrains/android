@@ -88,7 +88,6 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -97,6 +96,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.android.utils.combineAsCamelCase
 import com.android.utils.cxx.CompileCommandsEncoder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
@@ -142,6 +142,7 @@ import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -232,10 +233,15 @@ interface AndroidProjectStubBuilder {
   val defaultConfig: IdeProductFlavorContainerImpl
   val debugBuildType: IdeBuildTypeContainerImpl?
   val releaseBuildType: IdeBuildTypeContainerImpl?
+  val flavorDimensions: List<String>?
   val dynamicFeatures: List<String>
   val viewBindingOptions: IdeViewBindingOptionsImpl
   val dependenciesInfo: IdeDependenciesInfoImpl
   val supportsBundleTask: Boolean
+  fun productFlavors(dimension: String): List<IdeProductFlavorImpl>
+  fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl
+  fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl>
+
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl>?
   fun mainArtifact(variant: String): IdeAndroidArtifactImpl
@@ -271,10 +277,16 @@ data class AndroidProjectBuilder(
   val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildReleaseSourceProviderStub() },
   val debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildDebugBuildTypeStub() },
   val releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildReleaseBuildTypeStub() },
+  val flavorDimensions: AndroidProjectStubBuilder.() -> List<String>? = { null },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl = { buildViewBindingOptions() },
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
+  val productFlavorsStub:  AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl> = { dimension -> emptyList() },
+  val productFlavorSourceProviderStub:  AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl =
+    { flavor -> sourceProvider(flavor) },
+  val productFlavorContainersStub:  AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl> =
+    { dimension -> buildProductFlavorContainersStub(dimension) },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
   val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
     { variant -> buildAndroidTestArtifactStub(variant) },
@@ -288,7 +300,6 @@ data class AndroidProjectBuilder(
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
   val ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel? = { null }
 ) {
-
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
 
@@ -331,6 +342,9 @@ data class AndroidProjectBuilder(
   fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl?) =
     copy(releaseBuildType = releaseBuildType)
 
+  fun withFlavorDimensions(flavorDimensions: AndroidProjectStubBuilder.() -> List<String>?) =
+    copy(flavorDimensions = flavorDimensions)
+
   fun withDynamicFeatures(dynamicFeatures: AndroidProjectStubBuilder.() -> List<String>) =
     copy(dynamicFeatures = dynamicFeatures)
 
@@ -339,6 +353,15 @@ data class AndroidProjectBuilder(
 
   fun withSupportsBundleTask(supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean) =
     copy(supportsBundleTask = supportsBundleTask)
+
+  fun withProductFlavors(productFlavors: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl>) =
+    copy(productFlavorsStub = productFlavors)
+
+  fun withProductFlavorSourceProvider(productFlavorSourceProvider: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl) =
+    copy(productFlavorSourceProviderStub = productFlavorSourceProvider)
+
+  fun withProductFlavorContainers(productFlavorContainers: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl>) =
+    copy(productFlavorContainersStub = productFlavorContainers)
 
   fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl) =
     copy(mainArtifactStub = mainArtifactStub)
@@ -387,10 +410,14 @@ data class AndroidProjectBuilder(
         override val defaultConfig: IdeProductFlavorContainerImpl = defaultConfig()
         override val debugBuildType: IdeBuildTypeContainerImpl? = debugBuildType()
         override val releaseBuildType: IdeBuildTypeContainerImpl? = releaseBuildType()
+        override val flavorDimensions: List<String>? = flavorDimensions()
         override val dynamicFeatures: List<String> = dynamicFeatures()
         override val viewBindingOptions: IdeViewBindingOptionsImpl = viewBindingOptions()
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
         override val supportsBundleTask: Boolean = supportsBundleTask()
+        override fun productFlavors(dimension: String): List<IdeProductFlavorImpl> = productFlavorsStub(dimension)
+        override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
+        override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(dimension)
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
         override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl> = androidLibraryDependencyList(variant)
         override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
@@ -464,6 +491,9 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderI
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider("release", moduleBasePath.resolve("src/release"))
+
+fun AndroidProjectStubBuilder.sourceProvider(name: String): IdeSourceProviderImpl =
+  sourceProvider(name, moduleBasePath.resolve("src/$name"))
 
 private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl = IdeSourceProviderImpl(
   myName = name,
@@ -571,6 +601,14 @@ fun AndroidProjectStubBuilder.buildViewBindingOptions(): IdeViewBindingOptionsIm
 fun AndroidProjectStubBuilder.buildDependenciesInfo(): IdeDependenciesInfoImpl =
   IdeDependenciesInfoImpl(includeInApk = true, includeInBundle = true)
 
+fun AndroidProjectStubBuilder.buildProductFlavorContainersStub(dimension: String): List<IdeProductFlavorContainerImpl> {
+  return this
+    .productFlavors(dimension)
+    .map { flavor ->
+      val sourceProvider = this.productFlavorSourceProvider(flavor.name)
+      IdeProductFlavorContainerImpl(flavor, sourceProvider, extraSourceProviders = emptyList())
+    }
+}
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
   classFolders: Set<File> = setOf()
@@ -724,39 +762,79 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
 }
 
 fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantImpl> {
-  return listOfNotNull(debugBuildType, releaseBuildType)
-    .map {
-      val buildType = it.buildType
-      val variant = buildType.name
-      IdeVariantImpl(
-        variant,
-        variant,
-        mainArtifact(variant),
-        unitTestArtifact(variant),
-        androidTestArtifact(variant),
-        testFixturesArtifact(variant),
-        variant,
-        listOf(),
-        minSdkVersion = defaultConfig.productFlavor.minSdkVersion ?: IdeApiVersionImpl(1, null, "1"),
-        targetSdkVersion = defaultConfig.productFlavor.targetSdkVersion,
-        maxSdkVersion = defaultConfig.productFlavor.maxSdkVersion,
-        versionCode = defaultConfig.productFlavor.versionCode,
-        versionNameWithSuffix = defaultConfig.productFlavor.versionName + defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
-        versionNameSuffix = buildType.versionNameSuffix,
-        instantAppCompatible = false,
-        vectorDrawablesUseSupportLibrary = defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
-        resourceConfigurations = defaultConfig.productFlavor.resourceConfigurations,
-        resValues = defaultConfig.productFlavor.resValues,
-        proguardFiles = defaultConfig.productFlavor.proguardFiles + buildType.proguardFiles,
-        consumerProguardFiles = defaultConfig.productFlavor.consumerProguardFiles + buildType.consumerProguardFiles,
-        manifestPlaceholders = defaultConfig.productFlavor.manifestPlaceholders + buildType.manifestPlaceholders,
-        testApplicationId = defaultConfig.productFlavor.testApplicationId,
-        testInstrumentationRunner = defaultConfig.productFlavor.testInstrumentationRunner,
-        testInstrumentationRunnerArguments = defaultConfig.productFlavor.testInstrumentationRunnerArguments,
-        testedTargetVariants = listOf(),
-        deprecatedPreMergedApplicationId = defaultConfig.productFlavor.applicationId + defaultConfig.productFlavor.applicationIdSuffix.orEmpty() + buildType.applicationIdSuffix.orEmpty(),
-      )
+  val dimensions = this.flavorDimensions.orEmpty()
+  fun combineVariants(dimensionIndex: Int = 0): List<List<IdeProductFlavorImpl>> {
+    return when (dimensionIndex) {
+      dimensions.size -> listOf(emptyList())
+      else -> {
+        val tails = combineVariants(dimensionIndex + 1)
+        val thisDimension = this.productFlavors(dimensions[dimensionIndex])
+        thisDimension.flatMap { flavor -> tails.map { tail -> listOf(flavor) + tail }}
+      }
     }
+  }
+
+  val flavorSequences = combineVariants()
+  return flavorSequences.flatMap { flavors ->
+    listOfNotNull(debugBuildType, releaseBuildType)
+      .map {
+        val buildType = it.buildType
+        val flavorNames = flavors.map { it.name }
+        val variant = (flavorNames + buildType.name).combineAsCamelCase()
+        IdeVariantImpl(
+          variant,
+          variant,
+          mainArtifact(variant),
+          unitTestArtifact(variant),
+          androidTestArtifact(variant),
+          testFixturesArtifact(variant),
+          buildType.name,
+          flavorNames,
+          minSdkVersion = flavors.firstNotNullResult { it.minSdkVersion }
+                          ?: defaultConfig.productFlavor.minSdkVersion
+                          ?: IdeApiVersionImpl(1, null, "1"),
+          targetSdkVersion = flavors.firstNotNullResult { it.targetSdkVersion }
+                             ?: defaultConfig.productFlavor.targetSdkVersion,
+          maxSdkVersion = flavors.firstNotNullResult { it.maxSdkVersion }
+                          ?: defaultConfig.productFlavor.maxSdkVersion,
+          versionCode = flavors.firstNotNullResult { it.versionCode }
+                        ?: defaultConfig.productFlavor.versionCode,
+          versionNameWithSuffix = (flavors.firstNotNullResult { it.versionName } ?: defaultConfig.productFlavor.versionName) +
+                                  defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
+          versionNameSuffix = buildType.versionNameSuffix,
+          instantAppCompatible = false,
+          vectorDrawablesUseSupportLibrary = flavors.firstNotNullResult { it.vectorDrawables?.useSupportLibrary }
+                                             ?: defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
+          resourceConfigurations = (defaultConfig.productFlavor.resourceConfigurations + flavors.flatMap { it.resourceConfigurations })
+            .distinct(),
+          resValues = (defaultConfig.productFlavor.resValues.entries +flavors.flatMap { it.resValues.entries })
+            .associate { it.key to it.value },
+          proguardFiles = (defaultConfig.productFlavor.proguardFiles + flavors.flatMap { it.proguardFiles } + buildType.proguardFiles)
+            .distinct(),
+          consumerProguardFiles = (defaultConfig.productFlavor.consumerProguardFiles + flavors.flatMap { it.proguardFiles } + buildType.consumerProguardFiles)
+            .distinct(),
+          manifestPlaceholders = (defaultConfig.productFlavor.manifestPlaceholders.entries +
+                                  flavors.flatMap { it.manifestPlaceholders.entries } +
+                                  buildType.manifestPlaceholders.entries
+                                 )
+            .associate { it.key to it.value },
+          testApplicationId = flavors.firstNotNullResult { it.testApplicationId }
+                              ?: defaultConfig.productFlavor.testApplicationId,
+          testInstrumentationRunner = flavors.firstNotNullResult { it.testInstrumentationRunner }
+                                      ?: defaultConfig.productFlavor.testInstrumentationRunner,
+          testInstrumentationRunnerArguments = (defaultConfig.productFlavor.testInstrumentationRunnerArguments.entries +
+                                                flavors.flatMap { it.testInstrumentationRunnerArguments.entries }
+                                               )
+            .associate { it.key to it.value },
+          testedTargetVariants = listOf(),
+          deprecatedPreMergedApplicationId = (flavors.firstNotNullResult { it.applicationId }
+                                              ?: defaultConfig.productFlavor.applicationId
+                                             ) +
+                                             defaultConfig.productFlavor.applicationIdSuffix.orEmpty() +
+                                             buildType.applicationIdSuffix.orEmpty(),
+        )
+      }
+  }
 }
 
 fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
@@ -771,9 +849,9 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     projectType = projectType,
     defaultConfig = defaultConfig,
     buildTypes = buildTypes,
-    productFlavors = listOf(),
+    productFlavors = this.flavorDimensions.orEmpty().flatMap { this.productFlavorContainers(it) },
     variantNames = this.variants.map { it.name },
-    flavorDimensions = listOf(),
+    flavorDimensions = this.flavorDimensions.orEmpty(),
     compileTarget = getLatestAndroidPlatform(),
     bootClasspath = listOf(),
     signingConfigs = listOf(),
