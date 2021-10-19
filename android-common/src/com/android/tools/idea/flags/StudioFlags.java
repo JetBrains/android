@@ -1338,6 +1338,13 @@ public final class StudioFlags {
     "Enable the Wear OS virtual device pairing assistant",
     "Enable the Wear OS virtual device pairing assistant",
     true);
+
+  public static final Flag<Boolean> PAIRED_DEVICES_TAB_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "paired.devices.tab.enabled",
+    "Enable the Paired devices tab",
+    "Enable the Paired devices tab in the details panel",
+    false);
   // endregion
 
   //region DDMLIB

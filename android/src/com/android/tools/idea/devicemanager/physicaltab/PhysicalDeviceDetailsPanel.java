@@ -16,7 +16,10 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.InfoSection;
+import com.android.tools.idea.devicemanager.PairedDevicesPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -149,6 +152,10 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myInfoSections.add(mySummarySection);
       InfoSection.newPairedDeviceSection(device).ifPresent(myInfoSections::add);
       // myInfoSections.add(myDeviceSection);
+
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey());
+      }
     }
     else {
       mySummarySection = null;

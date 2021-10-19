@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -37,6 +39,7 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DetailsPanel extends JBPanel<DetailsPanel> {
   private final @NotNull Component myHeadingLabel;
@@ -44,6 +47,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
   protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
+  protected @Nullable Component myPairedDevicesPanel;
 
   protected DetailsPanel(@NotNull String heading) {
     super(null);
@@ -127,6 +131,18 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
   private void setLayout() {
     GroupLayout layout = new GroupLayout(this);
 
+    Component component;
+    if (myPairedDevicesPanel == null) {
+      component = myScrollPane;
+    }
+    else {
+      JBTabbedPane tabbedPane = new JBTabbedPane();
+      tabbedPane.setTabComponentInsets(JBUI.emptyInsets());
+      tabbedPane.insertTab("Device Info", null, myScrollPane, null, 0);
+      tabbedPane.insertTab("Paired Devices", null, myPairedDevicesPanel, null, 1);
+      component = tabbedPane;
+    }
+
     Group horizontalGroup = layout.createParallelGroup()
       .addGroup(layout.createSequentialGroup()
                   .addContainerGap()
@@ -134,7 +150,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
                   .addPreferredGap(ComponentPlacement.UNRELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                   .addComponent(myCloseButton)
                   .addContainerGap())
-      .addComponent(myScrollPane);
+      .addComponent(component);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addContainerGap()
@@ -142,7 +158,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
                   .addComponent(myHeadingLabel)
                   .addComponent(myCloseButton))
       .addPreferredGap(ComponentPlacement.RELATED)
-      .addComponent(myScrollPane);
+      .addComponent(component);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
