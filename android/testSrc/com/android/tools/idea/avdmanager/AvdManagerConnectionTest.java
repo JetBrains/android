@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
@@ -22,7 +25,10 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -31,6 +37,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
+import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +46,7 @@ import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +80,51 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
     mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
+  }
+
+  public void testResizableAvd() {
+    String AVD_LOCATION = "/avd";
+    String SDK_LOCATION = "/sdk";
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // google api31 image
+    String g31Path = "system-images;android-31;google_apis;x86_64";
+    FakePackage.FakeLocalPackage g31Package = new FakePackage.FakeLocalPackage(g31Path, mFileOp);
+    DetailsTypes.SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    g31Package.setTypeDetails((TypeDetails)g31Details);
+    mFileOp.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(g31Package));
+    FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
+    AndroidSdkHandler sdkHandler =
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage g31Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(g31Path, progress)).getLocation());
+    assert g31Image != null;
+    SystemImageDescription g31ImageDescription = new SystemImageDescription(g31Image);
+
+    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+    Device resizableDevice = devMgr.getDevice("resizable", "Generic");
+
+    Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(resizableDevice);
+
+    mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "testResizable",
+      resizableDevice,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      false);
+    assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
+      isEqualTo("phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
   }
 
   public void testWipeAvd() {
