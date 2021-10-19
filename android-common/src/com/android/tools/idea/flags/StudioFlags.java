@@ -423,7 +423,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUAL_LINT = Flag.create(
     NELE, "visual.lint", "Enable visual linting for layouts",
     "Enable all the various tools related to visual linting of layouts.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_VISUAL_LINT_TOGGLE_ISSUE_LAYOUTS = Flag.create(
     NELE, "visual.lint.toggle.issue.layouts", "Checkbox to show the the layouts with issue only.",
