@@ -63,6 +63,7 @@ import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
@@ -76,6 +77,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
  */
 class AndroidGradleProjectStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
+    if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
