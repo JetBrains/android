@@ -688,8 +688,21 @@ internal class AndroidExtraModelProviderWorker(
     moduleConfiguration: ModuleConfiguration,
     selectedVariants: SelectedVariants
   ): (BuildController) -> SyncVariantResult? {
-    val module = androidModulesById[moduleConfiguration.id] ?: return { null }
+    val getVariantAction = getVariantAction(moduleConfiguration)
     return fun(controller: BuildController): SyncVariantResult? {
+      val syncVariantResultCore = getVariantAction(controller) ?: return null
+      return SyncVariantResult(
+        syncVariantResultCore,
+        syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants),
+      )
+    }
+  }
+
+  private fun getVariantAction(
+    moduleConfiguration: ModuleConfiguration
+  ): (BuildController) -> SyncVariantResultCore? {
+    val module = androidModulesById[moduleConfiguration.id] ?: return { null }
+    return fun(controller: BuildController): SyncVariantResultCore? {
       val ideVariant : IdeVariant?
       val abiToRequest : String?
       val nativeVariantAbi : NativeVariantAbiResult?
@@ -737,17 +750,12 @@ internal class AndroidExtraModelProviderWorker(
         return unresolvedDependencies
       }
 
-      val syncVariantResultCore = SyncVariantResultCore(
+      return SyncVariantResultCore(
         moduleConfiguration,
         module,
         ideVariant,
         nativeVariantAbi,
         getUnresolvedDependencies()
-      )
-
-      return SyncVariantResult(
-        syncVariantResultCore,
-        syncVariantResultCore.getModuleDependencyConfigurations(selectedVariants),
       )
     }
   }
