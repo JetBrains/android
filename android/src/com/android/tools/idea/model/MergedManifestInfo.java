@@ -42,7 +42,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -258,7 +257,7 @@ final class MergedManifestInfo {
    */
   public boolean isUpToDate() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    if (Disposer.isDisposed(myFacet)) {
+    if (myFacet.isDisposed()) {
       return true;
     }
     MergedManifestContributors manifests = ProjectSystemUtil.getModuleSystem(myFacet).getMergedManifestContributors();

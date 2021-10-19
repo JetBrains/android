@@ -92,7 +92,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
         super.tearDown();
       }
 
-      assertThat(Disposer.isDisposed(project)).isTrue();
+      assertThat(project.isDisposed()).isTrue();
 
       for (ResourceRepository repository : repositories) {
         if (repository instanceof Disposable) {
