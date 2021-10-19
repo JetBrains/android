@@ -307,7 +307,7 @@ class ModuleClassLoaderManager {
     // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
     // recreate a new one for faster load next time
     moduleClassLoader.module?.let { module ->
-      if (Disposer.isDisposed(module)) {
+      if (module.isDisposed()) {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {

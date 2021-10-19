@@ -257,7 +257,7 @@ final class MergedManifestInfo {
    */
   public boolean isUpToDate() {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    if (Disposer.isDisposed(myFacet)) {
+    if (myFacet.isDisposed()) {
       return true;
     }
     MergedManifestContributors manifests = ProjectSystemUtil.getModuleSystem(myFacet).getMergedManifestContributors();

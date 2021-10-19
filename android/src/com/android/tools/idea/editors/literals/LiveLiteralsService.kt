@@ -158,7 +158,7 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     @Suppress("IncorrectParentDisposable")
     private fun clearAll() {
-      if (Disposer.isDisposed(project)) return
+      if (project.isDisposed()) return
       val highlightManager = HighlightManager.getInstance(project)
       val highlightersToRemove = outHighlighters.toSet()
       outHighlighters.clear()

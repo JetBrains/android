@@ -104,7 +104,7 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) : AsyncSup
     return runCancellableReadAction {
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        Disposer.isDisposed(facet) || facet.module.project.isDisposed -> throw ProcessCanceledException()
+        facet.isDisposed() || facet.module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       }
