@@ -69,13 +69,6 @@ interface ConfigurationSet {
     override fun createModelsProvider(listener: ConfigurationSetListener) = LargeFontModelsProvider
   }
 
-  object Tablets : ConfigurationSet {
-    override val id = "tablets"
-    override val name = "Tablets"
-    override fun createModelsProvider(listener: ConfigurationSetListener) = TabletModelsProvider
-    override val visible = StudioFlags.NELE_VISUAL_LINT.get()
-  }
-
   object WindowSizeDevices : ConfigurationSet {
     override val id = "windowSizeDevices"
     override val name = "Reference Devices"
@@ -94,7 +87,6 @@ object ConfigurationSetProvider {
     listOf(
       if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices,
       ConfigurationSet.WearDevices,
-      ConfigurationSet.Tablets,
       ConfigurationSet.ProjectLocal,
       ConfigurationSet.Custom,
       ConfigurationSet.ColorBlindMode,
@@ -105,7 +97,6 @@ object ConfigurationSetProvider {
     val firstGroup = listOfNotNull(
       if (StudioFlags.NELE_VISUALIZATION_WINDOW_SIZE_MODE.get()) ConfigurationSet.WindowSizeDevices else ConfigurationSet.PixelDevices,
       ConfigurationSet.WearDevices,
-      ConfigurationSet.Tablets,
       ConfigurationSet.ProjectLocal
     )
 

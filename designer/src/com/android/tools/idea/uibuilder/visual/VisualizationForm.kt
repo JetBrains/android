@@ -123,13 +123,6 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   private var myCurrentConfigurationSet: ConfigurationSet
   private var myCurrentModelsProvider: VisualizationModelsProvider
   private val myLayoutManager: NlDesignSurfacePositionableContentLayoutManager
-  private val myTwoGridLayoutManager = TabletModelLayoutManager(
-    NlConstants.DEFAULT_SCREEN_OFFSET_X,
-    NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-    TABLET_HORIZONTAL_SCREEN_DELTA,
-    VERTICAL_SCREEN_DELTA,
-    false
-  )
   private val myGridSurfaceLayoutManager = GridSurfaceLayoutManager(
     NlConstants.DEFAULT_SCREEN_OFFSET_X,
     NlConstants.DEFAULT_SCREEN_OFFSET_Y,
@@ -163,8 +156,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     myProject = project
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().globalState.configurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
-    val surfaceLayoutManager =
-      if (myCurrentConfigurationSet === ConfigurationSet.Tablets) myTwoGridLayoutManager else myGridSurfaceLayoutManager
+    val surfaceLayoutManager = myGridSurfaceLayoutManager
     val config = if (StudioFlags.NELE_VISUAL_LINT.get() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) LayoutScannerEnabled() else DISABLED
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
@@ -648,12 +640,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
       trackOpenConfigSet(surface, myCurrentConfigurationSet)
       VisualizationToolSettings.getInstance().globalState.configurationSet = newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      if (myCurrentConfigurationSet === ConfigurationSet.Tablets) {
-        myLayoutManager.setLayoutManager(myTwoGridLayoutManager, DesignSurface.SceneViewAlignment.LEFT)
-      }
-      else {
-        myLayoutManager.setLayoutManager(myGridSurfaceLayoutManager, DesignSurface.SceneViewAlignment.LEFT)
-      }
+      myLayoutManager.setLayoutManager(myGridSurfaceLayoutManager, DesignSurface.SceneViewAlignment.LEFT)
       refresh()
     }
   }
@@ -734,12 +721,6 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
      */
     @SwingCoordinate
     private val GRID_HORIZONTAL_SCREEN_DELTA = 100
-
-    /**
-     * custom horizontal gap between different previews for [TabletModelsProvider].
-     */
-    @SwingCoordinate
-    private val TABLET_HORIZONTAL_SCREEN_DELTA = 50
 
     /**
      * vertical gap between different previews
