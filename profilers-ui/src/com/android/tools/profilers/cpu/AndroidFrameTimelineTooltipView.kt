@@ -21,14 +21,14 @@ import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerFonts
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip
 import com.android.tools.profilers.cpu.systemtrace.getTitle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import javax.swing.JComponent
 
-class JankyFrameTooltipView(parent: JComponent, val tooltip: JankyFrameTooltip): TooltipView(tooltip.timeline) {
+class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFrameTimelineTooltip): TooltipView(tooltip.timeline) {
   @VisibleForTesting val container = JBPanel<Nothing>(TabularLayout("*").setVGap(12))
   private val typeLabel = JBLabel().apply { font = ProfilerFonts.H3_FONT }
   private val frameLabel = JBLabel()
@@ -45,7 +45,7 @@ class JankyFrameTooltipView(parent: JComponent, val tooltip: JankyFrameTooltip):
       add(JBLabel("Click to inspect").apply { foreground = ProfilerColors.TOOLTIP_LOW_CONTRAST },
           TabularLayout.Constraint(6, 0))
     }
-    tooltip.addDependency(this).onChange(JankyFrameTooltip.Aspect.VALUE_CHANGED, ::updateView)
+    tooltip.addDependency(this).onChange(AndroidFrameTimelineTooltip.Aspect.VALUE_CHANGED, ::updateView)
     updateView()
   }
 

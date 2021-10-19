@@ -17,14 +17,12 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
-import com.google.common.annotations.VisibleForTesting
 
-class JankyFrameTooltip(val timeline: Timeline, private val model: JankyFrameModel)
-  : TooltipModel, AspectModel<JankyFrameTooltip.Aspect>() {
+class AndroidFrameTimelineTooltip(val timeline: Timeline, private val model: AndroidFrameTimelineModel)
+  : TooltipModel, AspectModel<AndroidFrameTimelineTooltip.Aspect>() {
 
   var activeEvent: AndroidFrameTimelineEvent? = null
     private set(event) {

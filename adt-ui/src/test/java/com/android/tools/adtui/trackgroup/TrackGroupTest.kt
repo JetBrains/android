@@ -35,6 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
 import java.awt.event.ActionEvent
+import javax.swing.JCheckBox
 
 @RunsInEdt
 class TrackGroupTest {
@@ -91,6 +92,7 @@ class TrackGroupTest {
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.tagCheckBoxPanel.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
     assertThat(actionListener.collapsed).isTrue()
 
@@ -100,6 +102,7 @@ class TrackGroupTest {
     assertThat(trackGroup.trackTitleOverlay.isVisible).isTrue()
     assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
     assertThat(trackGroup.separator.isVisible).isTrue()
+    assertThat(trackGroup.tagCheckBoxPanel.isVisible).isTrue()
     assertThat(trackGroup.collapseButton.text).isNull()
     assertThat(actionListener.collapsed).isFalse()
     assertThat(actionListener.titleVar).isEqualTo("Group")
@@ -110,6 +113,7 @@ class TrackGroupTest {
     assertThat(trackGroup.trackTitleOverlay.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.tagCheckBoxPanel.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
     assertThat(actionListener.collapsed).isTrue()
     assertThat(actionListener.titleVar).isEqualTo("Group")
@@ -272,5 +276,48 @@ class TrackGroupTest {
     boxUi.mouse.drag(0, 0, 100, 10)
     assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
+  }
+
+  @Test
+  fun `toggling display tags changes track group content`() {
+    val tag1 = "tag1"
+    val tag2 = "tag2"
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group")
+      .setSelector(TrackGroupModel.makeBatchSelector("tag"))
+      .addDisplayToggle(tag1, false)
+      .addDisplayToggle(tag2, true)
+      .build()
+
+    // build two track models both of which are collapsible and initially in a collapsed state
+    val trackModel1 = TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1")
+      .setCollapsible(true)
+      .setCollapsed(true)
+    val trackModel2 = TrackModel.newBuilder(StringSelectable("Bar2"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar2")
+      .setCollapsible(true)
+      .setCollapsed(true)
+    trackGroupModel.addTrackModel(trackModel1) { tag1 in it }
+    trackGroupModel.addTrackModel(trackModel2) { tag2 in it }
+
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    val view = trackGroup.component
+    fun checkBox(title: String) = TreeWalker(view).descendantStream()
+      .filter { it is JCheckBox && it.text == title }
+      .findAny().orElseThrow() as JCheckBox
+
+    val tag1CheckBox = checkBox(tag1)
+    val tag2CheckBox = checkBox(tag2)
+
+    assertThat(tag1CheckBox.isSelected).isFalse()
+    assertThat(tag2CheckBox.isSelected).isTrue()
+    assertThat(trackGroupModel.size).isEqualTo(1)
+
+    tag1CheckBox.isSelected = true
+    assertThat(trackGroupModel.size).isEqualTo(2)
+
+    tag2CheckBox.isSelected = false
+    assertThat(trackGroupModel.size).isEqualTo(1)
+
+    tag1CheckBox.isSelected = false
+    assertThat(trackGroupModel.size).isEqualTo(0)
   }
 }

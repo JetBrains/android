@@ -27,7 +27,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
@@ -36,8 +36,8 @@ import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
 
-class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<JankyFrameModel> {
-  override fun render(trackModel: TrackModel<JankyFrameModel, *>) =
+class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<AndroidFrameTimelineModel> {
+  override fun render(trackModel: TrackModel<AndroidFrameTimelineModel, *>) =
     StateChart(trackModel.dataModel, ::renderJankyFrame).apply {
       addRowIndexChangeListener {
         trackModel.dataModel.activeSeriesIndex = it

@@ -24,9 +24,9 @@ import perfetto.protos.PerfettoTrace
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
 
-class JankyFrameModel(layers: List<List<AndroidFrameTimelineEvent>>,
-                      vsyncs: List<SeriesData<Long>>,
-                      viewRange: Range): StateChartModel<AndroidFrameTimelineEvent?>() {
+class AndroidFrameTimelineModel(layers: List<List<AndroidFrameTimelineEvent>>,
+                                vsyncs: List<SeriesData<Long>>,
+                                viewRange: Range) : StateChartModel<AndroidFrameTimelineEvent?>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })
 
   var activeSeriesIndex = -1
@@ -39,10 +39,8 @@ class JankyFrameModel(layers: List<List<AndroidFrameTimelineEvent>>,
 
   init {
     layers.forEach { frames ->
-      val paddedJankyFrames = frames
-        .filter { it.actualEndUs > it.expectedEndUs }
-        .padded({ it.expectedStartUs }, { it.actualEndUs }, { it }, { _, _ -> null })
-      addSeries(RangedSeries(viewRange, LazyDataSeries { paddedJankyFrames }))
+      val paddedFrames = frames.padded({ it.expectedStartUs }, { it.actualEndUs }, { it }, { _, _ -> null })
+      addSeries(RangedSeries(viewRange, LazyDataSeries { paddedFrames }))
     }
   }
 }

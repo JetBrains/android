@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
@@ -27,16 +27,16 @@ import perfetto.protos.PerfettoTrace
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class JankyFrameTooltipViewTest {
+class AndroidFrameTimelineTooltipViewTest {
   @Test
   fun `tooltip updates on change`() {
     val timeline = DefaultTimeline().apply {
       dataRange.set(0.0, 4000.0)
       viewRange.set(0.0, 4000.0)
     }
-    val model = JankyFrameModel(listOf(listOf(FAKE_EVENT_0), listOf(FAKE_EVENT_1)), listOf(), timeline.viewRange)
-    val tooltip = JankyFrameTooltip(timeline, model)
-    val tooltipView = JankyFrameTooltipView(JPanel(), tooltip)
+    val model = AndroidFrameTimelineModel(listOf(listOf(FAKE_EVENT_0), listOf(FAKE_EVENT_1)), listOf(), timeline.viewRange)
+    val tooltip = AndroidFrameTimelineTooltip(timeline, model)
+    val tooltipView = AndroidFrameTimelineTooltipView(JPanel(), tooltip)
     fun checkText(txt: String) =
       assertThat(TreeWalker(tooltipView.container).descendants().any { it is JLabel && txt in it.text }).isTrue()
 

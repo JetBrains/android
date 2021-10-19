@@ -32,6 +32,8 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
   val hideHeader: Boolean = builder.hideHeader
   private val selector: Selector? = builder.selector
   val boxSelectionModel: BoxSelectionModel? = builder.boxSelectionModel
+  val allDisplayToggles: List<String> = builder.toggles.keys.toList()
+  var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it }.keys.mapTo(mutableSetOf()) { it }
 
   private val observer = AspectObserver()
   val isTrackSelectable: Boolean // whether the tracks inside this track group are selectable.
@@ -39,17 +41,27 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
   private val actionListenerList = mutableListOf<TrackGroupActionListener>()
   val actionListeners: List<TrackGroupActionListener> get() = actionListenerList
 
+  // track models paired with functions that dynamically decide if they should display based on active toggles
+  private val trackModelConfigs = mutableListOf<Pair<TrackModel<*, *>, (Set<String>) -> Boolean>>()
+
   /**
    * Add a [TrackModel] to the group.
    *
    * @param builder    to build the [TrackModel] to add
+   * @param shouldPresent whether the track should be presented given the active tags
    * @param <M>        data model type
    * @param <R>        renderer enum type
    */
-  fun <M, R : Enum<*>> addTrackModel(builder: TrackModel.Builder<M, R>) {
+  @JvmOverloads
+  fun <M, R : Enum<*>> addTrackModel(builder: TrackModel.Builder<M, R>,
+                                     shouldPresent: (Set<String>) -> Boolean = { true }) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
     val trackModel = builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build()
-    insertOrderedElement(trackModel)
+    trackModelConfigs += trackModel to shouldPresent
+
+    if (shouldPresent(activeDisplayToggles)) {
+      insertOrderedElement(trackModel)
+    }
 
     // Listen to track's collapse state change.
     trackModel.aspectModel.addDependency(observer).onChange(TrackModel.Aspect.COLLAPSE_CHANGE) {
@@ -58,6 +70,21 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
         fireContentsChanged(this, index, index)
       }
     }
+  }
+
+  fun setDisplayTag(tag: String, active: Boolean) = when {
+    tag !in allDisplayToggles -> throw IllegalArgumentException("Unrecognized tag $tag")
+    active != tag in activeDisplayToggles -> {
+      activeDisplayToggles = if (active) (activeDisplayToggles + tag) else (activeDisplayToggles - tag)
+      clearOrderedElements()
+      trackModelConfigs.forEach { (track, shouldPresent) ->
+        if (shouldPresent(activeDisplayToggles)) {
+          insertOrderedElement(track)
+        }
+      }
+      fireContentsChanged(this, 0, size)
+    }
+    else -> { /* no state change */ }
   }
 
   /**
@@ -76,6 +103,7 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     internal var hideHeader = false
     internal var selector: Selector? = null
     internal var boxSelectionModel: BoxSelectionModel? = null
+    internal val toggles = mutableMapOf<String, Boolean>()
 
     /**
      * @param title string to be displayed in the header
@@ -107,6 +135,11 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     fun setSelector(selector: Selector?) = this.also { this.selector = selector }
 
     fun setBoxSelectionModel(rangeSelectionModel: BoxSelectionModel?) = this.also { boxSelectionModel = rangeSelectionModel }
+
+    /**
+     * Add a display toggle that can be dynamically turned on or off, affecting which tracks are displayed
+     */
+    fun addDisplayToggle(title: String, isOnByDefault: Boolean) = this.also { toggles += title to isOnByDefault }
     fun build() = TrackGroupModel(this)
   }
 

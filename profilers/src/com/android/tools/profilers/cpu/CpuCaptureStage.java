@@ -47,6 +47,7 @@ import com.android.tools.profilers.cpu.analysis.FramesAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
@@ -57,8 +58,8 @@ import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameModel;
-import com.android.tools.profilers.cpu.systemtrace.JankyFrameTooltip;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -548,20 +549,36 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static TrackGroupModel createJankDetectionTrackGroup(
     int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+    String toggleAllFrames = "All Frames";
+    String toggleLifeCycle = "Lifecycle";
+
     TrackGroupModel display = TrackGroupModel.newBuilder()
       .setTitle("Display")
       .setTitleHelpText("This section contains display info. " +
                         "<p><b>Janky Frames</b>: frames that are janky. " +
                         "Frames missing deadlines are colored red, buffer stuffing yellow.</p>")
       .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
+      .addDisplayToggle(toggleAllFrames, false)
+      .addDisplayToggle(toggleLifeCycle, false)
       .build();
 
     // Jank
-    JankyFrameModel jankyFrameModel = new JankyFrameModel(Arrays.asList(systemTraceData.getAndroidFrameTimelineEvents()),
-                                                          systemTraceData.getVsyncCounterValues(),
-                                                          timeline.getViewRange());
-    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.JANKY_FRAME, "Janky frames")
-                            .setDefaultTooltipModel(new JankyFrameTooltip(timeline, jankyFrameModel)));
+    List<AndroidFrameTimelineEvent> events = systemTraceData.getAndroidFrameTimelineEvents();
+    List<AndroidFrameTimelineEvent> jankEvents = events.stream()
+      .filter(frame -> frame.getActualEndUs() > frame.getExpectedEndUs())
+      .collect(Collectors.toList());
+    List<SeriesData<Long>> vsyncs = systemTraceData.getVsyncCounterValues();
+    AndroidFrameTimelineModel jankyFrameModel =
+      new AndroidFrameTimelineModel(Arrays.asList(jankEvents), vsyncs, timeline.getViewRange());
+    AndroidFrameTimelineModel allFramesModel =
+      new AndroidFrameTimelineModel(Arrays.asList(events), vsyncs, timeline.getViewRange());
+    display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "Janky frames")
+                            .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, jankyFrameModel)),
+                          toggles -> !toggles.contains(toggleAllFrames));
+    display.addTrackModel(TrackModel.newBuilder(allFramesModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "All frames")
+                            .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, allFramesModel)),
+                          toggles -> toggles.contains(toggleAllFrames));
+    // TODO(b/203436776) add lifecycle tracks
     return display;
 
   }

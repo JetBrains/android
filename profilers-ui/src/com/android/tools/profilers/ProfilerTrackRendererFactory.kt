@@ -48,7 +48,7 @@ class ProfilerTrackRendererFactory(private val myProfilersView: StudioProfilersV
     ProfilerTrackRendererType.CPU_FREQUENCY -> CpuFrequencyTrackRenderer()
     ProfilerTrackRendererType.RSS_MEMORY -> RssMemoryTrackRenderer()
     ProfilerTrackRendererType.ANDROID_FRAME_EVENT -> AndroidFrameEventTrackRenderer(vsyncEnabler)
-    ProfilerTrackRendererType.JANKY_FRAME -> JankyFrameTrackRenderer(vsyncEnabler)
+    ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT -> JankyFrameTrackRenderer(vsyncEnabler)
     ProfilerTrackRendererType.CUSTOM_EVENTS -> CustomEventTrackRenderer()
   }
 }
