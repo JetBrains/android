@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.compose.findComposeToolingNamespace
@@ -50,6 +51,8 @@ import org.jetbrains.uast.toUElement
  * Returns true if the [KtAnnotationEntry] is a `@Preview` annotation.
  */
 internal fun KtAnnotationEntry.isPreviewAnnotation() = ReadAction.compute<Boolean, Throwable> {
+  // getQualifiedName is fairly expensive, so we check first that short name matches before calling it.
+  shortName?.identifier == COMPOSE_PREVIEW_ANNOTATION_NAME &&
   PREVIEW_ANNOTATION_FQNS.contains(getQualifiedName())
 }
 
