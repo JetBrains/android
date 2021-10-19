@@ -32,6 +32,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class Locale {
   /**
+   * The default locale label which displays on Language button by default.
+   */
+  private static final String DEFAULT_LOCALE_LABEL = "Default (en-us)";
+
+  /**
    * A special marker region qualifier representing any region
    */
   private static final LocaleQualifier ANY_QUALIFIER = new LocaleQualifier(FAKE_VALUE);
@@ -254,4 +259,51 @@ public class Locale {
       return StringUtil.compare(region1, region2, false);
     }
   };
+
+  /**
+   * Returns a suitable label to use to display the given locale
+   *
+   * @param locale       the locale to look up a label for
+   * @param brief        if true, generate a brief label (suitable for a toolbar
+   *                     button), otherwise a fuller name (suitable for a menu item)
+   * @return the label
+   */
+  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
+    if (locale == null || !locale.hasLanguage()) {
+      return DEFAULT_LOCALE_LABEL;
+    }
+
+    String languageCode = locale.qualifier.getLanguage();
+    assert languageCode != null; // hasLanguage() above.
+
+    String languageName = LocaleManager.getLanguageName(languageCode);
+
+    if (!locale.hasRegion()) {
+      // TODO: Make the region string use "Other" instead of "Any" if
+      // there is more than one region for a given language
+      //if (regions.size() > 0) {
+      //    return String.format("%1$s / Other", language);
+      //} else {
+      //    return String.format("%1$s / Any", language);
+      //}
+      if (languageName != null) {
+        return String.format("%1$s (%2$s)", languageName, languageCode);
+      }
+      else {
+        return languageCode;
+      }
+    }
+    else {
+      String regionCode = locale.qualifier.getRegion();
+      assert regionCode != null : locale.qualifier; // because hasRegion() is true
+      if (!brief && languageName != null) {
+        String regionName = LocaleManager.getRegionName(regionCode);
+        if (regionName != null) {
+          return String.format("%1$s (%2$s) in %3$s (%4$s)", languageName, languageCode, regionName, regionCode);
+        }
+        return String.format("%1$s (%2$s) in %3$s", languageName, languageCode, regionCode);
+      }
+      return String.format("%1$s (%2$s / %3$s)", languageName, languageCode, regionCode);
+    }
+  }
 }

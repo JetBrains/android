@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.icons.AllIcons;
@@ -108,7 +107,7 @@ final class FilterKeysAction extends ComboBoxAction {
 
   @NotNull
   private AnAction newShowKeysNeedingTranslationForLocaleAction(@NotNull Locale locale) {
-    String text = "Show Keys Needing a Translation for " + LocaleMenuAction.getLocaleLabel(locale, false);
+    String text = "Show Keys Needing a Translation for " + Locale.getLocaleLabel(locale, false);
 
     return new AnAction(text, null, locale.getFlagImage()) {
       @Override

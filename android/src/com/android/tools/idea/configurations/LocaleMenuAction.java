@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -40,15 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LocaleMenuAction extends DropDownAction {
-
-  /**
-   * The default locale label which displays on Language button by default.
-   */
-  private static final String DEFAULT_LOCALE_LABEL = "Default (en-us)";
-
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
@@ -73,23 +65,23 @@ public class LocaleMenuAction extends DropDownAction {
     // allowing typing to filter, etc.
 
     Configuration conf = myRenderContext.getConfiguration();
-    String currentLocalLabel = getLocaleLabel(conf == null ? Locale.ANY : conf.getLocale(), false);
+    String currentLocalLabel = Locale.getLocaleLabel(conf == null ? Locale.ANY : conf.getLocale(), false);
 
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && !locales.isEmpty()) {
-      String title = getLocaleLabel(Locale.ANY, false);
+      String title = Locale.getLocaleLabel(Locale.ANY, false);
       add(new SetLocaleAction(myRenderContext, title, Locale.ANY, currentLocalLabel.equals(title)));
       addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
-        title = getLocaleLabel(locale, false);
+        title = Locale.getLocaleLabel(locale, false);
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
-          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
+          title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
         add(new SetLocaleAction(myRenderContext, title, locale, currentLocalLabel.equals(title)));
@@ -183,7 +175,7 @@ public class LocaleMenuAction extends DropDownAction {
       Locale locale = configuration.getLocale();
       presentation.setIcon(
         locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? locale.getFlagImage() : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
-      String brief = getLocaleLabel(locale, true);
+      String brief = Locale.getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
     else {
@@ -191,53 +183,6 @@ public class LocaleMenuAction extends DropDownAction {
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
-    }
-  }
-
-  /**
-   * Returns a suitable label to use to display the given locale
-   *
-   * @param locale       the locale to look up a label for
-   * @param brief        if true, generate a brief label (suitable for a toolbar
-   *                     button), otherwise a fuller name (suitable for a menu item)
-   * @return the label
-   */
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    if (locale == null || !locale.hasLanguage()) {
-      return DEFAULT_LOCALE_LABEL;
-    }
-
-    String languageCode = locale.qualifier.getLanguage();
-    assert languageCode != null; // hasLanguage() above.
-
-    String languageName = LocaleManager.getLanguageName(languageCode);
-
-    if (!locale.hasRegion()) {
-      // TODO: Make the region string use "Other" instead of "Any" if
-      // there is more than one region for a given language
-      //if (regions.size() > 0) {
-      //    return String.format("%1$s / Other", language);
-      //} else {
-      //    return String.format("%1$s / Any", language);
-      //}
-      if (languageName != null) {
-        return String.format("%1$s (%2$s)", languageName, languageCode);
-      }
-      else {
-        return languageCode;
-      }
-    }
-    else {
-      String regionCode = locale.qualifier.getRegion();
-      assert regionCode != null : locale.qualifier; // because hasRegion() is true
-      if (!brief && languageName != null) {
-        String regionName = LocaleManager.getRegionName(regionCode);
-        if (regionName != null) {
-          return String.format("%1$s (%2$s) in %3$s (%4$s)", languageName, languageCode, regionName, regionCode);
-        }
-        return String.format("%1$s (%2$s) in %3$s", languageName, languageCode, regionCode);
-      }
-      return String.format("%1$s (%2$s / %3$s)", languageName, languageCode, regionCode);
     }
   }
 

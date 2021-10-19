@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.StringResourceUnescaper;
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -218,7 +217,7 @@ public class StringResourceData {
   }
 
   private static String getLabel(@Nullable Locale locale) {
-    return locale == null ? "" : LocaleMenuAction.getLocaleLabel(locale, false);
+    return locale == null ? "" : Locale.getLocaleLabel(locale, false);
   }
 
   boolean containsKey(@NotNull StringResourceKey key) {

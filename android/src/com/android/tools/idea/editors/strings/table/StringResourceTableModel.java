@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceKey;
@@ -199,7 +198,7 @@ public class StringResourceTableModel extends AbstractTableModel {
       case DEFAULT_VALUE_COLUMN:
         return "Default Value";
       default:
-        return LocaleMenuAction.getLocaleLabel(getLocale(column), false);
+        return Locale.getLocaleLabel(getLocale(column), false);
     }
   }
 

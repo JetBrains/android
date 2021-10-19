@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +35,6 @@ public class LocaleColumnFilter implements StringResourceTableColumnFilter {
   @Override
   public void update(@NotNull Presentation presentation) {
     presentation.setIcon(myLocale.getFlagImage());
-    presentation.setText(LocaleMenuAction.getLocaleLabel(myLocale, false));
+    presentation.setText(Locale.getLocaleLabel(myLocale, false));
   }
 }
