@@ -89,16 +89,12 @@ class AndroidModule internal constructor(
   val defaultVariantName: String?,
   val v2BasicVariants: List<BasicVariant>?,
   val v2Variants: List<Variant>?,
-  private val prefetchedVariants: List<IdeVariant>?,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?
 ) : GradleModule(gradleProject) {
   val projectType: IdeAndroidProjectType get() = androidProject.projectType
-
-  /** Names of all currently fetch variants (currently pre single-variant-sync only). */
-  val fetchedVariantNames: Collection<String> = prefetchedVariants?.map { it.name }?.toSet().orEmpty()
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
     fun unsafeGet() = nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
@@ -118,6 +114,7 @@ class AndroidModule internal constructor(
   var syncedVariant: IdeVariant? = null
   var syncedNativeVariantAbiName: String? = null
   var syncedNativeVariant: IdeNativeVariantAbi? = null
+  var allVariants: List<IdeVariant>? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
   var kotlinGradleModel: KotlinGradleModel? = null
@@ -129,10 +126,7 @@ class AndroidModule internal constructor(
    * libraries other variants depend on.
    **/
   fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
-    // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
-    // The first case indicates full-variants sync and the later single-variant sync.
-    val variants = prefetchedVariants ?: listOfNotNull(syncedVariant)
-    return collectIdentifiers(variants)
+    return collectIdentifiers(listOfNotNull(syncedVariant))
   }
 
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
@@ -141,12 +135,12 @@ class AndroidModule internal constructor(
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
     val selectedVariantName =
       syncedVariant?.name
-      ?: prefetchedVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
+      ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
       ?: throw AndroidSyncException("No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
 
     val ideAndroidModels = IdeAndroidModels(
       androidProject,
-      syncedVariant?.let { listOf(it) } ?: prefetchedVariants.orEmpty(),
+      syncedVariant?.let { listOf(it) } ?: allVariants.orEmpty(),
       selectedVariantName,
       syncedNativeVariantAbiName,
       projectSyncIssues.orEmpty(),
