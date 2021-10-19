@@ -72,7 +72,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
-import org.junit.Assert
+import org.junit.Assert.fail
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -771,16 +771,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       responseMessageCounter.poll(timeout, unit)
     }
 
-    fun waitForCompletion(timeout: Long, unit: TimeUnit) {
+    private fun waitForCompletion(timeout: Long, unit: TimeUnit) {
       completion.get(timeout, unit)
     }
 
     fun waitForCancellation(timeout: Long, unit: TimeUnit) {
       try {
-        waitForCompletion(2, TimeUnit.SECONDS)
-        Assert.fail("The $methodName call was not cancelled")
+        waitForCompletion(timeout, unit)
+        fail("The $methodName call was not cancelled")
       }
-      catch (expected: CancellationException) {
+      catch (_: CancellationException) {
+        // Expected.
       }
     }
 
@@ -1225,6 +1226,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sensors.orientation=yes
           hw.sensors.proximity=no
           hw.trackBall=no
+          hw.resizable.configs = phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           image.sysdir.1 = system-images/android-32/google_apis/x86_64/
           runtime.network.latency=none
           runtime.network.speed=full
@@ -1261,7 +1263,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           android.sdk.root = $sdkFolder
           hw.initialOrientation = Portrait
           hw.device.name = resizable
-          hw.resizable.configs = phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           """.trimIndent()
 
       return createAvd(avdFolder, configIni, hardwareIni)

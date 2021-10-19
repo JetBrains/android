@@ -53,10 +53,10 @@ class EmulatorConfiguration private constructor(
      * Returns null if any of the essential data is missing.
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
-      val file = avdFolder.resolve("hardware-qemu.ini")
+      val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
       val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                 "hw.resizable.configs", "hw.sensor.hinge.count", "hw.sensor.roll.count")
-      val hardwareIni = readKeyValueFile(file, keysToExtract1) ?: return null
+                                 "hw.sensor.hinge.count", "hw.sensor.roll.count")
+      val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract1) ?: return null
 
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
@@ -66,16 +66,11 @@ class EmulatorConfiguration private constructor(
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
       val foldable = parseInt(hardwareIni["hw.sensor.hinge.count"], 0) > 0
       val rollable = parseInt(hardwareIni["hw.sensor.roll.count"], 0) > 0
-      val displayModes = try {
-        hardwareIni["hw.resizable.configs"]?.let(::parseDisplayModes) ?: emptyList()
-      }
-      catch (e: Exception) {
-        thisLogger().warn("Unrecognized value of the hw.resizable.configs property, \"${hardwareIni["hw.resizable.configs"]}\", in $file")
-        emptyList()
-      }
 
-      val keysToExtract2 = setOf("avd.ini.displayname", "hw.sensors.orientation", "hw.initialOrientation", "showDeviceFrame", "skin.path")
-      val configIni = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract2) ?: return null
+      val keysToExtract2 = setOf("avd.ini.displayname", "hw.resizable.configs", "hw.sensors.orientation", "hw.initialOrientation",
+                                 "showDeviceFrame", "skin.path")
+      val configIniFile = avdFolder.resolve("config.ini")
+      val configIni = readKeyValueFile(configIniFile, keysToExtract2) ?: return null
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
       val initialOrientation = if ("landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true))
@@ -84,6 +79,14 @@ class EmulatorConfiguration private constructor(
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       if (displayWidth <= 0 || displayHeight <= 0) {
         return null
+      }
+      val displayModes = try {
+        configIni["hw.resizable.configs"]?.let(::parseDisplayModes) ?: emptyList()
+      }
+      catch (e: Exception) {
+        thisLogger().warn("Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," +
+                          " in $configIniFile")
+        emptyList()
       }
 
       return EmulatorConfiguration(avdName = avdName,
