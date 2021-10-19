@@ -552,9 +552,22 @@ MODULE                        : MultiFlavor.app
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 20
+            VersionNameSuffix             : -firstAbc-secondAbc-debug
+            VersionNameWithSuffix         : 1.secondAbc-firstAbc-secondAbc-debug
+            ProguardFiles                 : <ROOT>/app/default.pro [-]
+            ProguardFiles                 : <ROOT>/app/debug.pro [-]
             ProductFlavors                : firstAbc
             ProductFlavors                : secondAbc
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
+            ManifestPlaceholders
+                a                             : firstAbc
+                b                             : debug
+                c                             : secondAbc
+            ResValues
+                string/v_a                    : (string, v_a, firstAbc)
+                string/v_b                    : (string, v_b, debug)
+                string/v_c                    : (string, v_c, secondAbc)
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileFirstAbcSecondAbcDebugSources

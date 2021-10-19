@@ -286,6 +286,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     var applicationId = defaultConfig.applicationId
     var applicationIdSuffix = defaultConfig.applicationIdSuffix
+    val consumerProguardFiles = mutableListOf<File>()
+    consumerProguardFiles.addAll(defaultConfig.consumerProguardFiles)
     var versionNameSuffix = defaultConfig.versionNameSuffix
     var versionCode = defaultConfig.versionCode
     var versionName = defaultConfig.versionName
@@ -299,6 +301,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     resourceConfigurations.addAll(defaultConfig.resourceConfigurations)
     val manifestPlaceholder = mutableMapOf<String, String>()
     manifestPlaceholder.putAll(defaultConfig.manifestPlaceholders)
+    val proguardFiles = mutableListOf<File>()
+    proguardFiles.addAll(defaultConfig.proguardFiles)
     val resValues = mutableMapOf<String, IdeClassField>()
     resValues.putAll(defaultConfig.resValues)
     var multiDexEnabled = defaultConfig.multiDexEnabled
@@ -321,15 +325,19 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       }
     }
     for (flavor in productFlavors) {
+      if (flavor.proguardFiles.isNotEmpty() && flavor.consumerProguardFiles.isNotEmpty()) {
+        proguardFiles.addAll(flavor.proguardFiles)
+        consumerProguardFiles.addAll(flavor.consumerProguardFiles)
+      }
       applicationId = flavor.applicationId ?: applicationId
       applicationIdSuffix = applicationIdSuffix?.plus(if (flavor.applicationIdSuffix != null) ".${flavor.applicationIdSuffix}" else "")
-      versionNameSuffix = versionNameSuffix?.plus(flavor.versionNameSuffix.orEmpty())
+      versionNameSuffix = versionNameSuffix.orEmpty() + flavor.versionNameSuffix.orEmpty()
     }
     return IdeProductFlavorImpl(
       name = "",
       resValues = resValues,
-      proguardFiles = emptyList(),
-      consumerProguardFiles = emptyList(),
+      proguardFiles = proguardFiles,
+      consumerProguardFiles = consumerProguardFiles,
       manifestPlaceholders = manifestPlaceholder.entries.associate { it.key to it.value },
       applicationIdSuffix = applicationIdSuffix,
       versionNameSuffix = versionNameSuffix,
@@ -882,7 +890,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       targetSdkVersion = copyModel(variant.mainArtifact.targetSdkVersionOverride) { apiVersionFrom(it) },
       maxSdkVersion = variant.mainArtifact.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
-      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix },
+      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
       instantAppCompatible = (modelVersion != null && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,

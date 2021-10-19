@@ -831,7 +831,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       targetSdkVersion = mergedFlavor.targetSdkVersion,
       maxSdkVersion = mergedFlavor.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
-      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix },
+      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
       versionNameSuffix = versionNameSuffix,
       instantAppCompatible = (modelVersion != null &&
                               modelVersion.isAtLeast(3, 3, 0, "alpha", 10, true) &&

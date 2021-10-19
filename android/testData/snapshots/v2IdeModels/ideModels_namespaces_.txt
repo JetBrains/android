@@ -239,6 +239,8 @@ MODULE                        : project.app
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=19, codename=null, apiString=19)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -572,6 +574,8 @@ MODULE                        : project.lib
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=19, codename=null, apiString=19)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -890,6 +894,8 @@ MODULE                        : project.otherlib
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=19, codename=null, apiString=19)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources

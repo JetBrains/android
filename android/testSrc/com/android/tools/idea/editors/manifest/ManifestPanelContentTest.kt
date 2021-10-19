@@ -176,7 +176,7 @@ Value provided by Gradle
 
 Value provided by Gradle
 
-Merged from the <a href='<~>/lib/src/main/AndroidManifest.xml:1:149'>navgraph.lib</a> manifest, line 1
+Merged from the <a href='<~>/lib/src/main/AndroidManifest.xml:1:145'>navgraph.lib</a> manifest, line 1
 
 Merged from the <a href='<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/navigation-ui-2.3.5/AndroidManifest.xml:19:4'>AndroidManifest.xml</a> navigation file, line 19
 

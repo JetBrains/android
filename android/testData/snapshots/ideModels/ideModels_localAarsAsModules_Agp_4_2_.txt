@@ -227,6 +227,8 @@ MODULE                        : project.app
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=22, codename=null, apiString=22)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.localaarsasmodules
             MainArtifact
                 Name                          : MAIN
@@ -575,6 +577,8 @@ MODULE                        : project.library
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=22, codename=null, apiString=22)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.library
             MainArtifact
                 Name                          : MAIN

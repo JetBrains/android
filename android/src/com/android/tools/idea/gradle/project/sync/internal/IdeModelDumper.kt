@@ -175,11 +175,31 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
       prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
       prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
       prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
+      prop("VersionCode") { ideVariant.versionCode?.toString() }
+      prop("VersionNameSuffix") { ideVariant.versionNameSuffix }
+      prop("VersionNameWithSuffix") { ideVariant.versionNameWithSuffix }
       prop("TestApplicationId") { ideVariant.testApplicationId }
       prop("DeprecatedPreMergedApplicationId") { ideVariant.deprecatedPreMergedApplicationId }
+      ideVariant.proguardFiles.forEach { prop("ProguardFiles") { it.path.toPrintablePath() } }
+      ideVariant.consumerProguardFiles.forEach { prop("ConsumerProguardFiles") { it.path.toPrintablePath() } }
       ideVariant.resourceConfigurations.forEach { prop("ResourceConfigurations") { it } }
       ideVariant.productFlavors.forEach { prop("ProductFlavors") { it } }
       prop("TestInstrumentationRunner") { ideVariant.testInstrumentationRunner }
+      if (ideVariant.manifestPlaceholders.isNotEmpty()) {
+        head("ManifestPlaceholders")
+        nest {
+          ideVariant.manifestPlaceholders.forEach { (key, value) ->
+            prop(key) { value }
+          }
+        }
+      }
+      if ( ideVariant.resValues.isNotEmpty()) {
+        head("ResValues")
+        nest {
+          ideVariant.resValues.forEach { (key, value) -> prop(key) { "(${value.type}, ${value.name}, ${value.value})" }
+          }
+        }
+      }
       if (ideVariant.testInstrumentationRunnerArguments.isNotEmpty()) {
         head("TestInstrumentationRunnerArguments")
         nest {
