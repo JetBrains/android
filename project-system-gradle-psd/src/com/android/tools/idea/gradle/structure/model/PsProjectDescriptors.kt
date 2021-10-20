@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.gradleVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
@@ -39,6 +41,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.google.common.util.concurrent.ListenableFuture
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty
 
@@ -53,18 +56,36 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
   val androidGradlePluginVersion: SimpleProperty<PsProject, String> = run {
     fun ArtifactDependencyModel.isAgp() = configurationName() == "classpath" && compactNotation().startsWith("$AGP_GROUP_ID_NAME:")
+    fun PluginModel.isAgp() = name().toString().startsWith("com.android.")
 
     property(
       "Android Gradle Plugin Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = {
-        projectBuildModel
-          ?.buildscript()
-          ?.dependencies()
-          ?.all()
-          ?.mapNotNull { it.safeAs<ArtifactDependencyModel>() }
-          ?.singleOrNull { it.isAgp() }
-          ?.version()
+        val models: List<ResolvedPropertyModel>? =
+          projectBuildModel?.run {
+            buildscript().dependencies().all()
+              .mapNotNull { it.safeAs<ArtifactDependencyModel>() }
+              .singleOrNull { it.isAgp() }
+              ?.version()
+              ?.let { listOf(it) }
+            ?: plugins()
+              .filter { it.isAgp() }
+              .ifNotEmpty { map { it.version() } }
+          }
+          ?: projectSettingsModel?.run {
+            pluginManagement().plugins().plugins().filter { it.isAgp() }.ifNotEmpty { map { it.version() } }
+          }
+        when {
+          models == null -> null
+          models.isEmpty() -> error("AGP version parsed property implementation inconsistency")
+          else ->
+            object : ResolvedPropertyModel by models[0] {
+              override fun setValue(value: Any) {
+                models.forEach { it.setValue(value) }
+              }
+            }
+        }
       },
       parsedPropertyInitializer = {
         projectBuildModel!!
