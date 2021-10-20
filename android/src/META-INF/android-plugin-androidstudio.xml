@@ -173,6 +173,10 @@
                              id="memory.settings"/>
 
     <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
+    <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"
+                    serviceImplementation="com.android.tools.idea.lang.AndroidNullableNotNullManagerImpl"
+                    overrides="true"
+    />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
