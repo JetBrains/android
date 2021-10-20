@@ -108,13 +108,8 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 
   fun testTestFixtures() {
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
-    try {
-      val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
-      assertIsEqualToSnapshot(text)
-    } finally {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
-    }
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.TEST_FIXTURES)
+    assertIsEqualToSnapshot(text)
   }
 
   private fun importSyncAndDumpProject(

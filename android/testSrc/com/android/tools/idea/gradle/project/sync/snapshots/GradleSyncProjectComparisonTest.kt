@@ -157,13 +157,11 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testTestFixturesWithModulePerSourceSetEnabled() {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
       StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
       try {
         val text = importSyncAndDumpProject(TEST_FIXTURES)
         assertIsEqualToSnapshot(text)
       } finally {
-        StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
         StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
       }
     }
