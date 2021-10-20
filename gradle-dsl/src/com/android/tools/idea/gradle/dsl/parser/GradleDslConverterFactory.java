@@ -8,7 +8,10 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Extension point to provide parser/writer pair for Gradle build files (e.g. for different languages)
+ * Extension point to provide parser/writer pair for Gradle build files (e.g. for different languages).
+ *
+ * This parser/writer factory will be used to manipulate build file to provide content-related features,
+ * e.g. {@link com.intellij.externalSystem.ExternalDependencyModificator}. It does not affect code navigation/highlighting
  */
 @ApiStatus.Internal
 public interface GradleDslConverterFactory {
