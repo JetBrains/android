@@ -20,7 +20,7 @@ typealias VariantNameResolver = (buildType: String?, productFlavors: (dimension:
 fun AndroidModule.buildVariantNameResolver(): VariantNameResolver {
   val moduleName = androidProject.name
   val dimensions = androidProject.flavorDimensions.toList()
-  val map = v2BasicVariants.orEmpty()
+  val map = v2Variants.orEmpty()
     .associate { variant ->
       variant.productFlavors.toList() + listOfNotNull(variant.buildType) to variant.name
     }

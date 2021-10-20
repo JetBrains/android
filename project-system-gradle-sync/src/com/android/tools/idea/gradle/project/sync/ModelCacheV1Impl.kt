@@ -1168,9 +1168,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
     override fun variantFrom(
       androidProject: IdeAndroidProject,
-      basicVariant: BasicVariant,
+      basicVariant: com.android.builder.model.v2.ide.BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      modelVersion: GradleVersion?,
+      modelVersion: GradleVersion?
+    ): IdeVariantImpl = throw UnsupportedOperationException()
+
+    override fun variantFrom(
+      variant: IdeVariantImpl,
       variantDependencies: VariantDependencies,
       getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver,
       buildNameMap: Map<String, File>

@@ -53,22 +53,37 @@ interface ModelCache {
     modelVersion: GradleVersion?,
     androidModuleId: ModuleId
   ): IdeVariantImpl
+
+  /**
+   * Converts V2's [BasicVariant] and [Variant] to an incomplete [IdeVariantImpl] instance which does not yet include
+   * dependency information.
+   */
   fun variantFrom(
     androidProject: IdeAndroidProject,
     basicVariant: BasicVariant,
     variant: com.android.builder.model.v2.ide.Variant,
-    modelVersion: GradleVersion?,
+    modelVersion: GradleVersion?
+  ): IdeVariantImpl
+
+  /**
+   * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
+   */
+  fun variantFrom(
+    variant: IdeVariantImpl,
     variantDependencies: VariantDependencies,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
     buildNameMap: Map<String, File>
   ): IdeVariantImpl
+
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
+
   fun androidProjectFrom(
     basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
     project: com.android.builder.model.v2.models.AndroidProject,
     androidVersion: Versions,
     androidDsl: AndroidDsl
   ): IdeAndroidProjectImpl
+
   fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl

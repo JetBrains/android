@@ -104,8 +104,9 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   data class ExtendedVariantData(
+    val basicVariant: BasicVariant,
     val variant: V2Variant,
-    val dependency: VariantDependencies
+    val dependencies: VariantDependencies
   )
 
   sealed class AndroidProjectResult {
@@ -726,21 +727,15 @@ internal class AndroidExtraModelProviderWorker(
 
       if (syncOptions.flags.studioFlagUseV2BuilderModels && canFetchV2Models == true) {
         // In V2, we get the variants from AndroidModule.v2Variants.
-        val variant =
-          module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant } ?:
-          throw IllegalArgumentException("Variant '${moduleConfiguration.variant}' Does not exist.")
-        val basicVariant =
-          module.v2BasicVariants?.firstOrNull { it.name == moduleConfiguration.variant } ?:
-          throw IllegalArgumentException("Variant '${moduleConfiguration.variant}' Does not exist.")
+        val variant = module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant }
+                      ?: error("Resolved variant '${moduleConfiguration.variant}' does not exist.")
+
         variantName = variant.name
 
         // Request VariantDependencies model for the variant's dependencies.
         val variantDependencies = controller.findVariantDependenciesV2Model(module.gradleProject, moduleConfiguration.variant) ?: return null
         ideVariant = modelCache.variantFrom(
-          module.androidProject,
-          basicVariant,
           variant,
-          module.modelVersion,
           variantDependencies,
           variantNameResolvers,
           module.buildNameMap ?: error("Build name map not available for: ${module.id}")
@@ -967,6 +962,8 @@ private fun createAndroidModule(
   }
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
+  val basicVariantMap = basicVariants?.associateBy { it.name }.orEmpty()
+
   val androidModule = AndroidModule(
     modelVersion = modelVersion,
     buildName = androidProjectResult.buildName,
@@ -975,8 +972,12 @@ private fun createAndroidModule(
     androidProject = ideAndroidProject,
     allVariantNames = allVariantNames,
     defaultVariantName = defaultVariantName,
-    v2BasicVariants = basicVariants,
-    v2Variants = v2Variants,
+    v2Variants = v2Variants?.map { modelCache.variantFrom(
+      androidProject = ideAndroidProject,
+      basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
+      variant = it,
+      modelVersion = modelVersion
+    ) },
     nativeAndroidProject = ideNativeAndroidProject,
     nativeModule = ideNativeModule
   )
