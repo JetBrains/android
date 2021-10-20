@@ -199,13 +199,13 @@ class ViewLayoutInspectorClient(
 
   suspend fun startFetching(continuous: Boolean) {
     isFetchingContinuously = continuous
+    launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
     val response = messenger.sendCommand {
       startFetchCommand = StartFetchCommand.newBuilder().apply {
         this.continuous = continuous
         skipSystemViews = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
-    launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
       throw ConnectionFailedException(response.startFetchResponse.error)
     }
@@ -268,10 +268,7 @@ class ViewLayoutInspectorClient(
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
     val composablesResponse = if (composeInspector != null) {
-      launchMonitor.updateProgress(AttachErrorState.COMPOSE_REQUEST_SENT)
-      composeInspector.getComposeables(layoutEvent.rootView.id, generation).also {
-        launchMonitor.updateProgress(AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
-      }
+      composeInspector.getComposeables(layoutEvent.rootView.id, generation)
     } else null
 
     val data = Data(

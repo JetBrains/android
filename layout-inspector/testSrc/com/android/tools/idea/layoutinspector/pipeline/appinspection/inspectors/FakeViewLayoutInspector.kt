@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
+import com.android.tools.idea.concurrency.executeOnPooledThread
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesResponse
@@ -33,12 +35,28 @@ fun FakeInspector.Connection<Event>.sendEvent(init: Event.Builder.() -> Unit) {
 
 class FakeViewLayoutInspector(connection: Connection<Event>)
   : FakeInspector<Command, Response, Event>(connection) {
+
+  private fun sendProgress(progress: LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint) {
+    connection.sendEvent {
+      progressEvent = LayoutInspectorViewProtocol.ProgressEvent.newBuilder().apply {
+        checkpoint = progress
+      }.build()
+    }
+  }
+
   override fun handleCommandImpl(command: Command): Response {
     return when (command.specializedCase) {
       Command.SpecializedCase.START_FETCH_COMMAND -> {
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT)
         connection.sendEvent {
           rootsEvent = WindowRootsEvent.getDefaultInstance()
         }
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED)
+        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
         connection.sendEvent {
           layoutEvent = LayoutEvent.getDefaultInstance()
         }
@@ -47,7 +65,6 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
             propertiesEvent = PropertiesEvent.getDefaultInstance()
           }
         }
-
         Response.newBuilder().setStartFetchResponse(StartFetchResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND -> {

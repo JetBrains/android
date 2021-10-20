@@ -81,14 +81,12 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.HyperlinkLabel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.verify
-import java.io.File
+import org.mockito.Mockito.inOrder
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
@@ -141,22 +139,26 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun inspectorHandlesProgressEvents() = runBlocking {
-    val progressSent = CompletableDeferred<Unit>()
-    inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) {
-      (inspectorRule.inspectorClient as AppInspectionInspectorClient).launchMonitor = monitor
-
-      inspectionRule.viewInspector.connection.sendEvent {
-        progressEventBuilder.apply {
-          checkpoint = START_RECEIVED
-        }
-      }
-
-      progressSent.complete(Unit)
-    }
+  fun allStatesReachedDuringConnect() {
+    // Validate all the progress events happen in order. Note that those generated on the device side are synthetic, since we're not
+    // using the real agent in this test.
+    // TODO(b/203712328): Because of a problem with the test framework, this test will pass even without the fix included in the same commit
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    progressSent.await()
-    verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+    val inOrder = inOrder(monitor)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED)
   }
 
   @Test
