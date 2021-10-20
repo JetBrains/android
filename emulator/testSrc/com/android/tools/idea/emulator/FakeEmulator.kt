@@ -1226,7 +1226,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sensors.orientation=yes
           hw.sensors.proximity=no
           hw.trackBall=no
-          hw.resizable.configs = phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
+          hw.resizable.configs = phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           image.sysdir.1 = system-images/android-32/google_apis/x86_64/
           runtime.network.latency=none
           runtime.network.speed=full
