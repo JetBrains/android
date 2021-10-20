@@ -32,6 +32,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -244,7 +246,13 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     if (AndroidManifestIndex.indexEnabled()) {
       try {
         return DumbService.getInstance(facet.getModule().getProject())
-          .runReadActionInSmartMode(() -> queryApplicationDebuggableFromManifestIndex(facet));
+          .runReadActionInSmartMode(() -> {
+            ThrowableComputable<Boolean, IndexNotReadyException> queryIndex = () -> queryApplicationDebuggableFromManifestIndex(facet);
+            // Here we temporarily allow slow operation as index query is considered as a fallback when the above
+            // android model is not available. More, b/203708907 is filed, as in the long run, it's worth we
+            // refactoring the callers.
+            return SlowOperations.allowSlowOperations(queryIndex);
+          });
       }
       catch (IndexNotReadyException e) {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
