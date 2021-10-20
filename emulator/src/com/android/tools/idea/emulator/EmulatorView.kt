@@ -1213,11 +1213,16 @@ class EmulatorView(
         }
       }
 
+      val lastDisplayMode = lastScreenshot?.displayShape?.displayMode
       lastScreenshot = screenshot
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
+
+      if (screenshot.displayShape.displayMode != lastDisplayMode) {
+        firePropertyChange(DISPLAY_MODE_PROPERTY, lastDisplayMode, screenshot.displayShape.displayMode)
+      }
     }
 
     override fun dispose() {
@@ -1338,6 +1343,8 @@ class EmulatorView(
     }
   }
 }
+
+internal const val DISPLAY_MODE_PROPERTY = "displayMode"
 
 private var emulatorOutOfDateNotificationShown = false
 

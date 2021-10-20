@@ -184,6 +184,9 @@ class EmulatorToolWindowPanel(
       val emulatorView = primaryDisplayPanel.emulatorView
       primaryEmulatorView = emulatorView
       mainToolbar.setTargetComponent(emulatorView)
+      emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
+        mainToolbar.updateActionsImmediately()
+      }
       installFileDropHandler(this, emulatorView, project)
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
       emulatorView.addDisplayConfigurationListener(displayConfigurator)
