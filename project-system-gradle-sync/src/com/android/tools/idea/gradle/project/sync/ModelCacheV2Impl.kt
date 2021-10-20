@@ -539,8 +539,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         val variantNameResolver = getVariantNameResolver(buildNameMap[projectInfo.buildId]!!, projectInfo.projectPath)
         // TODO(b/203750717): Model this explicitly in the tooling model.
         val variantName = variantNameResolver(
-          projectInfo.attributes["com.android.build.api.attributes.BuildTypeAttr"],
-          { dimension -> projectInfo.attributes["com.android.build.api.attributes.ProductFlavor:$dimension"] ?: projectInfo.attributes[dimension] ?: error("$dimension attribute not found. Library: ${identifier.key}") }
+          projectInfo.buildType,
+          { dimension -> projectInfo.productFlavors[dimension] ?: error("$dimension attribute not found. Library: ${identifier.key}") }
         )
         val projectName = projectInfo.projectPath.split(":").last()
         createModuleLibrary(
