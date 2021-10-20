@@ -215,7 +215,7 @@ internal class AndroidExtraModelProviderWorker(
               } else if (canFetchV2Models == true) {
                 error("Cannot initiate V1 models for Sync.")
               }
-              androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
+              androidProjectResult = AndroidProjectResult.V1Project(androidProject)
 
               val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = false)
               val nativeAndroidProject: NativeAndroidProject? =
@@ -667,17 +667,23 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
-      return ideVariant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
-        val dependencyProject = moduleDependency.projectPath
-        val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
-        val dependencyVariant = moduleDependency.variant
-        if (dependencyVariant != null) {
-          ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
+      return (ideVariant.mainArtifact.level2Dependencies.moduleDependencies
+              + ideVariant.unitTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+              + ideVariant.androidTestArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+              + ideVariant.testFixturesArtifact?.level2Dependencies?.moduleDependencies.orEmpty()
+             )
+        .mapNotNull { moduleDependency ->
+          val dependencyProject = moduleDependency.projectPath
+          val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
+          val dependencyVariant = moduleDependency.variant
+          if (dependencyVariant != null) {
+            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
+          }
+          else {
+            propagateVariantSelectionChangeFallback(dependencyModuleId)
+          }
         }
-        else {
-          propagateVariantSelectionChangeFallback(dependencyModuleId)
-        }
-      }
+        .distinct()
     }
 
     /**
@@ -743,7 +749,8 @@ internal class AndroidExtraModelProviderWorker(
       }
       else {
         val androidModuleId = ModuleId(module.gradleProject.path, module.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
-        val variant = controller.findVariantModel(module, moduleConfiguration.variant) ?: return null
+        val adjustedVariantName = module.adjustForTestFixturesSuffix(moduleConfiguration.variant)
+        val variant = controller.findVariantModel(module, adjustedVariantName) ?: return null
         variantName = variant.name
         ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion, androidModuleId)
       }
@@ -771,6 +778,7 @@ internal class AndroidExtraModelProviderWorker(
       )
     }
   }
+
 
   private fun BuildController.findVariantModel(
     module: AndroidModule,
@@ -994,4 +1002,11 @@ private fun createAndroidModule(
   if (syncIssues != null) androidModule.setSyncIssues(syncIssues.toSyncIssueData())
 
   return androidModule
+}
+
+private fun AndroidModule.adjustForTestFixturesSuffix(variantName: String): String {
+  val allVariantNames = allVariantNames.orEmpty()
+  val variantNameWithoutSuffix = variantName.removeSuffix("TestFixtures")
+  return if (!allVariantNames.contains(variantName) && allVariantNames.contains(variantNameWithoutSuffix)) variantNameWithoutSuffix
+  else variantName
 }

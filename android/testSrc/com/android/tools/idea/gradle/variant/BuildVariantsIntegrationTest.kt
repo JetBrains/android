@@ -528,28 +528,22 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      // TODO(b/201199496): Expected to be "release".
-      expect.thatModuleVariantIs(project, ":testDependency", "debug")
+      expect.thatModuleVariantIs(project, ":testDependency", "release")
+      val allReleaseSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/201199496): Uncomment when fixed.
-      /*
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":testDependency", "debug")
       expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
-       */
 
       switchVariant(project, ":app", "release")
-      // TODO(b/201199496): Uncomment when fixed.
-      /*
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":testDependency", "release")
-      expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
-       */
+      expect.that(project.saveAndDump()).isEqualTo(allReleaseSnapshot)
     }
   }
 
