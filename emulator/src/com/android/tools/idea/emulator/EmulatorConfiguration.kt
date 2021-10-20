@@ -130,5 +130,14 @@ class EmulatorConfiguration private constructor(
     }
   }
 
-  data class DisplayMode(val displayModeId: DisplayModeValue, val width: Int, val height: Int)
+  data class DisplayMode(val displayModeId: DisplayModeValue, val displaySize: Dimension) {
+
+    constructor(displayModeId: DisplayModeValue, width: Int, height: Int) : this(displayModeId, Dimension(width, height))
+
+    val width
+      get() = displaySize.width
+
+    val height
+      get() = displaySize.height
+  }
 }

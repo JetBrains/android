@@ -223,23 +223,30 @@ class EmulatorToolWindowPanelTest {
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 571")
     assertAppearance(ui, "ChangeDisplayMode1", 0.08)
 
-    // The foldable display mode action should be hidden because the current mode is already foldable.
-    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.foldable", emulatorView, project).isVisible).isFalse()
+    // The phone display mode action should be hidden because the current mode is already phone.
+    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.phone", emulatorView, project).isVisible).isFalse()
 
-    // Set the desktop display mode.
-    executeEmulatorAction("android.emulator.display.mode.desktop", emulatorView, project)
+    // Set the tablet display mode.
+    executeEmulatorAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
-    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: DESKTOP")
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
     panel.waitForFrame(++frameNumber, 2, TimeUnit.SECONDS)
     assertAppearance(ui, "ChangeDisplayMode2", 0.08)
 
-    // The desktop display mode action should be hidden because the current mode is now desktop.
-    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.desktop", emulatorView, project).isVisible).isFalse()
+    // The phone display mode action should be visible because the current mode is no longer phone.
+    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.phone", emulatorView, project).isVisible).isTrue()
+    // The tablet display mode action should be hidden because the current mode is now tablet.
+    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.tablet", emulatorView, project).isVisible).isFalse()
+
+    panel.size = Dimension(500, 600)
+    ui.layoutAndDispatchEvents()
+    streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
   }
 
   @Test

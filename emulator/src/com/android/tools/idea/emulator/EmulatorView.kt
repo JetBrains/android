@@ -679,7 +679,7 @@ class EmulatorView(
       // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
       val scaleX = (realSize.width.toDouble() / actualSize.width).coerceAtMost(1.0)
       val scaleY = (realSize.height.toDouble() / actualSize.height).coerceAtMost(1.0)
-      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
+      val rotatedDisplaySize = currentDisplaySize.rotated(rotation)
       val w = rotatedDisplaySize.width.scaledDown(scaleX)
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
@@ -1135,7 +1135,7 @@ class EmulatorView(
       val activeDisplayRegion = when {
         foldedDisplay.width != 0 && foldedDisplay.height != 0 ->
             Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
-        displayMode != null -> Rectangle(displayMode.width, displayMode.height)
+        displayMode != null -> Rectangle(displayMode.displaySize)
         else -> null
       }
       val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode)

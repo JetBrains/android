@@ -1198,17 +1198,17 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val configIni = """
           AvdId=${avdId}
           PlayStore.enabled=false
-          abi.type=x86
+          abi.type=x86_64
           avd.ini.displayname=${avdName}
           avd.ini.encoding=UTF-8
-          disk.dataPartition.size=800M
+          disk.dataPartition.size=6442450944
           hw.accelerometer=yes
           hw.arc=false
           hw.audioInput=yes
           hw.battery=yes
           hw.camera.back=virtualscene
           hw.camera.front=emulated
-          hw.cpu.arch=x86
+          hw.cpu.arch=x86_64
           hw.cpu.ncore=4
           hw.dPad=no
           hw.device.name = resizable
@@ -1218,8 +1218,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.initialOrientation=Portrait
           hw.keyboard=yes
           hw.lcd.density = 420
-          hw.lcd.height = 2208
-          hw.lcd.width = 1768
+          hw.lcd.height = 2340
+          hw.lcd.width = 1080
           hw.mainKeys=no
           hw.ramSize=1536
           hw.sdCard=yes
@@ -1234,20 +1234,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           sdcard.size=512M
           showDeviceFrame=yes
           skin.dynamic=yes
-          skin.name=1768x2208
+          skin.name=1080x2340
           skin.path=_no_skin
           tag.display=Google APIs
           tag.id=google_apis
           """.trimIndent()
 
       val hardwareIni = """
-          hw.cpu.arch = x86
-          hw.cpu.model = qemu32
+          hw.cpu.arch = x86_64
           hw.cpu.ncore = 4
-          hw.lcd.width = 1768
-          hw.lcd.height = 2208
+          hw.lcd.width = 1080
+          hw.lcd.height = 2340
           hw.lcd.density = 420
-          hw.ramSize = 2048
+          hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false
           hw.rotaryInput = false
