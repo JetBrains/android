@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
@@ -605,7 +606,56 @@ public class RenderTaskTest extends AndroidTestCase {
 
         BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
         ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+  }
+
+  public void testMacroTagSupport() {
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "\n" +
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:textColor=\"?customColor\"\n" +
+                                            "        android:text=\"@macro/macroString\"/>\n" +
+                                            "    \n" +
+                                            "\n" +
+                                            "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    myFixture.addFileToProject("res/values/strings.xml",
+                               // language=XML
+                               "<resources>\n" +
+                               "    <string name=\"fooBar\">FOO BAR LOREM IPSUM</string>\n" +
+                               "    <macro name=\"macroString\">@string/fooBar</macro>\n" +
+                               "    <style name=\"CustomTheme\" parent=\"@android:style/Theme\">\n" +
+                               "        <item name=\"customColor\">@macro/macroColor</item>\n" +
+                               "    </style>\n" +
+                               "    <attr name=\"customColor\" format=\"color\"/>\n" +
+                               "    <macro name=\"macroColor\">@color/purple_200</macro>\n" +
+                               "    <color name=\"purple_200\">#FFBB86FC</color>" +
+                               "</resources>");
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file, DEFAULT_DEVICE_ID, "@style/CustomTheme");
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/macro.png"));
+        assert result != null;
+        ImageDiffUtil.assertImageSimilar("macros", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
         throw new RuntimeException(ex);
       }
     });
