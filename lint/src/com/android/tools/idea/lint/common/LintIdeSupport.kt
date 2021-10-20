@@ -30,7 +30,7 @@ import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
-import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -53,20 +53,9 @@ abstract class LintIdeSupport {
     LintClient.clientName = CLIENT_STUDIO
   }
   companion object {
-    private val EP_NAME = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
-
-    private val INSTANCE: LintIdeSupport // these are all stateless
-    init {
-      val extensions = EP_NAME.extensions
-      when (extensions.size) {
-        1 -> INSTANCE = extensions[0]
-        0 -> INSTANCE = object : LintIdeSupport() { }
-        else -> error("Multiple lint customizer extensions found: ${extensions.toList()}")
-      }
-    }
-
     @JvmStatic
-    fun get(): LintIdeSupport = INSTANCE
+    fun get(): LintIdeSupport = getApplication().getService(LintIdeSupport::class.java)
+                                ?: object : LintIdeSupport() {}
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()

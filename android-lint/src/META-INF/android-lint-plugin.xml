@@ -376,8 +376,10 @@
     </intentionAction>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
-    <lintIdeSupport implementation="com.android.tools.idea.lint.AndroidLintIdeSupport"/>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService
+        serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
+        serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport" />
   </extensions>
 
   <actions>
