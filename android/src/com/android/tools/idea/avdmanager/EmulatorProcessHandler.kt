@@ -13,49 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.avdmanager
 
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.BaseOSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessOutputType;
-import com.intellij.execution.process.ProcessTerminatedListener;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Key;
-import com.intellij.util.io.BaseOutputReader;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.android.tools.idea.avdmanager.EmulatorProcessHandler.ConsoleListener
+import com.intellij.execution.process.ProcessTerminatedListener
+import com.android.tools.idea.avdmanager.EmulatorProcessHandler
+import com.intellij.execution.process.BaseOSProcessHandler
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessOutputType
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Key
+import com.intellij.util.io.BaseOutputReader
+
+private val LOG = Logger.getInstance(EmulatorProcessHandler::class.java)
 
 /**
- * The {@link EmulatorProcessHandler} is a custom process handler specific to handling
- * the emulator process.
+ * A process handler for the emulator process.
  */
-public class EmulatorProcessHandler extends BaseOSProcessHandler {
-  private static final Logger LOG = Logger.getInstance(EmulatorProcessHandler.class);
+class EmulatorProcessHandler(
+  process: Process,
+  commandLine: GeneralCommandLine
+) : BaseOSProcessHandler(process, commandLine.commandLineString, null) {
 
-  public EmulatorProcessHandler(@NotNull Process process, @NotNull GeneralCommandLine commandLine) {
-    super(process, commandLine.getCommandLineString(), null);
-    addProcessListener(new ConsoleListener());
-    ProcessTerminatedListener.attach(this);
+  init {
+    addProcessListener(ConsoleListener())
+    ProcessTerminatedListener.attach(this)
   }
 
-  @Override
-  protected @NotNull BaseOutputReader.Options readerOptions() {
-    return BaseOutputReader.Options.forMostlySilentProcess();
-  }
+  override fun readerOptions(): BaseOutputReader.Options =
+      BaseOutputReader.Options.forMostlySilentProcess()
 
-  private class ConsoleListener extends ProcessAdapter {
-    @Override
-    public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-      String text = event.getText();
+  private inner class ConsoleListener : ProcessAdapter() {
+
+    override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+      val text = event.text
       if (text != null) {
-        LOG.info("Emulator: " + text.trim());
+        LOG.info("Emulator: " + text.trim { it <= ' ' })
       }
-
-      if (ProcessOutputType.SYSTEM.equals(outputType) && isProcessTerminated()) {
-        Integer exitCode = getExitCode();
+      if (ProcessOutputType.SYSTEM == outputType && isProcessTerminated) {
+        val exitCode = exitCode
         if (exitCode != null && exitCode != 0) {
-          LOG.warn("Emulator terminated with exit code " + exitCode);
+          LOG.warn("Emulator terminated with exit code $exitCode")
         }
       }
     }
