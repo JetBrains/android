@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -41,7 +42,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DetailsPanel extends JBPanel<DetailsPanel> {
+public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   private final @NotNull Component myHeadingLabel;
   private final @NotNull AbstractButton myCloseButton;
   protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
@@ -60,6 +61,10 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
     myInfoSectionPanel.setBackground(Table.BACKGROUND);
 
     myScrollPane = new JBScrollPane(myInfoSectionPanel);
+  }
+
+  @Override
+  public void dispose() {
   }
 
   static @NotNull Component newHeadingLabel(@NotNull String heading) {

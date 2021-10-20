@@ -55,14 +55,11 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
   }
 
   private static @NotNull JComponent newJBTabbedPane(@NotNull Project project, @NotNull Disposable parent) {
-    PhysicalDevicePanel panel = new PhysicalDevicePanel(project);
-    Disposer.register(parent, panel);
-
     JBTabbedPane pane = new JBTabbedPane();
     pane.setTabComponentInsets(JBUI.emptyInsets());
 
-    pane.addTab("Virtual", new VirtualDevicePanel(project));
-    pane.addTab("Physical", panel);
+    pane.addTab("Virtual", new VirtualDevicePanel(project, parent));
+    pane.addTab("Physical", new PhysicalDevicePanel(project, parent));
 
     return pane;
   }

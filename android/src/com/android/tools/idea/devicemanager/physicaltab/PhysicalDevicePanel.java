@@ -54,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable, DetailsPanelPanel<PhysicalDevice> {
   private final @Nullable Project myProject;
+  private final @NotNull Disposable myParent;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
@@ -86,8 +87,9 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     }
   }
 
-  public PhysicalDevicePanel(@Nullable Project project) {
+  public PhysicalDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
     this(project,
+         parent,
          PairDevicesUsingWiFiService::getInstance,
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
@@ -98,6 +100,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   @VisibleForTesting
   PhysicalDevicePanel(@Nullable Project project,
+                      @NotNull Disposable parent,
                       @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
                       @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
@@ -107,6 +110,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     super(null);
 
     myProject = project;
+    myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
@@ -119,6 +123,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     layOut();
 
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetDevices.apply(this));
+    Disposer.register(parent, this);
   }
 
   private void initPairUsingWiFiButton() {
@@ -178,11 +183,14 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
     model.setDevices(devices);
 
-    Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
+    Disposer.register(myParent, myNewPhysicalDeviceChangeListener.apply(model));
   }
 
   @Override
   public void dispose() {
+    if (myDetailsPanel != null) {
+      Disposer.dispose(myDetailsPanel);
+    }
   }
 
   @Nullable Project getProject() {
@@ -212,7 +220,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   @Override
   public void removeDetailsPanel() {
+    assert myDetailsPanel != null;
+
     remove(myDetailsPanel);
+    Disposer.dispose(myDetailsPanel);
     myDetailsPanel = null;
   }
 

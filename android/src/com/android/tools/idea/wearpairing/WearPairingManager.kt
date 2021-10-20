@@ -55,7 +55,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.TestOnly
-import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
@@ -76,7 +75,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   }
 
   private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
-  private val pairingStatusListeners = CopyOnWriteArrayList<WeakReference<PairingStatusChangedListener>>()
+  private val pairingStatusListeners = CopyOnWriteArrayList<PairingStatusChangedListener>()
 
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
@@ -207,17 +206,14 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   @Synchronized
   fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
-    pairingStatusListeners.forEach {
-      when (it.get()) {
-        listener -> return // Already added
-        null -> removeDevicePairingStatusChangedListener(it) // Already garbage collected
-      }
+    pairingStatusListeners.addIfAbsent(listener)
+    if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
+      LOG.error("Memory leak adding listeners")
     }
-    pairingStatusListeners.add(WeakReference(listener))
   }
 
   @Synchronized
-  private fun removeDevicePairingStatusChangedListener(listener: WeakReference<PairingStatusChangedListener>) {
+  fun removeDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.remove(listener)
   }
 
@@ -227,8 +223,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     }
     phoneWearPair.pairingStatus = newState
     pairingStatusListeners.forEach {
-      val listener = it.get()
-      if (listener == null) removeDevicePairingStatusChangedListener(it) else listener.pairingStatusChanged(phoneWearPair)
+      it.pairingStatusChanged(phoneWearPair)
     }
   }
 
@@ -291,8 +286,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
       pairedDevicesTable.remove(phoneDeviceID)
       pairedDevicesTable.remove(wearDeviceID)
       pairingStatusListeners.forEach {
-        val listener = it.get()
-        if (listener == null) removeDevicePairingStatusChangedListener(it) else listener.pairingDeviceRemoved(phoneWearPair)
+        it.pairingDeviceRemoved(phoneWearPair)
       }
       saveSettings()
 

@@ -25,7 +25,9 @@ import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListen
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
@@ -49,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements DetailsPanelPanel<AvdInfo> {
+public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements Disposable, DetailsPanelPanel<AvdInfo> {
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private @Nullable JButton myRefreshButton;
@@ -59,12 +61,13 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   private @Nullable VirtualDisplayList myAvdDisplayList;
   private @Nullable DetailsPanel myDetailsPanel;
 
-  public VirtualDevicePanel(@Nullable Project project) {
-    this(project, CreateAvdAction::new);
+  public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
+    this(project, parent, CreateAvdAction::new);
   }
 
   @VisibleForTesting
   VirtualDevicePanel(@Nullable Project project,
+                     @NotNull Disposable parent,
                      @NotNull Function<@NotNull AvdInfoProvider, @NotNull ActionListener> createAvdActionProvider) {
     initVirtualDisplayList(project);
     DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
@@ -96,6 +99,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
 
     setLayout(createGroupLayout());
+    Disposer.register(parent, this);
   }
 
   private void initVirtualDisplayList(@Nullable Project project) {
@@ -214,6 +218,13 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
   }
 
+  @Override
+  public void dispose() {
+    if (myDetailsPanel != null) {
+      Disposer.dispose(myDetailsPanel);
+    }
+  }
+
   @VisibleForTesting
   @NotNull JButton getCreateButton() {
     return myCreateButton;
@@ -232,7 +243,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
   @Override
   public void removeDetailsPanel() {
+    assert myDetailsPanel != null;
+
     remove(myDetailsPanel);
+    Disposer.dispose(myDetailsPanel);
     myDetailsPanel = null;
   }
 

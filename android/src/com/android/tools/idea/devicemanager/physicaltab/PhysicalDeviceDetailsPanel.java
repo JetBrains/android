@@ -154,7 +154,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       // myInfoSections.add(myDeviceSection);
 
       if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
-        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey());
+        myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this);
       }
     }
     else {

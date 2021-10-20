@@ -25,6 +25,6 @@ final class DeviceManagerWelcomeScreenFrame extends FrameWrapper {
     super(project, "com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenFrame", false, "Device Manager");
     closeOnEsc();
 
-    setComponent(new VirtualDevicePanel(project));
+    setComponent(new VirtualDevicePanel(project, this));
   }
 }

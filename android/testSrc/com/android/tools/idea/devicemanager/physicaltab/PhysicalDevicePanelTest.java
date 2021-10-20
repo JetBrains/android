@@ -49,6 +49,7 @@ import org.mockito.Mockito;
 public final class PhysicalDevicePanelTest {
   private PhysicalDevicePanel myPanel;
   private Project myProject;
+  private Disposable myParent;
   private PairDevicesUsingWiFiService myService;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
@@ -61,6 +62,11 @@ public final class PhysicalDevicePanelTest {
   @Before
   public void mockProject() {
     myProject = Mockito.mock(Project.class);
+  }
+
+  @Before
+  public void initParent() {
+    myParent = Disposer.newDisposable("PhysicalDevicePanelTest");
   }
 
   @Before
@@ -99,14 +105,15 @@ public final class PhysicalDevicePanelTest {
   }
 
   @After
-  public void disposeOfPanel() {
-    Disposer.dispose(myPanel);
+  public void disposeOfParent() {
+    Disposer.dispose(myParent);
   }
 
   @Test
   public void newPhysicalDevicePanel() throws InterruptedException {
     // Act
     myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
@@ -134,6 +141,7 @@ public final class PhysicalDevicePanelTest {
 
     // Act
     myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
@@ -168,6 +176,7 @@ public final class PhysicalDevicePanelTest {
   public void initPairUsingWiFiButtonFeatureIsntEnabled() {
     // Act
     myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
@@ -189,6 +198,7 @@ public final class PhysicalDevicePanelTest {
 
     // Act
     myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,

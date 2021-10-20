@@ -22,8 +22,10 @@ import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -34,15 +36,21 @@ import javax.swing.table.TableColumnModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implements PairingStatusChangedListener {
+public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implements Disposable, PairingStatusChangedListener {
   private final @NotNull Key myDeviceId;
 
-  public PairedDevicesPanel(@NotNull Key deviceId) {
+  public PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent) {
     super(new BorderLayout());
 
     myDeviceId = deviceId;
     createUi(WearPairingManager.INSTANCE.getPairedDevices(myDeviceId.toString()));
     WearPairingManager.INSTANCE.addDevicePairingStatusChangedListener(this);
+    Disposer.register(parent, this);
+  }
+
+  @Override
+  public void dispose() {
+    WearPairingManager.INSTANCE.removeDevicePairingStatusChangedListener(this);
   }
 
   private static @NotNull String getConnectionStatus(@NotNull PairingState pairingState) {
