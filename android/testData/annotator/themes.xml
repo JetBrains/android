@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (C) 2019 The Android Open Source Project
+  ~ Copyright (C) 2021 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,10 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="p1.p2">
-  <application
-      android:icon="@drawable/drawable1"
-      android:theme="@style/Theme.MyApplication">
-  </application>
-</manifest>
+<resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Base application theme. -->
+  <style name="Theme.MyApplication" parent="@android:style/Theme">
+    <item name="colorPrimary">#ABC123</item>
+    <item name="macroColorAttr">?colorPrimary</item>
+  </style>
+  <attr name="macroColorAttr" format="color"/>
+</resources>

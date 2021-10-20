@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+              android:theme="@style/Theme.Holo.Light.DarkActionBar"
+              android:orientation="vertical" android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
-    <View android:background="@color/color1" android:layout_width="100dp" android:layout_height="10dp" />
-    <View android:background="@color/color2" android:layout_width="100dp" android:layout_height="10dp" />
-    <View android:background="@color/selector" android:layout_width="100dp" android:layout_height="10dp" />
-    <View android:background="@drawable/drawable1" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@drawable/ic_tick" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@drawable/layer_list" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@drawable/shape" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@android:drawable/ic_lock_lock" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="?android:attr/actionModeCutDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@drawable/animated_selector" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="?android:attr/actionMenuTextColor" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="?android:attr/buttonCornerRadius" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-    <View android:background="@drawable/customDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@color/color1" android:layout_width="100dp" android:layout_height="10dp"/>
+  <View android:background="@color/color2" android:layout_width="100dp" android:layout_height="10dp"/>
+  <View android:background="@color/selector" android:layout_width="100dp" android:layout_height="10dp"/>
+  <View android:background="@drawable/drawable1" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@drawable/ic_tick" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@drawable/layer_list" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@drawable/shape" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@android:drawable/ic_lock_lock" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="?android:attr/actionModeCutDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@drawable/animated_selector" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="?android:attr/actionMenuTextColor" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="?android:attr/buttonCornerRadius" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="@drawable/customDrawable" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="?colorPrimary" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  <View android:background="?macroColorAttr" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 </LinearLayout>

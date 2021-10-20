@@ -129,7 +129,9 @@ public abstract class AndroidResourceExternalAnnotatorBase
       ResourceType resourceValueType = resourceValue.getResourceType();
       if (resourceValueType == ResourceType.DRAWABLE ||
           resourceValueType == ResourceType.MIPMAP ||
-          resourceValueType == ResourceType.COLOR) {
+          resourceValueType == ResourceType.COLOR ||
+          resourceValueType == ResourceType.STYLE_ITEM ||
+          resourceValueType == ResourceType.MACRO) {
         resolvedResource = resourceValue;
       }
       else {
@@ -143,7 +145,9 @@ public abstract class AndroidResourceExternalAnnotatorBase
     }
 
     ResourceType renderableValueResourceType = renderableValue.getResourceType();
-    if (renderableValueResourceType == ResourceType.COLOR) {
+    if (renderableValueResourceType == ResourceType.COLOR ||
+        renderableValueResourceType == ResourceType.STYLE_ITEM ||
+        renderableValueResourceType == ResourceType.MACRO) {
       return getColorGutterIconRenderer(resolver, renderableValue, facet, element, configuration);
     }
     else if (renderableValueResourceType == ResourceType.DRAWABLE || renderableValueResourceType == ResourceType.MIPMAP) {

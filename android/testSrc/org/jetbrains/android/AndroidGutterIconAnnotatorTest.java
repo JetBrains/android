@@ -86,11 +86,24 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/ic_launcher.png", "res/drawable/ic_launcher.png");
     myFixture.copyFileToProject("annotator/customDrawable.xml", "res/drawable/customDrawable.xml");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("annotator/themes.xml", "res/values/themes.xml");
   }
 
   @Override
   protected boolean isIconRequired() {
     return true;
+  }
+
+  public void testMacroWithLiteral() {
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?macroColorAttr", XmlAttributeValue.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(171, 193, 35)));
+  }
+
+  public void testItemWithLiteral() {
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("res/layout/color_test.xml", "?colorPrimary", XmlAttributeValue.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of(new Color(171, 193, 35)));
   }
 
   public void testMacroTags() {
