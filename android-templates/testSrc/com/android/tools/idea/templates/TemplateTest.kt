@@ -29,6 +29,8 @@ import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.wizard.template.ApiTemplateData
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -308,6 +310,16 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
       RenderTemplateModel.Companion.toString()
       moduleData.category = Category.Compose
+      if (moduleData.apis != null) {
+        moduleData.apis = moduleData.apis?.let {
+          ApiTemplateData(
+            buildApi = ApiVersion(31, "31"),
+            targetApi = it.targetApi,
+            minApi = it.minApi,
+            appCompatVersion = it.appCompatVersion
+          )
+        }
+      }
     }
     checkCreateTemplate("Empty Compose Activity", withSpecificKotlin) // Compose is always Kotlin
   }

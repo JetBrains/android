@@ -54,6 +54,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer/testData",
         "//tools/base/build-system:gradle-distrib",
@@ -108,8 +109,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.annotation.annotation_1.2.0-beta01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.compose.compiler.compiler_1.0.3",
-        "@maven//:androidx.compose.ui.ui-tooling_1.0.3",
+        "@maven//:androidx.compose.compiler.compiler_1.1.0-beta01",
+        "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.lifecycle.lifecycle-common_2.3.0-rc01",

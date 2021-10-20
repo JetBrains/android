@@ -17,7 +17,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-     compileSdkVersion 28
+    // This is currently fixed to 31 by adding the extra spaces between compileSdkVersion and 31.
+    // Remove after the latest version of the SDK has been updated for testing in b/203422822.
+    compileSdkVersion   31
 
     defaultConfig {
         applicationId "google.simpleapplication"

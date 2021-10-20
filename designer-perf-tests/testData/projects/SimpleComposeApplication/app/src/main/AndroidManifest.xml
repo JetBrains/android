@@ -23,6 +23,7 @@
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
         <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:label="Simple Composable" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
