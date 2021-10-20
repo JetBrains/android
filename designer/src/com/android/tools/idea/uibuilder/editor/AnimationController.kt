@@ -19,6 +19,11 @@ package com.android.tools.idea.uibuilder.editor
  * Interface to control how to preview the animation.
  */
 interface AnimationController {
+  /**
+   * Indicates that the elapsed frame of animation needs to be setup again.
+   */
+  var forceElapsedReset: Boolean
+
   fun play()
   fun pause()
   fun stop()

@@ -97,6 +97,12 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private var myMaxTimeMs: Long
   private var currentSpeedFactor: Double = PlaySpeed.x1.speedFactor
   private var myLoopEnabled = true
+  override var forceElapsedReset: Boolean
+    get() = _forceElapsedReset
+    set(value) {
+      _forceElapsedReset = value
+    }
+  private var _forceElapsedReset: Boolean = false
 
   /**
    * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)
