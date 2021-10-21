@@ -238,7 +238,7 @@ public class BuildVariantView {
    */
   @NotNull
   private List<Module> getGradleModulesWithAndroidProjects() {
-    List<Module> gradleModules = new ArrayList<>();
+    Set<Module> gradleModules = new HashSet<>();
     // Work only with holder modules here to avoid duplication on UI in MPSS mode.
     ProjectSystemUtil.getAndroidFacets(myProject).forEach(androidFacet -> {
       if (androidFacet != null && AndroidModel.isRequired(androidFacet) && AndroidModel.get(androidFacet) != null) {
@@ -251,11 +251,7 @@ public class BuildVariantView {
       }
     });
 
-    if (!gradleModules.isEmpty()) {
-      gradleModules.sort(ModuleTypeComparator.INSTANCE);
-      return gradleModules;
-    }
-    return Collections.emptyList();
+    return gradleModules.stream().sorted(ModuleTypeComparator.INSTANCE).collect(Collectors.toList());
   }
 
   @NotNull
