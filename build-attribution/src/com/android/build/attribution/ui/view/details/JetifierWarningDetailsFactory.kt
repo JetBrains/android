@@ -57,7 +57,6 @@ import javax.swing.ListSelectionModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
-
 class JetifierWarningDetailsFactory(
   private val actionHandlers: ViewActionHandlers
 ) {
@@ -159,7 +158,10 @@ class JetifierWarningDetailsFactory(
                 isIconOpaque = true
                 setFocusBorderAroundIcon(true)
                 setPaintFocusBorder(false)
-                // TODO set tooltip text?
+                if (projectState is JetifierRequiredForLibraries) {
+                  val supportLibrary = projectState.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.dependencyPath?.elements?.size == 1
+                  toolTipText = treeToolTip(supportLibrary = supportLibrary, declaredDependency = true)
+                }
                 append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
               }
             }
@@ -269,6 +271,8 @@ class JetifierWarningDetailsFactory(
         supportLibrary -> "depends on "
         else -> "via "
       }
+    val tooltip: String?
+      get() = treeToolTip(supportLibrary, declaredDependency)
   }
 
   private class DependenciesStructureTreeRenderer() : NodeRenderer() {
@@ -289,7 +293,16 @@ class JetifierWarningDetailsFactory(
         icon = LIBRARY_ICON
         append(userObj.prefix, SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES)
         append(userObj.fullName)
+        toolTipText = userObj.tooltip
       }
     }
   }
 }
+
+private fun treeToolTip(supportLibrary: Boolean, declaredDependency: Boolean): String? = when {
+  supportLibrary -> "This is a legacy support library. All dependencies on such libraries should be removed before disabling jetifier."
+  declaredDependency -> "This library depends on a legacy support library. In order to disable Jetifier, please, migrate to a version " +
+                        "that no longer depends on legacy support libraries."
+  else -> null
+}
+
