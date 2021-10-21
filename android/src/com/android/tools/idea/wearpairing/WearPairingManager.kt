@@ -88,6 +88,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   internal fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
     virtualDevicesProvider = virtualDevices
     connectedDevicesProvider = connectedDevices
+    pairedDevicesTable.clear()
   }
 
   @UiThread

@@ -123,6 +123,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
         waitLabelText(message("wear.assistant.device.connection.start.device.title"))
         waitLabelText(message("wear.assistant.device.connection.connecting.device.top.label"))
         waitLabelText(message("wear.assistant.device.connection.pairing.success.title"))
+        clickButton("Finish")
       }
     }
 
@@ -135,11 +136,18 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     assertThat(phoneWearPair!!.pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
   }
 
-  private fun FakeUi.clickButton(text: String) = clickOn(findComponent<JButton> { text == it.text }!!)
+  private fun FakeUi.clickButton(text: String) {
+    waitForCondition(5, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      layoutAndDispatchEvents()
+      findComponent<JButton> { text == it.text && it.isEnabled }?.apply { clickOn(this) } != null
+    }
+  }
 
   // The UI loads on asynchronous coroutine, we need to wait
   private fun FakeUi.waitLabelText(text: String) = waitForCondition(5, TimeUnit.SECONDS) {
     invokeStrategy.updateAllSteps()
+    layoutAndDispatchEvents()
     findComponent<JBLabel> { it.text == text } != null
   }
 
