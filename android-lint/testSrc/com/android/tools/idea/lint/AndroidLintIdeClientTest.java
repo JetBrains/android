@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
@@ -34,14 +35,66 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.lint.common.LintIgnoredResult;
 import com.android.tools.idea.lint.common.LintResult;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.PlatformLookupKt;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import junit.framework.TestCase;
+import org.gradle.internal.impldep.org.junit.Rule;
+import org.gradle.internal.impldep.org.junit.rules.TemporaryFolder;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AndroidLintIdeClientTest extends TestCase {
+public class AndroidLintIdeClientTest extends AndroidTestCase {
+  private final com.intellij.openapi.project.Project ideaProject = mock(com.intellij.openapi.project.Project.class);
+  private final LintResult result = new LintIgnoredResult();
+  @Rule private final TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  public void testFindLintRuleJars_withOverride() throws IOException {
+    LintClient client = new AndroidLintIdeClient(ideaProject, result) {
+      @Nullable
+      protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+        return myModule;
+      }
+    };
+    File expectedLintRuleJars = new File("com/bar.jar");
+    AndroidModel.set(myFacet, TestAndroidModel.lintRuleJars(ImmutableList.of(expectedLintRuleJars)));
+    temporaryFolder.create();
+    File dir = temporaryFolder.newFolder("foo.aar");
+    Project lintProject = new AndroidLintIdeProject(client, dir, dir);
+    Iterable<File> actualLintRuleJars = client.findRuleJars(lintProject);
+    assertThat(actualLintRuleJars).containsExactly(expectedLintRuleJars);
+  }
+
+  public void testFindLintRuleJars_withoutOverride() throws IOException {
+    LintClient client = new AndroidLintIdeClient(ideaProject, result) {
+      @Nullable
+      protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+        return myModule;
+      }
+
+      @Override
+      public boolean isGradleProject(@NotNull com.android.tools.lint.detector.api.Project project) {
+        return true;
+      }
+    };
+    AndroidModel.set(myFacet, TestAndroidModel.namespaced(myFacet));
+    temporaryFolder.create();
+    File dir = temporaryFolder.newFolder("foo.aar");
+    File expectedLintRuleJar = temporaryFolder.newFile("foo.aar/lint.jar");
+    temporaryFolder.newFile(SdkConstants.FN_BUILD_GRADLE);
+
+    Project lintProject = new AndroidLintIdeProject(client, dir, dir);
+    Iterable<File> actualLintRuleJars = client.findRuleJars(lintProject);
+    assertThat(actualLintRuleJars).containsExactly(expectedLintRuleJar);
+  }
+
   public void testFindCompilationTarget() {
     MockFileOp fop = new MockFileOp();
     LocalPackage platformPackage = getLocalPlatformPackage(fop, "23", 23);
@@ -55,8 +108,6 @@ public class AndroidLintIdeClientTest extends TestCase {
       ImmutableList.of(platformPackage, previewPlatform, addOnPlatform));
     RepoManager mgr = new FakeRepoManager(null, packages);
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), null, mgr);
-    com.intellij.openapi.project.Project ideaProject = mock(com.intellij.openapi.project.Project.class);
-    LintResult result = new LintIgnoredResult();
     LintClient client = new AndroidLintIdeClient(ideaProject, result) {
       @Override
       public AndroidSdkHandler getSdk() {
@@ -109,7 +160,7 @@ public class AndroidLintIdeClientTest extends TestCase {
     if (!Character.isDigit(version.charAt(0))) {
       platformDetails.setCodename(version);
     }
-    local.setTypeDetails((TypeDetails) platformDetails);
+    local.setTypeDetails((TypeDetails)platformDetails);
     return local;
   }
 
@@ -133,7 +184,7 @@ public class AndroidLintIdeClientTest extends TestCase {
     addOnDetails.setVendor(IdDisplay.create(vendor, vendorDisplay));
     addOnDetails.setTag(IdDisplay.create(tag, tagDisplay));
     addOnDetails.setApiLevel(version);
-    local.setTypeDetails((TypeDetails) addOnDetails);
+    local.setTypeDetails((TypeDetails)addOnDetails);
     return local;
   }
 }

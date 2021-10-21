@@ -370,6 +370,22 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @NonNull
   @Override
+  public Iterable<File> findRuleJars(@NotNull com.android.tools.lint.detector.api.Project project) {
+    Module module = getModule(project);
+    if (module != null) {
+      AndroidModel model = AndroidModel.get(module);
+      if (model != null) {
+        Iterable<File> lintRuleJars = model.getLintRuleJarsOverride();
+        if (lintRuleJars != null) {
+          return lintRuleJars;
+        }
+      }
+    }
+    return super.findRuleJars(project);
+  }
+
+  @NonNull
+  @Override
   public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
     Module module = getModule(project);
     if (module == null) {

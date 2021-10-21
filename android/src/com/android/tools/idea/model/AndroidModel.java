@@ -22,6 +22,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -144,6 +145,13 @@ public interface AndroidModel {
   /** @return the set of desugaring capabilities of the build system in use. */
   @NotNull
   Set<Desugaring> getDesugaring();
+
+  /**
+   * @return the set of optional lint rule jars that override lint jars collected from lint model. It provides an easy to return lint rule
+   * jars without creating lint model implementation. Normally null for gradle project.
+   */
+  @Nullable
+  default Iterable<File> getLintRuleJarsOverride() { return null; }
 
   /**
    * Returns the set of build-system-provided resource values and overrides.
