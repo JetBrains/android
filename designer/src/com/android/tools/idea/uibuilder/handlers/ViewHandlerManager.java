@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidSlowOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -258,11 +259,12 @@ public class ViewHandlerManager implements Disposable {
       }
 
       try {
-        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
+        PsiClass[] viewClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() -> findClassesForViewTag(myProject, viewTag));
         if (viewClasses.length > 0) {
           String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          PsiClass[] handlerClasses =
-            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+          PsiClass[] handlerClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() ->
+            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject))
+          );
 
           if (handlerClasses.length == 0) {
             // No view handler found for this class; look up the custom view and get the handler for its

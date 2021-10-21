@@ -23,6 +23,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.android.util.AndroidSlowOperations
 
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
@@ -32,8 +33,8 @@ internal class CustomViewLightVirtualFile(name: String, content: String) : Light
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 }
 
-fun PsiClass.extendsView(): Boolean {
-  return this.qualifiedName == CLASS_VIEW || this.extendsListTypes.any {
+fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
+  this.qualifiedName == CLASS_VIEW || this.extendsListTypes.any {
     it.resolve()?.extendsView() ?: false
   }
 }

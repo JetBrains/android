@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.UIUtil
@@ -43,6 +44,7 @@ import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
 import icons.StudioIcons
+import org.jetbrains.android.util.AndroidSlowOperations
 import java.awt.BorderLayout
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
@@ -212,7 +214,9 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       return@invokeLaterIfNeeded
     }
 
-    val providers = providers.filter { it.accept(project, file) }.toList()
+    val providers = AndroidSlowOperations.allowSlowOperationsInIdea(ThrowableComputable {
+      providers.filter { it.accept(project, file) }.toList()
+    })
     val providerNames = providers.map { it.displayName }.toSet()
 
     // Remove unaccepted
