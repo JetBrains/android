@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.actions
 
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnLinux
 import com.android.tools.idea.gradle.actions.EnableInstantAppsSupportAction.Companion.addInstantAppSupportToManifest
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -45,7 +43,6 @@ class EnableInstantAppsSupportActionTest {
     TestActionEvent(context)
   }
 
-  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `check action is enabled with parent module`() {
     context.put(LangDataKeys.MODULE, rule.module)
@@ -57,7 +54,6 @@ class EnableInstantAppsSupportActionTest {
     assertTrue("Action should be enabled", event.presentation.isEnabled)
   }
 
-  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `check action is disabled with no parent module`() {
     context.put(LangDataKeys.MODULE, null)
@@ -69,7 +65,6 @@ class EnableInstantAppsSupportActionTest {
     assertFalse("Action should be disabled with no parent module", event.presentation.isEnabled)
   }
 
-  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `enable instant app support for new manifest`() {
     WriteCommandAction.writeCommandAction(rule.project)
@@ -90,7 +85,6 @@ class EnableInstantAppsSupportActionTest {
       }
   }
 
-  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `enable instant app support for manifest with existing namespace`() {
     WriteCommandAction.writeCommandAction(rule.project)
