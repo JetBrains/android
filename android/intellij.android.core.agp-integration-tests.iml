@@ -17,6 +17,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -28,7 +29,5 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
   </component>
 </module>

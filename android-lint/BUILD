@@ -91,7 +91,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
-        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
     ],
 )
 
