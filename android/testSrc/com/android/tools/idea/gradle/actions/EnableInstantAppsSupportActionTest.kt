@@ -45,6 +45,7 @@ class EnableInstantAppsSupportActionTest {
     TestActionEvent(context)
   }
 
+  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `check action is enabled with parent module`() {
     context.put(LangDataKeys.MODULE, rule.module)
@@ -68,6 +69,7 @@ class EnableInstantAppsSupportActionTest {
     assertFalse("Action should be disabled with no parent module", event.presentation.isEnabled)
   }
 
+  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `enable instant app support for new manifest`() {
     WriteCommandAction.writeCommandAction(rule.project)
@@ -88,6 +90,7 @@ class EnableInstantAppsSupportActionTest {
       }
   }
 
+  @IgnoreWithCondition(reason = "b/200583388", condition = OnLinux::class)
   @Test
   fun `enable instant app support for manifest with existing namespace`() {
     WriteCommandAction.writeCommandAction(rule.project)
