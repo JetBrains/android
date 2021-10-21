@@ -17,18 +17,19 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.intellij.openapi.diagnostic.logger
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.android.util.firstNotNullResult
+import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.groovy.util.removeUserData
 
@@ -39,10 +40,10 @@ object ModuleUtil {
   @JvmStatic
   fun getModuleName(artifactName: IdeArtifactName): String {
     return when (artifactName) {
-      IdeArtifactName.MAIN -> "main"
-      IdeArtifactName.UNIT_TEST -> "unitTest"
-      IdeArtifactName.ANDROID_TEST -> "androidTest"
-      IdeArtifactName.TEST_FIXTURES -> "testFixtures"
+      IdeArtifactName.MAIN -> IdeModuleSourceSet.MAIN.sourceSetName
+      IdeArtifactName.UNIT_TEST -> IdeModuleSourceSet.UNIT_TEST.sourceSetName
+      IdeArtifactName.ANDROID_TEST -> IdeModuleSourceSet.ANDROID_TEST.sourceSetName
+      IdeArtifactName.TEST_FIXTURES -> IdeModuleSourceSet.TEST_FIXTURES.sourceSetName
     }
   }
 
@@ -90,6 +91,9 @@ object ModuleUtil {
   fun DataNode<ModuleData>.linkAndroidModuleGroup(ideModelProvider: IdeModifiableModelsProvider) =
     linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
 
+  @JvmStatic
+  fun GradleSourceSetData.getIdeModuleSourceSet() =
+    IdeModuleSourceSet.values().firstOrNull { sourceSetEnum -> sourceSetEnum.sourceSetName == moduleName }
 }
 
 fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceSetSuffix(":")

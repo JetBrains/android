@@ -273,12 +273,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       if (!sourceSetNodes.isEmpty()) {
         // ":" and similar holder projects do not have any source sets and should not be a target of module dependencies.
         sourceSetNodes.forEach(node -> {
-          IdeModuleSourceSet sourceSet = Arrays.stream(IdeModuleSourceSet.values())
-            .filter(sourceSetEnum -> sourceSetEnum.getSourceSetName().equals(node.getData().getModuleName()))
-            .findFirst()
-            .orElse(null);
+          IdeModuleSourceSet sourceSet = ModuleUtil.getIdeModuleSourceSet(node.getData());
 
-          if (sourceSet != null) {
+          if (sourceSet != null && sourceSet.getCanBeConsumed()) {
             GradleProjectPath gradleProjectPath = new GradleProjectPath(
               projectIdentifier.getBuildIdentifier().getRootDir(),
               projectIdentifier.getProjectPath(),

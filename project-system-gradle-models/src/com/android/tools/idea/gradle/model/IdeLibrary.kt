@@ -137,11 +137,13 @@ interface IdeJavaLibrary: IdeArtifactLibrary {
 }
 
 /**
- * Currently we only support depending on only main or testFixtures sourceSets as it's not possible to depend on test sourceSets.
+ * A source set in an Android module.
  */
-enum class IdeModuleSourceSet(val sourceSetName: String) {
-  MAIN("main"),
-  TEST_FIXTURES("testFixtures"),
+enum class IdeModuleSourceSet(val sourceSetName: String, val canBeConsumed: Boolean) {
+  MAIN("main", true),
+  TEST_FIXTURES("testFixtures", true),
+  UNIT_TEST("unitTest", false),
+  ANDROID_TEST("androidTest", false),
 }
 
 interface IdeModuleLibrary: IdeLibrary {
