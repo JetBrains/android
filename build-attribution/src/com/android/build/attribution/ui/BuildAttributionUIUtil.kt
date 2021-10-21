@@ -60,11 +60,14 @@ fun warningIcon(): Icon = AllIcons.General.BalloonWarning
  * Label with auto-wrapping turned on that accepts html text.
  * Used in Build Analyzer to render long multi-line text.
  */
-fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JEditorPane =
+fun htmlTextLabelWithLinesWrap(htmlBodyContent: String, linksHandler: HtmlLinksHandler? = null): JEditorPane =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
     isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
+    if (linksHandler != null) {
+      addHyperlinkListener(linksHandler)
+    }
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String, linksHandler: HtmlLinksHandler? = null): JEditorPane =
