@@ -17,13 +17,17 @@ package com.android.tools.property.ptable2.impl
 
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditor
 import com.android.tools.property.ptable2.PTableCellEditorProvider
+import com.android.tools.property.ptable2.PTableCellRenderer
+import com.android.tools.property.ptable2.PTableCellRendererProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
@@ -46,7 +50,10 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.awt.AWTEvent
+import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Component
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -54,6 +61,8 @@ import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.KeyStroke
@@ -76,6 +85,9 @@ class PTableImplTest {
 
   @get:Rule
   val appRule = ApplicationRule()
+
+  @get:Rule
+  val iconLoader = IconLoaderRule()
 
   @Before
   fun setUp() {
@@ -717,6 +729,49 @@ class PTableImplTest {
     val renderer = PTableCellRendererWrapper()
     val component = table.prepareRenderer(renderer, 3, 1)
     return component.background
+  }
+
+  @Test
+  fun testCustomCursor() {
+    val component = JPanel(BorderLayout())
+    val left = JLabel(StudioIcons.Common.ANDROID_HEAD).also { it.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) }
+    val middle = JLabel(StudioIcons.Common.CHECKED).also { it.cursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) }
+    val right = JLabel(StudioIcons.Common.CLEAR).also { it.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR) }
+    component.add(left, BorderLayout.WEST)
+    component.add(middle, BorderLayout.CENTER)
+    component.add(right, BorderLayout.EAST)
+
+    val specialRenderer = object : PTableCellRenderer {
+      override fun getEditorComponent(
+        table: PTable,
+        item: PTableItem,
+        column: PTableColumn,
+        depth: Int,
+        isSelected: Boolean,
+        hasFocus: Boolean,
+        isExpanded: Boolean
+      ): JComponent = component
+    }
+    val rendererProvider = object : PTableCellRendererProvider {
+      override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
+        return specialRenderer
+      }
+    }
+
+    model!!.hasCustomCursors = true
+    table = PTableImpl(model!!, null, rendererProvider, editorProvider!!)
+
+    table!!.size = Dimension(600, 800)
+    val ui = FakeUi(table!!)
+    val cell = table!!.getCellRect(3, 1, false)
+    component.size = cell.size
+    TreeWalker(component).descendantStream().forEach(Component::doLayout)
+    ui.mouse.moveTo(cell.x + 8, cell.centerY.toInt())
+    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    ui.mouse.moveTo(cell.centerX.toInt(), cell.centerY.toInt())
+    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    ui.mouse.moveTo(cell.x + cell.width - 8, cell.centerY.toInt())
+    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR))
   }
 
   private fun createPanel(): JPanel {

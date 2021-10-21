@@ -67,6 +67,7 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   var countOfIsCellEditable = 0
   var supportInserts = false
   var supportDeletes = false
+  var hasCustomCursors = false
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     countOfIsCellEditable++
@@ -75,6 +76,8 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
       PTableColumn.VALUE -> item.name != "readonly" && item.name != "new" && !readOnly
     }
   }
+
+  override fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean = hasCustomCursors
 
   fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
     items.clear()

@@ -47,7 +47,7 @@ class ResolutionStackEditorProvider(
     return Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
   }
 
-  fun isValueEditable(property: InspectorPropertyItem): Boolean =
+  fun isValueClickable(property: InspectorPropertyItem): Boolean =
     ResolutionElementEditor.hasLinkPanel(property) || property.type in linkEditorTypes
 }
 

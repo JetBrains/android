@@ -47,7 +47,8 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
   private val allowEditing: Boolean,
-  private val valueEditable: (P) -> Boolean
+  private val valueEditable: (P) -> Boolean,
+  private val hasCustomCursor: (P) -> Boolean
 ) : FilteredPTableModel<P>, PTableModel {
 
   private val listeners = mutableListOf<PTableModelUpdateListener>()
@@ -119,6 +120,10 @@ class FilteredPTableModelImpl<P : PropertyItem>(
       is PTableGroupItem -> true
       else -> column == PTableColumn.VALUE && valueEditable(item as P)
     }
+
+  @Suppress("UNCHECKED_CAST")
+  override fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean =
+    (column == PTableColumn.VALUE) && hasCustomCursor(item as P)
 
   override fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean {
     // Accept any move to the next editor unless we know that that the current row

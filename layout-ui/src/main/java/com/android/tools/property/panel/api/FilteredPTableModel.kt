@@ -75,10 +75,11 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
       groups: List<GroupSpec<P>> = emptyList(),
       keepNewAfterFlyAway: Boolean = true,
       allowEditing: Boolean = true,
-      valueEditable: (P) -> Boolean = { true }
+      valueEditable: (P) -> Boolean = { true },
+      hasCustomCursor: (P) -> Boolean = { false }
     ): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(
-        model, itemFilter, insertOperation, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing, valueEditable)
+      return FilteredPTableModelImpl(model, itemFilter, insertOperation, deleteOperation, itemComparator, groups, keepNewAfterFlyAway,
+                                     allowEditing, valueEditable, hasCustomCursor)
     }
   }
 }
