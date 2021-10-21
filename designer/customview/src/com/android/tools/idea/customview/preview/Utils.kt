@@ -24,6 +24,7 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.android.util.AndroidSlowOperations
 
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
@@ -33,7 +34,9 @@ internal class CustomViewLightVirtualFile(name: String, content: String) : Light
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 }
 
-internal fun PsiClass.extendsView(): Boolean = InheritanceUtil.isInheritor(this, CLASS_VIEW)
+internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
+  InheritanceUtil.isInheritor(this, CLASS_VIEW)
+}
 
 internal fun PsiFile.containsViewSuccessor(): Boolean {
   if (DumbService.isDumb(this.project)) {
