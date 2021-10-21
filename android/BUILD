@@ -28,6 +28,7 @@ iml_module(
     resources = ["resources"],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
+    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -89,7 +90,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//prebuilts/tools/common/m2:utp-core-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -253,7 +253,11 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/databinding:intellij.android.databinding"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -313,7 +317,6 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
         "//prebuilts/tools/common/m2:utp-core-proto",
