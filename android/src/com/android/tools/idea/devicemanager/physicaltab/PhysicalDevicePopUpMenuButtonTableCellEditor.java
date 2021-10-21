@@ -119,7 +119,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
       }
       catch (InterruptedException exception) {
         Thread.currentThread().interrupt();
-        Logger.getInstance(ActionsTableCellEditor.class).warn(exception);
+        Logger.getInstance(PhysicalDevicePopUpMenuButtonTableCellEditor.class).warn(exception);
       }
     });
 
