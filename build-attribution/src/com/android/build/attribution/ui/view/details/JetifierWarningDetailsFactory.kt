@@ -203,7 +203,7 @@ class JetifierWarningDetailsFactory(
       layout = BorderLayout()
       background = UIUtil.getTreeBackground()
       border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
-      val label = JLabel("Context")
+      val label = JLabel("Dependency Structure")
       label.border = JBUI.Borders.emptyLeft(8)
       withPreferredHeight(28)
       withMaximumHeight(28)
