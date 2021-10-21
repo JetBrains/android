@@ -25,12 +25,13 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.UpdateInBackground;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
+public class LinkExternalCppProjectAction extends AndroidStudioGradleAction implements UpdateInBackground {
 
   public LinkExternalCppProjectAction() {
     super("Link C++ Project with Gradle", "Link an external C/C++ project (cmake or ndk-build) with Gradle", null);
