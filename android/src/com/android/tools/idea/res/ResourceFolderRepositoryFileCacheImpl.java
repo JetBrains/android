@@ -231,8 +231,15 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     private static final int MAX_PROJECT_CACHES = 12;
 
     ManageLruProjectFilesTask(@NotNull Project project) {
-      super(project);
       myProject = project;
+    }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof ManageLruProjectFilesTask && ((ManageLruProjectFilesTask)taskFromQueue).myProject.equals(myProject)) {
+        return this;
+      }
+      return null;
     }
 
     @Override
@@ -332,7 +339,6 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @NotNull private final Project myProject;
 
     PruneTask(@NotNull Project project) {
-      super(project);
       myProject = project;
     }
 
@@ -366,6 +372,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       catch (IOException e) {
         getLogger().error("Failed to prune cache files from " + projectCacheBase);
       }
+    }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof PruneTask && ((PruneTask)taskFromQueue).myProject.equals(myProject)) return this;
+      return null;
     }
   }
 

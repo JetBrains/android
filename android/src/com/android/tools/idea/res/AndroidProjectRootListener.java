@@ -21,7 +21,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -29,6 +28,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidDependenciesCache;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Service that subscribes to project root changes in order to invalidate {@link AndroidDependenciesCache},
@@ -59,18 +59,7 @@ public class AndroidProjectRootListener {
    * @param project the project whose module roots changed
    */
   private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
-    new DumbModeTask(project) {
-      @Override
-      public void performInDumbMode(@NotNull ProgressIndicator indicator) {
-        if (!project.isDisposed()) {
-          indicator.setText("Updating resource repository roots");
-          ModuleManager moduleManager = ModuleManager.getInstance(project);
-          for (Module module : moduleManager.getModules()) {
-              moduleRootsOrDependenciesChanged(module);
-          }
-        }
-      }
-    }.queue(project);
+    new MyDumbModeTask(project).queue(project);
   }
 
   /**
@@ -90,6 +79,31 @@ public class AndroidProjectRootListener {
       AndroidDependenciesCache.getInstance(module).dropCache();
       ResourceFolderManager.getInstance(facet).checkForChanges();
       ResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries();
+    }
+  }
+
+  private static class MyDumbModeTask extends DumbModeTask {
+    private final @NotNull Project myProject;
+
+    private MyDumbModeTask(@NotNull Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+      if (!myProject.isDisposed()) {
+        indicator.setText("Updating resource repository roots");
+        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+        for (Module module : moduleManager.getModules()) {
+          moduleRootsOrDependenciesChanged(module);
+        }
+      }
+    }
+
+    @Override
+    public @Nullable DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof MyDumbModeTask && ((MyDumbModeTask)taskFromQueue).myProject.equals(myProject)) return this;
+      return null;
     }
   }
 }
