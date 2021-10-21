@@ -21,9 +21,7 @@ import static org.junit.Assert.assertNull;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetDevices;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
@@ -48,7 +46,6 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
   private PhysicalDevicePanel myPanel;
-  private Project myProject;
   private PairDevicesUsingWiFiService myService;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
@@ -57,11 +54,6 @@ public final class PhysicalDevicePanelTest {
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private CountDownLatch myLatch;
-
-  @Before
-  public void mockProject() {
-    myProject = Mockito.mock(Project.class);
-  }
 
   @Before
   public void mockService() {
@@ -106,7 +98,7 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanel() throws InterruptedException {
     // Act
-    myPanel = new PhysicalDevicePanel(myProject,
+    myPanel = new PhysicalDevicePanel(null,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
@@ -116,15 +108,7 @@ public final class PhysicalDevicePanelTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
-
-    Object data = Collections.singletonList(Arrays.asList(myOnlinePixel3,
-                                                          "S",
-                                                          "USB",
-                                                          ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                                          RemoveValue.INSTANCE,
-                                                          PopUpMenuValue.INSTANCE));
-
-    assertEquals(data, myPanel.getTable().getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", "USB", Actions.INSTANCE)), myPanel.getTable().getData());
   }
 
   @Test
@@ -133,7 +117,7 @@ public final class PhysicalDevicePanelTest {
     myComponent.set(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(myProject,
+    myPanel = new PhysicalDevicePanel(null,
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
@@ -144,18 +128,11 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
 
-    Object data = Arrays.asList(Arrays.asList(myOnlinePixel3,
-                                              "S",
-                                              "USB",
-                                              ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                              RemoveValue.INSTANCE,
-                                              PopUpMenuValue.INSTANCE),
-                                Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5,
-                                              "30",
-                                              "",
-                                              ActivateDeviceFileExplorerWindowValue.INSTANCE,
-                                              RemoveValue.INSTANCE,
-                                              PopUpMenuValue.INSTANCE));
+    // @formatter:off
+    Object data = Arrays.asList(
+      Arrays.asList(myOnlinePixel3,                     "S",  "USB", Actions.INSTANCE),
+      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", "",    Actions.INSTANCE));
+    // @formatter:on
 
     assertEquals(data, myPanel.getTable().getData());
   }
@@ -166,9 +143,12 @@ public final class PhysicalDevicePanelTest {
 
   @Test
   public void initPairUsingWiFiButtonFeatureIsntEnabled() {
+    // Arrange
+    Project project = Mockito.mock(Project.class);
+
     // Act
-    myPanel = new PhysicalDevicePanel(myProject,
-                                      project -> myService,
+    myPanel = new PhysicalDevicePanel(project,
+                                      p -> myService,
                                       () -> myComponent,
                                       model -> myListener,
                                       PhysicalDeviceTable::new,
@@ -182,14 +162,16 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void initPairUsingWiFiButton() {
     // Arrange
+    Project project = Mockito.mock(Project.class);
+
     WiFiPairingController controller = Mockito.mock(WiFiPairingController.class);
 
     Mockito.when(myService.isFeatureEnabled()).thenReturn(true);
     Mockito.when(myService.createPairingDialogController()).thenReturn(controller);
 
     // Act
-    myPanel = new PhysicalDevicePanel(myProject,
-                                      project -> myService,
+    myPanel = new PhysicalDevicePanel(project,
+                                      p -> myService,
                                       () -> myComponent,
                                       model -> myListener,
                                       PhysicalDeviceTable::new,
