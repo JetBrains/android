@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -22,8 +23,12 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Mo
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,6 +41,7 @@ public class GraphRender {
   private Cycle mCycle = null;
   private Attribute[] mAttribute = null;
   private String[] mStartEndString = new String[2];
+  private boolean mShowNewGraph = StudioFlags.NELE_MOTION_AREA_GRAPH.get();
 
   static String[] ourWaveTypes = {"sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"};
   static HashMap<String, Integer> ourWaveTypeMap = new HashMap<>();
@@ -120,7 +126,7 @@ public class GraphRender {
     }
 
     mCycle = new Cycle();
-    mCycle.setCycle(pos, period, amp, offset, curveType);
+    mCycle.setCycle(pos, period, amp, offset, curveType, row);
     mCycle.fixRange(row.mKeyProp);
     return true;
   }
@@ -185,13 +191,27 @@ public class GraphRender {
     g.drawRect(x, y, w, h - 1);
     g.setColor(MEUI.Graph.ourG_line);
 
+    // with the new graph design, the ticks are drawn before the actual graph.
+    if (mShowNewGraph) {
+      g.setColor(MEUI.myGridColor);
+      TimeLineRow.drawTicks(g, mTimelineStructure, h, y);
+    }
+
     if (mCycle != null) {
-      mCycle.plot(g, gx, y, gw, h);
+      if (mShowNewGraph) {
+        mCycle.plotAreaGraph(g, gx, y, gw, h);
+      } else {
+        mCycle.plot(g, gx, y, gw, h);
+      }
     }
     if (mAttribute != null) {
       for (int i = 0; i < mAttribute.length; i++) {
         Attribute attribute = mAttribute[i];
-        attribute.plot(g, gx, y, gw, h);
+        if (mShowNewGraph) {
+          attribute.plotAreaGraph(g, gx, y, gw, h);
+        } else {
+          attribute.plot(g, gx, y, gw, h);
+        }
       }
     }
 
@@ -251,9 +271,11 @@ public class GraphRender {
     int[] yPoints = new int[1000];
     double mMin;
     double mMax;
+    int colorIndex = 0;
 
     public Attribute(TimeLineRowData row, String attr, double startValue, double endValue) {
       mType = attr;
+      colorIndex = row.mKeyPropIndex;
       setup(row, attr, startValue, endValue);
     }
 
@@ -334,6 +356,29 @@ public class GraphRender {
         g.drawPolyline(xPoints, yPoints, count);
       }
     }
+
+    // plot the attribute with an Area Graph
+    public void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
+
+      if (spline != null) {
+        double steps = 1.0 / w;
+        // add the starting point for drawing a polygon instead of a ployline
+        xPoints[0] = x;
+        yPoints[0] = y + h;
+        int count = 1;
+        for (double i = steps; i <= 1; i += steps) {
+          double yp = spline.getPos(i, 0);
+          xPoints[count] = (int)(x + i * w);
+          yPoints[count] = (int)(y + h - (yp - mMin) * h / (mMax - mMin));
+          count++;
+        }
+        // add the ending point for drawing a polygon instead of a ployline
+        xPoints[count] = x + w;
+        yPoints[count] = yPoints[0];
+        g.setColor(MEUI.graphColors[colorIndex % MEUI.graphColors.length]);
+        g.fillPolygon(xPoints, yPoints, count + 1);
+      }
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,11 +391,18 @@ public class GraphRender {
     float[] yMax = new float[xpos.length];
     float[] yMin = new float[xpos.length];
     float mMaxY, mMinY;
-    int[] xPoints = new int[xpos.length];
-    int[] yPoints = new int[xpos.length];
+    // add two more points (in start and end) for drawing a polygon
+    int numPoints = StudioFlags.NELE_MOTION_AREA_GRAPH.get() ? xpos.length + 2 : xpos.length;
+    int[] xPoints = new int[numPoints];
+    int[] yPoints = new int[numPoints];
+    int colorIndex = 0; // index for picking a color for the graph.
+    String attr = "";
+    // Store the waveOffest Y position.
+    double[] offsetY = new double[xpos.length];
+    int[] offsetYPoints = new int[xpos.length];
 
     void setCycle(double[] pos, double[] period, double[] amplitude, double[] offset,
-                  int curveType) {
+                  int curveType, TimeLineRowData row) {
       if (pos.length == 1) {
         pos = new double[]{0.0, pos[0], 1.0};
         period = new double[]{period[0], period[0], period[0]};
@@ -384,6 +436,8 @@ public class GraphRender {
       mOscillator = osc;
       mMaxY = -Float.MAX_VALUE;
       mMinY = Float.MAX_VALUE;
+      colorIndex = row.mKeyPropIndex;
+      attr = row.mKeyProp;
 
       for (int i = 0; i < xpos.length; i++) {
         xpos[i] = (float)(i / (xpos.length - 1.0f));
@@ -391,6 +445,7 @@ public class GraphRender {
         double off = mMonotoneSpline.getPos(xpos[i], 1);
         try {
           ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
+          offsetY[i] = off;
         }
         catch (Exception e) {
           ypos[i] = Math.random(); // visual hint that it is broken
@@ -425,6 +480,52 @@ public class GraphRender {
         yPoints[i] = yp;
       }
       g.drawPolyline(xPoints, yPoints, xPoints.length);
+    }
+
+    void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
+
+      ((Graphics2D) g)
+        .setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+      // add the starting point to draw the polygon
+      xPoints[0] = x;
+      yPoints[0] = y + (int)(h - h * (0 - mMinY) / (mMaxY - mMinY));
+      int count = 1;
+      for (int i = 0; i < xpos.length; i++) {
+        int xp = (int)(w * xpos[i] + x);
+        int yp = y + (int)(h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
+        xPoints[count] = xp;
+        yPoints[count] = yp;
+        count++;
+
+        // points for drawing the waveOffset polyline
+        int offsetYP =  y + (int)(h - h * (offsetY[i] - mMinY) / (mMaxY - mMinY));
+        offsetYPoints[i] = offsetYP;
+      }
+      // add the ending point to draw the polygon
+      xPoints[count] = x + w;
+      yPoints[count] = yPoints[0];
+
+      // Draw a baseline where the y position is 0
+      g.setColor(MEUI.myGridColor);
+      g.drawPolyline(Arrays.copyOfRange(xPoints, 1, xPoints.length - 1), Arrays.copyOfRange(yPoints, 1, yPoints.length - 1), count - 1);
+
+      // Draw a line where the y position is 1 when the attribute is scaleX or scaleY
+      if (attr.equals("scaleX") || attr.equals("scaleY")) {
+        int yTop = y + (int)(h - h * (1 - mMinY) / (mMaxY - mMinY));
+        g.drawLine(x, yTop, x + w, yTop);
+      }
+
+      // Draw the animation graph
+      g.setColor(MEUI.graphColors[colorIndex % MEUI.graphColors.length]);
+      g.fillPolygon(xPoints, yPoints, count + 1);
+
+      // Draw the waveOffset dashed line
+      Stroke dashed = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f,
+                                      new float[]{9}, 0f);
+      ((Graphics2D) g).setStroke(dashed);
+      g.setColor(MEUI.ourDashedLineColor);
+      g.drawPolyline(Arrays.copyOfRange(xPoints, 1, xPoints.length - 1), offsetYPoints, count - 1);
     }
 
     float getComputedValue(float v) {
