@@ -21,7 +21,6 @@ import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
-import com.intellij.usages.UsageView
 import com.intellij.usages.impl.rules.UsageGroupBase
 import com.intellij.usages.impl.rules.UsageGroupingRulesDefaultRanks
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
@@ -61,7 +60,7 @@ class PropertiesFileGroupingRule : SingleParentUsageGroupingRule() {
 }
 
 data class PropertiesFileUsageGroup(val flag: String) : UsageGroupBase(-1) {
-  override fun getText(view: UsageView?): String = AndroidBundle.message("android.usageGroup.properties.new.flag", flag)
+  override fun getPresentableGroupText(): String = AndroidBundle.message("android.usageGroup.properties.new.flag", flag)
   override fun compareTo(other: UsageGroup) = -1
 }
 
@@ -71,7 +70,7 @@ data class PropertiesFileUsageGroup(val flag: String) : UsageGroupBase(-1) {
  * TODO(b/78765120): Make this work for [MigrateToResourceNamespacesProcessor] as well.
  */
 data class ResourcePackageUsageGroup(val packageName: String) : UsageGroupBase(0) {
-  override fun getText(view: UsageView?): String = AndroidBundle.message("android.usageGroup.resource.references.from.package", packageName)
+  override fun getPresentableGroupText(): String = AndroidBundle.message("android.usageGroup.resource.references.from.package", packageName)
 
   override fun compareTo(other: UsageGroup): Int {
     return if (other is ResourcePackageUsageGroup) {

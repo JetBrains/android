@@ -36,11 +36,18 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.usageView.UsageInfo
+import com.intellij.usages.UsageGroup
+import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.UsageTarget
+import com.intellij.usages.rules.UsageGroupingRule
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.gradle.get
 import org.jetbrains.kotlin.idea.KotlinBundle
 import org.jetbrains.kotlin.idea.inspections.KotlinUnusedImportInspection
 
@@ -950,5 +957,28 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
     val syncEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
+  }
+
+  /**
+   * Test for [ResourcePackageGroupingRuleProvider], checks that the relevant UsageGroupingRules are included.
+   */
+  fun testWholeProjectGroupingRules() {
+    val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project,
+                                                                                        GradleVersion.tryParse("7.0.0")!!)
+    // gradle.properties only shows up as a usage when the file exists before the refactoring.
+    myFixture.addFileToProject("gradle.properties", "")
+
+    val usageInfo = refactoringProcessor.findUsages().toList()
+    val usageTypeTexts = usageInfo.map { getUsageGroup(it).presentableGroupText }
+    assertThat(usageTypeTexts).containsAllOf("References to resources defined in com.example.lib",
+                                             "References to resources defined in com.example.sublib",
+                                             "Properties flag to be added: android.nonTransitiveRClass")
+  }
+
+  private fun getUsageGroup(usageInfo: UsageInfo): UsageGroup {
+    val groupingRules = ResourcePackageGroupingRuleProvider().getActiveRules(myFixture.project)
+    val groups = groupingRules.map { it.getParentGroupsFor(UsageInfo2UsageAdapter(usageInfo), UsageTarget.EMPTY_ARRAY) }.flatten()
+    assertThat(groups).hasSize(1)
+    return groups[0]
   }
 }
