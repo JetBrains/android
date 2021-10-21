@@ -92,7 +92,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_MATERIAL3_ENABLED = Flag.create(
     NPW, "new.material3.templates", "New Material3 Templates",
     "Enable the new material 3 templates.",
-    false);
+    true);
   //endregion
 
   //region Profiler
