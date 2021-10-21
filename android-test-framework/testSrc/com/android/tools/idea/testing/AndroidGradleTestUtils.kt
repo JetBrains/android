@@ -132,6 +132,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -1397,6 +1398,8 @@ private fun <T> openPreparedProject(
   verifyOpened: (Project) -> Unit,
   action: (Project) -> T
 ): T {
+  // Use per-project code style settings so we never modify the IDE defaults.
+  CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
   fun body(): T {
     val project = runInEdtAndGet {
