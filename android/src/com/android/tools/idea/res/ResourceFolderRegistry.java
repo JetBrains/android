@@ -205,8 +205,14 @@ public class ResourceFolderRegistry implements Disposable {
     @NotNull private final Project myProject;
 
     public PopulateCachesTask(@NotNull Project project) {
-      super(project);
       myProject = project;
+    }
+
+    @Nullable
+    @Override
+    public DumbModeTask tryMergeWith(@NotNull DumbModeTask taskFromQueue) {
+      if (taskFromQueue instanceof PopulateCachesTask && ((PopulateCachesTask)taskFromQueue).myProject.equals(myProject)) return this;
+      return null;
     }
 
     @Override
