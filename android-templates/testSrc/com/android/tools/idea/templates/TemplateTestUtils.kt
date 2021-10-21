@@ -85,10 +85,6 @@ internal fun isBroken(templateName: String): Boolean {
     if ("Native C++" == templateName) return true // b/158067606
   }
 
-  // Temporarily disable the automated test of the Compose Material template until we have the artifacts merged merged.
-  // This also ensures the test is only ignored if StudioFlags.NPW_MATERIAL3_ENABLED is disabled (so the template is not visible for users).
-  if ("Empty Compose Activity (Material3)" == templateName) return !StudioFlags.NPW_MATERIAL3_ENABLED.get() // b/200005771
-
   return false
 }
 

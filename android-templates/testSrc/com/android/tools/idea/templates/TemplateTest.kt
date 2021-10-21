@@ -326,15 +326,27 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
 
   @TemplateCheck
   fun testComposeActivityMaterial3() {
-    // We temporarily are not setting the StudioFlags.NPW_MATERIAL3_ENABLED so detect if it's enabled accidentally.
-    // See comment in TemplateTestUtils.isBroken.
-
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
-      moduleData.category = Category.Compose
+    StudioFlags.NPW_MATERIAL3_ENABLED.override(true)
+    try {
+      val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
+        moduleData.category = Category.Compose
+        if (moduleData.apis != null) {
+          moduleData.apis = moduleData.apis?.let {
+            ApiTemplateData(
+              buildApi = ApiVersion(31, "31"),
+              targetApi = it.targetApi,
+              minApi = it.minApi,
+              appCompatVersion = it.appCompatVersion
+            )
+          }
+        }
+      }
+      checkCreateTemplate("Empty Compose Activity (Material3)", withSpecificKotlin) // Compose is always Kotlin
+    } finally {
+      StudioFlags.NPW_MATERIAL3_ENABLED.clearOverride()
     }
-    checkCreateTemplate("Empty Compose Activity (Material3)", withSpecificKotlin) // Compose is always Kotlin
   }
 
   @TemplateCheck

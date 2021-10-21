@@ -105,6 +105,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.compose.compiler.compiler_1.1.0-beta01",
         "@maven//:androidx.compose.material.material_1.1.0-beta01",
+        "@maven//:androidx.compose.material3.material3_1.0.0-alpha01",
         "@maven//:androidx.compose.ui.ui-test-manifest_1.1.0-beta01",
         "@maven//:androidx.compose.ui.ui-tooling_1.1.0-beta01",
         "@maven//:androidx.constraintlayout.constraintlayout_2.0.4",
