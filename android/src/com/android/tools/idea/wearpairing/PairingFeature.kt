@@ -30,7 +30,10 @@ enum class PairingFeature(val minVersion: Int) {
   MULTI_WATCH_SINGLE_PHONE_PAIRING(213204000),
 
   // Applicable to watch
-  REVERSE_PORT_FORWARD(210915000)
+  REVERSE_PORT_FORWARD(210915000),
+
+  // Applicable to phone/watch
+  GET_PAIRING_STATUS(213306000)
 }
 
 private const val GMSCORE_APP_ID = "com.google.android.gms"
@@ -55,7 +58,7 @@ suspend fun IDevice.getCompanionAppIdForWatch(): String {
   return OEM_COMPANION_FALLBACK_APP_ID
 }
 
-suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String?): Boolean {
+suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String? = null): Boolean {
   return when (pairingFeature) {
     PairingFeature.COMPANION_EMULATOR_ACTIVITY ->
       if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID) {
@@ -65,6 +68,7 @@ suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionA
         true
       }
     PairingFeature.REFRESH_EMULATOR_CONNECTION,
+    PairingFeature.GET_PAIRING_STATUS,
     PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING,
     PairingFeature.REVERSE_PORT_FORWARD ->
       (getAppVersionCode(GMSCORE_APP_ID) ?: 0) >= pairingFeature.minVersion

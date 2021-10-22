@@ -339,7 +339,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   }
 
   suspend fun PairingDevice.supportsMultipleWatchConnections(): Boolean =
-    getConnectedDevices()[deviceID]?.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING, null) == true
+    getConnectedDevices()[deviceID]?.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING) == true
 
   private fun findAdb() : AndroidDebugBridge? {
     AndroidDebugBridge.getBridge()?.also {

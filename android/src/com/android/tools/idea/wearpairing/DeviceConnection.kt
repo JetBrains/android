@@ -27,6 +27,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 private const val REFRESH_CONNECTION_COMMAND =
   "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation refresh-emulator-connection"
+private const val GET_PAIRING_STATUS_COMMAND =
+  "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation get-pairing-status"
+private val LOCAL_NODE_REGEX = "Local:\\[([^\\[\\]]+)]".toRegex()
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 object DeviceConnection
@@ -49,9 +52,14 @@ suspend fun IDevice.runShellCommand(cmd: String): String = withContext(AndroidDi
 }
 
 suspend fun IDevice.loadNodeID(): String {
-  val localIdPattern = "local: "
-  val output = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
-  return output.replace(localIdPattern, "").trim()
+  return if (hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
+    LOCAL_NODE_REGEX.find(runShellCommand(GET_PAIRING_STATUS_COMMAND))?.groupValues?.get(1) ?: ""
+  }
+  else {
+    val localIdPattern = "local: "
+    val output = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
+    output.replace(localIdPattern, "").trim()
+  }
 }
 
 suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String {
@@ -72,7 +80,7 @@ suspend fun IDevice.retrieveUpTime(): Double {
 }
 
 suspend fun IDevice.refreshEmulatorConnection() {
-  if (hasPairingFeature(PairingFeature.REFRESH_EMULATOR_CONNECTION, null)) {
+  if (hasPairingFeature(PairingFeature.REFRESH_EMULATOR_CONNECTION)) {
     runShellCommand(REFRESH_CONNECTION_COMMAND)
   }
   else {

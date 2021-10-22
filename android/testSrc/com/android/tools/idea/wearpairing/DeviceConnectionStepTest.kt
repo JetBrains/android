@@ -218,6 +218,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       val reply = when {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
+        request.contains("get-pairing-status") -> "Local:[TestNodeId]"
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         request.contains("settings get secure") -> companionAppId.toString()

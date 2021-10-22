@@ -143,7 +143,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
       if (isFirstStage) {
         phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
-        if (!phoneIDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING, null)) {
+        if (!phoneIDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING)) {
           killNonSelectedRunningWearEmulators()
         }
         wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded()
@@ -164,7 +164,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
-    if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD, null)) {
+    if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD)) {
       showDeviceGmscoreNeedsUpdate(wearDevice)
       wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
       return
