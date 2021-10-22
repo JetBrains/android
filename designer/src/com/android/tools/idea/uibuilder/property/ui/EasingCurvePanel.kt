@@ -24,8 +24,8 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.runReadAction
 import com.intellij.util.ui.JBUI
-import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -113,7 +113,7 @@ class EasingCurvePanel(
     if (application.isReadAccessAllowed) {
       updateFromProperty()
     } else {
-      application.readAction {
+      runReadAction {
         updateFromProperty()
       }
     }
