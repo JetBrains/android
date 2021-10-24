@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
@@ -63,7 +64,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.NAME]).isNull()
         expect.that(overrides[ManifestSystemProperty.PACKAGE]).isEqualTo("uninitialized.application.id")
         expect.that(overrides[ManifestSystemProperty.TARGET_PACKAGE]).isNull()
-        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo("30")
+        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
         expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("20")
         expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.secondAbc-firstAbc-secondAbc-debug")
         expect.that(ManifestSystemProperty.values().size).isEqualTo(11)
@@ -79,7 +80,7 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         expect.that(overrides[ManifestSystemProperty.NAME]).isNull()
         expect.that(overrides[ManifestSystemProperty.PACKAGE]).isEqualTo("uninitialized.application.id")
         expect.that(overrides[ManifestSystemProperty.TARGET_PACKAGE]).isNull()
-        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo("30")
+        expect.that(overrides[ManifestSystemProperty.TARGET_SDK_VERSION]).isEqualTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
         expect.that(overrides[ManifestSystemProperty.VERSION_CODE]).isEqualTo("31")
         expect.that(overrides[ManifestSystemProperty.VERSION_NAME]).isEqualTo("1.0-secondXyz-release")
         expect.that(ManifestSystemProperty.values().size).isEqualTo(11)
