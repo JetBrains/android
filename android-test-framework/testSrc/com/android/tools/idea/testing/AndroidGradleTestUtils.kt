@@ -123,6 +123,7 @@ import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -1408,6 +1409,7 @@ private fun <T> openPreparedProject(
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      project.maybeOutputDiagnostics()
       project
     }
     try {
@@ -1445,7 +1447,11 @@ private fun verifySyncedSuccessfully(project: Project) {
     .flatMap { it.syncIssues() }
     .filter { it.severity == SyncIssue.SEVERITY_ERROR }
   if (errors.isNotEmpty()) {
-    throw IllegalStateException(errors.joinToString(separator = "\n") { it.message })
+    throw IllegalStateException(
+      errors.joinToString(separator = "\n") {
+        "${it.message}\n${it.data}\n  ${it.multiLineMessage?.joinToString("\n  ")}\n"
+      }
+    )
   }
 }
 
@@ -1628,3 +1634,15 @@ fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: St
 
   return origContent.replace("pluginManagement {", "pluginManagement { $pluginsResolutionStrategy")
 }
+
+private fun Project.maybeOutputDiagnostics() {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+    println("Libraries:>")
+    LibraryTablesRegistrar.getInstance()
+      .getLibraryTable(this)
+      .libraries
+      .sortedBy { it.name }
+      .forEach { println(it.name) }
+  }
+}
+
