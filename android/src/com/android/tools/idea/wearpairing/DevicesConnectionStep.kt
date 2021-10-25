@@ -199,7 +199,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private fun showIncompatibleCompanionAppError(phoneDevice: IDevice, wearDevice: IDevice) {
     dispose()
     GlobalScope.launch(ioThread) {
-      val body = createWarningPanel(message("wear.assistant.device.connection.wear.os.wear3", phoneDevice.name))
+      val body = createWarningPanel(message("wear.assistant.device.connection.wear.os.wear3"))
       body.add(
         LinkLabel<Unit>("Retry", null) { _, _ ->
           check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
