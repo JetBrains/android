@@ -18,6 +18,7 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.IDevice
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.observable.BatchInvoker
@@ -114,8 +115,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     assertThat(fakeUi.getPhoneEmptyComponent().isVisible).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
-    assertThat(usageTracker.usages.last()!!.studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_PAIRING)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
   }
 
   @Test
@@ -163,7 +164,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(firstComponent).isNotNull()
       assertThat(secondComponent).isNull()
     }
-    assertThat(usageTracker.usages.last()!!.studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION)
+    assertThat(getWearPairingTrackingEvents().last().studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_PRE_SELECTION)
   }
 
   @Test
@@ -310,6 +311,9 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   private fun FakeUi.getLabelWithText(text: String) = getComponent<JBLabel> { it.text == text }
 
   private fun FakeUi.getSplitter() = getComponent<Splitter> { true }
+
+  private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
+    usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING }
 
   private class TestPopupFactory : PopupFactory() {
     var popupContents: Component? = null
