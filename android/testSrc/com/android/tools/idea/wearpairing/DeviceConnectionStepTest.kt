@@ -147,6 +147,20 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   }
 
   @Test
+  fun shouldShowSuccessIfAlreadyPaired() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0")
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JBLabel> { it.text == "Successful pairing" } != null
+    }
+  }
+
+  @Test
   fun shouldShowRestartPairingIfConnectionIsDrop() {
     var launchedCalled = false
 
@@ -218,7 +232,8 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       val reply = when {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
-        request.contains("get-pairing-status") -> "Local:[TestNodeId]"
+        // Note: get-pairing-status gets called on both phone and watch. Watch uses the Local part and phone uses the Peer part.
+        request.contains("get-pairing-status") -> "Local:[TestNodeId]\nPeer:[AnotherNode,false,false]\nPeer:[TestNodeId,true,true]"
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         request.contains("settings get secure") -> companionAppId.toString()

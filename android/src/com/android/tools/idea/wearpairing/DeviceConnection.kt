@@ -30,6 +30,7 @@ private const val REFRESH_CONNECTION_COMMAND =
 private const val GET_PAIRING_STATUS_COMMAND =
   "am broadcast -a com.google.android.gms.wearable.EMULATOR --es operation get-pairing-status"
 private val LOCAL_NODE_REGEX = "Local:\\[([^\\[\\]]+)]".toRegex()
+private val PEER_NODE_REGEX = "Peer:\\[([^\\[\\],]+),(true|false),(true|false)]".toRegex()
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 object DeviceConnection
@@ -93,12 +94,32 @@ suspend fun IDevice.isCompanionAppInstalled(companionAppId: String): Boolean {
   return output.contains("versionName=")
 }
 
+private data class PairingStatus(val nodeId: String?, val connected: Boolean, val enabled: Boolean)
+
+private suspend fun getPairingStatus(phoneDevice: IDevice, wearNodeId: String): PairingStatus? {
+  return phoneDevice.runShellCommand(GET_PAIRING_STATUS_COMMAND).lines()
+    .takeIf { it.size > 1 }
+    ?.let { it.subList(1, it.size) }
+    ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
+    ?.filter { it.size >= 4 }
+    ?.first { it[1] == wearNodeId }
+    ?.let { PairingStatus(it[1], it[2].toBoolean(), it[3].toBoolean()) }
+}
+
 suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
-  val phoneDeviceID = phoneDevice.loadNodeID()
-  if (phoneDeviceID.isNotEmpty()) {
-    val wearPattern = "connection to peer node: $phoneDeviceID"
-    val wearOutput = wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
-    return wearOutput.isNotBlank()
+  if (phoneDevice.hasPairingFeature(PairingFeature.GET_PAIRING_STATUS)) {
+    val wearNodeId = wearDevice.loadNodeID()
+    // TODO: We need additional states to differentiate between the cases where the nodeId matches
+    //  but it's either not enabled or is not connected
+    return getPairingStatus(phoneDevice, wearNodeId)?.takeIf { it.enabled && it.connected } != null
+  }
+  else {
+    val phoneDeviceID = phoneDevice.loadNodeID()
+    if (phoneDeviceID.isNotEmpty()) {
+      val wearPattern = "connection to peer node: $phoneDeviceID"
+      val wearOutput = wearDevice.runShellCommand("dumpsys activity service WearableService | grep '$wearPattern'")
+      return wearOutput.isNotBlank()
+    }
   }
   return false
 }
