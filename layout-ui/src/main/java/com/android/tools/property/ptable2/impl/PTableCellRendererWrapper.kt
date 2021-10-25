@@ -19,6 +19,8 @@ import com.android.tools.property.ptable2.DefaultPTableCellRenderer
 import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.ui.hover.TableHoverListener
+import com.intellij.util.ui.JBUI
 import java.awt.Component
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
@@ -42,6 +44,17 @@ class PTableCellRendererWrapper: TableCellRenderer {
     val model = pTable.model
     val item = value as PTableItem
     val isExpanded = pTable.isExpandedItem(row, column)
-    return renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus, isExpanded)
+    val component =
+      renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus, isExpanded)
+    if (isSelected && !hasFocus) {
+      // The JBTable.prepareRenderer overrides the background color to indicate when the mouse is hovering the row.
+      // If the cell is selected the background is not overridden since the renderer component may be showing the table selection.
+      // Since the property table is only showing the table selection when the table has focus, we set the hovering color here when
+      // the cell is selected but does not have focus.
+      @Suppress("UnstableApiUsage")
+      component?.background =
+        if (TableHoverListener.getHoveredRow(table) == row) JBUI.CurrentTheme.Table.Hover.background(true) else table.background
+    }
+    return component
   }
 }

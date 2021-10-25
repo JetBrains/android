@@ -34,6 +34,9 @@ import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.hover.TableHoverListener
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
@@ -43,6 +46,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.awt.AWTEvent
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -675,6 +679,44 @@ class PTableImplTest {
     assertThat(model!!.items.size).isEqualTo(7)
     assertThat(model!!.items[6].name).isEqualTo("data")
     assertThat(model!!.items[6].value).isEqualTo("123")
+  }
+
+  @Test
+  fun testBackgroundColor() {
+    val hoverColor = JBUI.CurrentTheme.Table.Hover.background(true)
+    val selectedColor = UIUtil.getTableBackground(true, true)
+
+    // Without focus:
+    assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+    assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(hoverColor)
+
+    val focusManager = FakeKeyboardFocusManager(appRule.testRootDisposable)
+    focusManager.focusOwner = table
+
+    // With focus:
+    assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+    assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(selectedColor)
+    assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(selectedColor)
+  }
+
+  @Suppress("UnstableApiUsage")
+  private fun cellBackground(table: PTableImpl, selected: Boolean, hovered: Boolean): Color {
+    val selectedRow = if (selected) 3 else 2
+    table.setRowSelectionInterval(selectedRow, selectedRow)
+
+    val hoverListener = TableHoverListener.DEFAULT
+    val cell = table.getCellRect(3, 1, false)
+    if (hovered) {
+      hoverListener.mouseEntered(table, cell.centerX.toInt(), cell.centerY.toInt())
+    } else {
+      hoverListener.mouseExited(table)
+    }
+    val renderer = PTableCellRendererWrapper()
+    val component = table.prepareRenderer(renderer, 3, 1)
+    return component.background
   }
 
   private fun createPanel(): JPanel {
