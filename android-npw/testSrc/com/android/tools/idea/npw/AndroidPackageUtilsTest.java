@@ -23,12 +23,12 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mockito;
 
 import java.io.File;
 
-import static com.android.tools.idea.testing.TestProjectPaths.APPLICATION_ID_SUFFIX;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 /**
@@ -46,7 +46,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
     NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", androidModuleTemplate);
-    String defaultPackage = getModel().getApplicationId();
+    String defaultPackage = AndroidManifestUtils.getPackageName(myAndroidFacet);
 
     // Anything inside the Java src directory should return the "local package"
     assertEquals("google.simpleapplication", getPackageForPath(moduleTemplate, "app/src/main/java/google/simpleapplication"));
@@ -67,14 +67,5 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     VirtualFile targetDirectory = fs.refreshAndFindFileByPath(getProject().getBasePath()).findFileByRelativePath(targetDirPath);
 
     return AndroidPackageUtils.getPackageForPath(myAndroidFacet, Lists.newArrayList(NamedModuleTemplate), targetDirectory);
-  }
-
-  public void testGetPackageForPathWithApplicationIfSuffix() throws Exception {
-    loadProject(APPLICATION_ID_SUFFIX);
-    // Run assemble task to generate output listing file.
-    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
-    invokeGradleTasks(getProject(), taskName);
-    // Bug b/146366612
-    assertEquals("one.name.defaultConfig.debug", getModel().getApplicationId());
   }
 }
