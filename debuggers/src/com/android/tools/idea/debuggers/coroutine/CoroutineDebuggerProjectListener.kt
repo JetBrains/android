@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 /**
  * Class responsible for setting up the coroutine debugger panel
  */
-// TODO(b/182023182) disable when running api lower than 28
 class CoroutineDebuggerProjectListener : ProjectManagerListener {
   private var associatedProject: Project? = null
 

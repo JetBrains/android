@@ -54,10 +54,17 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     }
   }
 
-  fun testNoAmOptionsOnAPI27AndLower() {
+  fun testNoAmOptionsOnAPI28AndLower() {
     val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      assertEquals("", amStartOptions)
+    }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
 
@@ -86,7 +93,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
 
 
     runWithFlagState(true) {
