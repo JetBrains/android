@@ -375,8 +375,12 @@ class ToolWindowModel(
 
 class ContentManager(val project: Project) {
   init {
-    ToolWindowManager.getInstance(project).registerToolWindow(
-      RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
+    ApplicationManager.getApplication().invokeAndWait {
+      // Force EDT here to ease the testing (see com.intellij.ide.plugins.CreateAllServicesAndExtensionsAction: it instantiates services
+      //  on a background thread). There is no performance penalties when already invoked on EDT.
+      ToolWindowManager.getInstance(project).registerToolWindow(
+        RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
+    }
   }
 
   fun showContent() {
