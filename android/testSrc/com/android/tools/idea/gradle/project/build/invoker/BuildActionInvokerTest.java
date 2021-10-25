@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.injectBuildOutputDumpingBuildViewManager;
+
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Ref;
 import java.io.File;
@@ -40,7 +43,7 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
       }
       latch.countDown();
     });
-
+    injectBuildOutputDumpingBuildViewManager(getProject(), getProject());
     invoker.executeTasks(
       new GradleBuildInvoker.Request.Builder(
         getProject(),

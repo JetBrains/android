@@ -1359,6 +1359,9 @@ fun GradleIntegrationTest.prepareGradleProject(
                                                      kotlinVersion,
                                                      *getAdditionalRepos().toTypedArray())
     })
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+    println("Test project $testProjectPath prepared at '$projectPath'")
+  }
   return projectPath
 }
 
