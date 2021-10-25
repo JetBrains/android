@@ -17,8 +17,10 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.common.fadedGoodFrame
 import com.android.tools.adtui.common.fadedMissedDeadlineJank
 import com.android.tools.adtui.common.fadedOtherJank
+import com.android.tools.adtui.common.goodFrame
 import com.android.tools.adtui.common.missedDeadlineJank
 import com.android.tools.adtui.common.otherJank
 import com.android.tools.adtui.model.trackgroup.TrackModel
@@ -55,11 +57,7 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
       val textPadding = borderX + 1
 
       // draw entire frame
-      g.color = when (event.appJankType) {
-        JankType.JANK_APP_DEADLINE_MISSED -> if (hovered) missedDeadlineJank else fadedMissedDeadlineJank
-        JankType.JANK_BUFFER_STUFFING, JankType.JANK_UNSPECIFIED -> if (hovered) otherJank else fadedOtherJank
-        else -> UIUtil.TRANSPARENT_COLOR
-      }
+      g.color = if (hovered) event.getActiveColor() else event.getPassiveColor()
       g.fill(rect)
 
       // draw non-jank portion
@@ -81,4 +79,16 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
       }
     }
   }
+}
+
+fun AndroidFrameTimelineEvent.getActiveColor() = when (appJankType) {
+  JankType.JANK_APP_DEADLINE_MISSED -> missedDeadlineJank
+  JankType.JANK_NONE -> goodFrame
+  else -> otherJank
+}
+
+fun AndroidFrameTimelineEvent.getPassiveColor() = when (appJankType) {
+  JankType.JANK_APP_DEADLINE_MISSED -> fadedMissedDeadlineJank
+  JankType.JANK_NONE -> fadedGoodFrame
+  else -> fadedOtherJank
 }

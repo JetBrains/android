@@ -171,3 +171,13 @@ val otherJank = JBColor.namedColor("Profiler.otherJank", JBColor(0xe1a336, 0xe1a
  * Color of jank events other than deadline-missed when not hovered
  */
 val fadedOtherJank = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xf6e3c3, 0xf6e3c3))
+
+/**
+ * Color of good-frame event when hovered
+ */
+val goodFrame = JBColor.namedColor("Profiler.otherJank", JBColor(0x36a336, 0x36a336))
+
+/**
+ * Color of good-frame event when not hovered
+ */
+val fadedGoodFrame = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xc3e3c3, 0xc3e3c3))
