@@ -6,9 +6,9 @@ MODULE                        : TestCompositeLib1.app
     MavenName                     : com.test.composite1::app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -694,9 +694,9 @@ MODULE                        : TestCompositeLib1.lib
     MavenName                     : com.test.composite1::lib:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1377,9 +1377,9 @@ MODULE                        : TestCompositeLib3.app
     MavenName                     : TestCompositeLib3::app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -2053,9 +2053,9 @@ MODULE                        : TestCompositeLib3.lib
     MavenName                     : com.test.composite3::lib:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -2683,9 +2683,9 @@ MODULE                        : project.app
     MavenName                     : project::app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -3377,9 +3377,9 @@ MODULE                        : project.lib
     MavenName                     : com.test.composite::lib:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true

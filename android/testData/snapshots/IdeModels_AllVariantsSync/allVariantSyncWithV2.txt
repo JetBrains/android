@@ -1,6 +1,6 @@
 ModelVersion                  : <AGP_VERSION>
 ProjectType                   : PROJECT_TYPE_APP
-CompileTarget                 : android-30
+CompileTarget                 : android-<SDK_VERSION>
 BuildFolder                   : <ROOT>/app/build [-]
 buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
 IsBaseSplit                   : true
@@ -53,7 +53,7 @@ VariantNames                  : paidBarSpecialRelease
 VariantNames                  : paidOtherBarSpecialRelease
 FlavorDimensions              : foo
 FlavorDimensions              : bar
-BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
 DynamicFeatures               : :dyn_feature
 ViewBindingOptions
     Enabled                       : false
@@ -79,8 +79,8 @@ DefaultConfig
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : 30
-            ApiString                     : 30
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         VectorDrawables
             UseSupportLibrary             : false
     SourceProvider
@@ -635,8 +635,12 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-bar-debug
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vns
@@ -2637,8 +2641,12 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-otherBar-debug
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -4646,8 +4654,12 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : paid-bar-debug
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -6652,8 +6664,12 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-bar-specialRelease
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
@@ -7986,8 +8002,12 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-otherBar-specialRelease
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial
@@ -9327,8 +9347,12 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-otherBar-release
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -10672,8 +10696,12 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : basic-otherBar-specialRelease
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
@@ -12009,8 +12037,12 @@ IdeVariants
         BuildType                     : debug
         DisplayName                   : basic-otherBar-debug
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vns
@@ -14014,8 +14046,12 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-bar-release
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
@@ -15352,8 +15388,12 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : basic-otherBar-release
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+        MinSdkVersion
+            ApiLevel                      : 16
+            ApiString                     : 16
+        TargetSdkVersion
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
@@ -16693,8 +16733,12 @@ IdeVariants
         BuildType                     : release
         DisplayName                   : paid-bar-release
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -18035,8 +18079,12 @@ IdeVariants
         BuildType                     : specialRelease
         DisplayName                   : paid-bar-specialRelease
         InstantAppCompatible          : false
-        MinSdkVersion                 : IdeApiVersionImpl(apiLevel=10, codename=null, apiString=10)
-        TargetSdkVersion              : IdeApiVersionImpl(apiLevel=20, codename=null, apiString=20)
+        MinSdkVersion
+            ApiLevel                      : 10
+            ApiString                     : 10
+        TargetSdkVersion
+            ApiLevel                      : 20
+            ApiString                     : 20
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial

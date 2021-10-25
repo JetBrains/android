@@ -7,9 +7,9 @@ MODULE                        : project.app
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - LintRuleJars                : <ROOT>/lint/build/libs/lint.jar [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -116,9 +116,9 @@ MODULE                        : project.library
     MavenName                     : project::library:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -213,9 +213,9 @@ MODULE                        : project.library-remote
     MavenName                     : com.example.google::library-remote:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library-remote/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true

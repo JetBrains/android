@@ -123,7 +123,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     fun dump(ideAndroidModel: IdeAndroidProject) {
       prop("ModelVersion") { ideAndroidModel.modelVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
-      prop("CompileTarget") { ideAndroidModel.compileTarget }
+      prop("CompileTarget") { ideAndroidModel.compileTarget.replaceCurrentSdkVersion() }
       prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }
       prop("ResourcePrefix") { ideAndroidModel.resourcePrefix }
       prop("buildToolsVersion") { ideAndroidModel.buildToolsVersion?.toPrintableString() }
@@ -137,7 +137,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       dump(ideAndroidModel.agpFlags)
       ideAndroidModel.variantNames?.forEach { prop("VariantNames") { it } }
       ideAndroidModel.flavorDimensions.forEach { prop("FlavorDimensions") { it } }
-      ideAndroidModel.bootClasspath.forEach { prop("BootClassPath") { it.toPrintablePath() } }
+      ideAndroidModel.bootClasspath.forEach { prop("BootClassPath") { it.toPrintablePath().replaceCurrentSdkVersion() } }
       ideAndroidModel.dynamicFeatures.forEach { prop("DynamicFeatures") { it } }
       ideAndroidModel.viewBindingOptions?.let { dump(it) }
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
@@ -181,9 +181,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("BuildType") { ideVariant.buildType }
         prop("DisplayName") { ideVariant.displayName }
         prop("InstantAppCompatible") { ideVariant.instantAppCompatible.toString() }
-        prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
-        prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
-        prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
+        ideVariant.minSdkVersion.dump("MinSdkVersion")
+        ideVariant.targetSdkVersion?.dump("TargetSdkVersion")
+        prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString()?.replaceCurrentSdkVersion() }
         prop("VersionCode") { ideVariant.versionCode?.toString() }
         prop("VersionNameSuffix") { ideVariant.versionNameSuffix }
         prop("VersionNameWithSuffix") { ideVariant.versionNameWithSuffix }
@@ -430,24 +430,14 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("ApplicationId") { ideProductFlavor.applicationId }
       prop("VersionCode") { ideProductFlavor.versionCode?.toString() }
       prop("VersionName") { ideProductFlavor.versionName }
-      prop("MaxSdkVersion") { ideProductFlavor.maxSdkVersion?.toString() }
+      prop("MaxSdkVersion") { ideProductFlavor.maxSdkVersion?.toString()?.replaceCurrentSdkVersion() }
       prop("TestApplicationId") { ideProductFlavor.testApplicationId }
       prop("TestInstrumentationRunner") { ideProductFlavor.testInstrumentationRunner }
       prop("TestHandleProfiling") { ideProductFlavor.testHandleProfiling?.toString() }
       prop("TestFunctionalTest") { ideProductFlavor.testFunctionalTest?.toString() }
       ideProductFlavor.resourceConfigurations.forEach { prop("resourceConfigurations") { it } }
-      ideProductFlavor.minSdkVersion?.let {
-        head("MinSdkVersion")
-        nest {
-          dump(it)
-        }
-      }
-      ideProductFlavor.targetSdkVersion?.let {
-        head("TargetSdkVersion")
-        nest {
-          dump(it)
-        }
-      }
+      ideProductFlavor.minSdkVersion?.dump("MinSdkVersion")
+      ideProductFlavor.targetSdkVersion?.dump("TargetSdkVersion")
       if (ideProductFlavor.testInstrumentationRunnerArguments.isNotEmpty()) {
         head("TestInstrumentationRunnerArguments")
         nest {
@@ -628,10 +618,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    private fun dump(apiVersion: IdeApiVersion) {
-      prop("ApiLevel") { apiVersion.apiLevel.toString() }
-      prop("CodeName") { apiVersion.codename }
-      prop("ApiString") { apiVersion.apiString }
+    private fun IdeApiVersion.dump(name: String) {
+      head(name)
+      nest {
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("CodeName") { codename }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+      }
     }
 
     private fun dump(testOptions: IdeTestOptions) {

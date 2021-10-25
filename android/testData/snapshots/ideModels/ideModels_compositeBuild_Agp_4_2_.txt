@@ -2,7 +2,7 @@ MODULE                        : TestCompositeLib1
 MODULE                        : TestCompositeLib1.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -41,7 +41,7 @@ MODULE                        : TestCompositeLib1.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -58,8 +58,8 @@ MODULE                        : TestCompositeLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -226,8 +226,12 @@ MODULE                        : TestCompositeLib1.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite1
@@ -2034,7 +2038,7 @@ MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2073,7 +2077,7 @@ MODULE                        : TestCompositeLib1.lib
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2086,8 +2090,8 @@ MODULE                        : TestCompositeLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2244,8 +2248,12 @@ MODULE                        : TestCompositeLib1.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite1
@@ -3957,7 +3965,7 @@ MODULE                        : TestCompositeLib3
 MODULE                        : TestCompositeLib3.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
@@ -3996,7 +4004,7 @@ MODULE                        : TestCompositeLib3.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -4013,8 +4021,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4181,8 +4189,12 @@ MODULE                        : TestCompositeLib3.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite3
@@ -5965,7 +5977,7 @@ MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
@@ -6004,7 +6016,7 @@ MODULE                        : TestCompositeLib3.lib
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6017,8 +6029,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6175,8 +6187,12 @@ MODULE                        : TestCompositeLib3.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite3
@@ -7813,7 +7829,7 @@ MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -7852,7 +7868,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -7869,8 +7885,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -8037,8 +8053,12 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.compositeapp
@@ -9913,8 +9933,8 @@ MODULE                        : project.app
                 -                             : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                 -                             : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debug
             currentArguments              : -module-name
@@ -9993,8 +10013,8 @@ MODULE                        : project.app
                 -                             : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 -                             : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 -                             : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
             currentArguments              : -Xfriend-paths
@@ -10081,8 +10101,8 @@ MODULE                        : project.app
                 -                             : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2-api.jar
                 -                             : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
             currentArguments              : -Xfriend-paths
@@ -10134,7 +10154,7 @@ MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -10173,7 +10193,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -10186,8 +10206,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -10344,8 +10364,12 @@ MODULE                        : project.lib
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite0
@@ -12073,8 +12097,8 @@ MODULE                        : project.lib
                 -                             : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                 -                             : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debug
             currentArguments              : -module-name
@@ -12151,8 +12175,8 @@ MODULE                        : project.lib
                 -                             : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                 -                             : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
             currentArguments              : -Xfriend-paths
@@ -12237,8 +12261,8 @@ MODULE                        : project.lib
                 -                             : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
                 -                             : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
             currentArguments              : -Xfriend-paths

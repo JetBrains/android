@@ -69,9 +69,9 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }
   lintModelModule.dynamicFeatures.forEach { prop("- DynamicFeatures") { it } }
-  lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath() } }
+  lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath().replaceCurrentSdkVersion() } }
   prop("JavaSourceLevel") { lintModelModule.javaSourceLevel }
-  prop("CompileTarget") { lintModelModule.compileTarget }
+  prop("CompileTarget") { lintModelModule.compileTarget.replaceCurrentSdkVersion() }
   this.dump(lintModelModule.lintOptions)
   lintModelModule.variants.forEach { dump(it) }
 }

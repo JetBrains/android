@@ -2,7 +2,7 @@ MODULE                        : My_First_App
 MODULE                        : My_First_App.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -43,7 +43,7 @@ MODULE                        : My_First_App.app
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -60,8 +60,8 @@ MODULE                        : My_First_App.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -248,8 +248,12 @@ MODULE                        : My_First_App.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -1993,8 +1997,8 @@ MODULE                        : My_First_App.app
                 -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
                 -                             : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
             currentArguments              : -module-name
@@ -2073,8 +2077,8 @@ MODULE                        : My_First_App.app
                 -                             : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest
             currentArguments              : -Xfriend-paths
@@ -2163,8 +2167,8 @@ MODULE                        : My_First_App.app
                 -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
                 -                             : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest
             currentArguments              : -Xfriend-paths
@@ -2215,7 +2219,7 @@ MODULE                        : My_First_App.app.main
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2256,7 +2260,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         MlModelBindingEnabled         : false
     VariantNames                  : debug
     VariantNames                  : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-30/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2270,8 +2274,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : 30
-                ApiString                     : 30
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2448,8 +2452,12 @@ MODULE                        : My_First_App.app.mysharedlibrary
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
-            TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
@@ -4106,8 +4114,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                 -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
             currentArguments              : -module-name
@@ -4184,8 +4192,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                 -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest
             currentArguments              : -Xfriend-paths
@@ -4272,8 +4280,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 -                             : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                 -                             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
                 -                             : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                -                             : <ANDROID_SDK>/platforms/android-30/android.jar
-                -                             : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
+                -                             : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+                -                             : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
             currentArguments              : -d
             currentArguments              : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest
             currentArguments              : -Xfriend-paths

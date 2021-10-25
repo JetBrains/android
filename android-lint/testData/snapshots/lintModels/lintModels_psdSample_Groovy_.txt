@@ -7,9 +7,9 @@ MODULE                        : project.app
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - DynamicFeatures             : :dyn_feature
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -812,9 +812,9 @@ MODULE                        : project.dyn_feature
     MavenName                     : project::dyn_feature:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -913,9 +913,9 @@ MODULE                        : project.lib
     MavenName                     : project::lib:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1530,9 +1530,9 @@ MODULE                        : project.nested1
     MavenName                     : project::nested1:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1627,9 +1627,9 @@ MODULE                        : project.nested1.deep
     MavenName                     : project.nested1::nested1:deep:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1730,9 +1730,9 @@ MODULE                        : project.nested2
     MavenName                     : project::nested2:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1847,9 +1847,9 @@ MODULE                        : project.nested2.deep
     MavenName                     : project.nested2::nested2:deep:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1948,9 +1948,9 @@ MODULE                        : project.nested2.trans.deep2
     MavenName                     : project.nested2.trans::nested2:trans:deep2:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true

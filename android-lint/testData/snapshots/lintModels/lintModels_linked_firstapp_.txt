@@ -6,9 +6,9 @@ MODULE                        : My_First_App.app
     MavenName                     : My First App::app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -678,9 +678,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
     MavenName                     : My First App.app::app:mysharedlibrary:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true

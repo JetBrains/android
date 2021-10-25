@@ -6,10 +6,10 @@ MODULE                        : project.app
     MavenName                     : project::app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/optional/org.apache.http.legacy.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-30
+    CompileTarget                 : android-<SDK_VERSION>
     LintOptions
         AbsolutePaths                 : true
         ExplainIssues                 : true
