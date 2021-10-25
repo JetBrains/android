@@ -198,7 +198,10 @@ class ComposePreviewAnimationManagerTest {
     val animationStates = setOf("State1", "State2", "State3")
 
     val transitionAnimation = object : ComposeAnimation {
-      override val animationObject = Any()
+      override val animationObject = object {
+        @Suppress("unused") // Method is called via reflection.
+        fun getCurrentState() = "State1"
+      }
       override val type = ComposeAnimationType.TRANSITION_ANIMATION
       override val states = animationStates
     }

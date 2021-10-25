@@ -21,7 +21,7 @@ import org.mockito.Mockito.mock
 import javax.swing.JSlider
 import kotlin.test.assertEquals
 
-class CurvePainterTest {
+class InspectorPainterTest {
 
   @Test
   fun zeroWidth() {
@@ -29,7 +29,7 @@ class CurvePainterTest {
     Mockito.`when`(slider.width).thenReturn(0)
     Mockito.`when`(slider.maximum).thenReturn(200)
     Mockito.`when`(slider.minimum).thenReturn(0)
-    val result = CurvePainter.Slider.getTickIncrement(slider, 100)
+    val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(200, result)
   }
 
@@ -39,7 +39,7 @@ class CurvePainterTest {
     Mockito.`when`(slider.width).thenReturn(300)
     Mockito.`when`(slider.maximum).thenReturn(Int.MAX_VALUE)
     Mockito.`when`(slider.minimum).thenReturn(0)
-    val result = CurvePainter.Slider.getTickIncrement(slider, 100)
+    val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(700_000_000, result)
   }
 
@@ -49,7 +49,7 @@ class CurvePainterTest {
     Mockito.`when`(slider.width).thenReturn(300)
     Mockito.`when`(slider.maximum).thenReturn(200_000_000)
     Mockito.`when`(slider.minimum).thenReturn(0)
-    val result = CurvePainter.Slider.getTickIncrement(slider, 100)
+    val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(60_000_000, result)
   }
 
@@ -59,7 +59,7 @@ class CurvePainterTest {
     Mockito.`when`(slider.width).thenReturn(300)
     Mockito.`when`(slider.maximum).thenReturn(5)
     Mockito.`when`(slider.minimum).thenReturn(0)
-    val result = CurvePainter.Slider.getTickIncrement(slider, 100)
+    val result = InspectorPainter.Slider.getTickIncrement(slider, 100)
     assertEquals(1, result)
   }
 }

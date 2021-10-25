@@ -37,10 +37,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.Gray
@@ -64,24 +62,22 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.event.ActionListener
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.MouseEvent
-import java.awt.geom.Path2D
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
 import java.util.concurrent.TimeUnit
-import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
-import javax.swing.text.DefaultCaret
 import kotlin.math.ceil
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.geom.Path2D
+import javax.swing.JEditorPane
+import javax.swing.text.DefaultCaret
 import kotlin.math.max
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
@@ -140,6 +136,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       numberOfSubcomponents * TIMELINE_ROW_HEIGHT + TIMELINE_HEADER_HEIGHT + TIMELINE_FOOTER_HEIGHT
     }
   }
+
+  val logger = { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType -> logAnimationInspectorEvent(type) }
 
   /**
    * Tabs panel where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but have
@@ -228,17 +226,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
     animationTabs[animation]?.let { tab ->
-      tab.updateStateComboboxes(states.toTypedArray())
+      tab.stateComboBox.updateStates(states)
       val transition = animation.animationObject
       transition::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
         it.isAccessible = true
         it.invoke(transition)?.let { state ->
-          tab.startStateComboBox.selectedItem = state
+          tab.stateComboBox.setStartState(state)
         }
-      }
-      // Try to select an end state different than the start state.
-      if (tab.startStateComboBox.selectedIndex == tab.endStateComboBox.selectedIndex && tab.endStateComboBox.itemCount > 1) {
-        tab.endStateComboBox.selectedIndex = (tab.startStateComboBox.selectedIndex + 1) % tab.endStateComboBox.itemCount
       }
 
       // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
@@ -249,7 +243,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         tab.updateAnimationStartAndEndStates(longTimeout = true)
         // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
         // Note: this is called only once per tab, in this method, when creating the tab.
-        tab.setupAnimationStatesComboBoxListeners()
+        tab.stateComboBox.setupListeners()
         callback.invoke()
       }
     }
@@ -261,26 +255,19 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
     animationTabs[animation]?.let { tab ->
-      tab.animatedVisibilityComboBox.model = DefaultComboBoxModel(animation.states.toTypedArray())
+      tab.stateComboBox.updateStates(animation.states)
 
       updateAnimationStatesExecutor.execute {
         // Update the animated visibility combo box with the correct initial state, obtained from PreviewAnimationClock.
-        var stateName: String? = null
+        var state: Any? = null
         executeOnRenderThread(useLongTimeout = true) {
           val clock = animationClock ?: return@executeOnRenderThread
           // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore, calling `getAnimatedVisibilityState`
           // via reflection will return a String rather than an AnimatedVisibilityState. To work around that, we select the initial combo
           // box item by checking the display value.
-          stateName = clock.getAnimatedVisibilityStateFunction.invoke(clock.clock, animation) as? String
+          state = clock.getAnimatedVisibilityStateFunction.invoke(clock.clock, animation)
         }
-        stateName?.let {
-          for (i in 0 until tab.animatedVisibilityComboBox.itemCount) {
-            val item = tab.animatedVisibilityComboBox.getItemAt(i)
-            if (item.toString() == stateName) {
-              tab.animatedVisibilityComboBox.selectedItem = item
-            }
-          }
-        }
+        tab.stateComboBox.setStartState(state)
 
         // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since we're running off EDT, the UI will not
         // freeze. This is necessary here because it's the first time the animation mutable states will be written, when setting the clock,
@@ -288,12 +275,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         tab.updateAnimatedVisibility(longTimeout = true)
         // Set up the combo box listener so further changes to the selected state will trigger a call to updateAnimatedVisibility.
         // Note: this is called only once per tab, in this method, when creating the tab.
-        tab.animatedVisibilityComboBox.addActionListener {
-          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
-          tab.updateAnimatedVisibility()
-          tab.loadTransitionFromCacheOrLib()
-          tab.updateProperties()
-        }
+        tab.stateComboBox.setupListeners()
         callback.invoke()
       }
     }
@@ -419,15 +401,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   private inner class AnimationTab(val animation: ComposeAnimation, val tabTitle: String) : JPanel(TabularLayout("Fit,*,Fit", "Fit,*")) {
 
-    val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
-    val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
-
-    val animatedVisibilityComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
-
-    /**
-     * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
-     */
-    private var isSwappingStates = false
+    val stateComboBox: InspectorPainter.StateComboBox
 
     /**
      * Displays the animated properties and their value at the current timeline time.
@@ -449,15 +423,20 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     init {
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
-      if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
-        add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
+      stateComboBox = when (animation.type) {
+        ComposeAnimationType.TRANSITION_ANIMATION -> InspectorPainter.StartEndComboBox(logger) {
+          updateAnimationStartAndEndStates()
+          loadTransitionFromCacheOrLib()
+          updateProperties()
+        }
+        ComposeAnimationType.ANIMATED_VISIBILITY -> InspectorPainter.AnimatedVisibilityComboBox(logger) {
+          updateAnimationStartAndEndStates()
+          loadTransitionFromCacheOrLib()
+          updateProperties()
+        }
+        ComposeAnimationType.ANIMATED_VALUE -> InspectorPainter.EmptyComboBox()
       }
-      else if (animation.type == ComposeAnimationType.ANIMATED_VISIBILITY) {
-        animatedVisibilityComboBox.model = DefaultComboBoxModel(
-          arrayOf(message("animation.inspector.animated.visibility.combobox.placeholder.message"))
-        )
-        add(animatedVisibilityComboBox, TabularLayout.Constraint(0, 2))
-      }
+      add(stateComboBox.component, TabularLayout.Constraint(0, 2))
       val splitterWrapper = JPanel(BorderLayout()).apply {
         border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
       }
@@ -473,8 +452,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      */
     fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
       val clock = animationClock ?: return
-      val startState = startStateComboBox.selectedItem
-      val toState = endStateComboBox.selectedItem
+      val startState = stateComboBox.getState(0)
+      val toState = stateComboBox.getState(1)
 
       if (!executeOnRenderThread(longTimeout) {
           clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState)
@@ -488,7 +467,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     fun updateAnimatedVisibility(longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       if (!executeOnRenderThread(longTimeout) {
-          clock.updateAnimatedVisibilityStateFunction.invoke(clock.clock, animation, animatedVisibilityComboBox.selectedItem)
+          clock.updateAnimatedVisibilityStateFunction.invoke(clock.clock, animation, stateComboBox.getState())
         }) return
       resetTimelineAndUpdateWindowSize(longTimeout)
     }
@@ -509,13 +488,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
       if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
 
-      val stateHash = when (animation.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION -> Pair(
-          startStateComboBox.selectedItem?.hashCode(),
-          endStateComboBox.selectedItem?.hashCode()).hashCode()
-        ComposeAnimationType.ANIMATED_VISIBILITY -> animatedVisibilityComboBox.selectedItem.hashCode()
-        ComposeAnimationType.ANIMATED_VALUE -> 0
-      }
+      val stateHash = stateComboBox.stateHashCode()
 
       cachedTransitions[stateHash]?.let {
         timeline.updateTransition(cachedTransitions[stateHash]!!)
@@ -597,57 +570,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       )),
       true).component
 
-    /**
-     * Creates a couple of comboboxes representing the start and end states of the animation.
-     */
-    private fun createAnimationStateComboboxes(): JComponent {
-      val states = arrayOf(message("animation.inspector.states.combobox.placeholder.message"))
-      val statesToolbar = JPanel(TabularLayout("Fit,Fit,Fit,Fit"))
-      startStateComboBox.model = DefaultComboBoxModel(states)
-      endStateComboBox.model = DefaultComboBoxModel(states)
-
-      val swapStatesActionToolbar = object : ActionToolbarImpl("Swap States", DefaultActionGroup(SwapStartEndStatesAction()), true) {
-        // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
-        // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
-        override fun getPreferredSize() = JBUI.size(30, 30)
-      }
-      statesToolbar.add(swapStatesActionToolbar, TabularLayout.Constraint(0, 0))
-      statesToolbar.add(startStateComboBox, TabularLayout.Constraint(0, 1))
-      statesToolbar.add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 2))
-      statesToolbar.add(endStateComboBox, TabularLayout.Constraint(0, 3))
-      return statesToolbar
-    }
-
-    /**
-     * Sets up change listeners for [startStateComboBox] and [endStateComboBox].
-     */
-    fun setupAnimationStatesComboBoxListeners() {
-      startStateComboBox.addActionListener(ActionListener {
-        if (isSwappingStates) {
-          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
-          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
-          return@ActionListener
-        }
-        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
-        updateAnimationStartAndEndStates()
-        loadTransitionFromCacheOrLib()
-        updateProperties()
-      })
-      endStateComboBox.addActionListener(ActionListener {
-        if (!isSwappingStates) {
-          // Only log end state changes if not swapping states, which has its own tracking.
-          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
-        }
-        updateAnimationStartAndEndStates()
-        loadTransitionFromCacheOrLib()
-        updateProperties()
-      })
-    }
-
-    fun updateStateComboboxes(states: Array<Any>) {
-      startStateComboBox.model = DefaultComboBoxModel(states)
-      endStateComboBox.model = DefaultComboBoxModel(states)
-    }
 
     private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "${TIMELINE_HEADER_HEIGHT}px,*")).apply {
       preferredSize = JBDimension(200, 200)
@@ -737,25 +659,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       private fun Color.toCss() = "rgb($red, $green, $blue)"
     }
 
-    /**
-     * Swap start and end animation states in the corresponding combo boxes.
-     */
-    private inner class SwapStartEndStatesAction()
-      : AnActionButton(message("animation.inspector.action.swap.states"), StudioIcons.LayoutEditor.Motion.PLAY_YOYO) {
-      override fun actionPerformed(e: AnActionEvent) {
-        isSwappingStates = true
-        val startState = startStateComboBox.selectedItem
-        startStateComboBox.selectedItem = endStateComboBox.selectedItem
-        endStateComboBox.selectedItem = startState
-        isSwappingStates = false
-        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
-      }
-
-      override fun updateButton(e: AnActionEvent) {
-        super.updateButton(e)
-        e.presentation.isEnabled = true
-      }
-    }
 
     /**
      * Snap the animation to the start state.
@@ -985,7 +888,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         if (width == cachedSliderWidth && maximum == cachedMax) return
         cachedSliderWidth = width
         cachedMax = maximum
-        val tickIncrement = CurvePainter.Slider.getTickIncrement(this)
+        val tickIncrement = InspectorPainter.Slider.getTickIncrement(this)
         // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
         // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
         setMajorTickSpacing(tickIncrement)
@@ -1109,7 +1012,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       private val trackBackground = JBColor(Gray._235, JBColor.background())
       private val tickColor = JBColor(Gray._223, Gray._50)
 
-      fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): CurvePainter.CurveInfo? =
+      fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo? =
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()
           val animationYMin = component.minValue
@@ -1133,7 +1036,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           curve.lineTo(maxX.toDouble() + zeroDurationXOffset, maxY.toDouble())
           curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
 
-          return CurvePainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
+          return InspectorPainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
         }
 
       override fun getThumbSize(): Dimension {
@@ -1168,12 +1071,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
             val maxY = minY + TIMELINE_ROW_HEIGHT
             val curveInfo = createCurveInfo(animation, componentId, minY, (maxY - TIMELINE_CURVE_OFFSET))
             if (curveInfo != null)
-              CurvePainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
+              InspectorPainter.paintCurve(g, curveInfo, index, TIMELINE_ROW_HEIGHT)
 
             if (selectedProperties.size > index) {
-              CurvePainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, animation.grouped,
-                                                      xPositionForValue(animation.startMs),
-                                                      maxY - TIMELINE_CURVE_OFFSET + LABEL_OFFSET)
+              InspectorPainter.BoxedLabel.paintBoxedLabel(g, selectedProperties[index], componentId, animation.grouped,
+                                                          xPositionForValue(animation.startMs),
+                                                          maxY - TIMELINE_CURVE_OFFSET + LABEL_OFFSET)
             }
             rowIndex++
           }
@@ -1196,7 +1099,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
       override fun paintThumb(g: Graphics) {
-        CurvePainter.Thumb.paintThumbForHorizSlider(
+        InspectorPainter.Thumb.paintThumbForHorizSlider(
           g as Graphics2D,
           x = thumbRect.x + thumbRect.width / 2,
           y = thumbRect.y + TIMELINE_HEADER_HEIGHT,

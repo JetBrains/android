@@ -15,24 +15,38 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.adtui.TabularLayout
+import com.android.tools.idea.compose.preview.message
+import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.AnActionButton
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Stroke
+import java.awt.event.ActionListener
 import java.awt.font.TextLayout
 import java.awt.geom.Path2D
+import javax.swing.DefaultComboBoxModel
+import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JSlider
 
 /**
- * Graphics elements corresponding to painting the animation curves in [AnimationInspectorPanel].
+ * Graphics elements corresponding to painting the inspector in [AnimationInspectorPanel].
  */
-object CurvePainter {
+object InspectorPainter {
 
   class CurveInfo(
     val minX: Int,
@@ -273,6 +287,191 @@ object CurvePainter {
       g.fillPolygon(xArray(DIAMOND_SIZE + 1), yArray(DIAMOND_SIZE + 1), 4)
       g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
       g.fillPolygon(xArray(DIAMOND_SIZE), yArray(DIAMOND_SIZE), 4)
+    }
+  }
+
+  /** UI Component to display transition state. */
+  interface StateComboBox {
+    /** Root component. */
+    val component: JComponent
+
+    /** Set list of states for comboBoxes. */
+    fun updateStates(states: Set<Any>)
+
+    /** Setup all listeners. */
+    fun setupListeners()
+
+    /** Hash code of selected state. */
+    fun stateHashCode(): Int
+
+    /** Get selected state for the [index]. */
+    fun getState(index: Int = 0): Any
+
+    /** Set a start state. */
+    fun setStartState(state: Any?)
+  }
+
+  class EmptyComboBox() : StateComboBox, JPanel() {
+    override val component = this
+    override fun stateHashCode() = 0
+    override fun setupListeners() {}
+    override fun updateStates(states: Set<Any>) {}
+    override fun getState(index: Int): Any = 0
+    override fun setStartState(state: Any?) {}
+  }
+
+  /**
+   * UI Component to display comboBox for AnimatedVisibility.
+   * @params logger usage tracker for animation tooling
+   * @params callback when state has changed
+   */
+  class AnimatedVisibilityComboBox(
+    private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
+    private val callback: (stateComboBox: StateComboBox) -> Unit) :
+    StateComboBox, ComboBox<Any>(DefaultComboBoxModel(arrayOf<Any>())) {
+    override val component: JComponent = this
+
+    // AnimatedVisibilityCombobox component displays:
+    //      ComboBox with the state.
+    //      ↓
+    //   [State]  ⬅ component
+    init {
+      model = DefaultComboBoxModel(
+        arrayOf(message("animation.inspector.animated.visibility.combobox.placeholder.message"))
+      )
+    }
+
+    override fun updateStates(states: Set<Any>) {
+      model = DefaultComboBoxModel(states.toTypedArray())
+    }
+
+    override fun setStartState(state: Any?) {
+      (state as? String).let {
+        for (i in 0 until itemCount) {
+          val item = getItemAt(i)
+          if (item.toString() == it) {
+            selectedItem = item
+          }
+        }
+      }
+    }
+
+    override fun setupListeners() {
+      addActionListener {
+        logger(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+        callback(this)
+      }
+    }
+
+    override fun stateHashCode() = selectedItem.hashCode()
+    override fun getState(index: Int): Any = selectedItem
+  }
+
+  /**
+   * UI Component to display comboBoxes for transition.
+   * @params logger usage tracker for animation tooling
+   * @params callback when state has changed
+   */
+  class StartEndComboBox
+  (private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
+   private val callback: (stateComboBox: StateComboBox) -> Unit) :
+    StateComboBox, JPanel(TabularLayout("Fit,Fit,Fit,Fit")) {
+    //  StartEndComboBox component displays:
+    //
+    //   Swap button to switch states.
+    //   |         ComboBox with start state.
+    //   |         |        "to" label
+    //   |         |         |       ComboBox with end state.
+    //   ↓         ↓         ↓       ↓
+    // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
+    //⎹  ↔️  [Start State]  to  [End State]  ⎹ ⬅ component
+    //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅
+    private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
+    private val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
+    override val component = this
+
+    override fun stateHashCode() = Pair(
+      startStateComboBox.selectedItem?.hashCode(),
+      endStateComboBox.selectedItem?.hashCode()).hashCode()
+
+    /**
+     * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
+     */
+    private var isSwappingStates = false
+
+    init {
+      val states = arrayOf(message("animation.inspector.states.combobox.placeholder.message"))
+      startStateComboBox.model = DefaultComboBoxModel(states)
+      endStateComboBox.model = DefaultComboBoxModel(states)
+
+      val swapStatesActionToolbar = object : ActionToolbarImpl("Swap States", DefaultActionGroup(SwapStartEndStatesAction()), true) {
+        // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
+        // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
+        override fun getPreferredSize() = JBUI.size(30, 30)
+      }
+      add(swapStatesActionToolbar, TabularLayout.Constraint(0, 0))
+      add(startStateComboBox, TabularLayout.Constraint(0, 1))
+      add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 2))
+      add(endStateComboBox, TabularLayout.Constraint(0, 3))
+    }
+
+    /**
+     * Sets up change listeners for [startStateComboBox] and [endStateComboBox].
+     */
+    override fun setupListeners() {
+      startStateComboBox.addActionListener(ActionListener {
+        if (isSwappingStates) {
+          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
+          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
+          return@ActionListener
+        }
+        logger(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+        callback(this)
+      })
+      endStateComboBox.addActionListener(ActionListener {
+        if (!isSwappingStates) {
+          // Only log end state changes if not swapping states, which has its own tracking.
+          logger(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+        }
+        callback(this)
+      })
+    }
+
+    override fun updateStates(states: Set<Any>) {
+      startStateComboBox.model = DefaultComboBoxModel(states.toTypedArray())
+      endStateComboBox.model = DefaultComboBoxModel(states.toTypedArray())
+    }
+
+    override fun getState(index: Int): Any = when (index) {
+      0 -> startStateComboBox.selectedItem
+      1 -> endStateComboBox.selectedItem
+      else -> 0
+    }
+
+    override fun setStartState(state: Any?) {
+      startStateComboBox.selectedItem = state
+      // Try to select an end state different than the start state.
+      if (startStateComboBox.selectedIndex == endStateComboBox.selectedIndex &&
+          endStateComboBox.itemCount > 1) {
+        endStateComboBox.selectedIndex = (startStateComboBox.selectedIndex + 1) % endStateComboBox.itemCount
+      }
+    }
+
+    private inner class SwapStartEndStatesAction()
+      : AnActionButton(message("animation.inspector.action.swap.states"), StudioIcons.LayoutEditor.Motion.PLAY_YOYO) {
+      override fun actionPerformed(e: AnActionEvent) {
+        isSwappingStates = true
+        val startState = startStateComboBox.selectedItem
+        startStateComboBox.selectedItem = endStateComboBox.selectedItem
+        endStateComboBox.selectedItem = startState
+        isSwappingStates = false
+        logger(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
+      }
+
+      override fun updateButton(e: AnActionEvent) {
+        super.updateButton(e)
+        e.presentation.isEnabled = true
+      }
     }
   }
 }

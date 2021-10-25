@@ -31,7 +31,7 @@ object ComposeUnit {
     fun toString(componentId: Int): String
     override fun toString(): String
 
-    /** Transforms a component to a [Double]. It unifies painting of the curves in [CurvePainter]. */
+    /** Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]. */
     fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
   }
 
