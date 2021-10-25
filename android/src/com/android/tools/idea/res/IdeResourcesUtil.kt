@@ -25,9 +25,7 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_APP_PKG
-import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
-import com.android.SdkConstants.ANDROID_PREFIX
 import com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.ANDROID_VIEW_PKG
 import com.android.SdkConstants.ANDROID_WEBKIT_PKG
@@ -41,7 +39,6 @@ import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
-import com.android.SdkConstants.FD_RES_VALUES
 import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
@@ -87,7 +84,6 @@ import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
 import com.google.common.collect.Lists
-import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
@@ -907,59 +903,6 @@ fun findIdsInFile(file: PsiFile): Set<String> {
 }
 
 /**
- * Comparator function for resource references (e.g. `@foo/bar`).
- * Sorts project resources higher than framework resources.
- */
-fun compareResourceReferences(resource1: String, resource2: String): Int {
-  val framework1 = if (resource1.startsWith(ANDROID_PREFIX)) 1 else 0
-  val framework2 = if (resource2.startsWith(ANDROID_PREFIX)) 1 else 0
-  val delta = framework1 - framework2
-  return if (delta != 0) delta else resource1.compareTo(resource2, ignoreCase = true)
-}
-
-private fun addFrameworkItems(
-  destination: MutableList<String>,
-  type: ResourceType,
-  includeFileResources: Boolean,
-  frameworkResources: ResourceRepository
-) {
-  val items = frameworkResources.getPublicResources(ResourceNamespace.ANDROID, type)
-  for (item in items) {
-    if (!includeFileResources) {
-      val dirName = item.source?.parentFileName
-      if (dirName != null && !dirName.startsWith(FD_RES_VALUES)) {
-        continue
-      }
-    }
-
-    destination.add(PREFIX_RESOURCE_REF + ANDROID_NS_NAME_PREFIX + type.getName() + '/'.toString() + item.name)
-  }
-}
-
-// TODO(namespaces): require more information here as context for namespaced lookup
-private fun addProjectItems(
-  destination: MutableList<String>,
-  type: ResourceType,
-  includeFileResources: Boolean,
-  repository: LocalResourceRepository,
-  facet: AndroidFacet
-) {
-  val namespace = ResourceNamespace.TODO()
-  for (entry in repository.getResources(namespace, type).asMap().entries) {
-    val resourceName = entry.key
-    if (!isAccessible(namespace, type, resourceName, facet)) {
-      continue
-    }
-    val items = entry.value
-    if (!includeFileResources && items.firstOrNull()?.isFileBased == true) {
-      continue
-    }
-
-    destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName)
-  }
-}
-
-/**
  * Returns a [ResourceNamespace.Resolver] for the specified tag.
  */
 fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
@@ -1216,17 +1159,6 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
     rootTag.add(xmlnsAttr)
   }
   return prefix!!
-}
-
-/**
- * Comparator which orders [PsiElement] items into a priority order most suitable for presentation
- * to the user; for example, it prefers base resource folders such as `values/` over resource
- * folders such as `values-en-rUS`
- */
-@JvmField
-val RESOURCE_ELEMENT_COMPARATOR = Comparator { e1: PsiElement, e2: PsiElement ->
-  val delta = compareResourceFiles(e1.containingFile, e2.containingFile)
-  if (delta != 0) delta else e1.textOffset - e2.textOffset
 }
 
 fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
@@ -2104,60 +2036,6 @@ fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
       }
     }
     file1.path.compareTo(file2.path)
-  }
-  else if (file1 != null) {
-    -1
-  }
-  else {
-    1
-  }
-}
-
-/**
- * Utility method suitable for Comparator implementations which order resource files,
- * which will sort files by base folder followed by alphabetical configurations. Prioritizes
- * XML files higher than non-XML files. (Resource file folders are sorted by folder configuration
- * order.)
- */
-fun compareResourceFiles(file1: PsiFile?, file2: PsiFile?): Int {
-  return if (file1 === file2) {
-    0
-  }
-  else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === XmlFileType.INSTANCE
-    val xml2 = file2.fileType === XmlFileType.INSTANCE
-    if (xml1 != xml2) {
-      return if (xml1) -1 else 1
-    }
-    val parent1 = file1.parent
-    val parent2 = file2.parent
-    if (parent1 != null && parent2 != null && parent1 !== parent2) {
-      val parentName1 = parent1.name
-      val parentName2 = parent2.name
-      val qualifier1 = parentName1.indexOf('-') != -1
-      val qualifier2 = parentName2.indexOf('-') != -1
-      if (qualifier1 != qualifier2) {
-        return if (qualifier1) 1 else -1
-      }
-      if (qualifier1) { // Sort in FolderConfiguration order
-        val config1 = FolderConfiguration.getConfigForFolder(parentName1)
-        val config2 = FolderConfiguration.getConfigForFolder(parentName2)
-        if (config1 != null && config2 != null) {
-          return config1.compareTo(config2)
-        }
-        else if (config1 != null) {
-          return -1
-        }
-        else if (config2 != null) {
-          return 1
-        }
-        val delta = parentName1.compareTo(parentName2)
-        if (delta != 0) {
-          return delta
-        }
-      }
-    }
-    file1.name.compareTo(file2.name)
   }
   else if (file1 != null) {
     -1
