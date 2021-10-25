@@ -72,6 +72,7 @@ import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
 import javax.swing.Box
 import javax.swing.Box.createVerticalStrut
+import javax.swing.Icon
 import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -165,7 +166,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
     if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD)) {
-      showDeviceGmscoreNeedsUpdate(wearDevice)
+      showDeviceGmscoreNeedsUpdate()
       wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
       return
     }
@@ -213,9 +214,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
-  private fun showDeviceGmscoreNeedsUpdate(device: IDevice) {
+  private fun showDeviceGmscoreNeedsUpdate() {
     GlobalScope.launch(ioThread) {
-      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error", device.name))
+      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error"), StudioIcons.Common.ERROR)
       body.add(
         LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ ->
           wizardAction.restart(project)
@@ -754,8 +755,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 }
 
-private fun createWarningPanel(errorMessage: String): JPanel = JPanel(GridBagLayout()).apply {
-  add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 0))
+private fun createWarningPanel(errorMessage: String, icon : Icon = StudioIcons.Common.WARNING): JPanel = JPanel(GridBagLayout()).apply {
+  add(JBLabel(IconUtil.scale(icon, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 0))
   add(HtmlLabel().apply {
     name = "errorMessage"
     HtmlLabel.setUpAsHtmlLabel(this)
