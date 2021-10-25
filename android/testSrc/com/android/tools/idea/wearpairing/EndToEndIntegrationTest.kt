@@ -134,6 +134,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     val phoneWearPair = WearPairingManager.getPairedDevices(wearIDevice.name)
     assertThat(phoneWearPair).isNotNull()
     assertThat(phoneWearPair!!.pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
+    assertThat(phoneWearPair.getPeerDevice(wearIDevice.name).displayName).isEqualTo(phoneIDevice.name)
   }
 
   private fun FakeUi.clickButton(text: String) {

@@ -100,10 +100,8 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     }
 
     JMenuItem item = new JBMenuItem("Unpair device");
-
-    PairingDevice otherDevice = pair.getPhone().getDeviceID().equals(key) ? pair.getWear() : pair.getPhone();
+    PairingDevice otherDevice = pair.getPeerDevice(key);
     item.setToolTipText(AndroidBundle.message("wear.assistant.device.list.forget.connection", otherDevice.getDisplayName()));
-
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
         .setKind(DeviceManagerEvent.EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)

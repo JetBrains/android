@@ -80,7 +80,14 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     val wear: PairingDevice,
     var pairingStatus: PairingState,
     var hostPort: Int
-  )
+  ) {
+    fun getPeerDevice(deviceID: String) =
+      when (deviceID) {
+        phone.deviceID -> wear
+        wear.deviceID -> phone
+        else -> throw AssertionError(deviceID)
+      }
+  }
 
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 

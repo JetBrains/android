@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.collect.Streams;
@@ -84,33 +83,15 @@ public class InfoSection extends JBPanel<InfoSection> {
   }
 
   public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device) {
-    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString());
+    String key = device.getKey().toString();
+    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(key);
 
     if (pair == null) {
       return Optional.empty();
     }
 
-    PairingDevice otherDevice;
-
-    switch (device.getType()) {
-      case PHONE:
-        otherDevice = pair.getWear();
-        break;
-      case WEAR_OS:
-        otherDevice = pair.getPhone();
-        break;
-      default:
-        otherDevice = null;
-        break;
-    }
-
-    if (otherDevice == null) {
-      return Optional.empty();
-    }
-
     InfoSection section = new InfoSection("Paired device");
-
-    setText(section.addNameAndValueLabels("Paired with"), otherDevice.getDisplayName());
+    setText(section.addNameAndValueLabels("Paired with"), pair.getPeerDevice(key).getDisplayName());
     String paringStatus;
     switch (pair.getPairingStatus()) {
       case OFFLINE:
@@ -126,8 +107,7 @@ public class InfoSection extends JBPanel<InfoSection> {
         paringStatus = "Error pairing";
         break;
       default:
-        assert false;
-        paringStatus = "?";
+        throw new AssertionError(pair.getPairingStatus());
     }
     setText(section.addNameAndValueLabels("Status"), paringStatus);
     section.setLayout();

@@ -53,5 +53,7 @@ class WearPairingSettingsTest {
     assertThat(phoneWearPair.wear.deviceID).isEqualTo(wearDevice.deviceID)
     assertThat(phoneWearPair.phone.state).isEqualTo(ConnectionState.DISCONNECTED)
     assertThat(phoneWearPair.wear.state).isEqualTo(ConnectionState.DISCONNECTED)
+    assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID).isEqualTo(wearDevice.deviceID)
+    assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID).isEqualTo(phoneDevice.deviceID)
   }
 }
