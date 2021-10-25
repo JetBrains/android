@@ -93,6 +93,9 @@ public final class SdkSync {
       return;
     }
     else if (ideAndroidSdkPath != null && projectAndroidSdkPath != null) {
+      // If we have the valid IDE default SDK in headless mode, exit without updating local.properties
+      if(ApplicationManager.getApplication().isHeadlessEnvironment()) return;
+
       ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
