@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.JMenuItem;
 import javax.swing.JTable;
@@ -47,8 +47,8 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   }
 
   @Override
-  @NotNull Iterable<@NotNull JMenuItem> newItems() {
-    Collection<JMenuItem> items = new ArrayList<>();
+  @NotNull List<@NotNull JMenuItem> newItems() {
+    List<JMenuItem> items = new ArrayList<>();
 
     items.add(newPairDeviceItem());
     newUnpairDeviceItem().ifPresent(items::add);

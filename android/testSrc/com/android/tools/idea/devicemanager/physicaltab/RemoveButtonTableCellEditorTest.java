@@ -23,8 +23,8 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel
 import com.intellij.openapi.project.Project;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
-import javax.swing.plaf.ColorUIResource;
 import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -34,16 +34,7 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class RemoveButtonTableCellEditorTest {
-  private final @NotNull PhysicalDevicePanel myPanel;
-  private final @NotNull PhysicalDeviceTable myTable;
-
-  public RemoveButtonTableCellEditorTest() {
-    myPanel = Mockito.mock(PhysicalDevicePanel.class);
-
-    myTable = Mockito.mock(PhysicalDeviceTable.class);
-    Mockito.when(myTable.getSelectionBackground()).thenReturn(new ColorUIResource(47, 101, 202));
-    Mockito.when(myTable.getSelectionForeground()).thenReturn(new ColorUIResource(187, 187, 187));
-  }
+  private final @NotNull PhysicalDevicePanel myPanel = Mockito.mock(PhysicalDevicePanel.class);
 
   @Test
   public void removeButtonTableCellEditorNotRemove() {
@@ -54,8 +45,8 @@ public final class RemoveButtonTableCellEditorTest {
     RemoveButtonTableCellEditor editor = new RemoveButtonTableCellEditor(myPanel, (device, project) -> false);
     editor.addCellEditorListener(listener);
 
-    Mockito.when(myTable.getDeviceAt(0)).thenReturn(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    AbstractButton component = (AbstractButton)editor.getTableCellEditorComponent(myTable, RemoveValue.INSTANCE, false, 0, 4);
+    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    AbstractButton component = (AbstractButton)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
 
     // Act
     component.doClick();
@@ -69,18 +60,18 @@ public final class RemoveButtonTableCellEditorTest {
     // Arrange
     PhysicalDeviceTableModel model = Mockito.mock(PhysicalDeviceTableModel.class);
 
-    Mockito.when(myTable.getDeviceAt(0)).thenReturn(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    Mockito.when(myTable.getModel()).thenReturn(model);
+    PhysicalDeviceTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    Mockito.when(table.getModel()).thenReturn(model);
 
     Mockito.when(myPanel.getProject()).thenReturn(Mockito.mock(Project.class));
-    Mockito.when(myPanel.getTable()).thenReturn(myTable);
+    Mockito.when(myPanel.getTable()).thenReturn(table);
 
     CellEditorListener listener = Mockito.mock(CellEditorListener.class);
 
     RemoveButtonTableCellEditor editor = new RemoveButtonTableCellEditor(myPanel, (device, project) -> true);
     editor.addCellEditorListener(listener);
 
-    AbstractButton component = (AbstractButton)editor.getTableCellEditorComponent(myTable, RemoveValue.INSTANCE, false, 0, 4);
+    AbstractButton component = (AbstractButton)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
 
     // Act
     component.doClick();
@@ -94,10 +85,10 @@ public final class RemoveButtonTableCellEditorTest {
   public void getTableCellEditorComponentNotOnline() {
     // Arrange
     TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-    Mockito.when(myTable.getDeviceAt(0)).thenReturn(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Act
-    JComponent component = (JComponent)editor.getTableCellEditorComponent(myTable, RemoveValue.INSTANCE, false, 0, 4);
+    JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
 
     // Assert
     assertTrue(component.isEnabled());
@@ -108,19 +99,10 @@ public final class RemoveButtonTableCellEditorTest {
   public void getTableCellEditorComponentOnline() {
     // Arrange
     TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-
-    PhysicalDevice device = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("86UX00F4R"))
-      .setName("Google Pixel 3")
-      .setTarget("Android 12.0")
-      .setApi("31")
-      .addConnectionType(ConnectionType.USB)
-      .build();
-
-    Mockito.when(myTable.getDeviceAt(0)).thenReturn(device);
+    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
 
     // Act
-    JComponent component = (JComponent)editor.getTableCellEditorComponent(myTable, RemoveValue.INSTANCE, false, 0, 4);
+    JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
 
     // Assert
     assertFalse(component.isEnabled());

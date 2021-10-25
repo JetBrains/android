@@ -16,11 +16,21 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 public final class TestPhysicalDevices {
+  private static final Key GOOGLE_PIXEL_3_KEY = new SerialNumber("86UX00F4R");
+
   public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("86UX00F4R"))
+    .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
     .setApi("S")
+    .build();
+
+  static final PhysicalDevice ONLINE_GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
+    .setKey(GOOGLE_PIXEL_3_KEY)
+    .setName("Google Pixel 3")
+    .setTarget("Android 12.0")
+    .setApi("31")
+    .addConnectionType(ConnectionType.USB)
     .build();
 
   public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()

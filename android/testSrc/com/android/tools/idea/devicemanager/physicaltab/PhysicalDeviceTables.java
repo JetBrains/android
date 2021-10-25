@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.ui.JBPopupMenu;
-import java.util.List;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import javax.swing.plaf.ColorUIResource;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
-abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
-  PopUpMenuButtonTableCellEditor() {
-    super(AllIcons.Actions.More, PopUpMenuValue.INSTANCE);
-
-    myButton.addActionListener(event -> {
-      JPopupMenu menu = new JBPopupMenu();
-
-      newItems().forEach(menu::add);
-      menu.show(myButton, 0, myButton.getHeight());
-    });
+final class PhysicalDeviceTables {
+  private PhysicalDeviceTables() {
   }
 
-  abstract @NotNull List<@NotNull JMenuItem> newItems();
+  static @NotNull PhysicalDeviceTable mock(@NotNull PhysicalDevice device) {
+    PhysicalDeviceTable table = Mockito.mock(PhysicalDeviceTable.class);
+
+    Mockito.when(table.getDeviceAt(0)).thenReturn(device);
+    Mockito.when(table.getSelectionBackground()).thenReturn(new ColorUIResource(47, 101, 202));
+    Mockito.when(table.getSelectionForeground()).thenReturn(new ColorUIResource(187, 187, 187));
+
+    return table;
+  }
 }
