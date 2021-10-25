@@ -41,7 +41,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
-import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
@@ -56,7 +55,6 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import java.awt.BasicStroke
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -71,7 +69,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.MatteBorder
-import javax.swing.plaf.basic.BasicSliderUI
 import kotlin.math.ceil
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -109,8 +106,6 @@ private const val TIMELINE_TOP_OFFSET = 20
 /** Offset between the curve and the label. */
 private const val LABEL_OFFSET = 10
 
-/** Number of ticks per label in the timeline. */
-private const val TICKS_PER_LABEL = 5
 
 //TODO(b/161344747) This value could be dynamic depending on the curve type.
 /** Number of points for one curve. */
@@ -875,7 +870,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       private var cachedSliderWidth = 0
       private var cachedMax = 0
       override fun updateUI() {
-        setUI(TimelineSliderUI())
+        setUI(TimelineSliderUI(this))
         updateLabelUIs()
       }
 
@@ -906,7 +901,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       paintTicks = false
       paintLabels = true
       updateMajorTicks()
-      setUI(TimelineSliderUI())
+      setUI(TimelineSliderUI(this))
       addComponentListener(object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) = updateMajorTicks()
       })
@@ -1006,12 +1001,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      *   * The vertical thumb is a vertical line that matches the parent height
      *   * The tick lines also match the parent height
      */
-    private inner class TimelineSliderUI : BasicSliderUI(slider) {
-
-      private val labelVerticalMargin = 5
-      private val trackBackground = JBColor(Gray._235, JBColor.background())
-      private val tickColor = JBColor(Gray._223, Gray._50)
-
+    private inner class TimelineSliderUI(slider: JSlider) : TimelinePanel(slider) {
       fun createCurveInfo(animation: AnimatedProperty<Double>, componentId: Int, minY: Int, maxY: Int): InspectorPainter.CurveInfo? =
         animation.components[componentId].let { component ->
           val curve: Path2D = Path2D.Double()
@@ -1039,27 +1029,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           return InspectorPainter.CurveInfo(minX = minX, maxX = maxX, y = maxY, curve = curve, linkedToNextCurve = component.linkToNext)
         }
 
-      override fun getThumbSize(): Dimension {
-        val originalSize = super.getThumbSize()
-        return if (slider.parent == null) originalSize else Dimension(originalSize.width, slider.parent.height - labelsAndTicksHeight())
-      }
-
-      override fun calculateTickRect() {
-        // Make the vertical tick lines cover the entire panel.
-        tickRect.x = thumbRect.x
-        tickRect.y = thumbRect.y
-        tickRect.width = thumbRect.width
-        tickRect.height = thumbRect.height + labelsAndTicksHeight()
-      }
-
-      override fun calculateLabelRect() {
-        super.calculateLabelRect()
-        labelRect.y = labelVerticalMargin
-      }
-
       override fun paintTrack(g: Graphics) {
+        super.paintTrack(g)
         g as Graphics2D
-        paintMajorTicks(g)
         // Leave the track empty if feature is not enabled
         if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
         if (selectedProperties.isEmpty()) return
@@ -1084,43 +1056,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         return
       }
 
-      override fun paintFocus(g: Graphics?) {
-        // BasicSliderUI paints a dashed rect around the slider when it's focused. We shouldn't paint anything.
-      }
-
-      override fun paintLabels(g: Graphics?) {
-        super.paintLabels(g)
-        // Draw the line border below the labels.
-        g as Graphics2D
-        g.color = JBColor.border()
-        g.stroke = BasicStroke(1f)
-        val borderHeight = TIMELINE_HEADER_HEIGHT - 1 // Subtract the stroke (1)
-        g.drawLine(0, borderHeight, slider.width, borderHeight)
-      }
-
-      override fun paintThumb(g: Graphics) {
-        InspectorPainter.Thumb.paintThumbForHorizSlider(
-          g as Graphics2D,
-          x = thumbRect.x + thumbRect.width / 2,
-          y = thumbRect.y + TIMELINE_HEADER_HEIGHT,
-          height = thumbRect.height)
-
-      }
-
-      fun paintMajorTicks(g: Graphics2D) {
-        g.color = trackBackground
-        g.fillRect(0, TIMELINE_HEADER_HEIGHT, width, height - TIMELINE_HEADER_HEIGHT)
-        g.color = tickColor
-        val tickIncrement = max(1, slider.majorTickSpacing / TICKS_PER_LABEL)
-        for (tick in 0..slider.maximum step tickIncrement) {
-          val xPos = xPositionForValue(tick)
-          g.drawLine(xPos, tickRect.y + TIMELINE_HEADER_HEIGHT, xPos, tickRect.height)
-        }
-      }
-
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
-
-      private fun labelsAndTicksHeight() = tickLength + heightOfTallestLabel
 
       /**
        * [Tracklistener] to allow setting [slider] value when clicking and scrubbing the timeline.
