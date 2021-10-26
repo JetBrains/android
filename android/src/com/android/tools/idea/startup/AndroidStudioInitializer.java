@@ -32,6 +32,7 @@ import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.ConsentDialog;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
@@ -138,7 +139,12 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
-        ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
+        if (StudioFlags.NEW_CONSENT_DIALOG.get()){
+          ApplicationManager.getApplication().invokeLater(ConsentDialog::showConsentDialogIfNeeded);
+        }
+        else{
+          ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
+        }
       }
     }
 
