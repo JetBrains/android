@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run
+package com.android.tools.idea.run.deployment.liveedit
 
 import org.jetbrains.kotlin.analyzer.hasJdkCapability
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension

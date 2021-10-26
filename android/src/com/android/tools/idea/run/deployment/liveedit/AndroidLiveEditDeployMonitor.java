@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.deployment.liveedit;
 
 import com.android.annotations.Trace;
 import com.android.ddmlib.IDevice;
@@ -26,13 +26,13 @@ import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -52,7 +52,7 @@ import org.jetbrains.annotations.NotNull;
  * functionality just enough for compose user group to dogfood for now.
  *
  */
-class AndroidLiveEditDeployMonitor {
+public class AndroidLiveEditDeployMonitor {
 
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
@@ -90,7 +90,7 @@ class AndroidLiveEditDeployMonitor {
     }
   }
 
-  static Runnable getCallback(Project project, String packageName, IDevice device) {
+  public static Runnable getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
