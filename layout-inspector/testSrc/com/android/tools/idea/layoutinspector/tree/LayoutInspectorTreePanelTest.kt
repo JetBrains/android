@@ -25,6 +25,7 @@ import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -55,41 +56,29 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNod
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
-import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import org.jetbrains.android.ComponentStack
-import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
-import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
@@ -107,23 +96,14 @@ class LayoutInspectorTreePanelTest {
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { it.name == PROCESS.name }
   private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+  private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(setFlagRule).around(EdtRule()).around(disposableRule)!!
-
-  private var componentStack: ComponentStack? = null
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(setFlagRule)
+    .around(EdtRule()).around(disposableRule)!!
 
   @Before
   fun setUp() {
-    val fileManager: FileEditorManagerEx = mock()
-    `when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    `when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    @Suppress("UnstableApiUsage")
-    `when`(fileManager.openFilesWithRemotes).thenReturn(VirtualFile.EMPTY_ARRAY)
-    `when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack = ComponentStack(inspectorRule.project)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
-
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
@@ -203,41 +183,25 @@ class LayoutInspectorTreePanelTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
   }
 
-  @After
-  fun tearDown() {
-    componentStack!!.restore()
-    componentStack = null
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
-  }
-
   @Ignore("b/204351118")
   @Test
   fun testGotoDeclaration() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val disposable = projectRule.fixture.testRootDisposable
+    val tree = LayoutInspectorTreePanel(disposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     setToolContext(tree, inspector)
 
     model.setSelection(model["title"], SelectionOrigin.INTERNAL)
 
-    val fileManager = FileEditorManager.getInstance(inspectorRule.project)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-
-    val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
-    `when`(focusManager.focusOwner).thenReturn(tree.component)
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
+    val focusManager = FakeKeyboardFocusManager(disposable)
+    focusManager.focusOwner = tree.component
 
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
 
-    verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    val descriptor = file.value
-
-    assertThat(descriptor.file.name).isEqualTo("demo.xml")
-    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+    fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
   }
 
   @Test
@@ -245,11 +209,6 @@ class LayoutInspectorTreePanelTest {
     val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     setToolContext(panel, inspector)
-
-    val fileManager = FileEditorManager.getInstance(inspectorRule.project)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
 
     val tree = panel.tree!!
     tree.setUI(HeadlessTreeUI())
@@ -260,11 +219,7 @@ class LayoutInspectorTreePanelTest {
     val bounds = tree.getRowBounds(1)
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
-    verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    val descriptor = file.value
-
-    assertThat(descriptor.file.name).isEqualTo("demo.xml")
-    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+    fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     inspector.stats.save(data)
