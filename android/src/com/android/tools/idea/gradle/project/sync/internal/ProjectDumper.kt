@@ -41,7 +41,7 @@ import java.util.Locale
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
-  private val devBuildHome: File = getStudioSourcesLocation(),
+  private val devBuildHome: File? = getStudioSourcesLocation(),
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val gradleCache: File = getGradleCacheLocation()
@@ -49,14 +49,14 @@ class ProjectDumper(
   private val systemHome = getSystemHomeLocation()
 
   init {
-    println("<DEV>         <== ${devBuildHome.absolutePath}")
+    println("<DEV>         <== ${devBuildHome?.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
     offlineRepos.forEach {
       println("                  ${it.absolutePath}")
     }
-    println("<HOME>        <== ${systemHome.absolutePath}")
+    println("<HOME>        <== ${systemHome?.absolutePath}")
     additionalRoots.forEach { (key, value) ->
       println("<$key>        <== ${value.absolutePath}")
     }
@@ -174,7 +174,12 @@ class ProjectDumper(
             .replaceCurrentSdkVersion()
         )
       }
-      .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+      .let {
+        if (devBuildHome != null) {
+          it.replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+        }
+        else it
+      }
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
@@ -254,9 +259,10 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
 
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
 
-private fun getStudioSourcesLocation() = File(StudioPathManager.getSourcesRoot())
+private fun getStudioSourcesLocation() =
+  if (StudioPathManager.isRunningFromSources()) File(StudioPathManager.getSourcesRoot()) else null
 
-private fun getSystemHomeLocation() = getStudioSourcesLocation().toPath().parent.toFile()
+private fun getSystemHomeLocation() = getStudioSourcesLocation()?.toPath()?.parent?.toFile()
 
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
