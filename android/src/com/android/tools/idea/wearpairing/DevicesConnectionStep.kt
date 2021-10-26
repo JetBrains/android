@@ -278,8 +278,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
         }
         else {
-          showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.failed"), "Retry",
-                                      false)
+          showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.failed"),
+                                      "Retry", "Skip to manual instructions", false)
         }
       }
     }
@@ -595,12 +595,16 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   )
 
   private suspend fun showUiPairingNonInteractive(phoneDevice: IDevice, wearDevice: IDevice, scanningLabel: String = message(
-    "wear.assistant.device.connection.pairing.auto.start"), scanningLink: String = "", showLoadingIcon: Boolean = true) = showUI(
+    "wear.assistant.device.connection.pairing.auto.start"), buttonLabel: String = "", scanningLink: String = "", showLoadingIcon: Boolean = true) = showUI(
     header = message("wear.assistant.device.connection.pairing.auto.title"),
     body = createScanningPanel(
       firstStepLabel = message("wear.assistant.device.connection.pairing.auto.step"),
-      buttonLabel = "",
+      buttonLabel = buttonLabel,
       buttonListener = {
+        check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
+        runningJob = GlobalScope.launch(ioThread) {
+          showPairing(phoneDevice, wearDevice)
+        }
       },
       showLoadingIcon = showLoadingIcon,
       showSuccessIcon = false,
@@ -609,7 +613,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       scanningListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
         runningJob = GlobalScope.launch(ioThread) {
-          showPairing(phoneDevice, wearDevice)
+          showUiPairingAppInstructions(phoneDevice, wearDevice)
         }
       },
       additionalStepsLabel = "",
