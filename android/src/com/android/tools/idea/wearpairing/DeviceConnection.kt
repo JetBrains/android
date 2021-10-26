@@ -102,7 +102,7 @@ private suspend fun getPairingStatus(phoneDevice: IDevice, wearNodeId: String): 
     ?.let { it.subList(1, it.size) }
     ?.mapNotNull { PEER_NODE_REGEX.find(it)?.groupValues }
     ?.filter { it.size >= 4 }
-    ?.first { it[1] == wearNodeId }
+    ?.firstOrNull { it[1] == wearNodeId }
     ?.let { PairingStatus(it[1], it[2].toBoolean(), it[3].toBoolean()) }
 }
 
