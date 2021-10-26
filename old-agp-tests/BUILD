@@ -102,6 +102,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.1",
+        "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
         "@maven//:com.android.support.design_28.0.0",
@@ -163,8 +164,8 @@ local_old_agp_test(
     gradle_version = GRADLE_5_5,
     shard_count = 4,
     tags = [
-        "manual",  # b/199740328
         "block-network",
+        "manual",  # b/199740328
         "no_test_mac",
         "no_test_windows",
     ],

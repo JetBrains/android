@@ -20,7 +20,10 @@
           android:versionName="1.0" >
   <application>
     <activity android:name=".Debug" android:label="Debug" />
-    <activity android:name="com.example.unittest.Launcher">
+    <activity
+        android:name="com.example.unittest.Launcher"
+        android:exported="true"
+    >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
