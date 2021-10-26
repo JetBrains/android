@@ -239,7 +239,9 @@ class LogcatMainPanelTest {
 
       fakeUi.rightClickOn(logcatMainPanel)
 
+/* b/204781746
       assertThat(latestPopup!!.actionGroup).isSameAs(popupActionGroup)
+b/204781746 */
     }
     finally {
       ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
