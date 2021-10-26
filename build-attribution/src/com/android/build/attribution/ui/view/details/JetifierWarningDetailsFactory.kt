@@ -29,8 +29,11 @@ import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.OnePixelSplitter
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
@@ -57,6 +60,7 @@ import javax.swing.ListSelectionModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+
 class JetifierWarningDetailsFactory(
   private val actionHandlers: ViewActionHandlers
 ) {
@@ -200,6 +204,10 @@ class JetifierWarningDetailsFactory(
     resultsTable.setShowGrid(false)
     resultsTable.tableHeader.reorderingAllowed = false
 
+    DefaultActionGroup().let { group ->
+      group.add(actionHandlers.createFindSelectedLibVersionDeclarationAction { resultsTable.selection.singleOrNull() })
+      PopupHandler.installPopupMenu(resultsTable, group, ActionPlaces.POPUP)
+    }
     val dependencyTreeModel = DefaultTreeModel(null)
     val treeHeader = JBPanel<JBPanel<*>>().apply {
       layout = BorderLayout()

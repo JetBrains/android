@@ -48,6 +48,7 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
@@ -58,7 +59,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.refactoring.disableJetifier
+import org.jetbrains.kotlin.idea.core.util.getLineNumber
 import java.time.Duration
+import java.util.function.Supplier
 
 class BuildAnalyzerViewController(
   val model: BuildAnalyzerViewModel,
@@ -220,6 +223,11 @@ class BuildAnalyzerViewController(
       }
     }
     analytics.turnJetifierOffClicked(duration)
+  }
+
+  override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<String?>): AnAction {
+    return FindSelectedLibVersionDeclarationAction(selectionSupplier, project)
+    //TODO(mlazeba): add analytics on action
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

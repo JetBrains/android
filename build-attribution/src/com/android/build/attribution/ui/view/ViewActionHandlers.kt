@@ -25,6 +25,8 @@ import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.intellij.openapi.actionSystem.AnAction
+import java.util.function.Supplier
 
 /**
  * Handlers that are called by the view on the corresponding action from the user.
@@ -89,4 +91,5 @@ interface ViewActionHandlers {
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
   fun runCheckJetifierTask()
   fun turnJetifierOffInProperties()
+  fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<String?>): AnAction
 }

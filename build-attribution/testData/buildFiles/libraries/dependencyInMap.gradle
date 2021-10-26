@@ -1,0 +1,7 @@
+ext.commonLibs = [
+  'kotlin_stdlib' : 'org.jetbrains.kotlin:kotlin-stdlib:1.5.31',
+  'testlibs' : 'junit:junit:4.8'
+]
+dependencies {
+    implementation commonLibs.kotlin_stdlib
+}
