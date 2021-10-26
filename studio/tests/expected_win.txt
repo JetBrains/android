@@ -618,11 +618,11 @@ android-studio/lib/jsp-base-openapi.jar
 android-studio/lib/jsr305-3.0.2.jar
 android-studio/lib/junit-4.12.jar
 android-studio/lib/junit.jar
-android-studio/lib/kotlin-reflect-1.5.10-release-896.jar
-android-studio/lib/kotlin-stdlib-1.5.10-release-896.jar
-android-studio/lib/kotlin-stdlib-common-1.5.10-release-896.jar
-android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-896.jar
-android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-896.jar
+android-studio/lib/kotlin-reflect-1.5.10-release-931.jar
+android-studio/lib/kotlin-stdlib-1.5.10-release-931.jar
+android-studio/lib/kotlin-stdlib-common-1.5.10-release-931.jar
+android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-931.jar
+android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-931.jar
 android-studio/lib/kotlin-test-1.4.32.jar
 android-studio/lib/kotlin-test-common-1.4.32.jar
 android-studio/lib/kotlinx-coroutines-core-jvm-1.5.0.jar

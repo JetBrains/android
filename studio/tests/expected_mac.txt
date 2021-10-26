@@ -604,11 +604,11 @@ Android Studio Preview.app/Contents/lib/jsp-base-openapi.jar
 Android Studio Preview.app/Contents/lib/jsr305-3.0.2.jar
 Android Studio Preview.app/Contents/lib/junit-4.12.jar
 Android Studio Preview.app/Contents/lib/junit.jar
-Android Studio Preview.app/Contents/lib/kotlin-reflect-1.5.10-release-896.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-896.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-896.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-896.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-896.jar
+Android Studio Preview.app/Contents/lib/kotlin-reflect-1.5.10-release-931.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-931.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-931.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-931.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-931.jar
 Android Studio Preview.app/Contents/lib/kotlin-test-1.4.32.jar
 Android Studio Preview.app/Contents/lib/kotlin-test-common-1.4.32.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-core-jvm-1.5.0.jar
