@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.lint.model.DefaultLintModelAndroidArtifact
 import com.android.tools.lint.model.DefaultLintModelAndroidLibrary
 import com.android.tools.lint.model.DefaultLintModelBuildFeatures
@@ -64,6 +65,7 @@ import com.android.tools.lint.model.LintModelLintOptions
 import com.android.tools.lint.model.LintModelMavenName
 import com.android.tools.lint.model.LintModelModule
 import com.android.tools.lint.model.LintModelModuleLoader
+import com.android.tools.lint.model.LintModelModuleSourceSet
 import com.android.tools.lint.model.LintModelModuleType
 import com.android.tools.lint.model.LintModelNamespacingMode
 import com.android.tools.lint.model.LintModelResourceField
@@ -195,6 +197,12 @@ class LintModelFactory : LintModelModuleLoader {
         return DefaultLintModelModuleLibrary(
           artifactAddress = library.getMavenArtifactAddress(),
           projectPath = projectPath,
+          sourceSet = when (library.sourceSet) {
+            IdeModuleSourceSet.MAIN -> LintModelModuleSourceSet.MAIN
+            IdeModuleSourceSet.TEST_FIXTURES -> LintModelModuleSourceSet.TEST_FIXTURES
+            IdeModuleSourceSet.UNIT_TEST -> LintModelModuleSourceSet.UNIT_TEST
+            IdeModuleSourceSet.ANDROID_TEST -> LintModelModuleSourceSet.ANDROID_TEST
+          },
           lintJar = library.lintJar?.let(::File),
           provided = false
         )
@@ -206,7 +214,12 @@ class LintModelFactory : LintModelModuleLoader {
     private fun IdeJavaLibrary.getArtifactName(): String =
         getMavenName().let { mavenName -> "${mavenName.groupId}:${mavenName.artifactId}" }
 
-    private fun IdeModuleLibrary.getArtifactName(): String = "artifacts:$projectPath"
+    private fun IdeModuleLibrary.getArtifactName(): String {
+      val projectSuffix = if (sourceSet == IdeModuleSourceSet.TEST_FIXTURES) {
+        "-test-fixtures"
+      } else ""
+      return "artifacts:$projectPath$projectSuffix"
+    }
 
     private fun IdeArtifactLibrary.getMavenName(): LintModelMavenName = getMavenName(artifactAddress)
 
@@ -214,7 +227,13 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun IdeJavaLibrary.getMavenArtifactAddress(): String = artifactAddress.substringBefore("@")
 
-    private fun IdeModuleLibrary.getMavenArtifactAddress(): String = "artifacts:$projectPath:unspecified" // TODO(b/158346611): Review artifact names for modules.
+    // TODO(b/158346611): Review artifact names for modules.
+    private fun IdeModuleLibrary.getMavenArtifactAddress(): String {
+      val projectSuffix = if (sourceSet == IdeModuleSourceSet.TEST_FIXTURES) {
+        "-test-fixtures"
+      } else ""
+      return "artifacts:$projectPath$projectSuffix:unspecified"
+    }
 
     private fun getGraphItem(
         artifactName: String,

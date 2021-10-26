@@ -99,13 +99,15 @@ MODULE                        : project.app
             - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(:app)
+            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-            LintModelLibrary              : LocalLibrary(:library)
+                sourceSet                     : main
+            LintModelLibrary              : LocalLibrary(path = :library, sourceSet = main)
                 ArtifactAddress               : artifacts::library:unspecified
                 LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library
+                sourceSet                     : main
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
@@ -202,10 +204,11 @@ MODULE                        : project.library
             - AssetsDirectories           : <ROOT>/library/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(:library)
+            LintModelLibrary              : LocalLibrary(path = :library, sourceSet = main)
                 ArtifactAddress               : artifacts::library:unspecified
                 LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library
+                sourceSet                     : main
 MODULE                        : project.library-remote
     Dir                           : <ROOT>/library-remote
     ModulePath                    : library-remote
@@ -299,10 +302,11 @@ MODULE                        : project.library-remote
             - AssetsDirectories           : <ROOT>/library-remote/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(:library-remote)
+            LintModelLibrary              : LocalLibrary(path = :library-remote, sourceSet = main)
                 ArtifactAddress               : artifacts::library-remote:unspecified
                 LintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library-remote
+                sourceSet                     : main
 MODULE                        : project.library-remote.androidTest
 MODULE                        : project.library-remote.main
 MODULE                        : project.library-remote.unitTest
