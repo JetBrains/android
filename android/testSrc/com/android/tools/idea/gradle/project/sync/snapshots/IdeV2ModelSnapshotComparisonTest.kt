@@ -108,21 +108,27 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
 
   @Test
   fun testIdeModels() {
-    val projectName = testProjectName ?: error("unit test parameter not initialized")
-    val root = prepareGradleProject(
-      projectName.template,
-      "project"
-    )
-    CaptureKotlinModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
-    openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
-      val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
-        projectDumper.dumpAndroidIdeModel(
-          project,
-          kotlinModels = { CaptureKotlinModelsProjectResolverExtension.getKotlinModel(it) },
-          kaptModels = { CaptureKotlinModelsProjectResolverExtension.getKaptModel(it) }
-        )
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    try {
+      val projectName = testProjectName ?: error("unit test parameter not initialized")
+      val root = prepareGradleProject(
+        projectName.template,
+        "project"
+      )
+      CaptureKotlinModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
+      openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
+        val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
+          projectDumper.dumpAndroidIdeModel(
+            project,
+            kotlinModels = { CaptureKotlinModelsProjectResolverExtension.getKotlinModel(it) },
+            kaptModels = { CaptureKotlinModelsProjectResolverExtension.getKaptModel(it) }
+          )
+        }
+        assertIsEqualToSnapshot(dump)
       }
-      assertIsEqualToSnapshot(dump)
+    }
+    finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
   }
 

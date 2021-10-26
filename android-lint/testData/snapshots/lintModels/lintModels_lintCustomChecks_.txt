@@ -1,9 +1,9 @@
 MODULE                        : project
 MODULE                        : project.app
     Dir                           : <ROOT>/app
-    ModulePath                    : :app
+    ModulePath                    : app
     Type                          : APP
-    MavenName                     : project::app:
+    MavenName                     : project:app:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
     - LintRuleJars                : <ROOT>/lint/build/libs/lint.jar [-]
@@ -111,9 +111,9 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.library
     Dir                           : <ROOT>/library
-    ModulePath                    : :library
+    ModulePath                    : library
     Type                          : LIBRARY
-    MavenName                     : project::library:
+    MavenName                     : project:library:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
@@ -208,9 +208,9 @@ MODULE                        : project.library
                 ProjectPath                   : :library
 MODULE                        : project.library-remote
     Dir                           : <ROOT>/library-remote
-    ModulePath                    : :library-remote
+    ModulePath                    : library-remote
     Type                          : LIBRARY
-    MavenName                     : com.example.google::library-remote:
+    MavenName                     : com.example.google:library-remote:
     GradleVersion                 : <AGP_VERSION>
     BuildFolder                   : <ROOT>/library-remote/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar

@@ -66,9 +66,14 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
 
   @Test
   fun testAllVariantSyncWithV2() {
-    // Load the project and run Sync (SVS in this case).
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-    runSvsAndAvsSyncAndVerifyFetchedVariants()
+    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    try {
+      // Load the project and run Sync (SVS in this case).
+      loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+      runSvsAndAvsSyncAndVerifyFetchedVariants()
+    } finally {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
+    }
   }
 
   private fun runSvsAndAvsSyncAndVerifyFetchedVariants() {
