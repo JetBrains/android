@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+
 import com.android.SdkConstants;
-import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.ApkSizeCalculator;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveContext;
+import com.android.tools.apk.analyzer.Archives;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
@@ -52,10 +58,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,8 +65,11 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.LayoutFocusTraversalPolicy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
@@ -73,7 +78,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private ApkViewPanel myApkViewPanel;
   private ArchiveContext myArchiveContext;
 
-  private JBSplitter mySplitter;
+  private final JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
 
   public ApkEditor(@NotNull Project project, @NotNull VirtualFile baseFile, @NotNull VirtualFile root) {
@@ -84,18 +89,18 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true);
 
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
-    mySplitter.setName("apkViwerContainer");
+    mySplitter.setName("apkViewerContainer");
 
     // Setup focus root for a11y purposes
     // Given that
-    // 1) IdeFrameImpl sets up a custom focus traversal policy that unconditionally set te focus to the preferred component
-    //    of the editor windows
+    // 1) IdeFrameImpl sets up a custom focus traversal policy that unconditionally set the focus to the preferred component
+    //    of the editor window.
     // 2) IdeFrameImpl is the default focus cycle root for editor windows
     // (see https://github.com/JetBrains/intellij-community/commit/65871b384739b52b1c0450235bc742d2ba7fb137#diff-5b11919bab177bf9ab13c335c32874be)
     //
     // We need to declare the root component of this custom editor to be a focus cycle root and
-    // setup the default focus traversal policy (layout) to ensure the TAB key cycles through all the
-    // components of this custom panel.
+    // set up the default focus traversal policy (layout) to ensure the TAB key cycles through all
+    // the components of this custom panel.
     mySplitter.setFocusCycleRoot(true);
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
 
@@ -112,10 +117,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
         String basePath = myBaseFile.getPath();
         for (VFileEvent event : events) {
           if (FileUtil.pathsEqual(basePath, event.getPath())) {
-            if (myBaseFile.isValid()) {
+            if (myBaseFile.isValid()) { // If the file is deleted, the editor is automatically closed.
               refreshApk(baseFile);
-            } else {
-              // if the file is deleted, the editor is automatically closed..
             }
           }
         }
@@ -137,11 +140,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       public void run(@NotNull ProgressIndicator indicator) {
         disposeArchive();
         try {
-          // this temporary copy is destroyed while disposing the archive, see #disposeArchive
+          // This temporary copy is destroyed while disposing the archive, the disposeArchive method.
           Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
           FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk);
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
-          myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
+          myApkViewPanel = new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
@@ -164,7 +167,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   public void selectionChanged(@Nullable ArchiveTreeNode[] entries) {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
-      // Null out the field immediately after disposal, in case an exception is thrown later in the method
+      // Null out the field immediately after disposal, in case an exception is thrown later in the method.
       myCurrentEditor = null;
     }
 
@@ -177,9 +180,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     FileChooserDescriptor desc = new FileChooserDescriptor(true, false, false, false, false, false);
     desc.withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
     VirtualFile file = FileChooser.chooseFile(desc, myProject, null);
-    if(file == null) {
-      // user canceled
-      return;
+    if (file == null) {
+      return; // User canceled.
     }
     VirtualFile oldApk = ApkFileSystem.getInstance().getRootByLocal(file);
     assert oldApk != null;
@@ -283,7 +285,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (myArchiveContext != null) {
       try {
         myArchiveContext.close();
-        // the archive was constructed out of a temporary file
+        // The archive was constructed out of a temporary file.
         Files.deleteIfExists(myArchiveContext.getArchive().getPath());
       }
       catch (IOException e) {
@@ -299,8 +301,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return new EmptyPanel();
     }
 
-    //check if multiple dex files are selected
-    //and return a multiple dex viewer
+    // Check if multiple dex files are selected and return a multiple dex viewer.
     boolean allDex = true;
     for (ArchiveTreeNode path : nodes) {
        if (!path.getData().getPath().getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
@@ -317,9 +318,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return new DexFileViewer(myProject, paths, myBaseFile.getParent());
     }
 
-    //only one file or many files with different extensions are selected
-    //we can only show a single editor for a single filetype,
-    //so arbitrarily pick the first file:
+    // Only one file or many files with different extensions are selected. We can only show
+    // a single editor for a single filetype, so arbitrarily pick the first file:
     ArchiveTreeNode n = nodes[0];
     Path p = n.getData().getPath();
     Path fileName = p.getFileName();
@@ -376,18 +376,18 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return null;
     }
 
-    // No virtual file for directories
+    // No virtual file for directories.
     if (Files.isDirectory(p)) {
       return null;
     }
 
-    // Read file contents and decode it
+    // Read file contents and decode it.
     byte[] content;
     try {
       content = Files.readAllBytes(p);
     }
     catch (IOException e) {
-      getLog().warn(String.format("Error loading entry \"%s\" from archive", p.toString()), e);
+      getLog().warn(String.format("Error loading entry \"%s\" from archive", p), e);
       return null;
     }
 
@@ -402,8 +402,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
         content = prettyPrinter.prettyPrint(content).getBytes(Charsets.UTF_8);
       }
       catch (IOException e) {
-        // Ignore error, show encoded content
-        getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p.toString()), e);
+        // Ignore error, show encoded content.
+        getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p), e);
       }
       return ApkVirtualFile.create(p, content);
     }
@@ -425,7 +425,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, file);
 
-    // skip 9 patch editor since nine patch information has been stripped out
+    // Skip 9 patch editor since nine patch information has been stripped out.
     return Arrays.stream(providers).filter(
       fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();
   }
