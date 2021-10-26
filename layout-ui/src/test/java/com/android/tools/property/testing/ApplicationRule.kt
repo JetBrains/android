@@ -16,7 +16,9 @@
 package com.android.tools.property.testing
 
 import com.android.testutils.MockitoThreadLocalsCleaner
+import com.intellij.diagnostic.LoadingState
 import com.intellij.diagnostic.PerformanceWatcher
+import com.intellij.diagnostic.StartUpMeasurer
 import com.intellij.ide.plugins.PluginUtil
 import com.intellij.ide.plugins.PluginUtilImpl
 import com.intellij.ide.ui.NotRoamableUiSettings
@@ -66,6 +68,12 @@ open class ApplicationRule : ExternalResource() {
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
+    // The global variable StartUpManager.currentState will activate code that requires services
+    // that are not supported/needed by tests using this test rule. Reset it here in case other
+    // tests have incremented the LoadingState. (See b/204201417).
+    @Suppress("UnstableApiUsage")
+    StartUpMeasurer.setCurrentState(LoadingState.BOOTSTRAP)
+
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
     // If there was no previous application,
     // ApplicationManager leaves the MockApplication in place, which can break future tests.
