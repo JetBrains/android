@@ -74,6 +74,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -271,7 +272,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         if (gc == null) {
           gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
                                                              filter, false,
-                                                             FileOpUtils.create());
+                                                             FileSystems.getDefault());
         }
         GradleCoordinate coordinate;
         if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {

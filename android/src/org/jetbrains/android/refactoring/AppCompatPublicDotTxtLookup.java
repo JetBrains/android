@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -31,6 +30,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
+import java.nio.file.FileSystems;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +159,8 @@ public class AppCompatPublicDotTxtLookup {
       return null;
     }
     GradleCoordinate coordinate = artifactId.getCoordinate(appCompatVersion);
-    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocationFile(), FileOpUtils.create());
+    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocationFile(),
+                                                                               FileSystems.getDefault());
     if (appCompatAarFile == null || !appCompatAarFile.exists()) {
       return null;
     }

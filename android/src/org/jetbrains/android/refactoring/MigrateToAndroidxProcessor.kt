@@ -15,14 +15,13 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.google.common.collect.Range
@@ -71,6 +70,7 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigr
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.psi.KtFile
+import java.nio.file.FileSystems
 
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
 private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
@@ -88,7 +88,7 @@ private fun getLibraryRevision(newGroupName: String, newArtifactName: String, de
   val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
                                                                newArtifactName, null,
                                                                true,
-                                                               FileOpUtils.create())
+                                                               FileSystems.getDefault())
   if (revision != null) {
     log.debug { "$newGroupName:$newArtifactName will use $revision" }
     return revision
@@ -173,7 +173,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
     }
 
     try {
-      val gradleDependencyEntries = mutableMapOf<com.intellij.openapi.util.Pair<String, String>, GradleMigrationEntry>()
+      val gradleDependencyEntries = mutableMapOf<Pair<String, String>, GradleMigrationEntry>()
       for (entry in migrationMap) {
         when (entry.type) {
           CHANGE_CLASS -> {
@@ -212,7 +212,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
       usageAccumulator.addAll(findUsagesInBuildFiles(project, gradleDependencyEntries))
     }
     finally {
-      ApplicationManager.getApplication().invokeLater(Runnable {
+      ApplicationManager.getApplication().invokeLater({
         WriteAction.run<RuntimeException> { run { this.finishFindMigration() } }
       }, myProject.disposed)
     }
@@ -437,7 +437,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
         }
       }
 
-      val androidBlock = gradleBuildModel.android() ?: continue
+      val androidBlock = gradleBuildModel.android()
       for (flavorBlock in androidBlock.productFlavors() + androidBlock.defaultConfig()) {
         val runnerModel = flavorBlock.testInstrumentationRunner().resultModel
         val runnerName = runnerModel.getValue(GradlePropertyModel.STRING_TYPE) ?: continue

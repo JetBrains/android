@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.repository.testframework.MockFileOp
+import com.android.testutils.file.createInMemoryFileSystem
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -41,7 +42,7 @@ class RepositoryUrlManagerCachingTest {
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
   private val repositoryUrlManager = RepositoryUrlManager(networkRepo, localRepo, true /* force repository checks */)
-  private val fileOp = MockFileOp()
+  private val fileSystem = createInMemoryFileSystem()
 
   private class TestGoogleMavenRepository : GoogleMavenRepository() {
     var requestCount: Int = 0
@@ -122,7 +123,7 @@ class RepositoryUrlManagerCachingTest {
   @Test
   fun calledFromDispatchThread() {
     mockApplication.isDispatchThread = true
-    repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileOp)
+    repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the dispatch thread, we return the dependency value from the local cache and post a network request on background.
     assertEquals(2, localRepo.requestCount.toLong())
@@ -132,7 +133,7 @@ class RepositoryUrlManagerCachingTest {
   @Test
   fun calledFromWorkerThread() {
     mockApplication.isDispatchThread = false
-    repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileOp)
+    repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the worker thread, we return the dependency value from the network only.
     assertEquals(0, localRepo.requestCount.toLong())
