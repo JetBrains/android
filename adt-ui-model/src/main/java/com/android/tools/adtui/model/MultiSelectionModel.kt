@@ -23,6 +23,7 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   private val currentSelections = LinkedHashMap<Any, Entry<S>>()
   var activeSelectionKey: Any? = null
     private set
+  val activeSelectionIndex get() = currentSelections.keys.indexOf(activeSelectionKey)
   val selections: List<Entry<S>> get() = currentSelections.values.toList()
 
   fun<T: S> getFirstActiveSelectionItem(c: Class<T>): T? = currentSelections[activeSelectionKey]?.value?.firstOrNull(c::isInstance) as T?
@@ -32,7 +33,7 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
     selections != currentSelections[key] -> {
       activeSelectionKey = key
       currentSelections[key] = Entry(key, selections)
-      changed(Aspect.CHANGE_SELECTION)
+      changed(Aspect.SELECTIONS_CHANGED)
     }
     else -> {}
   }
@@ -43,7 +44,7 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
       if (key == activeSelectionKey) {
         activeSelectionKey = null
       }
-      changed(Aspect.CHANGE_SELECTION)
+      changed(Aspect.SELECTIONS_CHANGED)
     }
   }
 
@@ -51,7 +52,7 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
     if (currentSelections.isNotEmpty()) {
       currentSelections.clear()
       activeSelectionKey = null
-      changed(Aspect.CHANGE_SELECTION)
+      changed(Aspect.SELECTIONS_CHANGED)
     }
   }
 
@@ -61,12 +62,22 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   fun deselect() {
     if (activeSelectionKey != null) {
       activeSelectionKey = null
-      changed(Aspect.CHANGE_SELECTION)
+      changed(Aspect.SELECTIONS_CHANGED)
+    }
+  }
+
+  fun setActiveSelection(key: Any?) {
+    if (key != activeSelectionKey) {
+      activeSelectionKey = key.takeIf { it in currentSelections }
+      changed(Aspect.ACTIVE_SELECTION_CHANGED)
     }
   }
 
   enum class Aspect {
-    CHANGE_SELECTION
+    // The list of selections change
+    SELECTIONS_CHANGED,
+    // Selections remain, but the active one changes
+    ACTIVE_SELECTION_CHANGED,
   }
 
   data class Entry<S>(val key: Any, val value: Set<S>)

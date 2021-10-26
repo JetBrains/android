@@ -176,7 +176,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)
-      .onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
+      .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onTrackGroupSelectionChange)
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::updateTrackGroupList);
     updateComponents();
   }
 

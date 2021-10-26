@@ -102,6 +102,40 @@ class MultiSelectionModelTest {
       assertThat(activeSelection()).isNull()
     }
 
+  @Test
+  fun `changing active selection notifies observer`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionKey) { model, activeSelection ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      assertThat(activeSelection()).isEqualTo("Key2")
+      model.setActiveSelection("Key1")
+      assertThat(activeSelection()).isEqualTo("Key1")
+    }
+
+  @Test
+  fun `setting non-existent active selection clears it`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionKey) { model, activeSelection ->
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(2, 3, 4, 5))
+      model.setActiveSelection("Key3")
+      assertThat(activeSelection()).isNull()
+    }
+
+  @Test
+  fun `changing active selection changes its index`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionIndex) { model, activeIndex ->
+      model.setSelection("Key0", setOf(0, 1, 2))
+      model.setSelection("Key1", setOf(1, 2, 3))
+      model.setSelection("Key2", setOf(4, 5, 6))
+
+      assertThat(activeIndex()).isEqualTo(2)
+
+      model.setActiveSelection("Key1")
+      assertThat(activeIndex()).isEqualTo(1)
+
+      model.setActiveSelection("No")
+      assertThat(activeIndex()).isEqualTo(-1)
+    }
 
   private fun<T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
     testWithObserver(MultiSelectionModel<T>::selections, run)
@@ -110,9 +144,9 @@ class MultiSelectionModelTest {
     val model = MultiSelectionModel<T>()
     val observer = AspectObserver()
     var observation = observe(model)
-    model.addDependency(observer).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION) {
-      observation = observe(model)
-    }
+    model.addDependency(observer)
+      .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED) { observation = observe(model) }
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED) { observation = observe(model) }
     run(model) { observation.also { observer.hashCode() /* keep it live */ } }
   }
 }

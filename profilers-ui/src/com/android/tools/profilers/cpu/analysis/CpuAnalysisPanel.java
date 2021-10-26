@@ -59,8 +59,10 @@ public class CpuAnalysisPanel extends AspectObserver {
     myTabs = new TabbedToolbar(tabsTitle);
     setupBindings();
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.ANALYSIS_MODEL_UPDATED, this::updateComponents);
-    stage.getMultiSelectionModel().addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION,
+    stage.getMultiSelectionModel().addDependency(this).onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED,
                                                                 this::updateComponents);
+    stage.getMultiSelectionModel().addDependency(this).onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED,
+                                                                this::onSelectedTabChanged);
     // TODO (b/139295622): Add action items and actions to analysis panel.
     // Need proper icons for configure and minimize.
     // myTabs.addAction(StudioIcons.Logcat.SETTINGS, (e) -> { });
@@ -112,14 +114,21 @@ public class CpuAnalysisPanel extends AspectObserver {
     List<MultiSelectionModel.Entry<CpuAnalyzable<?>>> selections = myStage.getMultiSelectionModel().getSelections();
 
     for (CpuAnalysisModel<?> model : pinnedModels) {
-      myTabs.addTab(model.getName(), () -> onSelectAnalysis(model));
+      myTabs.addTab(model.getName(), () -> {
+        onSelectAnalysis(model);
+        myStage.getMultiSelectionModel().setActiveSelection(null);
+      });
     }
 
     for (MultiSelectionModel.Entry<CpuAnalyzable<?>> selection : selections) {
       CpuAnalysisModel<?> model = merge(selection.getValue().stream().map(CpuAnalyzable::getAnalysisModel));
+      Object selectionKey = selection.getKey();
       myTabs.addTab(model.getName(),
-                    () -> onSelectAnalysis(model),
-                    () -> myStage.getMultiSelectionModel().removeSelection(selection.getKey()));
+                    () -> {
+                      onSelectAnalysis(model);
+                      myStage.getMultiSelectionModel().setActiveSelection(selectionKey);
+                    },
+                    () -> myStage.getMultiSelectionModel().removeSelection(selectionKey));
     }
 
     // Select the previously selected one, or the first persistent one
@@ -127,13 +136,23 @@ public class CpuAnalysisPanel extends AspectObserver {
     if (activeSelectionKey != null) {
       int selectedIndex = CollectionsKt.indexOfFirst(selections, entry -> entry.getKey().equals(activeSelectionKey));
       myTabs.selectTab(pinnedModels.size() + selectedIndex);
-    } else if (!pinnedModels.isEmpty() || !selections.isEmpty()) {
+    } else if (myTabs.countTabs() > 0) {
       myTabs.selectTab(0);
     }
   }
 
   private static<T> CpuAnalysisModel<T> merge(Stream<CpuAnalysisModel<T>> models) {
     return models.reduce(CpuAnalysisModel::mergeWith).get(); // safe to reduce because the set is non-empty
+  }
+
+  private void onSelectedTabChanged() {
+    int selectedIndex = myStage.getMultiSelectionModel().getActiveSelectionIndex();
+    List<?> pinnedModels = myStage.getPinnedAnalysisModels();
+    if (selectedIndex >= 0) {
+      myTabs.selectTab(pinnedModels.size() + selectedIndex);
+    } else if (myTabs.countTabs() > 0) {
+      myTabs.selectTab(0);
+    }
   }
 
   /**
