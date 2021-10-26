@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
@@ -36,7 +37,7 @@ import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
-import com.android.tools.idea.compose.preview.util.invalidateCompositionsAsync
+import com.android.tools.idea.compose.preview.util.invalidateCompositions
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -64,6 +65,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
@@ -95,6 +97,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.commons.lang.time.DurationFormatUtils
+import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -420,16 +423,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       val pushId = pushIdCounter.getAndIncrement().toString(16)
       LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
       surface.layoutlibSceneManagers.forEach { sceneManager ->
-        // This invalidates the current compositions to ensure the render re-composes the layout
-        sceneManager
-          .invalidateCompositionsAsync(forceLayout = animationInspection.get())
-          .thenCompose {
-            sceneManager.executeCallbacksAsync()
-              .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
-          }
-          .whenComplete { _, _ ->
-            LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
-          }
+        launch {
+          sceneManager.invalidateCompositions(forceLayout = animationInspection.get())
+          sceneManager.executeCallbacks()
+          sceneManager.render()
+          LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+        }
       }
     }
   }
@@ -837,12 +836,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * not get reinflated, this allows to save time for e.g. static to animated preview transition. A [ProgressIndicator] that runs while
    * refresh is in progress is given, and this method should return early if the indicator is cancelled.
    */
-  private fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
-    val psiFile = ReadAction.compute<PsiFile?, Throwable> {
+    val psiFile = readAction {
       val element = psiFilePointer.element
 
-      return@compute if (element == null || !element.isValid) {
+      return@readAction if (element == null || !element.isValid) {
         LOG.warn("doRefresh with invalid PsiFile")
         null
       }

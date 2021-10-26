@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
@@ -37,6 +38,7 @@ import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.run.util.StopWatch
@@ -59,10 +61,9 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.future.await
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction
 
 /**
@@ -145,9 +146,7 @@ internal suspend fun NlDesignSurface.refreshExistingPreviewElements(
       progressIndicator.text = message("refresh.progress.indicator.rendering.preview", index + 1, previewElementsToSceneManagers.size)
       val (previewElement, sceneManager) = pair
       // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(previewElement, sceneManager)
-        .requestComposeRender()
-        .await()
+      configureLayoutlibSceneManager(previewElement, sceneManager).requestComposeRender()
     }
 }
 
@@ -184,8 +183,7 @@ private fun NlDesignSurface.logSurfaceStatus(log: Logger) {
  * @param dataContextProvider helper to provide [DataContext] elements that will be used by this surface.
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a [LayoutlibSceneManager].
  */
-@Slow
-internal fun NlDesignSurface.updatePreviewsAndRefresh(
+internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
   quickRefresh: Boolean,
   previewElementProvider: PreviewElementProvider<PreviewElementInstance>,
   log: Logger,
@@ -250,22 +248,24 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
         log.debug("[$refreshId] No models to reuse were found. New model $now.")
         val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFile.virtualFile }
         val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        val newModel = NlModel.builder(facet, file, configuration)
-          .withParentDisposable(parentDisposable)
-          .withModelDisplayName(previewElement.displaySettings.name)
-          .withModelUpdater(modelUpdater)
-          .withComponentRegistrar(componentRegistrar)
-          .withDataContext(dataContextProvider(previewElement))
-          .withXmlProvider { project, virtualFile ->
-            NlModelBuilder.getDefaultFile(project, virtualFile).also {
-              it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+        runBlocking(AndroidDispatchers.workerThread) {
+          val newModel = NlModel.builder(facet, file, configuration)
+            .withParentDisposable(parentDisposable)
+            .withModelDisplayName(previewElement.displaySettings.name)
+            .withModelUpdater(modelUpdater)
+            .withComponentRegistrar(componentRegistrar)
+            .withDataContext(dataContextProvider(previewElement))
+            .withXmlProvider { project, virtualFile ->
+              NlModelBuilder.getDefaultFile(project, virtualFile).also {
+                it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+              }
             }
-          }
-          .build()
-        configureLayoutlibSceneManager(
-          previewElement,
-          addModelWithoutRender(newModel) as LayoutlibSceneManager)
-        newModel
+            .build()
+          configureLayoutlibSceneManager(
+            previewElement,
+            addModelWithoutRender(newModel) as LayoutlibSceneManager)
+          newModel
+        }
       }
       if (progressIndicator.isCanceled) return@updatePreviewsAndRefresh previewElementsList // Return early if user cancels the refresh
 
@@ -305,19 +305,13 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
   if (newSceneManagers.isNotEmpty()) {
     var preview = 1 // next preview to render
     progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
-    CompletableFuture.allOf(*newSceneManagers
-      .map {
-        if (progressIndicator.isCanceled) return@updatePreviewsAndRefresh previewElementsList // Return early if user cancels the refresh
-        val renderFuture = it.requestComposeRender()
-        renderFuture.whenComplete { _, _ ->
-          if (preview <= newSceneManagers.size) { // Skip the last one, since we log *before* rendering each preview.
-            progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
-          }
-        }
-        return@map renderFuture
+    newSceneManagers.forEach {
+      it.render()
+      if (progressIndicator.isCanceled) return@forEach
+      if (preview <= newSceneManagers.size) { // Skip the last one, since we log *before* rendering each preview.
+        progressIndicator.text = message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
       }
-      .toTypedArray())
-      .join()
+    }
   }
   onRenderCompleted()
 

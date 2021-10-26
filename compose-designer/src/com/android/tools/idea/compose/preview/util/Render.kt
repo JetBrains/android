@@ -16,12 +16,14 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.executeCallbacks
+import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.diagnostic.Logger
-import java.util.concurrent.CompletableFuture
 
 
 /**
@@ -49,13 +51,12 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
  * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
  * that do not simply render in a first pass.
  */
-internal fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
-  requestRenderAsync()
-    .thenCompose { executeCallbacksAsync() }
-    .thenCompose { requestRenderAsync() }
-}
-else {
-  requestRenderAsync()
+internal suspend fun LayoutlibSceneManager.requestComposeRender() {
+  render()
+  if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
+    executeCallbacks()
+    render()
+  }
 }
 
 /**
@@ -64,28 +65,30 @@ else {
  * invalidation has completed.
  * If [forceLayout] is true, a `View#requestLayout` will be sent to the `ComposeViewAdapter` to force a relayout of the whole view.
  */
-internal fun LayoutlibSceneManager.invalidateCompositionsAsync(forceLayout: Boolean) = executeInRenderSessionAsync {
-  val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSessionAsync
-  try {
-    val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
-    val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
-      it.isAccessible = true
-      it.get(null)
+internal suspend fun LayoutlibSceneManager.invalidateCompositions(forceLayout: Boolean) {
+  executeInRenderSession {
+    val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSession
+    try {
+      val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
+      val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
+        it.isAccessible = true
+        it.get(null)
+      }
+      val saveStateAndDisposeMethod = hotReloaderInstance.javaClass.getDeclaredMethod("saveStateAndDispose", Any::class.java).also {
+        it.isAccessible = true
+      }
+      val loadStateAndCompose = hotReloaderInstance.javaClass.getDeclaredMethod("loadStateAndCompose", Any::class.java).also {
+        it.isAccessible = true
+      }
+      val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
+      loadStateAndCompose.invoke(hotReloaderInstance, state)
+      if (forceLayout) {
+        composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
+      }
     }
-    val saveStateAndDisposeMethod = hotReloaderInstance.javaClass.getDeclaredMethod("saveStateAndDispose", Any::class.java).also {
-      it.isAccessible = true
+    catch (t: Throwable) {
+      Logger.getInstance(RenderResult::class.java).warn(t)
     }
-    val loadStateAndCompose = hotReloaderInstance.javaClass.getDeclaredMethod("loadStateAndCompose", Any::class.java).also {
-      it.isAccessible = true
-    }
-    val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
-    loadStateAndCompose.invoke(hotReloaderInstance, state)
-    if (forceLayout) {
-      composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
-    }
-  }
-  catch (t: Throwable) {
-    Logger.getInstance(RenderResult::class.java).warn(t)
   }
 }
 
