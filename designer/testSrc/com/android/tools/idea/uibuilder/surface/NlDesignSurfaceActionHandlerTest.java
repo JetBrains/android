@@ -72,7 +72,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
       .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
         @NotNull
         @Override
-        public CompletableFuture<Void> requestRender() {
+        public CompletableFuture<Void> requestRenderAsync() {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }

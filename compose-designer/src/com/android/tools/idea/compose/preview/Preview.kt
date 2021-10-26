@@ -36,7 +36,7 @@ import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
-import com.android.tools.idea.compose.preview.util.invalidateCompositions
+import com.android.tools.idea.compose.preview.util.invalidateCompositionsAsync
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -422,10 +422,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       surface.layoutlibSceneManagers.forEach { sceneManager ->
         // This invalidates the current compositions to ensure the render re-composes the layout
         sceneManager
-          .invalidateCompositions(forceLayout = animationInspection.get())
+          .invalidateCompositionsAsync(forceLayout = animationInspection.get())
           .thenCompose {
-            sceneManager.executeCallbacks()
-              .whenComplete { _, _ -> sceneManager.requestRender() }
+            sceneManager.executeCallbacksAsync()
+              .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
           }
           .whenComplete { _, _ ->
             LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())

@@ -142,7 +142,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
               val positions = getPositionsFromPath(path)
               positions.myPosition = oldPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRender()
+              sceneManager.requestRenderAsync()
             }
 
             override fun redo() {
@@ -150,7 +150,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
               val positions = getPositionsFromPath(path)
               positions.myPosition = newPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRender()
+              sceneManager.requestRenderAsync()
             }
           }
           UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)

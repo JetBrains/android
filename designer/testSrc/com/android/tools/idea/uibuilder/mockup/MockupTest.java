@@ -256,7 +256,7 @@ public class MockupTest extends MockupTestCase {
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
         @NotNull
         @Override
-        public CompletableFuture<Void> requestRender() {
+        public CompletableFuture<Void> requestRenderAsync() {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }
@@ -289,7 +289,7 @@ public class MockupTest extends MockupTestCase {
       .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
         @NotNull
         @Override
-        public CompletableFuture<Void> requestRender() {
+        public CompletableFuture<Void> requestRenderAsync() {
           // This test does not need Layoutlib renders
           return CompletableFuture.completedFuture(null);
         }

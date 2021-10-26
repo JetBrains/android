@@ -101,7 +101,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * @param model the {@NlMode} linked to this {@link SceneManager}.
    * @param surface the {@DesignSurface} that will render this {@link SceneManager}.
    * @param useLiveRendering if true, the {@link SceneManager} will re-render on every component update. When false, only when a explicit
-   *                         {@link SceneManager#requestRender} happens.
+   *                         {@link SceneManager#requestRenderAsync} happens.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
    *                               given {@link NlComponent}.
    * @param sceneUpdateListener a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
@@ -297,15 +297,15 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   }
 
   @NotNull
-  public abstract CompletableFuture<Void> requestRender();
+  public abstract CompletableFuture<Void> requestRenderAsync();
 
   @NotNull
-  public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
+  public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
     return CompletableFuture.completedFuture(null);
   }
 
   @NotNull
-  public abstract CompletableFuture<Void> requestLayout(boolean animate);
+  public abstract CompletableFuture<Void> requestLayoutAsync(boolean animate);
 
   public abstract void layout(boolean animate);
 

@@ -57,7 +57,7 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
       .setSceneManagerProvider { surface: NlDesignSurface?, model: NlModel? ->
         object : SyncLayoutlibSceneManager(
           (model as SyncNlModel?)!!) {
-          override fun requestRender(): CompletableFuture<Void> {
+          override fun requestRenderAsync(): CompletableFuture<Void> {
             return CompletableFuture.completedFuture(null)
           }
         }

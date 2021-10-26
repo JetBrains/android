@@ -150,7 +150,7 @@ public class ScrollInteraction extends Interaction {
 
     if (scrolled != 0) {
       myScrolledAmount += scrollAmount;
-      mySceneView.getSceneManager().requestLayoutAndRender(false);
+      mySceneView.getSceneManager().requestLayoutAndRenderAsync(false);
     }
   }
 
@@ -178,7 +178,7 @@ public class ScrollInteraction extends Interaction {
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     // Make sure we reset the scroll to where it was
     myHandler.update(0);
-    mySceneView.getSceneManager().requestLayoutAndRender(false);
+    mySceneView.getSceneManager().requestLayoutAndRenderAsync(false);
   }
 
   @Nullable

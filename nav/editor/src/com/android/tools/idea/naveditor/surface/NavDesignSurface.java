@@ -186,7 +186,7 @@ public class NavDesignSurface extends DesignSurface {
     //  re-inflate the NlModel ...", we should implement NavSceneManager#requestLayoutAndRender() and call it because
     //  SceneManager#requestRender() doesn't re-inflate the NlModel.
     SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    return manager != null ? manager.requestRender() : CompletableFuture.completedFuture(null);
+    return manager != null ? manager.requestRenderAsync() : CompletableFuture.completedFuture(null);
   }
 
   @Override

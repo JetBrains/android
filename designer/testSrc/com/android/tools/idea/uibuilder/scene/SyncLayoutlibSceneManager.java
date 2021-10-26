@@ -66,28 +66,28 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @NotNull
   @Override
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.render(trigger).join());
+    return CompletableFuture.completedFuture(super.renderAsync(trigger).join());
   }
 
   @NotNull
   @Override
-  public CompletableFuture<Void> requestRender() {
-    return CompletableFuture.completedFuture(super.requestRender().join());
+  public CompletableFuture<Void> requestRenderAsync() {
+    return CompletableFuture.completedFuture(super.requestRenderAsync().join());
   }
 
   @NotNull
   @Override
-  public CompletableFuture<Void> updateModel() {
-    return CompletableFuture.completedFuture(super.updateModel().join());
+  public CompletableFuture<Void> updateModelAsync() {
+    return CompletableFuture.completedFuture(super.updateModelAsync().join());
   }
 
   @Override
   protected void requestModelUpdate() {
-    updateModel();
+    updateModelAsync();
 
     // Note: this probably doesn't belong here, but several tests rely on the UI event queue being emptied so keep it for now:
     UIUtil.dispatchAllInvocationEvents();

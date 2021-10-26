@@ -44,7 +44,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -241,14 +240,14 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           case MOTION_PLAY: {
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.updateSceneView();
-            manager.requestLayoutAndRender(false);
+            manager.requestLayoutAndRenderAsync(false);
             surface.setRenderSynchronously(true);
           }  break;
           case MOTION_STOP: {
             surface.setRenderSynchronously(false);
             surface.setAnimationScrubbing(false);
             LayoutlibSceneManager manager = surface.getSceneManager();
-            manager.requestLayoutAndRender(false);
+            manager.requestLayoutAndRenderAsync(false);
           } break;
         }
       }

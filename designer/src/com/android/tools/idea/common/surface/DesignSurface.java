@@ -31,7 +31,6 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
-import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -639,7 +638,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
-    return modelSceneManager.requestRender()
+    return modelSceneManager.requestRenderAsync()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
 
@@ -1712,7 +1711,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
-    return requestSequentialRender(manager -> manager.requestLayoutAndRender(false));
+    return requestSequentialRender(manager -> manager.requestLayoutAndRenderAsync(false));
   }
 
   /**

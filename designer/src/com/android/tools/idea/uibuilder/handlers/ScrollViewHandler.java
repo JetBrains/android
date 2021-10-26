@@ -156,7 +156,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       LayoutlibSceneManager.setRenderViewPort(selected);
-      editor.getSceneBuilder().requestRender();
+      editor.getSceneBuilder().requestRenderAsync();
     }
   }
 }

@@ -79,7 +79,7 @@ final class ToggleStateAction extends ToggleAction {
       return;
     }
 
-    manager.requestRender();
+    manager.requestRenderAsync();
   }
 
   @Nullable

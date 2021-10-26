@@ -96,7 +96,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -720,10 +719,10 @@ public class LayoutlibSceneManager extends SceneManager {
       }
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
       if (false && surface.getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
-        requestLayout(true);
+        requestLayoutAsync(true);
       }
       else {
-        requestRender(getTriggerFromChangeType(model.getLastChangeType()))
+        requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
           .thenRunAsync(() ->
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
@@ -755,7 +754,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      requestLayoutAndRender(animate);
+      requestLayoutAndRenderAsync(animate);
     }
   }
 
@@ -773,7 +772,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return {@link CompletableFuture} that will be completed once the render has been done.
    */
   @NotNull
-  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
       return CompletableFuture.completedFuture(null);
@@ -798,7 +797,7 @@ public class LayoutlibSceneManager extends SceneManager {
     return new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        render(trigger);
+        renderAsync(trigger);
       }
 
       @Override
@@ -826,33 +825,33 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public CompletableFuture<Void> requestRender() {
-    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
+  public CompletableFuture<Void> requestRenderAsync() {
+    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
-   * Similar to {@link #requestRender()} but it will be logged as a user initiated action. This is
+   * Similar to {@link #requestRenderAsync()} but it will be logged as a user initiated action. This is
    * not exposed at SceneManager level since it only makes sense for the Layout editor.
    */
   @NotNull
-  public CompletableFuture<Void> requestUserInitiatedRender() {
+  public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
     forceReinflate();
-    return requestRender(LayoutEditorRenderResult.Trigger.USER);
+    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
   }
 
   @Override
   @NotNull
-  public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
+  public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
     // Don't render if we're just showing the blueprint
     if (getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
-      return requestLayout(animate);
+      return requestLayoutAsync(animate);
     }
 
     LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
     if (getDesignSurface().isRenderingSynchronously()) {
-      return render(trigger).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return renderAsync(trigger).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
-      return requestRender(trigger)
+      return requestRenderAsync(trigger)
         .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), AppExecutorUtil.getAppExecutorService());
     }
   }
@@ -877,7 +876,7 @@ public class LayoutlibSceneManager extends SceneManager {
         }
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
-            updateModel()
+            updateModelAsync()
               .whenComplete((result, ex) -> myProgressIndicator.stop());
           }
           else {
@@ -956,7 +955,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @Override
   @NotNull
-  public CompletableFuture<Void> requestLayout(boolean animate) {
+  public CompletableFuture<Void> requestLayoutAsync(boolean animate) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestLayout after LayoutlibSceneManager has been disposed");
     }
@@ -983,7 +982,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public void layout(boolean animate) {
     try {
-      requestLayout(animate).get(2, TimeUnit.SECONDS);
+      requestLayoutAsync(animate).get(2, TimeUnit.SECONDS);
     }
     catch (InterruptedException | ExecutionException | TimeoutException e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
@@ -1058,7 +1057,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
    */
   @NotNull
-  private CompletableFuture<RenderResult> inflate(boolean force) {
+  private CompletableFuture<RenderResult> inflateAsync(boolean force) {
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
@@ -1233,19 +1232,19 @@ public class LayoutlibSceneManager extends SceneManager {
    * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
   @NotNull
-  public CompletableFuture<Void> updateModel() {
-    return updateModelAndProcessResults(result -> null);
+  public CompletableFuture<Void> updateModelAsync() {
+    return updateModelAndProcessResultsAsync(result -> null);
   }
 
   /**
    * Asynchronously update the model and apply the provided processing to the {@link RenderResult}.
    */
   @NotNull
-  public CompletableFuture<Void> updateModelAndProcessResults(Function<? super RenderResult, Void> resultProcessing) {
+  public CompletableFuture<Void> updateModelAndProcessResultsAsync(Function<? super RenderResult, Void> resultProcessing) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
-    return inflate(true)
+    return inflateAsync(true)
       .thenApply(resultProcessing);
   }
 
@@ -1295,7 +1294,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   @NotNull
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1313,7 +1312,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl()
+      return renderImplAsync()
         .thenApply(result -> logIfSuccessful(result, trigger, CommonUsageTracker.RenderResultType.RENDER))
         .thenApply(this::updateCachedRenderResultIfNotNull)
         .thenApply(result -> {
@@ -1355,7 +1354,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Completes all the futures created by {@link #requestRender()} and signals the current render as finished by
+   * Completes all the futures created by {@link #requestRenderAsync()} and signals the current render as finished by
    * setting {@link #myIsCurrentlyRendering} to false. Also, it is calling the render callbacks associated with
    * the current render.
    */
@@ -1369,7 +1368,7 @@ public class LayoutlibSceneManager extends SceneManager {
     callbacks.forEach(callback -> callback.complete(null));
     // If there are pending futures, we should trigger the render update
     if (hasPendingRenders()) {
-      requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
+      requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
     }
   }
 
@@ -1384,8 +1383,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl() {
-    return inflate(myForceInflate.getAndSet(false))
+  private CompletableFuture<RenderResult> renderImplAsync() {
+    return inflateAsync(myForceInflate.getAndSet(false))
       .thenCompose(inflateResult -> {
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
@@ -1490,7 +1489,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks() {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacksAsync() {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
@@ -1510,7 +1509,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @see RenderTask#runAsyncRenderActionWithSession(Runnable) 
    */
   @NotNull
-  public CompletableFuture<Void> executeInRenderSession(@NotNull Runnable block) {
+  public CompletableFuture<Void> executeInRenderSessionAsync(@NotNull Runnable block) {
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null) {
         return myRenderTask.runAsyncRenderActionWithSession(block);
@@ -1553,7 +1552,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<TouchEventResult> triggerTouchEvent(
+  public CompletableFuture<TouchEventResult> triggerTouchEventAsync(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
@@ -1576,7 +1575,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Executes the given {@link Runnable} callback synchronously with the given timeout. Then calls {@link #executeCallbacks()} and requests
+   * Executes the given {@link Runnable} callback synchronously with the given timeout. Then calls {@link #executeCallbacksAsync()} and requests
    * render afterwards. Callers must be aware that long timeouts should only be passed when not on EDT, otherwise the UI will freeze.
    * Returns true if the callback was executed successfully and on time, and render was requested.
    */
@@ -1586,7 +1585,7 @@ public class LayoutlibSceneManager extends SceneManager {
         RenderService.getRenderAsyncActionExecutor()
           .runAsyncActionWithTimeout(timeout, timeoutUnit, Executors.callable(callback)).get(timeout, timeoutUnit);
       }
-      executeCallbacks().thenCompose(b -> requestRender());
+      executeCallbacksAsync().thenCompose(b -> requestRenderAsync());
       return true;
     }
     catch (Exception e) {
@@ -1668,7 +1667,7 @@ public class LayoutlibSceneManager extends SceneManager {
         getModel().updateTheme();
       }
       else {
-        requestLayoutAndRender(false);
+        requestLayoutAndRenderAsync(false);
       }
     }
 

@@ -17,15 +17,12 @@ package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.scene.layout.SKIP_PERSISTED_LAYOUT
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
-import icons.StudioIcons
-import org.jetbrains.android.dom.navigation.NavActionElement
 
 class AutoArrangeAction private constructor(): AnAction() {
 
@@ -37,7 +34,7 @@ class AutoArrangeAction private constructor(): AnAction() {
     val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
     WriteCommandAction.runWriteCommandAction(surface.project) {
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
-      surface.sceneManager?.requestRender()
+      surface.sceneManager?.requestRenderAsync()
       surface.scene?.root?.children?.map { it.nlComponent }?.forEach { it.removeClientProperty(SKIP_PERSISTED_LAYOUT) }
     }
     surface.zoomToFit()

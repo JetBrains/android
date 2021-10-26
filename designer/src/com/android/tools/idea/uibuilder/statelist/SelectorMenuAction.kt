@@ -174,6 +174,6 @@ private fun setState(surface: DesignSurface, state: State, enabled: Boolean) {
   }
 
   if (shouldRender) {
-    surface.sceneManager?.requestRender()
+    surface.sceneManager?.requestRenderAsync()
   }
 }

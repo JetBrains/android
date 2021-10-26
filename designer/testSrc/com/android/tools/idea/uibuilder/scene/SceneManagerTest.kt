@@ -60,8 +60,8 @@ class TestSceneManager(model: NlModel,
     throw UnsupportedOperationException()
   }
 
-  override fun requestRender(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
-  override fun requestLayout(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun requestRenderAsync(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
   override fun layout(animate: Boolean) {}
   override fun getSceneDecoratorFactory(): SceneDecoratorFactory = object : SceneDecoratorFactory() {
     override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR

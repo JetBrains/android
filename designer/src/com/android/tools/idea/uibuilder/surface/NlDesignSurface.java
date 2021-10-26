@@ -69,9 +69,7 @@ import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutMana
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -650,7 +648,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
       for (SceneManager manager : getSceneManagers()) {
         manager.updateSceneView();
-        manager.requestLayoutAndRender(false);
+        manager.requestLayoutAndRenderAsync(false);
       }
       revalidateScrollArea();
     }
@@ -896,7 +894,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       "",
       false
     );
-    return requestSequentialRender(manager -> manager.requestRender().whenComplete((r, t) -> refreshProgressIndicator.processFinish()));
+    return requestSequentialRender(manager -> manager.requestRenderAsync().whenComplete((r, t) -> refreshProgressIndicator.processFinish()));
   }
 
   @NotNull
@@ -905,7 +903,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return requestSequentialRender(manager -> {
       LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
       layoutlibSceneManager.forceReinflate();
-      return layoutlibSceneManager.requestRender();
+      return layoutlibSceneManager.requestRenderAsync();
     });
   }
 

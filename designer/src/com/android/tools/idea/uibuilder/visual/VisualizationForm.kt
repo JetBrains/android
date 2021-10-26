@@ -575,12 +575,12 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
           return@thenCompose CompletableFuture.completedFuture<Void?>(null)
         }
         else {
-          val modelUpdateFuture = (manager as LayoutlibSceneManager).updateModel()
+          val modelUpdateFuture = (manager as LayoutlibSceneManager).updateModelAsync()
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           }
           else {
-            return@thenCompose modelUpdateFuture.thenCompose { manager.requestRender() }
+            return@thenCompose modelUpdateFuture.thenCompose { manager.requestRenderAsync() }
           }
         }
       }

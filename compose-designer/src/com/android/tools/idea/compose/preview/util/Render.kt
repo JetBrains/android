@@ -19,7 +19,6 @@ import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CompletableFuture
@@ -51,12 +50,12 @@ internal fun RenderResult?.isComposeErrorResult(): Boolean {
  * that do not simply render in a first pass.
  */
 internal fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
-  requestRender()
-    .thenCompose { executeCallbacks() }
-    .thenCompose { requestRender() }
+  requestRenderAsync()
+    .thenCompose { executeCallbacksAsync() }
+    .thenCompose { requestRenderAsync() }
 }
 else {
-  requestRender()
+  requestRenderAsync()
 }
 
 /**
@@ -65,8 +64,8 @@ else {
  * invalidation has completed.
  * If [forceLayout] is true, a `View#requestLayout` will be sent to the `ComposeViewAdapter` to force a relayout of the whole view.
  */
-internal fun LayoutlibSceneManager.invalidateCompositions(forceLayout: Boolean) = executeInRenderSession {
-  val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSession
+internal fun LayoutlibSceneManager.invalidateCompositionsAsync(forceLayout: Boolean) = executeInRenderSessionAsync {
+  val composeViewAdapter = renderResult.findComposeViewAdapter() ?: return@executeInRenderSessionAsync
   try {
     val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
     val hotReloaderInstance = hotReloader.getDeclaredField("Companion").let {
