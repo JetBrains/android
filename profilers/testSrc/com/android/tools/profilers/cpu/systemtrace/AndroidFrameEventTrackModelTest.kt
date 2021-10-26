@@ -15,16 +15,20 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class AndroidFrameEventTrackModelTest {
+  private val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
+
   @Test
   fun eventsAreGroupedByDepth() {
-    val trackModel = AndroidFrameEventTrackModel(PHASE_PROTO, Range(0.0, 10.0), listOf())
+    val trackModel = AndroidFrameEventTrackModel(PHASE_PROTO, Range(0.0, 10.0), listOf(), multiSelectionModel, mapOf())
     assertThat(trackModel.series.size).isEqualTo(2)
     assertThat(trackModel.series[0].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Padding),
@@ -47,7 +51,7 @@ class AndroidFrameEventTrackModelTest {
         makeFrame(0, 0, 1000, 0),
         makeFrame(1, 5000, -1, 0)))
       .build()
-    val trackModel = AndroidFrameEventTrackModel(phase, Range(0.0, 10.0), listOf())
+    val trackModel = AndroidFrameEventTrackModel(phase, Range(0.0, 10.0), listOf(), multiSelectionModel, mapOf())
     assertThat(trackModel.series[0].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Data(0, 0, 1)),
       SeriesData(1L, AndroidFrameEvent.Padding),

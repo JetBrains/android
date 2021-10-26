@@ -85,11 +85,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -487,7 +489,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
                              createFrameLifecycleTrackGroup(data.getAndroidFrameLayers().get(layerIndex), timeline,
                                                             // Collapse all but the first layer.
                                                             layerIndex > 0,
-                                                            data)));
+                                                            data,
+                                                            multiSelectionModel)));
   }
 
   private static TrackGroupModel createDisplayTrackGroup(
@@ -538,7 +541,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
                                                                 @NotNull Timeline timeline,
                                                                 boolean collapseInitially,
-                                                                @NotNull CpuSystemTraceData data) {
+                                                                @NotNull CpuSystemTraceData data,
+                                                                @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
     // Layer name takes the form of "app_name/surface_name", shorten it by omitting the app_name.
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
@@ -549,7 +553,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .build();
 
     layer.getPhaseList().stream()
-      .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), data.getVsyncCounterValues()))
+      .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), data.getVsyncCounterValues(),
+                                                    multiSelectionModel))
       .sorted(Comparator.comparingInt(trackModel -> trackModel.getAndroidFramePhase().ordinal()))
       .forEach(
         trackModel -> {
@@ -600,11 +605,14 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     // Track displaying lifecycle data corresponding to frames in above track
     Function1<Set<String>, Boolean> showLifecycle = toggles -> toggles.contains(toggleLifeCycle);
+    Map<Long, AndroidFrameTimelineEvent> timelineEventIndex =
+      CollectionsKt.associateBy(systemTraceData.getAndroidFrameTimelineEvents(), AndroidFrameTimelineEvent::getSurfaceFrameToken);
     for (int i = 0; i < systemTraceData.getAndroidFrameLayers().size(); ++i) {
       TraceProcessor.AndroidFrameEventsResult.Layer layer = systemTraceData.getAndroidFrameLayers().get(i);
       layer.getPhaseList().stream()
         .filter(phase -> !phase.getPhaseName().equals("Display"))
-        .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues()))
+        .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues(),
+                                                      multiSelectionModel, timelineEventIndex))
         .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
         .forEach(model -> {
           AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, model);
