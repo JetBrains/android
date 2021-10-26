@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -43,7 +44,7 @@ public final class VirtualDeviceDetailsPanelTest {
     properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  new File("ini/file"),
+                                  Paths.get("ini/file"),
                                   "data/folder/path",
                                   Mockito.mock(SystemImage.class),
                                   properties,
@@ -71,7 +72,7 @@ public final class VirtualDeviceDetailsPanelTest {
     properties.put("hw.lcd.density", "440");
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
-                                  new File("ini/file"),
+                                  Paths.get("ini/file"),
                                   "data/folder/path",
                                   Mockito.mock(SystemImage.class),
                                   properties,

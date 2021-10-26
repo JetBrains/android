@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +74,7 @@ public final class VirtualDisplayListTest {
                                                   latch,
                                                   Mockito.mock(VirtualDeviceTableCellRenderer.class));
     AvdInfo avd = new AvdInfo("Pixel 3",
-                              new File("ini/file"),
+                              Paths.get("ini/file"),
                               "data/folder/path",
                               Mockito.mock(SystemImage.class),
                               null);

@@ -37,6 +37,7 @@ import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.io.File
+import java.nio.file.Paths
 
 private val SDK_LOCATION = "/sdk"
 private val AVD_LOCATION = "/avd"
@@ -88,8 +89,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val googlePlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
     val nonPlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
 
-    myGooglePlayAvdInfo = AvdInfo("name", File("ini"), "folder", googlePlayImage!!, myPropertiesMap)
-    myNonPlayAvdInfo = AvdInfo("name", File("ini"), "folder", nonPlayImage!!, myPropertiesMap)
+    myGooglePlayAvdInfo = AvdInfo("name", Paths.get("ini"), "folder", googlePlayImage!!, myPropertiesMap)
+    myNonPlayAvdInfo = AvdInfo("name", Paths.get("ini"), "folder", nonPlayImage!!, myPropertiesMap)
 
     // Get a phone device that supports Google Play
     val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger())

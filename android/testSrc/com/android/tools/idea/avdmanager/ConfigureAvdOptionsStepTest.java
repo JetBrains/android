@@ -55,6 +55,7 @@ import com.intellij.ui.components.JBLabel;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -174,15 +175,15 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", QImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), "folder", QImage, myPropertiesMap);
     myMarshmallowAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), "folder", marshmallowImage, myPropertiesMap);
     myPreviewAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), "folder", NPreviewImage, myPropertiesMap);
     myZuluAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", ZuluImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), "folder", ZuluImage, myPropertiesMap);
     myExtensionsAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", extensionsImage, myPropertiesMap);
+      new AvdInfo("name", Paths.get("ini"), "folder", extensionsImage, myPropertiesMap);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -304,7 +305,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     tempFolder.create();
     File snapAvdDir = tempFolder.newFolder("proto_avd");
     AvdInfo snapshotAvdInfo =
-      new AvdInfo("snapAvd", new File("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
+      new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir.getAbsolutePath(), mySnapshotSystemImage, myPropertiesMap);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
     ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel, newSkinChooser());
