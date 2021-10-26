@@ -262,6 +262,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @Override
+  public @NotNull VirtualFile getFile() {
+    return myBaseFile;
+  }
+
+  @Override
   public void dispose() {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
