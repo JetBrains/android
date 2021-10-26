@@ -161,6 +161,7 @@ class TreeTableImplTest {
     val settings = object : AdvancedSettings() {
       override fun getSetting(id: String) = false
       override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
+      override fun getDefault(id: String) = false
     }
     appRule.testApplication.registerService(AdvancedSettings::class.java, settings, appRule.testRootDisposable)
   }

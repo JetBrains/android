@@ -106,6 +106,9 @@ object ComponentTreeManualTest {
       override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
         TODO("Not yet implemented")
       }
+      override fun getDefault(id: String): Any {
+        throw NotImplementedError()
+      }
     }
     app.registerService(AdvancedSettings::class.java, settings)
     return app
