@@ -61,7 +61,7 @@ class InstallerData(
 
   fun hasValidSdkLocation(): Boolean {
     androidDest ?: return false
-    val severity = PathValidator.forAndroidSdkLocation().validate(androidDest).severity
+    val severity = PathValidator.forAndroidSdkLocation().validate(androidDest.toPath()).severity
     return severity != Validator.Severity.ERROR
   }
 }

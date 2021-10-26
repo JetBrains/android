@@ -31,7 +31,6 @@ import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
-import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -1003,27 +1002,6 @@ public class IdeSdks {
      * @param project one of the projects currently open in the IDE.
      */
     void afterSdkPathChange(@NotNull File sdkPath, @NotNull Project project);
-  }
-
-  public boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
-    if (sdkData != null) {
-      ProgressIndicator progress = new StudioLoggerProgressIndicator(Jdks.class);
-      LocalPackage info = sdkData.getSdkHandler().getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
-      if (info != null) {
-        Revision revision = info.getVersion();
-        if (revision.getMajor() >= 19) {
-          JavaSdk jdk = JavaSdk.getInstance();
-          Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
-          if (sdk != null) {
-            JavaSdkVersion version = jdk.getVersion(sdk);
-            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
   }
 
   @TestOnly

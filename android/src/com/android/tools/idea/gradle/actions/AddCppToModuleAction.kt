@@ -58,6 +58,8 @@ import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.Locale
 import javax.swing.JLabel
 
@@ -129,7 +131,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
   companion object {
     fun showAddCppToModuleDialog(module: Module) {
       val moduleRoot = findModuleRootFolderPath(module)
-      val defaultCppFolder: File? = moduleRoot?.resolve("src/main/cpp")
+      val defaultCppFolder: Path? = moduleRoot?.resolve("src/main/cpp")?.toPath()
       val dialogModel = AddCppToModuleDialogModel(defaultCppFolder)
       lateinit var whitespaceWarningMessage: JLabel
       dialog(
@@ -151,7 +153,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
                   dialogModel.newCppFolder,
                   project = module.project,
                   fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
-                    withFileFilter { creationPathValidator.validate(it.toIoFile()).severity < Validator.Severity.ERROR }
+                    withFileFilter { creationPathValidator.validate(it.toNioPath()).severity < Validator.Severity.ERROR }
                     title = "Choose a folder for C++ sources"
                   }
                 ).component.apply {
@@ -171,7 +173,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
                   dialogModel.existingBuildFile,
                   project = module.project,
                   fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().apply {
-                    withFileFilter { linkPathValidator.validate(it.toIoFile()).severity < Validator.Severity.ERROR }
+                    withFileFilter { linkPathValidator.validate(it.toNioPath()).severity < Validator.Severity.ERROR }
                     title = "Choose a CMakeLists.txt or Android.mk file"
                   }
                 ).component.apply {
@@ -285,12 +287,12 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
   }
 }
 
-private class AddCppToModuleDialogModel(defaultCppFolder: File?) {
+private class AddCppToModuleDialogModel(defaultCppFolder: Path?) {
   private val propertyGraph = PropertyGraph()
   val addMode = propertyGraph.graphProperty { AddMode.CREATE_NEW }
   val existingBuildFile = propertyGraph.graphProperty { "" }
-  val newCppFolder = propertyGraph.graphProperty { defaultCppFolder?.path ?: "" }
-  val isValid = propertyGraph.graphProperty { creationPathValidator.validate(defaultCppFolder ?: File("")) }
+  val newCppFolder = propertyGraph.graphProperty { defaultCppFolder?.toString() ?: "" }
+  val isValid = propertyGraph.graphProperty { creationPathValidator.validate(defaultCppFolder ?: Paths.get("")) }
 
   init {
     isValid.dependsOn(addMode, ::checkIsValid)
@@ -299,8 +301,8 @@ private class AddCppToModuleDialogModel(defaultCppFolder: File?) {
   }
 
   private fun checkIsValid(): Validator.Result = when (addMode.get()) {
-    AddMode.CREATE_NEW -> creationPathValidator.validate(File(newCppFolder.get()))
-    AddMode.USE_EXISTING -> linkPathValidator.validate(File(existingBuildFile.get()))
+    AddMode.CREATE_NEW -> creationPathValidator.validate(Paths.get(newCppFolder.get()))
+    AddMode.USE_EXISTING -> linkPathValidator.validate(Paths.get(existingBuildFile.get()))
   }
 }
 

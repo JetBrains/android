@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.ui.validation.validators
 
-import com.android.repository.io.FileOp
-import com.android.repository.io.FileOpUtils
+import com.android.io.CancellableFileIo
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
@@ -31,7 +30,9 @@ import com.intellij.openapi.util.io.FileUtil
 import net.jcip.annotations.Immutable
 import org.jetbrains.annotations.TestOnly
 import java.io.File
+import java.nio.file.Path
 import java.util.Locale
+import kotlin.streams.toList
 
 private val logger: Logger get() = logger<PathValidator>()
 
@@ -39,7 +40,7 @@ private val logger: Logger get() = logger<PathValidator>()
  * A class which contains validation logic that should be run on a path to ensure that there won't
  * be any problems with using it. If there is an issue, we offer a readable string which we can show to the user.
  *
- * Use [validate] to test a path and check [Result.getSeverity] to see if there was a warning or error.
+ * Use [validate] to test a path and check [Result.severity] to see if there was a warning or error.
  *
  * The convenience method [createDefault] is provided for creating a validator for the most common cases.
  */
@@ -51,31 +52,30 @@ class PathValidator
  * be included as it will be used in the error messages when applicable.
  */ private constructor(private val pathName: String,
                         @get:TestOnly val errors: Iterable<Rule>,
-                        private val warnings: Iterable<Rule>,
-                        private val fileOp: FileOp) : Validator<File> {
+                        private val warnings: Iterable<Rule>) : Validator<Path> {
   /**
    * Validate that the target location passes all tests.
    *
    * @return [Result.OK] or the first error or warning it encounters.
    */
-  override fun validate(file: File): Result =
+  override fun validate(value: Path): Result =
     try {
-      validate(file, Severity.ERROR).takeIf { it != Result.OK } ?: validate(file, Severity.WARNING).takeIf { it != Result.OK } ?: Result.OK
+      validate(value, Severity.ERROR).takeIf { it != Result.OK } ?: validate(value, Severity.WARNING).takeIf { it != Result.OK } ?: Result.OK
     }
     catch (ex: Exception) {
       logger.warn(ex)
-      Result(Severity.ERROR, "Invalid file, see Help -> Show Log for more details: $file")
+      Result(Severity.ERROR, "Invalid file, see Help -> Show Log for more details: $value")
     }
 
   /**
    * Run only the validations whose level match the passed in [Severity].
    */
-  private fun validate(projectFile: File, severity: Severity): Result {
+  private fun validate(projectFile: Path, severity: Severity): Result {
     assert(severity != Severity.OK)
     val rules = if (severity == Severity.ERROR) errors else warnings
 
     for (rule in rules) {
-      val matchingFile = rule.getMatchingFile(fileOp, projectFile)
+      val matchingFile = rule.getMatchingFile(projectFile)
       if (matchingFile != null) {
         return Result(severity, rule.getMessage(matchingFile, pathName))
       }
@@ -137,8 +137,7 @@ class PathValidator
 
     fun withWarning(rule: Rule) = this.apply { warnings.add(rule) }
 
-    @JvmOverloads
-    fun build(pathName: String, fileOp: FileOp = FileOpUtils.create()): PathValidator = PathValidator(pathName, errors, warnings, fileOp)
+    fun build(pathName: String): PathValidator = PathValidator(pathName, errors, warnings)
   }
 
   companion object {
@@ -163,36 +162,36 @@ class PathValidator
  */
 interface Rule {
   /**
-   * Returns a [File] which violates this rule or `null` if none.
+   * Returns a [Path] which violates this rule or `null` if none.
    *
    * If a file is returned, it will usually be the same as `file` but not always.
    * For example, a rule may complain about a file's parent.
    */
-  fun getMatchingFile(fileOp: FileOp, file: File): File?
+  fun getMatchingFile(path: Path): Path?
 
-  fun getMessage(file: File, fieldName: String): String
+  fun getMessage(path: Path, fieldName: String): String
 }
 
 /**
  * A rule which is run on the target file as is.
  */
 private fun createSimpleRule(
-  matches: (FileOp, File) -> Boolean,
-  getMessage: (File, String) -> String
+  matches: (Path) -> Boolean,
+  getMessage: (Path, String) -> String
 ) = object : Rule {
-  override fun getMatchingFile(fileOp: FileOp, file: File) = file.takeIf { matches(fileOp, file) }
-  override fun getMessage(file: File, fieldName: String) = getMessage(file, fieldName)
+  override fun getMatchingFile(path: Path) = path.takeIf { matches(path) }
+  override fun getMessage(path: Path, fieldName: String) = getMessage(path, fieldName)
 }
 
 /**
  * A rule which is run on the target file and each of its ancestors, recursively.
  */
 private fun createRecursiveRule(
-  matches: (FileOp, File) -> Boolean,
-  getMessage: (File, String) -> String
+  matches: (Path) -> Boolean,
+  getMessage: (Path, String) -> String
 ) = object : Rule {
-  override fun getMatchingFile(fileOp: FileOp, file: File) = generateSequence(file) { it.parentFile }.firstOrNull { matches(fileOp, it) }
-  override fun getMessage(file: File, fieldName: String) = getMessage(file, fieldName)
+  override fun getMatchingFile(path: Path) = generateSequence(path) { it.parent }.firstOrNull { matches(it) }
+  override fun getMessage(path: Path, fieldName: String) = getMessage(path, fieldName)
 }
 
 private val RESERVED_WINDOWS_FILENAMES: Set<String> = setOf(
@@ -219,17 +218,17 @@ private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\?%*:
  * @param filenameIsAllowed returns true if the filename is allowed
  */
 fun filenameRule(description: String, filenameIsAllowed:(String) -> Boolean) = createSimpleRule(
-  { _, file -> !filenameIsAllowed(file.name) },
+  { path -> !filenameIsAllowed(path.fileName?.toString() ?: "") },
   { _, fieldName -> "The $fieldName specified $description." }
 )
 
 val IS_EMPTY = createSimpleRule(
-  { _, file -> file.name.isEmpty() },
+  { path -> path.fileName?.toString().isNullOrEmpty() },
   { _, fieldName -> "Please specify a $fieldName." }
 )
 
 val INVALID_SLASHES = createSimpleRule(
-  { _, file -> File.separatorChar == '/' && file.path.contains("\\") || File.separatorChar == '\\' && file.path.contains("/") },
+  { path -> File.separatorChar == '/' && path.toString().contains("\\") || File.separatorChar == '\\' && path.toString().contains("/") },
   { _, fieldName ->
     val incorrectSlash = if (File.separatorChar == '\\') '/' else '\\'
     "Your $fieldName contains incorrect slashes ('$incorrectSlash')."
@@ -237,78 +236,78 @@ val INVALID_SLASHES = createSimpleRule(
 )
 
 val LOCATION_IS_A_FILE = createSimpleRule(
-  { fileOp, file -> fileOp.isFile(file) },
+  CancellableFileIo::isRegularFile,
   { _, fieldName -> "The $fieldName specified already exists." }
 )
 
 val LOCATION_IS_NOT_A_FILE = createSimpleRule(
-  { fileOp, file -> !fileOp.isFile(file) },
+  { path -> !CancellableFileIo.isRegularFile(path) },
   { _, fieldName -> "The $fieldName specified does not exist." }
 )
 
 val LOCATION_IS_ROOT = createSimpleRule(
-  { _, file -> file.parent == null },
+  { path -> path.parent == null },
   { _, fieldName -> "The $fieldName cannot be at the filesystem root." }
 )
 
 val PARENT_IS_NOT_A_DIRECTORY = createSimpleRule(
-  { fileOp, file ->
-    val parent = file.parentFile
-    parent != null && fileOp.exists(parent) && !fileOp.isDirectory(parent)
+  { path ->
+    val parent = path.parent
+    parent != null && CancellableFileIo.exists(parent) && !CancellableFileIo.isDirectory(parent)
   },
   { _, fieldName -> "The $fieldName's parent must be a directory, not a plain file." }
 )
 
 val PATH_NOT_WRITABLE = createSimpleRule(
-  { fileOp, file -> fileOp.exists(file) && !fileOp.canWrite(file) },
-  { file, _ -> "The path '${file.path}' is not writable." }
+  { path -> CancellableFileIo.exists(path) && !CancellableFileIo.isWritable(path) },
+  { path, _ -> "The path '$path' is not writable." }
 )
 
 val PATH_INSIDE_ANDROID_STUDIO = createSimpleRule(
-  { _, file -> PathManager.getHomePathFor(Application::class.java)?.let { FileUtil.isAncestor(File(it), file, false) } ?: false },
+  { path -> PathManager.getHomePathFor(Application::class.java)?.let { FileUtil.isAncestor(it, path.toString(), false) } ?: false },
   { _, fieldName -> "The $fieldName is inside ${ApplicationNamesInfo.getInstance().productName}'s install location." }
 )
 
 val NON_EMPTY_DIRECTORY = createSimpleRule(
-  { fileOp, file -> fileOp.listFiles(file).isNotEmpty() },
-  { file, fieldName -> "'${file.name}' already exists at the specified $fieldName and it is not empty." }
+  { path -> CancellableFileIo.isDirectory(path) && CancellableFileIo.list(path).toList().isNotEmpty() },
+  { path, fieldName -> "'${path.fileName}' already exists at the specified $fieldName and it is not empty." }
 )
 
 val WINDOWS_PATH_TOO_LONG = createSimpleRule(
-  { _, file -> file.absolutePath.length > WINDOWS_PATH_LENGTH_LIMIT },
+  { path -> path.toAbsolutePath().toString().length > WINDOWS_PATH_LENGTH_LIMIT },
   { _, fieldName -> "The length of the $fieldName exceeds the limit of $WINDOWS_PATH_LENGTH_LIMIT characters." }
 )
 
 val WHITESPACE = createRecursiveRule(
-  { _, file -> CharMatcher.whitespace().matchesAnyOf(file.name) },
+  { path -> CharMatcher.whitespace().matchesAnyOf(path.fileName?.toString() ?: "") },
   { _, fieldName -> "$fieldName should not contain whitespace, as this can cause problems with the NDK tools." }
 )
 
 val NON_ASCII_CHARS = createRecursiveRule(
-  { _, file -> !CharMatcher.ascii().matchesAllOf(file.name) },
+  { path -> !CharMatcher.ascii().matchesAllOf(path.fileName?.toString() ?: "") },
   { _, fieldName -> "Your $fieldName contains non-ASCII characters." }
 )
 
 val PARENT_DIRECTORY_NOT_WRITABLE = createRecursiveRule(
-  { fileOp, file ->
-    val parent = file.parentFile
-    !fileOp.exists(file) && parent != null && fileOp.exists(parent) && !fileOp.canWrite(parent)
+  { path ->
+    val parent = path.parent
+    CancellableFileIo.notExists(path) && parent != null && CancellableFileIo.exists(parent) && !CancellableFileIo.isWritable(parent)
   },
-  { file, _ -> "The path '${file.parentFile.path}' is not writable. Please choose a new location." }
+  { file, _ -> "The path '${file.parent}' is not writable. Please choose a new location." }
 )
 
 /**
  * Note: This should be an error only under Windows (for other platforms should be a warning)
  */
 val ILLEGAL_WINDOWS_FILENAME = createRecursiveRule(
-  { _, file -> RESERVED_WINDOWS_FILENAMES.contains(file.name.toLowerCase(Locale.US)) },
-  { file, fieldName -> "Illegal (Windows) filename in $fieldName path: ${file.name}." }
+  { path -> RESERVED_WINDOWS_FILENAMES.contains(path.fileName?.toString()?.toLowerCase(Locale.US) ?: "") },
+  { path, fieldName -> "Illegal (Windows) filename in $fieldName path: ${path.fileName}." }
 )
 
 val ILLEGAL_CHARACTER = createRecursiveRule(
-  { _, file -> ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(file.name) },
+  { path -> ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(path.fileName?.toString() ?: "") },
   { file, fieldName ->
-    val name = file.name
+    val name = file.fileName.toString()
     val illegalChar = name[ILLEGAL_CHARACTER_MATCHER.indexIn(name)]
     "Illegal character in $fieldName path: '$illegalChar' in filename $name."
   }

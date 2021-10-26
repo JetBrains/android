@@ -58,7 +58,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import javax.swing.Icon;
 import org.jdom.Element;
@@ -131,7 +130,6 @@ public class AndroidImportProjectAction extends AnAction {
     };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
-    //noinspection DialogTitleCapitalization
     descriptor.setDescription(WIZARD_DESCRIPTION);
     return descriptor;
   }
@@ -163,7 +161,7 @@ public class AndroidImportProjectAction extends AnAction {
 
   private static boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
     ProjectImportPathValidator validator = new ProjectImportPathValidator("project file");
-    Validator.Result result = validator.validate(virtualToIoFile(file));
+    Validator.Result result = validator.validate(file.toNioPath());
     if (result.getSeverity() != Validator.Severity.OK) {
       boolean isError = result.getSeverity() == Validator.Severity.ERROR;
       Messages.showInfoMessage(project, result.getMessage(), isError ? "Cannot Import Project" : "Project Import Warning");
@@ -175,7 +173,7 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
+  protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) {
     VirtualFile target = findImportTarget(file);
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = virtualToIoFile(targetDir);

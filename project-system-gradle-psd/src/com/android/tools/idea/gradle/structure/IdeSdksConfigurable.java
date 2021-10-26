@@ -641,7 +641,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(getSdkLocation());
+    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(getSdkLocation().toPath());
     Validator.Severity severity = result.getSeverity();
     if (severity == ERROR) {
       return result.getMessage();

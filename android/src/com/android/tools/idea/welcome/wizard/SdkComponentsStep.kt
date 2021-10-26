@@ -56,6 +56,7 @@ import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.event.KeyEvent
 import java.io.File
+import java.nio.file.Paths
 import javax.accessibility.AccessibleContext
 import javax.swing.AbstractCellEditor
 import javax.swing.JCheckBox
@@ -181,7 +182,7 @@ class SdkComponentsStep(
 
   inner class SdkPathValidator : Validator<String> {
     override fun validate(value: String): Validator.Result {
-      val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(File(value))
+      val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(Paths.get(value))
 
       if (defaultValidatorResult.severity == Validator.Severity.ERROR) {
         return defaultValidatorResult
@@ -214,7 +215,7 @@ class SdkComponentsStep(
   }
 
 
-  override fun getPreferredFocusComponent(): JComponent? = componentsTable
+  override fun getPreferredFocusComponent(): JComponent = componentsTable
 
   // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
   lateinit var componentInstaller: ComponentInstaller
@@ -440,7 +441,7 @@ fun getDiskSpace(path: String?): String {
     "$available (drive $driveName)"
   }
   else {
-    available.toString()
+    available
   }
 }
 

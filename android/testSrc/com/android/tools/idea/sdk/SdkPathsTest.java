@@ -22,11 +22,24 @@ import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.AclEntry;
+import java.nio.file.attribute.AclEntryPermission;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +51,7 @@ public class SdkPathsTest extends TestCase {
   @Nullable
   private File tmpDir;
 
-  private static final String DUMMY_PATH = "/dummy/path".replace('/', File.separatorChar);
+  private static final String DUMMY_PATH = "dummy/path".replace('/', File.separatorChar);
 
   @Override
   public void setUp() throws Exception {
@@ -54,7 +67,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testInvalidSdkDirectory() throws Exception {
-    File mockFile = createFileMock(DUMMY_PATH, false);
+    Path mockFile = createFileMock(DUMMY_PATH, false);
 
     ValidationResult result = validateAndroidSdk(mockFile, false);
     assertFalse(result.success);
@@ -62,7 +75,7 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidSdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The SDK path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The SDK path\n'%1$s'\ndoes not belong to a directory.", mockFile), result.message);
   }
 
   public void testNoPlatformsSdkDirectory() throws Exception {
@@ -89,7 +102,7 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testInvalidNdkDirectory() throws Exception {
-    File mockFile = createFileMock(DUMMY_PATH, false);
+    Path mockFile = createFileMock(DUMMY_PATH, false);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
     assertFalse(result.success);
@@ -97,12 +110,12 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The NDK path\n'%1$s'\ndoes not belong to a directory.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The NDK path\n'%1$s'\ndoes not belong to a directory.", mockFile), result.message);
   }
 
   public void testUnReadableNdkDirectory() throws Exception {
-    File mockFile = createFileMock(DUMMY_PATH, true);
-    when(mockFile.canRead()).thenReturn(false);
+    Path mockFile = Files.createTempDirectory("SdkPathsTest-testUnReadableNdkDirectory");
+    setUnreadable(mockFile);
 
     ValidationResult result = validateAndroidNdk(mockFile, false);
     assertFalse(result.success);
@@ -110,15 +123,10 @@ public class SdkPathsTest extends TestCase {
 
     result = validateAndroidNdk(mockFile, true);
     assertFalse(result.success);
-    assertEquals(String.format("The NDK path\n'%1$s'\nis not readable.", DUMMY_PATH), result.message);
+    assertEquals(String.format("The NDK path\n'%1$s'\nis not readable.", mockFile), result.message);
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoPlatformsNdkDirectory");
     ValidationResult result = validateAndroidNdk(tmpDir, false);
     assertFalse(result.success);
@@ -130,11 +138,6 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoToolchainsNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoToolchainsNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
 
@@ -148,11 +151,6 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testValidNdkDirectory() throws Exception {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
     tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testValidNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
     createDirectory(new File(tmpDir, "toolchains"));
@@ -164,17 +162,24 @@ public class SdkPathsTest extends TestCase {
     assertTrue(result.message, result.success);
   }
 
-  private static File createFileMock(@NotNull String path, boolean isDirectory) {
-    File mockFile = mock(File.class);
+  private static Path createFileMock(@NotNull String path, boolean isDirectory) {
+    if (isDirectory) {
+      return InMemoryFileSystems.createInMemoryFileSystemAndFolder(path);
+    }
+    return InMemoryFileSystems.getSomeRoot(InMemoryFileSystems.createInMemoryFileSystem()).resolve(path);
+  }
 
-    when(mockFile.getPath()).thenReturn(path);
-    when(mockFile.getAbsolutePath()).thenReturn(path);
-    when(mockFile.isDirectory()).thenReturn(isDirectory);
-    String[] pathParts = path.split(Pattern.quote(String.valueOf(File.separatorChar)));
-    // PathValidator may access name and parent. Despite this is not required it will enable better error message generation.
-    when(mockFile.getName()).thenReturn(pathParts[pathParts.length - 1]);
-    when(mockFile.getParent()).thenReturn("parent");
-
-    return mockFile;
+  private void setUnreadable(Path path) throws Exception {
+    if (SystemInfo.isWindows) {
+      AclFileAttributeView acls = Files.getFileAttributeView(path, AclFileAttributeView.class);
+      List<AclEntry> newAcls =
+        acls.getAcl().stream()
+          .map(acl -> AclEntry.newBuilder(acl).setPermissions(EnumSet.noneOf(AclEntryPermission.class)).build())
+          .collect(Collectors.toList());
+      acls.setAcl(newAcls);
+    }
+    else {
+      Files.setPosixFilePermissions(path, EnumSet.noneOf(PosixFilePermission.class));
+    }
   }
 }

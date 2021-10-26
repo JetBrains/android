@@ -245,7 +245,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     File androidHome = ideSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
-      Validator.Result result = PathValidator.forAndroidSdkLocation().validate(androidHome);
+      Validator.Result result = PathValidator.forAndroidSdkLocation().validate(androidHome.toPath());
       Validator.Severity severity = result.getSeverity();
 
       if (severity == Validator.Severity.ERROR) {

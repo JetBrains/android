@@ -97,6 +97,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -658,8 +659,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    */
   private void validate() {
     Path nullableSdkPath = myConfigurable.getRepoManager().getLocalPath();
-    File nullableSdkLocation = nullableSdkPath == null ? null : myConfigurable.getSdkHandler().getFileOp().toFile(nullableSdkPath);
-    @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
+    @NotNull Path sdkLocation = nullableSdkPath == null ? Paths.get("") : nullableSdkPath;
 
     Validator.Result result = PathValidator.forAndroidSdkLocation().validate(sdkLocation);
     Validator.Severity severity = result.getSeverity();

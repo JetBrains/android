@@ -74,6 +74,8 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -186,7 +188,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
-    Expression<File> locationFile = myProjectModel.getProjectLocation().transform(File::new);
+    Expression<Path> locationFile = myProjectModel.getProjectLocation().transform(Paths::get);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
     myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
@@ -208,7 +210,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.Tv);
     });
 
-    myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
+    myListeners.listen(androidSdkInfo, this::updateAppCompatCheckBox);
   }
 
   @Override
