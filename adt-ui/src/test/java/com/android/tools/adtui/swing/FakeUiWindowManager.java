@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.StatusBarCentralWidget;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
@@ -267,6 +268,9 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     public void addWidget(@NotNull StatusBarWidget widget, @NotNull String anchor, @NotNull Disposable parentDisposable) {
       addWidget(widget, parentDisposable);
     }
+
+    @Override
+    public void setCentralWidget(@NotNull StatusBarCentralWidget widget) {}
 
     @Override
     public void dispose() {}
