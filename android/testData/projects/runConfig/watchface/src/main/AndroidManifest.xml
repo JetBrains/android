@@ -37,6 +37,7 @@
 
     <service
         android:name=".MyWatchFace"
+        android:exported="true"
         android:label="@string/my_analog_name"
         android:permission="android.permission.BIND_WALLPAPER">
       <meta-data

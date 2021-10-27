@@ -5,6 +5,7 @@
 
   <application
       android:allowBackup="true"
+      android:exported="true"
       android:label="@string/app_name">
     <activity
         android:name="${activityName}"

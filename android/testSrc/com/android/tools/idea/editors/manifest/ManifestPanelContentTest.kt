@@ -290,19 +290,19 @@ Added from the <a href='<~>/app/src/main/AndroidManifest.xml:9:8'>navgraph.app m
 
 <B>intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
 <B>action#android.intent.action.MAIN</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
 <B>category#android.intent.category.LAUNCHER</B>
 
-Added from the <a href='<~>/app/src/main/AndroidManifest.xml:11:12'>navgraph.app main</a> manifest (this file), line 11
+Added from the <a href='<~>/app/src/main/AndroidManifest.xml:14:12'>navgraph.app main</a> manifest (this file), line 14
 
 
 
