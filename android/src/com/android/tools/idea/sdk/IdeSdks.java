@@ -456,13 +456,12 @@ public class IdeSdks {
       // to the current method. Hence, no ide android sdk is configured and our further android sdk lookup
       // (check project jdk table for the configured ide android sdk and deduce the path from it) wouldn't work. So, we save
       // given path as well in order to be able to fallback to it later if there is still no android sdk configured within the ide.
+      String sdkPath = toCanonicalPath(path.getAbsolutePath());
       if (currentProject != null && !currentProject.isDisposed()) {
-        String sdkPath = toCanonicalPath(path.getAbsolutePath());
-
         PropertiesComponent.getInstance(currentProject).setValue(ANDROID_SDK_PATH_KEY, sdkPath);
-        // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
-        PropertiesComponent.getInstance().setValue(ANDROID_SDK_PATH_KEY, sdkPath);
       }
+      // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
+      PropertiesComponent.getInstance().setValue(ANDROID_SDK_PATH_KEY, sdkPath);
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdks will still use the old SDK until all SDKs are properly deleted.
