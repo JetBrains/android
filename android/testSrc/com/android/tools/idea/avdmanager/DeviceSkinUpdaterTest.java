@@ -59,7 +59,7 @@ public final class DeviceSkinUpdaterTest {
   @Test
   public void updateSkinsDeviceIsAbsolute() {
     // Arrange
-    Path device = myFileSystem.getPath("/home/juancnuno/Android/Sdk/platforms/android-30/skins/HVGA");
+    Path device = myFileSystem.getPath("/home/juancnuno/Android/Sdk/platforms/android-31/skins/HVGA");
 
     // Act
     Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null, true);
