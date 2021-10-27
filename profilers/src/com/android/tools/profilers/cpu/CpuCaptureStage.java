@@ -66,6 +66,7 @@ import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTrackModel;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
@@ -85,10 +86,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -552,15 +556,17 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String toggleAllFrames = "All Frames";
     String toggleLifeCycle = "Lifecycle";
 
-    TrackGroupModel display = TrackGroupModel.newBuilder()
+    TrackGroupModel.Builder displayBuilder = TrackGroupModel.newBuilder()
       .setTitle("Display")
       .setTitleHelpText("This section contains display info. " +
                         "<p><b>Janky Frames</b>: frames that are janky. " +
                         "Frames missing deadlines are colored red, buffer stuffing yellow.</p>")
       .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
-      .addDisplayToggle(toggleAllFrames, false)
-      .addDisplayToggle(toggleLifeCycle, false)
-      .build();
+      .addDisplayToggle(toggleAllFrames, false);
+    if (!systemTraceData.getAndroidFrameLayers().isEmpty()) {
+      displayBuilder.addDisplayToggle(toggleLifeCycle, false);
+    }
+    TrackGroupModel display = displayBuilder.build();
 
     // Jank
     List<AndroidFrameTimelineEvent> events = systemTraceData.getAndroidFrameTimelineEvents();
@@ -578,9 +584,24 @@ public class CpuCaptureStage extends Stage<Timeline> {
     display.addTrackModel(TrackModel.newBuilder(allFramesModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "All frames")
                             .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, allFramesModel)),
                           toggles -> toggles.contains(toggleAllFrames));
-    // TODO(b/203436776) add lifecycle tracks
-    return display;
 
+    // Track displaying lifecycle data corresponding to frames in above track
+    Function1<Set<String>, Boolean> showLifecycle = toggles -> toggles.contains(toggleLifeCycle);
+    for (int i = 0; i < systemTraceData.getAndroidFrameLayers().size(); ++i) {
+      TraceProcessor.AndroidFrameEventsResult.Layer layer = systemTraceData.getAndroidFrameLayers().get(i);
+      layer.getPhaseList().stream()
+        .filter(phase -> !phase.getPhaseName().equals("Display"))
+        .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues()))
+        .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
+        .forEach(model -> {
+          AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, model);
+          display.addTrackModel(TrackModel.newBuilder(model, ProfilerTrackRendererType.ANDROID_FRAME_EVENT,
+                                                      model.getAndroidFramePhase().getDisplayName())
+                                  .setDefaultTooltipModel(tooltip),
+                                showLifecycle);
+        });
+    }
+    return display;
   }
 
   private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,

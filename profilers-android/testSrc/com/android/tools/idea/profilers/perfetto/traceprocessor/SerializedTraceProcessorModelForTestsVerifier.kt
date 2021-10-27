@@ -73,10 +73,10 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
     for (process in realProcessList) {
       val pid = process.id
-      val pidsToQuery = mutableListOf(pid)
-      sfProcessId?.let { pidsToQuery.add(it.id) }
+      val processesToQuery = mutableListOf(process)
+      sfProcessId?.let(processesToQuery::add)
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeProcess, fakeIdeProfilerServices)
+      val realModel = service.loadCpuData(1, processesToQuery, fakeProcess, fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -102,10 +102,10 @@ class SerializedTraceProcessorModelForTestsVerifier {
 
     for (process in realProcessList) {
       val pid = process.id
-      val pidsToQuery = mutableListOf(pid)
-      sfProcessId?.let { pidsToQuery.add(it.id) }
+      val processesToQuery = mutableListOf(process)
+      sfProcessId?.let(processesToQuery::add)
 
-      val realModel = service.loadCpuData(1, pidsToQuery, fakeProcess, fakeIdeProfilerServices)
+      val realModel = service.loadCpuData(1, processesToQuery, fakeProcess, fakeIdeProfilerServices)
       val serializedModel = serializedModelMap[pid] ?: error("$pid should be present perfetto_cpu_usage.trace_tpd_model")
       assertThat(realModel.getCaptureStartTimestampUs()).isEqualTo(serializedModel.getCaptureStartTimestampUs())
       assertThat(realModel.getCaptureEndTimestampUs()).isEqualTo(serializedModel.getCaptureEndTimestampUs())
@@ -174,17 +174,17 @@ class SerializedTraceProcessorModelForTestsVerifier {
       // Generate model for every process.
       for (process in processList) {
         val pid = process.id
-        val pidsToQuery = mutableListOf(pid)
-        sfProcessId?.let { pidsToQuery.add(it.id) }
+        val processesToQuery = mutableListOf(process)
+        sfProcessId?.let(processesToQuery::add)
 
-        val model = service.loadCpuData(traceId, pidsToQuery, fakeProcess, fakeIdeProfilerServices)
+        val model = service.loadCpuData(traceId, processesToQuery, fakeProcess, fakeIdeProfilerServices)
         modelMapBuilder.put(pid, model)
       }
     }
     else {
       // Only generate model for the selected process.
       val selectedProcess = processList.first { processModel -> processModel.name == selectedProcessName }
-      val model = service.loadCpuData(traceId, listOf(selectedProcess.id), selectedProcess, fakeIdeProfilerServices)
+      val model = service.loadCpuData(traceId, listOf(selectedProcess), selectedProcess, fakeIdeProfilerServices)
       modelMapBuilder.put(selectedProcess.id, model)
     }
 

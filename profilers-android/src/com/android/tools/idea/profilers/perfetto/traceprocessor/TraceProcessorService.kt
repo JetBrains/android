@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.Memory
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.LoadTraceRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
@@ -23,8 +24,10 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryParameters
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryResult
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.analytics.FeatureTracker
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModel
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
@@ -66,9 +69,13 @@ class TraceProcessorServiceImpl(
      * Creates request builders for querying CPU data, and a model to collect the result
      * when these requests are executed.
      */
-    private fun cpuDataRequest(processIds: List<Int>,
+    private fun cpuDataRequest(processes: List<ProcessModel>,
                                selectedProcess: ProcessModel,
                                modelBuilder: TraceProcessorModel.Builder): List<RequestBuilder> {
+      fun androidFrameTimelineRequest(id: Long, handle: (TraceProcessor.AndroidFrameTimelineResult) -> Unit ) =
+        RequestBuilder({ setAndroidFrameTimelineRequest(
+          QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(id))},
+                       { handle(it.androidFrameTimelineResult) })
       val requests = mutableListOf(
         // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
         RequestBuilder({ processMetadataRequest = QueryParameters.ProcessMetadataParameters.getDefaultInstance() },
@@ -85,28 +92,33 @@ class TraceProcessorServiceImpl(
           QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint(selectedProcess.name) )},
                        { modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult) }),
         // Query Android FrameTimeline events.
-        RequestBuilder({ setAndroidFrameTimelineRequest(
-          QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(selectedProcess.id.toLong()) )},
-                       { modelBuilder.addAndroidFrameTimelineEvents(it.androidFrameTimelineResult) })
+        androidFrameTimelineRequest(selectedProcess.id.toLong(), modelBuilder::addAndroidFrameTimelineEvents)
       )
 
+      processes.find {
+        it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
+      }?.id?.let { surfaceflingerId ->
+        requests.add(androidFrameTimelineRequest(surfaceflingerId.toLong(),
+                                                 modelBuilder::indexSurfaceflingerFrameTimelineEvents))
+      }
+
       // Now let's add the queries that we limit for the processes we're interested in:
-      for (id in processIds) {
-        requests.add(RequestBuilder({ setTraceEventsRequest(
-          QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())
-        )},
+      for (id in processes.map { it.id }) {
+        requests.add(RequestBuilder({
+                                      setTraceEventsRequest(
+                                        QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())) },
                                     { modelBuilder.addTraceEvents(it.traceEventsResult) }))
-        requests.add(RequestBuilder({ setProcessCountersRequest(
-          QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())
-        )},
+        requests.add(RequestBuilder({
+                                      setProcessCountersRequest(
+                                        QueryParameters.ProcessCountersParameters.newBuilder().setProcessId(id.toLong())) },
                                     { modelBuilder.addProcessCounters(it.processCountersResult) }))
       }
       return requests
     }
 
     @VisibleForTesting
-    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>, selectedProcess: ProcessModel): QueryBatchRequest =
-      buildBatchQuery(traceId, cpuDataRequest(processIds, selectedProcess, TraceProcessorModel.Builder()))
+    fun buildCpuDataRequestProto(traceId: Long, processes: List<ProcessModel>, selectedProcess: ProcessModel): QueryBatchRequest =
+      buildBatchQuery(traceId, cpuDataRequest(processes, selectedProcess, TraceProcessorModel.Builder()))
 
     private fun buildBatchQuery(traceId: Long, requestBuilders: List<RequestBuilder>): QueryBatchRequest =
       with(QueryBatchRequest.newBuilder()) {
@@ -172,11 +184,11 @@ class TraceProcessorServiceImpl(
     }
 
   override fun loadCpuData(traceId: Long,
-                           processIds: List<Int>,
+                           processes: List<ProcessModel>,
                            selectedProcess: ProcessModel,
                            ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter =
     TraceProcessorModel.Builder().also { modelBuilder ->
-      val requests = cpuDataRequest(processIds, selectedProcess, modelBuilder)
+      val requests = cpuDataRequest(processes, selectedProcess, modelBuilder)
       handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorCpuData, *requests.toTypedArray())
     }.build()
 

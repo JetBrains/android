@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
+import com.android.tools.idea.profilers.performance.TraceProcessorDaemonBenchmarkTest.Companion.fakeProcess
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
@@ -147,7 +148,8 @@ class TraceProcessorServiceImplTest {
       .addResult(TraceProcessor.QueryResult.newBuilder().setOk(true))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), ProcessModel(123, "foo", emptyMap(), emptyMap()), fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(fakeProcess(33), fakeProcess(42)),
+                           ProcessModel(123, "foo", emptyMap(), emptyMap()), fakeIdeProfilerServices)
 
     val expectedRequest = TraceProcessor.QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
@@ -208,7 +210,7 @@ class TraceProcessorServiceImplTest {
                    .setFailureReason(TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), fakeProcess, fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(fakeProcess(33), fakeProcess(42)), fakeProcess, fakeIdeProfilerServices)
     // Can't do assertThat(...).isNotNull() because of a problem that assertThat(Any?).isNotNull()
     fakeGrpcService.lastLoadTraceRequest ?: fail("Expected lastLoadTraceRequest to not be null")
 
@@ -232,7 +234,7 @@ class TraceProcessorServiceImplTest {
       .build()
 
     try {
-      ideService.loadCpuData(10, listOf(33, 42), fakeProcess, fakeIdeProfilerServices)
+      ideService.loadCpuData(10, listOf(fakeProcess(33), fakeProcess(42)), fakeProcess, fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
       assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")

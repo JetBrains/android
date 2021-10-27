@@ -116,14 +116,14 @@ class FakeTraceProcessorService: TraceProcessorService {
   }
 
   override fun loadCpuData(traceId: Long,
-                           processIds: List<Int>,
+                           processes: List<ProcessModel>,
                            selectedProcess: ProcessModel,
                            ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     return if (loadedTraces.containsKey(traceId)) {
       val trace = loadedTraces[traceId]!!
       val model: Map<Int, SystemTraceModelAdapter> = getModelMapFor(trace)
       // The pid of the main process is always the first one in the list.
-      val pid = processIds[0]
+      val pid = processes[0].id
       model[pid] ?: error("$pid process should be present in model")
     }
     else {
