@@ -198,8 +198,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param credential the sandbox credential
    * @param actionBarHandler An {@link ActionBarHandler} instance.
    * @param parserFactory an optional factory for creating XML parsers.
-   * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
-   *                           use a shared one from the ModuleClassLoaderManager
+   * @param classLoader the {@link ClassLoader} to use for loading classes from Layoutlib.
    */
   public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
@@ -210,7 +209,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               @NotNull ModuleClassLoader moduleClassLoader) {
+                               @NotNull ClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);

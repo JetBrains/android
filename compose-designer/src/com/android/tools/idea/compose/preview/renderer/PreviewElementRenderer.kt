@@ -61,6 +61,8 @@ fun createRenderTaskFuture(facet: AndroidFacet,
       }
     }
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
+    // Compose Preview has its own out-of-date reporting mechanism
+    .doNotReportOutOfDateUserClasses()
     .build()
 }
 

@@ -22,17 +22,14 @@ import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
-import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
@@ -82,16 +79,16 @@ public class ViewLoader {
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */
   @NotNull private IRenderLogger myLogger;
-  @NotNull private final ModuleClassLoader myModuleClassLoader;
+  @NotNull private final ClassLoader myClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull ModuleClassLoader classLoader) {
+                    @NotNull ClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
-    myModuleClassLoader = classLoader;
+    myClassLoader = classLoader;
   }
 
   /**
@@ -176,13 +173,11 @@ public class ViewLoader {
 
     try {
       if (aClass != null) {
-        checkModified(className);
         return createNewInstance(aClass, constructorSignature, constructorArgs, isView);
       }
       aClass = loadClass(className, isView);
 
       if (aClass != null) {
-        checkModified(className);
         if (myLoadingClasses.count(aClass) > ALLOWED_NESTED_VIEWS) {
           throw new InstantiationException(
             "The layout involves creation of " + className + " over " + ALLOWED_NESTED_VIEWS + " levels deep. Infinite recursion?");
@@ -245,24 +240,6 @@ public class ViewLoader {
       return EMPTY_EXTENSION_LIST;
     }
     return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
-  }
-
-  /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
-  private void checkModified(@NotNull String fqcn) {
-    if (DumbService.getInstance(myModule.getProject()).isDumb()) {
-      // If the index is not ready, we can not check the modified time since it requires accessing the PSI
-      return;
-    }
-
-    if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
-      myRecentlyModifiedClasses.add(fqcn);
-      RenderProblem.Html problem = RenderProblem.create(WARNING);
-      HtmlBuilder builder = problem.getHtmlBuilder();
-      String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
-      builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
-                      myLogger.getLinkManager().createBuildProjectUrl());
-      myLogger.addMessage(problem);
-    }
   }
 
   @NotNull
@@ -381,13 +358,13 @@ public class ViewLoader {
 
     try {
       for (ViewLoaderExtension extension : getExtensions()) {
-        Class<?> loadedClass = extension.loadClass(className, myModuleClassLoader);
+        Class<?> loadedClass = extension.loadClass(className, myClassLoader);
         if (loadedClass != null) {
           return loadedClass;
         }
       }
 
-      return myModuleClassLoader.loadClass(className);
+      return myClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
@@ -509,8 +486,8 @@ public class ViewLoader {
         LOG.debug("  The R class is not loaded.");
       }
 
-      final boolean isClassLoaded = myModuleClassLoader.isClassLoaded(className);
-      aClass = myModuleClassLoader.loadClass(className);
+      final boolean isClassLoaded = hasLoadedClass(className);
+      aClass = myClassLoader.loadClass(className);
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
@@ -542,6 +519,6 @@ public class ViewLoader {
    * Returns true if this ViewLoaded has loaded the given class.
    */
   public boolean hasLoadedClass(@NotNull String classFqn) {
-    return myModuleClassLoader.isClassLoaded(classFqn);
+    return myLoadedClasses.containsKey(classFqn);
   }
 }

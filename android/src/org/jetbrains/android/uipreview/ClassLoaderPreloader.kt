@@ -27,21 +27,21 @@ import java.util.concurrent.Executor
  */
 @JvmOverloads
 fun preload(
-  moduleClassLoader: ModuleClassLoader,
+  classLoader: ClassLoader,
   classesToPreload: Collection<String>,
   executor: Executor = MoreExecutors.directExecutor()): CompletableFuture<Void> {
   val future = CompletableFuture<Void>()
-  val moduleClassLoaderRef = WeakReference(moduleClassLoader)
+  val classLoaderRef = WeakReference(classLoader)
 
   executor.execute {
     try {
-      val classLoader = moduleClassLoaderRef.get() ?: return@execute
+      val theClassLoader = classLoaderRef.get() ?: return@execute
       for (classToPreload in classesToPreload) {
         try {
           if (future.isCancelled) {
             break
           }
-          classLoader.loadClass(classToPreload)
+          theClassLoader.loadClass(classToPreload)
         }
         catch (ignore: ClassNotFoundException) {
         }

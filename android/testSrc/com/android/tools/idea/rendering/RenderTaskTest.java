@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -53,6 +54,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -203,6 +205,72 @@ public class RenderTaskTest extends AndroidTestCase {
       }
       catch (Exception ex) {
         throw new RuntimeException(ex);
+      }
+    });
+  }
+
+  public void testCustomViewRenderOutOfDateIsReported() throws Exception {
+    File tmpDir = Files.createTempDir();
+    File srcDir = new File(tmpDir, "src");
+    File customView = new File(srcDir, "com/google/test/CustomView.java");
+    FileUtil.writeToFile(customView, "package com.google.test;\n" +
+                                         "import android.content.Context;\n" +
+                                         "import android.util.AttributeSet;\n" +
+                                         "import android.widget.TextView;\n" +
+                                         "public class CustomView extends TextView {\n" +
+                                         "  public CustomView(Context context, AttributeSet attrs) {\n" +
+                                         "    super(context);\n" +
+                                         "    setText(\"Hello\");\n" +
+                                         "  }\n" +
+                                         "}");
+    ApplicationManager.getApplication().runWriteAction(
+      (Computable<SourceFolder>)() ->
+        PsiTestUtil.addSourceRoot(myModule, Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir, true))));
+    ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+    File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
+    File outputFile = new File(outputDir, "com/google/test/CustomView.class");
+    Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
+
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/test.xml",
+                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                          "    android:layout_height=\"match_parent\"\n" +
+                                                          "    android:layout_width=\"match_parent\"\n" +
+                                                          "    android:orientation=\"vertical\"\n" +
+                                                          "    android:background=\"#FFF\">\n" +
+                                                          "  <com.google.test.CustomView" +
+                                                          "    android:layout_height=\"match_parent\"\n" +
+                                                          "    android:layout_width=\"match_parent\" />\n" +
+                                                          "</LinearLayout>\n")
+      .getVirtualFile();
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
+    RenderLogger logger = new RenderLogger(null, null);
+
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      try {
+        RenderResult result = task.render().get();
+        assertTrue(result.hasRequestedCustomViews());
+        assertTrue(result.getRenderResult().isSuccess());
+        assertTrue(logger.getMessages().isEmpty());
+
+        // Drop PSI cache
+        ApplicationManager.getApplication().invokeAndWait(() -> PsiManager.getInstance(getProject()).dropPsiCaches());
+        ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+        FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
+        VfsUtil.findFileByIoFile(outputFile, true);
+
+        result = task.render().get();
+        assertTrue(result.hasRequestedCustomViews());
+        assertTrue(result.getRenderResult().isSuccess());
+        assertEquals(
+          "The project has been edited more recently than the last build: <A HREF=\"action:build\">Build</A> the project.",
+          logger.getMessages().get(0).getHtml());
+      }
+      catch (Throwable e) {
+        e.printStackTrace(System.err);
+        fail("Unexpected exception: " + e.getMessage());
       }
     });
   }

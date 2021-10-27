@@ -19,6 +19,7 @@ import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_A
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -68,6 +69,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -104,7 +106,7 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
-import org.jetbrains.android.uipreview.ModuleClassLoaderPreloaderKt;
+import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -189,6 +191,11 @@ public class RenderTask {
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
+   * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
+   */
+  private final boolean reportOutOfDateUserClasses;
+
+  /**
    * Don't create this task directly; obtain via {@link RenderService}
    *  @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                           during rendering at the expense of quality. 1 means that downscaling is disabled.
@@ -213,8 +220,10 @@ public class RenderTask {
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
-             @NotNull Collection<String> classesToPreload) {
+             @NotNull Collection<String> classesToPreload,
+             boolean reportOutOfDateUserClasses) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
+    this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
     if (!isSecurityManagerEnabled) {
       LOG.debug("Security manager was disabled");
@@ -255,7 +264,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
-    ModuleClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
+    ClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -1039,6 +1048,13 @@ public class RenderTask {
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
+          }
+          if (reportOutOfDateUserClasses && !myModuleClassLoader.isUserCodeUpToDate()) {
+            RenderProblem.Html problem = RenderProblem.create(WARNING);
+            HtmlBuilder builder = problem.getHtmlBuilder();
+            builder.addLink("The project has been edited more recently than the last build: ", "Build", " the project.",
+                            myLogger.getLinkManager().createBuildProjectUrl());
+            myLogger.addMessage(problem);
           }
           return result;
         }).handle((result, ex) -> {
