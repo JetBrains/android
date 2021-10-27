@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -151,5 +152,10 @@ public class DetailsPanel extends JBPanel<DetailsPanel> {
 
   public final @NotNull AbstractButton getCloseButton() {
     return myCloseButton;
+  }
+
+  @VisibleForTesting
+  public final @NotNull Container getInfoSectionPanel() {
+    return myInfoSectionPanel;
   }
 }

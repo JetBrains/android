@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSection;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSectionCallback;
@@ -25,9 +26,11 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPan
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.awt.Container;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -112,5 +115,20 @@ public final class PhysicalDeviceDetailsPanelTest {
   private static @NotNull FutureCallback<@NotNull PhysicalDevice> newDeviceSectionCallback(@NotNull DeviceSection section,
                                                                                            @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(new DeviceSectionCallback(section), latch);
+  }
+
+  @Test
+  public void setInfoSectionPanelLayout() {
+    // Act
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3,
+                                                               Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3),
+                                                               SummarySectionCallback::new,
+                                                               DeviceSectionCallback::new);
+
+    // Assert
+    Container sectionPanel = detailsPanel.getInfoSectionPanel();
+
+    assertEquals(1, sectionPanel.getComponentCount());
+    assertEquals("Details unavailable for offline devices", ((JLabel)sectionPanel.getComponent(0)).getText());
   }
 }
