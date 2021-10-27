@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.snapshot.SnapshotOuterClass
+import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -422,8 +423,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         return
       }
       val emulatorPackage = androidSdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, progressIndicator)
-      val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
-      if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
+      val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)
+      if (emulatorBinary == null || !CancellableFileIo.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
           val state = EMULATOR_EXEC_NOT_FOUND
           cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
@@ -440,7 +441,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           .launchParametersList
           .toMutableList()
           .apply {
-            this[0] = emulatorBinary.path
+            this[0] = emulatorBinary.toString()
             add("-check-snapshot-loadable")
             add(snapshotFile.absolutePath)
           }

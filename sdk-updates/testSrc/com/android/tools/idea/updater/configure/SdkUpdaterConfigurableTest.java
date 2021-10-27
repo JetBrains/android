@@ -17,15 +17,19 @@ package com.android.tools.idea.updater.configure;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
 
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.repository.generated.addon.v2.ExtraDetailsType;
 import com.android.sdklib.repository.generated.sysimg.v2.SysImgDetailsType;
+import com.android.testutils.OsType;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.Pair;
-import java.io.File;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -55,17 +59,16 @@ public class SdkUpdaterConfigurableTest {
     "<FONT color=\"#ff0000\"><B>WARNING: There might be insufficient disk space to perform this operation. " +
     "</B><BR/><BR/>Estimated disk usage is presented below. Consider freeing up more disk space before proceeding. </FONT><BR/><BR/>";
 
-  private File mySdkRoot;
+  private Path mySdkRoot;
 
   @Before
-  public void setUp() throws Exception {
-    mySdkRoot = Mockito.mock(File.class);
-    when(mySdkRoot.getUsableSpace()).thenReturn(USABLE_DISK_SPACE);
-    when(mySdkRoot.getAbsolutePath()).thenReturn(SDK_ROOT_PATH);
+  public void setUp() {
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem(USABLE_DISK_SPACE);
+    mySdkRoot = fs.getPath(InMemoryFileSystems.getPlatformSpecificPath(SDK_ROOT_PATH));
   }
 
   @Test
-  public void testDiskSpaceMessagesFullAndPatchAndUninstall() throws Exception {
+  public void testDiskSpaceMessagesFullAndPatchAndUninstall() {
     final long fullInstallationDownloadSize = 70 * 1024 * 1024L + 42; // +42 just to avoid "nice" numbers
     final long patchesDownloadSize = 20 * 1024 * 1024L + 42;
     final long spaceToBeFreedUp = 10 * 1024 * 1024L + 42;
@@ -78,7 +81,7 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesFullAndUninstall() throws Exception {
+  public void testDiskSpaceMessagesFullAndUninstall() {
     final long fullInstallationDownloadSize = 70 * 1024 * 1024L + 42;
     final long patchesDownloadSize = 0;
     final long spaceToBeFreedUp = 10 * 1024 * 1024L + 42;
@@ -91,7 +94,7 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesPatchAndUninstall() throws Exception {
+  public void testDiskSpaceMessagesPatchAndUninstall() {
     final long fullInstallationDownloadSize = 0;
     final long patchesDownloadSize = 20 * 1024 * 1024L + 42;
     final long spaceToBeFreedUp = 9 * 1024 * 1024L + 42;
@@ -104,7 +107,7 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesPatchAndUninstallWhenInsufficientSpace() throws Exception {
+  public void testDiskSpaceMessagesPatchAndUninstallWhenInsufficientSpace() {
     final long fullInstallationDownloadSize = 0;
     final long patchesDownloadSize = 1200 * 1024 * 1024L + 42;
     final long spaceToBeFreedUp = 9 * 1024 * 1024L + 42;
@@ -117,7 +120,7 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesPatchWhenInsufficientSpace() throws Exception {
+  public void testDiskSpaceMessagesPatchWhenInsufficientSpace() {
       final long fullInstallationDownloadSize = 0;
       final long patchesDownloadSize = 1200*1024*1024L + 42;
       final long spaceToBeFreedUp = 0;
@@ -130,7 +133,7 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesUninstallOnly() throws Exception {
+  public void testDiskSpaceMessagesUninstallOnly() {
       final long fullInstallationDownloadSize = 0;
       final long patchesDownloadSize = 0;
       final long spaceToBeFreedUp = 800*1024*1024L + 42;

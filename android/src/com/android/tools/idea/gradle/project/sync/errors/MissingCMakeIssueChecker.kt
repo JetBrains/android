@@ -156,17 +156,17 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
         val cmakeDir= getLocalProperties(issueData.projectPath)
         if (cmakeDir == null) {
           buildIssueComposer.addQuickFix("Set cmake.dir in local.properties to '${alreadyInstalledCmake}' .",
-                                  SetCmakeDirQuickFix(alreadyInstalledCmake))
+                                  SetCmakeDirQuickFix(File(alreadyInstalledCmake)))
           return buildIssueComposer.composeBuildIssue()
         }
 
         // If the cmakeDirPath is the same as the path we found then there's no point in offering a hyperlink.
-        if (cmakeDir.path === alreadyInstalledCmake.path) return buildIssueComposer.composeBuildIssue()
+        if (cmakeDir.path === alreadyInstalledCmake) return buildIssueComposer.composeBuildIssue()
 
         // There is a cmake.dir setting in local.properties, prompt the user replace it with
         // the one we found.
         buildIssueComposer.addQuickFix("Replace cmake.dir in local.properties with '${alreadyInstalledCmake}' .",
-                                SetCmakeDirQuickFix(alreadyInstalledCmake))
+                                SetCmakeDirQuickFix(File(alreadyInstalledCmake)))
         return buildIssueComposer.composeBuildIssue()
       }
       catch (e: IOException) {
@@ -196,11 +196,10 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
    * @param cmakeVersion  the cmake version that we are looking for.
    * @return path to CMake if already installed.
    */
-  private fun getAlreadyInstalled(cmakePackages: Collection<LocalPackage>, cmakeVersion: Revision): File? {
+  private fun getAlreadyInstalled(cmakePackages: Collection<LocalPackage>, cmakeVersion: Revision): String? {
     for (localCmakePackage in cmakePackages) {
       if (localCmakePackage.version == cmakeVersion) {
-        val fileOp = AndroidSdks.getInstance().tryToChooseSdkHandler().fileOp
-        return fileOp.toFile(localCmakePackage.location)
+        return localCmakePackage.location.toString()
       }
     }
     return null
@@ -231,7 +230,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   }
 
   private fun matchesCmakeWithVersion(message: String): Boolean {
-    return message.startsWith("Unable to find CMake with version:");
+    return message.startsWith("Unable to find CMake with version:")
   }
 
   private fun extractCmakeVersionFromError(firstLine: String): String? {

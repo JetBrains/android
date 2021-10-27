@@ -241,8 +241,7 @@ public final class SdkQuickfixUtils {
     }
     List<RemotePackage> installRequests = ContainerUtil.map(resolvedPackages, UpdatablePackage::getRemote);
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(sdkHandler.getFileOp().toFile(mgr.getLocalPath())),
-                                                   installRequests));
+    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);

@@ -19,7 +19,7 @@ import com.android.repository.api.License
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.logger
-import java.io.File
+import java.nio.file.Path
 
 private val log get() = logger<LicenseAgreementModel>()
 
@@ -27,9 +27,9 @@ private val log get() = logger<LicenseAgreementModel>()
  * [WizardModel] that stores all the licenses related to the packages the user is about to install
  * and marks them as accepted after the packages are installed so that the user only accepts each license once.
  */
-class LicenseAgreementModel(sdkLocation: File?) : WizardModel() {
+class LicenseAgreementModel(sdkLocation: Path?) : WizardModel() {
   val licenses =  hashSetOf<License>()
-  val sdkRoot = OptionalValueProperty<File>()
+  val sdkRoot = OptionalValueProperty<Path>()
 
   init {
     if (sdkLocation != null) {
@@ -47,7 +47,7 @@ class LicenseAgreementModel(sdkLocation: File?) : WizardModel() {
     }
 
     licenses.forEach {
-      it.setAccepted(sdkRoot.value.toPath())
+      it.setAccepted(sdkRoot.value)
     }
   }
 }

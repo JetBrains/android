@@ -57,7 +57,7 @@ object MaterialIconsUtils {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val sdkHome = sdkHandler.location ?: return null
     val materialDir = sdkHome.resolve("icons/material")
-    return sdkHandler.fileOp.toFile(Files.createDirectories(materialDir))
+    return Files.createDirectories(materialDir).toFile()
   }
 
   /**

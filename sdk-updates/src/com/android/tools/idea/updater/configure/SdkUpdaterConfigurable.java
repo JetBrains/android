@@ -64,6 +64,7 @@ import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
@@ -302,7 +303,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     if (found) {
       Path location = getSdkHandler().getLocation();
       Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(
-        location == null ? null : getSdkHandler().getFileOp().toFile(location),
+        location,
         fullInstallationsDownloadSize, patchesDownloadSize,
         spaceToBeFreedUp);
       // Now form the summary message ordering the constituents properly.
@@ -397,7 +398,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   @VisibleForTesting
-  static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable File sdkRoot, long fullInstallationsDownloadSize,
+  static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable Path sdkRoot, long fullInstallationsDownloadSize,
                                                              long patchesDownloadSize, long spaceToBeFreedUp) {
     HtmlBuilder message = new HtmlBuilder();
     message.add("Disk usage:\n");
@@ -414,8 +415,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.listItem().add("Estimated disk space to be additionally occupied on SDK partition after installation: "
                              + new Storage(sdkRootUsageAfterInstallation).toUiString());
       if (sdkRoot != null) {
-        long sdkRootUsableSpace = sdkRoot.getUsableSpace();
-        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot.getAbsolutePath(),
+        long sdkRootUsableSpace = 0;
+        try {
+          sdkRootUsableSpace = Files.getFileStore(sdkRoot).getUsableSpace();
+        }
+        catch (IOException ignore) {
+          // We'll just say there's 0 usable space
+        }
+        message.listItem().add(String.format("Currently available disk space in SDK root (%1$s): %2$s", sdkRoot.toAbsolutePath(),
                                              new Storage(sdkRootUsableSpace).toUiString()));
         long totalSdkUsableSpace = sdkRootUsableSpace + spaceToBeFreedUp;
         issueDiskSpaceWarning = (totalSdkUsableSpace < sdkRootUsageAfterInstallation);

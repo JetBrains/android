@@ -86,7 +86,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       }
 
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-        addStep(LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation), listOf()))
+        addStep(LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation.toPath()), listOf()))
       }
 
       // TODO: addStep(ProgressStep(model))

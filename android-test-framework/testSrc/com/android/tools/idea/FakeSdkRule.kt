@@ -35,6 +35,8 @@ import java.io.File
 
 /**
  * Beginning of an attempt to allow the Sdk to be mocked out with one that contains only the given components.
+ *
+ * TODO: combine this and com.android.sdklib.TempSdkManager
  */
 class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = MockFileOp(), val sdkPath: String = "/sdk")
   : NamedExternalResource() {

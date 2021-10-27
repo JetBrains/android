@@ -752,7 +752,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   }
 
   private suspend fun setUpAvdManagerAndRun(sdkHandler: AndroidSdkHandler, avdInfo: AvdInfo, body: suspend () -> Unit) {
-    val connection = object : AvdManagerConnection(sdkHandler, sdkHandler.fileOp.fileSystem.someRoot.resolve("android/avds"),
+    val connection = object : AvdManagerConnection(sdkHandler, sdkHandler.location!!.fileSystem.someRoot.resolve("android/avds"),
                                                    MoreExecutors.newDirectExecutorService()) {
       fun setFactory() {
         setConnectionFactory { _, _ -> this }

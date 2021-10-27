@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
+import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,11 +40,11 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
   private void stopAdb(@NonNull ProgressIndicator progress) {
     AdbService adbService = AdbService.getInstance();
     progress.logInfo("Stopping ADB...");
-    File adb = getAdb(progress);
+    Path adb = getAdb(progress);
     if (adb != null) {
       try {
         // We have to actually initialize the service, since there might be adb processes left over from before this run of studio.
-        adbService.getDebugBridge(adb).get();
+        adbService.getDebugBridge(adb.toFile()).get();
       }
       catch (Exception e) {
         progress.logWarning("Failed to get ADB instance", e);
@@ -58,10 +59,10 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
   }
 
   @Nullable
-  private File getAdb(@NotNull ProgressIndicator progress) {
+  private Path getAdb(@NotNull ProgressIndicator progress) {
     LocalPackage localPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
     if (localPackage != null) {
-      return mySdkHandler.getFileOp().toFile(localPackage.getLocation().resolve(SdkConstants.FN_ADB));
+      return localPackage.getLocation().resolve(SdkConstants.FN_ADB);
     }
     return null;
   }
