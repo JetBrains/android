@@ -80,6 +80,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -209,6 +210,7 @@ class LayoutInspectorTreePanelTest {
     KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
   }
 
+  @Ignore("b/204351118")
   @Test
   fun testGotoDeclaration() {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
