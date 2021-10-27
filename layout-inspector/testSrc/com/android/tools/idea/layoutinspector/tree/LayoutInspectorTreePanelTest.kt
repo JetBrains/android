@@ -74,7 +74,6 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -183,7 +182,6 @@ class LayoutInspectorTreePanelTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
   }
 
-  @Ignore("b/204351118")
   @Test
   fun testGotoDeclaration() {
     val disposable = projectRule.fixture.testRootDisposable

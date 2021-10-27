@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.testing
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.intellij.diagnostic.LoadingState
 import com.intellij.diagnostic.PerformanceWatcher
@@ -68,12 +69,6 @@ open class ApplicationRule : ExternalResource() {
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
-    // The global variable StartUpManager.currentState will activate code that requires services
-    // that are not supported/needed by tests using this test rule. Reset it here in case other
-    // tests have incremented the LoadingState. (See b/204201417).
-    @Suppress("UnstableApiUsage")
-    StartUpMeasurer.setCurrentState(LoadingState.BOOTSTRAP)
-
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
     // If there was no previous application,
     // ApplicationManager leaves the MockApplication in place, which can break future tests.
@@ -110,7 +105,7 @@ open class ApplicationRule : ExternalResource() {
     //  LoadingState.CONFIGURATION_STORE_INITIALIZED.isOccurred
     application!!.registerService(UISettings::class.java, UISettings(NotRoamableUiSettings()))
     application!!.registerService(PluginUtil::class.java, PluginUtilImpl::class.java)
-    application!!.registerService(PerformanceWatcher::class.java, PerformanceWatcher::class.java)
+    application!!.registerService(PerformanceWatcher::class.java, mock(), rootDisposable!!)
   }
 
   override fun after() {
