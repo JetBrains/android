@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing;
 
+import com.android.tools.adtui.common.AutoCloseDisposable;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -28,7 +29,7 @@ public class IdeComponentsTest extends PlatformTestCase {
 
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    try (TempDisposable scope = new TempDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
       SdkSync mockSdkSync = mock(SdkSync.class);
       new IdeComponents(myProject, scope).replaceApplicationService(SdkSync.class, mockSdkSync);
       assertSame(mockSdkSync, SdkSync.getInstance());
@@ -40,7 +41,7 @@ public class IdeComponentsTest extends PlatformTestCase {
 
   public void testReplaceProjectService() {
     GradleSettings originalSettings = GradleSettings.getInstance(getProject());
-    try (TempDisposable scope = new TempDisposable()){
+    try (AutoCloseDisposable scope = new AutoCloseDisposable()){
       GradleSettings mockSettings = mock(GradleSettings.class);
       new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
       assertSame(mockSettings, GradleSettings.getInstance(getProject()));

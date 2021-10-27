@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testing;
+package com.android.tools.adtui.common
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 /**
  * A {@link Disposable} that can be used in try-with-resources to limit the lifetime of disposable children.
  */
-class TempDisposable implements Disposable, AutoCloseable {
-  @Override public void dispose() {}
+class AutoCloseDisposable : Disposable, AutoCloseable {
+  override fun dispose() {}
 
-  @Override
-  public void close() {
-    Disposer.dispose(this);
+  override fun close() {
+    Disposer.dispose(this)
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.adtui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.jbpopup.FakePopup.ShowStyle.SHOW_UNDERNEATH_OF
+import com.android.tools.adtui.swing.jbpopup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.SupervisorJob
@@ -24,6 +26,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.ui.LightColors
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension
 import com.intellij.ui.components.fields.ExtendableTextField
@@ -45,8 +48,13 @@ private const val HISTORY_PROPERTY_NAME = "test"
  * Tests for [RegexTextField]
  */
 class RegexTextFieldTest {
+  private val projectRule = ProjectRule()
+
+  private val popupRule = JBPopupRule()
+
   @get:Rule
-  val projectRule = ProjectRule()
+  val rule = RuleChain(projectRule, popupRule)
+
 
   private val supervisorJob by lazy { SupervisorJob(projectRule.project) }
   private val properties by lazy { PropertiesComponent.getInstance() }
@@ -212,8 +220,34 @@ class RegexTextFieldTest {
   }
 
 
-  // TODO(b/204069475): Add a test that verifies the actual history popup is populated by the properties. The rest of the tests
-  //  use the properties object as a convenient way to verify the contents of the history.
+  @Test
+  fun historyExtension_clickOpensPopup() {
+    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
+    val regexTextField = regexTextField(historyPropertyName = HISTORY_PROPERTY_NAME)
+    val historyExtension = regexTextField.textField.getExtension(AllIcons.Actions.SearchWithHistory)
+
+    historyExtension.actionOnClick.run()
+
+    val popup = popupRule.fakePopupFactory.getPopup<String>(0)
+    assertThat(popup.isMovable).isFalse()
+    assertThat(popup.isRequestFocus).isTrue()
+    assertThat(popup.items).containsExactly("foo", "bar").inOrder()
+    assertThat(popup.showStyle).isEqualTo(SHOW_UNDERNEATH_OF)
+    assertThat(popup.showArgs).containsExactly(regexTextField)
+  }
+
+  @Test
+  fun historyExtension_selectPopupItem_setsText() {
+    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
+    val regexTextField = regexTextField(historyPropertyName = HISTORY_PROPERTY_NAME)
+    val historyExtension = regexTextField.textField.getExtension(AllIcons.Actions.SearchWithHistory)
+    historyExtension.actionOnClick.run()
+    val popup = popupRule.fakePopupFactory.getPopup<String>(0)
+
+    popup.selectItem("bar")
+
+    assertThat(regexTextField.text).isEqualTo("bar")
+  }
 
   @Test
   fun historyExtension_clickAddsToHistory() {

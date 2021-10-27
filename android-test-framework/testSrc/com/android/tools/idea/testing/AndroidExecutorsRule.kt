@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.adtui.common.AutoCloseDisposable
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.intellij.openapi.application.ApplicationManager
@@ -41,7 +42,7 @@ class AndroidExecutorsRule(
   override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
       override fun evaluate() {
-        TempDisposable().use {
+        AutoCloseDisposable().use {
           val application = ApplicationManager.getApplication()
           application.registerServiceInstance(AndroidIoManager::class.java, AndroidIoManager(), it)
           val androidExecutors = spy(AndroidExecutors())
