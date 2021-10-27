@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
@@ -24,7 +23,6 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.resources.Density
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
@@ -44,7 +42,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -77,7 +74,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.HyperlinkLabel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -674,13 +670,12 @@ class AppInspectionInspectorClientTest {
 }
 
 class AppInspectionInspectorClientWithUnsupportedApi29 {
-  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  private val adbRule = FakeAdbRule()
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val inspectorRule = LayoutInspectorRule(mock()) { false }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -698,12 +693,13 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val avdInfo = setUpAvd(sdkPackage, null, 30)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    val banner = InspectorBanner(projectRule.project)
+    val banner = InspectorBanner(inspectorRule.project)
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor2, isInstantlyAutoConnected = false, model(projectRule.project) {},
-                                                mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(processDescriptor2, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
+                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                sdkHandler = sdkHandler)
       // shouldn't get an exception
       client.connect()
     })
@@ -722,12 +718,13 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val avdInfo = setUpAvd(sdkPackage, tag, 29)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    val banner = InspectorBanner(projectRule.project)
+    val banner = InspectorBanner(inspectorRule.project)
     assertThat(banner.isVisible).isFalse()
 
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
-                                                mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
+                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       assertThat(banner.isVisible).isTrue()
@@ -743,8 +740,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val remotePackage = setUpSdkPackage(sdkRoot, minRevision, 29, tag, true) as RemotePackage
     packages.setRemotePkgInfos(listOf(remotePackage))
     setUpAvdManagerAndRun(sdkHandler, avdInfo, suspend {
-      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(projectRule.project) {},
-                                                mock(), disposableRule.disposable, mock(), sdkHandler = sdkHandler)
+      val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
+                                                mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                                sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       assertThat(banner.isVisible).isTrue()
@@ -815,9 +813,11 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       override val streamId = 4321L
     }
 
-    adbRule.attachDevice(processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
-                         processDescriptor.device.version, processDescriptor.device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.LOCAL, "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel")
+    inspectorRule.adbRule.attachDevice(
+      processDescriptor.device.serial, processDescriptor.device.manufacturer, processDescriptor.device.model,
+      processDescriptor.device.version, processDescriptor.device.apiLevel.toString(), DeviceState.HostConnectionType.LOCAL,
+      "myAvd-$apiLevel", "/android/avds/myAvd-$apiLevel"
+    )
 
     return processDescriptor
   }
