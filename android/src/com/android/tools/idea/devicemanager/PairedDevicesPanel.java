@@ -16,23 +16,37 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.adtui.stdui.ActionData;
+import com.android.tools.adtui.stdui.EmptyStatePanel;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
 import com.android.tools.idea.wearpairing.PairingDevice;
+import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionToolbarPosition;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import java.awt.BorderLayout;
+import javax.swing.JComponent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import kotlin.Unit;
+import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,11 +101,13 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     ApplicationManager.getApplication().assertIsDispatchThread();
     removeAll();
 
-    // TODO: Add Devices toolbar b/193748025
+    ToolbarDecorator toolbar;
 
     if (phoneWearPair == null) {
-      // TODO: Add zero state - b/193748051
-      add(new JBLabel("Device is not paired to companion device."), BorderLayout.CENTER);
+      toolbar = new EmptyStateToolbarDecorator()
+        .setRemoveAction(button -> {
+        }) // Add remove button
+        .setRemoveActionUpdater(event -> false); // Disable remove button
     }
     else {
       PairingDevice peerDevice = phoneWearPair.getPeerDevice(myDeviceId.toString());
@@ -104,11 +120,70 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
       columnModel.getColumn(0).setPreferredWidth(80_000); // Some large number, 80% of total width
       columnModel.getColumn(1).setPreferredWidth(20_000);
 
-      add(new JBScrollPane(table), BorderLayout.CENTER);
+      toolbar = ToolbarDecorator.createDecorator(table).setRemoveAction(button -> unpairDevice(peerDevice.getDeviceID()));
     }
+
+    toolbar
+      .setToolbarPosition(ActionToolbarPosition.TOP)
+      .setAddAction(button -> pairDevice(CommonDataKeys.PROJECT.getData(button.getDataContext())));
+
+    add(toolbar.createPanel(), BorderLayout.CENTER);
 
     if (getParent() != null) {
       revalidate();
+    }
+  }
+
+  private final class EmptyStateToolbarDecorator extends ToolbarDecorator {
+    private @Nullable JComponent myEmptyStatePanel;
+
+    protected @NotNull JComponent getComponent() {
+      ActionData data = new ActionData("Pair device", this::pairDevice);
+
+      myEmptyStatePanel = new EmptyStatePanel("Device is not paired to companion device.", null, data);
+      myEmptyStatePanel.setBackground(Table.BACKGROUND);
+
+      return myEmptyStatePanel;
+    }
+
+    @SuppressWarnings("SameReturnValue")
+    private @NotNull Unit pairDevice() {
+      PairedDevicesPanel.this.pairDevice(CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(myEmptyStatePanel)));
+      return Unit.INSTANCE;
+    }
+
+    @Override
+    protected void updateButtons() {
+    }
+
+    @Override
+    protected void installDnDSupport() {
+    }
+
+    @Override
+    protected boolean isModelEditable() {
+      return false;
+    }
+  }
+
+  private void pairDevice(@Nullable Project project) {
+    new WearDevicePairingWizard().show(project, myDeviceId.toString());
+  }
+
+  private static void unpairDevice(@NotNull String deviceId) {
+    DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
+      .setKind(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
+      .build();
+
+    DeviceManagerUsageTracker.log(event);
+
+    try {
+      BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(),
+                             (scope, continuation) -> WearPairingManager.INSTANCE.removePairedDevices(deviceId, true, continuation));
+    }
+    catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      Logger.getInstance(PairedDevicesPanel.class).warn(exception);
     }
   }
 }
