@@ -56,7 +56,7 @@ bazel test //tools/adt/idea/android-lint:intellij.android.lint.tests_tests__test
 @RunWith(Parameterized::class)
 class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
 
-  data class TestProject(val template: String, val pathToOpen: String = "", val useOnlyV2Model: Boolean = false) {
+  data class TestProject(val template: String, val pathToOpen: String = "") {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
 
@@ -77,8 +77,7 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
       TestProject(TestDataPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestDataPaths.LINKED, "/firstapp"),
       TestProject(TestDataPaths.KOTLIN_KAPT),
-      TestProject(TestDataPaths.LINT_CUSTOM_CHECKS),
-      TestProject(TestDataPaths.TEST_FIXTURES, useOnlyV2Model = true),
+      TestProject(TestDataPaths.LINT_CUSTOM_CHECKS)
     )
   }
 
@@ -99,18 +98,10 @@ class LintModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompariso
   @Test
   fun testLintModels() {
     val projectName = testProjectName ?: error("unit test parameter not initialized")
-
-    if (projectName.useOnlyV2Model) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
-    }
-    try {
-      val root = prepareGradleProject(projectName.template, "project")
-      openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
-        val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper -> projectDumper.dumpLintModels(project) }
-        assertIsEqualToSnapshot(dump)
-      }
-    } finally {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
+    val root = prepareGradleProject(projectName.template, "project")
+    openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
+      val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper -> projectDumper.dumpLintModels(project) }
+      assertIsEqualToSnapshot(dump)
     }
   }
 }

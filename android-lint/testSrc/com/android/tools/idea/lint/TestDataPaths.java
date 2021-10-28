@@ -29,5 +29,4 @@ public final class TestDataPaths {
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
-  public static final String TEST_FIXTURES = "projects/testFixtures";
 }

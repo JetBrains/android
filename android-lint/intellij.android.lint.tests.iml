@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST"/>
     <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
