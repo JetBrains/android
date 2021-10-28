@@ -68,6 +68,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
@@ -88,6 +89,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.StudioIcons;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -132,11 +134,15 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getModuleIcon(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel != null) {
-      return getAndroidModuleIcon(androidModel);
+    if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      return androidModuleModel != null ? getAndroidModuleIcon(androidModuleModel) : AllIcons.Nodes.Module;
+    } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
+      return ANDROID_MODULE;
     }
-    return AndroidProjectInfo.getInstance(module.getProject()).requiresAndroidModel() ? AllIcons.Nodes.Module : ANDROID_MODULE;
+
+
+    return AllIcons.Nodes.Module;
   }
 
   @NotNull
@@ -150,6 +156,7 @@ public final class GradleUtil {
       case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
       case PROJECT_TYPE_FEATURE:
+      case PROJECT_TYPE_DYNAMIC_FEATURE:
         return FEATURE_MODULE;
       case PROJECT_TYPE_INSTANTAPP:
         return INSTANT_APPS;

@@ -659,7 +659,7 @@
     <importFilter implementation="com.android.tools.idea.editors.AndroidImportFilter" />
     <overrideImplementsAnnotationsHandler implementation="com.android.tools.idea.editors.AndroidOverrideAnnotationsHandler" />
     <editorTabTitleProvider implementation="com.android.tools.idea.editors.AndroidEditorTitleProvider"/>
-    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons"/>
+    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidIconProvider" id="androidIcons" order="before javaDirectory" />
     <refactoring.safeDeleteProcessor id="android_component" order="before javaProcessor"
                                      implementation="org.jetbrains.android.AndroidComponentSafeDeleteProcessor"/>
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
@@ -730,7 +730,6 @@
 
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
-    <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
 
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>

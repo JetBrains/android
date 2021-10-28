@@ -404,7 +404,11 @@ fun Module.isMainModule() = getMainModule() == this
 
 fun Module.getUnitTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
 
+fun Module.isUnitTestModule() = getUnitTestModule() == this
+
 fun Module.getAndroidTestModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
+
+fun Module.isAndroidTestModule() = getAndroidTestModule() == this
 
 fun Module.getTestFixturesModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
 

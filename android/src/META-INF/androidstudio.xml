@@ -52,8 +52,6 @@
                         overrides="true"/>
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
-    <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
-    <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
 
