@@ -832,6 +832,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return myRootPane;
   }
 
+  @NotNull
+  @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {

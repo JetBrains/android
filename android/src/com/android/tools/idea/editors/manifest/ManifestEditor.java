@@ -187,6 +187,12 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     return myLazyContainer;
   }
 
+  @NotNull
+  @Override
+  public VirtualFile getFile() {
+    return mySelectedFile;
+  }
+
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {

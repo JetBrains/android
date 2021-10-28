@@ -81,6 +81,12 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
     return myPanel;
   }
 
+  @NotNull
+  @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {

@@ -112,6 +112,12 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   @NotNull
   @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
+
+  @NotNull
+  @Override
   public JComponent getComponent() {
     return myImageEditorPanel != null ? myImageEditorPanel :
            new JLabel("Unexpected error while loading 9-patch file. See Event Log for details.");
