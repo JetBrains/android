@@ -24,9 +24,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
+import java.time.Duration
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   val bodyPsiElement = this?.sourcePsi ?: return null
@@ -130,4 +132,14 @@ internal inline fun <reified E: Enum<E>> enumValueOfOrNull(value: String): E? {
   }catch (_: Exception) {
     null
   }
+}
+
+/**
+ * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
+ * milliseconds.
+ */
+internal fun Duration.toDisplayString(): String {
+  val durationMs = toMillis()
+  val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
+  return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
 }

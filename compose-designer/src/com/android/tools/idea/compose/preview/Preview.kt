@@ -41,6 +41,7 @@ import com.android.tools.idea.compose.preview.util.invalidateCompositions
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
+import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -96,7 +97,6 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
@@ -119,7 +119,7 @@ private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ou
 /**
  * [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`.
  */
-private val NOTIFICATION_GROUP_ID = "Compose Preview Notification"
+val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
 /**
  * [NlModel] associated preview data
@@ -1027,12 +1027,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         UIUtil.invokeLaterIfNeeded {
           if (!(composeWorkBench as ComposePreviewViewImpl).isMessageVisible) {
             // Only notify the preview refresh time if there are previews to show.
-            val durationMs = (System.nanoTime() - startTime) / 1_000_000
-            val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
+            val durationString = Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
             val notification = Notification(
-              NOTIFICATION_GROUP_ID,
+              PREVIEW_NOTIFICATION_GROUP_ID,
               message("event.log.refresh.title"),
-              message("event.log.refresh.total.elapsed.time", DurationFormatUtils.formatDuration(durationMs, durationFormat, false)),
+              message("event.log.refresh.total.elapsed.time", durationString),
               NotificationType.INFORMATION
             )
             Notifications.Bus.notify(notification, project)
