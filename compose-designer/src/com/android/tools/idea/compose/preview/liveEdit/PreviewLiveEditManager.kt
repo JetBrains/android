@@ -292,7 +292,8 @@ private fun findDaemonPath(version: String): String {
     FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/compose-designer/lib/")
   }
   else {
-    FileUtil.join(homePath, "plugins/android/resources/")
+    // When running as part of the distribution, we allow also to override the path to the daemon via a system property.
+    System.getProperty("preview.live.edit.daemon.path", FileUtil.join(homePath, "plugins/android/resources/"))
   }
 
   return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
