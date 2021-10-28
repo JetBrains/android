@@ -17,8 +17,8 @@ package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.gradle.project.sync.executeMakeBeforeRunStepInTest
-import com.android.tools.idea.gradle.project.sync.mockDeviceFor
+import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
+import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration

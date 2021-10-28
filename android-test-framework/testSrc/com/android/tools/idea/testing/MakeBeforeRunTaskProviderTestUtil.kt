@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync
+package com.android.tools.idea.testing
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.AndroidProgramRunner
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.google.common.truth.Truth
-import com.intellij.build.BuildViewManager
-import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.MessageEvent
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.mockito.Mockito
 import javax.swing.Icon
@@ -106,23 +100,6 @@ fun AndroidRunConfigurationBase.executeMakeBeforeRunStepInTest(deviceFutures: De
   finally {
     Disposer.dispose(disposable)
   }
-}
-
-private fun injectBuildOutputDumpingBuildViewManager(
-  project: Project,
-  disposable: Disposable
-) {
-  project.replaceService(
-    BuildViewManager::class.java,
-    object : BuildViewManager(project) {
-      override fun onEvent(buildId: Any, event: BuildEvent) {
-        if (event is MessageEvent) {
-          println(event.result.details)
-        }
-      }
-    },
-    disposable
-  )
 }
 
 @JvmOverloads

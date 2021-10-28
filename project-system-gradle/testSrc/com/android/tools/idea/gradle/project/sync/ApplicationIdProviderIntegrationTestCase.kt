@@ -31,6 +31,8 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
+import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.prepareGradleProject

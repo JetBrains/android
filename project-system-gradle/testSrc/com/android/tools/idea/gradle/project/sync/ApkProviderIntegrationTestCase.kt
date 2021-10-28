@@ -42,7 +42,9 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.prepareGradleProject
@@ -52,7 +54,6 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.containers.toArray
 import org.hamcrest.Matchers.nullValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Contract

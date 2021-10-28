@@ -23,9 +23,12 @@ import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.withSimulatedSyncError
 import com.google.common.truth.Truth
 import com.intellij.execution.RunManager
 import org.junit.Assert.fail

@@ -152,7 +152,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
-            "shard_count": 5,
+            "shard_count": 4,
             "data": [
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",
