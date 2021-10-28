@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
+import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.reportDeployerError;
+
 import com.android.annotations.Trace;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -159,8 +161,10 @@ public class AndroidLiveEditDeployMonitor {
               LiveUpdateDeployer.UpdateLiveEditsParam param =
                 new LiveUpdateDeployer.UpdateLiveEditsParam(className, methodName, classData);
 
-              // TODO: Handle Errors
-              deployer.updateLiveEdit(installer, adb, packageName, param);
+              List<LiveUpdateDeployer.UpdateLiveEditError> results = deployer.updateLiveEdit(installer, adb, packageName, param);
+              for (LiveUpdateDeployer.UpdateLiveEditError result : results ) {
+                reportDeployerError(result);
+              }
               return Unit.INSTANCE;
             });
           }

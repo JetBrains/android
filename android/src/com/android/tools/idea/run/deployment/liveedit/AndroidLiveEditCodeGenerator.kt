@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.analyzer.AnalysisResult.Companion.compilationError
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
@@ -78,24 +79,31 @@ class AndroidLiveEditCodeGenerator {
 
       // A compile is always going to be a ReadAction because it reads an KtFile completely.
       ApplicationManager.getApplication().runReadAction {
-        // Three steps process:
+        try {
+          // Three steps process:
 
-        // 1) Compute binding context based on any previous cached analysis results.
-        //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-        var resolution = fetchResolution(project, inputs)
-        var bindingContext = analyze(inputs, resolution) ?: return@runReadAction
+          // 1) Compute binding context based on any previous cached analysis results.
+          //    On small edits of previous analyzed project, this operation should be below 30ms or so.
+          var resolution = fetchResolution(project, inputs)
+          var bindingContext = analyze(inputs, resolution)
 
-        // 2) Invoke the backend with the inputs and the binding context computed from step 1.
-        //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
-        //    complexity of the input .kt file.
-        var classes = backendCodeGen(project, resolution, bindingContext, inputs, AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))
+          // 2) Invoke the backend with the inputs and the binding context computed from step 1.
+          //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
+          //    complexity of the input .kt file.
+          var classes = backendCodeGen(project, resolution, bindingContext, inputs,
+                                       AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))
 
-        // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
-        //    decide which classes we want to send to the device along with what extra meta-information the
-        //    agent need.
-        if (!deployLiveEditToDevice(method.function, bindingContext, classes, callback)) return@runReadAction
-
-        compiled.add(root)
+          // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
+          //    decide which classes we want to send to the device along with what extra meta-information the
+          //    agent need.
+          if (!deployLiveEditToDevice(method.function, bindingContext, classes, callback)) return@runReadAction
+        } catch (e : LiveEditUpdateException) {
+          // TODO: We need to make deployLiveEditToDevice() atomic when there are multiple functions getting
+          //       update even thought that's probably a very unlikely scenario.
+          reportLiveEditError(e)
+        } finally {
+          compiled.add(root)
+        }
       }
     }
   }
@@ -113,20 +121,18 @@ class AndroidLiveEditCodeGenerator {
    *
    * This function needs to be done in a read action.
    */
-  fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext? {
+  fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext {
     val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
       resolution.analyzeWithAllCompilerChecks(input)
     }
 
     if (analysisResult.isError()) {
-      println("Live Edit: resolution analysis error\n ${analysisResult.error.message}")
-      return null
+      throw LiveEditUpdateException.analysisError(analysisResult.error.message?:"No Error message")
     }
 
     for (diagnostic in analysisResult.bindingContext.diagnostics) {
       if (diagnostic.severity == Severity.ERROR) {
-        println("Live Edit: resolution analysis error\n $diagnostic")
-        return null
+        throw LiveEditUpdateException.analysisError(diagnostic.toString())
       }
     }
 
@@ -165,7 +171,7 @@ class AndroidLiveEditCodeGenerator {
       KotlinCodegenFacade.compileCorrectFiles(generationState)
     } catch (e : Throwable) {
       handleCompilerErrors(e)
-      return emptyList()
+      return emptyList() // handleCompilerErrors() always throw anyways.
     }
 
     return generationState.factory.asList();
@@ -186,15 +192,11 @@ class AndroidLiveEditCodeGenerator {
     }
 
     if (className.isEmpty() || methodSignature.isEmpty()) {
-      // TODO: Error reporting.
-      print("Empty class name / method signature.")
-      return false
+      throw LiveEditUpdateException.internalError("Empty class name / method signature.")
     }
 
     if (compilerOutput.isEmpty()) {
-      // TODO: Error reporting.
-      print("No compiler output.")
-      return false
+      throw LiveEditUpdateException.internalError("No compiler output.")
     }
 
     // TODO: This needs a bit more work. Lambdas, inner classes..etc need to be mapped back.
@@ -221,12 +223,12 @@ class AndroidLiveEditCodeGenerator {
         var nameEnd = message.indexOf(' ', nameStart)
         var name = message.substring(nameStart, nameEnd)
 
-        println("Live Edit: Bug (b/201728545) unable to compile a file that reference a top level function in another source file. " +
-                " For now work around this by moving function $name inside the class.")
-        return
+        throw LiveEditUpdateException.knownIssue(201728545,
+                                                 "unable to compile a file that reference a top level function in another source file.\n" +
+                                                 "For now work around this by moving function $name inside the class.")
       }
     }
-    println("Live Edit: compilation error\n ${e.message}")
+    throw LiveEditUpdateException.compilationError(e.message?:"No error message")
   }
 
   fun functionSignature(context: BindingContext, function : KtNamedFunction) : String {
