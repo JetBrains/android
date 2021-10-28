@@ -22,7 +22,7 @@ public final class TestPhysicalDevices {
     .setKey(GOOGLE_PIXEL_3_KEY)
     .setName("Google Pixel 3")
     .setTarget("Android 12.0")
-    .setApi("S")
+    .setApi("31")
     .build();
 
   static final PhysicalDevice ONLINE_GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()

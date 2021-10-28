@@ -113,7 +113,7 @@ public final class PhysicalDeviceTableModelTest {
       .setKey(domainName)
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     TableModelListener listener = Mockito.mock(TableModelListener.class);
@@ -135,7 +135,7 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     Object expectedDevice2 = new PhysicalDevice.Builder()
@@ -143,7 +143,7 @@ public final class PhysicalDeviceTableModelTest {
       .setName("Google Pixel 3")
       .setNameOverride("Name Override")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .build();
 
     assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
@@ -223,7 +223,7 @@ public final class PhysicalDeviceTableModelTest {
     Object value = model.getValueAt(0, PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
 
     // Assert
-    assertEquals("S", value);
+    assertEquals("31", value);
   }
 
   @Test

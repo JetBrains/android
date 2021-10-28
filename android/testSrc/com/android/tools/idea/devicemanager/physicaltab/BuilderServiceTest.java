@@ -44,7 +44,7 @@ public final class BuilderServiceTest {
 
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 3"));
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
-    Mockito.when(myDevice.getVersion()).thenReturn(new AndroidVersion(30, "S"));
+    Mockito.when(myDevice.getVersion()).thenReturn(new AndroidVersion(31));
     Mockito.when(myDevice.getDensity()).thenReturn(-1);
 
     myService = new BuilderService(Clock.fixed(TIME, ZoneId.of("America/Los_Angeles")));
@@ -65,7 +65,7 @@ public final class BuilderServiceTest {
       .setLastOnlineTime(TIME)
       .setName("Google Pixel 3")
       .setTarget("Android 12.0")
-      .setApi("S")
+      .setApi("31")
       .addConnectionType(ConnectionType.USB)
       .build();
 
