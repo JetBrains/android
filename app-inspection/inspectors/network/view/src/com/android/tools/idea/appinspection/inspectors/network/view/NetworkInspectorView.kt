@@ -48,6 +48,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataListener
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_STAGE_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H3_FONT
@@ -177,10 +179,21 @@ class NetworkInspectorView(
     mainPanel.add(connectionsPanel, TabularLayout.Constraint(0, 0, 2, 2))
     mainPanel.isVisible = false
     leftSplitter.secondComponent = mainPanel
-    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
-      val cardLayout = connectionsPanel.layout as CardLayout
-      cardLayout.show(connectionsPanel, if (selectionHasTrafficUsageWithNoConnection()) CARD_INFO else CARD_CONNECTIONS)
-    }
+
+    model.selectionRangeDataFetcher.addListener(object : SelectionRangeDataListener {
+      override fun onUpdate(data: List<HttpData>) {
+        val cardLayout = connectionsPanel.layout as CardLayout
+        if (data.isEmpty()) {
+          val detailedNetworkUsage = model.networkUsage
+          if (hasTrafficUsage(detailedNetworkUsage.rxSeries, model.timeline.selectionRange) ||
+              hasTrafficUsage(detailedNetworkUsage.txSeries, model.timeline.selectionRange)) {
+            cardLayout.show(connectionsPanel, CARD_INFO)
+            return
+          }
+        }
+        cardLayout.show(connectionsPanel, CARD_CONNECTIONS)
+      }
+    })
     val splitter = JBSplitter(false, 0.6f)
     splitter.firstComponent = leftSplitter
     splitter.secondComponent = connectionDetails
@@ -334,18 +347,6 @@ class NetworkInspectorView(
 
   private fun updateConnectionDetailsView() {
     connectionDetails.setHttpData(model.selectedConnection)
-  }
-
-  private fun selectionHasTrafficUsageWithNoConnection(): Boolean {
-    val range = model.timeline.selectionRange
-    val hasNoConnection = !range.isEmpty && model.connectionsModel.getData(range).isEmpty()
-    return if (hasNoConnection) {
-      val detailedNetworkUsage = model.networkUsage
-      hasTrafficUsage(detailedNetworkUsage.rxSeries, range) || hasTrafficUsage(detailedNetworkUsage.txSeries, range)
-    }
-    else {
-      false
-    }
   }
 
   private fun hasTrafficUsage(series: RangedContinuousSeries, range: Range): Boolean {

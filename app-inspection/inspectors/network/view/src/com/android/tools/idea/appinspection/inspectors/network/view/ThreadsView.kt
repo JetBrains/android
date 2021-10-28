@@ -29,7 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
@@ -78,7 +78,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     get() = threadsTable
 
   init {
-    val tableModel = ThreadsTableModel(model.httpDataFetcher)
+    val tableModel = ThreadsTableModel(model.selectionRangeDataFetcher)
     threadsTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.ordinal)
     val timelineRenderer = TimelineRenderer(threadsTable, model)
     threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer = BorderlessTableCellRenderer()
@@ -121,11 +121,11 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       }
   }
 
-  private class ThreadsTableModel(httpDataFetcher: HttpDataFetcher) : AbstractTableModel() {
+  private class ThreadsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) : AbstractTableModel() {
     private val threads = mutableListOf<List<HttpData>>()
 
     init {
-      httpDataFetcher.addListener { httpDataList -> httpDataChanged(httpDataList) }
+      selectionRangeDataFetcher.addOnChangedListener { httpDataList -> httpDataChanged(httpDataList) }
     }
 
     private fun httpDataChanged(dataList: List<HttpData>) {

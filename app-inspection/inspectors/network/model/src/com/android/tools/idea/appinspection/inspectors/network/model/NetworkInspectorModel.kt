@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
@@ -56,7 +56,7 @@ class NetworkInspectorModel(
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
-  val httpDataFetcher = HttpDataFetcher(connectionsModel, timeline.selectionRange)
+  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange)
 
   var tooltip: TooltipModel? = null
     set(value) {

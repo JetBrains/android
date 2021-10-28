@@ -16,10 +16,11 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
+import junit.framework.Assert.fail
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
-class HttpDataFetcherTest {
+class SelectionRangeDataFetcherTest {
 
   @Test
   fun listenerFiresOnSelectionRangeChange() {
@@ -30,18 +31,33 @@ class HttpDataFetcherTest {
       }
     }
 
-    // The latch is set to a count of 2 because the listener is triggered when it's added
-    // and again when the range is modified.
-    val listenerFiredLatch = CountDownLatch(2)
+    // The latch is set to a count of 3 because the listener is triggered when it's added
+    // and again when the range is modified, and then again when the range is cleared.
+    val onDataChangedListener = CountDownLatch(3)
+    val allListener = CountDownLatch(4)
     val selectionRange = Range(0.0, 0.0)
-    val fetcher = HttpDataFetcher(dataModel, selectionRange)
+    val fetcher = SelectionRangeDataFetcher(dataModel, selectionRange)
 
-    fetcher.addListener {
-      listenerFiredLatch.countDown()
+    fetcher.addOnChangedListener {
+      if (onDataChangedListener.count == 0L) {
+        fail()
+      }
+      onDataChangedListener.countDown()
     }
+    fetcher.addListener(object : SelectionRangeDataListener {
+      override fun onUpdate(data: List<HttpData>) {
+        if (allListener.count == 0L) {
+          fail()
+        }
+        allListener.countDown()
+      }
+    })
 
     dataModel.data.add(createFakeHttpData(1))
     selectionRange.set(0.0, 1.0)
-    listenerFiredLatch.await()
+    selectionRange.set(5.0, 6.0)
+    selectionRange.clear()
+    onDataChangedListener.await()
+    allListener.await()
   }
 }

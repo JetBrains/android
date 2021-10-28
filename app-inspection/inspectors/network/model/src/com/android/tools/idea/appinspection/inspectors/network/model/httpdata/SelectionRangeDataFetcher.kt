@@ -18,16 +18,38 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 
-typealias HttpDataFetcherListener = (List<HttpData>) -> Unit
+/**
+ * Listener subscription to [SelectionRangeDataFetcher] that fires every time
+ * the range selection is updated.
+ */
+interface SelectionRangeDataListener {
+  fun onUpdate(data: List<HttpData>)
+}
 
 /**
- * A class which handles querying for a list of [HttpData] requests within a specified range.
+ * Listener subscription that only fires when the data in the range selection
+ * is changed.
+ */
+abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
+  private var previousData: List<HttpData>? = null
+
+  final override fun onUpdate(data: List<HttpData>) {
+    if (previousData != data) {
+      previousData = data.also { onDataChanged(it) }
+    }
+  }
+
+  abstract fun onDataChanged(data: List<HttpData>)
+}
+
+/**
+ * A class which handles querying of [HttpData] requests based on the [range] selection.
  * When the range changes, the list will automatically be updated, and this class will notify any
  * listeners.
  */
-class HttpDataFetcher(private val dataModel: HttpDataModel, private val range: Range) {
+class SelectionRangeDataFetcher(private val dataModel: HttpDataModel, private val range: Range) {
   private val aspectObserver = AspectObserver()
-  private val listeners = mutableListOf<HttpDataFetcherListener>()
+  private val listeners = mutableListOf<SelectionRangeDataListener>()
 
   /**
    * The last list of requests polled from the user's device. Initialized to `null` to
@@ -40,20 +62,25 @@ class HttpDataFetcher(private val dataModel: HttpDataModel, private val range: R
     handleRangeUpdated()
   }
 
-  fun addListener(listener: HttpDataFetcherListener) {
+  fun addOnChangedListener(callback: (List<HttpData>) -> Unit) {
+    addListener(
+      object : SelectionRangeDataChangedListener() {
+        override fun onDataChanged(data: List<HttpData>) = callback(data)
+      }
+    )
+  }
+
+  fun addListener(listener: SelectionRangeDataListener) {
     listeners.add(listener)
-    prevDataList?.let { listener.invoke(it) }
+    prevDataList?.let { listener.onUpdate(it) }
   }
 
   private fun handleRangeUpdated() {
     val dataList = if (!range.isEmpty) dataModel.getData(range) else emptyList()
-    if (dataList == prevDataList) {
-      return
-    }
     prevDataList = dataList.also { fireListeners(it) }
   }
 
   private fun fireListeners(dataList: List<HttpData>) {
-    listeners.forEach { it(dataList) }
+    listeners.forEach { listener -> listener.onUpdate(dataList) }
   }
 }
