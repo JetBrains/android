@@ -188,8 +188,8 @@ internal class ModuleClassLoaderImpl(module: Module,
    */
   val projectLoadedClassVirtualFiles get() = projectSystemLoader.loadedVirtualFiles
 
-  private fun applyProjectTransformationsToLoader(loader: DelegatingClassLoader.Loader,
-                                                  onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
+  private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
+                                  onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
     projectTransforms,
     ListeningLoader(loader, onAfterLoad = { fqcn, _ -> _projectLoadedClassNames.add(fqcn) }),
     PseudoClassLocatorForLoader(projectSystemLoader),
@@ -197,10 +197,12 @@ internal class ModuleClassLoaderImpl(module: Module,
     onClassRewrite
   )
 
-  init {
-    // Project classes loading pipeline
-    val projectLoader = applyProjectTransformationsToLoader(projectSystemLoader, onClassRewrite)
-
+  fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
+                             binaryCache: ClassBinaryCache,
+                             externalLibraries: List<Path>,
+                             onClassLoaded: (String) -> Unit,
+                             onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
+    val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
     // Non project classes loading pipeline
     val nonProjectTransformationId = nonProjectTransforms.id
     // map of fqcn -> library path used to be able to insert classes into the ClassBinaryCache
@@ -210,36 +212,46 @@ internal class ModuleClassLoaderImpl(module: Module,
         URLUtil.splitJarUrl(path)?.first?.let { libraryPath -> fqcnToLibraryPath[fqcn] = libraryPath }
       },
       ::onDiskClassNameLookup)
-    val nonProjectLoader =
-      ListeningLoader(
-        ClassBinaryCacheLoader(
-          ListeningLoader(
-            AsmTransformingLoader(
-              nonProjectTransforms,
-              jarLoader,
-              PseudoClassLocatorForLoader(
-                jarLoader
-              ),
-              ClassWriter.COMPUTE_MAXS,
-              onClassRewrite),
-            onAfterLoad = { fqcn, bytes ->
-              _nonProjectLoadedClassNames.add(fqcn)
-              // Map the fqcn to the library path and insert the class into the class binary cache
-              fqcnToLibraryPath[onDiskClassNameLookup(fqcn)]?.let { libraryPath ->
-                binaryCache.put(fqcn, nonProjectTransformationId, libraryPath, bytes)
-              }
-            }),
-          nonProjectTransformationId,
-          binaryCache), onBeforeLoad = {
-        if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
-          // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
-          // b/162056408
-          //
-          // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
-          // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
-          throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
-        }
-      })
+
+    return ListeningLoader(
+      ClassBinaryCacheLoader(
+        ListeningLoader(
+          AsmTransformingLoader(
+            nonProjectTransforms,
+            jarLoader,
+            PseudoClassLocatorForLoader(
+              jarLoader
+            ),
+            ClassWriter.COMPUTE_MAXS,
+            onClassRewrite),
+          onAfterLoad = { fqcn, bytes ->
+            onClassLoaded(fqcn)
+            // Map the fqcn to the library path and insert the class into the class binary cache
+            fqcnToLibraryPath[onDiskClassNameLookup(fqcn)]?.let { libraryPath ->
+              binaryCache.put(fqcn, nonProjectTransformationId, libraryPath, bytes)
+            }
+          }),
+        nonProjectTransformationId,
+        binaryCache), onBeforeLoad = {
+      if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
+        // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
+        // b/162056408
+        //
+        // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
+        // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
+        throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
+      }
+    })
+  }
+
+  init {
+    // Project classes loading pipeline
+    val projectLoader = createProjectLoader(projectSystemLoader, onClassRewrite)
+    val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
+                                                  binaryCache,
+                                                  externalLibraries,
+                                                  { _nonProjectLoadedClassNames.add(it) },
+                                                  onClassRewrite)
     loader = MultiLoader(
       listOfNotNull(
         createOptionalOverlayLoader(module, onClassRewrite),
@@ -254,7 +266,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader? {
     if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) return null
     val overlayPath = ModuleClassLoaderOverlays.getInstance(module).overlayPath ?: return null
-    return applyProjectTransformationsToLoader(OverlayLoader(overlayPath), onClassRewrite)
+    return createProjectLoader(OverlayLoader(overlayPath), onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
