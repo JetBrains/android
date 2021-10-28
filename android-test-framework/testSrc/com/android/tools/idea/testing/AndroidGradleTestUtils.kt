@@ -105,6 +105,7 @@ import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -1408,7 +1409,14 @@ private fun <T> openPreparedProject(
   fun body(): T {
     val project = runInEdtAndGet {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-      val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+      val project = ProjectUtil.openOrImport(
+        projectPath.toPath(),
+        OpenProjectTask(
+          projectToClose = null,
+          forceOpenInNewFrame = true,
+          beforeInit = { project -> injectBuildOutputDumpingBuildViewManager(project, project) }
+        )
+      )!!
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
