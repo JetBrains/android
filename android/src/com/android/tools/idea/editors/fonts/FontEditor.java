@@ -234,6 +234,11 @@ class FontEditor implements FileEditor {
   }
 
   @Override
+  public @NotNull VirtualFile getFile() {
+    return myFile;
+  }
+
+  @Override
   public void dispose() {
   }
 

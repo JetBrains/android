@@ -51,7 +51,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   private final Project myProject;
-  private VirtualFile myFile;
+  private final VirtualFile myFile;
 
   private BufferedImage myBufferedImage;
   private ImageEditorPanel myImageEditorPanel;
@@ -184,6 +184,11 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
+  }
+
+  @Override
+  public @NotNull VirtualFile getFile() {
+    return myFile;
   }
 
   @Override

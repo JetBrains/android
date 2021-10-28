@@ -268,6 +268,11 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   }
 
   @Override
+  public @NotNull VirtualFile getFile() {
+    return mySelectedFile;
+  }
+
+  @Override
   public void dispose() {
   }
 }

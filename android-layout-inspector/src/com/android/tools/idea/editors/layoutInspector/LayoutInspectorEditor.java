@@ -175,6 +175,11 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Override
+  public @NotNull VirtualFile getFile() {
+    return myVirtualFile;
+  }
+
+  @Override
   public void selectNotify() {
   }
 

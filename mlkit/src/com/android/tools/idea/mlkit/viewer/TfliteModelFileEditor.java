@@ -887,6 +887,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @Override
+  public @NotNull VirtualFile getFile() {
+    return myFile;
+  }
+
+  @Override
   public void dispose() {
   }
 

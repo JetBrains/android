@@ -46,6 +46,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
+  private final VirtualFile myFile;
   private final FileEditor myEditor;
   private final DumbService myDumbService;
   private final LayersManager myLayersManager;
@@ -55,6 +56,7 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
   private LayeredImageEditorPanel myEditorPanel;
 
   LayeredImageEditor(Project project, VirtualFile file, FileEditor editor) {
+    myFile = file;
     myEditor = editor;
     myDumbService = DumbService.getInstance(project);
     myLayersManager = LayersManager.get(project);
@@ -185,5 +187,10 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return myEditor.getStructureViewBuilder();
+  }
+
+  @Override
+  public @NotNull VirtualFile getFile() {
+    return myFile;
   }
 }
