@@ -19,6 +19,8 @@ import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
+import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -31,8 +33,6 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
-import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep

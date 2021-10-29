@@ -18,6 +18,8 @@ package com.android.tools.idea.npw.actions
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
+import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -27,8 +29,6 @@ import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
-import com.android.tools.idea.ui.wizard.WizardUtils
-import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
@@ -96,7 +96,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
-      !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
+      !hasComposeMinAgpVersion(module.project, category) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
         presentation.isEnabled = false
       }

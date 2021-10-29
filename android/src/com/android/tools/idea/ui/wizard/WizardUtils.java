@@ -19,21 +19,15 @@ import static com.intellij.util.ui.JBUI.Borders.empty;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.wizard.template.Category;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import org.jetbrains.android.util.AndroidBundle;
@@ -45,9 +39,6 @@ import org.jetbrains.annotations.Nullable;
  * Static utility methods useful across wizards
  */
 public final class WizardUtils {
-  // TODO: parentej needs to be updated to 4.0.0 when released
-  public static final String COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02";
-
   public enum WIZARD_BORDER {
     EMPTY(empty()),
     SMALL(empty(16)),
@@ -112,23 +103,6 @@ public final class WizardUtils {
   }
 
   /**
-   * Utility method used to create a URL from its String representation without throwing a {@link MalformedURLException}.
-   * Callers should use this if they're absolutely certain their URL is well formatted.
-   */
-  @NotNull
-  public static URL toUrl(@NotNull String urlAsString) {
-    URL url;
-    try {
-      url = new URL(urlAsString);
-    }
-    catch (MalformedURLException e) {
-      // Caller should guarantee this will never happen!
-      throw new RuntimeException(e);
-    }
-    return url;
-  }
-
-  /**
    * When creating a WizardStepPanel which may be so tall as to require vertical scrolling,
    * using this helper method to automatically wrap it with an appropriate JScrollPane.
    */
@@ -163,20 +137,5 @@ public final class WizardUtils {
     }
 
     return uniqueName;
-  }
-
-  public static boolean hasComposeMinAgpVersion(@Nullable Project project, Category category) {
-    if (project == null || !Category.Compose.equals(category)) {
-      return true;
-    }
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
-    if (androidPluginInfo == null) {
-      return true;
-    }
-    GradleVersion agpVersion = androidPluginInfo.getPluginVersion();
-    if (agpVersion == null) {
-      return true;
-    }
-    return agpVersion.compareTo(COMPOSE_MIN_AGP_VERSION) >= 0;
   }
 }

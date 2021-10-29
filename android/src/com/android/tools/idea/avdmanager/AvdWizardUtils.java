@@ -46,7 +46,6 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
@@ -58,6 +57,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -308,7 +309,24 @@ public class AvdWizardUtils {
     StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
     builder.setMinimumSize(AVD_WIZARD_MIN_SIZE);
     builder.setPreferredSize(AVD_WIZARD_SIZE);
-    return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
+    return builder.setHelpUrl(toUrl(AVD_WIZARD_HELP_URL)).build();
+  }
+
+  /**
+   * Utility method used to create a URL from its String representation without throwing a {@link MalformedURLException}.
+   * Callers should use this if they're absolutely certain their URL is well formatted.
+   */
+  @NotNull
+  private static URL toUrl(@NotNull String urlAsString) {
+    URL url;
+    try {
+      url = new URL(urlAsString);
+    }
+    catch (MalformedURLException e) {
+      // Caller should guarantee this will never happen!
+      throw new RuntimeException(e);
+    }
+    return url;
   }
 
   /**

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.npw
 
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.wizard.template.Category
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.project.Project
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.Cell
 import com.intellij.ui.layout.LayoutBuilder
 import java.awt.Component
+import java.net.MalformedURLException
+import java.net.URL
 import javax.swing.JLabel
 import javax.swing.SwingConstants
 
@@ -54,4 +59,31 @@ internal fun LayoutBuilder.verticalGap() {
   row {
     label("")
   }
+}
+
+// TODO: parentej needs to be updated to 4.0.0 when released
+internal const val COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02"
+
+internal fun hasComposeMinAgpVersion(project: Project?, category: Category): Boolean {
+  if (project == null || Category.Compose != category) {
+    return true
+  }
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
+  val agpVersion = androidPluginInfo.pluginVersion ?: return true
+  return agpVersion >= COMPOSE_MIN_AGP_VERSION
+}
+
+/**
+ * Utility method used to create a URL from its String representation without throwing a [MalformedURLException].
+ * Callers should use this if they're absolutely certain their URL is well formatted.
+ */
+internal fun toUrl(urlAsString: String): URL {
+  val url: URL = try {
+    URL(urlAsString)
+  }
+  catch (e: MalformedURLException) {
+    // Caller should guarantee this will never happen!
+    throw RuntimeException(e)
+  }
+  return url
 }
