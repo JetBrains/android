@@ -59,6 +59,7 @@ iml_module(
         "//tools/adt/idea/compose-designer/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
+        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
@@ -94,6 +95,14 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
+)
+
+filegroup(
+    name = "kotlin-compiler-daemon-libs",
+    # We only include the 1.1.0 version as part of the distribution as it is the only one needed
+    # for tests and canary.
+    srcs = ["lib/kotlin-compiler-daemon-1.1.0-fallback.jar"],
+    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

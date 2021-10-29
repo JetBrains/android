@@ -38,6 +38,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
@@ -120,7 +121,11 @@ private class CompilerDaemonClientImpl(daemonPath: String,
   private val channel = Channel<Request>()
 
   init {
-    scope.launch {
+    val handler = CoroutineExceptionHandler { _, exception ->
+      log.info("Daemon stopped ($daemonShortId)", exception)
+      channel.close(exception)
+    }
+    scope.launch(handler) {
       log.info("Daemon thread started ($daemonShortId)")
       while (true) {
         val call = channel.receive()
@@ -158,13 +163,17 @@ private class CompilerDaemonClientImpl(daemonPath: String,
   }
 
   override fun dispose() {
+    channel.close()
     process.destroyForcibly()
   }
 
-  override val isRunning: Boolean = process.isAlive
+  override val isRunning: Boolean
+    get() = !channel.isClosedForSend && process.isAlive
+
   override suspend fun compileRequest(args: List<String>): Boolean = withContext(scope.coroutineContext) {
     val result = CompletableDeferred<Boolean>()
-    channel.send(Request(args) { result.complete(it) })
+    val sendResult = channel.trySend(Request(args) { result.complete(it) })
+    if (!sendResult.isSuccess) return@withContext false
     result.await()
   }
 }
@@ -293,7 +302,7 @@ private fun findDaemonPath(version: String): String {
   }
   else {
     // When running as part of the distribution, we allow also to override the path to the daemon via a system property.
-    System.getProperty("preview.live.edit.daemon.path", FileUtil.join(homePath, "plugins/android/resources/"))
+    System.getProperty("preview.live.edit.daemon.path", FileUtil.join(homePath, "plugins/design-tools/resources/"))
   }
 
   return FileUtil.join(jarRootPath, "kotlin-compiler-daemon-$version.jar")
@@ -352,12 +361,10 @@ class PreviewLiveEditManager private constructor(
   }
 
   /**
-   * Restarts all the daemons managed by this [PreviewLiveEditManager].
+   * Stops all the daemons managed by this [PreviewLiveEditManager].
    */
-  fun restartAllDaemons() {
-    scope.launch {
+  fun stopAllDaemons() = scope.launch {
       daemonRegistry.allDaemons.forEach { Disposer.dispose(it) }
-    }
   }
 
   /**
@@ -409,7 +416,7 @@ class PreviewLiveEditManager private constructor(
     }
 
   override fun dispose() {
-    restartAllDaemons()
+    stopAllDaemons()
   }
 
   companion object {

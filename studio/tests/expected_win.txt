@@ -2010,6 +2010,7 @@ android-studio/plugins/coverage/lib/org.jacoco.core-0.8.7.jar
 android-studio/plugins/coverage/lib/org.jacoco.report-0.8.7.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
 android-studio/plugins/design-tools/lib/layoutlib.jar
+android-studio/plugins/design-tools/resources/kotlin-compiler-daemon-1.1.0-fallback.jar
 android-studio/plugins/design-tools/resources/layoutlib/build.prop
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/AndroidClock.ttf
 android-studio/plugins/design-tools/resources/layoutlib/data/fonts/CarroisGothicSC-Regular.ttf

@@ -127,7 +127,7 @@
             text="Toggle Issue Panel"
             description="Toggle the visibility of Issue Panel"
             use-shortcut-of="Android.Designer.IssueNotificationAction" />
-    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.ForcePreviewDaemonRestart" />
+    <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.ForcePreviewDaemonStop" />
   </actions>
 
 </idea-plugin>

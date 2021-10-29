@@ -20,12 +20,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Internal action that forces the restart of all the [PreviewLiveEditManager] daemons.
+ * Internal action that forces the stopping of all the [PreviewLiveEditManager] daemons.
  */
 @Suppress("ComponentNotRegistered") // Registered in compose-designer.xml
-class ForcePreviewDaemonRestart : AnAction("Force Preview Daemon Restart") {
+class ForcePreviewDaemonStop : AnAction("Force Preview Daemon Stop") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    PreviewLiveEditManager.getInstance(project).restartAllDaemons()
+    PreviewLiveEditManager.getInstance(project).stopAllDaemons()
   }
 }

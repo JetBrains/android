@@ -40,13 +40,19 @@ import com.intellij.openapi.progress.Task
 import com.intellij.ui.JBColor
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.time.withTimeout
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.kotlin.idea.util.module
 import java.io.File
+import java.time.Duration
 
 private fun ProjectSystemBuildManager.BuildStatus.isSuccessOrUnknown() =
   this == ProjectSystemBuildManager.BuildStatus.SUCCESS || this == ProjectSystemBuildManager.BuildStatus.UNKNOWN
 
+/**
+ * Maximum amount of time to wait for a fast compilation to happen.
+ */
+private val LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT = java.lang.Long.getLong("preview.live.edit.daemon.compile.seconds.timeout", 20)
 private val SINGLE_FILE_REFRESH_ICON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                                 JBColor(0x5969A8, 0x49549C))
 /**
@@ -91,7 +97,9 @@ internal class SingleFileCompileAction :
       object : Task.Backgroundable(project, message("notification.compiling"), false) {
         override fun run(indicator: ProgressIndicator) {
           AndroidCoroutineScope(previewManager).async {
-            val (success, outputAbsolutePath) = PreviewLiveEditManager.getInstance(project).compileRequest(file, contextModule, indicator)
+            val (success, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
+              PreviewLiveEditManager.getInstance(project).compileRequest(file, contextModule, indicator)
+            }
             val durationString = stopWatch.elapsed().toDisplayString()
             val buildMessage = if (success)
               message("event.log.live.edit.build.successful", durationString)
