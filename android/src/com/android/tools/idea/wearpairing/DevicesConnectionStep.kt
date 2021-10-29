@@ -25,6 +25,8 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.util.concurrent.Futures
@@ -253,55 +255,61 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     showUiBridgingDevices()
     val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
     // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
-    if (phoneWearPair.pairingStatus == WearPairingManager.PairingState.CONNECTED) {
+    if (phoneWearPair.pairingStatus == PairingState.CONNECTED) {
       showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
     else {
-      showPairing(phoneDevice, wearDevice)
+      showPairing(phoneWearPair, phoneDevice, wearDevice)
     }
   }
 
-  private suspend fun showPairing(phoneDevice: IDevice, wearDevice: IDevice) {
+  private suspend fun showPairing(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice) {
     val companionAppId = wearDevice.getCompanionAppIdForWatch()
     if (phoneDevice.hasPairingFeature(PairingFeature.COMPANION_EMULATOR_ACTIVITY, companionAppId)) {
-      showUiPairingNonInteractive(phoneDevice, wearDevice)
+      showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice)
       NonInteractivePairing.startPairing(phoneDevice, wearDevice.avdName!!, companionAppId, wearDevice.loadNodeID()).use {
         withTimeoutOrNull(Duration.ofMinutes(1)) {
           it.pairingState.takeWhile { !it.hasFinished() }.collect { state ->
             if (state == NonInteractivePairing.PairingState.CONSENT) {
-              showUiPairingNonInteractive(phoneDevice, wearDevice,
+              showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
                                           message("wear.assistant.device.connection.pairing.auto.consent", phoneDevice.name))
             }
           }
         }
-        if (it.pairingState.value == NonInteractivePairing.PairingState.SUCCESS) {
+        if (WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED) {
           showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
         }
         else {
-          showUiPairingNonInteractive(phoneDevice, wearDevice, message("wear.assistant.device.connection.pairing.auto.failed"),
+          showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
+                                      message("wear.assistant.device.connection.pairing.auto.failed"),
                                       "Retry", "Skip to manual instructions", false)
         }
       }
     }
     else {
-      showUiPairingAppInstructions(phoneDevice, wearDevice)
+      showUiPairingAppInstructions(phoneWearPair, phoneDevice, wearDevice)
     }
   }
 
-  private suspend fun showWaitForPairingSetup(phoneDevice: IDevice, wearDevice: IDevice, launchCompanionApp: Boolean) {
+  private suspend fun showWaitForPairingSetup(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice,
+                                              launchCompanionApp: Boolean) {
     if (launchCompanionApp) {
-      showUiPairingScanning(phoneDevice, wearDevice, scanningLabel = message("wear.assistant.device.connection.wait.pairing.btn"))
+      showUiPairingScanning(phoneWearPair, phoneDevice, wearDevice,
+                            scanningLabel = message("wear.assistant.device.connection.wait.pairing.btn"))
       phoneDevice.executeShellCommand("am start -n ${wearDevice.getCompanionAppIdForWatch()}/$WEAR_MAIN_ACTIVITY")
     }
     else {
-      showUiPairingScanning(phoneDevice, wearDevice, scanningLabel = message("wear.assistant.device.connection.wait.pairing.lnk"))
+      showUiPairingScanning(phoneWearPair, phoneDevice, wearDevice,
+                            scanningLabel = message("wear.assistant.device.connection.wait.pairing.lnk"))
     }
 
-    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { checkDevicesPaired(phoneDevice, wearDevice) }) {
+    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) {
+        WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED
+      }) {
       showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
     else {
-      showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+      showUiPairingRetry(phoneWearPair, phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
     }
   }
 
@@ -568,8 +576,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   )
 
   private suspend fun showUiPairing(
-    phoneDevice: IDevice, wearDevice: IDevice, showLoadingIcon: Boolean = false, showSuccessIcon: Boolean = false,
-    scanningLabel: String = "", scanningLink: String = "", scanningListener: HyperlinkListener? = null
+    phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice, showLoadingIcon: Boolean = false,
+    showSuccessIcon: Boolean = false, scanningLabel: String = "", scanningLink: String = "", scanningListener: HyperlinkListener? = null
   ) = showUI(
     header = message("wear.assistant.device.connection.complete.pairing.title"),
     description = message("wear.assistant.device.connection.complete.pairing.subtitle", WEAR_DOCS_LINK),
@@ -580,7 +588,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       buttonListener = {
         runningJob?.cancel()
         runningJob = GlobalScope.launch(ioThread) {
-          showWaitForPairingSetup(phoneDevice, wearDevice, launchCompanionApp = true)
+          showWaitForPairingSetup(phoneWearPair, phoneDevice, wearDevice, launchCompanionApp = true)
         }
       },
       showLoadingIcon = showLoadingIcon,
@@ -594,7 +602,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     imagePath = PATH_PAIR_SCREEN,
   )
 
-  private suspend fun showUiPairingNonInteractive(phoneDevice: IDevice, wearDevice: IDevice, scanningLabel: String = message(
+  private suspend fun showUiPairingNonInteractive(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice, scanningLabel: String = message(
     "wear.assistant.device.connection.pairing.auto.start"), buttonLabel: String = "", scanningLink: String = "", showLoadingIcon: Boolean = true) = showUI(
     header = message("wear.assistant.device.connection.pairing.auto.title"),
     body = createScanningPanel(
@@ -603,7 +611,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       buttonListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
         runningJob = GlobalScope.launch(ioThread) {
-          showPairing(phoneDevice, wearDevice)
+          showPairing(phoneWearPair, phoneDevice, wearDevice)
         }
       },
       showLoadingIcon = showLoadingIcon,
@@ -613,19 +621,20 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       scanningListener = {
         check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
         runningJob = GlobalScope.launch(ioThread) {
-          showUiPairingAppInstructions(phoneDevice, wearDevice)
+          showUiPairingAppInstructions(phoneWearPair, phoneDevice, wearDevice)
         }
       },
       additionalStepsLabel = "",
     )
   )
 
-  private suspend fun showUiPairingAppInstructions(phoneDevice: IDevice, wearDevice: IDevice) = showUiPairing(
-    phoneDevice = phoneDevice, wearDevice = wearDevice,
+  private suspend fun showUiPairingAppInstructions(wearPairing: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice) = showUiPairing(
+    wearPairing, phoneDevice = phoneDevice, wearDevice = wearDevice,
   )
 
-  private suspend fun showUiPairingScanning(phoneDevice: IDevice, wearDevice: IDevice, scanningLabel: String) = showUiPairing(
-    phoneDevice = phoneDevice, wearDevice = wearDevice,
+  private suspend fun showUiPairingScanning(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice,
+                                            scanningLabel: String) = showUiPairing(
+    phoneWearPair = phoneWearPair, phoneDevice = phoneDevice, wearDevice = wearDevice,
     showLoadingIcon = true,
     scanningLabel = scanningLabel,
   )
@@ -707,14 +716,14 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     showUI(header = message("wear.assistant.factory.reset.title"), body = warningPanel)
   }
 
-  private suspend fun showUiPairingRetry(phoneDevice: IDevice, wearDevice: IDevice) = showUiPairing(
-    phoneDevice = phoneDevice, wearDevice = wearDevice,
+  private suspend fun showUiPairingRetry(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice) = showUiPairing(
+    phoneWearPair = phoneWearPair, phoneDevice = phoneDevice, wearDevice = wearDevice,
     scanningLabel = message("wear.assistant.device.connection.pairing.not.detected"),
     scanningLink = message("wear.assistant.device.connection.check.again"),
     scanningListener = {
       check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
       runningJob = GlobalScope.launch(ioThread) {
-        showWaitForPairingSetup(phoneDevice, wearDevice, launchCompanionApp = false)
+        showWaitForPairingSetup(phoneWearPair, phoneDevice, wearDevice, launchCompanionApp = false)
       }
     }
   )

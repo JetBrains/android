@@ -223,19 +223,22 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
       phoneDevice.runCatching { createForward(hostPort, 5601) }
       wearDevice.runCatching { createReverse(5601, hostPort) }
       wearDevice.refreshEmulatorConnection()
-      phoneWearPair.pairingStatus = findDevicePairingStatus(phoneDevice, wearDevice)
+      updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice)
     }
 
     return phoneWearPair
   }
 
-  private suspend fun findDevicePairingStatus(phoneDevice: IDevice, wearDevice: IDevice): PairingState {
-    return withTimeoutOrNull(5_000) {
+  suspend fun updateDeviceStatus(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice): PairingState {
+    val state = withTimeoutOrNull(5_000) {
       while (!checkDevicesPaired(phoneDevice, wearDevice)) {
         delay(1000)
       }
       PairingState.CONNECTED
     } ?: PairingState.PAIRING_FAILED
+
+    phoneWearPair.pairingStatus = state
+    return state
   }
 
   @Synchronized
