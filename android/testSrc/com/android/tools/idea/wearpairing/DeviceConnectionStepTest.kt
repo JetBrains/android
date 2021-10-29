@@ -233,7 +233,9 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
         request == "am force-stop com.google.android.gms" -> "OK"
         request.contains("grep 'local: '") -> "local: TestNodeId"
         // Note: get-pairing-status gets called on both phone and watch. Watch uses the Local part and phone uses the Peer part.
-        request.contains("get-pairing-status") -> "Local:[TestNodeId]\nPeer:[AnotherNode,false,false]\nPeer:[TestNodeId,true,true]"
+        request.contains("get-pairing-status") ->
+          "Broadcasting: Intent { act=com.google.android.gms.wearable.EMULATOR flg=0x400000 (has extras) }\n" +
+          "Broadcast completed: result=1, data=\"Local:[TestNodeId]\nPeer:[AnotherNode,false,false]\nPeer:[TestNodeId,true,true]\""
         request.contains("grep versionName") -> companionAppVersion
         request.contains("grep versionCode") -> "versionCode=$gmscoreVersion"
         request.contains("settings get secure") -> companionAppId.toString()
