@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.repository.io.FileUtilKt;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -24,6 +25,10 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -48,13 +53,22 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
   @NotNull
   private final ListenableFuture<Long> myFuture;
 
+  SizeOnDisk(@NotNull AvdInfo device, @NotNull VirtualDeviceTableModel tableModel) {
+    this(device, tableModel, () -> getSize(Paths.get(device.getDataFolderPath())), EdtExecutorService.getInstance());
+  }
+
+  @NotNull
+  private static ListenableFuture<Long> getSize(@NotNull Path path) {
+    return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(() -> FileUtilKt.recursiveSize(path));
+  }
+
   @VisibleForTesting
-  SizeOnDisk(@NotNull AvdInfo device, @NotNull VirtualDeviceTable table, @NotNull ListenableFuture<Long> future) {
-    this(device, table, () -> future, MoreExecutors.directExecutor());
+  SizeOnDisk(@NotNull AvdInfo device, @NotNull VirtualDeviceTableModel tableModel, @NotNull ListenableFuture<Long> future) {
+    this(device, tableModel, () -> future, MoreExecutors.directExecutor());
   }
 
   private SizeOnDisk(@NotNull AvdInfo device,
-                     @NotNull VirtualDeviceTable table,
+                     @NotNull VirtualDeviceTableModel tableModel,
                      @NotNull Supplier<? extends ListenableFuture<Long>> futureSupplier,
                      @NotNull Executor executor) {
     myString = "Calculating...";
@@ -71,7 +85,6 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
         myString = SizeOnDisk.toString(storage);
         myValue = storage.getSize();
 
-        VirtualDeviceTableModel tableModel = table.getModel();
         tableModel.fireTableCellUpdated(tableModel.getDevices().indexOf(device), MODEL_COLUMN_INDEX);
       }
 
@@ -82,7 +95,6 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
         myString = "Failed to calculate";
         myValue = Long.MAX_VALUE;
 
-        VirtualDeviceTableModel tableModel = table.getModel();
         tableModel.fireTableCellUpdated(tableModel.getDevices().indexOf(device), MODEL_COLUMN_INDEX);
       }
     });

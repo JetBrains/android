@@ -34,18 +34,11 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class SizeOnDiskTest {
   private VirtualDeviceTableModel myModel;
-  private VirtualDeviceTable myTable;
-
   private ListenableFuture<Long> myNotDoneFuture;
 
   @Before
   public void mockModel() {
     myModel = Mockito.mock(VirtualDeviceTableModel.class);
-  }
-
-  @Before
-  public void mockTable() {
-    myTable = Mockito.mock(VirtualDeviceTable.class);
   }
 
   @SuppressWarnings("DoNotMock")  // b/180537631
@@ -61,7 +54,7 @@ public final class SizeOnDiskTest {
     AvdInfo device = Mockito.mock(AvdInfo.class);
 
     // Act
-    Object sizeOnDisk = new SizeOnDisk(device, myTable, myNotDoneFuture);
+    Object sizeOnDisk = new SizeOnDisk(device, myModel, myNotDoneFuture);
 
     // Assert
     assertEquals("Calculating...", sizeOnDisk.toString());
@@ -72,11 +65,10 @@ public final class SizeOnDiskTest {
     // Arrange
     AvdInfo device = Mockito.mock(AvdInfo.class);
 
-    Mockito.when(myTable.getModel()).thenReturn(myModel);
     Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(device));
 
     // Act
-    Object sizeOnDisk = new SizeOnDisk(device, myTable, Futures.immediateFuture(537_920_595L));
+    Object sizeOnDisk = new SizeOnDisk(device, myModel, Futures.immediateFuture(537_920_595L));
 
     // Assert
     assertEquals("513 MB", sizeOnDisk.toString());
@@ -88,11 +80,10 @@ public final class SizeOnDiskTest {
     // Arrange
     AvdInfo device = Mockito.mock(AvdInfo.class);
 
-    Mockito.when(myTable.getModel()).thenReturn(myModel);
     Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(device));
 
     // Act
-    Object sizeOnDisk = new SizeOnDisk(device, myTable, Futures.immediateFailedFuture(new RuntimeException()));
+    Object sizeOnDisk = new SizeOnDisk(device, myModel, Futures.immediateFailedFuture(new RuntimeException()));
 
     // Assert
     assertEquals("Failed to calculate", sizeOnDisk.toString());
@@ -114,22 +105,20 @@ public final class SizeOnDiskTest {
   @Test
   public void sort() {
     // Arrange
-    Mockito.when(myTable.getModel()).thenReturn(myModel);
-
     AvdInfo device1 = Mockito.mock(AvdInfo.class);
-    SizeOnDisk sizeOnDisk1 = new SizeOnDisk(device1, myTable, myNotDoneFuture);
+    SizeOnDisk sizeOnDisk1 = new SizeOnDisk(device1, myModel, myNotDoneFuture);
 
     AvdInfo device2 = Mockito.mock(AvdInfo.class);
-    SizeOnDisk sizeOnDisk2 = new SizeOnDisk(device2, myTable, Futures.immediateFuture(1_048_576L));
+    SizeOnDisk sizeOnDisk2 = new SizeOnDisk(device2, myModel, Futures.immediateFuture(1_048_576L));
 
     AvdInfo device3 = Mockito.mock(AvdInfo.class);
-    SizeOnDisk sizeOnDisk3 = new SizeOnDisk(device3, myTable, Futures.immediateFuture(2_097_152L));
+    SizeOnDisk sizeOnDisk3 = new SizeOnDisk(device3, myModel, Futures.immediateFuture(2_097_152L));
 
     AvdInfo device4 = Mockito.mock(AvdInfo.class);
-    SizeOnDisk sizeOnDisk4 = new SizeOnDisk(device4, myTable, Futures.immediateFuture(3_145_728L));
+    SizeOnDisk sizeOnDisk4 = new SizeOnDisk(device4, myModel, Futures.immediateFuture(3_145_728L));
 
     AvdInfo device5 = Mockito.mock(AvdInfo.class);
-    SizeOnDisk sizeOnDisk5 = new SizeOnDisk(device5, myTable, Futures.immediateFailedFuture(new RuntimeException()));
+    SizeOnDisk sizeOnDisk5 = new SizeOnDisk(device5, myModel, Futures.immediateFailedFuture(new RuntimeException()));
 
     List<SizeOnDisk> sizesOnDisk = Arrays.asList(sizeOnDisk4, sizeOnDisk1, sizeOnDisk5, sizeOnDisk2, sizeOnDisk3);
 
