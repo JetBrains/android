@@ -22,6 +22,7 @@ import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
@@ -89,7 +90,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // google api31 image
     String g31Path = "system-images;android-31;google_apis;x86_64";
-    FakePackage.FakeLocalPackage g31Package = new FakePackage.FakeLocalPackage(g31Path, mFileOp);
+    FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mFileOp.toPath("/sdk/mySysImg"));
     DetailsTypes.SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
@@ -190,7 +191,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // QEMU-1 image
     String q1Path = "system-images;android-q1;google_apis;x86";
-    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path, mFileOp);
+    FakeLocalPackage q1Package = new FakeLocalPackage(q1Path, mFileOp.toPath("/sdk/mySysImg1"));
     DetailsTypes.SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
@@ -198,7 +199,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // QEMU-2 image
     String q2Path = "system-images;android-q2;google_apis;x86";
-    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path, mFileOp);
+    FakeLocalPackage q2Package = new FakeLocalPackage(q2Path, mFileOp.toPath("/sdk/mySysImg2"));
     DetailsTypes.SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
@@ -208,7 +209,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // QEMU-2-64 image
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
-    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path, mFileOp);
+    FakeLocalPackage q2_64Package = new FakeLocalPackage(q2_64Path, mFileOp.toPath("/sdk/mySysImg3"));
     DetailsTypes.SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);

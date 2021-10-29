@@ -18,11 +18,11 @@ package com.android.tools.idea
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.repository.io.FileOp
+import com.android.repository.io.impl.FileOpImpl
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -32,13 +32,14 @@ import org.junit.runner.Description
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.spy
 import java.io.File
+import java.nio.file.Path
 
 /**
  * Beginning of an attempt to allow the Sdk to be mocked out with one that contains only the given components.
  *
  * TODO: combine this and com.android.sdklib.TempSdkManager
  */
-class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = MockFileOp(), val sdkPath: String = "/sdk")
+class FakeSdkRule(val projectRule: AndroidProjectRule, val sdkPath: Path = createInMemoryFileSystemAndFolder("sdk"))
   : NamedExternalResource() {
 
   var packages: RepositoryPackages = RepositoryPackages()
@@ -46,20 +47,21 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = Mock
   val remotePackages = mutableListOf<RemotePackage>()
 
   fun withLocalPackage(localPackage: LocalPackage) = apply { localPackages.add(localPackage) }
-  fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path, fileOp)) }
+  fun withLocalPackage(path: String, location: String) =
+    apply { localPackages.add(FakePackage.FakeLocalPackage(path, sdkPath.resolve(location))) }
   fun withRemotePackage(remotePackage: RemotePackage) = apply { remotePackages.add(remotePackage) }
 
-  fun addLocalPackage(path: String) {
-    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path, fileOp)))
+  fun addLocalPackage(path: String, location: String) {
+    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path, sdkPath.resolve(location))))
   }
 
   override fun before(description: Description) {
     packages = RepositoryPackages(localPackages, remotePackages)
-    val repoManager = FakeRepoManager(fileOp.toPath(sdkPath), packages)
-    val sdkHandler = AndroidSdkHandler(fileOp.toPath(sdkPath), null, fileOp, repoManager)
+    val repoManager = FakeRepoManager(sdkPath, packages)
+    val sdkHandler = AndroidSdkHandler(sdkPath, null, FileOpImpl(sdkPath.fileSystem), repoManager)
 
     val ideSdks = spy(IdeSdks.getInstance())
-    `when`(ideSdks.androidSdkPath).thenReturn(File(sdkPath))
+    `when`(ideSdks.androidSdkPath).thenReturn(File(sdkPath.toString()))
     IdeComponents(projectRule.fixture).replaceApplicationService(IdeSdks::class.java, ideSdks)
 
     val androidSdks = spy(AndroidSdks.getInstance())

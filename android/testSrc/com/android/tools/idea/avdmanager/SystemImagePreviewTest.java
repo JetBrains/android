@@ -57,7 +57,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp.toPath("/sdk/mSysImg"));
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -69,7 +69,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     // Fake preview image
     String previewPath = "system-images;android-ZZZ;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp.toPath("/sdk/previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -82,7 +82,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     // Fake preview image
     String wearOsPath = "system-images;android-wear-cn;android-30;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgWearOs = new FakePackage.FakeLocalPackage(wearOsPath, fileOp);
+    FakePackage.FakeLocalPackage pkgWearOs = new FakePackage.FakeLocalPackage(wearOsPath, fileOp.toPath("/sdk/cnPreviewSysImg"));
     DetailsTypes.SysImgDetailsType detailsWearOs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWearOs.getTags().add(IdDisplay.create("android-wear", "Wear OS Image"));

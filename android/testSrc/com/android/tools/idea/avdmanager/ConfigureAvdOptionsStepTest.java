@@ -89,7 +89,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Q image (API 29)
     String qPath = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp);
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp.toPath("/sdk/qSysImg"));
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -100,7 +100,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp.toPath("/sdk/mSysImg"));
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -111,7 +111,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Preview image
     String previewPath = "system-images;android-ZZZ;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp.toPath("/sdk/previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -124,7 +124,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
     String zuluPath = "system-images;android-Z;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp);
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp.toPath("/sdk/zSysImg"));
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -136,7 +136,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     // Image that contains SDK extensions and is not the base SDK
     String extensionsPath = "system-images;android-32-3;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, fileOp);
+    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, fileOp.toPath("/sdk/extensionSysImg"));
     DetailsTypes.SysImgDetailsType detailsExtensions =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsExtensions.getTags().add(IdDisplay.create("google_apis", "Google APIs"));

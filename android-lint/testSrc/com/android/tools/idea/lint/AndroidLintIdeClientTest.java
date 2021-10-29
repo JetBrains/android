@@ -38,6 +38,7 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.PlatformLookupKt;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.ImmutableList;
+import java.nio.file.Path;
 import junit.framework.TestCase;
 
 public class AndroidLintIdeClientTest extends TestCase {
@@ -96,9 +97,9 @@ public class AndroidLintIdeClientTest extends TestCase {
 
   @NonNull
   private static LocalPackage getLocalPlatformPackage(MockFileOp fop, String version, int api) {
-    fop.recordExistingFile("/sdk/platforms/android-" + version + "/build.prop", "");
+    fop.recordExistingFile("/sdk/android-" + version + "/build.prop", "");
     FakePackage.FakeLocalPackage local =
-      new FakePackage.FakeLocalPackage("platforms;android-" + version, fop);
+      new FakePackage.FakeLocalPackage("platforms;android-" + version, fop.toPath("/sdk/android-" + version));
 
     DetailsTypes.PlatformDetailsType platformDetails =
       AndroidSdkHandler.getRepositoryModule()
@@ -121,13 +122,11 @@ public class AndroidLintIdeClientTest extends TestCase {
     String vendor,
     String vendorDisplay,
     int version) {
+    Path packagePath = fop.toPath("/sdk/add-ons/addon-" + tag + "-" + vendor + "-" + version);
     // MUST also have platform target of the same version
-    fop.recordExistingFile(
-      "/sdk/add-ons/addon-" + tag + "-" + vendor + "-" + version + "/source.properties",
-      "");
+    fop.recordExistingFile(packagePath.resolve("source.properties"));
     FakePackage.FakeLocalPackage local =
-      new FakePackage.FakeLocalPackage(
-        "add-ons;addon-" + tag + "-" + vendor + "-" + version, fop);
+      new FakePackage.FakeLocalPackage("add-ons;addon-" + tag + "-" + vendor + "-" + version, packagePath);
 
     DetailsTypes.AddonDetailsType addOnDetails =
       AndroidSdkHandler.getAddonModule().createLatestFactory().createAddonDetailsType();

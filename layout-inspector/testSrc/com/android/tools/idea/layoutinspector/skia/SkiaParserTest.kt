@@ -101,7 +101,7 @@ class SkiaParserTest {
 
 class SkiaParserWithSdkTest {
   val projectRule = AndroidProjectRule.inMemory()
-  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1")
+  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1", "skiaparser/1")
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!

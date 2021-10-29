@@ -52,7 +52,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Image with known API level
     String knownApiPath = "system-images;android-26;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, fileOp.toPath("/sdk/26SysImg"));
     DetailsTypes.SysImgDetailsType detailsKnownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsKnownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -62,7 +62,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Image with deprecated API level (Honeycomb)
     String deprecatedApiPath = "system-images;android-13;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, fileOp.toPath("/sdk/13SysImg"));
     DetailsTypes.SysImgDetailsType detailsDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -72,7 +72,8 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Image with deprecated API level (whatever is most-recently deprecated)
     String justDeprecatedApiPath = "system-images;android-97;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgJustDeprecatedApi = new FakePackage.FakeLocalPackage(justDeprecatedApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgJustDeprecatedApi =
+      new FakePackage.FakeLocalPackage(justDeprecatedApiPath, fileOp.toPath("/sdk/97SysImg"));
     DetailsTypes.SysImgDetailsType detailsJustDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsJustDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -82,7 +83,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Preview image (with unknown API level)
     String PreviewApiPath = "system-images;android-98;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, fileOp.toPath("/sdk/previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreviewApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreviewApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -94,7 +95,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     // Non-preview image with unknown API level
     // (This shouldn't happen.)
     String unknownApiPath = "system-images;android-99;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, fileOp.toPath("/sdk/zSysImg"));
     DetailsTypes.SysImgDetailsType detailsUnknownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsUnknownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -105,7 +106,8 @@ public class SystemImageListModelTest extends AndroidTestCase {
 
     // Image that has extension level specified and is not the base SDK
     String extentionsApiPath = "system-images;android-99-3;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgExtensionsApi = new FakePackage.FakeLocalPackage(extentionsApiPath, fileOp);
+    FakePackage.FakeLocalPackage pkgExtensionsApi =
+      new FakePackage.FakeLocalPackage(extentionsApiPath, fileOp.toPath("/sdk/extensionSysImg"));
     DetailsTypes.SysImgDetailsType extensionsApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     extensionsApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));

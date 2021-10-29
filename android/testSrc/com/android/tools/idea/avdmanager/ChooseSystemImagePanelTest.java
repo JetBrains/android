@@ -34,6 +34,7 @@ import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemIma
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -61,10 +62,12 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   private static final String SDK_LOCATION = "/sdk";
   private static final String AVD_LOCATION = "/avd";
+  private static final String SDK_SEPARATOR = Character.toString(RepoPackage.PATH_SEPARATOR);
 
   private static FakePackage.FakeLocalPackage createSysimgPackage(String sysimgPath, String abi, IdDisplay tag, IdDisplay vendor,
                                                                   int apiLevel, MockFileOp fileOp) {
-    FakePackage.FakeLocalPackage pkg = new FakePackage.FakeLocalPackage(sysimgPath, fileOp);
+    FakePackage.FakeLocalPackage pkg = new FakePackage.FakeLocalPackage(
+      sysimgPath, fileOp.toPath(SDK_LOCATION + "/" + sysimgPath.replaceAll(SDK_SEPARATOR, "/")));
     DetailsTypes.SysImgDetailsType sysimgDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     sysimgDetails.getTags().add(tag);

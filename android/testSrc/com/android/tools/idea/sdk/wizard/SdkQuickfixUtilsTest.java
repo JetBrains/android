@@ -85,7 +85,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoRepoReloadsWhenUninstallsOnly() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp);
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp.toPath("/sdk/p"));
 
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, null, null,
                                                              Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
@@ -98,7 +98,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoUncachedRepoReloads() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp);
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp.toPath("/sdk/p"));
     try {
       SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
                                     null, ImmutableList.of(localPackage), mySdkHandler,

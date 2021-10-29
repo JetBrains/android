@@ -142,7 +142,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testGetAndroidNdkPath() {
     FileOp fop = FileOpUtils.create();
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop.toPath("/sdk/ndk/21.0.0"));
     setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
@@ -153,7 +153,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testGetAndroidNdkPathWithPredicate() {
     FileOp fop = FileOpUtils.create();
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop.toPath("/sdk/ndk/21.0.0"));
     setupSdkData(ImmutableList.of(value), fop);
 
     File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
