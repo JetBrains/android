@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.model.stubs;
 
 import com.android.annotations.NonNull;
+import com.android.builder.model.v2.CustomSourceDirectory;
 import com.android.builder.model.SourceProvider;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 
 public class SourceProviderStub extends BaseStub implements SourceProvider {
     @NonNull private final String myName;
@@ -37,6 +37,7 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
     @NonNull private final Collection<File> myJniLibsDirectories;
     @NonNull private final Collection<File> myShadersDirectories;
     @NonNull private final Collection<File> myMlModelsDirectories;
+    @NonNull private final Collection<CustomSourceDirectory> myCustomDirectories;
 
     public SourceProviderStub() {
         this("name", new File("/"), "manifest");
@@ -56,7 +57,8 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
                 new File(rootDirectory, "assets"),
                 new File(rootDirectory, "jniLibs"),
                 new File(rootDirectory, "shaders"),
-                new File(rootDirectory, "ml"));
+                new File(rootDirectory, "ml"),
+                new File(rootDirectory, "custom"));
     }
 
     public SourceProviderStub(
@@ -71,7 +73,8 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
             @NonNull File assetsDirectory,
             @NonNull File jniLibsDirectory,
             @NonNull File shadersDirectory,
-            @NonNull File mlMlModelsDirectory) {
+            @NonNull File mlMlModelsDirectory,
+            @NonNull File customDirectory) {
         myName = name;
         myManifestFile = manifestFile;
         myJavaDirectories = Lists.newArrayList(javaDirectory);
@@ -84,6 +87,9 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
         myJniLibsDirectories = Lists.newArrayList(jniLibsDirectory);
         myShadersDirectories = Lists.newArrayList(shadersDirectory);
         myMlModelsDirectories = Lists.newArrayList(mlMlModelsDirectory);
+        myCustomDirectories = Lists.newArrayList(
+          new CustomSourceDirectory("custom", customDirectory)
+        );
     }
 
     public SourceProviderStub(
@@ -98,7 +104,8 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
             @NonNull Collection<File> assetsDirectories,
             @NonNull Collection<File> jniLibsDirectories,
             @NonNull Collection<File> shadersDirectories,
-            @NonNull Collection<File> mlModelsDirectories) {
+            @NonNull Collection<File> mlModelsDirectories,
+            @NonNull Collection<CustomSourceDirectory> customDirectories) {
         myName = name;
         myManifestFile = manifestFile;
         myJavaDirectories = Lists.newArrayList(javaDirectories);
@@ -111,6 +118,7 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
         myJniLibsDirectories = Lists.newArrayList(jniLibsDirectories);
         myShadersDirectories = Lists.newArrayList(shadersDirectories);
         myMlModelsDirectories = Lists.newArrayList(mlModelsDirectories);
+        myCustomDirectories = Lists.newArrayList(customDirectories);
     }
 
     @Override
@@ -131,7 +139,7 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
         return myJavaDirectories;
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Collection<File> getKotlinDirectories() {
         return myKotlinDirectories;
@@ -198,6 +206,12 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
     }
 
     @Override
+    @NonNull
+    public Collection<CustomSourceDirectory> getCustomDirectories() {
+        return myCustomDirectories;
+    }
+
+  @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

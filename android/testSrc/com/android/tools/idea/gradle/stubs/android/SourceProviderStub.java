@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.v2.CustomSourceDirectory;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Sets;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -225,6 +227,12 @@ public class SourceProviderStub implements SourceProvider {
   @Override
   @NotNull
   public Collection<File> getMlModelsDirectories() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  @NotNull
+  public Collection<CustomSourceDirectory> getCustomDirectories() {
     return Collections.emptyList();
   }
 }
