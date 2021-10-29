@@ -257,7 +257,7 @@ internal class LogcatMainPanel(
         it.stop()
         it.clearLogcat()
       }
-      messageBacklog.messages.clear()
+      messageBacklog.clear()
       logcatReader?.start()
       withContext(uiThread) {
         document.setText("")
