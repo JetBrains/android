@@ -39,11 +39,11 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
+import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
-import org.jetbrains.uast.kotlin.KotlinUClassLiteralExpression
 import org.jetbrains.uast.toUElement
 
 
@@ -91,7 +91,7 @@ private fun UAnnotation.findAttributeFloatValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Float
 
 private fun UAnnotation.findClassNameValue(name: String) =
-  (findAttributeValue(name) as? KotlinUClassLiteralExpression)?.type?.canonicalText
+  (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
 
 /**
  * Looks up for annotation element using a set of annotation qualified names.
