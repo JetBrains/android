@@ -47,6 +47,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_FIXTURES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.WITH_GRADLE_METADATA
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.onEdt
@@ -152,6 +153,12 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     @Test
     fun testSimpleApplication() {
       val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
+      assertIsEqualToSnapshot(text)
+    }
+
+    @Test
+    fun testWithGradleMetadata() {
+      val text = importSyncAndDumpProject(WITH_GRADLE_METADATA)
       assertIsEqualToSnapshot(text)
     }
 

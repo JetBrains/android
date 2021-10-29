@@ -89,6 +89,7 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
   companion object {
     private val projectsList = listOf(
       TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+      TestProject(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),

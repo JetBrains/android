@@ -1,0 +1,9 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 99
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
+}

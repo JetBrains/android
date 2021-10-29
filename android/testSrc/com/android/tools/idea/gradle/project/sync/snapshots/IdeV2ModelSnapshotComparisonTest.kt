@@ -75,6 +75,7 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> = listOf(
       TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+      TestProject(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
