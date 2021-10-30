@@ -39,12 +39,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
@@ -58,7 +57,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
@@ -141,20 +139,17 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testGetAndroidNdkPath() {
-    FileOp fop = FileOpUtils.create();
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop.toPath("/sdk/ndk/21.0.0"));
-    setupSdkData(ImmutableList.of(value), fop);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
+    setupSdkData(ImmutableList.of(value));
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
-    String osPrefix = SystemInfo.isWindows ? "C:" : "";
     assertThat(ndkPath.getAbsolutePath())
-      .matches(osPrefix + Pattern.quote(toSystemDependentName("/sdk/ndk/")) + "[0-9.]+");
+      .matches(Pattern.quote(Paths.get("/sdk/ndk").toAbsolutePath().toString() + File.separatorChar) + "[0-9.]+");
   }
 
   public void testGetAndroidNdkPathWithPredicate() {
-    FileOp fop = FileOpUtils.create();
-    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0", fop.toPath("/sdk/ndk/21.0.0"));
-    setupSdkData(ImmutableList.of(value), fop);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
+    setupSdkData(ImmutableList.of(value));
 
     File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
     assertThat(ndkPath).isNull();
@@ -288,10 +283,11 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(jdkFile).isEqualTo(expectedFile);
   }
 
-  private void setupSdkData(ImmutableList<LocalPackage> localPackages, FileOp fop) {
+  private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
     RepositoryPackages packages = new RepositoryPackages(localPackages, Collections.emptyList());
     RepoManager repoManager = new FakeRepoManager(packages);
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), null, repoManager);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(localPackages.get(0).getLocation().getRoot().resolve("sdk"), null,
+                                                                repoManager);
     AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
     doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
     myAndroidSdks.setSdkData(androidSdkData);
