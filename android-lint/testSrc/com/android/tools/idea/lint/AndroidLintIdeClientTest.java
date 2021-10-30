@@ -54,7 +54,7 @@ public class AndroidLintIdeClientTest extends TestCase {
     packages.setLocalPkgInfos(
       ImmutableList.of(platformPackage, previewPlatform, addOnPlatform));
     RepoManager mgr = new FakeRepoManager(null, packages);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(null, null, fop, mgr);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), null, mgr);
     com.intellij.openapi.project.Project ideaProject = mock(com.intellij.openapi.project.Project.class);
     LintResult result = new LintIgnoredResult();
     LintClient client = new AndroidLintIdeClient(ideaProject, result) {

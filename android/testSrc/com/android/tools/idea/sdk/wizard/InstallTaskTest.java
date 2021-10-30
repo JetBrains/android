@@ -94,7 +94,7 @@ public class InstallTaskTest extends AndroidTestCase {
     RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(existing1), ImmutableList.of(myAvailable1, myAvailable2));
 
     FakeRepoManager repoManager = new FakeRepoManager(myFileOp.toPath(SDK_ROOT), repoPackages);
-    mySdkHandler = new AndroidSdkHandler(myFileOp.toPath(SDK_ROOT), myFileOp.toPath("/sdk"), myFileOp, repoManager);
+    mySdkHandler = new AndroidSdkHandler(myFileOp.toPath(SDK_ROOT), myFileOp.toPath("/sdk"), repoManager);
 
     myInstallTask = new InstallTask(factory, mySdkHandler, new FakeSettingsController(false), myProgressIndicator);
     myInstallTask.setInstallRequests(ImmutableList.of(new UpdatablePackage(myAvailable1), new UpdatablePackage(myAvailable2)));

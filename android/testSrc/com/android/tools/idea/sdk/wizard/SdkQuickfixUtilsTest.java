@@ -36,7 +36,6 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
-import java.io.File;
 import java.util.Collections;
 
 /**
@@ -56,7 +55,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
     String sdkPath = "/sdk";
     String avdPath = "/avd";
     myRepoManager = spy(new FakeRepoManager(fileOp.toPath(sdkPath), packages));
-    mySdkHandler = new AndroidSdkHandler(fileOp.toPath(sdkPath), fileOp.toPath(avdPath), fileOp, myRepoManager);
+    mySdkHandler = new AndroidSdkHandler(fileOp.toPath(sdkPath), fileOp.toPath(avdPath), myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));

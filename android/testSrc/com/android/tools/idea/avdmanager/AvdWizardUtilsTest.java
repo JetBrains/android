@@ -60,6 +60,6 @@ public class AvdWizardUtilsTest {
     RepositoryPackages packages = new RepositoryPackages();
     packages.setLocalPkgInfos(ImmutableList.of(p));
     RepoManager mgr = new FakeRepoManager(null, packages);
-    return new AndroidSdkHandler(null, null, new MockFileOp(), mgr);
+    return new AndroidSdkHandler(null, null, mgr);
   }
 }

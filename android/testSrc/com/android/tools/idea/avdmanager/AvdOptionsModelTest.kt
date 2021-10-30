@@ -81,7 +81,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     packages.setLocalPkgInfos(pkgList)
 
     val mgr = FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages)
-    val sdkHandler = AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr)
+    val sdkHandler = AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr)
 
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)

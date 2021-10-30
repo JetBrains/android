@@ -209,8 +209,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     RemotePackage pkg = new FakePackage.FakeRemotePackage("extras;m2repository;com;google;android;gms;play-services;4.5.0");
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
-    mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT),
-                                         new MockFileOp(myRoot.getFileSystem()), mgr);
+    mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT), mgr);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
     assertNotNull(coordinate);
     assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));

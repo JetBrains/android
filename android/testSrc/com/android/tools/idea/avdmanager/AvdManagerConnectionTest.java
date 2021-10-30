@@ -99,7 +99,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     packages.setLocalPkgInfos(ImmutableList.of(g31Package));
     FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mgr);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
@@ -221,7 +221,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     FakeRepoManager mgr = new FakeRepoManager(mFileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mFileOp, mgr);
+      new AndroidSdkHandler(mFileOp.toPath(SDK_LOCATION), mFileOp.toPath(AVD_LOCATION), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);

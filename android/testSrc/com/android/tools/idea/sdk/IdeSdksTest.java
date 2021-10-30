@@ -291,7 +291,7 @@ public class IdeSdksTest extends PlatformTestCase {
   private void setupSdkData(ImmutableList<LocalPackage> localPackages, FileOp fop) {
     RepositoryPackages packages = new RepositoryPackages(localPackages, Collections.emptyList());
     RepoManager repoManager = new FakeRepoManager(packages);
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, fop, repoManager);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), null, repoManager);
     AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
     doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
     myAndroidSdks.setSdkData(androidSdkData);

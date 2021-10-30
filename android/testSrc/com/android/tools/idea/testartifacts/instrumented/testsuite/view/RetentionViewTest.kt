@@ -94,7 +94,7 @@ class RetentionViewTest {
     mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
     val packages = RepositoryPackages(listOf(p), listOf())
     val mgr: RepoManager = FakeRepoManager(mockFileOp.toPath(sdkPath), packages)
-    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mockFileOp, mgr)
+    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mgr)
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
     `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime, mockLogReporter)

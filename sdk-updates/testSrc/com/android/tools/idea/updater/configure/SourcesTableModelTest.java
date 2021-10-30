@@ -60,7 +60,7 @@ public class SourcesTableModelTest {
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     MockFileOp fop = new MockFileOp();
     RepoManager repoManager = new RepoManagerImpl();
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"), fop, repoManager);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"), repoManager);
     LocalSourceProvider localSourceProvider = sdkHandler.getUserSourceProvider(new FakeProgressIndicator());
     localSourceProvider.getSources(null, new FakeProgressIndicator(), false);
     localSourceProvider.addSource(new SimpleRepositorySource(

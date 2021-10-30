@@ -18,7 +18,6 @@ package com.android.tools.idea
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.repository.io.impl.FileOpImpl
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -58,7 +57,7 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val sdkPath: Path = creat
   override fun before(description: Description) {
     packages = RepositoryPackages(localPackages, remotePackages)
     val repoManager = FakeRepoManager(sdkPath, packages)
-    val sdkHandler = AndroidSdkHandler(sdkPath, null, FileOpImpl(sdkPath.fileSystem), repoManager)
+    val sdkHandler = AndroidSdkHandler(sdkPath, null, repoManager)
 
     val ideSdks = spy(IdeSdks.getInstance())
     `when`(ideSdks.androidSdkPath).thenReturn(File(sdkPath.toString()))

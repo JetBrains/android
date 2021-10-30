@@ -51,7 +51,7 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
   @Test
   fun testComputeSdkRepoReloads() {
     val repoManager = mock(RepoManager::class.java)
-    val sdkHandler = AndroidSdkHandler(null, null, MockFileOp(), repoManager)
+    val sdkHandler = AndroidSdkHandler(null, null, repoManager)
     `when`(androidSdks.findSuitableAndroidSdk(eq("WantedCompileTarget"))).thenReturn(null)
     `when`(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     `when`(androidSdks.tryToCreate(any(), any())).thenAnswer {

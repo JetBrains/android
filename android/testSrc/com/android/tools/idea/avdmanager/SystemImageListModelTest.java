@@ -124,7 +124,7 @@ public class SystemImageListModelTest extends AndroidTestCase {
     RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), fileOp, mgr);
+      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);

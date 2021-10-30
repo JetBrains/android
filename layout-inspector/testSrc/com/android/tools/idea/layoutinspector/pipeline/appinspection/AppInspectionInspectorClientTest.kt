@@ -697,7 +697,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val sdkPackage = setUpSdkPackage(sdkRoot, 1, 30, null, false) as LocalPackage
     val avdInfo = setUpAvd(sdkPackage, null, 30)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
-    val sdkHandler = AndroidSdkHandler(sdkRoot, null, MockFileOp(sdkRoot.fileSystem), FakeRepoManager(sdkRoot, packages))
+    val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
     val banner = InspectorBanner(projectRule.project)
     assertThat(banner.isVisible).isFalse()
 
@@ -721,7 +721,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val sdkPackage = setUpSdkPackage(sdkRoot, minRevision - 1, 29, tag, false) as LocalPackage
     val avdInfo = setUpAvd(sdkPackage, tag, 29)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
-    val sdkHandler = AndroidSdkHandler(sdkRoot, null, MockFileOp(sdkRoot.fileSystem), FakeRepoManager(sdkRoot, packages))
+    val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
     val banner = InspectorBanner(projectRule.project)
     assertThat(banner.isVisible).isFalse()
 
