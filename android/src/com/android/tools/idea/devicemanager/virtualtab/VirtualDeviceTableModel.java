@@ -28,15 +28,16 @@ import org.jetbrains.annotations.NotNull;
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  private static final int API_MODEL_COLUMN_INDEX = 1;
-  private static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
-  private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
+  static final int API_MODEL_COLUMN_INDEX = 1;
+  static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
+  static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
   private @NotNull List<@NotNull AvdInfo> myDevices = Collections.emptyList();
   private final @NotNull Map<@NotNull AvdInfo, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap = new HashMap<>();
 
-  private static final class Actions {
-    private static final Actions INSTANCE = new Actions();
+  static final class Actions {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final Actions INSTANCE = new Actions();
 
     private Actions() {
     }
