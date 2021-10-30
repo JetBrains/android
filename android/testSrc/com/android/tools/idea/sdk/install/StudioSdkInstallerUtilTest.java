@@ -33,7 +33,7 @@ public class StudioSdkInstallerUtilTest {
     StudioSdkInstallerUtil sdkInstallerUtil = new StudioSdkInstallerUtil(settingsController);
 
     MockFileOp fop = new MockFileOp();
-    final AndroidSdkHandler sdkHandler = new AndroidSdkHandler(null, fop.toPath("/sdk"), fop);
+    final AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"));
     InstallerFactory factory = sdkInstallerUtil.doCreateInstallerFactory(sdkHandler);
     assertThat(factory).isInstanceOf(PatchInstallerFactory.class);
 

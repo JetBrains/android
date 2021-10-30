@@ -71,7 +71,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordEmulatorVersion_23_4_5(mFileOp);
     Path root = InMemoryFileSystems.getSomeRoot(mFileOp.getFileSystem());
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(root.resolve("sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(root.resolve("sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT));
 
     mAvdManager = AvdManager.getInstance(androidSdkHandler, root.resolve(ANDROID_PREFS_ROOT + "/avd"), new NullLogger());
 
@@ -299,7 +299,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT));
     AvdManagerConnection managerConnection =
       new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
 

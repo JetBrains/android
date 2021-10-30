@@ -24,7 +24,6 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -101,8 +100,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                       new StubGoogleMavenRepository(OFFLINE_CACHE),
                                                       true /* force repository checks */,
                                                       true /* ues embedded studio repo */);
-    mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT),
-                                         new MockFileOp(myRoot.getFileSystem()));
+    mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT));
     AndroidSdkData sdk = Mockito.mock(AndroidSdkData.class);
     Mockito.when(sdk.getLocationFile()).thenReturn(new File(SDK_DIR));
   }

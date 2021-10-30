@@ -115,7 +115,7 @@ public final class AndroidVirtualDeviceTest {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
     Path sdkPath = fop.toPath("/sdk");
-    sdkHandler = new AndroidSdkHandler(sdkPath, fop.toPath("/android-home"), fop);
+    sdkHandler = new AndroidSdkHandler(sdkPath, fop.toPath("/android-home"));
 
     IdeSdks ideSdks = spy(IdeSdks.getInstance());
     when(ideSdks.getAndroidSdkPath()).thenReturn(fop.toFile(sdkPath));
