@@ -26,6 +26,7 @@ import com.android.prefs.AndroidLocationsException;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -118,7 +119,7 @@ public final class AndroidVirtualDeviceTest {
     sdkHandler = new AndroidSdkHandler(sdkPath, fop.toPath("/android-home"));
 
     IdeSdks ideSdks = spy(IdeSdks.getInstance());
-    when(ideSdks.getAndroidSdkPath()).thenReturn(fop.toFile(sdkPath));
+    when(ideSdks.getAndroidSdkPath()).thenReturn(FileOpUtils.toFile(sdkPath));
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, ideSdks, disposableRule.getDisposable());
     AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
     when(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler);
