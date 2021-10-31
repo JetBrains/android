@@ -845,6 +845,20 @@
     <option name="you" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
     <option name="your" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
   </configurable>
+  <configurable id="configuration.execution" configurable_name="Android Configurations">
+    <option name="android" hit="Android Configurations" />
+    <option name="configurations" hit="Android Configurations" />
+    <option name="android" hit="Enable new execution flow for Android configurations" />
+    <option name="configurations" hit="Enable new execution flow for Android configurations" />
+    <option name="enable" hit="Enable new execution flow for Android configurations" />
+    <option name="execution" hit="Enable new execution flow for Android configurations" />
+    <option name="flow" hit="Enable new execution flow for Android configurations" />
+    <option name="for" hit="Enable new execution flow for Android configurations" />
+    <option name="new" hit="Enable new execution flow for Android configurations" />
+    <option name="execution" hit="New Execution Flow" />
+    <option name="flow" hit="New Execution Flow" />
+    <option name="new" hit="New Execution Flow" />
+  </configurable>
   <configurable id="testing.instrumented.configuration" configurable_name="Testing">
     <option name="android" hit="Run Android Instrumented Tests using Gradle." />
     <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />

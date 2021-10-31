@@ -378,6 +378,9 @@
 
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+
+    <applicationConfigurable groupId="build" id="configuration.execution"
+                             provider="com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
     <applicationConfigurable groupId="build" id="testing.instrumented.configuration"
                              provider="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfigurableProvider"/>
