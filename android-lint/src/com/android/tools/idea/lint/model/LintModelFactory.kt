@@ -344,6 +344,7 @@ class LintModelFactory : LintModelModuleLoader {
           consumerProguardFiles = variant.consumerProguardFiles,
           sourceProviders = computeSourceProviders(project, variant),
           testSourceProviders = computeTestSourceProviders(project, variant),
+          testFixturesSourceProviders = computeTestFixturesSourceProviders(project, variant),
           debuggable = buildType.isDebuggable,
           shrinkable = buildType.isMinifyEnabled,
           buildFeatures = getBuildFeatures(project, module.gradleVersion),
@@ -415,12 +416,49 @@ class LintModelFactory : LintModelModuleLoader {
         return isUnitTest() || isInstrumentationTest()
     }
 
+    private fun IdeSourceProviderContainer.isTestFixtures(): Boolean {
+        return AndroidProject.ARTIFACT_TEST_FIXTURES == artifactName
+    }
+
     private fun IdeSourceProviderContainer.isUnitTest(): Boolean {
         return AndroidProject.ARTIFACT_UNIT_TEST == artifactName
     }
 
     private fun IdeSourceProviderContainer.isInstrumentationTest(): Boolean {
         return AndroidProject.ARTIFACT_ANDROID_TEST == artifactName
+    }
+
+    private fun computeExtraSourceProviders(
+      project: IdeAndroidProject,
+      variant: IdeVariant,
+      filter: (IdeSourceProviderContainer) -> Boolean
+    ): List<LintModelSourceProvider> {
+        val providers = mutableListOf<LintModelSourceProvider>()
+
+        project.defaultConfig.extraSourceProviders.filter { filter(it) }.forEach { extra ->
+          getSourceProvider(extra)?.let { providers.add(it) }
+        }
+
+        for (flavorContainer in project.productFlavors) {
+            if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
+                flavorContainer.extraSourceProviders.filter { filter(it) }.forEach { extra ->
+                  getSourceProvider(extra)?.let { providers.add(it) }
+                }
+            }
+        }
+
+        for (buildTypeContainer in project.buildTypes) {
+            if (variant.buildType == buildTypeContainer.buildType.name) {
+                buildTypeContainer.extraSourceProviders.filter { filter(it) }.forEach { extra ->
+                     getSourceProvider(
+                         providerContainer = extra,
+                         debugOnly = buildTypeContainer.buildType.isDebuggable
+                     )?.let { providers.add(it) }
+                }
+            }
+        }
+
+        return providers
     }
 
     /**
@@ -440,37 +478,28 @@ class LintModelFactory : LintModelModuleLoader {
       project: IdeAndroidProject,
       variant: IdeVariant
     ): List<LintModelSourceProvider> {
+        return computeExtraSourceProviders(project, variant) { it.isTest() }
+    }
+
+    private fun computeTestFixturesSourceProviders(
+      project: IdeAndroidProject,
+      variant: IdeVariant
+    ): List<LintModelSourceProvider> {
         val providers = mutableListOf<LintModelSourceProvider>()
 
-        for (extra in project.defaultConfig.extraSourceProviders) {
-            if (extra.isTest()) {
-                getSourceProvider(extra)?.let { providers.add(it) }
+        providers.addAll(computeExtraSourceProviders(project, variant) { it.isTestFixtures() })
+
+        variant.testFixturesArtifact?.let { artifact ->
+            artifact.variantSourceProvider?.let {
+                providers.add(getSourceProvider(it))
+            }
+            artifact.multiFlavorSourceProvider?.let {
+                providers.add(getSourceProvider(
+                    it,
+                    debugOnly = project.buildTypes.first { it.buildType.name == variant.buildType }.buildType.isDebuggable
+                ))
             }
         }
-
-        for (flavorContainer in project.productFlavors) {
-            if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
-                for (extra in flavorContainer.extraSourceProviders) {
-                    if (extra.isTest()) {
-                        getSourceProvider(extra)?.let { providers.add(it) }
-                    }
-                }
-            }
-        }
-
-        for (buildTypeContainer in project.buildTypes) {
-            if (variant.buildType == buildTypeContainer.buildType.name) {
-                for (extra in buildTypeContainer.extraSourceProviders) {
-                    if (extra.isTest()) {
-                        getSourceProvider(
-                            providerContainer = extra,
-                            debugOnly = buildTypeContainer.buildType.isDebuggable
-                        )?.let { providers.add(it) }
-                    }
-                }
-            }
-        }
-
         return providers
     }
 
@@ -750,6 +779,13 @@ class LintModelFactory : LintModelModuleLoader {
                 project,
                 variant
             ).also { _testSourceProviders = it }
+
+      private var _testFixturesSourceProviders: List<LintModelSourceProvider>? = null
+      override val testFixturesSourceProviders: List<LintModelSourceProvider>
+        get() = _testFixturesSourceProviders ?: computeTestFixturesSourceProviders(
+          project,
+          variant
+        ).also { _testFixturesSourceProviders = it }
 
         private var _resValues: Map<String, LintModelResourceField>? = null
         override val resValues: Map<String, LintModelResourceField>

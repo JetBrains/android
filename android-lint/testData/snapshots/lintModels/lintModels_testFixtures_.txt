@@ -1034,6 +1034,17 @@ MODULE                        : project.lib
             - JavaDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
             - ResDirectories              : <ROOT>/lib/src/testDebug/res [-]
             - AssetsDirectories           : <ROOT>/lib/src/testDebug/assets [-]
+        TestFixturesSourceProviders
+            ManifestFile                  : <ROOT>/lib/src/testFixtures/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/lib/src/testFixtures/java
+            - JavaDirectories             : <ROOT>/lib/src/testFixtures/kotlin [-]
+            - ResDirectories              : <ROOT>/lib/src/testFixtures/res
+            - AssetsDirectories           : <ROOT>/lib/src/testFixtures/assets [-]
+            ManifestFile                  : <ROOT>/lib/src/testFixturesDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/lib/src/testFixturesDebug/java [-]
+            - JavaDirectories             : <ROOT>/lib/src/testFixturesDebug/kotlin [-]
+            - ResDirectories              : <ROOT>/lib/src/testFixturesDebug/res [-]
+            - AssetsDirectories           : <ROOT>/lib/src/testFixturesDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)

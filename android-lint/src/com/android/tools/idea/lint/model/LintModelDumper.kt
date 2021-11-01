@@ -181,6 +181,12 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
           testSourceProviders.forEach { dump(it) }
         }
       }
+      if (testFixturesSourceProviders.isNotEmpty()) {
+        head("TestFixturesSourceProviders")
+        nest {
+          testFixturesSourceProviders.forEach { dump(it) }
+        }
+      }
       prop("Debuggable") { debuggable.takeIf { it }?.toString() }
       prop("Shrinkable") { shrinkable.takeIf { it }?.toString() }
 
