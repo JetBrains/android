@@ -350,6 +350,7 @@ class LintModelFactory : LintModelModuleLoader {
           mainArtifact = getArtifact(variant.mainArtifact),
           testArtifact = getTestArtifact(variant),
           androidTestArtifact = getAndroidTestArtifact(variant),
+          testFixturesArtifact = getTestFixturesArtifact(variant),
           mergedManifest = null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
           manifestMergeReport = null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
           `package` = null, // not in the old builder model
@@ -368,6 +369,11 @@ class LintModelFactory : LintModelModuleLoader {
           libraryResolver = libraryResolver,
           partialResultsDir = null
         )
+    }
+
+    private fun getTestFixturesArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
+      val artifact = variant.testFixturesArtifact ?: return null
+      return getArtifact(artifact)
     }
 
     private fun getAndroidTestArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
@@ -787,6 +793,11 @@ class LintModelFactory : LintModelModuleLoader {
         override val androidTestArtifact: LintModelAndroidArtifact?
             get() = _androidTestArtifact
                 ?: getAndroidTestArtifact(variant).also { _androidTestArtifact = it }
+
+      private var _testFixturesArtifact: LintModelAndroidArtifact? = null
+      override val testFixturesArtifact: LintModelAndroidArtifact?
+        get() = _testFixturesArtifact
+                ?: getTestFixturesArtifact(variant).also { _testFixturesArtifact = it }
 
         private var _proguardFiles: Collection<File>? = null
         override val proguardFiles: Collection<File>

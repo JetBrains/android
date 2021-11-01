@@ -967,6 +967,47 @@ MODULE                        : project.lib
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+        TestFixturesArtifact
+            ApplicationId                 :
+            - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/testFixtures/debug [-]
+            - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
+            Dependencies
+                CompileDependencies
+                    artifacts::lib                : null => artifacts::lib:unspecified
+                    com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
+                    com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
+                    com.google.code.gson:gson     : null => com.google.code.gson:gson:2.2.4
+                    com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
+                    com.google.guava:failureaccess          : null => com.google.guava:failureaccess:1.0.1
+                    com.google.guava:guava        : null => com.google.guava:guava:27.0.1-android
+                    com.google.guava:listenablefuture       : null => com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+                    com.google.j2objc:j2objc-annotations    : null => com.google.j2objc:j2objc-annotations:1.1
+                    com.google.truth:truth        : null => com.google.truth:truth:0.44
+                    com.googlecode.java-diff-utils:diffutils          : null => com.googlecode.java-diff-utils:diffutils:1.3.0
+                    commons-io:commons-io         : null => commons-io:commons-io:2.4
+                    junit:junit                   : null => junit:junit:4.12
+                    org.checkerframework:checker-compat-qual          : null => org.checkerframework:checker-compat-qual:2.5.5
+                    org.codehaus.mojo:animal-sniffer-annotations      : null => org.codehaus.mojo:animal-sniffer-annotations:1.17
+                    org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+                PackageDependencies
+                    artifacts::lib                : null => artifacts::lib:unspecified
+                    com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
+                    com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
+                    com.google.code.gson:gson     : null => com.google.code.gson:gson:2.2.4
+                    com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
+                    com.google.guava:failureaccess          : null => com.google.guava:failureaccess:1.0.1
+                    com.google.guava:guava        : null => com.google.guava:guava:27.0.1-android
+                    com.google.guava:listenablefuture       : null => com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+                    com.google.j2objc:j2objc-annotations    : null => com.google.j2objc:j2objc-annotations:1.1
+                    com.google.truth:truth        : null => com.google.truth:truth:0.44
+                    com.googlecode.java-diff-utils:diffutils          : null => com.googlecode.java-diff-utils:diffutils:1.3.0
+                    commons-io:commons-io         : null => commons-io:commons-io:2.4
+                    junit:junit                   : null => junit:junit:4.12
+                    org.checkerframework:checker-compat-qual          : null => org.checkerframework:checker-compat-qual:2.5.5
+                    org.codehaus.mojo:animal-sniffer-annotations      : null => org.codehaus.mojo:animal-sniffer-annotations:1.17
+                    org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugTestFixtures/R.jar [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugTestFixtures/classes [-]
         MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/lib/src/main/AndroidManifest.xml
@@ -1071,6 +1112,10 @@ MODULE                        : project.lib
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
                 ArtifactAddress               : com.google.code.findbugs:jsr305:3.0.2
                 ResolvedCoordinates           : com.google.code.findbugs:jsr305:3.0.2
+            LintModelLibrary              : JavaLibrary(com.google.code.gson:gson:2.2.4)
+                - JarFiles                    : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
+                ArtifactAddress               : com.google.code.gson:gson:2.2.4
+                ResolvedCoordinates           : com.google.code.gson:gson:2.2.4
             LintModelLibrary              : JavaLibrary(com.google.errorprone:error_prone_annotations:2.3.1)
                 - JarFiles                    : <M2>/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar
                 ArtifactAddress               : com.google.errorprone:error_prone_annotations:2.3.1

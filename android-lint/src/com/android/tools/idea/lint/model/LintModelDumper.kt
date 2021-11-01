@@ -141,6 +141,12 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       androidTestArtifact?.let { androidTestArtifact ->
         dump(androidTestArtifact)
       }
+      testFixturesArtifact?.let { testFixturesArtifact ->
+        head("TestFixturesArtifact")
+        nest {
+          dump(testFixturesArtifact)
+        }
+      }
       prop("Package") { `package` }
       prop("MinSdkVersion") { minSdkVersion?.toString() }
       prop("TargetSdkVersion") { targetSdkVersion?.toString() }
