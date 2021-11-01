@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
@@ -30,9 +29,8 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TestName
 import org.junit.runners.Parameterized
 import java.io.File
@@ -62,9 +60,6 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   private interface TestContext {
     val rootElement: ProjectViewNode<*>
@@ -202,4 +197,13 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
       }
     }
   }
+}
+
+// NOTE: This test is required because this code needs to be in `testSrc` as it depends on `intellij.android.testFramework`
+//       which is a collection of utilities in `testSrc` and which are not visible from regular sources.
+class MakeBuildSystemHappyTest {
+
+  @Test
+  fun `make build system happy`() = Unit
+
 }

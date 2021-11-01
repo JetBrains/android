@@ -116,6 +116,7 @@ studio_plugin(
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
+            "//tools/adt/idea/android-navigator:intellij.android.navigator",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
             "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",

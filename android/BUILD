@@ -342,6 +342,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java[test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
     ],
 )
 

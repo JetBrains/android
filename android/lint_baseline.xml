@@ -6,7 +6,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/profiling/capture/CaptureService.java"
-            line="113"/>
+            line="112"/>
     </issue>
 
     <issue
@@ -206,7 +206,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="63"/>
+            line="62"/>
     </issue>
 
     <issue
@@ -214,7 +214,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="64"/>
+            line="63"/>
     </issue>
 
     <issue
@@ -374,7 +374,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/startup/AndroidStudioAnalyticsImpl.java"
-            line="52"/>
+            line="55"/>
     </issue>
 
     <issue
@@ -446,7 +446,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/model/java/JavaModuleContentRoot.java"
-            line="181"/>
+            line="183"/>
     </issue>
 
     <issue
@@ -462,7 +462,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="1027"/>
+            line="1028"/>
     </issue>
 
     <issue
@@ -471,14 +471,6 @@
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
             line="352"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
-            line="99"/>
     </issue>
 
     <issue
@@ -526,7 +518,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="830"/>
+            line="852"/>
     </issue>
 
     <issue

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
-  public static final String ID = "AndroidView";
+  public static final String ID = AndroidProjectView.ID;
 
   public static final DataKey<TreeNode[]> SELECTED_TREE_NODES = DataKey.create("selectedTreeNodes");
 

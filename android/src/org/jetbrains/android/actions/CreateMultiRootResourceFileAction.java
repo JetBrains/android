@@ -3,9 +3,9 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.navigator.AndroidProjectView;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.CommonBundle;
@@ -56,7 +56,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       // If you're in the Android View, we want to ask you not just the filename but also let you
       // create other resource folder configurations
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane instanceof AndroidProjectViewPane) {
+      if (pane.getId().equals(AndroidProjectView.ID)) {
           return CreateResourceFileAction.getInstance().invokeDialog(project, dataContext);
       }
 

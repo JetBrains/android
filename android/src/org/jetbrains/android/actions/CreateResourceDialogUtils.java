@@ -17,7 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -169,7 +169,7 @@ public class CreateResourceDialogUtils {
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
     if (project != null) {
       AbstractProjectViewPane pane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-      if (pane instanceof AndroidProjectViewPane) {
+      if (pane.getId().equals(AndroidProjectView.ID)) {
         return null;
       }
     }

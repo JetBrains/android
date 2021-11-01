@@ -17,9 +17,12 @@ package com.android.tools.idea.navigator
 
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.io.File
 
 @RunsInEdt
 @RunWith(Parameterized::class)
@@ -42,4 +45,8 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
 
   @Test
   fun testCanRepresent() = super.testCanRepresentImpl()
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }
