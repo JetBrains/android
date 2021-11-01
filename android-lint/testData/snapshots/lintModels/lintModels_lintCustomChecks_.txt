@@ -1,7 +1,7 @@
 MODULE                        : project
 MODULE                        : project.app
     Dir                           : <ROOT>/app
-    ModulePath                    : app
+    ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
     GradleVersion                 : <AGP_VERSION>
@@ -113,7 +113,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.library
     Dir                           : <ROOT>/library
-    ModulePath                    : library
+    ModulePath                    : :library
     Type                          : LIBRARY
     MavenName                     : project:library:
     GradleVersion                 : <AGP_VERSION>
@@ -211,7 +211,7 @@ MODULE                        : project.library
                 sourceSet                     : main
 MODULE                        : project.library-remote
     Dir                           : <ROOT>/library-remote
-    ModulePath                    : library-remote
+    ModulePath                    : :library-remote
     Type                          : LIBRARY
     MavenName                     : com.example.google:library-remote:
     GradleVersion                 : <AGP_VERSION>

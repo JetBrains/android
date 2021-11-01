@@ -115,8 +115,8 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testInitialization() {
-    if (useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    if (!useModelV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
@@ -145,8 +145,8 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Throws(java.lang.Exception::class)
   @Test
   open fun testSyncTimes() {
-    if (useModelV2) {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    if (!useModelV2) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     val scenarioName = getScenarioName()
