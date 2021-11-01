@@ -16,14 +16,17 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
+import com.intellij.openapi.diagnostic.Logger
 
 /**
  * Centralized place to handle errors reporting and metrics.
  */
 
+private val log = Logger.getInstance(AndroidLiveEditDeployMonitor::class.java)
+
 fun reportLiveEditError(exception: LiveEditUpdateException) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  print("E: Live Edit ${exception.error.message}: \n ${exception.details} \n")
+  report("E: Live Edit ${exception.error.message}: \n ${exception.details} \n")
 }
 
 /**
@@ -31,6 +34,11 @@ fun reportLiveEditError(exception: LiveEditUpdateException) {
  */
 fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  print("E: Live Edit ${error.msg}\n")
+  report("E: Live Edit ${error.msg}\n")
+}
+
+private fun report(message: String) {
+  print(message)
+  log.error(message)
 }
 
