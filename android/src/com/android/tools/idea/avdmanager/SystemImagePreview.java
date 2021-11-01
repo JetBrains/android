@@ -107,8 +107,7 @@ public class SystemImagePreview {
   private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
     return image != null &&
            SystemImage.WEAR_TAG.getId().equals(image.getTag().getId()) &&
-           ((image.getRemotePackage() != null && image.getRemotePackage().getPath().contains(ISystemImage.WEAR_CN_DIRECTORY)) ||
-           image.getSystemImage().getLocation().toAbsolutePath().toString().contains(SystemImage.WEAR_CN_DIRECTORY));
+           image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
   }
 
   /**
