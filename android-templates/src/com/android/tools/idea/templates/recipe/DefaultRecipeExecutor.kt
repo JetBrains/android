@@ -213,8 +213,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
-    if (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null) {
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
+    if (!forceAdding && (maybeGetPluginsFromSettings() != null || maybeGetPluginsFromProject() != null)) {
       // If plugins are being declared on Settings or using plugins block in top-level build.gradle,
       // we skip this since all work is handled in [applyPlugin]
       return
