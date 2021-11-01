@@ -316,7 +316,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showPairingSuccess(phoneName: String, watchName: String) {
     showUiPairingSuccess(phoneName, watchName)
     canGoForward.set(true)
-    model.removePairingOnCancel.set(false)
   }
 
   private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice {
