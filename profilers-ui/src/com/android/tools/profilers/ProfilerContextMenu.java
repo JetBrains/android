@@ -17,7 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import java.util.ArrayList;
-import javax.swing.JComponent;
+import java.util.Collections;
+import javax.swing.*;
 
 public class ProfilerContextMenu {
   private static final String PROFILER_CONTEXT_MENU = "ProfilerContextMenu";
@@ -29,9 +30,7 @@ public class ProfilerContextMenu {
   }
 
   public void add(ContextMenuItem... items) {
-    for (ContextMenuItem item : items) {
-      myMenuItems.add(item);
-    }
+    Collections.addAll(myMenuItems, items);
   }
 
   public ArrayList<ContextMenuItem> getContextMenuItems() {

@@ -17,14 +17,9 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.*;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class AdbShellCommandsUtil {
   @NotNull private static final Logger LOGGER = Logger.getInstance(AdbShellCommandsUtil.class);
@@ -63,7 +58,7 @@ public class AdbShellCommandsUtil {
     executeCommandImpl(device, fullCommand, new MultiLineReceiver() {
       @Override
       public void processNewLines(@NotNull String[] lines) {
-        Arrays.stream(lines).forEach(commandOutput::add);
+        Collections.addAll(commandOutput, lines);
       }
 
       @Override

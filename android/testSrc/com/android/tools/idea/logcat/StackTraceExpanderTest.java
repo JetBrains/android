@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class StackTraceExpanderTest {
   // From http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace%28%29
@@ -150,9 +149,7 @@ public class StackTraceExpanderTest {
     List<String> output = new ArrayList<>();
 
     for (String line: Splitter.on('\n').split(input)) {
-      for (String s : expander.process(line)) {
-        output.add(s);
-      }
+      output.addAll(expander.process(line));
     }
 
     Assert.assertEquals(expected, Joiner.on('\n').join(output));

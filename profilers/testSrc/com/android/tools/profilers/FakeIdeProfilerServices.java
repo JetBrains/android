@@ -228,9 +228,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void addProjectClasses(String... classNames) {
-    for (int i = 0; i < classNames.length; i++) {
-      myProjectClasses.add(classNames[i]);
-    }
+    Collections.addAll(myProjectClasses, classNames);
   }
 
   @NotNull
