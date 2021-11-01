@@ -25,7 +25,7 @@ import com.android.tools.idea.adblib.ddmlibcompatibility.AdbLibMigrationUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -79,7 +79,7 @@ public class AdbShellCommandsUtil {
     MultiLineReceiver receiver = new MultiLineReceiver() {
       @Override
       public void processNewLines(@NotNull String[] lines) {
-        Arrays.stream(lines).forEach(commandOutput::add);
+        Collections.addAll(commandOutput, lines);
       }
 
       @Override

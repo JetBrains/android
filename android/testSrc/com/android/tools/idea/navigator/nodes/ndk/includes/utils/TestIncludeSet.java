@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -36,9 +37,7 @@ public class TestIncludeSet {
   public void testExtractHeadersFromCompilerFlagsRealWorld() {
     for (String[] example : RealWorldExamples.COMPILER_INCLUDE_FLAGS) {
       ArrayList<String> array = new ArrayList<>();
-      for (String flag : example) {
-        array.add(flag);
-      }
+      Collections.addAll(array, example);
       IncludeSet includeSet = new IncludeSet();
       includeSet.addIncludesFromCompilerFlags(array, new File("."));
     }
@@ -48,9 +47,7 @@ public class TestIncludeSet {
   public void testExtractHeaderFoldersFromCompilerFlagsRealWorld() {
     for (String[] example : RealWorldExamples.COMPILER_INCLUDE_FLAGS) {
       ArrayList<String> array = new ArrayList<>();
-      for (String flag : example) {
-        array.add(flag);
-      }
+      Collections.addAll(array, example);
       new IncludeSet().addIncludesFromCompilerFlags(array, new File("/a/b/c/d/e/f/g/h/i/j/k"));
     }
   }

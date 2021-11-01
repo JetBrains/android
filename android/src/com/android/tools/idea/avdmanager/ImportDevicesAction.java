@@ -52,9 +52,7 @@ public class ImportDevicesAction extends DeviceUiAction {
       FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(parent, null);
     List<Device> importedDevices = Lists.newArrayList();
     for (VirtualFile vf : files) {
-      for (Device d : DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf))) {
-        importedDevices.add(d);
-      }
+      importedDevices.addAll(DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf)));
     }
     if (!importedDevices.isEmpty()) {
       DeviceManagerConnection.getDefaultDeviceManagerConnection().createDevices(importedDevices);

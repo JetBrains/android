@@ -378,9 +378,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     properties.LIBS_FOLDER_RELATIVE_PATH = '/' + s + properties.LIBS_FOLDER_RELATIVE_PATH;
     properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
 
-    for (int i = 0; i < properties.RES_OVERLAY_FOLDERS.size(); i++) {
-      properties.RES_OVERLAY_FOLDERS.set(i, '/' + s + properties.RES_OVERLAY_FOLDERS.get(i));
-    }
+    properties.RES_OVERLAY_FOLDERS.replaceAll(overlayFolder -> '/' + s + overlayFolder);
   }
 
   @Nullable

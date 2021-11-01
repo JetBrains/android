@@ -150,9 +150,7 @@ public class StackTraceExpanderTest {
     List<String> output = new ArrayList<>();
 
     for (String line: Splitter.on('\n').split(input)) {
-      for (String s : expander.process(line)) {
-        output.add(s);
-      }
+      output.addAll(expander.process(line));
     }
 
     Assert.assertEquals(expected, Joiner.on('\n').join(output));
