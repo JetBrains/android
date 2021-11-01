@@ -242,7 +242,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
-  public void testIsSourceModifiedWithOverlay() throws IOException {
+  public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
     StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.override(true);
     setupTestProjectFromAndroidModel(
       getProject(),
@@ -257,6 +257,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
+    Files.createDirectories(overlayDir1.resolve("com/google/example"));
     ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
@@ -266,8 +267,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     javac.run(null, null, null, aClassSrc.toString());
 
-
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    // Add the compiled class to the overlay directory
+    Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
+    loader.loadClass("com.google.example.AClass");
+
     assertTrue(loader.isUserCodeUpToDateNonCached());
     // New overlay will make the code out-of-date
     ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir2);

@@ -364,6 +364,14 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
   }
 
   /**
+   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
+   */
+  @TestOnly
+  void injectProjectOvelaryLoadedClass(@NotNull String fqcn) {
+    myImpl.injectProjectOvelaryLoadedClass(fqcn);
+  }
+
+  /**
    * If coroutine DefaultExecutor exists, waits for the its thread to stop or 1.1s whichever is faster, otherwise returns instantly.
    */
   private void waitForCoroutineThreadToStop() {

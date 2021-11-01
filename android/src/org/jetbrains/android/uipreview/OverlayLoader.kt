@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.util.lang.UrlClassLoader
 import java.nio.file.Path
@@ -32,10 +31,6 @@ private fun buildClassLoaderForOverlayPath(overlay: Path) = UrlClassLoader.build
  * This allows to have modifications for specific classes to be loaded. The overlay classes are also located outside
  * of the usual output directories used by IntelliJ/Gradle/Bazel.
  */
-internal class OverlayLoader(private val overlayClassLoaderLoader: DelegatingClassLoader.Loader) : DelegatingClassLoader.Loader by overlayClassLoaderLoader {
-  constructor(overlay: Path) : this(ClassLoaderLoader(buildClassLoaderForOverlayPath(overlay)))
-
-  override fun loadClass(fqcn: String): ByteArray? {
-    return overlayClassLoaderLoader.loadClass(fqcn)
-  }
+internal class OverlayLoader(private val overlayManager: ModuleClassLoaderOverlays) : DelegatingClassLoader.Loader {
+  override fun loadClass(fqcn: String): ByteArray? = overlayManager.classLoaderLoader.loadClass(fqcn)
 }

@@ -236,8 +236,12 @@ class ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      moduleClassLoader =
-        ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
+      val preloadedClassLoader: ModuleClassLoader? = COMPOSE_CLASSLOADERS_PRELOADING.ifEnabled {
+        moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+          parent, combinedProjectTransformations, combinedNonProjectTransformations)
+      }
+      moduleClassLoader = preloadedClassLoader ?:
+                          ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
       module.putUserData(PRELOADER, Preloader(moduleClassLoader))
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
