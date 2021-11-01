@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.io.CancellableFileIo
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
-import com.android.repository.io.FileOpUtils
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.IdeInfo
@@ -47,6 +47,8 @@ import com.intellij.ui.layout.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.util.containers.isEmpty
+import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
@@ -464,5 +466,5 @@ fun isNonEmptyNonSdk(path: String?): Boolean {
     return false
   }
   val file = File(path)
-  return file.exists() && FileOpUtils.create().listFiles(file).isNotEmpty() && AndroidSdkData.getSdkData(file) == null
+  return file.exists() && !CancellableFileIo.list(file.toPath()).notNullize().isEmpty() && AndroidSdkData.getSdkData(file) == null
 }

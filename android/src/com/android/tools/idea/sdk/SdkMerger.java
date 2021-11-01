@@ -61,7 +61,7 @@ public class SdkMerger {
         }
       }
       try {
-        FileUtil.copyDir(FileOpUtils.toFileUnsafe(pkg.srcPkg.getLocation()),
+        FileUtil.copyDir(pkg.srcPkg.getLocation().toFile(),
                          new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {

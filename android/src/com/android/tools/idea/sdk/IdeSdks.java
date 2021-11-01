@@ -259,7 +259,7 @@ public class IdeSdks {
   public File getAndroidNdkPath(@Nullable Predicate<Revision> filter) {
     LocalPackage ndk = getHighestLocalNdkPackage(false, filter);
     if (ndk != null) {
-      return FileOpUtils.toFileUnsafe(ndk.getLocation());
+      return ndk.getLocation().toFile();
     }
     return null;
   }
