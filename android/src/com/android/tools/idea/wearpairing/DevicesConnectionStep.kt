@@ -272,7 +272,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           it.pairingState.takeWhile { !it.hasFinished() }.collect { state ->
             if (state == NonInteractivePairing.PairingState.CONSENT) {
               showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
-                                          message("wear.assistant.device.connection.pairing.auto.consent", phoneDevice.name))
+                                          message("wear.assistant.device.connection.pairing.auto.consent", phoneWearPair.phone.displayName))
             }
           }
         }
