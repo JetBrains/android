@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
@@ -60,7 +59,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
   override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
-  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? =
+  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent =
     ActionManagerEx.getInstanceEx().createActionToolbar(
       "sceneView",
       DefaultActionGroup(
@@ -72,9 +71,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
             }
           },
           StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
-            StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled {
-              AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
-            }
+            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
           },
           StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
             EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.ifDisabled
 import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
@@ -25,7 +24,6 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.preview.actions.AnimationInteractiveSwitchAction
 import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
@@ -80,7 +78,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
     listOfNotNull(
       StopInteractivePreviewAction(),
-      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled { StopAnimationInspectorAction() },
+      StopAnimationInspectorAction(),
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
       ForceCompileAndRefreshAction(surface),
       SingleFileCompileAction(),
@@ -95,7 +93,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
     StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.ifEnabled { ToggleAutoBuildOnSave() },
-    StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
     ComposeIssueNotificationAction.getInstance()
   ))
 

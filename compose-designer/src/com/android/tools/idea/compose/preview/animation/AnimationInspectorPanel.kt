@@ -19,17 +19,14 @@ import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.actions.CloseAnimationInspectorAction
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_CURVES
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
@@ -68,23 +65,23 @@ import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.ActionListener
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseEvent
+import java.awt.geom.Path2D
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
 import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
-import kotlin.math.ceil
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.geom.Path2D
-import javax.swing.JEditorPane
 import javax.swing.text.DefaultCaret
+import kotlin.math.ceil
 import kotlin.math.max
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
@@ -222,29 +219,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
     noAnimationsPanel.startLoading()
-
-    COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled {
-      add(createToolBar(), TabularLayout.Constraint(0, 0, 2))
-    }
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
-  }
-
-  private fun createToolBar() = JPanel(BorderLayout()).apply {
-    border = MatteBorder(0, 0, 1, 0, JBColor.border())
-    isOpaque = false
-    val animationsTitle = JBLabel(message("animation.inspector.title")).apply {
-      border = JBUI.Borders.empty(5)
-    }
-    add(animationsTitle, BorderLayout.LINE_START)
-
-    val rightSideActions = ActionManager.getInstance().createActionToolbar(
-      "Animation Toolbar Actions",
-      DefaultActionGroup(listOf(
-        CloseAnimationInspectorAction { surface.sceneManagers.single().model.dataContext }
-      )),
-      true)
-    rightSideActions.setMiniMode(true)
-    add(rightSideActions.component, BorderLayout.LINE_END)
   }
 
   /**

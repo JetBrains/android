@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifEnabled
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
@@ -37,12 +35,10 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
     e.presentation.isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
       // The action should be disabled when refreshing.
       !it.status().isRefreshing &&
-      (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY ||
-       StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null)
+      (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY)
     }
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED ||
-      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null
+      it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED
     }
   }
 
