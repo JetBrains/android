@@ -125,13 +125,19 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 
-    return NotificationPanel.Type.NONE;
+    return NotificationPanel.Type.PROJECT_STRUCTURE;
   }
 
   @VisibleForTesting
   static class NotificationPanel extends EditorNotificationPanel {
     enum Type {
       NONE() {
+        @Override
+        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          return null;
+        }
+      },
+      PROJECT_STRUCTURE() {
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
@@ -140,10 +146,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
                PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
-            if (!projectInfo.isBuildWithGradle()) {
-              return null;
-            }
-
             if (!isDefaultGradleBuildFile(virtualToIoFile(file))) {
               return null;
             }

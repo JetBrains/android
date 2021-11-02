@@ -100,7 +100,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.NONE, type);
+    assertEquals(Type.PROJECT_STRUCTURE, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
@@ -126,7 +126,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.NONE, type);
+    assertEquals(Type.PROJECT_STRUCTURE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
@@ -136,7 +136,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
                                                Long.toString(System.currentTimeMillis()));
     type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.NONE, type);
+    assertEquals(Type.PROJECT_STRUCTURE, type);
     assertNull(createPanel(type));
   }
 
