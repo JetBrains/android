@@ -16,14 +16,20 @@
 package com.android.tools.idea.startup
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.ToolWindowTrackerService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
 class ProjectMetricsInitializer : ProjectManagerListener {
   override fun projectOpened(project: Project) {
+    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
+    val service = ToolWindowTrackerService.getInstance(project)
+    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
+
     // don't include current project to be consistent with projectClosed
     val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
     UsageTracker.log(AndroidStudioEvent.newBuilder()

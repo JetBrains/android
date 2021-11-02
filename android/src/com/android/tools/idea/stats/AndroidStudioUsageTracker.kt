@@ -25,8 +25,7 @@ import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -37,8 +36,6 @@ import com.google.common.base.Strings
 import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
-import com.google.wireless.android.sdk.stats.ComposeSampleEvent
-import com.google.wireless.android.sdk.stats.ComposeSampleEvent.ComposeSampleEventType
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.IdePlugin
@@ -46,7 +43,6 @@ import com.google.wireless.android.sdk.stats.IdePluginInfo
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
-import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -55,24 +51,16 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.editor.actionSystem.LatencyListener
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -80,13 +68,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
-import java.util.Objects
 import java.util.TimeZone
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import com.android.tools.idea.imports.MavenClassRegistryManager
-import org.jetbrains.kotlin.tools.projectWizard.core.ignore
 
 /**
  * Tracks Android Studio specific metrics
@@ -188,7 +173,6 @@ object AndroidStudioUsageTracker {
   private fun subscribeToEvents() {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
-    connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
     connection.subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
       override fun appWillBeClosed(isRestart: Boolean) {
@@ -455,37 +439,6 @@ object AndroidStudioUsageTracker {
     }
     else {
       DAYS_IN_NON_LEAP_YEAR
-    }
-  }
-
-  /**
-   * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
-   */
-  private class ProjectLifecycleTracker : ProjectLifecycleListener {
-    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
-    override fun projectComponentsInitialized(project: Project) {
-      val service = ToolWindowTrackerService.getInstance(project)
-      project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, service)
-
-      // Track usage of Compose Jetnews sample
-      StartupManager.getInstance(project)?.registerPostStartupActivity {
-        val moduleManager = ModuleManager.getInstance(project) ?: return@registerPostStartupActivity
-
-        val match = moduleManager.modules.asSequence()
-          .filter { module -> AndroidFacet.getInstance(module) != null }
-          .map { Module::getModuleSystem }
-          .map { AndroidModuleSystem::getPackageName }
-          .any { packageName -> Objects.equals(packageName, "com.example.jetnews") }
-
-        if (!match) {
-          return@registerPostStartupActivity
-        }
-
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setKind(EventKind.COMPOSE_SAMPLE_EVENT)
-                           .setComposeSampleEvent(ComposeSampleEvent.newBuilder()
-                                                    .setType(ComposeSampleEventType.OPEN)))
-      }
     }
   }
 }
