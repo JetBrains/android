@@ -542,7 +542,6 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
           projectInfo.buildType,
           { dimension -> projectInfo.productFlavors[dimension] ?: error("$dimension attribute not found. Library: ${identifier.key}") }
         )
-        val projectName = projectInfo.projectPath.split(":").last()
         createModuleLibrary(
           visited,
           projectInfo.projectPath, // this should always be non-null as this is a module library
@@ -550,12 +549,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
           variantName,
           identifier.lintJar,
           projectInfo.buildId,
-          // A testFixtures component of a project will have the capability (group = project.group, name = project.name + "-test-fixtures",
-          // version = null), and the string representation will be `${project.group}:${project.name}-test-fixtures:unspecified`
-          // See [DefaultDependencyHandler.testFixtures](https://github.com/gradle/gradle/blob/master/subprojects/dependency-management/src/main/java/org/gradle/api/internal/artifacts/dsl/dependencies/DefaultDependencyHandler.java)
-          // to know how testFixtures capability is created.
-          // TODO(b/202838863): have a better way to figure out whether the dependency is on a testFixtures component
-          isTestFixturesComponent = identifier.projectInfo!!.capabilities.any { it.endsWith(":$projectName-test-fixtures:unspecified") }
+          projectInfo.isTestFixtures
         )
       }
     }
