@@ -21,7 +21,6 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -41,7 +40,6 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
-import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
@@ -163,10 +161,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     List<LaunchTask> tasks = new ArrayList<>();
-    if (StudioFlags.UNINSTALL_LAUNCHER_APPS_ENABLED.get() &&
-        device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
-      tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
-    }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
     List<ApkInfo> packages = myApkProvider.getApks(device).stream()

@@ -820,13 +820,6 @@ public final class StudioFlags {
     "If enabled, show the action in the refactoring menu", true);
   //endregion
 
-  //region IoT
-  private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
-  public static final Flag<Boolean> UNINSTALL_LAUNCHER_APPS_ENABLED = Flag.create(
-    IOT, "iot.uninstalllauncherapps.enabled", "Enable the Uninstall of IoT launcher apps feature",
-    "If enabled, uninstall IoT launcher apps when installing a new one", false);
-  //endregion
-
   //region NDK
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
   public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag.create(
