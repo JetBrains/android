@@ -27,7 +27,6 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.progress.ProgressIndicator
 import org.mockito.Mockito
 
 class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
@@ -54,7 +53,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
     val device = getMockDevice()
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     Mockito.verify(app).activateComponent(MockitoKt.eq(ComponentType.WATCH_FACE), MockitoKt.eq("p1.p2.MyComponent"),
                                           MockitoKt.eq(AppComponent.Mode.RUN),
@@ -88,7 +87,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     Mockito.doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
     val device = getMockDevice()
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     Mockito.verify(app).activateComponent(MockitoKt.eq(ComponentType.WATCH_FACE), MockitoKt.eq("p1.p2.MyComponent"),
                                           MockitoKt.eq(AppComponent.Mode.DEBUG),

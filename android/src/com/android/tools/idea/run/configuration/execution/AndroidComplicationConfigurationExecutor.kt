@@ -30,31 +30,31 @@ import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.util.concurrent.TimeUnit
 
 class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor? {
+  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val watchFaceInfo = "${(configuration as AndroidComplicationConfiguration).watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
     devices.forEach {
-      indicator.checkCanceled()
+      indicator?.checkCanceled()
       val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) { info ->
         console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      indicator.checkCanceled()
+      indicator?.checkCanceled()
       val appWatchFace = installWatchApp(it)
 
-      val receiver = AndroidLaunchReceiver(indicator, console)
+      val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
       configuration.chosenSlots.forEach { slot ->
         app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
                               receiver)
@@ -63,9 +63,9 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       console.print("$ adb shell ${AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND}", ConsoleViewContentType.NORMAL_OUTPUT)
       it.executeShellCommand(AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND, receiver, 5, TimeUnit.SECONDS)
     }
-    indicator.checkCanceled()
+    indicator?.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console, indicator)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console)
     }
     else {
       invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }

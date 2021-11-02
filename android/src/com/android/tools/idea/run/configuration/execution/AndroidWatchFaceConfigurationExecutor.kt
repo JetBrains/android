@@ -27,7 +27,7 @@ import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.util.concurrent.TimeUnit
 
 
@@ -39,29 +39,29 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
   }
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor? {
+  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    devices.forEach {
-      indicator.checkCanceled()
-      indicator.text = "Installing app"
-      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) {
+    devices.forEach { device ->
+      indicator?.checkCanceled()
+      indicator?.text = "Installing app"
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      val receiver = AndroidLaunchReceiver(indicator, console)
+      val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       console.print("$ adb shell $SHOW_WATCH_FACE_COMMAND", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(SHOW_WATCH_FACE_COMMAND, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
+      device.executeShellCommand(SHOW_WATCH_FACE_COMMAND, receiver, 5, TimeUnit.SECONDS)
     }
-    indicator.checkCanceled()
+    indicator?.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console, indicator)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console)
     }
     else {
       invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }

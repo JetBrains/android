@@ -37,7 +37,6 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import kotlinx.coroutines.runBlocking
@@ -64,18 +63,17 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
     stats.setAppComponentType(configuration.componentType)
 
     ProgressManager.checkCanceled()
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
-    indicator.text = "Waiting for all target devices to come online"
+    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for all target devices to come online"
     val devices = getDevices(stats)
     devices.forEach { LaunchUtils.initiateDismissKeyguard(it) }
     stats.beginLaunchTasks()
-    val runContentDescriptor = doOnDevices(devices, indicator)
+    val runContentDescriptor = doOnDevices(devices)
     stats.endBeforeRunTasks()
     return runContentDescriptor
   }
 
   @VisibleForTesting
-  abstract fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor?
+  abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor?
 
   private fun getDevices(stats: RunStats): List<IDevice> {
     val devices = runBlocking {
@@ -123,8 +121,9 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
     override fun getProcessInput() = null
   }
 
-  open class AndroidLaunchReceiver(private val indicator: ProgressIndicator, private val consoleView: ConsoleView) : MultiLineReceiver() {
-    override fun isCancelled() = indicator.isCanceled
+  open class AndroidLaunchReceiver(private val isCancelledCheck: () -> Boolean,
+                                   private val consoleView: ConsoleView) : MultiLineReceiver() {
+    override fun isCancelled() = isCancelledCheck()
 
     override fun processNewLines(lines: Array<String>) = lines.forEach {
       consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)

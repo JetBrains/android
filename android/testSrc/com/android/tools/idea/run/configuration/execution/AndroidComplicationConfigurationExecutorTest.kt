@@ -32,7 +32,6 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.progress.ProgressIndicator
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
@@ -86,7 +85,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
     )
     Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
@@ -150,7 +149,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
     doReturn(appInstaller).`when`(executor).getApplicationInstaller()
     doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)

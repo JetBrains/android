@@ -28,7 +28,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.util.concurrent.TimeUnit
 
 
@@ -39,31 +39,31 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   }
 
   @WorkerThread
-  override fun doOnDevices(devices: List<IDevice>, indicator: ProgressIndicator): RunContentDescriptor? {
+  override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
     val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
     if (isDebug && devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for a single device")
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
-
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     devices.forEach { device ->
-      indicator.checkCanceled()
-      indicator.text = "Installing app"
+      indicator?.checkCanceled()
+      indicator?.text = "Installing app"
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      val receiver = TileIndexReceiver(indicator, console)
+      val receiver = TileIndexReceiver({ indicator?.isCanceled == true }, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
       val command = "$SHOW_TILE_COMMAND $tileIndex"
       console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
-      device.executeShellCommand(command, AndroidLaunchReceiver(indicator, console), 5, TimeUnit.SECONDS)
+      device.executeShellCommand(command, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
     }
-    indicator.checkCanceled()
+    indicator?.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console, indicator)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console)
     }
     else {
       invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }
@@ -73,8 +73,8 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
   }
 }
 
-private class TileIndexReceiver(indicator: ProgressIndicator,
-                                consoleView: ConsoleView) : AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver(indicator,
+private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,
+                                consoleView: ConsoleView) : AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver(isCancelledCheck,
                                                                                                                        consoleView) {
   var tileIndex: Int? = null
   val indexPattern = "Index=\\[(\\d+)]".toRegex()

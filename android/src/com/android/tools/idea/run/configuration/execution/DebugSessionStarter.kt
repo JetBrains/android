@@ -36,7 +36,7 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
@@ -52,12 +52,12 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
                       ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
   @WorkerThread
-  fun attachDebuggerToClient(device: IDevice, consoleView: ConsoleView, indicator: ProgressIndicator): RunContentDescriptor {
-    waitForClient(device, indicator)
+  fun attachDebuggerToClient(device: IDevice, consoleView: ConsoleView): RunContentDescriptor {
+    waitForClient(device)
     val client = device.getClient(appId)
     val debugPort = client.debuggerListenPort.toString()
     val remoteConnection = RemoteConnection(true, "localhost", debugPort, false)
-    indicator.text = "Attaching debugger"
+    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Attaching debugger"
     return invokeAndWaitIfNeeded {
       val debugState = object : RemoteState {
         override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult {
@@ -84,8 +84,8 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
   }
 
   @WorkerThread
-  private fun waitForClient(device: IDevice, indicator: ProgressIndicator): Client {
-    indicator.text = "Waiting for a process to start"
+  private fun waitForClient(device: IDevice): Client {
+    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for a process to start"
     val appProcessCountDownLatch = CountDownLatch(1)
     val listener = object : AndroidDebugBridge.IDeviceChangeListener {
       override fun deviceConnected(device: IDevice) {}

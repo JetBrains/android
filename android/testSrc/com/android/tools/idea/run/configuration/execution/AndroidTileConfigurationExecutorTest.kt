@@ -30,7 +30,6 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.progress.ProgressIndicator
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
 import org.mockito.invocation.InvocationOnMock
@@ -67,7 +66,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
     Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
     val device = getMockDevice()
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     // Test final command of showing Tile after installation and activation.
     Mockito.verify(device).executeShellCommand(
@@ -106,7 +105,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
     doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
     val device = getMockDevice()
-    executor.doOnDevices(listOf(device), Mockito.mock(ProgressIndicator::class.java))
+    executor.doOnDevices(listOf(device))
 
     // Test final command of showing Tile after installation and activation.
     Mockito.verify(device).executeShellCommand(
