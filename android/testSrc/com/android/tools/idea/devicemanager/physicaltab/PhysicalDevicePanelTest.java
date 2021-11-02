@@ -30,7 +30,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,8 +52,6 @@ public final class PhysicalDevicePanelTest {
   private PairDevicesUsingWiFiService myService;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
-
-  private PhysicalDevice myOnlinePixel3;
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private CountDownLatch myLatch;
@@ -86,17 +83,10 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    myOnlinePixel3 = new PhysicalDevice.Builder()
-      .setKey(new SerialNumber("86UX00F4R"))
-      .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
-      .setName("Google Pixel 3")
-      .setTarget("Android 12.0")
-      .setApi("S")
-      .addConnectionType(ConnectionType.USB)
-      .build();
+    List<PhysicalDevice> devices = Collections.singletonList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
-    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myOnlinePixel3)));
+    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(devices));
   }
 
   @Before
@@ -124,8 +114,8 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
 
-    Object data = Collections.singletonList(Arrays.asList(myOnlinePixel3,
-                                                          "S",
+    Object data = Collections.singletonList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
+                                                          "31",
                                                           "USB",
                                                           ActivateDeviceFileExplorerWindowValue.INSTANCE,
                                                           RemoveValue.INSTANCE,
@@ -152,8 +142,8 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
 
-    Object data = Arrays.asList(Arrays.asList(myOnlinePixel3,
-                                              "S",
+    Object data = Arrays.asList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
+                                              "31",
                                               "USB",
                                               ActivateDeviceFileExplorerWindowValue.INSTANCE,
                                               RemoveValue.INSTANCE,

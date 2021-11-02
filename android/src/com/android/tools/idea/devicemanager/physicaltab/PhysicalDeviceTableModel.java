@@ -18,9 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.devicemanager.Device;
 import com.google.common.annotations.VisibleForTesting;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -113,7 +111,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
       PhysicalDevice newDevice = new PhysicalDevice.Builder()
         .setKey(k)
-        .setLastOnlineTime(device.getLastOnlineTime())
         .setType(device.getType())
         .setName(device.getName())
         .setNameOverride(nameOverride)
@@ -165,7 +162,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
     combinedDevices.addAll(domainNameDevices);
     combinedDevices.addAll(serialNumberDevices);
-    combinedDevices.sort(null);
 
     myCombinedDevices = combinedDevices;
   }
@@ -177,11 +173,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   private static @NotNull PhysicalDevice combine(@NotNull PhysicalDevice domainNameDevice, @NotNull PhysicalDevice serialNumberDevice) {
-    Collection<Instant> times = Arrays.asList(domainNameDevice.getLastOnlineTime(), serialNumberDevice.getLastOnlineTime());
-
     return new PhysicalDevice.Builder()
       .setKey(serialNumberDevice.getKey())
-      .setLastOnlineTime(Collections.min(times, PhysicalDevice.LAST_ONLINE_TIME_COMPARATOR))
       .setType(serialNumberDevice.getType())
       .setName(serialNumberDevice.getName())
       .setNameOverride(serialNumberDevice.getNameOverride())

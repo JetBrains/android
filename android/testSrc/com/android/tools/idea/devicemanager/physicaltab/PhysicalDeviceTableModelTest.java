@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,6 @@ public final class PhysicalDeviceTableModelTest {
     // Arrange
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("0A071FDD4003ZG"))
-      .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
       .setName("Google Pixel 5")
       .setTarget("Android 11.0")
       .setApi("30")
@@ -52,7 +50,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
   }
 
   @Test
@@ -75,7 +73,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -100,7 +98,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+    assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 

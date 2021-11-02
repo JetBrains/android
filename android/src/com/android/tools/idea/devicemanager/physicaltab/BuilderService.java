@@ -22,30 +22,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.serviceContainer.NonInjectable;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @UiThread
 @Service
 final class BuilderService {
-  private final @NotNull Map<@NotNull Key, @Nullable Instant> myKeyToOnlineTimeMap;
-  private final @NotNull Clock myClock;
-
-  @SuppressWarnings("unused")
-  private BuilderService() {
-    this(Clock.systemDefaultZone());
-  }
-
   @VisibleForTesting
-  @NonInjectable
-  BuilderService(@NotNull Clock clock) {
-    myKeyToOnlineTimeMap = new HashMap<>();
-    myClock = clock;
+  BuilderService() {
   }
 
   static @NotNull BuilderService getInstance() {
@@ -53,18 +36,9 @@ final class BuilderService {
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {
-    Instant time;
-
     String value = device.getSerialNumber();
     Key key = DeviceUtils.isMdnsAutoConnectTls(value) ? new DomainName(value) : new SerialNumber(value);
 
-    if (device.isOnline()) {
-      time = myKeyToOnlineTimeMap.computeIfAbsent(key, k -> myClock.instant());
-    }
-    else {
-      time = myKeyToOnlineTimeMap.remove(key);
-    }
-
-    return new AsyncPhysicalDeviceBuilder(device, key, time).buildAsync();
+    return new AsyncPhysicalDeviceBuilder(device, key).buildAsync();
   }
 }

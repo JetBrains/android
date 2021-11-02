@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
-import com.android.tools.idea.util.xmlb.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -29,7 +28,6 @@ import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.intellij.util.xmlb.annotations.XCollection.Style;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -94,9 +92,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "key", nameAttribute = "")
     private final @Nullable KeyState key;
 
-    @OptionTag(tag = "lastOnlineTime", nameAttribute = "", converter = InstantConverter.class)
-    private final @Nullable Instant lastOnlineTime;
-
     @OptionTag(tag = "type", nameAttribute = "")
     private final @NotNull DeviceType type;
 
@@ -115,7 +110,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
       key = null;
-      lastOnlineTime = null;
       type = DeviceType.PHONE;
       name = null;
       nameOverride = "";
@@ -125,7 +119,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
       key = new KeyState(device.getKey());
-      lastOnlineTime = device.getLastOnlineTime();
       type = device.getType();
       name = device.getName();
       nameOverride = "";
@@ -148,7 +141,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       return new PhysicalDevice.Builder()
         .setKey(key)
-        .setLastOnlineTime(lastOnlineTime)
         .setType(type)
         .setName(name)
         .setNameOverride(nameOverride)
@@ -161,7 +153,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     public int hashCode() {
       int hashCode = Objects.hashCode(key);
 
-      hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
       hashCode = 31 * hashCode + type.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(name);
       hashCode = 31 * hashCode + nameOverride.hashCode();
@@ -180,7 +171,6 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       PhysicalDeviceState device = (PhysicalDeviceState)object;
 
       return Objects.equals(key, device.key) &&
-             Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
              type.equals(device.type) &&
              Objects.equals(name, device.name) &&
              nameOverride.equals(device.nameOverride) &&

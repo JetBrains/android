@@ -42,7 +42,7 @@ public final class AsyncPhysicalDeviceBuilderTest {
   @Test
   public void getTypeStringIsNull() throws Exception {
     // Arrange
-    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"), null);
+    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"));
 
     // Act
     Future<PhysicalDevice> future = builder.buildAsync();
@@ -55,7 +55,7 @@ public final class AsyncPhysicalDeviceBuilderTest {
   public void getType() throws Exception {
     // Arrange
     Mockito.when(myDevice.getProperty(IDevice.PROP_BUILD_CHARACTERISTICS)).thenReturn("nosdcard");
-    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"), null);
+    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"));
 
     // Act
     Future<PhysicalDevice> future = builder.buildAsync();
@@ -68,7 +68,7 @@ public final class AsyncPhysicalDeviceBuilderTest {
   public void buildAsync() throws Exception {
     // Arrange
     Mockito.when(myDevice.isOnline()).thenReturn(true);
-    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"), null);
+    AsyncPhysicalDeviceBuilder builder = new AsyncPhysicalDeviceBuilder(myDevice, new SerialNumber("86UX00F4R"));
 
     // Act
     Future<PhysicalDevice> future = builder.buildAsync();
