@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
+import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
@@ -146,7 +147,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
                PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
-            if (!isDefaultGradleBuildFile(virtualToIoFile(file))) {
+            File ioFile = virtualToIoFile(file);
+            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
               return null;
             }
 

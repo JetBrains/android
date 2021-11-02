@@ -59,6 +59,8 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     return Arrays.asList(new Object[][] {
       { "build.gradle", true },
       { "build.gradle.kts", true },
+      { "settings.gradle", true },
+      { "settings.gradle.kts", true },
       { "README.md", false },
       { "src/main/com/example/MyClass.java", false },
     });
