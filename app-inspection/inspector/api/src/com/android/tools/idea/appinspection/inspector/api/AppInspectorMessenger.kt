@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.WorkerThread
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -59,11 +60,9 @@ interface AppInspectorMessenger {
  * This method returns the cause of the disposal or null if the messenger's scope was cancelled normally.
  */
 suspend fun AppInspectorMessenger.awaitForDisposal(): AppInspectionConnectionException? {
-  val job = scope.coroutineContext[Job]!!
-  var cause: AppInspectionConnectionException? = null
-  job.invokeOnCompletion { exception ->
-    cause = exception?.cause as? AppInspectionConnectionException
+  val deferredCause = CompletableDeferred<AppInspectionConnectionException?>()
+  scope.coroutineContext[Job]!!.invokeOnCompletion { exception ->
+    deferredCause.complete(exception?.cause as? AppInspectionConnectionException)
   }
-  job.join()
-  return cause
+  return deferredCause.await()
 }
