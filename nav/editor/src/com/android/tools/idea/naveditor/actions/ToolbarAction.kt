@@ -32,7 +32,7 @@ abstract class ToolbarAction(protected val surface: NavDesignSurface, descriptio
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     buttonPresentation = presentation
-    return super.createCustomComponent(presentation)
+    return super.createCustomComponent(presentation, place)
   }
 
   protected abstract fun isEnabled(): Boolean
