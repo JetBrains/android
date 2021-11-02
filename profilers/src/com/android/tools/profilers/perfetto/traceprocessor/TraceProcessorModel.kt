@@ -323,7 +323,8 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                                    parsePresentType(actualSlice.presentType),
                                                                    parseAppJankType(actualSlice.jankType),
                                                                    actualSlice.onTimeFinish,
-                                                                   actualSlice.gpuComposition))
+                                                                   actualSlice.gpuComposition,
+                                                                   actualSlice.layoutDepth))
         }
       }
       androidFrameTimelineEvents.sortBy { it.expectedStartUs }

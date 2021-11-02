@@ -284,7 +284,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Late Present")
                         .setJankType("App Deadline Missed, SurfaceFlinger CPU Deadline Missed")
                         .setOnTimeFinish(false)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(1))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(3)
                         .setSurfaceFrameToken(103)
@@ -294,7 +295,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Early Present")
                         .setJankType("Buffer Stuffing, SurfaceFlinger GPU Deadline Missed")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(2))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(4)
                         .setSurfaceFrameToken(104)
@@ -304,7 +306,8 @@ class TraceProcessorModelTest {
                         .setPresentType("Dropped Frame")
                         .setJankType("Unknown Jank")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(false))
+                        .setGpuComposition(false)
+                        .setLayoutDepth(0))
       .addActualSlice(TraceProcessor.AndroidFrameTimelineResult.ActualSlice.newBuilder()
                         .setDisplayFrameToken(1)
                         .setSurfaceFrameToken(101)
@@ -314,7 +317,8 @@ class TraceProcessorModelTest {
                         .setPresentType("On-time Present")
                         .setJankType("None")
                         .setOnTimeFinish(true)
-                        .setGpuComposition(true))
+                        .setGpuComposition(true)
+                        .setLayoutDepth(0))
       .build()
     val model = TraceProcessorModel.Builder().apply {
       addAndroidFrameTimelineEvents(frameTimelineResult)
@@ -322,16 +326,16 @@ class TraceProcessorModelTest {
     assertThat(model.getAndroidFrameTimelineEvents()).containsExactly(
       AndroidFrameTimelineEvent(1, 101, 1, 2, 2, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
-                                onTimeFinish = true, gpuComposition = true),
+                                onTimeFinish = true, gpuComposition = true, layoutDepth = 0),
       AndroidFrameTimelineEvent(2, 102, 3, 4, 5, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                                onTimeFinish = false, gpuComposition = true),
+                                onTimeFinish = false, gpuComposition = true, layoutDepth = 1),
       AndroidFrameTimelineEvent(3, 103, 5, 6, 6, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_EARLY,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
-                                onTimeFinish = true, gpuComposition = true),
+                                onTimeFinish = true, gpuComposition = true, layoutDepth = 2),
       AndroidFrameTimelineEvent(4, 104, 7, 8, 10, "foo", PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_DROPPED,
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
-                                onTimeFinish = true, gpuComposition = false),
+                                onTimeFinish = true, gpuComposition = false, layoutDepth = 0),
     ).inOrder()
   }
 

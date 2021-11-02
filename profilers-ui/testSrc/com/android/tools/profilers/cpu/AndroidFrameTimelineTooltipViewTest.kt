@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 import perfetto.protos.PerfettoTrace
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -76,11 +75,11 @@ val FAKE_EVENT_0 =
                             1000L, 2000L, 3000L, "",
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                             PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                            false, false)
+                            onTimeFinish = false, gpuComposition = false, 0)
 
 val FAKE_EVENT_1 =
   AndroidFrameTimelineEvent(43L, 43L,
-  1500L, 3000L, 3500L, "",
+                            1500L, 3000L, 3500L, "",
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                             PerfettoTrace.FrameTimelineEvent.JankType.JANK_BUFFER_STUFFING,
-                            false, false)
+                            onTimeFinish = false, gpuComposition = false, 0)

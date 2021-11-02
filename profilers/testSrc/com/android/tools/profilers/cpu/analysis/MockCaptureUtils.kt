@@ -66,12 +66,12 @@ object MockCaptureUtils {
                               0L, 1000L, 1500L, "",
                               PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                               PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                              false, false),
+                              onTimeFinish = false, gpuComposition = false, layoutDepth = 0),
     AndroidFrameTimelineEvent(2, 2,
                               2000L, 3000L, 2900L, "",
                               PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_ON_TIME,
                               PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE,
-                              true, false)
+                              onTimeFinish = true, gpuComposition = false, layoutDepth = 0)
   )
 
   val SYSTEM_TRACE_DATA = Mockito.mock(CpuSystemTraceData::class.java).apply {

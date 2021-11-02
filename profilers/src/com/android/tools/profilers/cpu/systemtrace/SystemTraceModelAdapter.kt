@@ -183,6 +183,7 @@ data class AndroidFrameTimelineEvent(
   val appJankType: PerfettoTrace.FrameTimelineEvent.JankType,
   val onTimeFinish: Boolean,
   val gpuComposition: Boolean,
+  val layoutDepth: Int
 ) {
   val actualDurationUs get() = actualEndUs - expectedStartUs
   val isJank get() = appJankType != PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE
