@@ -70,5 +70,5 @@ fun RecipeExecutor.generateBenchmarkModule(
     save(exampleBenchmarkJava(packageName), testOut.resolve("ExampleBenchmark.java"))
   }
 
-  addKotlinIfNeeded(projectData, noKtx = true)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
 }

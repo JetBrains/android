@@ -83,7 +83,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
     open(srcOut.resolve("ExampleStartupBenchmark.java"))
   }
 
-  addKotlinIfNeeded(projectData, noKtx = true)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
 }
 
 /**

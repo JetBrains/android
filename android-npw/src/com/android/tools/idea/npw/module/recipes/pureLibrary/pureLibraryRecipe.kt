@@ -54,7 +54,7 @@ fun RecipeExecutor.generatePureLibrary(
 
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
-    addKotlinDependencies(androidX = false)
+    addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
     applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
   }
 
