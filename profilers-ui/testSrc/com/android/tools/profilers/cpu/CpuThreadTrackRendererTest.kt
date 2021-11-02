@@ -93,7 +93,8 @@ class CpuThreadTrackRendererTest {
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer(profilersView) { false }
-    val component = renderer.render(threadTrackModel).getComponent(0) as JComponent
+    val componentWithOverlay = renderer.render(threadTrackModel).getComponent(0) as JComponent
+    val component = componentWithOverlay.components[1] as JComponent
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
     assertThat(component.components[1]).isInstanceOf(HTreeChart::class.java)

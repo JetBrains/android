@@ -24,6 +24,8 @@ public class CpuThreadInfo implements Comparable<CpuThreadInfo> {
    */
   public static final String RENDER_THREAD_NAME = "RenderThread";
 
+  public static final String GPU_THREAD_NAME = "GPU completion";
+
   /** Thread id */
   private final int myId;
 
@@ -60,6 +62,14 @@ public class CpuThreadInfo implements Comparable<CpuThreadInfo> {
 
   public boolean isRenderThread() {
     return getName().equals(RENDER_THREAD_NAME);
+  }
+
+  public boolean isGpuThread() {
+    return getName().equals(GPU_THREAD_NAME);
+  }
+
+  public boolean isRenderingRelatedThread() {
+    return isMainThread() || isRenderThread() || isGpuThread();
   }
 
   /**

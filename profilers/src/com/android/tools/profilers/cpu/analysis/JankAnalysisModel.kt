@@ -42,7 +42,7 @@ class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: Syste
   class Summary(val event: AndroidFrameTimelineEvent, private val capture: CpuCapture)
         : CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
     val mainThreadId = firstThreadId { it.isMainThread }
-    val gpuThreadId = firstThreadId { "GPU" in it.name }
+    val gpuThreadId = firstThreadId { it.isGpuThread }
     val renderThreadId = firstThreadId { it.isRenderThread }
     val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
     override fun getLabel() = "Janky Frame"

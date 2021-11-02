@@ -141,11 +141,15 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     }
 
     CpuSystemTraceData data = trackModel.getDataModel().getCapture().getSystemTraceData();
-    return data == null ? panel :
-           VsyncPanel.of(panel,
-                         trackModel.getDataModel().getTimeline().getViewRange(),
-                         data.getVsyncCounterValues(),
-                         myVsyncEnabler);
+    CpuThreadInfo info = trackModel.getDataModel().getThreadInfo();
+    Range viewRange = trackModel.getDataModel().getTimeline().getViewRange();
+    return data == null
+           ? panel
+           : VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(panel, viewRange, multiSelectionModel,
+                                                                 !info.isRenderingRelatedThread()),
+                           viewRange,
+                           data.getVsyncCounterValues(),
+                           myVsyncEnabler);
   }
 
   @Nullable

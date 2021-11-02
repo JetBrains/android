@@ -57,7 +57,7 @@ class JankSummaryDetailsViewTest {
 
 private fun Component.any(satisfies: (Component) -> Boolean) = TreeWalker(this).ancestorStream().anyMatch(satisfies)
 private val FAKE_MAIN_THREAD = CpuThreadInfo(0, "Main", true)
-private val FAKE_GPU_THREAD = CpuThreadInfo(1, "GPU", false)
+private val FAKE_GPU_THREAD = CpuThreadInfo(1, "GPU completion", false)
 private val FAKE_RENDER_THREAD = CpuThreadInfo(2, CpuThreadInfo.RENDER_THREAD_NAME, false)
 private val CAPTURE_RANGE = Range(0.0, 5000.0)
 private val PROFILERS = Mockito.mock(StudioProfilers::class.java)
