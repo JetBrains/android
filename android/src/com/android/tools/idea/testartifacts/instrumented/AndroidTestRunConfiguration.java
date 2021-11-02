@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -641,8 +640,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected LaunchOptions.Builder getLaunchOptions() {
     LaunchOptions.Builder builder = super.getLaunchOptions();
-    // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
-    builder.setForceStopRunningApp(false);
     builder.setPmInstallOptions(device -> {
       // -t: Allow test APKs to be installed.
       // -g: Grant all permissions listed in the app manifest. (Introduced at Android 6.0).

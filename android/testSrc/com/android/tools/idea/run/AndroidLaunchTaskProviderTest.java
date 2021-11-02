@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.fail;
@@ -111,8 +111,6 @@ public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
 
       LaunchOptions launchOptions = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
-        .setSkipNoopApkInstallations(true)
-        .setForceStopRunningApp(true)
         .setDebug(debug)
         .build();
 

@@ -20,7 +20,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Ordering;
@@ -67,8 +66,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   // Misc. options tab
   private JCheckBox myClearLogCheckBox;
   private JCheckBox myShowLogcatCheckBox;
-  private JCheckBox mySkipNoOpApkInstallation;
-  private JCheckBox myForceStopRunningApplicationCheckBox;
   private JCheckBox myEnableLayoutInspectionWithoutActivityRestart;
   private JEditorPane myActivityRestartDescription;
 
@@ -129,18 +126,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         myDeploymentTargetOptions = new DeploymentTargetOptions(providers, this, project);
         myDeploymentTargetOptions.addTo((Container)myTabbedPane.getComponentAt(0));
         break;
-    }
-
-    if (config instanceof AndroidTestRunConfiguration) {
-      // The application is always force stopped when running `am instrument`. See AndroidTestRunConfiguration#getLaunchOptions().
-      myForceStopRunningApplicationCheckBox.setVisible(false);
-    }
-    else {
-      mySkipNoOpApkInstallation.addActionListener(e -> {
-        if (mySkipNoOpApkInstallation == e.getSource()) {
-          myForceStopRunningApplicationCheckBox.setEnabled(mySkipNoOpApkInstallation.isSelected());
-        }
-      });
     }
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
@@ -210,8 +195,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
-    mySkipNoOpApkInstallation.setSelected(configuration.SKIP_NOOP_APK_INSTALLATIONS);
-    myForceStopRunningApplicationCheckBox.setSelected(configuration.FORCE_STOP_RUNNING_APP);
     myEnableLayoutInspectionWithoutActivityRestart.setSelected(configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART);
     myEnableLayoutInspectionWithoutActivityRestart.setName(LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART);
 
@@ -233,8 +216,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
-    configuration.SKIP_NOOP_APK_INSTALLATIONS = mySkipNoOpApkInstallation.isSelected();
-    configuration.FORCE_STOP_RUNNING_APP = myForceStopRunningApplicationCheckBox.isSelected();
     configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART = myEnableLayoutInspectionWithoutActivityRestart.isSelected();
 
     myConfigurationSpecificEditor.applyTo(configuration);

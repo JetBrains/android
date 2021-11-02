@@ -89,8 +89,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .setDebug(true)
       .build();
 
@@ -133,8 +131,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .setDebug(false)
       .build();
 
@@ -174,8 +170,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .setDebug(false)
       .build();
 
@@ -213,8 +207,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .setDebug(false)
       .build();
 
@@ -252,8 +244,6 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .setDebug(false)
       .build();
 
@@ -289,8 +279,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
+
       .setDebug(false)
       .build();
 
@@ -326,8 +315,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
+
       .setDebug(false)
       .build();
 

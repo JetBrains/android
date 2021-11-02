@@ -56,8 +56,6 @@ class AppInspectionLaunchTaskContributorTest {
 
     val launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
       .build()
 
     val launchTaskProvider = AndroidLaunchTasksProvider(

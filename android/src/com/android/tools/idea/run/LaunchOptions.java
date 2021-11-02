@@ -18,15 +18,14 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.Optional;
-import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A collection of options governing Android run configuration launch behavior.
@@ -41,8 +40,6 @@ public final class LaunchOptions {
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
     private boolean myClearLogcatBeforeStart = false;
-    private boolean mySkipNoopApkInstallations = true;
-    private boolean myForceStopRunningApp = true;
     private boolean myInspectionWithoutActivityRestart = false;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
@@ -60,8 +57,6 @@ public final class LaunchOptions {
                                myDebug,
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
-                               mySkipNoopApkInstallations,
-                               myForceStopRunningApp,
                                myInspectionWithoutActivityRestart,
                                myExtraOptions,
                                myDeployAsInstant,
@@ -101,18 +96,6 @@ public final class LaunchOptions {
     @NotNull
     public Builder setClearLogcatBeforeStart(boolean clearLogcatBeforeStart) {
       myClearLogcatBeforeStart = clearLogcatBeforeStart;
-      return this;
-    }
-
-    @NotNull
-    public Builder setSkipNoopApkInstallations(boolean skipNoopApkInstallations) {
-      mySkipNoopApkInstallations = skipNoopApkInstallations;
-      return this;
-    }
-
-    @NotNull
-    public Builder setForceStopRunningApp(boolean forceStopRunningApp) {
-      myForceStopRunningApp = forceStopRunningApp;
       return this;
     }
 
@@ -158,8 +141,6 @@ public final class LaunchOptions {
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
   private final boolean myClearLogcatBeforeStart;
-  private final boolean mySkipNoopApkInstallations;
-  private final boolean myForceStopRunningApp;
   private final boolean myInspectionWithoutActivityRestart;
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
@@ -172,8 +153,6 @@ public final class LaunchOptions {
                         boolean debug,
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
-                        boolean skipNoopApkInstallations,
-                        boolean forceStopRunningApp,
                         boolean inspectionWithoutActivityRestart,
                         @NotNull Map<String, Object> extraOptions,
                         boolean deployAsInstant,
@@ -185,8 +164,6 @@ public final class LaunchOptions {
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    mySkipNoopApkInstallations = skipNoopApkInstallations;
-    myForceStopRunningApp = forceStopRunningApp;
     myInspectionWithoutActivityRestart = inspectionWithoutActivityRestart;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
@@ -226,14 +203,6 @@ public final class LaunchOptions {
 
   public boolean isClearLogcatBeforeStart() {
     return myClearLogcatBeforeStart;
-  }
-
-  public boolean isSkipNoopApkInstallations() {
-    return mySkipNoopApkInstallations;
-  }
-
-  public boolean isForceStopRunningApp() {
-    return myForceStopRunningApp;
   }
 
   public boolean isInspectionWithoutActivityRestart() {

@@ -53,7 +53,6 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
@@ -152,8 +151,6 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
   prop("Module") { runConfiguration.configurationModule.module?.name }
   prop("ClearLogcat") { runConfiguration.CLEAR_LOGCAT.takeUnless { it == false }?.toString() }
   prop("ShowLogcatAutomatically") { runConfiguration.SHOW_LOGCAT_AUTOMATICALLY.takeUnless { it == false }?.toString() }
-  prop("SkipNoopApkInstallations") { runConfiguration.SKIP_NOOP_APK_INSTALLATIONS.takeUnless { it == true }?.toString() }
-  prop("ForceStopRunningApp") { runConfiguration.FORCE_STOP_RUNNING_APP.takeUnless { it == true }?.toString() }
   prop("EnableInspectionWithoutActivityRestart") { runConfiguration.INSPECTION_WITHOUT_ACTIVITY_RESTART.takeUnless { !it }?.toString() }
   if (runConfiguration is AndroidTestRunConfiguration) {
     prop("TestingType") { runConfiguration.TESTING_TYPE.takeUnless { it == AndroidTestRunConfiguration.TEST_ALL_IN_MODULE }?.toString() }
