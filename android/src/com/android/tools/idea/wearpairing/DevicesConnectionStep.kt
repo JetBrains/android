@@ -755,8 +755,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     bindings.bind(doGoForward, canGoForward)
     deviceStateListener.listen(doGoForward) {
       ApplicationManager.getApplication().invokeLater {
-        dispose()
         wizardFacade.goForward()
+        dispose()
       }
     }
 
@@ -764,6 +764,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
     delay(100) // Backup, in case "go next" fails
     showUiInstallCompanionAppSuccess(phoneDevice, wearDevice)
+    wizardFacade.goForward()
   }
 }
 
