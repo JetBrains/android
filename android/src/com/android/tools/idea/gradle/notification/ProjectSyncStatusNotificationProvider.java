@@ -62,7 +62,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Notifies users that a Gradle project "sync" is either being in progress or failed.
+ * Notifies users that a Gradle project "sync" is required (because of changes to build files, or because the last attempt failed) or
+ * in progress; if no sync is required or active, displays hints and/or diagnostics about editing the Project Structure.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
   private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
