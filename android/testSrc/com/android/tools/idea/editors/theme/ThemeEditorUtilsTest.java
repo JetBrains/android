@@ -31,11 +31,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     return true;
   }
 
-  public void testMinApiLevel() {
-    myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", FN_ANDROID_MANIFEST_XML);
-    assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
-  }
-
   public void testGenerateWordEnumeration() {
     assertEquals("", ThemeEditorUtils.generateWordEnumeration(Collections.emptyList()));
     assertEquals("one", ThemeEditorUtils.generateWordEnumeration(Collections.singletonList("one")));

@@ -36,15 +36,6 @@ public class ThemeEditorUtils {
   private ThemeEditorUtils() {
   }
 
-  static int getMinApiLevel(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return 1;
-    }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
-    return moduleInfo.getMinSdkVersion().getApiLevel();
-  }
-
   @NotNull
   public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -71,14 +62,5 @@ public class ThemeEditorUtils {
   public static Font scaleFontForAttribute(@NotNull Font font) {
     // Use Math.ceil to ensure that the result is a font with an integer point size
     return font.deriveFont((float)Math.ceil(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
-  }
-
-  public static void setInheritsPopupMenuRecursive(JComponent comp) {
-    comp.setInheritsPopupMenu(true);
-    for (Component child : comp.getComponents()) {
-      if (child instanceof JComponent) {
-        setInheritsPopupMenuRecursive((JComponent)child);
-      }
-    }
   }
 }
