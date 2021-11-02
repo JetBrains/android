@@ -42,7 +42,6 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val androidTileConfiguration = configSettings.configuration as AndroidTileConfiguration
     androidTileConfiguration.setModule(myModule)
     androidTileConfiguration.componentName = componentName
-    // Use debug executor
     return ExecutionEnvironment(executorInstance, AndroidWearProgramRunner(), configSettings, project)
   }
 

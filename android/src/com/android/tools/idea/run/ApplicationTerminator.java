@@ -20,6 +20,8 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,8 +81,41 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
     return true;
   }
 
+  /**
+   * @return true if upon return no processes related to an app are running. The same as [killApp(LaunchStatus)],
+   * but without usage of LaunchStatus. [killApp(LaunchStatus)] is going to be deleted when we enable [StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get()].
+   */
+  @Trace
+  public boolean killApp() {
+    myIDevice.forceStop(myApplicationId);
+    myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
+    if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
+      myProcessKilledLatch.countDown();
+    }
+    else {
+      AndroidDebugBridge.addDeviceChangeListener(this);
+      checkDone();
+    }
+
+    try {
+      ProgressIndicator indicator = ProgressIndicatorProvider.getGlobalProgressIndicator();
+      if (indicator != null) {
+        indicator.setText(String.format("Killing app '%s'", myApplicationId));
+      }
+      // Ensure all Clients are killed prior to handing off to the AndroidProcessHandler.
+      if (!myProcessKilledLatch.await(10, TimeUnit.SECONDS)) {
+        return false;
+      }
+    }
+    catch (InterruptedException ignored) {
+      return false;
+    }
+
+    return true;
+  }
+
   @Override
-  public void deviceConnected(@NotNull IDevice device) {}
+  public void deviceConnected(@NotNull IDevice device) { }
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {

@@ -12,7 +12,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -26,7 +25,6 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.collect.ImmutableList;
@@ -277,14 +275,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull RunStats stats) throws ExecutionException {
     validateBeforeRun(executor);
-
-    if (StudioFlags.NEW_EXECUTION_FLOW_ENABLED.get()
-        && !isTestConfiguration()
-        && env.getUserData(SwapInfo.SWAP_INFO_KEY) == null
-        && AndroidConfigurationExecutionSettings.getInstance().getState().getEnableNewConfigurationFlow()
-    ) {
-      // TODO: implement new flow
-    }
 
     Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
