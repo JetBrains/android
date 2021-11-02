@@ -97,11 +97,17 @@ public class AndroidLiveEditDeployMonitor {
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() || !StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
+      LOGGER.info("Live Edit disabled because %s is enabled.", StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.getId());
+      return null;
+    }
+    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
+      LOGGER.info("Live Edit disabled because %s is disabled.", StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.getId());
       return null;
     }
 
     if (!supportLiveEdits(device)) {
+      LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), packageName);
       return null;
     }
 
