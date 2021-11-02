@@ -1,58 +1,9 @@
 [
   {
-    "name": "Ice Cream Sandwich",
-    "version": "4.0",
-    "apiLevel": 15,
-    "distributionPercentage": 0.002,
-    "url": "https://developer.android.com/about/versions/android-4.0.html",
-    "descriptionBlocks" : [
-      {
-        "title": "Contacts Provider",
-        "body": "Social APIs<br>User profile<br>Invite intent<br>Large photos"
-      },
-      {
-        "title": "Calendar Provider",
-        "body": "Calendar APIs<br>Event intents"
-      },
-      {
-        "title": "Voicemail Provider",
-        "body": "Add voicemails to the device"
-      },
-      {
-        "title": "Multimedia",
-        "body": "Media effects for images and videos<br>Remote control client<br>Improved media player"
-      },
-      {
-        "title": "Camera",
-        "body": "Face detection<br>Focus and metering areas<br>Continuous auto focus<br>Camera broadcast intents"
-      },
-      {
-        "title": "Connectivity",
-        "body": "Android Beam for NDEF push with NFC<br>Wi-Fi P2P connections<br>Bluetooth health profile<br>Network usage and controls"
-      },
-      {
-        "title": "Accessibility",
-        "body": "Explore-by-touch mode<br>Accessibility for views<br>Accessibility services<br>Improved text-to-speech engine support"
-      },
-      {
-        "title": "User Interface",
-        "body": "Spell checker services<br>Improved action bar<br>Grid layout<br>Texture view<br>Switch widget<br>Improved popup menus<br>System themes<br>Controls for system UI visibility<br>Hover event support<br>Hardware acceleration for all windows"
-      },
-      {
-        "title": "Enterprise",
-        "body": "VPN services<br>Device policies<br>Certificate management"
-      },
-      {
-        "title": "Device Sensors",
-        "body": "Improved sensors<br>Temperature sensor<br>Humidity sensor"
-      }
-    ]
-  },
-  {
     "name": "Jelly Bean",
     "version": "4.1",
     "apiLevel": 16,
-    "distributionPercentage": 0.007,
+    "distributionPercentage": 0.002,
     "url": "https://developer.android.com/about/versions/android-4.1.html",
     "descriptionBlocks" : [
       {
@@ -101,7 +52,7 @@
     "name": "Jelly Bean",
     "version": "4.2",
     "apiLevel": 17,
-    "distributionPercentage": 0.009,
+    "distributionPercentage": 0.003,
     "url": "https://developer.android.com/about/versions/android-4.2.html",
     "descriptionBlocks" : [
       {
@@ -134,7 +85,7 @@
     "name": "Jelly Bean",
     "version": "4.3",
     "apiLevel": 18,
-    "distributionPercentage": 0.003,
+    "distributionPercentage": 0.001,
     "url": "https://developer.android.com/about/versions/android-4.3.html",
     "descriptionBlocks" : [
       {
@@ -191,7 +142,7 @@
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.045,
+    "distributionPercentage": 0.014,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
     "descriptionBlocks" : [
       {
@@ -232,7 +183,7 @@
     "name": "Lollipop",
     "version": "5.0",
     "apiLevel": 21,
-    "distributionPercentage": 0.020,
+    "distributionPercentage": 0.007,
     "url": "https://developer.android.com/about/versions/android-5.0.html",
     "descriptionBlocks" : [
 
@@ -294,7 +245,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.081,
+    "distributionPercentage": 0.032,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks" : [
       {
@@ -311,7 +262,7 @@
     "name": "Marshmallow",
     "version": "6.0",
     "apiLevel": 23,
-    "distributionPercentage": 0.123,
+    "distributionPercentage": 0.051,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks" : [
       {
@@ -348,7 +299,7 @@
     "name": "Nougat",
     "version": "7.0",
     "apiLevel": 24,
-    "distributionPercentage": 0.082,
+    "distributionPercentage": 0.034,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks" : [
       {
@@ -401,7 +352,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.059,
+    "distributionPercentage": 0.029,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks" : [
       {
@@ -434,7 +385,7 @@
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.078,
+    "distributionPercentage": 0.04,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks" : [
       {
@@ -467,7 +418,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.143,
+    "distributionPercentage": 0.097,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks" : [
       {
@@ -492,7 +443,7 @@
     "name": "Pie",
     "version": "9.0",
     "apiLevel": 28,
-    "distributionPercentage": 0.320,
+    "distributionPercentage": 0.182,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks" : [
       {
@@ -521,7 +472,7 @@
     "name": "Q",
     "version": "10.0",
     "apiLevel": 29,
-    "distributionPercentage": 0.028,
+    "distributionPercentage": 0.265,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks" : [
       {
@@ -539,6 +490,27 @@
       {
         "title": "Security and privacy",
         "body": "New location permissions<br>Storage encryption<br>TLS 1.3 by default<br>Platform hardening<br>Improved biometrics"
+      }
+    ]
+  },
+  {
+    "name": "R",
+    "version": "11.0",
+    "apiLevel": 30,
+    "distributionPercentage": 0.242,
+    "url": "https://developer.android.com/about/versions/11",
+    "descriptionBlocks" : [
+      {
+        "title": "New features",
+        "body": "Chat Bubbles<br>Conversation improvements<br>Wireless debugging<br>Neural Networks API 1.3<br>Frame rate API"
+      },
+      {
+        "title": "Behavior changes",
+        "body": "Exposure Notifications<br>Conscrypt SSL engine by default<br>Non-SDK interface restrictions<br>URI access permissions requirements"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "Scoped storage enforcement<br>One-time permissions<br>Permissions auto-reset<br>Background location access<br>Package visibility<br>Foreground services<br>Secure sharing of large datasets"
       }
     ]
   }
