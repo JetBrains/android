@@ -33,7 +33,7 @@ enum class PairingFeature(val minVersion: Int) {
   REVERSE_PORT_FORWARD(210915000),
 
   // Applicable to phone/watch
-  GET_PAIRING_STATUS(213306000)
+  GET_PAIRING_STATUS(214412000)
 }
 
 private const val GMSCORE_APP_ID = "com.google.android.gms"
