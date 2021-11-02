@@ -169,16 +169,14 @@ class ComposePreviewRepresentationProvider(
   }
 
   init {
-    if (StudioFlags.COMPOSE_PREVIEW.get()) {
-      DesignerTypeRegistrar.register(ComposeEditorFileType)
-    }
+    DesignerTypeRegistrar.register(ComposeEditorFileType)
   }
 
   /**
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the [PreviewRepresentation] of them.
    */
   override fun accept(project: Project, psiFile: PsiFile): Boolean =
-    StudioFlags.COMPOSE_PREVIEW.get() && psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
+    psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
 
   /**
    * Creates a [ComposePreviewRepresentation] for the input [psiFile].

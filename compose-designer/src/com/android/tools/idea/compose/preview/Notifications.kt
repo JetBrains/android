@@ -73,7 +73,6 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
     when {
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
-      !StudioFlags.COMPOSE_PREVIEW.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
       filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor).apply {
@@ -107,9 +106,6 @@ internal class ComposeNewPreviewNotificationManager(private val project: Project
   }
 
   override fun projectOpened() {
-    if (!StudioFlags.COMPOSE_PREVIEW.get()) {
-      return
-    }
     LOG.debug("projectOpened")
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(object : PsiTreeChangeAdapter() {
@@ -156,7 +152,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     LOG.debug("createNotificationsProvider")
-    if (!StudioFlags.COMPOSE_PREVIEW.get() || !file.isKotlinFileType()) {
+    if (!file.isKotlinFileType()) {
       return null
     }
 

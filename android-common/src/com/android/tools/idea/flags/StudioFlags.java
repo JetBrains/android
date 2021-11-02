@@ -985,10 +985,6 @@ public final class StudioFlags {
 
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
-  public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
-    COMPOSE, "preview.enabled", "Enable the Compose preview",
-    "If enabled, a visual preview will be available for Compose.",
-    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
     COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",

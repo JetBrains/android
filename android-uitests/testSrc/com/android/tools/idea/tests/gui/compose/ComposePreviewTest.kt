@@ -78,7 +78,6 @@ class ComposePreviewTest {
   @Before
   fun setUp() {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.override(true)
-    StudioFlags.COMPOSE_PREVIEW.override(true)
     StudioFlags.COMPOSE_ANIMATED_PREVIEW.override(true)
     StudioFlags.COMPOSE_ANIMATION_INSPECTOR.override(true)
   }
@@ -86,7 +85,6 @@ class ComposePreviewTest {
   @After
   fun tearDown() {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.clearOverride()
-    StudioFlags.COMPOSE_PREVIEW.clearOverride()
     StudioFlags.COMPOSE_ANIMATED_PREVIEW.clearOverride()
     StudioFlags.COMPOSE_ANIMATION_INSPECTOR.clearOverride()
   }

@@ -47,7 +47,6 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
       PreviewEntryPoint(),
       projectRule.fixture.testRootDisposable)
 
-    StudioFlags.COMPOSE_PREVIEW.override(true)
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let {
       it.usesCompose = true
     }
@@ -55,9 +54,7 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
     projectRule.fixture.stubPreviewAnnotation(previewAnnotationPackage)
   }
 
-  override fun after(description: Description) {
-    StudioFlags.COMPOSE_PREVIEW.clearOverride()
-  }
+  override fun after(description: Description) {}
 }
 
 /**

@@ -62,8 +62,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
   final override fun buildVisitor(holder: ProblemsHolder,
                                   isOnTheFly: Boolean,
                                   session: LocalInspectionToolSession): PsiElementVisitor =
-    if (StudioFlags.COMPOSE_PREVIEW.get() &&
-        (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode)) {
+    if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
       object : KtVisitorVoid() {
         override fun visitImportDirective(importDirective: KtImportDirective) {
           super.visitImportDirective(importDirective)
