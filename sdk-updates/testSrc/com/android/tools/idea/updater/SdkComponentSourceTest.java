@@ -119,7 +119,7 @@ public class SdkComponentSourceTest {
     myFileOp.recordExistingFile("/sdk/olderPreview/package.xml", getLocalRepoXml("olderPreview", new Revision(2)));
     myFileOp.recordExistingFile("/sdk/zNewerInBeta/package.xml", getLocalRepoXml("zNewerInBeta", new Revision(1)));
 
-    final FakeDownloader downloader = new FakeDownloader(myFileOp);
+    final FakeDownloader downloader = new FakeDownloader(myFileOp.toPath("tmp"));
 
     List<String> remotePaths = Lists.newArrayList();
     List<Revision> remoteRevisions = Lists.newArrayList();

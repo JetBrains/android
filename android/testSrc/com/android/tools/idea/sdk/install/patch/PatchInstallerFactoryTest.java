@@ -264,7 +264,7 @@ public class PatchInstallerFactoryTest {
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
-    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp));
+    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp.toPath("tmp")));
     assertTrue(installer instanceof PatchInstaller);
   }
 
@@ -278,7 +278,7 @@ public class PatchInstallerFactoryTest {
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
-    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp));
+    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp.toPath("tmp")));
     assertTrue(installer instanceof FullInstaller);
   }
 
@@ -293,7 +293,7 @@ public class PatchInstallerFactoryTest {
     local.setRevision(new Revision(1));
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(local, PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(remote));
-    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp));
+    Installer installer = myInstallerFactory.createInstaller(remote, myRepoManager, new FakeDownloader(myFileOp.toPath("tmp")));
     assertNotNull(installer);
     assertFalse(installer instanceof PatchOperation);
   }
