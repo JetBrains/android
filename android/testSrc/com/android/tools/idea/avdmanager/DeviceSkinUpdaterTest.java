@@ -192,9 +192,9 @@ public final class DeviceSkinUpdaterTest {
   }
 
   @Test
-  public void updateSkinsImplDeviceEqualsAndroidWearRound() {
+  public void updateSkinsImplDeviceEqualsWearSmallRound() {
     // Arrange
-    Path device = myFileSystem.getPath("AndroidWearRound");
+    Path device = myFileSystem.getPath("WearSmallRound");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, Mockito.mock(Converter.class));
 
@@ -202,13 +202,13 @@ public final class DeviceSkinUpdaterTest {
     Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wear_round"), deviceSkins);
+    assertEquals(myStudioSkins.resolve("wearos_small_round"), deviceSkins);
   }
 
   @Test
-  public void updateSkinsImplDeviceEqualsAndroidWearRoundChin320X290() {
+  public void updateSkinsImplDeviceEqualsWearLargeRound() {
     // Arrange
-    Path device = myFileSystem.getPath("AndroidWearRoundChin320x290");
+    Path device = myFileSystem.getPath("WearLargeRound");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, Mockito.mock(Converter.class));
 
@@ -216,13 +216,13 @@ public final class DeviceSkinUpdaterTest {
     Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wear_round_chin_320_290"), deviceSkins);
+    assertEquals(myStudioSkins.resolve("wearos_large_round"), deviceSkins);
   }
 
   @Test
   public void updateSkinsImplDeviceEqualsAndroidWearSquare() {
     // Arrange
-    Path device = myFileSystem.getPath("AndroidWearSquare");
+    Path device = myFileSystem.getPath("WearSquare");
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins, true, Mockito.mock(Converter.class));
 
@@ -230,7 +230,7 @@ public final class DeviceSkinUpdaterTest {
     Object deviceSkins = updater.updateSkinsImpl(device);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wear_square"), deviceSkins);
+    assertEquals(myStudioSkins.resolve("wearos_square"), deviceSkins);
   }
 
   @Test

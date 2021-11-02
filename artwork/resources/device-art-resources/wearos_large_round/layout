@@ -7,8 +7,8 @@ parts {
 
     device {
         display {
-            width   320
-            height  290
+            width   454
+            height  454
             x       0
             y       0
         }
@@ -17,8 +17,8 @@ parts {
 
 layouts {
     portrait {
-        width     380
-        height    380
+        width     539
+        height    539
         color     0x1f1f1f
         event     EV_SW:0:1
 
@@ -30,8 +30,8 @@ layouts {
 
         part2 {
             name    device
-            x       30
-            y       30
+            x       42
+            y       42
         }
     }
 }

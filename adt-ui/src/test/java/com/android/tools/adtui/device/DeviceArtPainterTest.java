@@ -92,8 +92,8 @@ public class DeviceArtPainterTest {
     File deviceArtPath = DeviceArtDescriptor.getBundledDescriptorsFolder();
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
 
-    DeviceArtDescriptor wear_square = findDescriptor(descriptors, "wear_square");
-    DeviceArtDescriptor wear_round = findDescriptor(descriptors, "wear_round");
+    DeviceArtDescriptor wear_square = findDescriptor(descriptors, "wearos_square");
+    DeviceArtDescriptor wear_round = findDescriptor(descriptors, "wearos_small_round");
 
     assertNotNull(wear_square);
     assertNotNull(wear_round);

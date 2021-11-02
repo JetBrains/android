@@ -285,7 +285,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     myPlayStorePhoneDevice = devMgr.getDevice("Nexus 5", "Google");
 
     // Get a Wear device
-    myWearDevice = devMgr.getDevice("wear_square", "Google");
+    myWearDevice = devMgr.getDevice("wearos_square", "Google");
 
     // Get a big phone, a bigger foldable, and a small tablet
     myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");

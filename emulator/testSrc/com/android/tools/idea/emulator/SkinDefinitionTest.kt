@@ -205,22 +205,22 @@ class SkinDefinitionTest {
 
   @Test
   fun testWearRound() {
-    val folder = getSkinFolder("wear_round")
+    val folder = getSkinFolder("wearos_small_round")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the getRotatedFrameSize method.
-    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(380, 380))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE)).isEqualTo(Dimension(380, 380))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT)).isEqualTo(Dimension(380, 380))
-    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(380, 380))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.PORTRAIT)).isEqualTo(Dimension(456, 456))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.LANDSCAPE)).isEqualTo(Dimension(456, 456))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_PORTRAIT)).isEqualTo(Dimension(456, 456))
+    assertThat(skin.getRotatedFrameSize(SkinRotation.REVERSE_LANDSCAPE)).isEqualTo(Dimension(456, 456))
 
     // Check the createScaledLayout method without rotation or scaling.
     val layout = skin.layout
-    assertThat(layout.displaySize).isEqualTo(Dimension(320, 320))
-    assertThat(layout.frameRectangle).isEqualTo(Rectangle(-30, -30, 380, 380))
+    assertThat(layout.displaySize).isEqualTo(Dimension(384, 384))
+    assertThat(layout.frameRectangle).isEqualTo(Rectangle(-36, -36, 456, 456))
     assertThat(layout.frameImages).hasSize(8)
     assertThat(layout.maskImages).hasSize(1)
-    assertSkinAppearance(layout, "wear_round")
+    assertSkinAppearance(layout, "wearos_small_round")
   }
 
   private fun validateLayoutConsistency(skinLayout: SkinLayout, skinFolder: Path) {

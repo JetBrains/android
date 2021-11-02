@@ -1275,7 +1275,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val avdId = "Android_Wear_Round_API_28"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinFolder = getSkinFolder("wear_round")
+      val skinFolder = getSkinFolder("wearos_small_round")
 
       val configIni = """
           AvdId=${avdId}

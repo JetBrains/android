@@ -102,7 +102,9 @@ class DeviceMenuAction2Test {
         Nexus 5X (411 × 731 dp, 420dpi)
     ------------------------------------------------------
     Wear
-    Wear OS Round Chin (240 × 218 dp, hdpi)
+    Wear OS Small Round (192 × 192 dp, xhdpi)
+    Wear OS Square (180 × 180 dp, xhdpi)
+    Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------
     TV
     Android TV (4K) (960 × 540 dp, xhdpi)

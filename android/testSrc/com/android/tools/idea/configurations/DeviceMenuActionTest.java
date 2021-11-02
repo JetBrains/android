@@ -81,9 +81,9 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    10.1, 2560 \u00d7 1600, xhdpi (Nexus 10)\n" +
       "    ------------------------------------------------------\n" +
       "    Wear\n" +
-      "    280 \u00d7 280, hdpi (Square)\n" +
-      "    320 \u00d7 320, hdpi (Round)\n" +
-      "    320 \u00d7 290, tvdpi (Round Chin)\n" +
+      "    384 \u00d7 384, xhdpi (Small Round)\n" +
+      "    360 \u00d7 360, xhdpi (Square)\n" +
+      "    454 \u00d7 454, xhdpi (Large Round)\n" +
       "    ------------------------------------------------------\n" +
       "    TV\n" +
       "    4K, 3840 \u00d7 2160, xxxhdpi (TV)\n" +

@@ -48,7 +48,7 @@ private val NEXUS_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device
 private val WEAR_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Device> = { groupedDevices ->
   groupedDevices[DeviceGroup.WEAR]?.filter {
     when (it.id) {
-      "wear_square_320", "wear_round_360", "wear_round_chin_320_290" -> true
+      "wearos_large_round", "wearos_small_round", "wearos_square" -> true
       else -> false
     }
   }?.toList() ?: emptyList()

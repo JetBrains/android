@@ -102,15 +102,15 @@ public class DeviceArtDescriptorTest extends TestCase {
   public void testWearSpecs() {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
-      if ("wear_round".equals(spec.getId())) {
+      if ("wearos_small_round".equals(spec.getId())) {
         verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
         verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
         verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
         verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
-        return;  // pass: found wear_round spec
+        return;  // pass: found wearos_small_round spec
       }
     }
-    fail("Did not find wear_round spec");
+    fail("Did not find wearos_small_round spec");
   }
 
   private static void verifyFileExists(@Nullable File f) {
