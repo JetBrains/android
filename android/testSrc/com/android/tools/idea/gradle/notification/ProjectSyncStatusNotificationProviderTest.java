@@ -30,11 +30,18 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import java.util.Arrays;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
+@RunWith(Parameterized.class)
 public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
@@ -47,6 +54,20 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   @SuppressWarnings("FieldCanBeLocal")
   private PropertiesComponent myPropertiesComponent;
 
+  @Parameters(name="{0}")
+  public static Iterable<Object[]> getParameters() {
+    return Arrays.asList(new Object[][] {
+      { "build.gradle", true },
+      { "build.gradle.kts", true },
+      { "README.md", false },
+      { "src/main/com/example/MyClass.java", false },
+    });
+  }
+  @Parameter(0)
+  public String myFilepath;
+  @Parameter(1)
+  public boolean myFileNeedsProjectStructureNotifications;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -57,13 +78,14 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
-    myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
+    myFile = VfsUtil.findFileByIoFile(createTempFile(myFilepath, "whatever"), true);
 
     myPropertiesComponent = new PropertiesComponentMock();
     myIdeComponents = new IdeComponents(myProject);
     myIdeComponents.replaceApplicationService(PropertiesComponent.class, myPropertiesComponent);
   }
 
+  @Test
   public void testNotificationPanelTypeWithSyncNeededWithNoExternalFileChanged() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
     when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(false);
@@ -76,6 +98,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertNull(refreshExternalNativeModels);
   }
 
+  @Test
   public void testNotificationPanelTypeWithSyncNeededWithExternalFileChanged() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
     when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(true);
@@ -88,6 +111,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertTrue(refreshExternalNativeModels);
   }
 
+  @Test
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
@@ -96,6 +120,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertNull(createPanel(type));
   }
 
+  @Test
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
@@ -103,9 +128,15 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertEquals(Type.PROJECT_STRUCTURE, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
-    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    if (myFileNeedsProjectStructureNotifications) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
   }
 
+  @Test
   public void testNotificationPanelTypeWithSyncInProgress() {
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
@@ -113,6 +144,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertEquals(Type.IN_PROGRESS, type);
   }
 
+  @Test
   public void testNotificationPanelTypeWithLastSyncFailed() {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
@@ -121,6 +153,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertInstanceOf(createPanel(type), ProjectSyncStatusNotificationProvider.SyncProblemNotificationPanel.class);
   }
 
+  @Test
   public void testProjectStructureNotificationPanelType() {
     when(mySyncState.lastSyncFailed()).thenReturn(false);
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
@@ -129,7 +162,12 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertEquals(Type.PROJECT_STRUCTURE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    if (myFileNeedsProjectStructureNotifications) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
 
     // The reshow timeout should always be too large comparing to the potential time difference between statements below,
     // e.g. dozens of days.
@@ -140,6 +178,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertNull(createPanel(type));
   }
 
+  @Test
   public void testNotificationPanelTypeWithSyncNeeded() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
 
