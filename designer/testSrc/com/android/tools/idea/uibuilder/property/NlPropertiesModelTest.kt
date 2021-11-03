@@ -32,7 +32,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.impl.LaterInvocator
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
@@ -126,7 +126,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
     nlModel.surface.sceneManager!!.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
     nlModel.updateQueue.flush()
-    LaterInvocator.dispatchPendingFlushes()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -146,7 +146,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
     nlModel.notifyLiveUpdate(false)
     nlModel.updateQueue.flush()
-    LaterInvocator.dispatchPendingFlushes()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -165,7 +165,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
     textView.fireLiveChangeEvent()
     nlModel.updateQueue.flush()
-    LaterInvocator.dispatchPendingFlushes()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -206,14 +206,14 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
     // Value changed should not be reported if the default values are unchanged
     manager.fireRenderCompleted()
-    LaterInvocator.dispatchPendingFlushes()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.fireRenderCompleted()
     nlModel.updateQueue.flush()
-    LaterInvocator.dispatchPendingFlushes()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -357,7 +357,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
       while (!model.lastUpdateCompleted) {
-        LaterInvocator.dispatchPendingFlushes()
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
     }
   }
