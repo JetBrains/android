@@ -587,9 +587,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .collect(Collectors.toList());
     List<SeriesData<Long>> vsyncs = systemTraceData.getVsyncCounterValues();
     AndroidFrameTimelineModel jankyFrameModel =
-      new AndroidFrameTimelineModel(Arrays.asList(jankEvents), vsyncs, timeline.getViewRange());
+      new AndroidFrameTimelineModel(jankEvents, vsyncs, timeline.getViewRange());
     AndroidFrameTimelineModel allFramesModel =
-      new AndroidFrameTimelineModel(Arrays.asList(events), vsyncs, timeline.getViewRange());
+      new AndroidFrameTimelineModel(events, vsyncs, timeline.getViewRange());
     display.addTrackModel(TrackModel.newBuilder(jankyFrameModel, ProfilerTrackRendererType.ANDROID_FRAME_TIMELINE_EVENT, "Janky frames")
                             .setDefaultTooltipModel(new AndroidFrameTimelineTooltip(timeline, jankyFrameModel)),
                           toggles -> !toggles.contains(toggleAllFrames));

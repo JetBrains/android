@@ -33,7 +33,7 @@ class AndroidFrameTimelineTooltipViewTest {
       dataRange.set(0.0, 4000.0)
       viewRange.set(0.0, 4000.0)
     }
-    val model = AndroidFrameTimelineModel(listOf(listOf(FAKE_EVENT_0), listOf(FAKE_EVENT_1)), listOf(), timeline.viewRange)
+    val model = AndroidFrameTimelineModel(listOf(FAKE_EVENT_0, FAKE_EVENT_1), listOf(), timeline.viewRange)
     val tooltip = AndroidFrameTimelineTooltip(timeline, model)
     val tooltipView = AndroidFrameTimelineTooltipView(JPanel(), tooltip)
     fun checkText(txt: String) =
@@ -75,7 +75,7 @@ val FAKE_EVENT_0 =
                             1000L, 2000L, 3000L, "",
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                             PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
-                            onTimeFinish = false, gpuComposition = false, 0)
+                            onTimeFinish = false, gpuComposition = false, 1)
 
 val FAKE_EVENT_1 =
   AndroidFrameTimelineEvent(43L, 43L,
