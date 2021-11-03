@@ -764,9 +764,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.compose.support", "Show inspectables from Compose",
-    "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
     "If enabled, display semantic information found in the agent.", true);
@@ -1193,13 +1190,6 @@ public final class StudioFlags {
     COMPOSE, "preview.individual.pin.enable",
     "Enable pinning of individual compose previews",
     "If enabled, a user can pin a single preview within a file",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_INTERACTIVE_ANIMATION_SWITCH = Flag.create(
-    COMPOSE, "preview.switch.animation.interactive",
-    "Enable animation inspection switch from interactive preview (and disable from static preview)",
-    "If enabled, a user can switch to animation inspection from interactive preview",
     false
   );
 
