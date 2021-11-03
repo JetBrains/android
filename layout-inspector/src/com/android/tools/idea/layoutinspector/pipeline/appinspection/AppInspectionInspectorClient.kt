@@ -132,7 +132,6 @@ class AppInspectionInspectorClient(
 
   override val capabilities =
     EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
-               Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
                Capability.SUPPORTS_SYSTEM_NODES,
                Capability.SUPPORTS_SKP)!!
 

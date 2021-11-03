@@ -203,7 +203,6 @@ class ViewLayoutInspectorClient(
     val response = messenger.sendCommand {
       startFetchCommand = StartFetchCommand.newBuilder().apply {
         this.continuous = continuous
-        skipSystemViews = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {

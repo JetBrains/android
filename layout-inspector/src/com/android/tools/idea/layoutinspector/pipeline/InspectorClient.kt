@@ -49,12 +49,6 @@ interface InspectorClient: Disposable {
     SUPPORTS_CONTINUOUS_MODE,
 
     /**
-     * Indicates that this client is aware of and uses [TreeSettings.skipSystemNodesInAgent] when
-     * [startFetching] is called.
-     */
-    SUPPORTS_FILTERING_SYSTEM_NODES,
-
-    /**
      * Indicates that this client is able to separate user defined nodes from system defined nodes.
      */
     SUPPORTS_SYSTEM_NODES,

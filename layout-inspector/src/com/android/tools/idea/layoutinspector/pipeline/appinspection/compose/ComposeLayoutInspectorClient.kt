@@ -137,7 +137,6 @@ class ComposeLayoutInspectorClient(
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
         generation = lastGeneration
       }.build()
     }
@@ -150,7 +149,6 @@ class ComposeLayoutInspectorClient(
       getParametersCommand = GetParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         this.composableId = composableId
-        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
         generation = lastGeneration
       }.build()
     }
@@ -161,7 +159,6 @@ class ComposeLayoutInspectorClient(
     val response = messenger.sendCommand {
       getAllParametersCommand = GetAllParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
         generation = lastGeneration
       }.build()
     }
@@ -177,7 +174,6 @@ class ComposeLayoutInspectorClient(
     val response = messenger.sendCommand {
       getParameterDetailsCommand = GetParameterDetailsCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
         generation = lastGeneration
         this.startIndex = startIndex
         this.maxElements = maxElements

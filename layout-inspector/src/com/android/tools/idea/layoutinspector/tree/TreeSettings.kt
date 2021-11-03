@@ -44,10 +44,6 @@ interface TreeSettings {
 
   fun isInComponentTree(node: ViewNode): Boolean =
     !(hideSystemNodes && node.isSystemNode)
-
-  companion object {
-    const val skipSystemNodesInAgent = false
-  }
 }
 
 /**
