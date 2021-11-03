@@ -112,7 +112,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                    artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -166,7 +166,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
                     artifacts::app                : null => artifacts::app:unspecified
                     artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                    artifacts::lib                : null => artifacts::lib:unspecified
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
@@ -388,19 +388,12 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = testFixtures)
-                ArtifactAddress               : artifacts::lib-test-fixtures:unspecified
-                ProjectPath                   : :lib
-                sourceSet                     : testFixtures
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -869,7 +862,7 @@ MODULE                        : project.lib
             Dependencies
                 CompileDependencies
                     artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                    artifacts::lib                : null => artifacts::lib:unspecified
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -886,7 +879,7 @@ MODULE                        : project.lib
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
                     artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                    artifacts::lib                : null => artifacts::lib:unspecified
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -913,7 +906,7 @@ MODULE                        : project.lib
         Dependencies
             CompileDependencies
                 artifacts::lib                : null => artifacts::lib:unspecified
-                artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
                 com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
                 com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
@@ -940,7 +933,7 @@ MODULE                        : project.lib
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
                 artifacts::lib                : null => artifacts::lib:unspecified
-                artifacts::lib-test-fixtures  : null => artifacts::lib-test-fixtures:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
                 com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
                 com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
@@ -1043,15 +1036,9 @@ MODULE                        : project.lib
             - AssetsDirectories           : <ROOT>/lib/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = testFixtures)
-                ArtifactAddress               : artifacts::lib-test-fixtures:unspecified
-                ProjectPath                   : :lib
-                sourceSet                     : testFixtures
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : AndroidLibrary(com.android.support.test.espresso:espresso-core:3.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
                 ArtifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2

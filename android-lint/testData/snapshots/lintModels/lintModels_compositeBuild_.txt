@@ -378,19 +378,16 @@ MODULE                        : TestCompositeLib1.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:)
                 ArtifactAddress               : artifacts:::unspecified
                 ProjectPath                   : :
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -1082,15 +1079,13 @@ MODULE                        : TestCompositeLib1.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:)
                 ArtifactAddress               : artifacts:::unspecified
                 ProjectPath                   : :
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
                 ArtifactAddress               : com.android.support:animated-vector-drawable:28.0.0
@@ -1742,19 +1737,16 @@ MODULE                        : TestCompositeLib3.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:)
                 ArtifactAddress               : artifacts:::unspecified
                 ProjectPath                   : :
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -2401,15 +2393,13 @@ MODULE                        : TestCompositeLib3.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:)
                 ArtifactAddress               : artifacts:::unspecified
                 ProjectPath                   : :
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
                 ArtifactAddress               : com.android.support:animated-vector-drawable:28.0.0
@@ -3071,19 +3061,16 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:)
                 ArtifactAddress               : artifacts:::unspecified
                 ProjectPath                   : :
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
@@ -3757,11 +3744,10 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
                 ArtifactAddress               : com.android.support:animated-vector-drawable:28.0.0

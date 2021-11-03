@@ -416,15 +416,13 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.1.0)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.1.0
@@ -899,10 +897,9 @@ MODULE                        : project.dyn_feature
             - AssetsDirectories           : <ROOT>/dyn_feature/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :dyn_feature, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:dyn_feature)
                 ArtifactAddress               : artifacts::dyn_feature:unspecified
                 ProjectPath                   : :dyn_feature
-                sourceSet                     : main
 MODULE                        : project.dyn_feature.androidTest
 MODULE                        : project.dyn_feature.main
 MODULE                        : project.dyn_feature.unitTest
@@ -1256,15 +1253,13 @@ MODULE                        : project.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :jav, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:jav)
                 ArtifactAddress               : artifacts::jav:unspecified
                 ProjectPath                   : :jav
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
                 ArtifactAddress               : com.android.support:animated-vector-drawable:28.0.0
@@ -1620,11 +1615,10 @@ MODULE                        : project.nested1
             - AssetsDirectories           : <ROOT>/nested1/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :nested1, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:nested1)
                 ArtifactAddress               : artifacts::nested1:unspecified
                 LintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested1
-                sourceSet                     : main
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     Dir                           : <ROOT>/nested1/deep
@@ -1720,11 +1714,10 @@ MODULE                        : project.nested1.deep
             - AssetsDirectories           : <ROOT>/nested1/deep/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :nested1:deep, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:nested1:deep)
                 ArtifactAddress               : artifacts::nested1:deep:unspecified
                 LintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested1:deep
-                sourceSet                     : main
 MODULE                        : project.nested1.deep.androidTest
 MODULE                        : project.nested1.deep.main
 MODULE                        : project.nested1.deep.unitTest
@@ -1842,11 +1835,10 @@ MODULE                        : project.nested2
             - AssetsDirectories           : <ROOT>/nested2/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :nested2, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:nested2)
                 ArtifactAddress               : artifacts::nested2:unspecified
                 LintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2
-                sourceSet                     : main
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     Dir                           : <ROOT>/nested2/deep
@@ -1940,11 +1932,10 @@ MODULE                        : project.nested2.deep
             - AssetsDirectories           : <ROOT>/nested2/deep/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :nested2:deep, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:nested2:deep)
                 ArtifactAddress               : artifacts::nested2:deep:unspecified
                 LintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2:deep
-                sourceSet                     : main
 MODULE                        : project.nested2.deep.androidTest
 MODULE                        : project.nested2.deep.main
 MODULE                        : project.nested2.deep.unitTest
@@ -2042,11 +2033,10 @@ MODULE                        : project.nested2.trans.deep2
             - AssetsDirectories           : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :nested2:trans:deep2, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:nested2:trans:deep2)
                 ArtifactAddress               : artifacts::nested2:trans:deep2:unspecified
                 LintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :nested2:trans:deep2
-                sourceSet                     : main
 MODULE                        : project.nested2.trans.deep2.androidTest
 MODULE                        : project.nested2.trans.deep2.main
 MODULE                        : project.nested2.trans.deep2.unitTest

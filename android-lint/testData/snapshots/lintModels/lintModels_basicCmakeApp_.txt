@@ -92,10 +92,9 @@ MODULE                        : project.app
             - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest

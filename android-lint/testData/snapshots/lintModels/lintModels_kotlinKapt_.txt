@@ -346,10 +346,9 @@ MODULE                        : MainActivity.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/proguard.txt
                 ResolvedCoordinates           : androidx.versionedparcelable:versionedparcelable:1.0.0
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
                 ArtifactAddress               : com.google.code.findbugs:jsr305:2.0.1
@@ -1049,11 +1048,10 @@ MODULE                        : MainActivity.lib
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(path = :lib, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:lib)
                 ArtifactAddress               : artifacts::lib:unspecified
                 LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :lib
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>

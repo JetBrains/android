@@ -266,7 +266,6 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
         prop("ProguardRules") { proguardRules.path.toPrintablePath() }
       }
       prop("ProjectPath") { (this@with as? LintModelModuleLibrary)?.projectPath }
-      prop("sourceSet") { (this@with as? LintModelModuleLibrary)?.sourceSet?.sourceSetName }
       prop("ResolvedCoordinates") { (this@with as? LintModelExternalLibrary)?.resolvedCoordinates?.toString()?.replaceKnownPaths() }
       prop("Provided") { provided.takeIf { it }?.toString() }
     }

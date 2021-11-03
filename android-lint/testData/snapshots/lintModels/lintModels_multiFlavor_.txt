@@ -652,10 +652,9 @@ MODULE                        : MultiFlavor.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
                 ArtifactAddress               : com.google.code.findbugs:jsr305:2.0.1

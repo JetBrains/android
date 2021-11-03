@@ -634,15 +634,13 @@ MODULE                        : My_First_App.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(path = :app:mysharedlibrary, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 ArtifactAddress               : artifacts::app:mysharedlibrary:unspecified
                 LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
-                sourceSet                     : main
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
                 ArtifactAddress               : junit:junit:4.12
@@ -1312,11 +1310,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(path = :app:mysharedlibrary, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 ArtifactAddress               : artifacts::app:mysharedlibrary:unspecified
                 LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
                 ArtifactAddress               : junit:junit:4.12

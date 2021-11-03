@@ -354,10 +354,9 @@ MODULE                        : application.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(path = :app, sourceSet = main)
+            LintModelLibrary              : LocalLibrary(:app)
                 ArtifactAddress               : artifacts::app:unspecified
                 ProjectPath                   : :app
-                sourceSet                     : main
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                 ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
