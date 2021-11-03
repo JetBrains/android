@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import java.io.File;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -114,12 +113,6 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {
-      if (exception instanceof CancellationException) {
-        myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
-      } else if (parsedCapture == null) {
-        myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-      }
-
       myIsParsing = false;
       captureCompleted.accept(parsedCapture);
       return parsedCapture;

@@ -310,11 +310,15 @@ public class CpuCaptureStage extends Stage<Timeline> {
               .execute(() -> getStudioProfilers().setStage(getParentStage()));
           }
           else {
-            // If the user was importing a trace the user will be sent to the null stage with an error + notification.
+            // If the user was importing a trace the user will be sent to the null stage with an warning + notification.
             getStudioProfilers().getIdeServices().getMainExecutor().execute(
-              () -> getStudioProfilers().setStage(new NullMonitorStage(
-                getStudioProfilers(),
-                "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace.")));
+              () -> {
+                // Deselect the imported session so user may import it again to retry.
+                getStudioProfilers().getSessionsManager().setSession(Common.Session.getDefaultInstance());
+                getStudioProfilers().setStage(new NullMonitorStage(
+                  getStudioProfilers(),
+                  "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace."));
+              });
           }
         }
         else {

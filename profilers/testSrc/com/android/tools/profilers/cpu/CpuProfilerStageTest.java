@@ -795,7 +795,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/209080183")
   public void abortParsingRecordedTraceFileShowsABalloon() throws InterruptedException {
     myServices.setShouldProceedYesNoDialog(false);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
