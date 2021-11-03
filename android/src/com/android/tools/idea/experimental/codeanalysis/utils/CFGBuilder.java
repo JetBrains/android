@@ -137,7 +137,6 @@ import com.intellij.psi.PsiTypeCastExpression;
 import com.intellij.psi.PsiWhileStatement;
 import com.intellij.psi.tree.IElementType;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
@@ -2442,7 +2441,9 @@ public class CFGBuilder {
 
     //Add Args/Param to the new expression
     ArrayList<Value> argsList = newExprImpl.getArgsList();
-    Collections.addAll(argsList, paramValueArray);
+    for (Value v : paramValueArray) {
+      argsList.add(v);
+    }
 
     if (constructorMethod != null) {
       PsiClass declaringClassRef = constructorMethod.getContainingClass();
