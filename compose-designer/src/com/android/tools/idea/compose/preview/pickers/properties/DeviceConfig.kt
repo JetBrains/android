@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("EnumEntryName")
+
 package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
-import com.android.tools.idea.compose.preview.util.enumValueOfOrDefault
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import kotlin.math.roundToInt
-
-internal const val SPEC_PREFIX = "spec:"
 
 internal const val DEFAULT_WIDTH = 1080
 internal const val DEFAULT_HEIGHT = 1920
@@ -45,7 +45,7 @@ private const val WIDTH_SUFFIX = "w"
 private const val HEIGHT_SUFFIX = "h"
 
 /**
- * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrDefault].
+ * Defines some mutable hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using [DeviceConfig.toDeviceConfigOrNull].
  *
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a cutout (like with wearables)
@@ -102,7 +102,7 @@ internal class DeviceConfig(
 
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
   fun deviceSpec(): String {
-    val builder = StringBuilder(SPEC_PREFIX)
+    val builder = StringBuilder(DEVICE_BY_SPEC_PREFIX)
     builder.appendParamValue(PARAM_SHAPE, shape.name)
     builder.appendSeparator()
     builder.appendParamValue(PARAM_WIDTH, width.toString())
@@ -127,20 +127,13 @@ internal class DeviceConfig(
   }
 
   companion object {
-
-    /**
-     * Returns a [DeviceConfig] from parsing the given string.
-     *
-     * For any step that might fail, a default value will be used.
-     * So if all fails, returns an instance using all default values.
-     */
-    fun toDeviceConfigOrDefault(serialized: String?): DeviceConfig {
-      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return DeviceConfig()
-      val configString = serialized.substringAfter(SPEC_PREFIX)
+    fun toDeviceConfigOrNull(serialized: String?): DeviceConfig? {
+      if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
+      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       val paramsMap = configString.split(PARAM_SEPARATOR).filter {
         it.length >= 3 && it.contains(PARAM_VALUE_OPERATOR)
       }.associate { paramString ->
-        Pair(paramString.substringBefore(PARAM_VALUE_OPERATOR), paramString.substringAfter(PARAM_VALUE_OPERATOR))
+        Pair(paramString.substringBefore(PARAM_VALUE_OPERATOR).trim(), paramString.substringAfter(PARAM_VALUE_OPERATOR).trim())
       }
 
       if (paramsMap.size != 5) {
@@ -148,17 +141,17 @@ internal class DeviceConfig(
         legacyParseToDeviceConfig(serialized)?.let { return it }
       }
 
-      val shape = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_SHAPE, ""), DEFAULT_SHAPE)
-      val width = paramsMap.getOrDefault(PARAM_WIDTH, "").toIntOrNull() ?: DEFAULT_WIDTH
-      val height = paramsMap.getOrDefault(PARAM_HEIGHT, "").toIntOrNull() ?: DEFAULT_HEIGHT
-      val dimUnit = enumValueOfOrDefault(paramsMap.getOrDefault(PARAM_UNIT, "").toLowerCaseAsciiOnly(), DEFAULT_UNIT)
-      val dpi = paramsMap.getOrDefault(PARAM_DENSITY, "").toIntOrNull() ?: DEFAULT_DENSITY.dpiValue
+      val shape = enumValueOfOrNull<Shape>(paramsMap.getOrDefault(PARAM_SHAPE, "")) ?: return null
+      val width = paramsMap.getOrDefault(PARAM_WIDTH, "").toIntOrNull() ?: return null
+      val height = paramsMap.getOrDefault(PARAM_HEIGHT, "").toIntOrNull() ?: return null
+      val dimUnit = enumValueOfOrNull<DimUnit>(paramsMap.getOrDefault(PARAM_UNIT, "").toLowerCaseAsciiOnly()) ?: return null
+      val dpi = paramsMap.getOrDefault(PARAM_DENSITY, "").toIntOrNull() ?: return null
       return DeviceConfig(width = width, height = height, dimUnit = dimUnit, density = dpi, shape = shape)
     }
 
     private fun legacyParseToDeviceConfig(serialized: String?): DeviceConfig? {
-      if (serialized == null || !serialized.startsWith(SPEC_PREFIX)) return null
-      val configString = serialized.substringAfter(SPEC_PREFIX)
+      if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
+      val configString = serialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       val params = configString.split(PARAM_LEGACY_SEPARATOR)
       if (params.size != 5) return null
 

@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  */
 internal class ClassPsiCallParameter(
   project: Project,
-  private val model: PsiCallPropertyModel,
+  model: PsiCallPropertyModel,
   resolvedCall: ResolvedCall<*>,
   descriptor: ValueParameterDescriptor,
   argumentExpression: KtExpression?,

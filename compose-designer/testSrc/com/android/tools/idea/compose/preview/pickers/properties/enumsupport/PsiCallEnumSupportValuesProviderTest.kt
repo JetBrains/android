@@ -119,13 +119,15 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Auto", (deviceValues[13] as HeaderEnumValue).header)
 
     val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
-    assertEquals(3, localeValues.size)
-    assertEquals("en-GB", localeValues[0].display)
-    assertEquals("en-rGB", localeValues[0].value)
-    assertEquals("en-US", localeValues[1].display)
-    assertEquals("en-rUS", localeValues[1].value)
-    assertEquals("es-ES", localeValues[2].display)
-    assertEquals("es-rES", localeValues[2].value)
+    assertEquals(4, localeValues.size)
+    assertEquals("Default (en-US)", localeValues[0].display)
+    assertEquals(null, localeValues[0].value)
+    assertEquals("en-GB", localeValues[1].display)
+    assertEquals("en-rGB", localeValues[1].value)
+    assertEquals("en-US", localeValues[2].display)
+    assertEquals("en-rUS", localeValues[2].value)
+    assertEquals("es-ES", localeValues[3].display)
+    assertEquals("es-rES", localeValues[3].value)
   }
 
   @RunsInEdt

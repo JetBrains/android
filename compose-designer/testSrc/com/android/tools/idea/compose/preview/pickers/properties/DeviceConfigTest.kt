@@ -17,48 +17,50 @@ package com.android.tools.idea.compose.preview.pickers.properties
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 internal class DeviceConfigTest {
 
   @Test
   fun parseTest() {
-    var config = DeviceConfig.toDeviceConfigOrDefault(null)
-    assertEquals(DeviceConfig(), config)
+    var config = DeviceConfig.toDeviceConfigOrNull(null)
+    assertNull(config)
 
-    config = DeviceConfig.toDeviceConfigOrDefault("spec:shape=Normal,width=120,height=240,unit=px,dpi=480")
+    config = DeviceConfig.toDeviceConfigOrNull("spec:shape=Normal,width=120,height=240,unit=px,dpi=480")
+    assertNotNull(config)
     assertEquals(120, config.width)
     assertEquals(240, config.height)
     assertEquals(DimUnit.px, config.dimensionUnit)
     assertEquals(480, config.density)
     assertEquals(Orientation.portrait, config.orientation)
 
-    config = DeviceConfig.toDeviceConfigOrDefault("spec:shape=Round,width=240,height=120,unit=px,dpi=480")
+    config = DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=240,height=120,unit=px,dpi=480")
+    assertNotNull(config)
     assertEquals(Orientation.landscape, config.orientation)
     assertEquals(Shape.Round, config.shape)
 
-    config = DeviceConfig.toDeviceConfigOrDefault("spec:shape=Round,width=invalid,height=1920,unit=px,dpi=invalid")
-    assertEquals(1080, config.width)
-    assertEquals(1920, config.height)
-    assertEquals(480, config.density)
+    config = DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=invalid,height=1920,unit=px,dpi=invalid")
+    assertNull(config)
   }
 
   @Test
   fun parseTestLegacy() {
-    var config = DeviceConfig.toDeviceConfigOrDefault("spec:Normal;120w;240h;px;480dpi")
+    var config = DeviceConfig.toDeviceConfigOrNull("spec:Normal;120w;240h;px;480dpi")
+    assertNotNull(config)
     assertEquals(120, config.width)
     assertEquals(240, config.height)
     assertEquals(DimUnit.px, config.dimensionUnit)
     assertEquals(480, config.density)
     assertEquals(Orientation.portrait, config.orientation)
 
-    config = DeviceConfig.toDeviceConfigOrDefault("spec:Round;240w;120h;px;480dpi")
+    config = DeviceConfig.toDeviceConfigOrNull("spec:Round;240w;120h;px;480dpi")
+    assertNotNull(config)
     assertEquals(Orientation.landscape, config.orientation)
     assertEquals(Shape.Round, config.shape)
 
-    config = DeviceConfig.toDeviceConfigOrDefault("spec:Round;invalid;1920;px;invalid")
-    assertEquals(1080, config.width)
-    assertEquals(1920, config.height)
-    assertEquals(480, config.density)
+    config = DeviceConfig.toDeviceConfigOrNull("spec:Round;invalid;1920;px;invalid")
+    assertNull(config)
   }
 
   @Test

@@ -93,33 +93,15 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
   }
 
 private fun DeviceEnumValueBuilder.addPhone(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addPhone(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addPhoneById(displayName = device.displayName, id = device.id)
 }
 
 private fun DeviceEnumValueBuilder.addTablet(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addTablet(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addTabletById(displayName = device.displayName, id = device.id)
 }
 
 private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
-  val screen = device.defaultState.hardware.screen
-  addGeneric(
-    displayName = device.displayName,
-    widthPx = screen.xDimension,
-    heightPx = screen.yDimension,
-    diagonalIn = screen.diagonalLength
-  )
+  addGenericById(displayName = device.displayName, id = device.id)
 }
 
 /**
@@ -138,7 +120,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
     val uiModeValueParams = configurationClass.fields.filter {
       it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK")
     }.mapNotNull { uiMode ->
-      (uiMode.computeConstantValue() as? Int)?.let {
+      (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
         val displayName = if (UiMode.VR.resolvedValue == it.toString()) {
           UiMode.VR.display
         }
@@ -202,10 +184,14 @@ private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile)
   }
 
 private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
-  {
-    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.mapNotNull { locale ->
-      locale.qualifier.full.nullize()?.let { EnumValue.Companion.item(it, locale.toLocaleId()) }
-    } ?: emptyList()
+  localesProvider@{
+    val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
+    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.forEach { locale ->
+      locale.qualifier.full.nullize()?.let {
+        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
+      }
+    }
+    return@localesProvider enumValueLocales
   }
 
 private data class ClassEnumValueParams(

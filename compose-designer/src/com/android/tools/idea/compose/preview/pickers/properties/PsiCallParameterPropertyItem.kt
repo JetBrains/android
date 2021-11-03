@@ -6,7 +6,9 @@ import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
@@ -31,8 +33,8 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
  * @param validation function used for input validation
  */
 internal open class PsiCallParameterPropertyItem(
-  val project: Project,
-  private val model: PsiCallPropertyModel,
+  protected val project: Project,
+  protected val model: PsiCallPropertyModel,
   private val resolvedCall: ResolvedCall<*>,
   private val descriptor: ValueParameterDescriptor,
   protected var argumentExpression: KtExpression?,
@@ -45,12 +47,10 @@ internal open class PsiCallParameterPropertyItem(
     // We do not support editing property names.
     set(_) {}
 
-  override val editingSupport: EditingSupport = object : EditingSupport {
-    override val validation: EditingValidation = validation
-  }
+  override val editingSupport: EditingSupport = PsiEditingSupport(validation)
 
   override var value: String?
-    get() = argumentExpression?.tryEvaluateConstantAsText()
+    get() = SlowOperations.allowSlowOperations(ThrowableComputable { argumentExpression?.tryEvaluateConstantAsText() })
     set(value) {
       val newValue = value?.trim()?.nullize()
       if (newValue != this.value) {

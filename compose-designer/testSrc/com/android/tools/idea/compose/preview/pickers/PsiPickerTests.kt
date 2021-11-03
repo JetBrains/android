@@ -196,15 +196,15 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertTrue(model.properties["", "apiLevel"].defaultValue!!.toInt() > 0)
 
     // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
-    assertEquals("0", model.properties["", "uiMode"].defaultValue)
-    assertEquals(" ", model.properties["", "Device"].defaultValue)
+    assertEquals("Undefined", model.properties["", "uiMode"].defaultValue)
+    assertEquals("Default", model.properties["", "Device"].defaultValue)
 
     // Hardware properties
-    assertEquals("width", model.properties["", "Width"].defaultValue)
-    assertEquals("height", model.properties["", "Height"].defaultValue)
+    assertEquals("1080", model.properties["", "Width"].defaultValue)
+    assertEquals("1920", model.properties["", "Height"].defaultValue)
     assertEquals("px", model.properties["", "DimensionUnit"].defaultValue)
     assertEquals("portrait", model.properties["", "Orientation"].defaultValue)
-    assertEquals("480", model.properties["", "Density"].defaultValue)
+    assertEquals("420", model.properties["", "Density"].defaultValue)
 
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)

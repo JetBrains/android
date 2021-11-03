@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.DescriptionEnumValue
+import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
@@ -110,47 +111,28 @@ internal class DeviceEnumValueBuilder {
   ): DeviceEnumValueBuilder =
     addDevicePx(type = DeviceClass.Auto, widthPx = widthPx, heightPx = heightPx, diagonalIn = diagonalIn)
 
-  fun addPhone(
+  fun addPhoneById(
     displayName: String,
-    widthPx: Int,
-    heightPx: Int,
-    diagonalIn: Double
-  ): DeviceEnumValueBuilder =
-    addDevicePx(
-      overrideDisplayName = displayName,
-      type = DeviceClass.Phone,
-      widthPx = widthPx,
-      heightPx = heightPx,
-      diagonalIn = diagonalIn
-    )
+    id: String,
+  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Phone)
 
-  fun addTablet(
+  fun addTabletById(
     displayName: String,
-    widthPx: Int,
-    heightPx: Int,
-    diagonalIn: Double
-  ): DeviceEnumValueBuilder =
-    addDevicePx(
-      overrideDisplayName = displayName,
-      type = DeviceClass.Tablet,
-      widthPx = widthPx,
-      heightPx = heightPx,
-      diagonalIn = diagonalIn
-    )
+    id: String,
+  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Tablet)
 
-  fun addGeneric(
+  fun addGenericById(
     displayName: String,
-    widthPx: Int,
-    heightPx: Int,
-    diagonalIn: Double
-  ): DeviceEnumValueBuilder =
-    addDevicePx(
-      overrideDisplayName = displayName,
-      type = DeviceClass.Generic,
-      widthPx = widthPx,
-      heightPx = heightPx,
-      diagonalIn = diagonalIn
-    )
+    id: String,
+  ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Generic)
+
+  private fun addById(
+    displayName: String,
+    id: String,
+    type: DeviceClass
+  ): DeviceEnumValueBuilder = apply {
+    deviceEnumValues[type]?.add(EnumValue.indented("$DEVICE_BY_ID_PREFIX$id", displayName))
+  }
 
   fun build(): List<EnumValue> {
     val enumValues = mutableListOf<EnumValue>()
