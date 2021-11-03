@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import java.io.File
 
 data class IdeAndroidArtifactImpl(
@@ -48,7 +49,8 @@ data class IdeAndroidArtifactImpl(
   override val testOptions: IdeTestOptions?,
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformation,
-  override val codeShrinker: CodeShrinker?
+  override val codeShrinker: CodeShrinker?,
+  override val modelSyncFiles: Collection<IdeModelSyncFile>
 ) : IdeAndroidArtifact {
   override val generatedSourceFolders: Collection<File> get() = mutableGeneratedSourceFolders
 

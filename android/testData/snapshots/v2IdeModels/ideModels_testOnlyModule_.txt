@@ -258,6 +258,10 @@ MODULE                        : project.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1052,6 +1056,10 @@ MODULE                        : project.test
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/test/build/intermediates/variant_model/debug/out [-]
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
@@ -1791,6 +1799,10 @@ MODULE                        : project.test2
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/test2/build/intermediates/variant_model/debug/out [-]
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug

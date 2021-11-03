@@ -739,7 +739,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
       ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
-      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST
+      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST,
+      modelSyncFiles = listOf()
     )
   }
 

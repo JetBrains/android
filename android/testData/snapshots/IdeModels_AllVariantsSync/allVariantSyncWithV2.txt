@@ -1283,6 +1283,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicBarDebugAndroidTestSources
@@ -3296,6 +3300,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidOtherBarDebugAndroidTestSources
@@ -5306,6 +5314,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidBarDebugAndroidTestSources
@@ -7311,6 +7323,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarSpecialReleaseUnitTestSources
@@ -8656,6 +8672,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarSpecialReleaseUnitTestSources
@@ -10005,6 +10025,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidOtherBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarReleaseUnitTestSources
@@ -11346,6 +11370,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarSpecialReleaseUnitTestSources
@@ -12688,6 +12716,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/debug [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarDebugVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarDebug/out [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicOtherBarDebugAndroidTestSources
@@ -14697,6 +14729,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarReleaseUnitTestSources
@@ -16042,6 +16078,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicOtherBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createBasicOtherBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarReleaseUnitTestSources
@@ -17388,6 +17428,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/release [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarReleaseUnitTestSources
@@ -18730,6 +18774,10 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/paidBar/specialRelease [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
+            ModelSyncFile
+                Type                          : BASIC
+                TaskName                      : createPaidBarSpecialReleaseVariantModel
+                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarSpecialRelease/out [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarSpecialReleaseUnitTestSources

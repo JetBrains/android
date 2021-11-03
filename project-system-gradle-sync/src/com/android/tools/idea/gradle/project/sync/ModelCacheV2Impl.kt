@@ -24,6 +24,7 @@ import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.NativeVariantInfo
+import com.android.builder.model.v2.ModelSyncFile
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ClassField
 import com.android.builder.model.v2.dsl.DependenciesInfo
@@ -78,6 +79,7 @@ import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
+import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeProductFlavor
@@ -120,6 +122,7 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.ThrowingIdeDependencies
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
@@ -724,6 +727,18 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     }
   }
 
+  /**
+   * Converts a [ModelSyncFile] from the Gradle Sync Model to the internal Ide Model.
+   */
+  fun modelSyncFileFrom(modelSyncFile: ModelSyncFile): IdeModelSyncFile {
+    return IdeModelSyncFileImpl(
+      // TODO(b/205713031): Parse syncType and handle unknown values.
+      modelSyncType = IdeModelSyncFile.IdeModelSyncType.BASIC,
+      taskName = modelSyncFile.taskName,
+      syncFile = modelSyncFile.syncFile
+    )
+  }
+
   fun convertV2ArtifactName(name: String): IdeArtifactName = when (name) {
     "_main_" -> IdeArtifactName.MAIN
     "_android_test_" -> IdeArtifactName.ANDROID_TEST
@@ -775,7 +790,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         else null
       ),
       codeShrinker = convertCodeShrinker(copy(artifact::codeShrinker)),
-      isTestArtifact = name == "_android_test_"
+      isTestArtifact = name == "_android_test_",
+      modelSyncFiles = copy(artifact::modelSyncFiles, ::modelSyncFileFrom)
     )
   }
 

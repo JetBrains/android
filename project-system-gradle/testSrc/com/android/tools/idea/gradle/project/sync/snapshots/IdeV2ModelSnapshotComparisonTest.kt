@@ -184,9 +184,15 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
 /**
  * we skip:
  * [IdeAndroidLibrary.lintJar] because in V2 we do check that the jar exists before populating the property.
+ * [ModelSyncFile] as these are not present in V1.
+ *
  */
 private val PROPERTIES_TO_SKIP = setOf(
-  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/LintJars"
+  "/Level2Dependencies/AndroidLibraries/AndroidLibrary/LintJars",
+  "/ModelSyncFile",
+  "/ModelSyncFile/Type",
+  "/ModelSyncFile/TaskName",
+  "/ModelSyncFile/File",
 )
 
 /**

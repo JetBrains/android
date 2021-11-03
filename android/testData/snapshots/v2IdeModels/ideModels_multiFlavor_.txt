@@ -1008,6 +1008,10 @@ MODULE                        : MultiFlavor.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createFirstAbcSecondAbcDebugVariantModel
+                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources

@@ -66,4 +66,12 @@ interface IdeAndroidArtifact : Serializable, IdeBaseArtifact {
    * artifact.
    */
   val codeShrinker: CodeShrinker?
+
+  /**
+   * Returns all the [IdeModelSyncFile] for this artifact.
+   *
+   * @return a list of [IdeModelSyncFile]
+   * @since 7.2
+   */
+  val modelSyncFiles: Collection<IdeModelSyncFile>
 }

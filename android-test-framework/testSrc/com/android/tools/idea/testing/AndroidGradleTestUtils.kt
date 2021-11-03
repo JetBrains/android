@@ -660,6 +660,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 
@@ -699,6 +700,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 
@@ -762,6 +764,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
       apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
     ),
     codeShrinker = null,
+    modelSyncFiles = listOf(),
   )
 }
 

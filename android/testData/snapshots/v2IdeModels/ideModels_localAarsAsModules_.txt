@@ -283,6 +283,10 @@ MODULE                        : project.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -614,6 +618,10 @@ MODULE                        : project.library
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/resValues/debug [-]
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/library/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

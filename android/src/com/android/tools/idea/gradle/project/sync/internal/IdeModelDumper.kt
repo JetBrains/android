@@ -44,6 +44,7 @@ import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
@@ -259,6 +260,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
+      ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
     }
 
     private fun dump(androidLibrary: IdeAndroidLibrary) {
@@ -633,6 +635,15 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("AnimationsDisabled") { testOptions.animationsDisabled.toString() }
         prop("Execution") { testOptions.execution?.toString() }
+      }
+    }
+
+    private fun dump(modelSyncFile: IdeModelSyncFile) {
+      head("ModelSyncFile")
+      nest {
+        prop("Type") { modelSyncFile.modelSyncType.toString() }
+        prop("TaskName") { modelSyncFile.taskName }
+        prop("File") { modelSyncFile.syncFile.path.toPrintablePath() }
       }
     }
 
