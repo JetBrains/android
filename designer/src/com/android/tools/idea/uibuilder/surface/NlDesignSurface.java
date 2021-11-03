@@ -866,7 +866,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         });
 
         if (myShouldRunVisualLintService) {
-          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), myIssueModel);
+          VisualLintService.getInstance().runVisualLintAnalysis(getModels(), myIssueModel, NlDesignSurface.this);
         }
       }
 

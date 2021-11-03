@@ -32,7 +32,8 @@ import com.android.utils.HtmlBuilder
 fun analyzeLocaleText(renderResult: RenderResult,
                       baseConfigIssues: VisualLintBaseConfigIssues,
                       model: NlModel,
-                      output: VisualLintIssueProvider) {
+                      output: VisualLintIssueProvider,
+                      analyticsManager: VisualLintAnalyticsManager) {
   val config = renderResult.renderContext?.configuration
 
   if (isBaseConfig(config)) {
@@ -41,7 +42,7 @@ fun analyzeLocaleText(renderResult: RenderResult,
     }
   } else {
     for (root in renderResult.rootViews) {
-      findLocaleTextIssue(root, baseConfigIssues, model, output)
+      findLocaleTextIssue(root, baseConfigIssues, model, output, analyticsManager)
     }
   }
 }
@@ -76,18 +77,19 @@ private fun isBaseConfig(config: Configuration?): Boolean {
 private fun findLocaleTextIssue(root: ViewInfo,
                                 baseConfigIssues: VisualLintBaseConfigIssues,
                                 model: NlModel,
-                                output: VisualLintIssueProvider) {
+                                output: VisualLintIssueProvider,
+                                analyticsManager: VisualLintAnalyticsManager) {
   root.children.forEach {
-    findLocaleTextIssue(it, baseConfigIssues, model, output)
+    findLocaleTextIssue(it, baseConfigIssues, model, output, analyticsManager)
   }
   val key = getKey(root) ?: return
   val value = baseConfigIssues.componentState[key]
   val locale = model.configuration.locale.toString()
 
   if (isEllipsized(root)) {
-    createEllipsizedIssue(value, root, model, locale, output)
+    createEllipsizedIssue(value, root, model, locale, output, analyticsManager)
   } else if (isTextTooBig(root)) {
-    createTextTooBigIssue(value, root, model, locale, output)
+    createTextTooBigIssue(value, root, model, locale, output, analyticsManager)
   }
 }
 
@@ -96,8 +98,8 @@ private fun createEllipsizedIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: VisualLintIssueProvider) {
-
+                                  output: VisualLintIssueProvider,
+                                  analyticsManager: VisualLintAnalyticsManager) {
   if (value != null && !value.hasI18NEllipsis) {
     // Base locale is not ellipsized but current locale is.
     createIssue(
@@ -107,7 +109,8 @@ private fun createEllipsizedIssue(value: BaseConfigComponentState?,
       htmlBuilder("""The text is ellipsized in locale \"$locale\" but not in default locale.
                   This might not be the intended behaviour. Consider increasing the text view size.""".trimMargin()),
       VisualLintErrorType.LOCALE_TEXT,
-      output)
+      output,
+      analyticsManager)
   }
 }
 
@@ -120,7 +123,8 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
                                   root: ViewInfo,
                                   model: NlModel,
                                   locale: String,
-                                  output: VisualLintIssueProvider) {
+                                  output: VisualLintIssueProvider,
+                                  analyticsManager: VisualLintAnalyticsManager) {
   if (value == null) {
     // We cannot find the base locale information. Create an issue nonetheless to warn users.
     createIssue(
@@ -129,7 +133,8 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
       "The text might be cut off.",
       htmlBuilder("The text is too large in locale \"$locale\" to fit inside the TextView."),
       VisualLintErrorType.LOCALE_TEXT,
-      output)
+      output,
+      analyticsManager)
   } else if (!value.hasI18NTextTooBig) {
     // Base locale is not cut off but this locale is - create an issue with appropriate message
     createIssue(
@@ -139,7 +144,8 @@ private fun createTextTooBigIssue(value: BaseConfigComponentState?,
       htmlBuilder("""The text is too large in locale \"$locale\" to fit inside the TextView.
            This behavior is different from default locale and might not be intended behavior.""".trimMargin()),
       VisualLintErrorType.LOCALE_TEXT,
-      output)
+      output,
+      analyticsManager)
   }
   // TODO: As a follow up, create a render lint that captures base locale text being cut off.
 }

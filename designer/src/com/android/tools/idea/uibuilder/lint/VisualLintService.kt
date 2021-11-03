@@ -16,23 +16,21 @@
 package com.android.tools.idea.uibuilder.lint
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.uibuilder.model.NlComponentHelper.registerComponent
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
-import com.google.common.collect.ImmutableCollection
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlFile
@@ -60,7 +58,7 @@ class VisualLintService {
   /**
    * Run visual lint analysis and return the list of issues.
    */
-  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel) {
+  fun runVisualLintAnalysis(models: List<NlModel>, issueModel: IssueModel, surface: DesignSurface) {
     issueModel.removeIssueProvider(issueProvider)
     issueProvider.clear()
     if (models.isEmpty()) {
@@ -93,7 +91,7 @@ class VisualLintService {
           .build()
 
         updateHierarchy(result, inflatedModel)
-        analyzeAfterModelUpdate(result, inflatedModel, issueProvider, VisualLintBaseConfigIssues())
+        analyzeAfterModelUpdate(result, inflatedModel, issueProvider, VisualLintBaseConfigIssues(), VisualLintAnalyticsManager(surface))
 
         return@thenCompose CompletableFuture.completedFuture(null)
       }.thenAccept {

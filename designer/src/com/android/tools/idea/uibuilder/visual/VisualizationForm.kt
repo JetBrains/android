@@ -73,9 +73,12 @@ import java.awt.DefaultFocusTraversalPolicy
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -140,6 +143,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   private val myLintIssueProvider = VisualLintIssueProvider()
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
+  private val myVisualLintAnalyticsManager: VisualLintAnalyticsManager
   var editor: FileEditor?
     get() = myEditor
     private set(editor) {
@@ -208,6 +212,17 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     myRoot.add(mainComponent, BorderLayout.CENTER)
     myRoot.isFocusCycleRoot = true
     myRoot.focusTraversalPolicy = VisualizationTraversalPolicy(surface)
+    myVisualLintAnalyticsManager = VisualLintAnalyticsManager(surface)
+    surface.issuePanel.addEventListener(object : IssuePanel.EventListener {
+      override fun onPanelExpanded(isExpanded: Boolean) {}
+
+      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
+        if (isExpanded && issue != null) {
+          myVisualLintAnalyticsManager.trackIssueExpanded(issue)
+        }
+      }
+
+    })
   }
 
   private fun createToolbarPanel(): JComponent {
@@ -553,7 +568,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
             val model = manager.model
             val result = manager.renderResult
             if (result != null) {
-              analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues)
+              analyzeAfterModelUpdate(result, model, myLintIssueProvider, myBaseConfigIssues, myVisualLintAnalyticsManager)
               if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
                 updateVisualLintIssues(model.file, myLintIssueProvider)
               }

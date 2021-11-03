@@ -50,14 +50,15 @@ enum class VisualLintErrorType {
 fun analyzeAfterModelUpdate(result: RenderResult,
                             model: NlModel,
                             issueProvider: VisualLintIssueProvider,
-                            baseConfigIssues: VisualLintBaseConfigIssues) {
+                            baseConfigIssues: VisualLintBaseConfigIssues,
+                            analyticsManager: VisualLintAnalyticsManager) {
   // TODO: Remove explicit use of mutable collections as argument for this method
-  analyzeBounds(result, model, issueProvider)
-  analyzeBottomNavigation(result, model, issueProvider)
-  analyzeBottomAppBar(result, model, issueProvider)
-  analyzeOverlap(result, model, issueProvider)
-  analyzeLongText(result, model, issueProvider)
-  analyzeLocaleText(result, baseConfigIssues, model, issueProvider)
+  analyzeBounds(result, model, issueProvider, analyticsManager)
+  analyzeBottomNavigation(result, model, issueProvider, analyticsManager)
+  analyzeBottomAppBar(result, model, issueProvider, analyticsManager)
+  analyzeOverlap(result, model, issueProvider, analyticsManager)
+  analyzeLongText(result, model, issueProvider, analyticsManager)
+  analyzeLocaleText(result, baseConfigIssues, model, issueProvider, analyticsManager)
   if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
     analyzeAtf(result, model, issueProvider)
   }
@@ -81,13 +82,19 @@ private fun analyzeAtf(renderResult: RenderResult, model: NlModel,
  * Analyze the given [RenderResult] for issues where a child view is not fully contained within
  * the bounds of its parent, and collect all such issues in [issueProvider].
  */
-private fun analyzeBounds(renderResult: RenderResult, model: NlModel, issueProvider: VisualLintIssueProvider) {
+private fun analyzeBounds(renderResult: RenderResult,
+                          model: NlModel,
+                          issueProvider: VisualLintIssueProvider,
+                          analyticsManager: VisualLintAnalyticsManager) {
   for (root in renderResult.rootViews) {
-    findBoundIssues(root, model, issueProvider)
+    findBoundIssues(root, model, issueProvider, analyticsManager)
   }
 }
 
-private fun findBoundIssues(root: ViewInfo, model: NlModel, issueProvider: VisualLintIssueProvider) {
+private fun findBoundIssues(root: ViewInfo,
+                            model: NlModel,
+                            issueProvider: VisualLintIssueProvider,
+                            analyticsManager: VisualLintAnalyticsManager) {
   val rootWidth = root.right - root.left
   val rootHeight = root.bottom - root.top
   for (child in root.children) {
@@ -101,9 +108,9 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issueProvider: Visua
           .newline()
           .add("Fix this issue by adjusting the size or position of $viewName.")
       }
-      createIssue(child, model, summary, VisualLintErrorType.BOUNDS, issueProvider, provider)
+      createIssue(child, model, summary, VisualLintErrorType.BOUNDS, issueProvider, provider, analyticsManager)
     }
-    findBoundIssues(child, model, issueProvider)
+    findBoundIssues(child, model, issueProvider, analyticsManager)
   }
 }
 
@@ -116,15 +123,17 @@ private fun previewConfigurations(count: Int): String {
  */
 private fun analyzeBottomNavigation(renderResult: RenderResult,
                                     model: NlModel,
-                                    issueProvider: VisualLintIssueProvider) {
+                                    issueProvider: VisualLintIssueProvider,
+                                    analyticsManager: VisualLintAnalyticsManager) {
   for (root in renderResult.rootViews) {
-    findBottomNavigationIssue(root, model, issueProvider)
+    findBottomNavigationIssue(root, model, issueProvider, analyticsManager)
   }
 }
 
 private fun findBottomNavigationIssue(root: ViewInfo,
                                       model: NlModel,
-                                      issueProvider: VisualLintIssueProvider) {
+                                      issueProvider: VisualLintIssueProvider,
+                                      analyticsManager: VisualLintAnalyticsManager) {
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     /* This is needed, as visual lint analysis need to run outside the context of scene. */
     val widthInDp = Coordinates.pxToDp(model, root.right - root.left)
@@ -147,11 +156,12 @@ private fun findBottomNavigationIssue(root: ViewInfo,
         VisualLintErrorType.BOTTOM_NAV,
         issueProvider,
         content,
+        analyticsManager,
         createDefaultHyperLinkListener())
     }
   }
   for (child in root.children) {
-    findBottomNavigationIssue(child, model, issueProvider)
+    findBottomNavigationIssue(child, model, issueProvider, analyticsManager)
   }
 }
 
@@ -160,7 +170,8 @@ private fun findBottomNavigationIssue(root: ViewInfo,
  */
 private fun analyzeBottomAppBar(renderResult: RenderResult,
                                 model: NlModel,
-                                issueProvider: VisualLintIssueProvider) {
+                                issueProvider: VisualLintIssueProvider,
+                                analyticsManager: VisualLintAnalyticsManager) {
   val configuration = model.configuration
   val orientation = configuration.deviceState?.orientation ?: return
   val dimension = configuration.device?.getScreenSize(orientation) ?: return
@@ -168,14 +179,15 @@ private fun analyzeBottomAppBar(renderResult: RenderResult,
   val height = Coordinates.pxToDp(model, dimension.height)
   if (width > 600 && height > 360) {
     for (root in renderResult.rootViews) {
-      findBottomAppBarIssue(root, model, issueProvider)
+      findBottomAppBarIssue(root, model, issueProvider, analyticsManager)
     }
   }
 }
 
 private fun findBottomAppBarIssue(root: ViewInfo,
                                   model: NlModel,
-                                  issueProvider: VisualLintIssueProvider) {
+                                  issueProvider: VisualLintIssueProvider,
+                                  analyticsManager: VisualLintAnalyticsManager) {
   if (root.className == BOTTOM_APP_BAR_CLASS_NAME) {
     val content = { count: Int ->
       HtmlBuilder()
@@ -197,9 +209,10 @@ private fun findBottomAppBarIssue(root: ViewInfo,
       VisualLintErrorType.BOTTOM_APP_BAR,
       issueProvider,
       content,
+      analyticsManager,
       createDefaultHyperLinkListener())
   }
-  root.children.forEach { findBottomAppBarIssue(it, model, issueProvider) }
+  root.children.forEach { findBottomAppBarIssue(it, model, issueProvider, analyticsManager) }
 }
 
 /**
@@ -207,13 +220,19 @@ private fun findBottomAppBarIssue(root: ViewInfo,
  * and collect all such issues in [issueProvider].
  * Limit to covered [TextView] as they are the most likely to be wrongly covered by another view.
  */
-private fun analyzeOverlap(renderResult: RenderResult, model: NlModel, issueProvider: VisualLintIssueProvider) {
+private fun analyzeOverlap(renderResult: RenderResult,
+                           model: NlModel,
+                           issueProvider: VisualLintIssueProvider,
+                           analyticsManager: VisualLintAnalyticsManager) {
   for (root in renderResult.rootViews) {
-    findOverlapIssues(root, model, issueProvider)
+    findOverlapIssues(root, model, issueProvider, analyticsManager)
   }
 }
 
-private fun findOverlapIssues(root: ViewInfo, model: NlModel, issueProvider: VisualLintIssueProvider) {
+private fun findOverlapIssues(root: ViewInfo,
+                              model: NlModel,
+                              issueProvider: VisualLintIssueProvider,
+                              analyticsManager: VisualLintAnalyticsManager) {
   val children = root.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
   for (i in children.indices) {
     val firstView = children[i]
@@ -236,13 +255,13 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issueProvider: Vis
             .add("This may pose a problem for the readability of the text it contains.")
           // TODO: Highlight both first and second view in design surface
           createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}",
-                      content, VisualLintErrorType.OVERLAP, issueProvider)
+                      content, VisualLintErrorType.OVERLAP, issueProvider, analyticsManager)
         }
       }
     }
   }
   for (child in children) {
-    findOverlapIssues(child, model, issueProvider)
+    findOverlapIssues(child, model, issueProvider, analyticsManager)
   }
 }
 
@@ -281,13 +300,14 @@ fun isPartiallyHidden(firstViewInfo: ViewInfo, i: Int, secondViewInfo: ViewInfo,
  */
 private fun analyzeLongText(renderResult: RenderResult,
                             model: NlModel,
-                            issueProvider: VisualLintIssueProvider) {
+                            issueProvider: VisualLintIssueProvider,
+                            analyticsManager: VisualLintAnalyticsManager) {
   for (root in renderResult.rootViews) {
-    findLongText(root, model, issueProvider)
+    findLongText(root, model, issueProvider, analyticsManager)
   }
 }
 
-private fun findLongText(root: ViewInfo, model: NlModel, issueProvider: VisualLintIssueProvider) {
+private fun findLongText(root: ViewInfo, model: NlModel, issueProvider: VisualLintIssueProvider, analyticsManager: VisualLintAnalyticsManager) {
   (root.viewObject as? TextView)?.layout?.let {
     for (i in 0 until it.lineCount) {
       val numChars = it.getLineVisibleEnd(i) - it.getEllipsisCount(i) - it.getLineStart(i) + 1
@@ -303,13 +323,14 @@ private fun findLongText(root: ViewInfo, model: NlModel, issueProvider: VisualLi
             .addLink("multi-column layout", url)
             .add(" for breakpoints over 600dp.")
         }
-        createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issueProvider, provider, createDefaultHyperLinkListener())
+        createIssue(root, model, summary, VisualLintErrorType.LONG_TEXT, issueProvider, provider, analyticsManager,
+                    createDefaultHyperLinkListener())
         break
       }
     }
   }
   for (child in root.children) {
-    findLongText(child, model, issueProvider)
+    findLongText(child, model, issueProvider, analyticsManager)
   }
 }
 
@@ -319,8 +340,9 @@ fun createIssue(view: ViewInfo,
                 message: String,
                 contentDescription: HtmlBuilder,
                 type: VisualLintErrorType,
-                issueProvider: VisualLintIssueProvider) {
-  return createIssue(view, model, message, type, issueProvider, { contentDescription })
+                issueProvider: VisualLintIssueProvider,
+                analyticsManager: VisualLintAnalyticsManager) {
+  return createIssue(view, model, message, type, issueProvider, { contentDescription }, analyticsManager)
 }
 
 /** Create [VisualLintRenderIssue] and add to [issueProvider]. */
@@ -330,8 +352,10 @@ fun createIssue(view: ViewInfo,
                 type: VisualLintErrorType,
                 issueProvider: VisualLintIssueProvider,
                 contentDescriptionProvider: (Int) -> HtmlBuilder,
+                analyticsManager: VisualLintAnalyticsManager,
                 hyperlinkListener: HyperlinkListener? = null) {
   val component = componentFromViewInfo(view, model)
+  analyticsManager.trackIssueCreation(type)
   issueProvider.addIssue(
     type,
     VisualLintRenderIssue.builder()
@@ -341,6 +365,7 @@ fun createIssue(view: ViewInfo,
       .components(if (component == null) mutableListOf() else mutableListOf(component))
       .contentDescriptionProvider(contentDescriptionProvider)
       .hyperlinkListener(hyperlinkListener)
+      .type(type)
       .build()
   )
 }

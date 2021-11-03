@@ -54,6 +54,7 @@ class VisualLintIssueProvider : IssueProvider() {
 class VisualLintRenderIssue private constructor(private val builder: Builder): Issue(), VisualLintHighlightingIssue {
   val models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
   val components = builder.components!!
+  val type = builder.type
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
   override val summary = builder.summary!!
   override val severity = builder.severity!!
@@ -96,7 +97,8 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
     var contentDescriptionProvider: ((Int) -> HtmlBuilder)? = null,
     var model: NlModel? = null,
     var components: MutableList<NlComponent>? = null,
-    var hyperlinkListener: HyperlinkListener? = null) {
+    var hyperlinkListener: HyperlinkListener? = null,
+    var type: VisualLintErrorType? = null) {
 
     fun summary(summary: String) = apply { this.summary = summary }
     fun severity(severity: HighlightSeverity) = apply { this.severity = severity }
@@ -104,13 +106,15 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
     fun model(model: NlModel) = apply { this.model = model }
     fun components(components: MutableList<NlComponent>) = apply { this.components = components }
     fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply { this.hyperlinkListener = hyperlinkListener }
+    fun type(type: VisualLintErrorType) = apply { this.type = type }
 
     fun build(): VisualLintRenderIssue {
-      assertNotNull(summary)
-      assertNotNull(severity)
-      assertNotNull(contentDescriptionProvider)
-      assertNotNull(model)
-      assertNotNull(components)
+      requireNotNull(summary)
+      requireNotNull(severity)
+      requireNotNull(contentDescriptionProvider)
+      requireNotNull(model)
+      requireNotNull(components)
+      requireNotNull(type)
 
       return VisualLintRenderIssue(this)
     }
