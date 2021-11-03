@@ -16,7 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 public final class TestPhysicalDevices {
-  private static final Key GOOGLE_PIXEL_3_KEY = new SerialNumber("86UX00F4R");
+  static final Key GOOGLE_PIXEL_3_KEY = new SerialNumber("86UX00F4R");
 
   public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
     .setKey(GOOGLE_PIXEL_3_KEY)

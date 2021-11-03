@@ -35,6 +35,15 @@ import org.mockito.Mockito;
 public final class PhysicalDeviceTableModelTest {
   @Test
   public void newPhysicalDeviceTableModel() {
+    // Act
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
+
+    // Assert
+    assertEquals(Collections.emptyList(), model.getCombinedDevices());
+  }
+
+  @Test
+  public void newPhysicalDeviceTableModelDevicesIsntEmpty() {
     // Arrange
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("0A071FDD4003ZG"))
@@ -51,6 +60,26 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5), model.getCombinedDevices());
+  }
+
+  @Test
+  public void setDevices() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
+    model.addTableModelListener(listener);
+
+    List<PhysicalDevice> devices = Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3);
+
+    // Act
+    model.setDevices(devices);
+
+    // Assert
+    assertEquals(devices, model.getDevices());
+    assertEquals(devices, model.getCombinedDevices());
+
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
@@ -146,6 +175,26 @@ public final class PhysicalDeviceTableModelTest {
 
     assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
     assertEquals(Arrays.asList(expectedDevice1, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getCombinedDevices());
+
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+  }
+
+  @Test
+  public void remove() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    model.addTableModelListener(listener);
+
+    // Act
+    model.remove(TestPhysicalDevices.GOOGLE_PIXEL_3_KEY);
+
+    // Assert
+    Object devices = Collections.emptyList();
+
+    assertEquals(devices, model.getDevices());
+    assertEquals(devices, model.getCombinedDevices());
 
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
