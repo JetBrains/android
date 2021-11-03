@@ -16,26 +16,22 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.run.ExecutorIconProvider;
-import com.android.tools.idea.run.LaunchOptionsProvider;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
-import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider, LaunchOptionsProvider {
-  public static final String PROFILER_LAUNCH_OPTION_KEY = "isProfiling";
+public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider {
 
   @NonNls public static final String EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID;
 
@@ -102,12 +98,6 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
     }
 
     return getIcon();
-  }
-
-  @NotNull
-  @Override
-  public Map<String, Object> getLaunchOptions() {
-    return ImmutableMap.of(PROFILER_LAUNCH_OPTION_KEY, true);
   }
 
   @Override

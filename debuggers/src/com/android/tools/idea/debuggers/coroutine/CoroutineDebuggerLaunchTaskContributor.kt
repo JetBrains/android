@@ -20,6 +20,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchTask
+import com.intellij.execution.Executor
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.openapi.module.Module
 
 /**
@@ -30,12 +32,16 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
     return null
   }
 
-  override fun getAmStartOptions(module: Module, applicationId: String, launchOptions: LaunchOptions, device: IDevice): String {
+  override fun getAmStartOptions(module: Module,
+                                 applicationId: String,
+                                 launchOptions: LaunchOptions,
+                                 device: IDevice,
+                                 executor: Executor): String {
     if (!FlagController.isCoroutineDebuggerEnabled) {
       return ""
     }
 
-    if (!launchOptions.isDebug) {
+    if (DefaultDebugExecutor.EXECUTOR_ID != executor.id) {
       return ""
     }
 

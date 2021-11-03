@@ -4,6 +4,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.execution.Executor;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ public interface AndroidLaunchTaskContributor {
    */
   @NotNull
   default String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
-                                   @NotNull IDevice device) {
+                                   @NotNull IDevice device, @NotNull Executor executor) {
     return "";
   }
 }

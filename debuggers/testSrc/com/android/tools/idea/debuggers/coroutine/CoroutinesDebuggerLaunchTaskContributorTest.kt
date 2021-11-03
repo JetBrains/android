@@ -18,8 +18,9 @@ package com.android.tools.idea.debuggers.coroutine
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKotlinUtils
 import com.android.tools.idea.run.LaunchOptions
+import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
@@ -38,7 +39,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(false) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
@@ -49,7 +51,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
   }
@@ -62,28 +65,32 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.O))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.M))
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("", amStartOptions)
     }
   }
@@ -97,7 +104,8 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
 
     runWithFlagState(true) {
-      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device)
+      val amStartOptions = contributor.getAmStartOptions(module, "com.test.application", launchOptions, device,
+                                                         DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("--attach-agent /data/data/com.test.application/code_cache/coroutine_debugger_agent.so", amStartOptions)
     }
   }
