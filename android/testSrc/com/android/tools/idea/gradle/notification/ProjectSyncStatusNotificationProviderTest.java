@@ -123,22 +123,6 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   }
 
   @Test
-  public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
-    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
-
-    Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.PROJECT_STRUCTURE, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
-    if (myFileNeedsProjectStructureNotifications) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
-  }
-
-  @Test
   public void testNotificationPanelTypeWithSyncInProgress() {
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
