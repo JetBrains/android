@@ -17,8 +17,11 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.SdkConstants
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -26,11 +29,13 @@ import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.uipreview.createUrlClassLoader
@@ -54,12 +59,21 @@ class ComposePreviewAnimationManagerTest {
 
   private lateinit var parentDisposable: Disposable
 
-  private lateinit var surface: NlDesignSurface
+  private lateinit var surface: DesignSurface
 
   @Before
   fun setUp() {
     parentDisposable = Disposer.newDisposable()
+    val model = runInEdtAndGet {
+      NlModelBuilderUtil.model(
+        projectRule,
+        "layout",
+        "layout.xml",
+        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+      ).build()
+    }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
+    surface.addModelWithoutRender(model)
   }
 
   @After

@@ -25,9 +25,9 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
-import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -43,6 +43,7 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
@@ -55,7 +56,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
@@ -923,8 +923,7 @@ public class NlModelTest extends LayoutTestCase {
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight();
-    NlModel model = NlModelBuilderUtil.model(secondFacet, myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root)
-      .build();
+    NlModel model = NlModelBuilderUtil.model(secondFacet, myFixture, SdkConstants.FD_RES_LAYOUT, "linear.xml", root).build();
     AtomicInteger modelActivations = new AtomicInteger(0);
     model.addListener(new ModelListener() {
       @Override
