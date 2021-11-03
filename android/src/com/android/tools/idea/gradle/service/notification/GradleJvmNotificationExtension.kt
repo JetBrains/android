@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.notification
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_INTERNAL_JAVA
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
@@ -79,21 +80,85 @@ import java.nio.file.Paths
  *    A jdk name can be found in gradleJvm or project-jdk-name and the JDK table has it, but there are missing files (other than javac)
  */
 class GradleJvmNotificationExtension: GradleNotificationExtension() {
+  companion object {
+    @JvmStatic
+    fun getInvalidJdkReason(project: Project): InvalidJdkReasonWithMessage? {
+      val projectJdkPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath!!)
+      return if (projectJdkPath == null) {
+        getEmptyJdkPathReason(project)
+      } else {
+        getReasonFromIdeSdkMessage(IdeSdks.getInstance().generateInvalidJdkReason(Paths.get(projectJdkPath)))
+      }
+    }
+
+    private fun getReasonFromIdeSdkMessage(ideMessage: String?): InvalidJdkReasonWithMessage? {
+      if (ideMessage == null) {
+        return null
+      }
+      var reason: GradleJdkInvalidEvent.InvalidJdkReason = GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_UNSPECIFIED_REASON
+      if (ideMessage.startsWith("There is no bin/javac in ")) {
+        reason = GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_UNSPECIFIED_REASON
+      }
+      else if (ideMessage.startsWith("Required JDK files from")) {
+        reason = GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_MISSING_FILES
+      }
+      return InvalidJdkReasonWithMessage(ideMessage, reason)
+    }
+
+    private fun getEmptyJdkPathReason(project: Project): InvalidJdkReasonWithMessage? {
+      val basePath = project.basePath!!
+      val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath)
+      if (settings == null) {
+        // Does not come from settings
+        val jdkName = ProjectRootManager.getInstance(project).projectSdkName
+                      ?: return InvalidJdkReasonWithMessage("Neither gradleJvm nor project-jdk-name are defined.",
+                                                            GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_UNDEFINED_JDK)
+        return projectJdkInvalidMessage(jdkName)
+      }
+
+      when (val gradleJvm = settings.gradleJvm) {
+        null, USE_PROJECT_JDK -> {
+          val jdkName = ProjectRootManager.getInstance(project).projectSdkName
+                        ?: return InvalidJdkReasonWithMessage("project-jdk-name is not defined.",
+                                                              GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_PROJECT_JDK_UNDEFINED)
+          return projectJdkInvalidMessage(jdkName)
+        }
+        USE_JAVA_HOME -> {
+          return InvalidJdkReasonWithMessage("Project set to use JAVA_HOME but the path is invalid.",
+                                             GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_JAVA_HOME_INVALID)
+        }
+        USE_INTERNAL_JAVA -> {
+          return InvalidJdkReasonWithMessage("SystemProperties.javaHome is not valid.",
+                                             GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_JAVA_HOME_INVALID)
+        }
+        else -> {
+          return projectJdkInvalidMessage(gradleJvm)
+        }
+      }
+    }
+
+    private fun projectJdkInvalidMessage(jdkName: String): InvalidJdkReasonWithMessage? {
+      val javaSdkType = ExternalSystemJdkUtil.getJavaSdkType()
+      val existingJdk = ProjectJdkTable.getInstance().findJdk(jdkName, javaSdkType.name)
+                        ?: return InvalidJdkReasonWithMessage("Could not find the required ${javaSdkType.name}.",
+                                                              GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_NAME_NOT_IN_TABLE)
+      val jdkPath = existingJdk.homePath
+                    ?: return InvalidJdkReasonWithMessage("JDK home path is not defined.",
+                                                          GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_HOME_PATH_NOT_DEFINED)
+      return getReasonFromIdeSdkMessage(IdeSdks.getInstance().generateInvalidJdkReason(Paths.get(jdkPath)))
+    }
+  }
+
   override fun customize(notificationData: NotificationData, project: Project, error: Throwable?) {
     super.customize(notificationData, project, error)
     val expectedPrefix = GradleBundle.message("gradle.jvm.is.invalid")
     if (notificationData.message.startsWith(expectedPrefix)) {
       val ideSdks = IdeSdks.getInstance()
       // Add more information on why it is not valid
-      val projectJdkPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath!!)
-      val errorInfo = if (projectJdkPath == null) {
-        getEmptyJdkPathReason(project)
-      } else {
-        ideSdks.generateInvalidJdkReason(Paths.get(projectJdkPath))
-      }
+      val errorReason = getInvalidJdkReason(project)
       var modifiedMessage = expectedPrefix
-      if (errorInfo != null) {
-        modifiedMessage += " $errorInfo"
+      if (errorReason != null) {
+        modifiedMessage += " ${errorReason.message}"
       }
       val suffixMessage = notificationData.message.removePrefix(expectedPrefix).trim()
       if (suffixMessage.isNotEmpty()) {
@@ -141,37 +206,5 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
     }
   }
 
-  private fun getEmptyJdkPathReason(project: Project): String? {
-    val basePath = project.basePath!!
-    val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath)
-    if (settings == null) {
-      // Does not come from settings
-      val jdkName = ProjectRootManager.getInstance(project).projectSdkName ?: return "Neither gradleJvm nor project-jdk-name are defined."
-      return projectJdkInvalidMessage(jdkName)
-    }
-
-    when (val gradleJvm = settings.gradleJvm) {
-      null, USE_PROJECT_JDK -> {
-        val jdkName = ProjectRootManager.getInstance(project).projectSdkName ?: return "project-jdk-name is not defined."
-        return projectJdkInvalidMessage(jdkName)
-      }
-      USE_JAVA_HOME -> {
-        return "Project set to use JAVA_HOME but the path is invalid."
-      }
-      USE_INTERNAL_JAVA -> {
-        return "SystemProperties.javaHome is not valid."
-      }
-      else -> {
-        return projectJdkInvalidMessage(gradleJvm)
-      }
-    }
-  }
-
-  private fun projectJdkInvalidMessage(jdkName: String): String? {
-    val javaSdkType = ExternalSystemJdkUtil.getJavaSdkType()
-    val existingJdk = ProjectJdkTable.getInstance().findJdk(jdkName, javaSdkType.name)
-                      ?: return "Could not find the required ${javaSdkType.name}."
-    val jdkPath = existingJdk.homePath ?: return "JDK home path is not defined."
-    return IdeSdks.getInstance().generateInvalidJdkReason(Paths.get(jdkPath))
-  }
+  class InvalidJdkReasonWithMessage(val message: String, val reason: GradleJdkInvalidEvent.InvalidJdkReason)
 }
