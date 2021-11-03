@@ -331,8 +331,7 @@ class DeviceViewPanelWithFullInspectorTest {
     latch.countDown()
     inspectorRule.asyncLaunchLatch.await(1, TimeUnit.SECONDS)
 
-    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
-    assertThat(contentPanel.showEmptyText).isTrue()
+    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading && contentPanel.showEmptyText }
   }
 
   @Test
