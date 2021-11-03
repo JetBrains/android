@@ -32,6 +32,7 @@ import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -71,6 +72,7 @@ class PreviewLiveEditManagerTest {
     }
   }
 
+  @Ignore // b/204995693 Flaky
   @Test
   fun testDaemonIsRestartedAutomatically() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
