@@ -1031,34 +1031,34 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun lintOptionsFrom(options: LintOptions, modelVersion: GradleVersion?): IdeLintOptionsImpl = IdeLintOptionsImpl(
     baselineFile = if (modelVersion != null)
-      options.baselineFile
+      options.baseline
     else
       null,
     lintConfig = copy(options::lintConfig),
-    severityOverrides = options.severityOverrides?.let { ImmutableMap.copyOf(it) },
-    isCheckTestSources = modelVersion != null && options.isCheckTestSources,
-    isCheckDependencies = options.isCheckDependencies,
+    severityOverrides = null,
+    isCheckTestSources = modelVersion != null && options.checkTestSources,
+    isCheckDependencies = options.checkDependencies,
     disable = copy(options::disable, ::deduplicateString),
     enable = copy(options::enable, ::deduplicateString),
-    check = options.check?.let { ImmutableSet.copyOf(it) },
-    isAbortOnError = options.isAbortOnError,
-    isAbsolutePaths = options.isAbsolutePaths,
-    isNoLines = options.isNoLines,
-    isQuiet = options.isQuiet,
-    isCheckAllWarnings = options.isCheckAllWarnings,
-    isIgnoreWarnings = options.isIgnoreWarnings,
-    isWarningsAsErrors = options.isWarningsAsErrors,
-    isIgnoreTestSources = options.isIgnoreTestSources,
-    isCheckGeneratedSources = options.isCheckGeneratedSources,
-    isExplainIssues = options.isExplainIssues,
-    isShowAll = options.isShowAll,
+    check = copy(options::checkOnly, ::deduplicateString),
+    isAbortOnError = options.abortOnError,
+    isAbsolutePaths = options.absolutePaths,
+    isNoLines = options.noLines,
+    isQuiet = options.quiet,
+    isCheckAllWarnings = options.checkAllWarnings,
+    isIgnoreWarnings = options.ignoreWarnings,
+    isWarningsAsErrors = options.warningsAsErrors,
+    isIgnoreTestSources = options.ignoreTestSources,
+    isCheckGeneratedSources = options.checkGeneratedSources,
+    isExplainIssues = options.explainIssues,
+    isShowAll = options.showAll,
     textReport = options.textReport,
     textOutput = copy(options::textOutput),
     htmlReport = options.htmlReport,
     htmlOutput = copy(options::htmlOutput),
     xmlReport = options.xmlReport,
     xmlOutput = copy(options::xmlOutput),
-    isCheckReleaseBuilds = options.isCheckReleaseBuilds
+    isCheckReleaseBuilds = options.checkReleaseBuilds
   )
 
   fun javaCompileOptionsFrom(options: JavaCompileOptions): IdeJavaCompileOptionsImpl {
