@@ -47,7 +47,7 @@ import org.jetbrains.kotlin.idea.util.module
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext)
-  : AnAction(message("action.deploy.title"), message("action.deploy.description"), RUN_ON_DEVICE), CustomComponentAction {
+  : AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE), CustomComponentAction {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
