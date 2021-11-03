@@ -253,7 +253,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
       String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
       String label = "Open";
-      if (shortcutText != "") {
+      if (!"".equals(shortcutText)) {
         label += " (" + shortcutText + ")";
       }
       createActionLabel(label, () -> {
