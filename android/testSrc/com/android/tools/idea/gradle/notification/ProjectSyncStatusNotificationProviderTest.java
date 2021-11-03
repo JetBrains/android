@@ -23,10 +23,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
@@ -45,6 +47,7 @@ import org.mockito.Mock;
 public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
+  @Mock private GradleVersionCatalogDetector myVersionCatalogDetector;
   @Mock private GradleFiles myGradleFiles;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
@@ -57,18 +60,21 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   @Parameters(name="{0}")
   public static Iterable<Object[]> getParameters() {
     return Arrays.asList(new Object[][] {
-      { "build.gradle", true },
-      { "build.gradle.kts", true },
-      { "settings.gradle", true },
-      { "settings.gradle.kts", true },
-      { "README.md", false },
-      { "src/main/com/example/MyClass.java", false },
+      { "build.gradle", true, true },
+      { "build.gradle.kts", true, true },
+      { "settings.gradle", true, true },
+      { "settings.gradle.kts", true, true },
+      { "README.md", false, false },
+      { "src/main/com/example/MyClass.java", false, false },
+      { "gradle/libs.versions.toml", false, true },
     });
   }
   @Parameter(0)
   public String myFilepath;
   @Parameter(1)
   public boolean myFileNeedsProjectStructureNotifications;
+  @Parameter(2)
+  public boolean myFileNeedsVersionCatalogNotifications;
 
   @Override
   protected void setUp() throws Exception {
@@ -79,7 +85,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
-    myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
+    myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState, myVersionCatalogDetector);
     myFile = VfsUtil.findFileByIoFile(createTempFile(myFilepath, "whatever"), true);
 
     myPropertiesComponent = new PropertiesComponentMock();
@@ -162,6 +168,40 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.PROJECT_STRUCTURE, type);
     assertNull(createPanel(type));
+  }
+
+  @Test
+  public void testVersionCatalogNotificationPanelType() {
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
+    when(myVersionCatalogDetector.isVersionCatalogProject()).thenReturn(true);
+    PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.COMPLICATED_PROJECT, type);
+
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    if (myFileNeedsVersionCatalogNotifications) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ComplicatedProjectNotificationPanel.class);
+    }
+    else if (myFileNeedsProjectStructureNotifications) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
+
+    String version = ApplicationInfo.getInstance().getShortVersion();
+    PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
+    type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.COMPLICATED_PROJECT, type);
+    panel = createPanel(type);
+    if (myFileNeedsProjectStructureNotifications) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
   }
 
   @Test
