@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
@@ -278,10 +279,9 @@ internal class AndroidExtraModelProviderWorker(
 
   private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?): Boolean {
     val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
-    // Minimum supported AGP version is 3.2.
-    if (!gradleVersion.isAtLeast(3,2, 0, "alpha", 1, true)) {
+    if (gradleVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
       throw UnsupportedVersionException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
-                                        "Minimum supported version is AGP 3.2.")
+                                        "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.")
     }
     return true
   }
