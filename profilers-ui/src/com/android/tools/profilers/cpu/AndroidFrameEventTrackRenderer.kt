@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
@@ -35,23 +36,27 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
+import javax.swing.JComponent
 
 /**
  * Track renderer for the a frame lifecycle track representing Android frames in a specific rendering phase.
  */
 class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) : TrackRenderer<AndroidFrameEventTrackModel> {
-  override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>) =
-    makeStateChart(trackModel.dataModel).apply {
-      addRowIndexChangeListener {
-        trackModel.dataModel.activeSeriesIndex = it
-      }
-    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler) }
-
-  fun makeStateChart(model: AndroidFrameEventTrackModel): StateChart<*> = when {
-    model.timelineEventByFrameNumber.isEmpty() ->
-      StateChart(model, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
-    else ->
-      StateChart(model, rendererForSharedTimeline(model.multiSelectionModel, model.timelineEventByFrameNumber))
+  override fun render(trackModel: TrackModel<AndroidFrameEventTrackModel, *>): JComponent {
+    val model = trackModel.dataModel
+    val isSharedTimeline = model.timelineEventByFrameNumber.isNotEmpty()
+    val stateChart = when {
+      isSharedTimeline ->
+        StateChart(model, rendererForSharedTimeline(model.multiSelectionModel, model.timelineEventByFrameNumber))
+      else -> StateChart(model, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
+    }
+    stateChart.addRowIndexChangeListener { model.activeSeriesIndex = it }
+    val content = when {
+      isSharedTimeline -> FrameTimelineSelectionOverlayPanel.of(stateChart, model.viewRange, model.multiSelectionModel,
+                                                                GrayOutMode.NONE, true)
+      else -> stateChart
+    }
+    return VsyncPanel.of(content, model.vsyncSeries, vsyncEnabler)
   }
 
   private fun rendererForSharedTimeline(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,

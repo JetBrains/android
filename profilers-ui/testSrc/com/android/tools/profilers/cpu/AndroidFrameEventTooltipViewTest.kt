@@ -36,8 +36,9 @@ class AndroidFrameEventTooltipViewTest {
       dataRange.set(0.0, MICROS_TO_MILLIS * 3.0)
       viewRange.set(0.0, MICROS_TO_MILLIS * 3.0)
     }
-    val model = AndroidFrameEventTrackModel("App", listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
-                                                          RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
+    val model = AndroidFrameEventTrackModel("App", timeline.viewRange,
+                                            listOf(RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS }),
+                                                   RangedSeries(timeline.viewRange, LazyDataSeries { FRAME_EVENTS_1 })),
                                             RangedSeries(timeline.viewRange, LazyDataSeries { listOf() }),
                                             multiSelectionModel, mapOf())
     val tooltip = AndroidFrameEventTooltip(timeline, model)

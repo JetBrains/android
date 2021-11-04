@@ -28,7 +28,7 @@ import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
 
 class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEvent>,
                                 vsyncs: List<SeriesData<Long>>,
-                                viewRange: Range,
+                                val viewRange: Range,
                                 val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
                                 val capture: SystemTraceCpuCapture) : StateChartModel<AndroidFrameTimelineEvent?>() {
   val vsyncSeries = RangedSeries(viewRange, LazyDataSeries { vsyncs })

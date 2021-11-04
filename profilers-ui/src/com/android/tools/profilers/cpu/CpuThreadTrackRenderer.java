@@ -30,6 +30,7 @@ import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode;
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
@@ -145,8 +146,10 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     Range viewRange = trackModel.getDataModel().getTimeline().getViewRange();
     return data == null
            ? panel
-           : VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(panel, viewRange, multiSelectionModel,
-                                                                 !info.isRenderingRelatedThread()),
+           : VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(
+                             panel, viewRange, multiSelectionModel,
+                             info.isRenderingRelatedThread() ? GrayOutMode.UNSELECTED : GrayOutMode.ALL,
+                             true),
                            viewRange,
                            data.getVsyncCounterValues(),
                            myVsyncEnabler);

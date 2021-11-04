@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.common.missedDeadlineJank
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.intellij.ui.JBColor
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
@@ -31,16 +34,18 @@ import javax.swing.OverlayLayout
 import kotlin.math.max
 import kotlin.math.min
 
+
 object FrameTimelineSelectionOverlayPanel {
   @JvmStatic
-  fun of(content: JComponent, captureRange: Range, selection: MultiSelectionModel<*>, shouldGrayOutAll: Boolean): JComponent =
+  fun of(content: JComponent, captureRange: Range, selection: MultiSelectionModel<*>,
+         grayOut: GrayOutMode, deadLineBar: Boolean): JComponent =
     object: JPanel() {
       override fun isOptimizedDrawingEnabled() = false
     }.apply {
       layout = OverlayLayout(this)
       isOpaque = false
       content.isOpaque = false
-      add(overlay(captureRange, selection, shouldGrayOutAll))
+      add(overlay(captureRange, selection, grayOut, deadLineBar))
       add(content)
       val handler = object : MouseListener, MouseMotionListener {
         override fun mouseClicked(e: MouseEvent) = content.dispatchEvent(e)
@@ -55,7 +60,8 @@ object FrameTimelineSelectionOverlayPanel {
       addMouseMotionListener(handler)
     }
 
-  private fun overlay(captureRange: Range, selection: MultiSelectionModel<*>, shouldGrayOutAll: Boolean) = object : JComponent() {
+  private fun overlay(captureRange: Range, selection: MultiSelectionModel<*>,
+                      grayOutMode: GrayOutMode, deadLineBar: Boolean) = object : JComponent() {
     val observer = AspectObserver()
     init {
       selection.addDependency(observer)
@@ -65,31 +71,45 @@ object FrameTimelineSelectionOverlayPanel {
     override fun paintComponent(g: Graphics) {
       super.paintComponent(g)
       (selection.activeSelectionKey as? AndroidFrameTimelineEvent)?.let { event ->
-        if (shouldGrayOutAll) {
-          g.grayOutPixels(0, width)
-        } else {
-          val start = event.expectedStartUs
-          val end = event.actualEndUs
-          if (start > captureRange.min || end < captureRange.max) {
-            g.grayOut(captureRange.min, max(captureRange.min, start.toDouble()))
-            g.grayOut(min(captureRange.max, end.toDouble()), captureRange.max)
+        when (grayOutMode) {
+          GrayOutMode.ALL -> g.grayOutPixels(0, width)
+          GrayOutMode.UNSELECTED -> {
+            val start = event.expectedStartUs
+            val end = event.actualEndUs
+            if (start > captureRange.min || end < captureRange.max) {
+              g.grayOut(captureRange.min, max(captureRange.min, start.toDouble()))
+              g.grayOut(min(captureRange.max, end.toDouble()), captureRange.max)
+            }
+          }
+          GrayOutMode.NONE -> { }
+        }
+        if (deadLineBar) {
+          val expectedEnd = event.expectedEndUs
+          if (expectedEnd < event.actualEndUs) {
+            with (g as Graphics2D) {
+              val x = valueToPixelCoord(expectedEnd.toDouble())
+              color = missedDeadlineJank
+              stroke = DASHED_LINE_STROKE
+              drawLine(x, 0, x, height)
+            }
           }
         }
       }
     }
 
-    private fun Graphics.grayOut(left: Double, right: Double) {
-      val length = captureRange.length
-      val leftCoord = ((left - captureRange.min) / length) * width
-      val rightCoord = ((right - captureRange.min) / length) * width
-      grayOutPixels(leftCoord.toInt(), rightCoord.toInt())
-    }
+    private fun Graphics.grayOut(left: Double, right: Double) =
+      grayOutPixels(valueToPixelCoord(left), valueToPixelCoord(right))
 
     private fun Graphics.grayOutPixels(left: Int, right: Int) {
       color = TRANSLUCENT_GRAY
       fillRect(left, 0, right - left, height)
     }
+
+    private fun valueToPixelCoord(value: Double) = ((value - captureRange.min) / captureRange.length * width).toInt()
   }
+
+  enum class GrayOutMode { ALL, UNSELECTED, NONE }
 }
 
 private val TRANSLUCENT_GRAY = JBColor(Color(.5f, .5f, .5f, .5f), Color(.5f, .5f, .5f, .5f))
+private val DASHED_LINE_STROKE = BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0f, floatArrayOf(5f,2f), 0f)

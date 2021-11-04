@@ -29,6 +29,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.trackgroup.TrackRenderer
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOutMode
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
@@ -49,7 +50,10 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
           trackModel.dataModel.multiSelectionModel.setSelection(it, setOf(JankAnalysisModel(it, trackModel.dataModel.capture)))
         }
       }
-    }.let { VsyncPanel.of(it, trackModel.dataModel.vsyncSeries, vsyncEnabler)}
+    }.let { VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(it, trackModel.dataModel.viewRange,
+                                                                trackModel.dataModel.multiSelectionModel,
+                                                                GrayOutMode.NONE, true),
+                          trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
   private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =
     { g, rect, fontMetrics, hovered, event ->

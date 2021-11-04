@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 class AndroidFrameEventTrackModel
 @VisibleForTesting
 constructor(phaseName: String,
+            val viewRange: Range,
             eventSeries: List<RangedSeries<AndroidFrameEvent>>,
             val vsyncSeries: RangedSeries<Long>,
             val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
@@ -47,6 +48,7 @@ constructor(phaseName: String,
               multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
               timelineEventByFrameNumber: Map<Long, AndroidFrameTimelineEvent> = mapOf())
     : this(phase.phaseName,
+           viewRange,
            phase.frameEventList.groupBy { it.depth }
              .toSortedMap(compareByDescending { it }) // Display lower depth on top.
              .values
