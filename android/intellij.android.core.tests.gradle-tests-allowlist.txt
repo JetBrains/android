@@ -89,7 +89,6 @@ com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcess
 com.android.tools.idea.gradle.project.sync.issues.processor.UpdateGradlePluginProcessorTest
 com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest
 com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerTest
-com.android.tools.idea.gradle.project.sync.snapshots.GradleProjectImporterTest
 com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidatorImplIntegrationTest
 com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategyTest
 com.android.tools.idea.gradle.project.sync.validation.android.EncodingValidationStrategyTest
@@ -128,9 +127,7 @@ com.android.tools.idea.gradle.util.GradleProjectSettingsFinderTest
 com.android.tools.idea.gradle.util.GradleUtilAndroidGradleTest
 com.android.tools.idea.gradle.util.GradleVersionsTest
 com.android.tools.idea.imports.AndroidMavenImportFixTest
-com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest
 com.android.tools.idea.navigator.AndroidProjectViewTest
-com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest
 com.android.tools.idea.rendering.NamespacedRenderTest
 com.android.tools.idea.rendering.NamespacedRenderTestWithAppCompat
 com.android.tools.idea.run.AndroidRunConfigurationGradleTest

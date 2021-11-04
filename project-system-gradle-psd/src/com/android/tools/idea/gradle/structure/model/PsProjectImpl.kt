@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import java.util.Locale

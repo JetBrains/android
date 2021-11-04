@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
+
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel

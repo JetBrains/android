@@ -19,6 +19,8 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
+import com.intellij.ui.CoreIconManager;
+import com.intellij.ui.IconManager;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -36,6 +38,13 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    // Avoid depending on the execution order and initializing icons with dummies.
+    try {
+      IconManager.activate(new CoreIconManager());
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 }
 

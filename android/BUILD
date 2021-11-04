@@ -152,7 +152,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
-            "shard_count": 4,
+            "shard_count": 2,
             "data": [
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",
@@ -161,29 +161,10 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
-        "gradle.project.sync.snapshots": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
-            "tags": ["no_windows"],
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.gradle.project.sync.snapshots",
-        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
-        },
-        "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
-            # testDependentNativeModules (ag/9872410)
-            "tags": [
-                "no_windows",
-            ],
-            "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
-        },
-        "navigator.SourceProvidersSnapshotComparisonTest": {
-            # testDependentNativeModules (ag/9872410)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",
         },
         "imports": {
             "shard_count": 2,
