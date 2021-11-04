@@ -70,7 +70,7 @@ class AppInspectionClientProvider(
  */
 class AppInspectionInspectorRule(private val parentDisposable: Disposable, withDefaultResponse: Boolean = true) : TestRule {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  val transportService = FakeTransportService(timer)
 
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
   private val devModeFlagRule = SetFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)

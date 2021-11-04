@@ -27,13 +27,13 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
@@ -50,7 +50,6 @@ import com.intellij.project.TestProjectManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.replaceService
@@ -116,13 +115,13 @@ class LayoutInspectorToolWindowFactoryTest {
 
   private val disposableRule = DisposableRule()
 
+  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(LegacyClientProvider(disposableRule.disposable), projectRule = AndroidProjectRule.inMemory().initAndroid(false)) {
     it.name == LEGACY_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
-
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
 
   @Test
   fun clientOnlyLaunchedIfWindowIsNotMinimized() {
@@ -195,23 +194,13 @@ class LayoutInspectorToolWindowFactoryTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(model.processes).hasSize(3)
   }
-}
-
-class LayoutInspectorToolWindowFactorySettingsTest {
-  @get:Rule
-  val projectRule = ProjectRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
-  val adbRule = FakeAdbRule()
 
   @Test
   fun toolWindowFactoryCreatesCorrectSettings() {
-    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), disposableRule.disposable)
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
-    LayoutInspectorToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+    inspectorRule.projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
+    `when`(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
+    LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
       ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
