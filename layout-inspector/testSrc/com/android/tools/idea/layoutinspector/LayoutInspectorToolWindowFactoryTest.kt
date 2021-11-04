@@ -17,10 +17,14 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
@@ -51,12 +55,16 @@ import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyString
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
@@ -228,20 +236,25 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
   val adbRule = FakeAdbRule()
 
   @Test
-  fun testResetSelectedProcessAfterProjectIsClosed() {
+  fun testResetSelectedProcessAfterProjectIsClosed() = runBlocking {
     val device = MODERN_DEVICE
     adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
                          DeviceState.HostConnectionType.USB)
     ApplicationManager.getApplication().replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)
     val service = AppInspectionDiscoveryService.instance
     val discovery = TestProcessDiscovery()
-    `when`(service.apiServices).thenReturn(mock())
+    val apiServices: AppInspectionApiServices = mock()
+    val target: AppInspectionTarget = mock()
+    `when`(service.apiServices).thenReturn(apiServices)
     `when`(service.apiServices.processDiscovery).thenReturn(discovery)
+    `when`(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(mock())
+    `when`(target.getLibraryVersions(any())).thenReturn(emptyList())
 
     // In this test we want to close the project BEFORE the tear down of this test method.
     // Existing project rules do not allow this since they assume the project is closed in the tear down.
     // Create and close the project explicitly instead:
     val project = createProject()
+    val defaultError = System.err
     try {
       val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
       LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
@@ -261,12 +274,22 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
 
+      // Collect standard error output to look for AlreadyDisposedExceptions
+      val bytes = ByteArrayOutputStream()
+      System.setErr(PrintStream(bytes))
+
       closeProject(project)
 
       // This should not cause already disposed errors:
       processes.selectedProcess = null
+
+      // The already disposed errors happens on various worker threads. Wait a tiny bit...
+      Thread.sleep(20)
+      val errors = bytes.toString()
+      assertThat(errors).named(errors).doesNotContain("AlreadyDisposedException")
     }
     finally {
+      System.setErr(defaultError)
       if (project.isOpen) {
         closeProject(project)
       }
