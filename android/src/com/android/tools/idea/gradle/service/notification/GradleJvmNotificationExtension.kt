@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.stats.withProjectId
 import com.android.utils.FileUtils
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_INTERNAL_JAVA
@@ -89,6 +92,15 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       } else {
         getReasonFromIdeSdkMessage(IdeSdks.getInstance().generateInvalidJdkReason(Paths.get(projectJdkPath)))
       }
+    }
+
+    @JvmStatic
+    fun reportInvalidJdkReasonToUsageTracker(project: Project, reason: GradleJdkInvalidEvent.InvalidJdkReason) {
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_SYSTEM)
+                         .setKind(AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID)
+                         .setGradleJdkInvalidEvent(GradleJdkInvalidEvent.newBuilder().setReason(reason))
+                         .withProjectId(project))
     }
 
     private fun getReasonFromIdeSdkMessage(ideMessage: String?): InvalidJdkReasonWithMessage? {
@@ -203,6 +215,10 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
           notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
         }
       }
+      // Track reason
+      reportInvalidJdkReasonToUsageTracker(
+        project,
+        errorReason?.reason ?: GradleJdkInvalidEvent.InvalidJdkReason.INVALID_JDK_UNSPECIFIED_REASON)
     }
   }
 

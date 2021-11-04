@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
+import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.reportInvalidJdkReasonToUsageTracker
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.stats.withProjectId
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
@@ -39,14 +36,6 @@ fun showNeededNotifications(project: Project) {
       setJdkAsEmbedded(project)
     }
   }
-}
-
-private fun reportReasonToUsageTracker(project: Project, reason: GradleJdkInvalidEvent.InvalidJdkReason) {
-  UsageTracker.log(AndroidStudioEvent.newBuilder()
-                     .setCategory(AndroidStudioEvent.EventCategory.PROJECT_SYSTEM)
-                     .setKind(AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID)
-                     .setGradleJdkInvalidEvent(GradleJdkInvalidEvent.newBuilder().setReason(reason))
-                     .withProjectId(project))
 }
 
 private fun notifyOnLegacyAndroidProject(project: Project) {
@@ -74,7 +63,7 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
 
 @VisibleForTesting
 fun notifyOnInvalidGradleJdk(project: Project): Boolean {
-  val jdkInvalidReason = invalidJdkErrorMessage(project)
+  val jdkInvalidReason = getInvalidJdkReason(project)
   if (jdkInvalidReason != null) {
     val ideSdks = IdeSdks.getInstance()
     val embeddedJdkPath = ideSdks.embeddedJdkPath
@@ -94,7 +83,7 @@ fun notifyOnInvalidGradleJdk(project: Project): Boolean {
       shouldUseEmbedded = false
     }
     showBalloon(project, jdkInvalidReason.message, errorResolution, notificationType)
-    reportReasonToUsageTracker(project, jdkInvalidReason.reason)
+    reportInvalidJdkReasonToUsageTracker(project, jdkInvalidReason.reason)
     return shouldUseEmbedded
   }
   return false
@@ -104,9 +93,6 @@ private fun showBalloon(project: Project, errorReason: String, errorText: String
   val quickFixes = generateInvalidGradleJdkLinks(project)
   AndroidNotification.getInstance(project).showBalloon(errorReason,errorText, notificationType, *quickFixes.toTypedArray())
 }
-
-@VisibleForTesting
-fun invalidJdkErrorMessage(project: Project) = getInvalidJdkReason(project)
 
 @VisibleForTesting
 fun generateInvalidGradleJdkLinks(project: Project): ArrayList<NotificationHyperlink> {
