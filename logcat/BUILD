@@ -3,7 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.logcat",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.logcat.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.idea.LogcatTestSuite",
@@ -21,5 +25,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
