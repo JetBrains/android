@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -83,7 +82,17 @@ class ProjectNotificationsUtilsTest {
   @Test
   fun testInvalidGradleJdkLinks() {
     val links = generateInvalidGradleJdkLinks(projectRule.project)
-    assertThat(links).hasSize(1)
-    assertThat(links[0]).isInstanceOf(UseEmbeddedJdkHyperlink::class.java)
+    assertThat(links).hasSize(0)
+  }
+
+  @Test
+  fun testNotifyOnInvalidGradleJdkJdkUseEmbedded() {
+    val mockGradleManager = mock(GradleInstallationManager::class.java)
+    Mockito.`when`(mockGradleManager.getGradleJvmPath(any(), any())).thenReturn("/path/to/invalid/jdk/")
+
+    val project = projectRule.project
+    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, mockGradleManager, project)
+
+    assertThat(notifyOnInvalidGradleJdk(projectRule.project)).isTrue()
   }
 }
