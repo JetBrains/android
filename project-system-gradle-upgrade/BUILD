@@ -1,10 +1,20 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.gradle.upgrade.tests",
     iml_files = ["intellij.android.projectSystem.gradle.upgrade.tests.iml"],
+    split_test_targets = {
+        "integration": {
+            "test_filter": "com.android.tools.idea.gradle.project.upgrade.integration",
+            # Tests are run using explicit, local_old_agp_test targets
+            "tags": ["manual"],
+        },
+        "other": {
+        },
+    },
     test_class = "com.android.tools.idea.gradle.project.upgrade.GradleProjectSystemUpgradeTestSuite",
     test_data = [
         ":test_deps",
@@ -16,14 +26,16 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-6.1.1",
         "//tools/base/build-system:gradle-distrib-6.5",
         "//tools/base/build-system:gradle-distrib-6.7.1",
+        "//tools/base/build-system:gradle-distrib-7.0.2",
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:4.0.0",
         "//tools/base/build-system/previous-versions:4.1.0",
         "//tools/base/build-system/previous-versions:4.2.0",
+        "//tools/base/build-system/previous-versions:7.0.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
-    test_shard_count = 2,
     test_srcs = ["testSrc"],
+    test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
@@ -108,4 +120,113 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = "4.0.0",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-6.1.1",
+    ],
+    gradle_version = "6.1.1",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:4.0.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = "4.1.0",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-6.5",
+    ],
+    gradle_version = "6.5",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:4.1.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = "4.2.0",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-6.7.1",
+    ],
+    gradle_version = "6.7.1",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:4.2.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = "7.0.0",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-7.0.2",
+    ],
+    gradle_version = "7.0.2",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:7.0.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = "LATEST",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib",
+    ],
+    gradle_version = "LATEST",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )

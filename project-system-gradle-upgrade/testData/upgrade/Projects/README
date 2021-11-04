@@ -1,0 +1,18 @@
+This is the folder for projects used in Upgrade Assistant integration tests.
+
+Each project should have a state for each version of AGP we want to test this project upgrades with.
+Each project state can be used for both 'upgrade from' and 'upgrade to' version.
+Moreover there can be several states for the same AGP version, e.g. one using deprecated but still allowed APIs
+and another using all the new APIs.
+
+Please, use the following structure:
+-Projects
+  +-Project Name
+    +-version1 - files
+    |
+    +-version2 - files
+
+To avoid copying all unrelated files over for each version, copy only the files that supposed to change.
+In project descriptor (AUATestProjectState) there is a 'projectBasePath' and 'projectChangesPath'.
+The former should be the state with all project files present, the latter is the state with only
+the changed files which are copied over the base state on load.

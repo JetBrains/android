@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.upgrade;
+package com.android.tools.idea.gradle.project.upgrade.integration;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.junit4.OldAgpSuite;
+import com.android.tools.idea.gradle.project.upgrade.GradleProjectSystemUpgradeTestSuite;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
+import com.android.tools.tests.MavenRepoRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
-@RunWith(JarTestSuiteRunner.class)
+@RunWith(OldAgpSuite.class)
 @JarTestSuiteRunner.ExcludeClasses({
+  GradleProjectSystemUpgradeIntegrationTestSuite.class,
   GradleProjectSystemUpgradeTestSuite.class
 })
-public class GradleProjectSystemUpgradeTestSuite extends IdeaTestSuiteBase {
+public class GradleProjectSystemUpgradeIntegrationTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
   @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();
-
-  static {
-    linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle-upgrade/test_deps.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.0.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.1.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.2.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/7.0.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/kgp1.3.72.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-  }
+  @ClassRule public static MavenRepoRule mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty();
 }
