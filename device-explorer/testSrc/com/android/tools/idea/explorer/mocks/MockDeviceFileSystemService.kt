@@ -16,7 +16,7 @@
 package com.android.tools.idea.explorer.mocks
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.delayedVoid
+import com.android.tools.idea.concurrency.delayedValue
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener
@@ -49,14 +49,14 @@ class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, t
   val listeners: Array<DeviceFileSystemServiceListener>
     get() = myListeners.toTypedArray()
 
-  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Void> {
-    return delayedVoid(OPERATION_TIMEOUT_MILLIS)
+  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
+    return delayedValue(Unit, OPERATION_TIMEOUT_MILLIS)
   }
 
-  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Void> {
-    val futureResult = delayedVoid(OPERATION_TIMEOUT_MILLIS)
-    edtExecutor.addCallback(futureResult, object : FutureCallback<Void> {
-      override fun onSuccess(result: Void?) {
+  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
+    val futureResult = delayedValue(Unit, OPERATION_TIMEOUT_MILLIS)
+    edtExecutor.addCallback(futureResult, object : FutureCallback<Unit> {
+      override fun onSuccess(result: Unit?) {
         myListeners.forEach  { it.serviceRestarted() }
       }
 

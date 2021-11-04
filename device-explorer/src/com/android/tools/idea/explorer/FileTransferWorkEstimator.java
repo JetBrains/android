@@ -24,6 +24,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Executor;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -95,11 +96,11 @@ public class FileTransferWorkEstimator {
                                                                          boolean isLinkToDirectory,
                                                                          @NotNull FileTransferWorkEstimatorProgress progress) {
     FileTransferWorkEstimate workEstimate = new FileTransferWorkEstimate();
-    ListenableFuture<Void> future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress);
+    ListenableFuture<Unit> future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress);
     return myEdtExecutor.transform(future, aVoid -> workEstimate);
   }
 
-  public ListenableFuture<Void> estimateDownloadWorkWorker(@NotNull DeviceFileEntry entry,
+  public ListenableFuture<Unit> estimateDownloadWorkWorker(@NotNull DeviceFileEntry entry,
                                                            boolean isLinkToDirectory,
                                                            @NotNull FileTransferWorkEstimate estimate,
                                                            @NotNull FileTransferWorkEstimatorProgress progress) {

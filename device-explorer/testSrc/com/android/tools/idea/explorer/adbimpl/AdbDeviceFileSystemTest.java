@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import kotlin.Unit;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -391,7 +392,7 @@ public class AdbDeviceFileSystemTest {
 
     // Act
     AtomicReference<Long> totalBytesRef = new AtomicReference<>();
-    Void result = waitForFuture(dataEntry.uploadFile(tempFile, new FileTransferProgress() {
+    Unit result = waitForFuture(dataEntry.uploadFile(tempFile, new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
         totalBytesRef.set(totalBytes);
@@ -406,7 +407,7 @@ public class AdbDeviceFileSystemTest {
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
     assertThat(totalBytesRef.get()).isEqualTo(1024);
   }
 
@@ -423,7 +424,7 @@ public class AdbDeviceFileSystemTest {
 
     // Act
     AtomicReference<Long> totalBytesRef = new AtomicReference<>();
-    Void result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
+    Unit result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
         totalBytesRef.set(totalBytes);
@@ -438,7 +439,7 @@ public class AdbDeviceFileSystemTest {
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
     assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
     assertThat(Files.exists(tempFile)).isTrue();
     assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());
@@ -473,7 +474,6 @@ public class AdbDeviceFileSystemTest {
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
-    assertThat(error).isNotNull();
     assertThat(error).isInstanceOf(AdbShellCommandException.class);
     assertThat(error.getMessage()).isEqualTo("cp: /system/build.prop: Read-only file system");
   }
@@ -491,7 +491,7 @@ public class AdbDeviceFileSystemTest {
 
     // Act
     AtomicReference<Long> totalBytesRef = new AtomicReference<>();
-    Void result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
+    Unit result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
         totalBytesRef.set(totalBytes);
@@ -506,7 +506,7 @@ public class AdbDeviceFileSystemTest {
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
     assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
     assertThat(Files.exists(tempFile)).isTrue();
     assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());
@@ -526,7 +526,7 @@ public class AdbDeviceFileSystemTest {
 
     // Act
     AtomicReference<Long> totalBytesRef = new AtomicReference<>();
-    Void result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
+    Unit result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
         totalBytesRef.set(totalBytes);
@@ -541,7 +541,7 @@ public class AdbDeviceFileSystemTest {
     myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
     assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
     assertThat(Files.exists(tempFile)).isTrue();
     assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());

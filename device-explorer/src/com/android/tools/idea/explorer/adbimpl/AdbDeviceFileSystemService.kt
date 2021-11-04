@@ -62,7 +62,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
   private var myDeviceChangeListener: DeviceChangeListener? = null
   private var myDebugBridgeChangeListener: DebugBridgeChangeListener? = null
   private var myAdb: File? = null
-  private var myStartServiceFuture = SettableFuture.create<Void>()
+  private var myStartServiceFuture = SettableFuture.create<Unit>()
 
   override fun dispose() {
     AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener)
@@ -95,7 +95,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
    *
    * To restart the service using a different ADB file, call [AdbDeviceFileSystemService.restart]
    */
-  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Void> {
+  override fun start(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
     if (myState == State.SetupRunning || myState == State.SetupDone) {
       return myStartServiceFuture
     }
@@ -112,7 +112,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
     return startDebugBridge()
   }
 
-  private fun startDebugBridge(): ListenableFuture<Void> {
+  private fun startDebugBridge(): ListenableFuture<Unit> {
     val adb = checkNotNull(myAdb)
     myState = State.SetupRunning
     myStartServiceFuture = SettableFuture.create()
@@ -121,7 +121,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
       override fun onSuccess(bridge: AndroidDebugBridge?) {
         LOGGER.info("Successfully obtained debug bridge")
         myState = State.SetupDone
-        myStartServiceFuture.set(null)
+        myStartServiceFuture.set(Unit)
       }
 
       override fun onFailure(t: Throwable) {
@@ -137,13 +137,13 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
     return myStartServiceFuture
   }
 
-  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Void> {
+  override fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Unit> {
     if (myState == State.Initial) {
       return start(adbSupplier)
     }
     checkState(State.SetupDone)
 
-    val futureResult = SettableFuture.create<Void>()
+    val futureResult = SettableFuture.create<Unit>()
     taskExecutor.execute {
       try {
         AdbService.getInstance().terminateDdmlib()
@@ -153,9 +153,9 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
       }
       edtExecutor.execute {
         val futureStart = startDebugBridge()
-        edtExecutor.addCallback(futureStart, object : FutureCallback<Void> {
-          override fun onSuccess(result: Void?) {
-            futureResult.set(null)
+        edtExecutor.addCallback(futureStart, object : FutureCallback<Unit> {
+          override fun onSuccess(result: Unit?) {
+            futureResult.set(Unit)
           }
 
           override fun onFailure(t: Throwable) {

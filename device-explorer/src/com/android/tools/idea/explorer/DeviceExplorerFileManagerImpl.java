@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
@@ -150,15 +151,15 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   }
 
   @Override
-  public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
+  public ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile) {
+    SettableFuture<Unit> futureResult = SettableFuture.create();
 
     executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor, () -> {
       ApplicationManager.getApplication().runWriteAction(() -> {
         try {
           // must be called from a write action
           deleteVirtualFile(virtualFile);
-          futureResult.set(null);
+          futureResult.set(Unit.INSTANCE);
         } catch (Throwable exception) {
           futureResult.setException(exception);
         }
@@ -190,7 +191,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
                                                      @NotNull DownloadProgress progress) {
     FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
     progress.onStarting(entry.getFullPath());
-    ListenableFuture<Void> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
+    ListenableFuture<Unit> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
     ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(
       downloadFileFuture,
       aVoid -> DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, localPath)
@@ -228,9 +229,9 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull
   private ListenableFuture<List<DeviceFileEntry>> mapPathsToEntries(@NotNull DeviceFileSystem fileSystem, @NotNull List<String> paths) {
     List<DeviceFileEntry> entries = new ArrayList<>();
-    ListenableFuture<Void> allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator(), path -> {
+    ListenableFuture<Unit> allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator(), path -> {
       ListenableFuture<DeviceFileEntry> futureEntry = fileSystem.getEntry(path);
-      return myTaskExecutor.transform(futureEntry, entry -> { entries.add(entry); return null; });
+      return myTaskExecutor.transform(futureEntry, entry -> { entries.add(entry); return Unit.INSTANCE; });
     });
 
     return myTaskExecutor.transform(allDone, aVoid -> entries);

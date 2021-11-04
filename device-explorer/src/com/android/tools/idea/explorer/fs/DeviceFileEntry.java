@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer.fs;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.file.Path;
 import java.util.List;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +60,7 @@ public interface DeviceFileEntry {
    * Deletes the entry from the device file system.
    */
   @NotNull
-  ListenableFuture<Void> delete();
+  ListenableFuture<Unit> delete();
 
   /**
    * Creates a new file "{@code fileName}" in this directory, and returns a future that
@@ -67,7 +68,7 @@ public interface DeviceFileEntry {
    * already exists), the future completes with an exception.
    */
   @NotNull
-  ListenableFuture<Void> createNewFile(@NotNull String fileName);
+  ListenableFuture<Unit> createNewFile(@NotNull String fileName);
 
   /**
    * Creates a new directory "{@code directoryName}" in this directory, and returns a future that
@@ -75,7 +76,7 @@ public interface DeviceFileEntry {
    * (including the path already exists), the future completes with an exception.
    */
   @NotNull
-  ListenableFuture<Void> createNewDirectory(@NotNull String directoryName);
+  ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName);
 
   /**
    * Returns {@code true} if the entry is a symbolic link that points to a directory.
@@ -89,14 +90,14 @@ public interface DeviceFileEntry {
    * Downloads the contents of the {@link DeviceFileEntry} to a local file.
    */
   @NotNull
-  ListenableFuture<Void> downloadFile(@NotNull Path localPath,
+  ListenableFuture<Unit> downloadFile(@NotNull Path localPath,
                                       @NotNull FileTransferProgress progress);
 
   /**
    * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
    */
   @NotNull
-  default ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+  default ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
                                             @NotNull FileTransferProgress progress) {
     return uploadFile(localPath, localPath.getFileName().toString(), progress);
   }
@@ -105,7 +106,7 @@ public interface DeviceFileEntry {
    * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
    */
   @NotNull
-  ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+  ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
                                     @NotNull String fileName,
                                     @NotNull FileTransferProgress progress);
 

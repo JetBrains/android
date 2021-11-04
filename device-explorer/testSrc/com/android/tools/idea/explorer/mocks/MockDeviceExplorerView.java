@@ -38,6 +38,7 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,8 +48,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
   @NotNull private final DeviceExplorerViewImpl myViewImpl;
   @NotNull private final FutureValuesTracker<String> myStartRefreshTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Void> myStopRefreshTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Void> myShowNoDeviceScreenTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> myStopRefreshTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> myShowNoDeviceScreenTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeExpandingTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myOpenNodesInEditorInvokedTracker = new FutureValuesTracker<>();
@@ -62,7 +63,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceUpdatedTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Void> myAllDevicesRemovedTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> myAllDevicesRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DefaultTreeModel> myTreeModelChangedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesChangedTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<TreeModelEvent> myTreeNodesInsertedTacker = new FutureValuesTracker<>();
@@ -73,8 +74,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorGenericTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportMessageRelatedToNodeTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Void> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Void> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
   private int myBusyIndicatorCount;
 
   public MockDeviceExplorerView(@NotNull Project project,
@@ -282,12 +283,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getStopRefreshTracker() {
+  public FutureValuesTracker<Unit> getStopRefreshTracker() {
     return myStopRefreshTracker;
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getShowNoDeviceScreenTracker() {
+  public FutureValuesTracker<Unit> getShowNoDeviceScreenTracker() {
     return myShowNoDeviceScreenTracker;
   }
 
@@ -332,7 +333,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getAllDevicesRemovedTracker() {
+  public FutureValuesTracker<Unit> getAllDevicesRemovedTracker() {
     return myAllDevicesRemovedTracker;
   }
 
@@ -362,12 +363,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getStartTreeBusyIndicatorTacker() {
+  public FutureValuesTracker<Unit> getStartTreeBusyIndicatorTacker() {
     return myStartTreeBusyIndicatorTacker;
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getStopTreeBusyIndicatorTacker() {
+  public FutureValuesTracker<Unit> getStopTreeBusyIndicatorTacker() {
     return myStopTreeBusyIndicatorTacker;
   }
 

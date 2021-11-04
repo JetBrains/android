@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.Executor;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,14 +53,14 @@ public class AdbFileTransfer {
   }
 
   @NotNull
-  public ListenableFuture<Void> downloadFile(@NotNull AdbFileListingEntry remoteFileEntry,
+  public ListenableFuture<Unit> downloadFile(@NotNull AdbFileListingEntry remoteFileEntry,
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
     return downloadFileWorker(remoteFileEntry.getFullPath(), remoteFileEntry.getSize(), localPath, progress);
   }
 
   @NotNull
-  public ListenableFuture<Void> downloadFile(@NotNull String remotePath,
+  public ListenableFuture<Unit> downloadFile(@NotNull String remotePath,
                                              long remotePathSize,
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
@@ -67,7 +68,7 @@ public class AdbFileTransfer {
   }
 
   @NotNull
-  public ListenableFuture<Void> downloadFileViaTempLocation(@NotNull String remotePath,
+  public ListenableFuture<Unit> downloadFileViaTempLocation(@NotNull String remotePath,
                                                             long remotePathSize,
                                                             @NotNull Path localPath,
                                                             @NotNull FileTransferProgress progress,
@@ -80,8 +81,8 @@ public class AdbFileTransfer {
       assert tempFile != null;
 
       // Copy the remote file to the temporary remote location
-      ListenableFuture<Void> futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs);
-      ListenableFuture<Void> futureDownload = myTaskExecutor.transformAsync(futureCopy, aVoid -> {
+      ListenableFuture<Unit> futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs);
+      ListenableFuture<Unit> futureDownload = myTaskExecutor.transformAsync(futureCopy, aVoid -> {
         // Download the temporary remote file to local disk
         return downloadFile(tempFile, remotePathSize, localPath, progress);
       });
@@ -94,13 +95,13 @@ public class AdbFileTransfer {
 
 
   @NotNull
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
                                            @NotNull String remotePath,
                                            @NotNull FileTransferProgress progress) {
     return uploadFileWorker(localPath, remotePath, progress);
   }
 
-  public ListenableFuture<Void> uploadFileViaTempLocation(@NotNull Path localPath,
+  public ListenableFuture<Unit> uploadFileViaTempLocation(@NotNull Path localPath,
                                                           @NotNull String remotePath,
                                                           @NotNull FileTransferProgress progress,
                                                           @Nullable String runAs) {
@@ -109,8 +110,8 @@ public class AdbFileTransfer {
       assert tempFile != null;
 
       // Upload to temporary location
-      ListenableFuture<Void> futureUpload = uploadFile(localPath, tempFile, progress);
-      ListenableFuture<Void> futureCopy = myTaskExecutor.transformAsync(futureUpload, aVoid -> {
+      ListenableFuture<Unit> futureUpload = uploadFile(localPath, tempFile, progress);
+      ListenableFuture<Unit> futureCopy = myTaskExecutor.transformAsync(futureUpload, aVoid -> {
         // Copy file from temporary location to package location (using "run-as")
         return myFileOperations.copyFileRunAs(tempFile, remotePath, runAs);
       });
@@ -122,14 +123,14 @@ public class AdbFileTransfer {
   }
 
   @NotNull
-  private ListenableFuture<Void> downloadFileWorker(@NotNull String remotePath,
+  private ListenableFuture<Unit> downloadFileWorker(@NotNull String remotePath,
                                                     long remotePathSize,
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
 
     ListenableFuture<SyncService> futureSyncService = getSyncService();
 
-    ListenableFuture<Void> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
+    ListenableFuture<Unit> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
       assert syncService != null;
       try {
         long startTime = System.nanoTime();
@@ -139,7 +140,7 @@ public class AdbFileTransfer {
         long endTime = System.nanoTime();
         LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
                                   remotePath, localPath));
-        return null;
+        return Unit.INSTANCE;
       }
       finally {
         syncService.close();
@@ -158,13 +159,13 @@ public class AdbFileTransfer {
   }
 
   @NotNull
-  private ListenableFuture<Void> uploadFileWorker(@NotNull Path localPath,
+  private ListenableFuture<Unit> uploadFileWorker(@NotNull Path localPath,
                                                   @NotNull String remotePath,
                                                   @NotNull FileTransferProgress progress) {
 
     ListenableFuture<SyncService> futureSyncService = getSyncService();
 
-    ListenableFuture<Void> futurePush = myTaskExecutor.transform(futureSyncService, syncService -> {
+    ListenableFuture<Unit> futurePush = myTaskExecutor.transform(futureSyncService, syncService -> {
       assert syncService != null;
       try {
         long fileLength = localPath.toFile().length();
@@ -176,7 +177,7 @@ public class AdbFileTransfer {
         LOGGER.info(String
                       .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000, localPath,
                               remotePath));
-        return null;
+        return Unit.INSTANCE;
       }
       finally {
         syncService.close();

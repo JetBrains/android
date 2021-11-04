@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -234,7 +235,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
 
     @NotNull
     @Override
-    public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
       // Note: We should reach this code only if the device is not root, in which case
       // trying a "pullFile" would fail because of permission error (reading from the /data/data/
       // directory), so we copy the file to a temp. location, then pull from that temp location.
@@ -243,7 +244,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
 
     @NotNull
     @Override
-    public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+    public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
       // Note: We should reach this code only if the device is not root, in which case
       // trying a "pushFile" would fail because of permission error (writing to the /data/data/
       // directory), so we use the push to temporary location, then copy to final location.

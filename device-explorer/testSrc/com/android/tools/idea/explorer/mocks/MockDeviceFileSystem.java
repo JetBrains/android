@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,7 +167,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  public ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
+  public ListenableFuture<Unit> downloadFile(@NotNull DeviceFileEntry entry,
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
     if (myDownloadError != null) {
@@ -176,7 +177,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  public ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localFilePath,
                                            @NotNull DeviceFileEntry remoteDirectory,
                                            @NotNull String fileName,
                                            @NotNull FileTransferProgress progress) {
@@ -219,7 +220,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     @NotNull private final MockDeviceFileEntry myEntry;
     @NotNull private final Path myPath;
     @NotNull private final FileTransferProgress myProgress;
-    @NotNull private final SettableFuture<Void> myFutureResult;
+    @NotNull private final SettableFuture<Unit> myFutureResult;
     @NotNull private final Alarm myAlarm;
     private long myCurrentOffset;
     @Nullable private FileOutputStream myOutputStream;
@@ -278,7 +279,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
         Disposer.dispose(this);
       }
       finally {
-        myFutureResult.set(null);
+        myFutureResult.set(Unit.INSTANCE);
       }
     }
 
@@ -326,7 +327,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     @NotNull private final String myFileName;
     @NotNull private final Path myPath;
     @NotNull private final FileTransferProgress myProgress;
-    @NotNull private final SettableFuture<Void> myFutureResult;
+    @NotNull private final SettableFuture<Unit> myFutureResult;
     @NotNull private final Alarm myAlarm;
     private long myCurrentOffset;
     private long myFileLength;
@@ -385,7 +386,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
         Disposer.dispose(this);
       }
       finally {
-        myFutureResult.set(null);
+        myFutureResult.set(Unit.INSTANCE);
       }
     }
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.file.Path;
 import java.util.List;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,19 +51,19 @@ public abstract class AdbDeviceForwardingFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> delete() {
+  public ListenableFuture<Unit> delete() {
     return getForwardedFileEntry().delete();
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewFile(@NotNull String fileName) {
+  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
     return getForwardedFileEntry().createNewFile(fileName);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull String directoryName) {
+  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
     return getForwardedFileEntry().createNewDirectory(directoryName);
   }
 
@@ -74,13 +75,13 @@ public abstract class AdbDeviceForwardingFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
     return getForwardedFileEntry().downloadFile(localPath, progress);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
     return getForwardedFileEntry().uploadFile(localPath, fileName, progress);
   }
 }

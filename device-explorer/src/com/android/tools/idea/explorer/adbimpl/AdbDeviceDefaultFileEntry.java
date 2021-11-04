@@ -20,6 +20,7 @@ import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.file.Path;
 import java.util.List;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,14 +45,14 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> delete() {
+  public ListenableFuture<Unit> delete() {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, AdbDeviceFileEntry::delete);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewFile(@NotNull String fileName) {
+  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
       assert x != null;
@@ -61,7 +62,7 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull String directoryName) {
+  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
       assert x != null;
@@ -78,7 +79,7 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
       assert x != null;
@@ -88,7 +89,7 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
       assert x != null;

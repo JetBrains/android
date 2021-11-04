@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,12 +204,12 @@ public class FutureCallbackExecutor implements Executor {
    */
   @NotNull
   public <I> ListenableFuture<I> finallyAsync(@NotNull ListenableFuture<I> input,
-                                              @NotNull Callable<ListenableFuture<Void>> finallyBlock) {
+                                              @NotNull Callable<ListenableFuture<Unit>> finallyBlock) {
     SettableFuture<I> futureResult = SettableFuture.create();
     addConsumer(input, (i, futureThrowable) -> {
       try {
-        ListenableFuture<Void> futureFinallyBlock = finallyBlock.call();
-        addConsumer(futureFinallyBlock, (aVoid, finallyError) -> {
+        ListenableFuture<Unit> futureFinallyBlock = finallyBlock.call();
+        addConsumer(futureFinallyBlock, (aUnit, finallyError) -> {
           // Prefer original error over error from finally block
           if (futureThrowable != null) {
             if (finallyError != null) {
@@ -251,22 +252,22 @@ public class FutureCallbackExecutor implements Executor {
    * @param <T>         The type of the elements to process
    */
   @NotNull
-  public <T> ListenableFuture<Void> executeFuturesInSequence(@NotNull Iterator<T> iterator,
-                                                             @NotNull Function<T, ListenableFuture<Void>> taskFactory) {
-    SettableFuture<Void> finalResult = SettableFuture.create();
+  public <T> ListenableFuture<Unit> executeFuturesInSequence(@NotNull Iterator<T> iterator,
+                                                             @NotNull Function<T, ListenableFuture<Unit>> taskFactory) {
+    SettableFuture<Unit> finalResult = SettableFuture.create();
     executeFuturesInSequenceWorker(iterator, taskFactory, finalResult);
     return finalResult;
   }
 
   private <T> void executeFuturesInSequenceWorker(@NotNull Iterator<T> iterator,
-                                                  @NotNull Function<T, ListenableFuture<Void>> taskFactory,
-                                                  @NotNull SettableFuture<Void> finalResult) {
+                                                  @NotNull Function<T, ListenableFuture<Unit>> taskFactory,
+                                                  @NotNull SettableFuture<Unit> finalResult) {
     if (iterator.hasNext()) {
-      ListenableFuture<Void> future = taskFactory.apply(iterator.next());
-      addConsumer(future, (aVoid, throwable) -> executeFuturesInSequenceWorker(iterator, taskFactory, finalResult));
+      ListenableFuture<Unit> future = taskFactory.apply(iterator.next());
+      addConsumer(future, (aUnit, throwable) -> executeFuturesInSequenceWorker(iterator, taskFactory, finalResult));
     }
     else {
-      finalResult.set(null);
+      finalResult.set(Unit.INSTANCE);
     }
   }
 

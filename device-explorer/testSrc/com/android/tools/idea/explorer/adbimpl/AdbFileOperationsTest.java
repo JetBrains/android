@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import kotlin.Unit;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -76,10 +77,10 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.createNewFile("/sdcard", "foo.txt"));
+    Unit result = waitForFuture(fileOperations.createNewFile("/sdcard", "foo.txt"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -88,12 +89,12 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.createNewFileRunAs("/data/data/com.example.rpaquay.myapplication",
+    Unit result = waitForFuture(fileOperations.createNewFileRunAs("/data/data/com.example.rpaquay.myapplication",
                                                                   "NewTextFile.txt",
                                                                   "com.example.rpaquay.myapplication"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -146,10 +147,10 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.createNewDirectory("/sdcard", "foo-dir"));
+    Unit result = waitForFuture(fileOperations.createNewDirectory("/sdcard", "foo-dir"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -158,12 +159,12 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.createNewDirectoryRunAs("/data/data/com.example.rpaquay.myapplication",
+    Unit result = waitForFuture(fileOperations.createNewDirectoryRunAs("/data/data/com.example.rpaquay.myapplication",
                                                                        "foo-dir",
                                                                        "com.example.rpaquay.myapplication"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -224,10 +225,10 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"));
+    Unit result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -236,11 +237,11 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.deleteFileRunAs("/data/data/com.example.rpaquay.myapplication/NewTextFile.txt",
+    Unit result = waitForFuture(fileOperations.deleteFileRunAs("/data/data/com.example.rpaquay.myapplication/NewTextFile.txt",
                                                                "com.example.rpaquay.myapplication"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -271,10 +272,10 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"));
+    Unit result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test
@@ -283,11 +284,11 @@ public class AdbFileOperationsTest {
     AdbFileOperations fileOperations = setupMockDevice();
 
     // Act
-    Void result = waitForFuture(fileOperations.deleteRecursiveRunAs("/data/data/com.example.rpaquay.myapplication/foo-dir",
+    Unit result = waitForFuture(fileOperations.deleteRecursiveRunAs("/data/data/com.example.rpaquay.myapplication/foo-dir",
                                                                     "com.example.rpaquay.myapplication"));
 
     // Assert
-    assertThat(result).isNull();
+    assertThat(result).isEqualTo(Unit.INSTANCE);
   }
 
   @Test

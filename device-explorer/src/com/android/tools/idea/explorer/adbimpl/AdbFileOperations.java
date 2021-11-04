@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,12 +47,12 @@ public class AdbFileOperations {
   }
 
   @NotNull
-  public ListenableFuture<Void> createNewFile(@NotNull String parentPath, @NotNull String fileName) {
+  public ListenableFuture<Unit> createNewFile(@NotNull String parentPath, @NotNull String fileName) {
     return createNewFileRunAs(parentPath, fileName, null);
   }
 
   @NotNull
-  public ListenableFuture<Void> createNewFileRunAs(@NotNull String parentPath, @NotNull String fileName, @Nullable String runAs) {
+  public ListenableFuture<Unit> createNewFileRunAs(@NotNull String parentPath, @NotNull String fileName, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       if (fileName.contains(AdbPathUtil.FILE_SEPARATOR)) {
         throw AdbShellCommandException.create("File name \"%s\" contains invalid characters", fileName);
@@ -77,17 +78,17 @@ public class AdbFileOperations {
       touchFileRunAs(remotePath, runAs);
 
       // All done
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
   @NotNull
-  public ListenableFuture<Void> createNewDirectory(@NotNull String parentPath, @NotNull String directoryName) {
+  public ListenableFuture<Unit> createNewDirectory(@NotNull String parentPath, @NotNull String directoryName) {
     return createNewDirectoryRunAs(parentPath, directoryName, null);
   }
 
   @NotNull
-  public ListenableFuture<Void> createNewDirectoryRunAs(@NotNull String parentPath, @NotNull String directoryName, @Nullable String runAs) {
+  public ListenableFuture<Unit> createNewDirectoryRunAs(@NotNull String parentPath, @NotNull String directoryName, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       if (directoryName.contains(AdbPathUtil.FILE_SEPARATOR)) {
         throw AdbShellCommandException.create("Directory name \"%s\" contains invalid characters", directoryName);
@@ -100,7 +101,7 @@ public class AdbFileOperations {
       commandResult.throwIfError();
 
       // All done
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
@@ -189,46 +190,46 @@ public class AdbFileOperations {
   }
 
   @NotNull
-  public ListenableFuture<Void> deleteFile(@NotNull String path) {
+  public ListenableFuture<Unit> deleteFile(@NotNull String path) {
     return deleteFileRunAs(path, null);
   }
 
   @NotNull
-  public ListenableFuture<Void> deleteFileRunAs(@NotNull String path, @Nullable String runAs) {
+  public ListenableFuture<Unit> deleteFileRunAs(@NotNull String path, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       String command = getRmCommand(runAs, path, false);
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       // All done
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
   @NotNull
-  public ListenableFuture<Void> deleteRecursive(@NotNull String path) {
+  public ListenableFuture<Unit> deleteRecursive(@NotNull String path) {
     return deleteRecursiveRunAs(path, null);
   }
 
   @NotNull
-  public ListenableFuture<Void> deleteRecursiveRunAs(@NotNull String path, @Nullable String runAs) {
+  public ListenableFuture<Unit> deleteRecursiveRunAs(@NotNull String path, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       String command = getRmCommand(runAs, path, true);
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       // All done
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
   @NotNull
-  public ListenableFuture<Void> copyFile(@NotNull String source, @NotNull String destination) {
+  public ListenableFuture<Unit> copyFile(@NotNull String source, @NotNull String destination) {
     return copyFileRunAs(source, destination, null);
   }
 
   @NotNull
-  public ListenableFuture<Void> copyFileRunAs(@NotNull String source, @NotNull String destination, @Nullable String runAs) {
+  public ListenableFuture<Unit> copyFileRunAs(@NotNull String source, @NotNull String destination, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       String command;
       if (myDeviceCapabilities.supportsCpCommand()) {
@@ -239,7 +240,7 @@ public class AdbFileOperations {
       }
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
-      return null;
+      return Unit.INSTANCE;
     });
   }
 
@@ -265,7 +266,7 @@ public class AdbFileOperations {
   }
 
   @NotNull
-  public ListenableFuture<Void> touchFileAsDefaultUser(@NotNull String remotePath) {
+  public ListenableFuture<Unit> touchFileAsDefaultUser(@NotNull String remotePath) {
     return myExecutor.executeAsync(() -> {
       String command;
       if (myDeviceCapabilities.supportsTouchCommand()) {
@@ -278,7 +279,7 @@ public class AdbFileOperations {
       }
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
-      return null;
+      return Unit.INSTANCE;
     });
   }
 

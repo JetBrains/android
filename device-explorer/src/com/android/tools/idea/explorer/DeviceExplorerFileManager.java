@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -54,7 +55,7 @@ public interface DeviceExplorerFileManager {
    * Delete the VirtualFile passed as argument using the VFS.
    * The returned future fails with IOException in case of problems during file deletion.
    */
-  ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile);
+  ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile);
 
   /**
    * Returns the {@link Path} to use on the local file system when saving/downloading the entry from the device to the local file system

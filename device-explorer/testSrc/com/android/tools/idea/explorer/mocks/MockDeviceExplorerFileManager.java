@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +85,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @Override
-  public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
+  public ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile) {
     return myFileManagerImpl.deleteFile(virtualFile);
   }
 

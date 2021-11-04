@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,7 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> delete() {
+  public ListenableFuture<Unit> delete() {
     if (isDirectory()) {
       return myDevice.getAdbFileOperations().deleteRecursiveRunAs(getFullPath(), myRunAs);
     }
@@ -73,13 +74,13 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewFile(@NotNull String fileName) {
+  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
     return myDevice.getAdbFileOperations().createNewFileRunAs(getFullPath(), fileName, myRunAs);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull String directoryName) {
+  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
     return myDevice.getAdbFileOperations().createNewDirectoryRunAs(getFullPath(), directoryName, myRunAs);
   }
 
@@ -91,11 +92,11 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFile(@NotNull Path localPath,
+  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
     // Note: First try to download the file as the default user. If we get a permission error,
     //       download the file via a temp. directory using the "su 0" user.
-    ListenableFuture<Void> futureDownload = myDevice.getAdbFileTransfer().downloadFile(this.myEntry, localPath, progress);
+    ListenableFuture<Unit> futureDownload = myDevice.getAdbFileTransfer().downloadFile(this.myEntry, localPath, progress);
     return myDevice.getTaskExecutor().catchingAsync(futureDownload, SyncException.class, syncException -> {
       assert syncException != null;
       if (isSyncPermissionError(syncException) && isDeviceSuAndNotRoot()) {
@@ -109,7 +110,7 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
                                            @NotNull String fileName,
                                            @NotNull FileTransferProgress progress) {
     String remotePath = AdbPathUtil.resolve(myEntry.getFullPath(), fileName);
@@ -127,8 +128,8 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
     return myDevice.getTaskExecutor().transformAsync(futureShouldCreateRemote, shouldCreateRemote -> {
       assert shouldCreateRemote != null;
       if (shouldCreateRemote) {
-        ListenableFuture<Void> futureTouchFile = myDevice.getAdbFileOperations().touchFileAsDefaultUser(remotePath);
-        ListenableFuture<Void> futureUpload = myDevice.getTaskExecutor().transformAsync(futureTouchFile, aVoid ->
+        ListenableFuture<Unit> futureTouchFile = myDevice.getAdbFileOperations().touchFileAsDefaultUser(remotePath);
+        ListenableFuture<Unit> futureUpload = myDevice.getTaskExecutor().transformAsync(futureTouchFile, aVoid ->
           // If file creation succeeded, assume a regular upload will succeed.
           myDevice.getAdbFileTransfer().uploadFile(localPath, remotePath, progress)
         );

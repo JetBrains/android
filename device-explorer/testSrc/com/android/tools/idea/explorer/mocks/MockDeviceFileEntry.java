@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,31 +160,31 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> delete() {
+  public ListenableFuture<Unit> delete() {
     if (myDeleteError != null) {
       return FutureUtils.delayedError(myDeleteError, OPERATION_TIMEOUT_MILLIS);
     }
     return FutureUtils.delayedOperation(() -> {
       myParent.removeEntry(this);
-      return null;
+      return Unit.INSTANCE;
     }, OPERATION_TIMEOUT_MILLIS);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewFile(@NotNull String fileName) {
+  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
     return FutureUtils.delayedOperation(() -> {
       addFile(fileName);
-      return null;
+      return Unit.INSTANCE;
     }, OPERATION_TIMEOUT_MILLIS);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull String directoryName) {
+  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
     return FutureUtils.delayedOperation(() -> {
       addDirectory(directoryName);
-      return null;
+      return Unit.INSTANCE;
     }, OPERATION_TIMEOUT_MILLIS);
   }
 
@@ -195,13 +196,13 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
     return myFileSystem.downloadFile(this, localPath, progress);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
     return myFileSystem.uploadFile(localPath, this, fileName, progress);
   }
 

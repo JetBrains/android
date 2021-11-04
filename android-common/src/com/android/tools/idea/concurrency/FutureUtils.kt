@@ -86,7 +86,7 @@ fun <I, O> ListenableFuture<I>.transformAsyncNullable(executor: Executor, func: 
 /**
  * Transforms a [ListenableFuture] by throwing out the result.
  */
-fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform(directExecutor()) { null }
+fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Unit> = transform(directExecutor()) { }
 
 /**
  * Wrapper function to convert Future to ListenableFuture
@@ -147,12 +147,6 @@ private val MyAlarm by lazy {
 fun <V> delayedValue(value: V, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
   MyAlarm.addRequest({ result.set(value) }, delayMillis)
-  return result
-}
-
-fun delayedVoid(delayMillis: Int): ListenableFuture<Void> {
-  val result = SettableFuture.create<Void>()
-  MyAlarm.addRequest({ result.set(null) }, delayMillis)
   return result
 }
 
