@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing.jbpopup
+package com.android.tools.adtui.swing.popup
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.replaceService
 import org.junit.rules.ExternalResource
+import javax.swing.PopupFactory
 
 /**
  * A rule that sets up using [FakePopupFactory] in a test.
  */
-class JBPopupRule : ExternalResource() {
+class PopupRule : ExternalResource() {
 
-  val fakePopupFactory = FakePopupFactory()
-  val disposable = Disposer.newDisposable()
+  private val fakePopupFactory = FakePopupFactory()
+  private val realPopupFactory = PopupFactory.getSharedInstance()
+
+  val mockPopup = fakePopupFactory.mockPopup
+  val popupContents
+    get() = fakePopupFactory.contents
 
   override fun before() {
-    ApplicationManager.getApplication().replaceService(JBPopupFactory::class.java, fakePopupFactory, disposable)
+    PopupFactory.setSharedInstance(fakePopupFactory)
   }
 
   override fun after() {
-    Disposer.dispose(disposable)
+    PopupFactory.setSharedInstance(realPopupFactory)
   }
 }

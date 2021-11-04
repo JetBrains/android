@@ -16,8 +16,8 @@
 package com.android.tools.adtui
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.adtui.swing.jbpopup.FakePopup.ShowStyle.SHOW_UNDERNEATH_OF
-import com.android.tools.adtui.swing.jbpopup.JBPopupRule
+import com.android.tools.adtui.swing.popup.FakeJBPopup.ShowStyle.SHOW_UNDERNEATH_OF
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.SupervisorJob

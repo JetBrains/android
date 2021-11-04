@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing.jbpopup
+package com.android.tools.adtui.swing.popup
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
@@ -58,7 +57,7 @@ import javax.swing.event.HyperlinkListener
  * Note to contributors:
  * As methods are implemented, please move them towards the top of the file.
  */
-class FakePopupFactory : JBPopupFactory() {
+class FakeJBPopupFactory : JBPopupFactory() {
   private val popups = mutableListOf<Any>()
 
   /**
@@ -67,9 +66,9 @@ class FakePopupFactory : JBPopupFactory() {
    * Type safety is the responsibility of the caller.
    */
   @Suppress("UNCHECKED_CAST")
-  fun <T> getPopup(i: Int): FakePopup<T> = popups[i] as FakePopup<T>
+  fun <T> getPopup(i: Int): FakeJBPopup<T> = popups[i] as FakeJBPopup<T>
 
-  internal fun <T> addPopup(popup: FakePopup<T>) {
+  internal fun <T> addPopup(popup: FakeJBPopup<T>) {
     popups.add(popup)
   }
 

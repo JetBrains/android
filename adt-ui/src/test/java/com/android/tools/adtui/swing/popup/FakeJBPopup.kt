@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing.jbpopup
+package com.android.tools.adtui.swing.popup
 
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -33,10 +33,10 @@ import javax.swing.JComponent
 /**
  * A fake [JBPopup] for tests.
  */
-class FakePopup<T>(val items: List<T>,
-                   val isMovable: Boolean?,
-                   val isRequestFocus: Boolean?,
-                   private val callback: Consumer<in T>?) : JBPopup {
+class FakeJBPopup<T>(val items: List<T>,
+                     val isMovable: Boolean?,
+                     val isRequestFocus: Boolean?,
+                     private val callback: Consumer<in T>?) : JBPopup {
 
   enum class ShowStyle {
     SHOW_UNDERNEATH_OF,

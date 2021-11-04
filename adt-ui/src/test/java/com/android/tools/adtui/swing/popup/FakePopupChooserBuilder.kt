@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing.jbpopup
+package com.android.tools.adtui.swing.popup
 
 import com.intellij.openapi.ui.ListComponentUpdater
 import com.intellij.openapi.ui.popup.IPopupChooserBuilder
@@ -38,14 +38,14 @@ import javax.swing.ListCellRenderer
  * Note to contributors:
  * As methods are implemented, please move them towards the top of the file.
  */
-internal class FakePopupChooserBuilder<T>(private val factory: FakePopupFactory, private val list: MutableList<out T>)
+internal class FakePopupChooserBuilder<T>(private val factory: FakeJBPopupFactory, private val list: MutableList<out T>)
   : IPopupChooserBuilder<T> {
 
   private var isMovable: Boolean? = null
   private var isRequestFocus: Boolean? = null
   private var callback: Consumer<in T>? = null
 
-  override fun createPopup(): JBPopup = FakePopup(list, isMovable, isRequestFocus, callback).also(factory::addPopup)
+  override fun createPopup(): JBPopup = FakeJBPopup(list, isMovable, isRequestFocus, callback).also(factory::addPopup)
 
   override fun setMovable(forceMovable: Boolean): IPopupChooserBuilder<T> {
     isMovable = forceMovable
