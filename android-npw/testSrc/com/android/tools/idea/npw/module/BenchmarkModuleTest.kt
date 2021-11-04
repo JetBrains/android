@@ -55,6 +55,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
     ).apply {
       androidSdkInfo.value = createAndroidVersionItem()
+      packageName.set("template.test.pkg")
       benchmarkModuleType.set(MICROBENCHMARK)
       useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
     }

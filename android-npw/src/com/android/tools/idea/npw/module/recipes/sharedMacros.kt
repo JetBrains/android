@@ -30,7 +30,6 @@ import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
 
 fun generateManifest(
-  packageName: String,
   hasApplicationBlock: Boolean = false,
   theme: String = "@style/Theme.App",
   usesFeatureBlock: String = "",
@@ -61,7 +60,7 @@ fun generateManifest(
     <?xml version="1.0" encoding="utf-8"?>
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     ${renderIf(addBackupRules) { """xmlns:tools="http://schemas.android.com/tools"""" }}
-    package="${packageName}">
+    >
     $usesFeatureBlock
     $applicationBlock
     </manifest>
@@ -172,6 +171,7 @@ fun androidConfig(
 
   return """
     android {
+    namespace '$applicationId'
     ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
 
     defaultConfig {

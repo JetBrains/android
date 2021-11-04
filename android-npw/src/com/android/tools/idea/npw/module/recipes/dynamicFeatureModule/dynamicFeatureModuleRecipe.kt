@@ -51,7 +51,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val baseFeature = moduleData.baseFeature!!
 
   val manifestXml = androidManifestXml(
-    fusing.toString(), isInstantModule, packageName, projectSimpleName, downloadInstallKind, deviceFeatures
+    fusing.toString(), isInstantModule, projectSimpleName, downloadInstallKind, deviceFeatures
   )
 
   createDefaultDirectories(moduleOut, srcOut)

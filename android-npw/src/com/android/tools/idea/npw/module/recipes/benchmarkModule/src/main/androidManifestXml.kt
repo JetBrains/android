@@ -16,6 +16,6 @@
 
 package com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main
 
-fun androidManifestXml(packageName: String) =
+fun androidManifestXml() =
 """<?xml version="1.0" encoding="utf-8"?>
-<manifest package="$packageName"/>"""
+<manifest />"""

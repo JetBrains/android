@@ -56,6 +56,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addIncludeToSettings(moduleData.name)
 
   val bg = buildGradle(
+    packageName = packageName,
     buildApiString = buildApi.apiString,
     minApi = minApi.apiString,
     targetApiString = targetApi.apiString,
@@ -75,7 +76,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addDependency("androidx.test.uiautomator:uiautomator:2.+", "implementation")
   addDependency("androidx.benchmark:benchmark-macro-junit4:+", configuration = "implementation", minRev = "1.1.0-alpha02")
 
-  save(androidManifestXml(packageName, targetApplicationId), moduleOut.resolve("src/main/AndroidManifest.xml"))
+  save(androidManifestXml(targetApplicationId), moduleOut.resolve("src/main/AndroidManifest.xml"))
 
   if (language == Language.Kotlin) {
     save(exampleMacrobenchmarkKt(packageName, targetApplicationId), srcOut.resolve("ExampleStartupBenchmark.kt"))

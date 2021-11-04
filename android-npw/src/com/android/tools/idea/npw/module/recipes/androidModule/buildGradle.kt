@@ -106,6 +106,7 @@ private fun String.toKtsProperty(funcName: String): String = this.replace("$func
 internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
   split("\n").joinToString("\n") {
     it.replace("'", "\"")
+      .toKtsProperty("namespace")
       .toKtsFunction("compileSdkVersion")
       .toKtsProperty("compileSdk")
       .toKtsProperty("compileSdkPreview")

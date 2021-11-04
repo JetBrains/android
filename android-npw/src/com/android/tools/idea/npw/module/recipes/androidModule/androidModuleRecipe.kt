@@ -49,7 +49,6 @@ fun RecipeExecutor.generateAndroidModule(
     appTitle = appTitle,
     useKts = useKts,
     manifestXml = generateManifest(
-      packageName = data.packageName,
       hasApplicationBlock = !data.isLibrary,
       theme = "@style/${data.themesData.main.name}",
       addBackupRules = addBackupRules

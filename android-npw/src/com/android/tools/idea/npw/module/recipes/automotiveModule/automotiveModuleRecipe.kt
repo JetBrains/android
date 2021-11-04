@@ -34,7 +34,6 @@ fun RecipeExecutor.generateAutomotiveModule(
   generateCommonModule(
     data = data, appTitle = appTitle, useKts = useKts,
     manifestXml = generateManifest(
-      packageName = data.packageName,
       hasApplicationBlock = !data.isLibrary,
       theme = "@style/${data.themesData.main.name}",
       usesFeatureBlock = usesFeatureBlock,

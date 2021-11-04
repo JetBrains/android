@@ -30,7 +30,6 @@ fun RecipeExecutor.generateTvModule(
   generateCommonModule(
     data, appTitle, useKts,
     generateManifest(
-      packageName = data.packageName,
       hasApplicationBlock = !data.isLibrary,
       hasRoundIcon = false,
       theme = "@style/${data.themesData.main.name}"
