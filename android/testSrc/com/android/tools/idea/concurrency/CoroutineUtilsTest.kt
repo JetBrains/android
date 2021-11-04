@@ -38,6 +38,7 @@ import junit.framework.Assert.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,6 +54,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 const val UI_THREAD = "UI thread"
 const val WORKER_THREAD = "Worker thread"
@@ -336,6 +338,51 @@ class CoroutineUtilsTest {
     finally {
       // Release the lock
       writeLatch.countDown()
+    }
+  }
+
+  @Test
+  fun `write action with coroutines times out`()  {
+    val readActionIsReady = CountDownLatch(1)
+    val readLatch = CountDownLatch(1)
+
+    thread {
+      com.intellij.openapi.application.runReadAction {
+        readActionIsReady.countDown()
+        // Hold the read lock
+        readLatch.await()
+      }
+    }
+
+    // Wait until we know the read action has the lock
+    readActionIsReady.await()
+    runBlocking(workerThread) {
+      val writeActionExecuted = CompletableDeferred<Boolean>()
+      try {
+        val smartReadJob = launch(workerThread) {
+          assertThat(writeActionExecuted.isCompleted).isFalse()
+          runWriteActionAndWait {
+            writeActionExecuted.complete(true)
+          }
+          assertThat(writeActionExecuted.isCompleted).isTrue()
+        }
+        try {
+          withTimeout(2000) {
+            // This be block and the timeout will expire
+            writeActionExecuted.await()
+          }
+          fail("The read lock is still being held, timeout was expected")
+        }
+        catch (_: TimeoutCancellationException) {
+        }
+        finally {
+          smartReadJob.cancel()
+        }
+      }
+      finally {
+        // Release the lock
+        readLatch.countDown()
+      }
     }
   }
 

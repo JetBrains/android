@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
@@ -26,9 +27,12 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.concurrency.runInSmartReadAction
+import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -59,6 +63,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -113,8 +118,6 @@ class CustomViewPreviewRepresentation(
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
 
-  private val uniqueTaskLauncher = UniqueTaskCoroutineLauncher(this, "Custom view preview update thread")
-
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
   override val preferredInitialVisibility: PreferredVisibility? = null
@@ -122,6 +125,8 @@ class CustomViewPreviewRepresentation(
   private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
   private fun wrapContentHeightPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_H"
 
+  private val classesLock = Any()
+  @GuardedBy("classesLock")
   private var classes = listOf<String>()
     set(value) {
       if (field != value) {
@@ -138,7 +143,9 @@ class CustomViewPreviewRepresentation(
   // We use a list to preserve the order
   override val views: List<String>
     get() {
-      return classes.map { fqcn2name(it) }
+      synchronized(classesLock) {
+        return classes.map { fqcn2name(it) }
+      }
     }
 
   override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
@@ -219,6 +226,9 @@ class CustomViewPreviewRepresentation(
   @Volatile
   private var lastBuildStartedNanos = 0L
 
+  private val scope = AndroidCoroutineScope(this)
+  private val uniqueUpdateModelLauncher = UniqueTaskCoroutineLauncher(scope, "CustomViewPreviewRepresentation updateModel")
+
   init {
     val buildState = buildStateProvider(project)
     val fileState = if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
@@ -287,7 +297,7 @@ class CustomViewPreviewRepresentation(
       }
     }, this)
 
-    project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
+    refresh()
   }
 
   override val component = workbench
@@ -308,69 +318,72 @@ class CustomViewPreviewRepresentation(
     }
 
     stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.RENDERING)
-    // We are in a smart mode here
-    classes = (AndroidPsiUtils.getPsiFileSafely(project,
-                                                psiFile.virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
-    // This may happen if custom view classes got removed from the file
-    if (classes.isEmpty()) {
-      return
+    scope.launch {
+      runInSmartReadAction(project) {
+        val calculatedClasses = (AndroidPsiUtils.getPsiFileSafely(project, psiFile.virtualFile) as PsiClassOwner).classes
+          .filter { it.name != null && it.extendsView() }
+          .mapNotNull { it.qualifiedName }
+
+        synchronized(classesLock) {
+          classes = calculatedClasses
+          // This may happen if custom view classes got removed from the file
+          if (classes.isEmpty()) {
+            return@runInSmartReadAction
+          }
+        }
+        updateModel()
+      }
     }
-    updateModel()
   }
 
-  private fun updateModel() {
-    launch(uiThread) {
-      uniqueTaskLauncher.launch(::updateModelSync)
+  private fun updateModel() = scope.launch {
+    uniqueUpdateModelLauncher.launch {
+      updateModelAsync()
     }
   }
 
-  private suspend fun updateModelSync() {
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
+  private fun updateModelAsync() = scope.launch {
+    val psiFile = runReadAction { psiFilePointer.element } ?: run {
       LOG.warn("updateModelSync with invalid PsiFile")
-      return
+      return@launch
     }
 
-    val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView }
-    selectedClass?.let {
-      val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
-      val facet = AndroidFacet.getInstance(psiFile)
-      if (facet == null) {
-        LOG.warn("No facet for PsiFile $psiFile")
-        return
-      }
-      val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-      val className = fqcn2name(selectedClass)
+    val selectedClass = synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } ?: return@launch }
 
-      val model = if (surface.models.isEmpty()) {
-        val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
-        val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        NlModel.builder(facet, customPreviewXml, config)
-          .withParentDisposable(this@CustomViewPreviewRepresentation)
-          .withModelDisplayName(className)
-          .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
-          .withComponentRegistrar(surface.componentRegistrar)
-          .build()
-      } else {
-        // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
-        surface.deactivate()
-        surface.models.first().let { model ->
-          (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
-          model.updateFileContentBlocking(fileContent)
-        }
-      }
-      val configuration = model.configuration
+    val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
+    val facet = AndroidFacet.getInstance(psiFile) ?: run {
+      LOG.warn("No facet for PsiFile $psiFile")
+      return@launch
+    }
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val className = fqcn2name(selectedClass)
 
-      // Load and set preview size if exists for this custom view
-      withContext(uiThread) {
-        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
-          updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
-        }
+    val model = if (surface.models.isEmpty()) {
+      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
+      val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+      NlModel.builder(facet, customPreviewXml, config)
+        .withParentDisposable(this@CustomViewPreviewRepresentation)
+        .withModelDisplayName(className)
+        .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+        .withComponentRegistrar(surface.componentRegistrar)
+        .build()
+    } else {
+      // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
+      surface.deactivate()
+      surface.models.first().let { model ->
+        (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
+        model.updateFileContentBlocking(fileContent)
+      }
+    }
+    val configuration = model.configuration
+
+    // Load and set preview size if exists for this custom view
+    withContext(uiThread) {
+      persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
+        updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
-      val addModelFuture = withContext(uiThread) {
-        surface.addAndRenderModel(model)
-      }
-      addModelFuture.await()
+      surface.addAndRenderModel(model).await()
       surface.activate()
 
       stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)

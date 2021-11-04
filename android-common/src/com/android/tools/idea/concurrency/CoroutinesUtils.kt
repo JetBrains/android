@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -46,6 +47,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -263,4 +265,17 @@ suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
     }
   }
   throw CancellationException()
+}
+
+/**
+ * Suspendable method that will suspend until the given [compute] can be executed in a write action in the UI thread.
+ */
+suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScope {
+  val result = CompletableDeferred<T>()
+  withContext(ioThread) {
+    com.intellij.openapi.application.runWriteActionAndWait {
+      result.complete(compute.compute())
+    }
+  }
+  return@coroutineScope result.await()
 }
