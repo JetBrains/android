@@ -19,10 +19,10 @@ import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
@@ -38,13 +38,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction
 import com.intellij.openapi.editor.actions.ToggleUseSoftWrapsToolbarAction
 import com.intellij.openapi.editor.impl.DocumentImpl
@@ -53,7 +51,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.tools.SimpleActionGroup
@@ -61,9 +58,6 @@ import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.BorderLayout
@@ -76,7 +70,6 @@ import java.time.ZoneId
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
 /**
@@ -85,10 +78,11 @@ import javax.swing.JPopupMenu
 class LogcatMainPanelTest {
   private val projectRule = ProjectRule()
   private val executor = Executors.newCachedThreadPool()
+  private val popupRule = PopupRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule)
+  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule)
 
   private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
@@ -223,29 +217,17 @@ class LogcatMainPanelTest {
         override fun actionPerformed(e: AnActionEvent) {}
       })
     }
-    var latestPopup: ActionPopupMenu? = null
-    val actionManager = ApplicationManager.getApplication().getService(ActionManager::class.java)
-    val mockActionManager = spy(actionManager)
-    try {
-      ApplicationManager.getApplication().replaceService(ActionManager::class.java, mockActionManager, projectRule.project)
-      `when`(mockActionManager.createActionPopupMenu(anyString(), any(ActionGroup::class.java))).thenAnswer {
-        latestPopup = FakeActionPopupMenu(it.getArgument(1))
-        latestPopup
-      }
-      val logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
-        size = Dimension(100, 100)
-      }
-      val fakeUi = FakeUi(logcatMainPanel)
 
-      fakeUi.rightClickOn(logcatMainPanel)
+    val logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
+      size = Dimension(100, 100)
+    }
+    val fakeUi = FakeUi(logcatMainPanel, createFakeWindow = true)
 
-/* b/204781746
-      assertThat(latestPopup!!.actionGroup).isSameAs(popupActionGroup)
-b/204781746 */
-    }
-    finally {
-      ApplicationManager.getApplication().replaceService(ActionManager::class.java, actionManager, projectRule.project)
-    }
+    fakeUi.rightClickOn(logcatMainPanel)
+
+    val popupMenu = popupRule.popupContents as JPopupMenu
+    assertThat(popupMenu.components.map { (it as ActionMenuItem).anAction }).containsExactlyElementsIn(popupActionGroup.getChildren(null))
+    verify(popupRule.mockPopup).show()
   }
 
   @RunsInEdt
@@ -401,22 +383,6 @@ b/204781746 */
       assertThat(logcatMainPanel.editor.document.text)
         .isEqualTo("1970-01-01 04:00:00.000     1-2     ExampleTag              com.example.app                      I  message\n")
 
-    }
-  }
-
-  private class FakeActionPopupMenu(private val actionGroup: ActionGroup) : ActionPopupMenu {
-    override fun getComponent(): JPopupMenu {
-      throw UnsupportedOperationException()
-    }
-
-    override fun getPlace(): String {
-      throw UnsupportedOperationException()
-    }
-
-    override fun getActionGroup(): ActionGroup = actionGroup
-
-    override fun setTargetComponent(component: JComponent) {
-      throw UnsupportedOperationException()
     }
   }
 
