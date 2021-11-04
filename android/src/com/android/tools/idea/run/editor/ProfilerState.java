@@ -32,7 +32,6 @@ import java.util.Properties;
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  public static final String ANDROID_PROFILER_STATE_ID = "android.profilers.state";
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
   public static final int DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES = 1024*2; // 2KB
 

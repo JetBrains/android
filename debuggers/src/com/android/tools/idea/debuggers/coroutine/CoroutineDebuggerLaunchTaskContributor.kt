@@ -18,6 +18,7 @@ package com.android.tools.idea.debuggers.coroutine
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.intellij.execution.Executor
@@ -34,7 +35,7 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
 
   override fun getAmStartOptions(module: Module,
                                  applicationId: String,
-                                 launchOptions: LaunchOptions,
+                                 configuration: AndroidRunConfigurationBase,
                                  device: IDevice,
                                  executor: Executor): String {
     if (!FlagController.isCoroutineDebuggerEnabled) {

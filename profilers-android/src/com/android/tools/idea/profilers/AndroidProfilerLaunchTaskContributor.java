@@ -95,22 +95,23 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return new AndroidProfilerToolWindowLaunchTask(module.getProject(), launchOptions, AndroidProfilerToolWindow.getModuleName(module));
   }
 
-  @NotNull
   @Override
-  public String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
-                                  @NotNull IDevice device, @NotNull Executor executor) {
-    return getAmStartOptions(module.getProject(), applicationId, launchOptions, device, executor);
+  public @NotNull String getAmStartOptions(@NotNull Module module,
+                                           @NotNull String applicationId,
+                                           @NotNull AndroidRunConfigurationBase runConfig,
+                                           @NotNull IDevice device,
+                                           @NotNull Executor executor) {
+    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(module.getProject(), applicationId, runConfig.getProfilerState(), device, executor);
   }
 
-  @NotNull
-  public static String getAmStartOptions(@NotNull Project project, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
+  // Used only for Bazel. We need to write better mechanism of reusing AndroidLaunchTaskContributor for Blaze.
+  public static String getAmStartOptions(@NotNull Project project, @NotNull String applicationId, @Nullable ProfilerState profilerState,
                                          @NotNull IDevice device, @NotNull Executor executor) {
     if (!isProfilerLaunch(executor)) {
       // Not a profile action
       return "";
     }
 
-    ProfilerState profilerState = getProfilerStateFromCurrentRun(launchOptions, project);
     if (profilerState == null) {
       // Profiler settings not present
       return "";
@@ -312,26 +313,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     return device.getVersion().getFeatureLevel() >= version;
   }
 
-  /**
-   * Returns {@link ProfilerState} of the current run session.
-   * <p>
-   * Profiler state can come from two sources. For android gradle run configurations, {@link ProfilerState} is attached to the selected
-   * run configuration.  For non-gradle projects, {@link ProfilerState} can be passed using {@link LaunchOptions#getExtraOption(String)}.
-   * This method first checks if the configuration is an android gradle run configuration and falls back to extra launch options.
-   */
-  @Nullable
-  private static ProfilerState getProfilerStateFromCurrentRun(@NotNull LaunchOptions launchOptions, Project project) {
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
-    if (runConfig != null) {
-      return runConfig.getProfilerState();
-    }
-
-    Object stateFromExtraOptions = launchOptions.getExtraOption(ProfilerState.ANDROID_PROFILER_STATE_ID);
-    if (stateFromExtraOptions instanceof ProfilerState) {
-      return (ProfilerState)stateFromExtraOptions;
-    }
-    return null;
-  }
 
   @Nullable
   private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {

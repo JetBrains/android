@@ -105,7 +105,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
         String amOptions =
-          taskContributor.getAmStartOptions(myFacet.getModule(), packageName, myLaunchOptions, device, myEnv.getExecutor());
+          taskContributor.getAmStartOptions(myFacet.getModule(), packageName, myRunConfig, device, myEnv.getExecutor());
         amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
 
         LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName, myLaunchOptions);

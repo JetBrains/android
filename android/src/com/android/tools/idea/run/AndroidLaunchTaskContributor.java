@@ -36,11 +36,11 @@ public interface AndroidLaunchTaskContributor {
    * @param module        The {@link Module} this task is to run within.
    * @param applicationId Identifier of the application triggering this task. May be used to determine if the application has ended and
    *                      some portion of your task needs to be cleaned up.
-   * @param launchOptions A collection of options that are related to the current launch.
+   * @param runConfigurationBase A configuration.
    * @param device        The device where this application is launching.
    */
   @NotNull
-  default String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions,
+  default String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull AndroidRunConfigurationBase runConfigurationBase,
                                    @NotNull IDevice device, @NotNull Executor executor) {
     return "";
   }
