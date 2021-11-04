@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PREVIEW_NOTIFICATION_GROUP_ID
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
+import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.toDisplayString
@@ -97,11 +98,12 @@ internal class SingleFileCompileAction :
       object : Task.Backgroundable(project, message("notification.compiling"), false) {
         override fun run(indicator: ProgressIndicator) {
           AndroidCoroutineScope(previewManager).async {
-            val (success, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
+            val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
               PreviewLiveEditManager.getInstance(project).compileRequest(file, contextModule, indicator)
             }
             val durationString = stopWatch.elapsed().toDisplayString()
-            val buildMessage = if (success)
+            val isSuccess = result == CompilationResult.Success
+            val buildMessage = if (isSuccess)
               message("event.log.live.edit.build.successful", durationString)
             else
               message("event.log.live.edit.build.failed", durationString)
@@ -109,7 +111,7 @@ internal class SingleFileCompileAction :
                          buildMessage,
                          NotificationType.INFORMATION)
               .notify(project)
-            if (success) {
+            if (isSuccess) {
               ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
               (previewManager as ComposePreviewRepresentation).forceRefresh()
             }

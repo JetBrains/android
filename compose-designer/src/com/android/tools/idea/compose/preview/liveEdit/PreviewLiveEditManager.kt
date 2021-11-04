@@ -109,7 +109,7 @@ private class CompilerDaemonClientImpl(daemonPath: String,
                                        private val log: Logger) : CompilerDaemonClient {
   private val daemonShortId = daemonPath.substringAfterLast("/")
 
-  data class Request(val parameters: List<String>, val onComplete: (Boolean) -> Unit) {
+  data class Request(val parameters: List<String>, val onComplete: (CompilationResult) -> Unit) {
     val id = UUID.randomUUID().toString()
   }
 
@@ -130,15 +130,15 @@ private class CompilerDaemonClientImpl(daemonPath: String,
       while (true) {
         val call = channel.receive()
 
-        log.debug("[${call.id}] New request")
-        val requestStart = System.currentTimeMillis()
-        call.parameters.forEach {
-          writer.write(it)
-          writer.write("\n")
-        }
-        writer.write("$CMD_DONE\n")
-        writer.flush()
         try {
+          log.debug("[${call.id}] New request")
+          val requestStart = System.currentTimeMillis()
+          call.parameters.forEach {
+            writer.write(it)
+            writer.write("\n")
+          }
+          writer.write("$CMD_DONE\n")
+          writer.flush()
           do {
             val line = reader.readLine() ?: break
             log.debug("[${call.id}] $line")
@@ -146,7 +146,11 @@ private class CompilerDaemonClientImpl(daemonPath: String,
               val resultLine = line.split(" ")
               val resultCode = resultLine.getOrNull(1)?.toInt() ?: -1
               log.debug("[${call.id}] Result $resultCode in ${System.currentTimeMillis() - requestStart}ms")
-              call.onComplete(resultCode == SUCCESS_RESULT_CODE)
+
+              call.onComplete(when (resultCode) {
+                                SUCCESS_RESULT_CODE -> CompilationResult.Success
+                                else -> CompilationResult.DaemonError(resultCode)
+                              })
               break
             }
             ensureActive()
@@ -155,7 +159,7 @@ private class CompilerDaemonClientImpl(daemonPath: String,
         }
         catch (t: Throwable) {
           log.error(t)
-          call.onComplete(false)
+          call.onComplete(CompilationResult.RequestException(t))
         }
         ensureActive()
       }
@@ -170,10 +174,9 @@ private class CompilerDaemonClientImpl(daemonPath: String,
   override val isRunning: Boolean
     get() = !channel.isClosedForSend && process.isAlive
 
-  override suspend fun compileRequest(args: List<String>): Boolean = withContext(scope.coroutineContext) {
-    val result = CompletableDeferred<Boolean>()
-    val sendResult = channel.trySend(Request(args) { result.complete(it) })
-    if (!sendResult.isSuccess) return@withContext false
+  override suspend fun compileRequest(args: List<String>): CompilationResult = withContext(scope.coroutineContext) {
+    val result = CompletableDeferred<CompilationResult>()
+    channel.send(Request(args) { result.complete(it) })
     result.await()
   }
 }
@@ -191,12 +194,6 @@ private class DaemonRegistry(
 
   private val daemons: MutableMap<String, CompilerDaemonClient> = mutableMapOf()
   private val startingDaemons: MutableMap<String, CompletableDeferred<CompilerDaemonClient>> = mutableMapOf()
-
-  /**
-   * Returns all the current registered daemons.
-   */
-  val allDaemons: Collection<CompilerDaemonClient>
-    get() = daemons.values
 
   /**
    * Creates a daemon in the background and waits for it to be available.
@@ -239,8 +236,9 @@ private class DaemonRegistry(
           try {
             val newDaemon = createDaemon(version)
             synchronized(daemons) {
-              daemons[version] = newDaemon
-              startingDaemons.remove(version)
+              if (startingDaemons.remove(version) != null) {
+                daemons[version] = newDaemon
+              }
             }
             pending.complete(newDaemon)
           } catch (t: Throwable) {
@@ -257,7 +255,21 @@ private class DaemonRegistry(
     }.await()
   }
 
-  override fun dispose() {}
+  /**
+   * Stops all the daemons registered in this registry. The operation is executed asynchronously.
+   */
+  fun stopAllDaemons() = scope.launch {
+    synchronized(daemons) {
+      val allDaemons = daemons.values
+      daemons.clear()
+      startingDaemons.clear()
+      allDaemons
+    }.forEach { Disposer.dispose(it) }
+  }
+
+  override fun dispose() {
+    stopAllDaemons()
+  }
 }
 
 /**
@@ -363,9 +375,7 @@ class PreviewLiveEditManager private constructor(
   /**
    * Stops all the daemons managed by this [PreviewLiveEditManager].
    */
-  fun stopAllDaemons() = scope.launch {
-      daemonRegistry.allDaemons.forEach { Disposer.dispose(it) }
-  }
+  fun stopAllDaemons() = daemonRegistry.stopAllDaemons()
 
   /**
    * Starts the appropriate daemon for the current [Module] dependencies. If this method is not called beforehand,
@@ -384,7 +394,7 @@ class PreviewLiveEditManager private constructor(
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(file: PsiFile,
                              module: Module,
-                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<Boolean, String> =
+                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
     withContext(scope.coroutineContext) {
       val startTime = System.currentTimeMillis()
       indicator.text = "Building classpath"
@@ -415,9 +425,7 @@ class PreviewLiveEditManager private constructor(
       Pair(result, outputAbsolutePath)
     }
 
-  override fun dispose() {
-    stopAllDaemons()
-  }
+  override fun dispose() {}
 
   companion object {
     fun getInstance(project: Project): PreviewLiveEditManager = project.getService(PreviewLiveEditManager::class.java)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -179,7 +180,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       }
       runBlocking {
         val (result, _) = liveEditManager.compileRequest(psiMainFile, ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!)
-        assertTrue("Compilation must pass", result)
+        assertTrue("Compilation must pass", result == CompilationResult.Success)
         liveEditManager.stopAllDaemons().join()
       }
     }
@@ -214,7 +215,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       }
       runBlocking {
         val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
-        assertTrue("Compilation must pass", result)
+        assertTrue("Compilation must pass", result == CompilationResult.Success)
       }
     }
   }

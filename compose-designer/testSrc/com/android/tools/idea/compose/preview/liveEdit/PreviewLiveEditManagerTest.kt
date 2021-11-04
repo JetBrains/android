@@ -35,7 +35,7 @@ private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient: CompilerDaemonClient {
   override val isRunning: Boolean = true
-  override suspend fun compileRequest(args: List<String>): Boolean = true
+  override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.Success
   override fun dispose() {}
 }
 
@@ -101,16 +101,16 @@ internal class PreviewLiveEditManagerTest {
     val compilationRequests = mutableListOf<List<String>>()
     val manager = PreviewLiveEditManager.getTestInstance(project, {
       object: CompilerDaemonClient by NopCompilerDaemonClient {
-        override suspend fun compileRequest(args: List<String>): Boolean {
+        override suspend fun compileRequest(args: List<String>): CompilationResult {
           compilationRequests.add(args)
-          return true
+          return CompilationResult.Success
         }
       }
     }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     assertTrue(compilationRequests.isEmpty())
-    assertTrue(manager.compileRequest(file, projectRule.module).first)
+    assertTrue(manager.compileRequest(file, projectRule.module).first == CompilationResult.Success)
     val requestParameters = compilationRequests.single().joinToString("\n")
       .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
     assertEquals("""

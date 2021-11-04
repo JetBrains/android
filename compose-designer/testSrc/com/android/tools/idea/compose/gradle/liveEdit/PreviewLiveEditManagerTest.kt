@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.compose.gradle.liveEdit
 
-import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
-import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
@@ -30,9 +29,9 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -59,6 +58,13 @@ class PreviewLiveEditManagerTest {
     }
   }
 
+  @After
+  fun tearDown() {
+    runBlocking {
+      liveEditManager.stopAllDaemons().join()
+    }
+  }
+
   @Test
   fun testSingleFileCompileSuccessfully() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
@@ -68,11 +74,10 @@ class PreviewLiveEditManagerTest {
     }
     runBlocking {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
-      assertTrue("Compilation must pass", result)
+      assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
 
-  @Ignore // b/204995693 Flaky
   @Test
   fun testDaemonIsRestartedAutomatically() {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
@@ -82,12 +87,12 @@ class PreviewLiveEditManagerTest {
     }
     runBlocking {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
-      assertTrue("Compilation must pass", result)
-      liveEditManager.stopAllDaemons()
+      assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
+      liveEditManager.stopAllDaemons().join()
     }
     runBlocking {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
-      assertTrue("Compilation must pass", result)
+      assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
   }
 }

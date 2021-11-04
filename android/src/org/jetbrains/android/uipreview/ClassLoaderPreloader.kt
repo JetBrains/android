@@ -43,8 +43,8 @@ fun preload(
           }
           theClassLoader.loadClass(classToPreload)
         }
-        catch (ignore: ClassNotFoundException) {
-        }
+        catch (_: NoClassDefFoundError) {}
+        catch (_: ClassNotFoundException) {}
       }
     }
     finally {
