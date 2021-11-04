@@ -18,17 +18,16 @@ package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
-import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -40,13 +39,16 @@ interface LayoutInspectorLaunchTask : LaunchTask
  * Layout Inspector specific logic that runs when the user presses "Run" or "Debug"
  */
 class LayoutInspectorLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions) = object : LayoutInspectorLaunchTask {
+  override fun getTask(applicationId: String,
+                       configuration: AndroidRunConfigurationBase,
+                       device: IDevice,
+                       executor: Executor) = object : LayoutInspectorLaunchTask {
     override fun getId() = LAYOUT_INSPECTOR_TOOL_WINDOW_ID
     override fun getDescription() = "Launching Layout Inspector"
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
     override fun run(launchContext: LaunchContext): LaunchResult {
-      if (launchOptions.isInspectionWithoutActivityRestart && launchContext.device.version.apiLevel >= 29) {
-        enableDebugViewAttributes(module.project, applicationId, launchContext)
+      if (configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART && launchContext.device.version.apiLevel >= 29) {
+        enableDebugViewAttributes(configuration.project, applicationId, launchContext)
       }
       return LaunchResult.success()
     }

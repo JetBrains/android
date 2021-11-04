@@ -242,8 +242,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected LaunchOptions.Builder getLaunchOptions() {
     return LaunchOptions.builder()
-      .setClearLogcatBeforeStart(CLEAR_LOGCAT)
-      .setInspectionWithoutActivityRestart(INSPECTION_WITHOUT_ACTIVITY_RESTART);
+      .setClearLogcatBeforeStart(CLEAR_LOGCAT);
   }
 
   @Override

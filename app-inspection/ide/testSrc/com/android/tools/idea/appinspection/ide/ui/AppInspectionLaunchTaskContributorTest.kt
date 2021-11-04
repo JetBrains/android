@@ -22,6 +22,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
@@ -58,8 +60,9 @@ class AppInspectionLaunchTaskContributorTest {
       .setClearLogcatBeforeStart(false)
       .build()
 
+    val config = AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration
     val launchTaskProvider = AndroidLaunchTasksProvider(
-      mock(),
+      config,
       env,
       AndroidFacet.getInstance(projectRule.module)!!,
       applicationIdProvider,

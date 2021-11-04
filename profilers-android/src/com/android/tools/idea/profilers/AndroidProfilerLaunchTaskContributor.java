@@ -31,7 +31,6 @@ import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConvert
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -91,17 +90,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   @NotNull
   @Override
-  public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
-    return new AndroidProfilerToolWindowLaunchTask(module.getProject(), launchOptions, AndroidProfilerToolWindow.getModuleName(module));
+  public LaunchTask getTask(@NotNull String applicationId, @NotNull AndroidRunConfigurationBase configuration,
+                            @NotNull IDevice device, @NotNull Executor executor) {
+    Module module = configuration.getConfigurationModule().getModule();
+    assert module != null;
+    return new AndroidProfilerToolWindowLaunchTask(configuration.getProject(), AndroidProfilerToolWindow.getModuleName(module));
   }
 
   @Override
-  public @NotNull String getAmStartOptions(@NotNull Module module,
-                                           @NotNull String applicationId,
-                                           @NotNull AndroidRunConfigurationBase runConfig,
+  public @NotNull String getAmStartOptions(@NotNull String applicationId,
+                                           @NotNull AndroidRunConfigurationBase configuration,
                                            @NotNull IDevice device,
                                            @NotNull Executor executor) {
-    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(module.getProject(), applicationId, runConfig.getProfilerState(), device, executor);
+    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId, configuration.getProfilerState(), device, executor);
   }
 
   // Used only for Bazel. We need to write better mechanism of reusing AndroidLaunchTaskContributor for Blaze.
@@ -403,14 +404,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
     private static final String ID = "PROFILER_TOOLWINDOW";
     @NotNull private final Project myProject;
-    @NotNull private final LaunchOptions myLaunchOptions;
     @Nullable private final String myTargetProcessName;
 
     public AndroidProfilerToolWindowLaunchTask(@NotNull Project project,
-                                               @NotNull LaunchOptions launchOptions,
                                                @Nullable String targetProcessName) {
       myProject = project;
-      myLaunchOptions = launchOptions;
       myTargetProcessName = targetProcessName;
     }
 

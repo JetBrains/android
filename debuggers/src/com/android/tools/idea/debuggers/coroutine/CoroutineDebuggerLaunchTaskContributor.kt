@@ -29,12 +29,14 @@ import com.intellij.openapi.module.Module
  * Responsible for setting the am start options to start the coroutine debugger agent.
  */
 class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions): LaunchTask? {
+  override fun getTask(applicationId: String,
+                       configuration: AndroidRunConfigurationBase,
+                       device: IDevice,
+                       executor: Executor): LaunchTask? {
     return null
   }
 
-  override fun getAmStartOptions(module: Module,
-                                 applicationId: String,
+  override fun getAmStartOptions(applicationId: String,
                                  configuration: AndroidRunConfigurationBase,
                                  device: IDevice,
                                  executor: Executor): String {

@@ -40,7 +40,6 @@ public final class LaunchOptions {
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
     private boolean myClearLogcatBeforeStart = false;
-    private boolean myInspectionWithoutActivityRestart = false;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
     private boolean myAlwaysInstallWithPm = false;
@@ -57,7 +56,6 @@ public final class LaunchOptions {
                                myDebug,
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
-                               myInspectionWithoutActivityRestart,
                                myExtraOptions,
                                myDeployAsInstant,
                                myAlwaysInstallWithPm);
@@ -100,12 +98,6 @@ public final class LaunchOptions {
     }
 
     @NotNull
-    public Builder setInspectionWithoutActivityRestart(boolean inspectionWithoutActivityRestart) {
-      myInspectionWithoutActivityRestart = inspectionWithoutActivityRestart;
-      return this;
-    }
-
-    @NotNull
     public Builder addExtraOptions(@NotNull Map<String, Object> extraOptions) {
       myExtraOptions.putAll(extraOptions);
       return this;
@@ -141,7 +133,6 @@ public final class LaunchOptions {
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
   private final boolean myClearLogcatBeforeStart;
-  private final boolean myInspectionWithoutActivityRestart;
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
   private final boolean myAlwaysInstallWithPm;
@@ -153,7 +144,6 @@ public final class LaunchOptions {
                         boolean debug,
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
-                        boolean inspectionWithoutActivityRestart,
                         @NotNull Map<String, Object> extraOptions,
                         boolean deployAsInstant,
                         boolean alwaysInstallWithPm) {
@@ -164,7 +154,6 @@ public final class LaunchOptions {
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
-    myInspectionWithoutActivityRestart = inspectionWithoutActivityRestart;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
@@ -203,10 +192,6 @@ public final class LaunchOptions {
 
   public boolean isClearLogcatBeforeStart() {
     return myClearLogcatBeforeStart;
-  }
-
-  public boolean isInspectionWithoutActivityRestart() {
-    return myInspectionWithoutActivityRestart;
   }
 
   @Nullable

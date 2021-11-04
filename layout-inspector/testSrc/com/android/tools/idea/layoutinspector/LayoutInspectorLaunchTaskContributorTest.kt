@@ -28,6 +28,7 @@ import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
@@ -196,17 +197,17 @@ class LayoutInspectorLaunchTaskContributorTest {
       override fun getTestPackageName(): String? = null
     }
 
-    val launchOptions = LaunchOptions.builder()
-      .setInspectionWithoutActivityRestart(debugAttributes)
-      .build()
+    val configuration = AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration
+
+    configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART = debugAttributes
 
     val launchTaskProvider = AndroidLaunchTasksProvider(
-      mock<AndroidRunConfiguration>(),
+      configuration,
       env,
       AndroidFacet.getInstance(projectRule.module)!!,
       applicationIdProvider,
       mock(),
-      launchOptions
+      LaunchOptions.builder().build()
     )
 
     val adb = AdbUtils.getAdbFuture(project).get()!!
