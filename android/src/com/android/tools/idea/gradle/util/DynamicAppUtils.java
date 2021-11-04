@@ -15,36 +15,26 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
@@ -52,7 +42,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.android.exportSignedPackage.ChooseBundleOrApkStep;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,11 +51,6 @@ import org.jetbrains.annotations.Nullable;
  * of dynamic apps.
  */
 public class DynamicAppUtils {
-  /**
-   * Index for user clicking on the confirm button of the dialog.
-   **/
-  private static final int UPDATE_BUTTON_INDEX = 1;
-
   /**
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
@@ -198,57 +182,6 @@ public class DynamicAppUtils {
       return false;
     }
     return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName());
-  }
-
-  /**
-   * Displays a message prompting user to update their project's gradle in order to use Android App Bundles.
-   *
-   * @return {@code true} if user agrees to update, {@code false} if user declines.
-   */
-  public static boolean promptUserForGradleUpdate(@NotNull Project project) {
-    HtmlBuilder builder = new HtmlBuilder();
-    builder.openHtmlBody();
-    builder.add("Building Android App Bundles requires you to update to the latest version of the Android Gradle Plugin.");
-    builder.newline();
-    builder.addLink("Learn More", ChooseBundleOrApkStep.DOC_URL);
-    builder.newline();
-    builder.newline();
-    builder.add("App bundles allow you to support multiple device configurations from a single build artifact.");
-    builder.newline();
-    builder.add("App stores that support the bundle format use it to build and sign your APKs for you, and");
-    builder.newline();
-    builder.add("serve those APKs to users as needed.");
-    builder.newline();
-    builder.newline();
-    builder.closeHtmlBody();
-    int result = Messages.showDialog(project,
-                                     builder.getHtml(),
-                                     "Update the Android Gradle Plugin",
-                                     new String[]{Messages.getCancelButton(), "Update"},
-                                     UPDATE_BUTTON_INDEX /* Default button */,
-                                     AllIcons.General.WarningDialog);
-
-    if (result == UPDATE_BUTTON_INDEX) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-        GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
-        AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-
-        Runnable updatePluginVersion = () -> {
-          AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(project);
-          updater.updatePluginVersion(pluginVersion, gradleVersion, pluginInfo == null ? null : pluginInfo.getPluginVersion());
-        };
-
-        // Prevent race condition in tests.
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          updatePluginVersion.run();
-        }
-        else {
-          ApplicationManager.getApplication().executeOnPooledThread(updatePluginVersion);
-        }
-      });
-    }
-    return result == UPDATE_BUTTON_INDEX;
   }
 
   /**

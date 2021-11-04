@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestP
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
+import static com.intellij.notification.NotificationType.ERROR;
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -34,19 +35,15 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.TestDialog;
-import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import org.mockito.Mock;
@@ -56,9 +53,8 @@ import org.mockito.Mock;
  */
 public class BuildBundleActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
-  @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
+  @Mock private AndroidNotification myAndroidNotification;
   private BuildBundleAction myAction;
-  private TestDialog myDefaultTestDialog;
 
   @Override
   protected void setUp() throws Exception {
@@ -66,16 +62,8 @@ public class BuildBundleActionTest extends PlatformTestCase {
     initMocks(this);
 
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
+    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myAndroidNotification);
     myAction = new BuildBundleAction();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    if (myDefaultTestDialog != null) {
-      TestDialogManager.setTestDialog(myDefaultTestDialog);
-    }
-    super.tearDown();
   }
 
   public void testActionPerformed() {
@@ -111,7 +99,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     verify(myBuildInvoker).bundle(eq(appModules));
   }
 
-  public void testUpdateGradlePluginNotification() {
+  public void testNoBundleModulesNotification() {
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(getProject().getBasePath()),
@@ -132,59 +120,10 @@ public class BuildBundleActionTest extends PlatformTestCase {
     Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
     assume().that(appModules).asList().doesNotContain(null);
 
-
-    @SuppressWarnings("MagicConstant") // Using custom button IDs
-      TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
-    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
-
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
-    // flush event queue to ensure the update call is processed.
-    IdeEventQueue.getInstance().flushQueue();
-    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
-  }
-
-  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
-    setupTestProjectFromAndroidModel(
-      getProject(),
-      new File(getProject().getBasePath()),
-      getRootModuleBuilder(),
-      new AndroidModuleModelBuilder(
-        ":app1", "debug",
-        new AndroidProjectBuilder()
-          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
-          .withSupportsBundleTask(it -> false)
-      ),
-      new AndroidModuleModelBuilder(
-        ":app2", "debug",
-        new AndroidProjectBuilder()
-          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
-          .withSupportsBundleTask(it -> false)
-      )
-    );
-    Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
-    assume().that(appModules).asList().doesNotContain(null);
-
-    @SuppressWarnings("MagicConstant") // Using custom button IDs
-      TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
-    myDefaultTestDialog = TestDialogManager.setTestDialog(testDialog);
-
-    AnActionEvent event = mock(AnActionEvent.class);
-    when(event.getProject()).thenReturn(getProject());
-    myAction.actionPerformed(event);
-
-    assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
-    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any(), any());
-  }
-
-  private static String getHtmlUpdateMessage() {
-    return "<html><body>Building Android App Bundles requires you to update to the latest version of the Android Gradle Plugin.<BR/>" +
-           "<A HREF=\"https://d.android.com/r/studio-ui/dynamic-delivery/overview.html\">Learn More</A><BR/><BR/>" +
-           "App bundles allow you to support multiple device configurations from a single build artifact.<BR/>" +
-           "App stores that support the bundle format use it to build and sign your APKs for you, and<BR/>" +
-           "serve those APKs to users as needed.<BR/><BR/></body></html>";
+    verify(myAndroidNotification).showBalloon(any(), any(), eq(ERROR));
   }
 }

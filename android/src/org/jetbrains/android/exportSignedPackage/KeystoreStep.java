@@ -3,7 +3,6 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
-import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
@@ -78,7 +77,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
   private JBLabel myGradleWarning;
-  private HyperlinkLabel myCloseAndUpdateLink;
   private JBLabel myKeyStorePathLabel;
   private JBLabel myKeyStorePasswordLabel;
   private JBLabel myKeyAliasLabel;
@@ -120,12 +118,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       label.setIcon(ModuleType.get(module).getIcon());
     }));
     myGradleWarning.setIcon(WARNING_INLINE);
-    myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
-    myCloseAndUpdateLink.addHyperlinkListener(e -> {
-      if (DynamicAppUtils.promptUserForGradleUpdate(project)) {
-        myWizard.close(CANCEL_EXIT_CODE);
-      }
-    });
     myGradlePanel.setVisible(false);
     myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
 

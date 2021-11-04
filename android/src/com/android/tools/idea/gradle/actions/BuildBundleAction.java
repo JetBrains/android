@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.notification.NotificationType.ERROR;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -47,14 +50,14 @@ public class BuildBundleAction extends DumbAwareAction {
     Project project = e.getProject();
     if (isProjectBuildWithGradle(project)) {
       List<Module> appModules = DynamicAppUtils.getModulesSupportingBundleTask(project);
-      if (!appModules.isEmpty()) {
+      if (appModules.size() > 0) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
         task.executeWhenBuildFinished(gradleBuildInvoker.bundle(modulesToBuild));
       }
       else {
-        DynamicAppUtils.promptUserForGradleUpdate(project);
+        AndroidNotification.getInstance(project).showBalloon(ACTION_TEXT, "No modules supporting bundles found", ERROR);
       }
     }
   }

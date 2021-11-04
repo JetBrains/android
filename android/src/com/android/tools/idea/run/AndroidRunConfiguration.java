@@ -148,8 +148,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     List<ValidationError> errors = new ArrayList<>();
     if (DEPLOY && DEPLOY_APK_FROM_BUNDLE) {
       if (!DynamicAppUtils.supportsBundleTask(facet.getModule())) {
-        ValidationError error = ValidationError.fatal("This option requires a newer version of the Android Gradle Plugin",
-                                                      () -> DynamicAppUtils.promptUserForGradleUpdate(getProject()));
+        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + facet.getModule().getName() + "'");
         errors.add(error);
       }
     }
