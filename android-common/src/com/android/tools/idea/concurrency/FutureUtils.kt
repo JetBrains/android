@@ -150,6 +150,12 @@ fun <V> delayedValue(value: V, delayMillis: Int): ListenableFuture<V> {
   return result
 }
 
+fun delayedVoid(delayMillis: Int): ListenableFuture<Void> {
+  val result = SettableFuture.create<Void>()
+  MyAlarm.addRequest({ result.set(null) }, delayMillis)
+  return result
+}
+
 fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
   MyAlarm.addRequest(

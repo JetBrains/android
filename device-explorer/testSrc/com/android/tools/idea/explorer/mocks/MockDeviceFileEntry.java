@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
-import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
+import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemServiceKt.OPERATION_TIMEOUT_MILLIS;
 
 import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.concurrency.FutureUtils;

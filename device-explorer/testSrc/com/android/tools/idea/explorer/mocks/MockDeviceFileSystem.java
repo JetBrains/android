@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
+import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemServiceKt.OPERATION_TIMEOUT_MILLIS;
+
 import com.android.ddmlib.FileListingService;
 import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
@@ -49,8 +51,8 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final MockDeviceFileEntry myRoot;
   private long myDownloadChunkSize = 1024;
   private long myUploadChunkSize = 1024;
-  private int myDownloadFileChunkIntervalMillis = MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
-  private int myUploadFileChunkIntervalMillis = MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
+  private int myDownloadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS;
+  private int myUploadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS;
   private Throwable myDownloadError;
   private Throwable myRootDirectoryError;
   private Throwable myUploadError;
@@ -95,9 +97,9 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @Override
   public ListenableFuture<DeviceFileEntry> getRootDirectory() {
     if (myRootDirectoryError != null) {
-      return FutureUtils.delayedError(myRootDirectoryError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+      return FutureUtils.delayedError(myRootDirectoryError, OPERATION_TIMEOUT_MILLIS);
     }
-    return FutureUtils.delayedValue(myRoot, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+    return FutureUtils.delayedValue(myRoot, OPERATION_TIMEOUT_MILLIS);
   }
 
   @NotNull
@@ -168,7 +170,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
     if (myDownloadError != null) {
-      return FutureUtils.delayedError(myDownloadError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+      return FutureUtils.delayedError(myDownloadError, OPERATION_TIMEOUT_MILLIS);
     }
     return new DownloadWorker((MockDeviceFileEntry)entry, localPath, progress).myFutureResult;
   }
@@ -179,7 +181,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
                                            @NotNull String fileName,
                                            @NotNull FileTransferProgress progress) {
     if (myUploadError != null) {
-      return FutureUtils.delayedError(myUploadError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+      return FutureUtils.delayedError(myUploadError, OPERATION_TIMEOUT_MILLIS);
     }
 
     return new UploadWorker((MockDeviceFileEntry)remoteDirectory, fileName, localFilePath, progress).myFutureResult;

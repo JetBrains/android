@@ -65,7 +65,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
 
     return deviceFileSystemService.start { AdbFileProvider.fromProject(project)?.adbFile }.transformAsyncNullable(edtExecutor) {
       deviceFileSystemService.devices.transformAsync(taskExecutor) { devices ->
-        val deviceFileSystem = devices!!.find { it.deviceSerialNumber == deviceSerialNumber }
+        val deviceFileSystem = devices.find { it.deviceSerialNumber == deviceSerialNumber }
         require(deviceFileSystem != null)
         doDownload(deviceFileSystem, onDevicePaths, downloadProgress, localDestinationDirectory)
       }

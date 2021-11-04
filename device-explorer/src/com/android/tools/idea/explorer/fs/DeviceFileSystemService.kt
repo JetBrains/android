@@ -13,43 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.fs;
+package com.android.tools.idea.explorer.fs
 
-import com.google.common.util.concurrent.ListenableFuture;
-import java.io.File;
-import java.util.List;
-import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.util.concurrent.ListenableFuture
+import java.io.File
+import java.util.function.Supplier
 
 /**
  * Abstraction over ADB devices and their corresponding file system.
  *
  * The service is meant to be called on the EDT thread, where long pending operations return a future,
  * while state changes (e.g. new device discovered, existing device disconnected, etc.) fire events on
- * the registered {@link DeviceFileSystemServiceListener} instances. Events are always fired on the EDT
+ * the registered [DeviceFileSystemServiceListener] instances. Events are always fired on the EDT
  * thread.
  */
-public interface DeviceFileSystemService<S extends DeviceFileSystem> {
-  void addListener(@NotNull DeviceFileSystemServiceListener listener);
-
-  void removeListener(@NotNull DeviceFileSystemServiceListener listener);
+interface DeviceFileSystemService<S : DeviceFileSystem> {
+  fun addListener(listener: DeviceFileSystemServiceListener)
+  fun removeListener(listener: DeviceFileSystemServiceListener)
 
   /**
-   * Starts the service, usually after registering one or more {@link DeviceFileSystemServiceListener}.
+   * Starts the service, usually after registering one or more [DeviceFileSystemServiceListener].
    */
-  @NotNull
-  ListenableFuture<Void> start(@NotNull Supplier<File> adbSupplier);
+  fun start(adbSupplier: Supplier<File?>): ListenableFuture<Void>
 
   /**
    * Restarts the service, usually as the result of a user action when/if the service has become
    * unreliable.
    */
-  @NotNull
-  ListenableFuture<Void> restart(@NotNull Supplier<File> adbSupplier);
+  fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Void>
 
   /**
    * Returns the list of currently known devices.
    */
-  @NotNull
-  ListenableFuture<List<S>> getDevices();
+  val devices: ListenableFuture<List<S>>
 }
