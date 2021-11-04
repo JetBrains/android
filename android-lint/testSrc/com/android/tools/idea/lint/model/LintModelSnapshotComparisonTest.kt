@@ -44,12 +44,8 @@ import java.io.File
  *
  * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
  *
- * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
- *
- *       Or with bazel:
-bazel test //tools/adt/idea/android-lint:intellij.android.lint.tests_tests__test_filter=LintModelSnapshotComparisonTest  \
---jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
+ * target as "//tools/adt/idea/android-lint:intellij.android.lint.tests_tests__test_filter=LintModelSnapshotComparisonTest".
  */
 
 @RunsInEdt

@@ -26,6 +26,21 @@ import java.nio.file.Paths
 
 /**
  * See implementing classes for usage examples.
+ *
+ * NOTE: It you made changes to sync or the test projects which make Snapshot tests fail in an expected way, you can re-run the tests:
+ *       (1) from the IDE with -DUPDATE_TEST_SNAPSHOTS to update the files; or
+ *       (2) from the command-line using Bazel with:
+
+```
+bazel test [target]  \
+   --jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+   --test_output=streamed \
+   --spawn_strategy=local \
+   --nocache_test_results \
+   --test_timeout=6000
+```
+
+ *
  */
 interface SnapshotComparisonTest {
   /**

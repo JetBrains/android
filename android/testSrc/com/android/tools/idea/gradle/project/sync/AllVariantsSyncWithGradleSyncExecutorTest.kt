@@ -37,8 +37,7 @@ import java.io.File
  * The second step is to run Sync request (fetch gradle models) using GradleSyncExecutor (used in the PSD workflow), and verify that we
  * get all the gradle project's variants created.
  *
- *  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest].
  */
 class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   private var mySyncExecutor: GradleSyncExecutor? = null

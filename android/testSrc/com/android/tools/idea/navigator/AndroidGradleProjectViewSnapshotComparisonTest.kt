@@ -49,16 +49,8 @@ import java.io.File
  *
  * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
  *
- * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
- *
- *       Or with bazel:
-bazel test \
---jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
---test_output=streamed \
---nocache_test_results \
---strategy=TestRunner=standalone \
-//tools/adt/idea/android:intellij.android.core.tests_tests__navigator.AndroidGradleProjectViewSnapshotComparisonTest
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
+ * target as "//tools/adt/idea/android:intellij.android.core.tests_tests__navigator.AndroidGradleProjectViewSnapshotComparisonTest".
  */
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/projectViews"
