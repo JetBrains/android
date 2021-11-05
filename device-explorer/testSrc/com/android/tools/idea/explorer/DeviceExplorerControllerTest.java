@@ -837,8 +837,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
     File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
-    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
-    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+    myDevice1.setDownloadChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
 
     FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
@@ -907,8 +907,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
     File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
-    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
-    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+    myDevice1.setDownloadChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
 
     FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
@@ -973,8 +973,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
     File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
-    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
-    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+    myDevice1.setDownloadChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
     String downloadErrorMessage = "[test] Error downloading file";
     myDevice1.setDownloadError(new Exception(downloadErrorMessage));
 
@@ -1325,8 +1325,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // component that simply returns the tempFile we created above.
     File tempFile = FileUtil.createTempFile("foo", "bar.txt");
     Files.write(tempFile.toPath(), new byte[10_000]);
-    myDevice1.setUploadFileChunkSize(500);
-    myDevice1.setUploadFileChunkIntervalMillis(20);
+    myDevice1.setUploadChunkSize(500);
+    myDevice1.setUploadChunkIntervalMillis(20);
 
     FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
@@ -1380,8 +1380,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     File tempFile = FileUtil.createTempFile("foo", "bar.txt");
     Files.write(tempFile.toPath(), new byte[10_000]);
-    myDevice1.setUploadFileChunkSize(500);
-    myDevice1.setUploadFileChunkIntervalMillis(20);
+    myDevice1.setUploadChunkSize(500);
+    myDevice1.setUploadChunkIntervalMillis(20);
 
     TransferHandler handler = myMockView.getTree().getTransferHandler();
     assertFalse(handler.canImport(myMockView.getTree(), new DataFlavor[]{DataFlavor.stringFlavor}));
@@ -1814,8 +1814,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
-    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
-    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+    myDevice1.setDownloadChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
     // Setting the size to 200_000 bytes should force the download to take ~2 seconds,
     // i.e. 200 chunks of 1000 bytes at 100 chunks per second.
     // This allows use to cover the code that animates nodes UI during download.

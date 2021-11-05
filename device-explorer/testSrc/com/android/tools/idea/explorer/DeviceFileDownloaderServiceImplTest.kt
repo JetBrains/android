@@ -88,8 +88,8 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
       FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
     )
 
-    mockDeviceFileSystem.setDownloadFileChunkSize(1000) // download chunks of 1000 bytes at a time
-    mockDeviceFileSystem.setDownloadFileChunkIntervalMillis(10) // wait 10 millis between each 1000 bytes chunk
+    mockDeviceFileSystem.downloadChunkSize = 1000 // download chunks of 1000 bytes at a time
+    mockDeviceFileSystem.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
 
     fooBar1Entry.size = 2000
     fooBar2Entry.size = 2000

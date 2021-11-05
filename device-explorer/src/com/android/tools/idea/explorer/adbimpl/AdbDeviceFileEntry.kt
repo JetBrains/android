@@ -15,56 +15,22 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.delete
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewFile
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.isSymbolicLinkToDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.uploadFile
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbPermissions
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbDateTime
-import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceForwardingFileEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDirectFileEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataAppDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataDataDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataLocalDirectoryEntry
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDevicePackageDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntryBuilder
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDefaultFileEntry
-import com.android.ddmlib.SyncException
-import com.android.tools.idea.adb.AdbShellCommandException
-import kotlin.Throws
-import com.android.ddmlib.AdbCommandRejectedException
-import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.intellij.openapi.util.text.StringUtil
-import java.io.IOException
 
 /**
  * Abstract base class for all implementations of [DeviceFileEntry] that rely on
  * an underlying [AdbFileListingEntry].
  */
 abstract class AdbDeviceFileEntry(
-  val myDevice: AdbDeviceFileSystem,
-  val myEntry: AdbFileListingEntry,
+  override val fileSystem: AdbDeviceFileSystem,
+  internal val myEntry: AdbFileListingEntry,
   override val parent: AdbDeviceFileEntry?
 ) : DeviceFileEntry {
-  override fun toString(): String {
-    return myEntry.toString()
-  }
 
-  override val fileSystem: DeviceFileSystem
-    get() = myDevice
+  override fun toString() = myEntry.toString()
+
   override val name: String
     get() = myEntry.name
   override val fullPath: String
@@ -72,7 +38,7 @@ abstract class AdbDeviceFileEntry(
   override val permissions: DeviceFileEntry.Permissions
     get() = AdbPermissions(myEntry.permissions)
   override val lastModifiedDate: DeviceFileEntry.DateTime
-    get() = AdbDateTime(myEntry.date!!, myEntry.time)
+    get() = AdbDateTime(myEntry.date, myEntry.time)
   override val size: Long
     get() = myEntry.size
   override val isDirectory: Boolean
@@ -83,13 +49,13 @@ abstract class AdbDeviceFileEntry(
     get() = myEntry.isSymbolicLink
   override val symbolicLinkTarget: String?
     get() {
-      if (!isSymbolicLink) {
-        return null
+      if (isSymbolicLink) {
+        val info = myEntry.info ?: return null
+        if (info.startsWith(SYMBOLIC_LINK_INFO_PREFIX)) {
+          return info.substring(SYMBOLIC_LINK_INFO_PREFIX.length)
+        }
       }
-      val info = myEntry.info
-      return if (StringUtil.isEmpty(info) || !info!!.startsWith(SYMBOLIC_LINK_INFO_PREFIX)) {
-        null
-      } else info.substring(SYMBOLIC_LINK_INFO_PREFIX.length)
+      return null
     }
 
   class AdbPermissions(private val myValue: String?) : DeviceFileEntry.Permissions {
@@ -97,16 +63,14 @@ abstract class AdbDeviceFileEntry(
       get() = StringUtil.notNullize(myValue)
   }
 
-  class AdbDateTime(private val myDate: String, private val myTime: String?) : DeviceFileEntry.DateTime {
+  class AdbDateTime(private val myDate: String?, private val myTime: String?) : DeviceFileEntry.DateTime {
     override val text: String
-      get() {
+      get() =
         if (StringUtil.isEmpty(myDate)) {
-          return ""
-        }
-        return if (StringUtil.isEmpty(myTime)) {
-          myDate
+          ""
+        } else if (StringUtil.isEmpty(myTime)) {
+          myDate!!
         } else "$myDate $myTime"
-      }
   }
 
   companion object {

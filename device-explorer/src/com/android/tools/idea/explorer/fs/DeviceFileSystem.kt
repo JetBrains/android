@@ -41,7 +41,7 @@ interface DeviceFileSystem {
    * Returns the root [DeviceFileEntry] of the device. The returned directory
    * can be used to traverse the file system recursively.
    */
-  val rootDirectory: ListenableFuture<DeviceFileEntry?>
+  val rootDirectory: ListenableFuture<DeviceFileEntry>
 
   /**
    * Returns the [DeviceFileEntry] corresponding to the given `path`
@@ -50,5 +50,5 @@ interface DeviceFileSystem {
    *
    * If the path is not found the future fails with an IllegalArgumentException.
    */
-  fun getEntry(path: String): ListenableFuture<DeviceFileEntry?>
+  fun getEntry(path: String): ListenableFuture<DeviceFileEntry>
 }

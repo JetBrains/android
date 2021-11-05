@@ -111,12 +111,11 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   private fun mapPathsToEntries(deviceFileSystem: DeviceFileSystem, onDevicePaths: List<String>): ListenableFuture<List<DeviceFileEntry>> {
     return if (haveSameParent(onDevicePaths)) {
       val parentPath = AdbPathUtil.getParentPath(onDevicePaths[0])
-      val parentEntryFuture = deviceFileSystem.getEntry(parentPath)
-      parentEntryFuture
+      deviceFileSystem.getEntry(parentPath)
         // if the path is not found getEntry fails with IllegalArgumentException.
         .catching(taskExecutor, IllegalArgumentException::class.java) { null }
         .transformAsyncNullable(taskExecutor) { parentEntry ->
-          if (parentEntry == null ) {
+          if (parentEntry == null) {
             Futures.immediateFuture(emptyList())
           }
           else {

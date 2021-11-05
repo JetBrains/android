@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.explorer.fs
 
-import com.android.tools.idea.explorer.fs.DeviceFileSystem
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.fs.FileTransferProgress
 import com.google.common.util.concurrent.ListenableFuture
 import java.nio.file.Path
 
@@ -48,7 +45,7 @@ interface DeviceFileEntry {
   /**
    * The list of entries contained in this directory.
    */
-  val entries: ListenableFuture<List<DeviceFileEntry?>?>
+  val entries: ListenableFuture<List<DeviceFileEntry>>
 
   /**
    * Deletes the entry from the device file system.
@@ -74,7 +71,7 @@ interface DeviceFileEntry {
    *
    * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing.isDirectoryLink
    */
-  val isSymbolicLinkToDirectory: ListenableFuture<Boolean?>
+  val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
 
   /**
    * Downloads the contents of the [DeviceFileEntry] to a local file.

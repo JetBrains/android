@@ -15,58 +15,24 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.delete
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewFile
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.isSymbolicLinkToDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.uploadFile
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.fs.DeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbPermissions
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbDateTime
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceForwardingFileEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDirectFileEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataAppDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataDataDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataLocalDirectoryEntry
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDevicePackageDirectoryEntry
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntryBuilder
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceDefaultFileEntry
-import com.android.ddmlib.SyncException
-import com.android.tools.idea.adb.AdbShellCommandException
-import kotlin.Throws
-import com.android.ddmlib.AdbCommandRejectedException
-import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.google.common.util.concurrent.ListenableFuture
-import java.io.IOException
 import java.nio.file.Path
 
 /**
  * An abstract [AdbDeviceFileEntry] that goes through another [AdbDeviceFileEntry]
  * (see [.getForwardedFileEntry]) for its file operations.
  *
- *
  * This class should be extended by [AdbDeviceFileEntry] implementations that override
  * only a subset of the abstract methods, using another instance of [AdbDeviceFileEntry]
  * as the default implementation of the non-overridden methods.
  */
 abstract class AdbDeviceForwardingFileEntry(
-  device: AdbDeviceFileSystem,
-  entry: AdbFileListingEntry,
-  parent: AdbDeviceFileEntry?
-) : AdbDeviceFileEntry(device, entry, parent) {
-  abstract val forwardedFileEntry: AdbDeviceFileEntry
-  override val entries: ListenableFuture<List<DeviceFileEntry?>?>
+  private val forwardedFileEntry: AdbDeviceFileEntry
+) : AdbDeviceFileEntry(forwardedFileEntry.fileSystem, forwardedFileEntry.myEntry, forwardedFileEntry.parent) {
+
+  override val entries: ListenableFuture<List<DeviceFileEntry>>
     get() = forwardedFileEntry.entries
 
   override fun delete(): ListenableFuture<Unit> {
@@ -81,7 +47,7 @@ abstract class AdbDeviceForwardingFileEntry(
     return forwardedFileEntry.createNewDirectory(directoryName)
   }
 
-  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean?>
+  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
     get() = forwardedFileEntry.isSymbolicLinkToDirectory
 
   override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> {
