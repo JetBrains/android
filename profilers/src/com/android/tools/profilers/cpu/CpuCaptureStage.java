@@ -415,15 +415,30 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
       createDisplayPipelineTrackGroups(getStudioProfilers(), (SystemTraceCpuCapture)capture, getTimeline(), myMultiSelectionModel)
         .forEach(myTrackGroupModels::add);
+    }
 
+    // In S with both timeline and lifecycle data, we move threads closer to display
+    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
+        !capture.getSystemTraceData().getAndroidFrameTimelineEvents().isEmpty() &&
+        getStudioProfilers().getIdeServices().getFeatureConfig().isJankDetectionUiEnabled()) {
+      // Thread states and trace events.
+      myTrackGroupModels.add(
+        createThreadsTrackGroup(getStudioProfilers(), capture, getTimeline(), getMultiSelectionModel(), featureTracker));
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // RSS memory counters.
       myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
+    } else {
+      if(capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+        // CPU per-core usage and event etc. Systrace only.
+        myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
+        // RSS memory counters.
+        myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
+      }
+      // Thread states and trace events.
+      myTrackGroupModels.add(
+        createThreadsTrackGroup(getStudioProfilers(), capture, getTimeline(), getMultiSelectionModel(), featureTracker));
     }
-
-    // Thread states and trace events.
-    myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
 
     // Add action listener for tracking all track group actions.
     myTrackGroupModels.forEach(model -> model.addActionListener(new TrackGroupActionListener() {
@@ -625,14 +640,15 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return display;
   }
 
-  private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,
+  private static TrackGroupModel createThreadsTrackGroup(@NotNull StudioProfilers profilers,
+                                                         @NotNull CpuCapture capture,
                                                          @NotNull Timeline timeline,
                                                          @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel,
                                                          @NotNull FeatureTracker featureTracker) {
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
-      capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
+      capture.getThreads().stream().sorted(CpuThreadComparator.withCaptureInfo(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     BoxSelectionModel boxSelectionModel = new BoxSelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
     boxSelectionModel.addBoxSelectionListener(new BoxSelectionListener() {

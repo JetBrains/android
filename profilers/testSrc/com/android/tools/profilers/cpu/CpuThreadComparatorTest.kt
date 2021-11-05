@@ -20,18 +20,22 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
 
-class CaptureThreadComparatorTest {
+class CpuThreadComparatorTest {
   @Test
   fun childSizeOrdering() {
     val capture = Mockito.mock(CpuCapture::class.java)
 
     Mockito.`when`(capture.getCaptureNode(1)).thenReturn(buildCaptureNode("Thread 1", 5))
     Mockito.`when`(capture.getCaptureNode(2)).thenReturn(buildCaptureNode("Thread 2", 0))
-    val comparator = CaptureThreadComparator(capture)
-    var result = comparator.compare(CpuThreadInfo(1, "Thread 1"), CpuThreadInfo(2, "Thread 2"))
-    assertThat(result).isLessThan(0)
-    result = comparator.compare(CpuThreadInfo(1, "Thread 1"), CpuThreadInfo(1, "Thread 1"))
-    assertThat(result).isEqualTo(0)
+    Mockito.`when`(capture.getCaptureNode(3)).thenReturn(buildCaptureNode("Thread 3", 1))
+    Mockito.`when`(capture.getCaptureNode(4)).thenReturn(buildCaptureNode(CpuThreadInfo.RENDER_THREAD_NAME, 0))
+    val comparator = CpuThreadComparator.withCaptureInfo(capture)
+    val thread1 = CpuThreadInfo(1, "Thread 1")
+    val thread2 = CpuThreadInfo(2, "Thread 2")
+    val thread3 = CpuThreadInfo(3, "Thread 3")
+    val renderingThread = CpuThreadInfo(3, CpuThreadInfo.RENDER_THREAD_NAME)
+    assertThat(listOf(thread1, thread2, thread3, renderingThread).sortedWith(comparator))
+      .isEqualTo(listOf(renderingThread, thread1, thread3, thread2))
   }
 
   fun buildCaptureNode(name: String, numChildren: Int): CaptureNode {

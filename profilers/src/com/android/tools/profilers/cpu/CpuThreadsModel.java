@@ -260,7 +260,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
      */
     @Override
     public int compareTo(@NotNull RangedCpuThread o) {
-      return myThreadInfo.compareTo(o.myThreadInfo);
+      return CpuThreadComparator.BASE.compare(myThreadInfo, o.myThreadInfo);
     }
   }
 }

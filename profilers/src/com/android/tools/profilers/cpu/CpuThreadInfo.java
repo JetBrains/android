@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuThreadInfo implements Comparable<CpuThreadInfo> {
+public class CpuThreadInfo {
   /**
    * The platform RenderThread is hard coded to have this name.
    */
@@ -70,40 +70,6 @@ public class CpuThreadInfo implements Comparable<CpuThreadInfo> {
 
   public boolean isRenderingRelatedThread() {
     return isMainThread() || isRenderThread() || isGpuThread();
-  }
-
-  /**
-   * The main thread comes first, then render thread. The rest of threads are sorted by name, if the same, by thread ID.
-   */
-  @Override
-  public int compareTo(@NotNull CpuThreadInfo o) {
-    // Process main thread should be the first element.
-    if (isMainThread()) {
-      return -1;
-    }
-    else if (o.isMainThread()) {
-      return 1;
-    }
-
-    // Render threads should be the next elements.
-    boolean thisIsRenderThread = isRenderThread();
-    boolean otherIsRenderThread = o.isRenderThread();
-    if (thisIsRenderThread && otherIsRenderThread) {
-      return getId() - o.getId();
-    }
-    else if (thisIsRenderThread) {
-      return -1;
-    }
-    else if (otherIsRenderThread) {
-      return 1;
-    }
-
-    // Finally the list is sorted by thread name, with conflicts sorted by thread id.
-    int nameResult = getName().compareTo(o.getName());
-    if (nameResult == 0) {
-      return getId() - o.getId();
-    }
-    return nameResult;
   }
 
   @Override

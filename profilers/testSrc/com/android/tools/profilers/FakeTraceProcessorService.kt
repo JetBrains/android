@@ -124,7 +124,7 @@ class FakeTraceProcessorService: TraceProcessorService {
       val model: Map<Int, SystemTraceModelAdapter> = getModelMapFor(trace)
       // The pid of the main process is always the first one in the list.
       val pid = processes[0].id
-      model[pid] ?: error("$pid process should be present in model")
+      model[pid]?.let(::FakeTimelineModelAdapter) ?: error("$pid process should be present in model")
     }
     else {
       EmptyModelAdapter()
@@ -150,4 +150,12 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = emptyList()
   }
+}
+
+/**
+ * Wrapper for old fake trace that had `null` for timeline events and resulted in `IllegalStateException` when inspected
+ */
+private class FakeTimelineModelAdapter(private val base: SystemTraceModelAdapter,
+                                       private val fakeEvents: List<AndroidFrameTimelineEvent> = listOf()): SystemTraceModelAdapter by base {
+  override fun getAndroidFrameTimelineEvents() = base.getAndroidFrameTimelineEvents() ?: fakeEvents
 }
