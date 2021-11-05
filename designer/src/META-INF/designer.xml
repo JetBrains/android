@@ -28,6 +28,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.viewHandlerProvider"
                     area="IDEA_PROJECT"
                     interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editorNotificationProvider"
+                    interface="com.intellij.ui.EditorNotifications$Provider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -38,7 +40,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
-    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewNotificationForwarder" />
+    <editorNotificationProvider implementation="com.android.tools.idea.common.editor.SplitEditorPreviewNotificationForwarder" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -50,6 +52,9 @@
     <projectService serviceImplementation="com.android.tools.idea.common.error.IssuePanelService" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder">
+    <editorNotificationProvider implementation="com.android.tools.idea.common.surface.notifications.DesignSurfaceNotificationProvider" />
+  </extensions>
   <!-- Collects all the providers for source code preview representations -->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"

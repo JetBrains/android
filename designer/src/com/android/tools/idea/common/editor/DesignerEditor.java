@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Represents a generic designer editor. Subclasses are specific editors (e.g. navigation, layout), and should have their own ID (specified
  * through {@link #getEditorId()}) and create their {@link DesignerEditorPanel} using {@link #createEditorPanel()}.
  */
-public abstract class DesignerEditor extends UserDataHolderBase implements FileEditor {
+public abstract class DesignerEditor extends UserDataHolderBase implements FileEditor, SplitEditorPreviewNotificationHandler {
 
   protected final Project myProject;
   protected final VirtualFile myFile;
@@ -122,5 +122,13 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
   @Override
   public VirtualFile getFile() {
     return myFile;
+  }
+
+  @Override
+  public void updateNotifications() {
+    DesignerEditorPanel currentPanel = myEditorPanel;
+    if (currentPanel != null) {
+      currentPanel.updateNotifications(getFile(), this, myProject);
+    }
   }
 }

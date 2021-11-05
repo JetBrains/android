@@ -17,10 +17,13 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
+import com.intellij.ide.PowerSaveMode
 import org.mockito.Mockito
 
 class LayoutlibSceneManagerTest: SceneTest() {
@@ -55,6 +58,26 @@ class LayoutlibSceneManagerTest: SceneTest() {
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNotNull(sceneManager.secondarySceneView)
+  }
+
+  fun testPowerSaveModeDoesNotRefreshOnResourcesChange() {
+    StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.override(true)
+    PowerSaveMode.setEnabled(true)
+    try {
+      val nlSurface = myScene.designSurface as NlDesignSurface
+      val sceneManager = nlSurface.sceneManager!!
+
+      sceneManager.model.notifyModified(NlModel.ChangeType.DND_COMMIT)
+      assertFalse(sceneManager.isOutOfDate)
+      sceneManager.model.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED)
+      assertTrue(sceneManager.isOutOfDate)
+      // Requesting a model update will clear the out of date flag.
+      sceneManager.requestModelUpdate()
+      assertFalse(sceneManager.isOutOfDate)
+    } finally {
+      PowerSaveMode.setEnabled(false)
+      StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.clearOverride()
+    }
   }
 
   override fun createModel(): ModelBuilder {

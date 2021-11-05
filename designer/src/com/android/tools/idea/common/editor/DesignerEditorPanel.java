@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.editor;
 
-import static com.android.tools.idea.ui.designer.DesignSurfaceNotificationManagerKt.NOTIFICATION_KEY;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.Bridge;
@@ -32,9 +31,9 @@ import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
-import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
@@ -47,13 +46,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -87,7 +86,7 @@ import org.jetbrains.annotations.TestOnly;
  * The panel will start in the {@link State#DEACTIVATED}. Some heavy initialization might be deferred until the panel changes to one of the
  * other states.
  */
-public class DesignerEditorPanel extends JPanel implements Disposable, DesignSurfaceNotificationManager {
+public class DesignerEditorPanel extends JPanel implements Disposable {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
   private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
@@ -126,7 +125,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   @NotNull private final AtomicBoolean myIsModelInitializated = new AtomicBoolean(false);
 
   /** Notification panel to be used for the surface. */
-  private final EditorNotificationPanel myNotificationPanel = new EditorNotificationPanel();
+  NotificationPanel myNotificationPanel = new NotificationPanel(
+    ExtensionPointName.create("com.android.tools.idea.uibuilder.editorNotificationProvider"));
 
   /**
    * Creates a new {@link DesignerEditorPanel}.
@@ -166,11 +166,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     JPanel toolbarAndNotification = new JPanel();
     toolbarAndNotification.setLayout(new BorderLayout());
     toolbarAndNotification.add(toolbar, BorderLayout.NORTH);
-    // Make sure notification is not visible by default.
-    myNotificationPanel.setVisible(false);
-    myNotificationPanel.createActionLabel("Dismiss", () -> {
-      myNotificationPanel.setVisible(false);
-    });
     toolbarAndNotification.add(myNotificationPanel, BorderLayout.SOUTH);
     myContentPanel.add(toolbarAndNotification, BorderLayout.NORTH);
 
@@ -241,6 +236,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
     this(editor, project, file, workBench, surface, ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
+  }
+
+  /**
+   * Method called when the notifications of this panel need to be updated.
+   */
+  void updateNotifications(@NotNull VirtualFile file, @NotNull DesignerEditor editor, @NotNull Project project) {
+    myNotificationPanel.updateNotifications(file, editor, project);
   }
 
   @NotNull
@@ -382,17 +384,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
       EdtExecutorService.getInstance());
   }
 
-  @Override
-  public void showNotification(String text) {
-    myNotificationPanel.setText(text);
-    myNotificationPanel.setVisible(true);
-  }
-
-  @Override
-  public void hideNotification() {
-    myNotificationPanel.setVisible(false);
-  }
-
   @Nullable
   public JComponent getPreferredFocusedComponent() {
     return mySurface.getPreferredFocusedComponent();
@@ -499,9 +490,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
             return surface;
           }
         }
-      }
-      else if (NOTIFICATION_KEY.is(dataId)) {
-        return DesignerEditorPanel.this;
       }
       return null;
     }

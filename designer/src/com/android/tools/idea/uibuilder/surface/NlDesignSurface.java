@@ -895,7 +895,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       "",
       false
     );
-    return requestSequentialRender(manager -> manager.requestRenderAsync().whenComplete((r, t) -> refreshProgressIndicator.processFinish()));
+    return forceRefresh().whenComplete((r, t) -> refreshProgressIndicator.processFinish());
   }
 
   @NotNull

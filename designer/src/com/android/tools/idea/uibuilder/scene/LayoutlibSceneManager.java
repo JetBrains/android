@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
+import static com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -76,6 +77,7 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -90,6 +92,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -711,6 +714,23 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+
+  /**
+   * Set of {@link com.android.tools.idea.common.model.NlModel.ChangeType}s that, when in Power Save Mode, will not refresh the
+   * scene automatically.
+   */
+  private static final EnumSet<NlModel.ChangeType> powerModeChangesNotTriggeringRefresh = EnumSet.of(
+    NlModel.ChangeType.RESOURCE_CHANGED,
+    NlModel.ChangeType.RESOURCE_EDIT
+  );
+
+  /**
+   * Records whether this {@link LayoutlibSceneManager} is out of date and needs to be refreshed.
+   * This can happen when Studio is in Power Save mode, changes in {@link #powerModeChangesNotTriggeringRefresh} will not
+   * trigger an automatic refresh.
+   */
+  private final AtomicBoolean isOutOfDate = new AtomicBoolean(false);
+
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
@@ -738,6 +758,13 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
+      if (DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() &&
+          PowerSaveMode.isEnabled() &&
+          powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
+        isOutOfDate.set(true);
+        return;
+      }
+
       requestModelUpdate();
       ApplicationManager.getApplication().invokeLater(() -> {
         if (!isDisposed.get()) {
@@ -884,9 +911,13 @@ public class LayoutlibSceneManager extends SceneManager {
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
             updateModelAsync()
-              .whenComplete((result, ex) -> myProgressIndicator.stop());
+              .whenComplete((result, ex) -> {
+                isOutOfDate.set(false);
+                myProgressIndicator.stop();
+              });
           }
           else {
+            isOutOfDate.set(false);
             myProgressIndicator.stop();
           }
         });
@@ -1380,6 +1411,7 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderFutures.clear();
       myIsCurrentlyRendering = false;
     }
+    isOutOfDate.set(false);
     callbacks.forEach(callback -> callback.complete(null));
     // If there are pending futures, we should trigger the render update
     if (hasPendingRenders()) {
@@ -1720,5 +1752,10 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public int getTouchEventsCount() {
     return myTouchEventsCounter.get();
+  }
+
+  @Override
+  public boolean isOutOfDate() {
+    return isOutOfDate.get();
   }
 }

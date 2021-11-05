@@ -75,7 +75,9 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
@@ -231,6 +233,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private final SelectionModel mySelectionModel;
   private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelDerivedDataChanged(@NotNull NlModel model) {
+      updateNotifications();
+    }
+
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      updateNotifications();
+    }
+
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
       repaint();
@@ -1749,9 +1761,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         myRenderFutures.forEach(future -> future.complete(null));
         myRenderFutures.clear();
       }
+      updateNotifications();
     });
 
     return callback;
+  }
+
+  /**
+   * Returns true if this surface is currently refreshing.
+   */
+  public final boolean isRefreshing() {
+    synchronized (myRenderFutures) {
+      return !myRenderFutures.isEmpty();
+    }
   }
 
   /**
@@ -1972,5 +1994,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public final void setSceneViewAlignment(@NotNull SceneViewAlignment sceneViewAlignment) {
     mySceneViewPanel.setSceneViewAlignment(sceneViewAlignment.mySwingAlignmentXValue);
+  }
+
+  /**
+   * Updates the notifications panel associated to this {@link DesignSurface}.
+   */
+  protected void updateNotifications() {
+    FileEditor fileEditor = myFileEditorDelegate.get();
+    VirtualFile file = fileEditor != null ? fileEditor.getFile() : null;
+    if (file == null) return;
+    UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
   }
 }

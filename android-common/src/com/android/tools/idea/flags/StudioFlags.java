@@ -194,6 +194,13 @@ public final class StudioFlags {
     true);
   //endregion
 
+  //region Design Tools
+  private static final FlagGroup DESIGN_TOOLS = new FlagGroup(FLAGS, "design.tools", "Design Tools");
+  public static final Flag<Boolean> DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT = Flag.create(
+    DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
+    "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
+    true);
+
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
@@ -483,6 +490,8 @@ public final class StudioFlags {
     RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
     "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
     10000);
+  //endregion
+
   //endregion
 
   //region Run/Debug
@@ -1230,11 +1239,6 @@ public final class StudioFlags {
     COMPOSE, "preview.fast.reload.debug.daemon", "Starts the Live Edit daemon in debug mode",
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
-
-  public static final Flag<Boolean> COMPOSE_POWER_SAVE_MODE_SUPPORT = Flag.create(
-    COMPOSE, "preview.power.save.support", "Enable the Compose preview support for PowerSave mode",
-    "If enabled, the Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
-    true);
   //endregion
 
   //region Manifests

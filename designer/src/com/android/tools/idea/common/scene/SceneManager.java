@@ -29,6 +29,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -363,6 +364,15 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     }
     // NlModel handles the double activation/deactivation itself.
     return getModel().deactivate(source);
+  }
+
+  /**
+   * Returns true if this {@link SceneManager} is not fully up to date with the {@link NlModel}.
+   * This can happen when PowerMode is enabled and the {@link SceneManager} stops listening for automatic updates
+   * from the model.
+   */
+  public boolean isOutOfDate() {
+    return false;
   }
 
   // ---- Implements ResourceNotificationManager.ResourceChangeListener ----

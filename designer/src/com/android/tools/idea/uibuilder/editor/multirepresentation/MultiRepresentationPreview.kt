@@ -306,7 +306,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
   var onRepresentationsUpdated: (() -> Unit)? = null
 
-  fun updateNotifications() {
+  override fun updateNotifications() {
     synchronized(representations) { representations.values.toList() }.forEach {
       it.updateNotifications(this)
     }

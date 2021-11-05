@@ -53,7 +53,7 @@ import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_POWER_SAVE_MODE_SUPPORT
+import com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -222,10 +222,10 @@ private const val BUILD_ON_SAVE_KEY = "buildOnSave"
 private const val LAYOUT_KEY = "previewLayout"
 
 /**
- * Same as [PowerSaveMode] but obeys to the [COMPOSE_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
+ * Same as [PowerSaveMode] but obeys to the [DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
  */
 private val isInPowerSaveMode: Boolean
-  get() = COMPOSE_POWER_SAVE_MODE_SUPPORT.get() && PowerSaveMode.isEnabled()
+  get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && PowerSaveMode.isEnabled()
 
 /**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.

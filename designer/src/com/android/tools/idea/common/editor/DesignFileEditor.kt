@@ -32,7 +32,7 @@ import javax.swing.JPanel
  * A basic implementation of FileEditor interface for design editor. Useful in case most of the methods return obvious values or have no-op
  * implementations
  */
-open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, UserDataHolderBase() {
+open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, SplitEditorPreviewNotificationHandler, UserDataHolderBase() {
   private val previewPanel = JPanel(BorderLayout())
 
   override fun getComponent(): JComponent = previewPanel
@@ -50,4 +50,5 @@ open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, 
   override fun getCurrentLocation(): FileEditorLocation? = null
   override fun getStructureViewBuilder(): StructureViewBuilder? = null
   override fun getFile() = virtualFile
+  override fun updateNotifications() {}
 }
