@@ -282,14 +282,11 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   private fun recordOverlayLoadedClass(fqcn: String) {
     synchronized(overlayManager) {
-      if (projectLoadedClassNames.isEmpty()) {
-        overlayFirstLoadModificationCount = overlayManager.modificationCount
+      if (_projectOverlayLoadedClassNames.isNotEmpty() && overlayFirstLoadModificationCount != overlayManager.modificationCount) {
+        Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("The overlay was modified after the class loading started")
       }
-      else {
-        if (overlayFirstLoadModificationCount != overlayManager.modificationCount) {
-          Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("The overlay was modified after the class loading started")
-        }
-      }
+
+      overlayFirstLoadModificationCount = overlayManager.modificationCount
     }
     _projectOverlayLoadedClassNames.add(fqcn)
   }
