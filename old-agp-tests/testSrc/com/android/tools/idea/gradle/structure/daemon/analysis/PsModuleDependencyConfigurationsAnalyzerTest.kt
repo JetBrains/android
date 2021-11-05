@@ -20,18 +20,20 @@ import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
+import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.PathUtil
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
+import java.io.File
 
 @OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
-class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
+class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
 
   private val gradleVersion = "5.5"
 
@@ -301,4 +303,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
       .map { quickFix -> quickFix.oldConfigurationName to quickFix.newConfigurationName }
       .toSet()
   }
+
+  override fun getAdditionalRepos() = listOf(File(getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
+

@@ -25,9 +25,9 @@ import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.moduleWithSyncedModel
 import com.android.tools.idea.gradle.structure.model.android.moduleWithoutSyncedModel
-import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.parents
+import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.util.SystemInfoRt
 import org.hamcrest.CoreMatchers.equalTo

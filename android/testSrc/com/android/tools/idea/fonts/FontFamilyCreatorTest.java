@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
+import static com.android.tools.idea.fonts.FontTestUtils.createFontDetail;
+import static com.android.tools.idea.fonts.FontTestUtils.getResourceFileContent;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
-import com.android.ide.common.fonts.*;
+import com.android.ide.common.fonts.FontDetail;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.lint.checks.FontDetector;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-
-import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.truth.Truth.assertThat;
 
 public class FontFamilyCreatorTest extends FontTestCase {
   private FontFamilyCreator myCreator;
@@ -220,15 +220,6 @@ public class FontFamilyCreatorTest extends FontTestCase {
     assertThat(FontFamilyCreator.getFontName(font)).isEqualTo("raleway_bold_italic");
   }
 
-  @NotNull
-  static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
-    String folderName = DownloadableFontCacheServiceImpl.convertNameToFilename(fontName);
-    String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
-    FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
-                                       Collections.singletonList(
-                                         new MutableFontDetail(weight, width, italics, urlStart + "other.ttf", "", false, false)));
-    return family.getFonts().get(0);
-  }
 
   @NotNull
   private String getFontFileContent(@NotNull String fontFileName) throws IOException {
@@ -238,16 +229,6 @@ public class FontFamilyCreatorTest extends FontTestCase {
   @NotNull
   private String getValuesFileContent(@NotNull String valuesFileName) throws IOException {
     return getResourceFileContent(myFacet, ResourceFolderType.VALUES, valuesFileName);
-  }
-
-  @NotNull
-  static String getResourceFileContent(@NotNull AndroidFacet facet, @NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
-    @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = checkNotNull(ResourceFolderManager.getInstance(facet).getPrimaryFolder());
-    VirtualFile resourceFolder = checkNotNull(resourceDirectory.findChild(type.getName()));
-    VirtualFile file = checkNotNull(resourceFolder.findChild(fileName));
-    file.refresh(false, false);
-    return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
   }
 
   @SuppressWarnings("SameParameterValue")

@@ -36,11 +36,6 @@ internal fun <T : Any> Annotated<ParsedValue<T>>.asUnparsedValue(): String? =
 internal val <T : Any> Annotated<PropertyValue<T>>.resolved get() = value.resolved
 internal val <T : Any> Annotated<PropertyValue<T>>.parsedValue get() = value.parsedValue
 
-fun PsProjectImpl.testResolve() {
-  // NOTE: The timeout is intentionally too high as the tests execute in `bazel test` environment running a test per CPU core.
-  refreshFrom(GradleResolver().requestProjectResolved(ideProject, ideProject).get(90, TimeUnit.SECONDS))
-}
-
 fun PsModelDescriptor.testEnumerateProperties(): Set<ModelProperty<*, *, *, *>> {
   val result = mutableSetOf<ModelProperty<*, *, *, *>>()
   enumerateProperties(receiver = object : PsModelDescriptor.PropertyReceiver {

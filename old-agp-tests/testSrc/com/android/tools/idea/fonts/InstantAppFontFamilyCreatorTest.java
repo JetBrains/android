@@ -17,6 +17,7 @@ package com.android.tools.idea.fonts;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.fonts.FontDetail;
@@ -41,11 +42,11 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
     loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
     AndroidFacet baseFacet = AndroidFacet.getInstance(findBaseFeature(myAndroidFacet));
     FontFamilyCreator creator = new FontFamilyCreator(myAndroidFacet);
-    FontDetail font = FontFamilyCreatorTest.createFontDetail("Roboto", 400, 100, false);
+    FontDetail font = FontTestUtils.createFontDetail("Roboto", 400, 100, false);
     String newValue = creator.createFontFamily(font, "roboto", true);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(newValue).isEqualTo("@font/roboto");
-    assertThat(FontFamilyCreatorTest.getResourceFileContent(baseFacet, ResourceFolderType.FONT, "roboto.xml")).isEqualTo(String.format(
+    assertThat(FontTestUtils.getResourceFileContent(baseFacet, ResourceFolderType.FONT, "roboto.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
       "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
@@ -54,7 +55,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
       "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
       "</font-family>%n"
     ));
-    assertThat(FontFamilyCreatorTest.getResourceFileContent(baseFacet, ResourceFolderType.VALUES, "font_certs.xml"))
+    assertThat(FontTestUtils.getResourceFileContent(baseFacet, ResourceFolderType.VALUES, "font_certs.xml"))
       .isEqualTo(String.format(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
         "<resources>%n" +
@@ -74,7 +75,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
         "    </string-array>%n" +
         "</resources>%n"
       ));
-    assertThat(FontFamilyCreatorTest.getResourceFileContent(baseFacet, ResourceFolderType.VALUES, "preloaded_fonts.xml"))
+    assertThat(FontTestUtils.getResourceFileContent(baseFacet, ResourceFolderType.VALUES, "preloaded_fonts.xml"))
       .isEqualTo(String.format(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
         "<resources>%n" +
