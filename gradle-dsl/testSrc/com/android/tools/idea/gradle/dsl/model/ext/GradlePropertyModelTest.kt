@@ -16,8 +16,26 @@ package com.android.tools.idea.gradle.dsl.model.ext
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTERPOLATED_TEXT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BIG_DECIMAL
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.UNKNOWN
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
@@ -30,6 +48,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.google.common.collect.ImmutableMap
 import com.intellij.testFramework.UsefulTestCase
@@ -3385,6 +3404,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
   }
 
+  @Test
+  fun testProjectVariableCircularity() {
+    writeToBuildFile(TestFile.PROJECT_VARIABLE_CIRCULARITY)
+    val buildModel = gradleBuildModel
+    val variable = buildModel.ext().findProperty("libs")
+    assertEquals("rootProject.project.libs", (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -4005,6 +4032,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected"),
     REFERENCE_TO_MAP_IN_MAP("referenceToMapInMap"),
     REFERENCE_TO_MAP_IN_MAP_EXPECTED("referenceToMapInMapExpected"),
+    PROJECT_VARIABLE_CIRCULARITY("projectVariableCircularity"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

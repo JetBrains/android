@@ -182,17 +182,17 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       if (resolve) {
         GradleDslElement e = context.resolveExternalSyntaxReference(literal.getText(), true);
         // Only attempt to get the value if it is a simple expression.
-        synchronized(myExtractValueSet) {
-          Pair<GradleDslSimpleExpression, PsiElement> key = new Pair<>(context, literal);
-          if (myExtractValueSet.contains(key)) return literal.getText();
-          myExtractValueSet.add(key);
-          try {
-            if (e instanceof GradleDslSimpleExpression) {
+        if (e instanceof GradleDslSimpleExpression) {
+          synchronized (myExtractValueSet) {
+            Pair<GradleDslSimpleExpression, PsiElement> key = new Pair<>(context, literal);
+            if (myExtractValueSet.contains(key)) return literal.getText();
+            myExtractValueSet.add(key);
+            try {
               return ((GradleDslSimpleExpression)e).getValue();
             }
-          }
-          finally {
-            myExtractValueSet.remove(key);
+            finally {
+              myExtractValueSet.remove(key);
+            }
           }
         }
       }
