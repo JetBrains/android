@@ -89,6 +89,8 @@ class KotlinDslParser(
   override val internalContext: BuildModelContext,
   val dslFile: GradleDslFile
 ) : KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
+  private val extractValueSet: MutableSet<Pair<GradleDslSimpleExpression, PsiElement>> = mutableSetOf()
+
   //
   // Methods for GradleDslParser
   //
@@ -123,23 +125,25 @@ class KotlinDslParser(
 
   override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? {
     when (literal) {
-      // Ex: KotlinCompilerVersion, android.compileSdkVersion
-      is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
+      // Ex: KotlinCompilerVersion, android.compileSdkVersion ...
+      is KtNameReferenceExpression, is KtDotQualifiedExpression,
+      // ... prop[0], rootProject.extra["kotlin_version"]
+      is KtArrayAccessExpression -> {
         if (resolve) {
           val gradleDslElement = context.resolveExternalSyntaxReference(literal, true)
           // Only get the value if the element is a GradleDslSimpleExpression.
           if (gradleDslElement is GradleDslSimpleExpression) {
-            return gradleDslElement.value
-          }
-        }
-        return unquoteString(literal.text)
-      }
-      // prop[0], rootProject.extra["kotlin_version"]
-      is KtArrayAccessExpression -> {
-        if (resolve) {
-          val gradleDslElement = context.resolveExternalSyntaxReference(literal, true)
-          if (gradleDslElement is GradleDslSimpleExpression) {
-            return gradleDslElement.value
+            synchronized(extractValueSet) {
+              val key = context to literal
+              if (extractValueSet.contains(key)) return unquoteString(literal.text)
+              extractValueSet.add(key)
+              try {
+                return gradleDslElement.value
+              }
+              finally {
+                extractValueSet.remove(key)
+              }
+            }
           }
         }
         return unquoteString(literal.text)

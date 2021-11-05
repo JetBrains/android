@@ -48,6 +48,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.collect.ImmutableMap
@@ -3460,6 +3462,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyFileContents(myBuildFile, TestFile.REWRITE_PROPERTIES_EXPECTED)
   }
 
+  @Test
+  fun testProjectVariableCircularity() {
+    writeToBuildFile(TestFile.PROJECT_VARIABLE_CIRCULARITY)
+    val buildModel = gradleBuildModel
+    val variable = buildModel.ext().findProperty("libs")
+    assertEquals("rootProject.project.libs", (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -4085,6 +4095,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     REFERENCE_TO_MAP_ELEMENT_EXPECTED("referenceToMapElementExpected"),
     REWRITE_PROPERTIES("rewriteProperties"),
     REWRITE_PROPERTIES_EXPECTED("rewritePropertiesExpected"),
+    PROJECT_VARIABLE_CIRCULARITY("projectVariableCircularity"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
