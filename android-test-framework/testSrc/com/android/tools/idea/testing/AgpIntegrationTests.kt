@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.junit4.OldAgpSuite
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -49,17 +50,17 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   }
 }
 
-interface AgpIntegrationTestDefinition<T> {
+interface AgpIntegrationTestDefinition {
   val name: String
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
-  fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): T
-  fun displayName(): String = "$name @ $agpVersion]"
+  fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): AgpIntegrationTestDefinition
+  fun displayName(): String = "$name${if (agpVersion != AGP_CURRENT) "-${agpVersion}" else ""}"
 }
 
 /**
  * Applies AGP versions selected for testing in the current test target to the list of test definitions.
  */
-fun <T : AgpIntegrationTestDefinition<T>> List<T>.applySelectedAgpVersions(): List<T> =
+fun List<AgpIntegrationTestDefinition>.applySelectedAgpVersions(): List<AgpIntegrationTestDefinition> =
   AgpVersionSoftwareEnvironmentDescriptor.values()
     .filter {
       val pass = (OldAgpSuite.AGP_VERSION == null || (it.agpVersion ?: "LATEST") == OldAgpSuite.AGP_VERSION) &&
@@ -73,6 +74,6 @@ fun <T : AgpIntegrationTestDefinition<T>> List<T>.applySelectedAgpVersions(): Li
 /**
  * Prints a message describing the currently running test to the standard output.
  */
-fun GradleIntegrationTest.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition<*>) {
+fun GradleIntegrationTest.outputCurrentlyRunningTest(testDefinition: AgpIntegrationTestDefinition) {
   println("Testing: ${this.javaClass.simpleName}.${this.getName()}[${testDefinition.displayName()}]")
 }

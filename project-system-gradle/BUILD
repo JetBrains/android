@@ -60,7 +60,7 @@ iml_module(
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
-    test_shard_count = 13,
+    test_shard_count = 11,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",

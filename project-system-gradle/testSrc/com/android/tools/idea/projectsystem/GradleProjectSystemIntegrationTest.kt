@@ -71,7 +71,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   data class TestDefinition(
     override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
     val modelsV2: Boolean = false
-  ) : AgpIntegrationTestDefinition<TestDefinition> {
+  ) : AgpIntegrationTestDefinition {
     override val name: String = ""
     override fun toString(): String = displayName()
     override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDefinition = copy(agpVersion = agpVersion)

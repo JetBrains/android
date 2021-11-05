@@ -16,7 +16,7 @@
 package com.android.tools.idea.run
 
 import com.android.testutils.junit4.OldAgpTest
-import com.android.tools.idea.gradle.project.sync.ApplicationIdProviderIntegrationTestCase
+import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase
 import com.android.tools.idea.testing.applySelectedAgpVersions
 import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
@@ -24,14 +24,14 @@ import org.junit.runners.Parameterized
 
 @OldAgpTest
 @RunWith(Parameterized::class)
-class ApplicationIdProviderOldAgpIntegrationTest : ApplicationIdProviderIntegrationTestCase() {
+class ProviderOldAgpIntegrationTest : ProviderIntegrationTestCase() {
   companion object {
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> {
-      return tests.applySelectedAgpVersions()
+      return CurrentAgp.tests().applySelectedAgpVersions()
         .map { listOf(it).toTypedArray() }
     }
   }
