@@ -20,11 +20,18 @@ import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.ExceptionAction
 import com.android.tools.idea.serverflags.protos.ExceptionConfiguration
 import com.android.tools.idea.serverflags.protos.ExceptionFilter
+import com.android.tools.idea.serverflags.protos.ExceptionSeverity
+import com.android.tools.idea.serverflags.protos.LogFilter
+import com.android.tools.idea.serverflags.protos.MessageFilter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.replaceService
+import junit.framework.TestCase
+import org.apache.log4j.LogManager
 import org.hamcrest.core.Is.`is`
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
@@ -60,7 +67,28 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
               .setRequiresConfirmation(true)
               .setIncludeExceptionMessage(true)
               .build())
-          .build()
+          .build(),
+        "test_3" to ExceptionConfiguration.newBuilder()
+          .setExpirationDate(Date.newBuilder().setYear(cal.get(Calendar.YEAR) + 1).setMonth(12).setDay(31).build())
+          .setExceptionFilter(
+            ExceptionFilter.newBuilder()
+              .setSignature(ex3Sig)
+              .build())
+          .setAction(
+            ExceptionAction.newBuilder()
+              .setRequiresConfirmation(true)
+              .setIncludeExceptionMessage(true)
+              .setLogFilter(
+                LogFilter.newBuilder()
+                  .setMaxMessageCount(5)
+                  .addMessageFilter(
+                    MessageFilter.newBuilder()
+                      .setSeverity(ExceptionSeverity.INFO)
+                      .setLoggerCategory(exceptionDataCollectionTestLoggerName)
+                  )
+              )
+              .build())
+          .build(),
       )
     }
   }
@@ -84,6 +112,7 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
   override fun tearDown() {
     Disposer.dispose(fixtureDisposable)
+    service.unregisterLogAppenders()
     super.tearDown()
   }
 
@@ -96,12 +125,52 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     assertThat(uploadFieldsEx2.logs.size, `is`(0))
   }
 
+  fun testRegisteringAppenders() {
+    val registeredAppenders = service.registeredAppenders
+    UsefulTestCase.assertSize(1, registeredAppenders)
+    TestCase.assertEquals("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest", registeredAppenders[0].logger.name)
+  }
+
+  fun testLogCollection() {
+    val log4jLogger = LogManager.getLogger(exceptionDataCollectionTestLoggerName)
+    with(exceptionDataCollectionTestLogger) {
+      for (i in 1..5) {
+        trace("trace message #$i")
+        debug("debug message #$i")
+        info("info message #$i")
+        warn("warn message #$i")
+
+        // use log4j logger directly as
+        log4jLogger.error("error message #$i")
+      }
+    }
+    val exceptionUploadFields = service.getExceptionUploadFields(ex3, forceExceptionMessage = false, includeLogs = true)
+    var result = exceptionUploadFields.logs["test_3"]!!
+    // remove time information
+    result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
+    TestCase.assertEquals("""
+[<time>] W [sh.ExceptionDataCollectionTest] warn message #4
+[<time>] E [sh.ExceptionDataCollectionTest] error message #4
+[<time>] I [sh.ExceptionDataCollectionTest] info message #5
+[<time>] W [sh.ExceptionDataCollectionTest] warn message #5
+[<time>] E [sh.ExceptionDataCollectionTest] error message #5
+    """.trimIndent(), result.trimEnd())
+  }
+
   fun testCalculateSignature() {
     val sig1 = service.calculateSignature(ex1)
     assertThat(sig1, equalTo(ex1Sig))
 
     val sig2 = service.calculateSignature(ex2)
     assertThat(sig2, equalTo(ex2Sig))
+
+    val sig3 = service.calculateSignature(ex3)
+    assertThat(sig3, equalTo(ex3Sig))
+  }
+
+  fun testCalculateSignatueMissingStack() {
+    val sig3 = service.calculateSignature(exNoStack)
+    assertThat(sig3, equalTo(exNoStackSig))
   }
 
   fun testGetDescription() {
@@ -117,6 +186,10 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
   }
 
   companion object {
+
+    val exceptionDataCollectionTestLoggerName = "#" + ExceptionDataCollectionTest::class.java.name;
+    val exceptionDataCollectionTestLogger = Logger.getInstance(exceptionDataCollectionTestLoggerName)
+
     const val ex1Description =
       "java.lang.Exception: exception text 123456789\n" +
       "\tat com.intellij.diagnostic.DropAnErrorAction.actionPerformed(dropErrorActions.kt:25)\n"
@@ -138,5 +211,17 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
       "\tat java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)\n"
     val ex2 = ExceptionTestUtils.createExceptionFromDesc(ex2Description)
     const val ex2Sig = "java.lang.Exception at com.intellij.diagnostic.DropAnErrorAction.actionPerformed-2f166b9f"
+
+    const val exNoStackDescription =
+      "java.lang.Exception: sample message\n"
+    val exNoStack = ExceptionTestUtils.createExceptionFromDesc(exNoStackDescription)
+    const val exNoStackSig = "MissingCrashedThreadStack"
+
+    const val ex3Description =
+      "java.lang.Exception: sample message\n" +
+      "\tat com.android.SomeClass.someMethod(FileName.java:100)\n"
+
+    val ex3 = ExceptionTestUtils.createExceptionFromDesc(ex3Description)
+    val ex3Sig = "java.lang.Exception at com.android.SomeClass.someMethod-d3f18885"
   }
 }
