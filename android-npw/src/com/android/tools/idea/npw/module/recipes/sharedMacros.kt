@@ -102,7 +102,7 @@ fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVer
   val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
   val versionNumber = fieldValue.toIntOrNull()
   return when {
-    isNewAGP && versionNumber == null -> "${fieldName}Preview \"$fieldValue\""
+    isNewAGP && versionNumber == null -> "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
     isNewAGP -> "$fieldName $versionNumber"
     versionNumber == null -> "${fieldName}Version \"$fieldValue\""
     else -> "${fieldName}Version $versionNumber"
