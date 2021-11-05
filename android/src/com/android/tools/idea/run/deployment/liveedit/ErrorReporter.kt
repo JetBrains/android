@@ -39,6 +39,6 @@ fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
 
 private fun report(message: String) {
   print(message)
-  log.error(message)
+  log.warn(message)
 }
 

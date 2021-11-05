@@ -29,11 +29,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.util.concurrent.CountDownLatch
+import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
   private lateinit var myProject: Project
   private lateinit var ktFileA: PsiFile
+  private lateinit var ktFileCallA: PsiFile
 
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
@@ -42,6 +44,7 @@ class BasicCompileTest {
   fun setUp() {
     myProject = projectRule.project
     ktFileA = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return \"I am foo\"}")
+    ktFileCallA = projectRule.fixture.configureByText("CallA.kt", "fun callA() : String { return foo() }")
   }
 
   @Test
@@ -49,6 +52,12 @@ class BasicCompileTest {
     var output = compile(ktFileA, findFunction(ktFileA, "foo"))
     var returnedValue = invokeStatic("foo", loadClass("AKt", output))
     Assert.assertEquals("I am foo", returnedValue)
+  }
+
+  @Test
+  fun crossFileReference() {
+    // b/201728545
+    compileFail(ktFileCallA, findFunction(ktFileCallA, "callA"))
   }
 
   private fun compile(file: PsiFile, function: KtNamedFunction) : ByteArray {
@@ -64,6 +73,13 @@ class BasicCompileTest {
     return output
   }
 
+  private fun compileFail(file: PsiFile, function: KtNamedFunction) {
+    AndroidLiveEditCodeGenerator().compile(myProject, listOf(
+      LiveEditService.MethodReference(file, function))) {
+      _: String, _: String, _: ByteArray, _: Map<String, ByteArray> ->
+      fail("Compilation should fail without this callback being invoked.")
+    }
+  }
   /**
    * Look for the first named function with a given name.
    */
