@@ -173,7 +173,7 @@ class StateChart<T>(private val model: StateChartModel<T>,
             // Don't draw if this block doesn't intersect with [min..max]
             if (x >= min) {
               // Draw the previous block.
-              addRectangleDelta(previousValue, max(min, previousX), min(max, x.toDouble()))
+              addRectangleDelta(previousValue, previousX, x.toDouble())
             }
 
             // Start a new block.
@@ -246,7 +246,15 @@ class StateChart<T>(private val model: StateChartModel<T>,
 
       transformedShapes.indices.forEach {
         val rect = transformedShapes[it]
-        g2d.clip = rect
+        // the rectangles are allowed to go outside this component, so we clip it
+        g2d.clip = when {
+          0 <= rect.x && rect.x + rect.width <= width -> rect
+          else -> {
+            val x = max(0f, rect.x)
+            val w = min(scaleX - x, rect.width)
+            Rectangle2D.Float(x, rect.y, w, rect.height)
+          }
+        }
         render(g2d, rect, mDefaultFontMetrics, it == hoverIndex, transformedValues[it])
       }
     }
