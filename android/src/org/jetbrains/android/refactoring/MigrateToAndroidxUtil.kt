@@ -33,8 +33,9 @@ fun Project.setAndroidxProperties(value: String = "true") {
 }
 
 fun Project.disableJetifier() {
-  getProjectProperties(true)?.let {
-    it.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.psiElement?.delete()
+  getProjectProperties(true)?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.let {
+    it.navigate(true)
+    it.psiElement.delete()
   }
 }
 
