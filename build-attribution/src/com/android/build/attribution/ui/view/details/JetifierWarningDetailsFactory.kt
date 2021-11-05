@@ -89,13 +89,13 @@ class JetifierWarningDetailsFactory(
       JetifierUsedCheckRequired -> "To disable Jetifier your project should have no dependencies on legacy support libraries. " +
                                    "Run check to see if you have any of such dependencies in your project."
       is JetifierRequiredForLibraries -> when (val size = data.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size) {
-                                           1 -> "Check found a declared dependency that requires legacy support libraries. " +
-                                                "To disable jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative."
-                                           else -> "Check found $size declared dependencies that require legacy support libraries. " +
-                                                   "To disable jetifier you need to upgrade them to versions that do not require legacy support libraries or find other alternatives."
-                                         } + " Run check again to include latest changes to project files."
-      JetifierCanBeRemoved -> "Last check did not find any dependencies that require Jetifier in your project. " +
-                              "You can safely remove 'android.enableJetifier' flag."
+                                           1 -> "This check found a declared dependency that requires legacy support libraries. " +
+                                                "To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative."
+                                           else -> "This check found $size declared dependencies that require legacy support libraries. " +
+                                                   "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives."
+                                         } + " Run this check again to include recent changes to project files."
+      JetifierCanBeRemoved -> "The last check did not find any dependencies that require Jetifier in your project. " +
+                              "You can safely remove the 'android.enableJetifier' flag."
       JetifierNotUsed -> error("Warning should not be shown in this state.")
       AnalyzerNotRun -> error("Warning should not be shown in this state.")
     }

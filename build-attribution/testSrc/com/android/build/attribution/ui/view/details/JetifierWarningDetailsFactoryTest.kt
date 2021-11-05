@@ -82,7 +82,7 @@ class JetifierWarningDetailsFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().let {
       val html = it.text.clearHtml()
       Truth.assertThat(html).contains("<b>Jetifier flag can be removed</b>")
-      Truth.assertThat(html).contains("Last check did not find any dependencies that require Jetifier in your project.")
+      Truth.assertThat(html).contains("The last check did not find any dependencies that require Jetifier in your project.")
 
       val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
       Truth.assertThat(declaredDependenciesTable.isEmpty).isTrue()
@@ -121,8 +121,8 @@ class JetifierWarningDetailsFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().let {
       val html = it.text.clearHtml()
       Truth.assertThat(html).contains("<b>Some project dependencies require Jetifier</b>")
-      Truth.assertThat(html).contains("Check found 3 declared dependencies that require legacy support libraries.")
-      Truth.assertThat(html).contains("To disable jetifier you need to upgrade them to versions that do not require legacy support libraries or find other alternatives.")
+      Truth.assertThat(html).contains("This check found 3 declared dependencies that require legacy support libraries.")
+      Truth.assertThat(html).contains("To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives.")
     }
 
     val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
@@ -185,7 +185,7 @@ class JetifierWarningDetailsFactoryTest {
       val html = it.text.clearHtml()
       Truth.assertThat(html).contains("<b>Some project dependencies require Jetifier</b>")
       Truth.assertThat(html).contains("found a declared dependency that requires")
-      Truth.assertThat(html).contains("To disable jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.")
+      Truth.assertThat(html).contains("To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.")
     }
   }
 
