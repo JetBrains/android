@@ -18,6 +18,8 @@ package com.android.tools.idea.explorer;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutures;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -1617,6 +1619,16 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                  DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
     assertEquals(myFooDir.getMockEntries().size(),
                  DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).getLastPathComponent()).getChildCount());
+  }
+
+  public void testTreeNodeOrder() {
+    DeviceExplorerController.NodeSorting.CustomComparator<String> comparator =
+      new DeviceExplorerController.NodeSorting.CustomComparator<>(s -> s, s -> s.startsWith("D"));
+    List<String> l = new ArrayList<>(asList(null, "Dir3", "B1", "AbC", "abD", null, "Dir1", "DiR2"));
+    l.sort(comparator);
+    assertThat(l)
+      .containsExactly(null, null, "Dir1", "DiR2", "Dir3", "AbC", "abD", "B1")
+      .inOrder();
   }
 
   private static <V> List<V> enumerationAsList(Enumeration e) {
