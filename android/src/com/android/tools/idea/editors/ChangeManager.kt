@@ -4,6 +4,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.intellij.AppTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
@@ -137,7 +138,7 @@ fun setupOnSaveListener(
                                                       parentDisposable,
                                                       null,
                                                       false).setRestartTimerOnAdd(true)) {
-  val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   project.messageBus.connect(parentDisposable).subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
     override fun beforeDocumentSaving(document: Document) {
       val psiFile = psiFilePointer.element ?: return

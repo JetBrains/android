@@ -17,10 +17,14 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.setEditorLayout
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 
@@ -107,17 +111,25 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (firstActivation) {
       // This is the first time the editor is being activated so trigger the onInit initialization.
       firstActivation = false
-      preview.onInit()
+      AndroidCoroutineScope(this).launch {
+        preview.onInit()
 
-      if (!layoutSetExplicitly) {
-        preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let {
-          setLayoutExplicitly(it)
+        withContext(uiThread) {
+          if (!layoutSetExplicitly) {
+            preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let {
+              setLayoutExplicitly(it)
+            }
+          }
+
+          // The editor has been selected, but only activate if it's visible.
+          if (preview.component.isShowing) activate()
         }
       }
     }
-
-    // The editor has been selected, but only activate if it's visible.
-    if (preview.component.isShowing) activate()
+    else {
+      // The editor has been selected, but only activate if it's visible.
+      if (preview.component.isShowing) activate()
+    }
   }
 
   final override fun deselectNotify() {

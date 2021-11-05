@@ -16,15 +16,19 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -42,20 +46,23 @@ class ComposePreviewRepresentationProviderTest {
    * Simulates the initialization of an editor and returns the corresponding [PreviewRepresentation].
    */
   private fun getRepresentationForFile(file: PsiFile): PreviewRepresentation {
-    var representation: PreviewRepresentation? = null
     ApplicationManager.getApplication().invokeAndWait {
-      WriteAction.run<Throwable> {
+      runWriteAction {
         fixture.configureFromExistingVirtualFile(file.virtualFile)
       }
       val textEditor = TextEditorProvider.getInstance().createEditor(project, file.virtualFile) as TextEditor
       Disposer.register(fixture.testRootDisposable, textEditor)
-      val multiRepresentationPreview = MultiRepresentationPreview(file, fixture.editor, listOf(previewProvider))
-      Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
-      multiRepresentationPreview.onInit()
-
-      representation = multiRepresentationPreview.currentRepresentation!!
     }
-    return representation!!
+
+    val multiRepresentationPreview = MultiRepresentationPreview(file, fixture.editor,
+                                                                listOf(previewProvider),
+                                                                AndroidCoroutineScope(fixture.testRootDisposable))
+    Disposer.register(fixture.testRootDisposable, multiRepresentationPreview)
+
+    runBlocking {
+      multiRepresentationPreview.onInit()
+    }
+    return multiRepresentationPreview.currentRepresentation!!
   }
 
   @Test

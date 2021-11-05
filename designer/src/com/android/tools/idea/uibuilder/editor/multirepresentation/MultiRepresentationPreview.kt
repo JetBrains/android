@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.runInSmartReadAction
+import com.android.tools.idea.concurrency.runReadAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -34,7 +38,6 @@ import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -43,6 +46,12 @@ import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.BorderFactory
@@ -95,14 +104,15 @@ data class MultiRepresentationPreviewFileEditorState(
  */
 open class MultiRepresentationPreview(psiFile: PsiFile,
                                       private val editor: Editor,
-                                      private val providers: Collection<PreviewRepresentationProvider>) :
+                                      private val providers: Collection<PreviewRepresentationProvider>,
+                                      private val scope: CoroutineScope) :
   PreviewRepresentationManager, DesignFileEditor(psiFile.virtualFile!!) {
   private val LOG = Logger.getInstance(MultiRepresentationPreview::class.java)
   /** Id identifying this MultiRepresentationPreview to be used in logging */
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  private val psiFilePointer = org.jetbrains.kotlin.idea.util.application.runReadAction { SmartPointerManager.createPointer (psiFile) }
   private var shortcutsApplicableComponent: JComponent? = null
 
   private var representationNeverShown = true
@@ -115,9 +125,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private val representations: MutableMap<RepresentationName, PreviewRepresentation> = mutableMapOf()
 
   override val currentRepresentation: PreviewRepresentation?
-    get() {
-      return representations[currentRepresentationName]
-    }
+    get() = synchronized(representations) { representations[currentRepresentationName] }
 
   /**
    * true if the [currentRepresentation] has been activated.
@@ -125,9 +133,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private val currentRepresentationIsActive = AtomicBoolean(false)
 
   override val representationNames: List<RepresentationName>
-    get() {
-      return representations.keys.sorted()
-    }
+    get() = synchronized(representations) { representations.keys.sorted() }
 
   // It is a client's responsibility to set a correct (valid) value of the currentRepresentationName
   override var currentRepresentationName: RepresentationName = ""
@@ -151,6 +157,15 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
         }
       }
     }
+
+  private val currentUpdateRepresentationJobLock = Any()
+
+  /**
+   * [Job] of the current [updateRepresentations] operation that is running or null if no [updateRepresentations] is happening.
+   * This ensures that multiple [updateRepresentations] do not run concurrently.
+   */
+  @GuardedBy("currentUpdateRepresentationJobLock")
+  private var currentUpdateRepresentationJob: Job? = null
 
   /**
    * [AtomicBoolean] to track activations.
@@ -191,47 +206,40 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   private fun validateCurrentRepresentationName() {
-    if (representations.isEmpty()) {
-      currentRepresentationName = ""
-    }
-    else if (!representations.containsKey(currentRepresentationName)) {
-      currentRepresentationName = representationNames.first()
+    synchronized(representations) {
+      if (representations.isEmpty()) {
+        currentRepresentationName = ""
+      }
+      else if (!representations.containsKey(currentRepresentationName)) {
+        currentRepresentationName = representationNames.minOf { it }
+      }
     }
     if (representationNeverShown) {
       onRepresentationChanged()
     }
   }
 
-  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
-    if (Disposer.isDisposed(this)) {
-      return@invokeLaterIfNeeded
-    }
+  /**
+   * Updates the current representations and ensures the current selected one is valid.
+   */
+  private suspend fun updateRepresentationsImpl() {
+    if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
+    val file = runReadAction { psiFilePointer.element }
+    if (file == null || !file.isValid) return
 
-    val file = psiFilePointer.element
-    if (file == null || !file.isValid) {
-      return@invokeLaterIfNeeded
-    }
-
-    val providers = providers.filter { it.accept(project, file) }.toList()
-    val providerNames = providers.map { it.displayName }.toSet()
-
-    // Remove unaccepted
-    (representations.keys - providerNames).forEach { name ->
-      representations.remove(name)?.let {
-        Disposer.dispose(it)
-      }
-    }
-
-    val hadAnyRepresentationsInitialized = representations.isNotEmpty()
-    // Add new
-    for (provider in providers.filter { it.displayName !in representations.keys }) {
-      if (representations.containsKey(provider.displayName)) continue
-      val representation = provider.createRepresentation(file)
-      Disposer.register(this, representation)
+    val providers = providers.filter {
+      runInSmartReadAction(project) { it.accept(project, file) }
+    }.toList()
+    val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
+    val newRepresentations = mutableMapOf<RepresentationName, PreviewRepresentation>()
+    // Calculated new representations
+    for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
+      val representation = runReadAction { provider.createRepresentation (file) }
+      Disposer.register(this@MultiRepresentationPreview, representation)
       shortcutsApplicableComponent?.let {
         representation.registerShortcuts(it)
       }
-      representations[provider.displayName] = representation
+      newRepresentations[provider.displayName] = representation
 
       // Restore the state of the representation
       stateFromDisk
@@ -242,46 +250,100 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
         }
     }
 
+    val providerNames = providers.map { it.displayName }.toSet()
+    val hadAnyRepresentationsInitialized: Boolean
+    synchronized(representations) {
+      // Remove unaccepted
+      (representations.keys - providerNames).forEach { name ->
+        representations.remove(name)?.let {
+          Disposer.dispose(it)
+        }
+      }
+      hadAnyRepresentationsInitialized = representations.isNotEmpty()
+      representations.putAll(newRepresentations)
+    }
+
     if (!hadAnyRepresentationsInitialized) {
       // The first time we load one representation, we try to set it to the one we had saved on disk when saving the state.
       stateFromDisk?.selectedRepresentationName?.let { currentRepresentationName = it }
     }
 
-    // update current if it was deleted
-    validateCurrentRepresentationName()
+    withContext(uiThread) {
+      // update current if it was deleted
+      validateCurrentRepresentationName()
 
-    representationSelectionToolbar.isVisible = representations.size > 1
+      representationSelectionToolbar.isVisible = representations.size > 1
+      onRepresentationsUpdated?.invoke()
+    }
+  }
 
-    onRepresentationsUpdated?.invoke()
+  /**
+   * Updates the representations and returns a [Job] that will be completed when the operation has executed.
+   */
+  fun updateRepresentations(): Job = synchronized(currentUpdateRepresentationJobLock) {
+    if (currentUpdateRepresentationJob == null) {
+      currentUpdateRepresentationJob = scope.launch {
+        updateRepresentationsImpl()
+      }.apply {
+        invokeOnCompletion {
+          synchronized(currentUpdateRepresentationJobLock) {
+            currentUpdateRepresentationJob = null
+          }
+        }
+      }
+    }
+
+    return@synchronized currentUpdateRepresentationJob!!
+  }
+
+  /**
+   * Waits for the current ongoing representations update to complete.
+   */
+  @TestOnly
+  suspend fun awaitForRepresentationsUpdated() {
+    synchronized(currentUpdateRepresentationJobLock) { currentUpdateRepresentationJob }?.join()
   }
 
   var onRepresentationsUpdated: (() -> Unit)? = null
 
   fun updateNotifications() {
-    representations.values.forEach {
+    synchronized(representations) { representations.values.toList() }.forEach {
       it.updateNotifications(this)
     }
   }
 
   fun registerShortcuts(appliedTo: JComponent) {
     shortcutsApplicableComponent = appliedTo
-    representations.values.forEach { it.registerShortcuts(appliedTo) }
+    synchronized(representations) { representations.values.toList() }.forEach { it.registerShortcuts(appliedTo) }
   }
 
-  override fun setState(state: FileEditorState) {
+  @VisibleForTesting
+  protected suspend fun setStateAndUpdateRepresentations(state: MultiRepresentationPreviewFileEditorState) {
     if (stateFromDisk != null) return
-    if (state is MultiRepresentationPreviewFileEditorState) {
-      stateFromDisk = state
+    stateFromDisk = state
 
-      // For any already loaded representations, restore the state.
+    // For any already loaded representations, restore the state.
+    synchronized(representations) {
       representations.forEach { (representationName, representation) ->
         state.representations
           .find { it.key == representationName }
-          ?.let { representation.setState(it.settings)  }
+          ?.let { representation.setState(it.settings) }
       }
+    }
 
+    updateRepresentationsImpl()
+
+    // If the representation is available, restore
+    if (representations.containsKey(state.selectedRepresentationName)) {
       currentRepresentationName = state.selectedRepresentationName
-      updateRepresentations()
+    }
+  }
+
+  override fun setState(state: FileEditorState) {
+    (state as? MultiRepresentationPreviewFileEditorState?)?.let {
+      scope.launch {
+        setStateAndUpdateRepresentations(it)
+      }
     }
   }
 
@@ -358,15 +420,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * Method called before [onActivate] to initialize the representations. This method will only be called once while [onActivate] and
    * [onDeactivate] might be called multiple times.
    */
-  fun onInit() {
-    // If we initialize during non smart mode, it can be that the representations can not be calculated correctly just yet.
-    // In that case, we will force a second refresh after we are in smart mode.
-    if (DumbService.getInstance(project).isDumb) {
-      DumbService.getInstance(project).runWhenSmart {
-        updateRepresentations()
-      }
-    }
-    updateRepresentations()
+  suspend fun onInit() {
+    updateRepresentations().join()
   }
 
   /**
