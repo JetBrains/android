@@ -66,7 +66,6 @@ class LambdaPropertyItem(
     override fun actionPerformed(event: AnActionEvent) {
       val location =
         lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
-      templatePresentation.text = location.source
       location.navigatable?.let {
         if (it.canNavigate()) {
           invokeLater {

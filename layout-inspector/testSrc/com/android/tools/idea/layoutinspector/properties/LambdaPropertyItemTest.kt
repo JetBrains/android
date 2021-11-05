@@ -40,6 +40,7 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
@@ -86,9 +87,10 @@ class LambdaPropertyItemTest {
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
-    assertThat(link.templateText).isEqualTo("Text.kt:unknown")
+    assertThat(link.templateText).isEqualTo("Text.kt:34")
     verifyNoInteractions(inspector.stats)
     verify(balloon).show(any(RelativePoint::class.java), any())
+    assertThat(getBalloonText()).isEqualTo("Could not determine source location")
   }
 
   @Test
@@ -109,8 +111,9 @@ class LambdaPropertyItemTest {
 
     verify(navigatable).navigate(true)
     verify(inspector.stats).gotoSourceFromPropertyValue(eq(selection))
-    assertThat(link.templateText).isEqualTo("Text.kt:unknown")
+    assertThat(link.templateText).isEqualTo("Text.kt:34")
     verify(balloon).show(any(RelativePoint::class.java), any())
+    assertThat(getBalloonText()).isEqualTo("Could not determine exact source location")
   }
 
   private fun mockBalloonBuilder(): Balloon {
@@ -125,6 +128,13 @@ class LambdaPropertyItemTest {
     `when`(builder.setFadeoutTime(any())).thenReturn(builder)
     `when`(builder.createBalloon()).thenReturn(balloon)
     return balloon
+  }
+
+  private fun getBalloonText(): String {
+    val factory = JBPopupFactory.getInstance()
+    val captor = ArgumentCaptor.forClass(String::class.java)
+    verify(factory).createHtmlTextBalloonBuilder(captor.capture(), any(), any(), isNull())
+    return captor.value
   }
 
   private fun createProperty(location: SourceLocation): LambdaPropertyItem {

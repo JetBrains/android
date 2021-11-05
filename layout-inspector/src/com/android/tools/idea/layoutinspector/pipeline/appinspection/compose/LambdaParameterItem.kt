@@ -79,7 +79,7 @@ class LambdaParameterItem(
     override fun actionPerformed(event: AnActionEvent) {
       val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
       executeOnPooledThread {
-        gotoLambdaLocation(this, event, popupLocation)
+        gotoLambdaLocation(event, popupLocation)
       }.also { futureCaptor?.invoke(it) }
     }
   }
@@ -91,11 +91,10 @@ class LambdaParameterItem(
   var futureCaptor: ((Future<*>) -> Unit)? = null
 
   @Slow
-  private fun gotoLambdaLocation(action: AnAction, event: AnActionEvent, popupLocation: RelativePoint) {
+  private fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
     val location = runReadAction {
       lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
     }
-    action.templatePresentation.text = location.source
     location.navigatable?.let {
       if (runReadAction { it.canNavigate() }) {
         invokeLater {
