@@ -76,6 +76,9 @@ class JetifierWarningDetailsFactory(
   private fun createJetifierWarningPage(data: JetifierUsageAnalyzerResult): JPanel {
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE)
+    val removeJetifierFlagActionLink = linksHandler.actionLink("remove the 'android.enableJetifier' flag", "remove.jetifier.action") {
+      actionHandlers.turnJetifierOffInProperties()
+    }
     val headerStatus = when (data.projectStatus) {
       JetifierUsedCheckRequired -> "Check if you need Jetifier in your project"
       is JetifierRequiredForLibraries -> "Some project dependencies require Jetifier"
@@ -95,7 +98,7 @@ class JetifierWarningDetailsFactory(
                                                    "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives."
                                          } + " Run this check again to include recent changes to project files."
       JetifierCanBeRemoved -> "The last check did not find any dependencies that require Jetifier in your project. " +
-                              "You can safely remove the 'android.enableJetifier' flag."
+                              "You can safely $removeJetifierFlagActionLink."
       JetifierNotUsed -> error("Warning should not be shown in this state.")
       AnalyzerNotRun -> error("Warning should not be shown in this state.")
     }
