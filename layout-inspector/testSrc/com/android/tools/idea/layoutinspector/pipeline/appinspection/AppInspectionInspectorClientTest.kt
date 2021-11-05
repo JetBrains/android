@@ -772,7 +772,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       properties[AvdManager.AVD_INI_TAG_ID] = tag.id
       properties[AvdManager.AVD_INI_TAG_DISPLAY] = tag.display
     }
-    return AvdInfo("myAvd-$apiLevel", Paths.get("myIni"), "/android/avds/myAvd-$apiLevel", systemImage, properties)
+    return AvdInfo("myAvd-$apiLevel", Paths.get("myIni"), Paths.get("/android/avds/myAvd-$apiLevel"), systemImage, properties)
   }
 
   private fun setUpSdkPackage(sdkRoot: Path, revision: Int, apiLevel: Int, tag: IdDisplay?, isRemote: Boolean): FakePackage {

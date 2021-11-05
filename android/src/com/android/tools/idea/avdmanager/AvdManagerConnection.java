@@ -895,7 +895,7 @@ public class AvdManagerConnection {
     Path avdFolder;
     try {
       if (currentInfo != null) {
-        avdFolder = mySdkHandler.toCompatiblePath(currentInfo.getDataFolderPath());
+        avdFolder = currentInfo.getDataFolderPath();
       }
       else {
         assert myAvdManager != null;
@@ -1100,16 +1100,15 @@ public class AvdManagerConnection {
     }
     assert mySdkHandler != null;
     // Delete the current user data file
-    File userdataImage = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_QEMU_IMG);
-    Path path = mySdkHandler.toCompatiblePath(userdataImage);
+    Path path = avdInfo.getDataFolderPath().resolve(AvdManager.USERDATA_QEMU_IMG);
     if (Files.exists(path)) {
       if (!FileOpUtils.deleteFileOrFolder(path)) {
         return false;
       }
     }
     // Delete the snapshots directory
-    File snapshotDirectory = new File(avdInfo.getDataFolderPath(), AvdManager.SNAPSHOTS_DIRECTORY);
-    FileOpUtils.deleteFileOrFolder(mySdkHandler.toCompatiblePath(snapshotDirectory));
+    Path snapshotDirectory = avdInfo.getDataFolderPath().resolve(AvdManager.SNAPSHOTS_DIRECTORY);
+    FileOpUtils.deleteFileOrFolder(snapshotDirectory);
 
     return true;
   }

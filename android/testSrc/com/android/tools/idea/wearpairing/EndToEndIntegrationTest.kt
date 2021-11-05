@@ -90,7 +90,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     }
 
     val wearPropertiesMap = mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear")
-    val avdWearInfo = AvdInfo("My Wear", Paths.get("ini"), "folder", Mockito.mock(ISystemImage::class.java), wearPropertiesMap)
+    val avdWearInfo = AvdInfo("My Wear", Paths.get("ini"), Paths.get("folder"), Mockito.mock(ISystemImage::class.java), wearPropertiesMap)
 
     val wearIDevice = Mockito.mock(IDevice::class.java).apply {
       Mockito.`when`(arePropertiesSet()).thenReturn(true)

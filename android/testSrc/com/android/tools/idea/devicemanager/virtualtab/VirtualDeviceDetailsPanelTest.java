@@ -45,7 +45,7 @@ public final class VirtualDeviceDetailsPanelTest {
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
                                   Paths.get("ini/file"),
-                                  "data/folder/path",
+                                  Paths.get("data/folder/path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
                                   AvdStatus.OK);
@@ -73,7 +73,7 @@ public final class VirtualDeviceDetailsPanelTest {
 
     AvdInfo avdInfo = new AvdInfo("Pixel_3_API_30",
                                   Paths.get("ini/file"),
-                                  "data/folder/path",
+                                  Paths.get("data/folder/path"),
                                   Mockito.mock(SystemImage.class),
                                   properties,
                                   AvdStatus.ERROR_IMAGE_MISSING);

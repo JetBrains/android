@@ -28,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +53,7 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
   private final ListenableFuture<Long> myFuture;
 
   SizeOnDisk(@NotNull AvdInfo device, @NotNull VirtualDeviceTableModel tableModel) {
-    this(device, tableModel, () -> getSize(Paths.get(device.getDataFolderPath())), EdtExecutorService.getInstance());
+    this(device, tableModel, () -> getSize(device.getDataFolderPath()), EdtExecutorService.getInstance());
   }
 
   @NotNull

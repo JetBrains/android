@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
+import com.android.io.CancellableFileIo;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
@@ -358,28 +360,27 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (myModel == null) {
       return;
     }
-    String avdDirPath = myModel.getAvdLocation();
-    if (avdDirPath == null) {
+    Path avdDir = myModel.getAvdLocation();
+    if (avdDir == null) {
       return;
     }
-    File avdDir = new File(avdDirPath);
-    if (!avdDir.isDirectory()) {
+    if (!CancellableFileIo.isDirectory(avdDir)) {
       return;
     }
-    File snapshotBaseDir = new File(avdDir, "snapshots");
-    File[] possibleSnapshotDirs = snapshotBaseDir.listFiles();
-    if (possibleSnapshotDirs == null) {
+    Path snapshotBaseDir = avdDir.resolve("snapshots");
+    Path[] possibleSnapshotDirs = FileOpUtils.listFiles(snapshotBaseDir);
+    if (possibleSnapshotDirs.length == 0) {
       return;
     }
     // Check every sub-directory under "snapshots/"
-    for (File snapshotDir : possibleSnapshotDirs) {
-      if (!snapshotDir.isDirectory()) continue;
-      File snapshotProtoBuf = new File(snapshotDir, "snapshot.pb");
-      if (!snapshotProtoBuf.exists()) continue;
-      String snapshotFileName = snapshotDir.getName();
+    for (Path snapshotDir : possibleSnapshotDirs) {
+      if (!CancellableFileIo.isDirectory(snapshotDir)) continue;
+      Path snapshotProtoBuf = snapshotDir.resolve("snapshot.pb");
+      if (CancellableFileIo.notExists(snapshotProtoBuf)) continue;
+      String snapshotFileName = snapshotDir.getFileName().toString();
       if ("default_boot".equals(snapshotFileName)) continue; // Don't include the "Quick boot" option
       try {
-        SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf.toPath(), snapshotFileName);
+        SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf, snapshotFileName);
         String logicalName = protoParser.getLogicalName();
         if (!logicalName.isEmpty()) {
           mySnapshotList.add(new SnapshotListItem(snapshotFileName, logicalName, protoParser.getCreationTime()));
@@ -896,7 +897,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
 
     /** Read the file from the Emulator that tells us what Snapshot file was chosen.
-     * If successful, this will set {@link mySelectedSnapshot}.
+     * If successful, this will set {@link ConfigureAvdOptionsStep#mySelectedSnapshotFileName}.
      *
      * @param fileToRead The temp file that the Emulator used to pass us the information
      */

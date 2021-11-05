@@ -47,7 +47,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -178,7 +177,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
       return null;
     }
 
-    return Paths.get(virtualDevice.getDataFolderPath(), EMU_TMP_FILENAME);
+    return virtualDevice.getDataFolderPath().resolve(EMU_TMP_FILENAME);
   }
 
   private static void setShowTouch(@NotNull IDevice device, boolean isEnabled) {

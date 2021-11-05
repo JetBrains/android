@@ -28,7 +28,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -45,9 +44,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   private final @NotNull ExecutorService myExecutorService;
   private final @NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
 
-  @NotNull
-  private final FileSystem myFileSystem;
-
   private final @NotNull Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
 
   @Nullable
@@ -56,7 +52,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   static final class Builder {
     private @Nullable ExecutorService myExecutorService;
     private @Nullable Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-    private @Nullable FileSystem myFileSystem;
     private @Nullable Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
     private @Nullable LaunchCompatibilityChecker myChecker;
 
@@ -67,11 +62,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
     @NotNull Builder setGetAvds(@NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> getAvds) {
       myGetAvds = getAvds;
-      return this;
-    }
-
-    @NotNull Builder setFileSystem(@NotNull FileSystem fileSystem) {
-      myFileSystem = fileSystem;
       return this;
     }
 
@@ -97,9 +87,6 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     assert builder.myGetAvds != null;
     myGetAvds = builder.myGetAvds;
 
-    assert builder.myFileSystem != null;
-    myFileSystem = builder.myFileSystem;
-
     assert builder.myNewLaunchableAndroidDevice != null;
     myNewLaunchableAndroidDevice = builder.myNewLaunchableAndroidDevice;
 
@@ -121,14 +108,14 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   @NotNull
   private Collection<Snapshot> getSnapshots(@NotNull AvdInfo device) {
-    Path snapshots = myFileSystem.getPath(device.getDataFolderPath(), "snapshots");
+    Path snapshots = device.getDataFolderPath().resolve("snapshots");
 
     if (!Files.isDirectory(snapshots)) {
       return ImmutableList.of();
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
-      Object defaultBoot = myFileSystem.getPath("default_boot");
+      Path defaultBoot = snapshots.getFileSystem().getPath("default_boot");
 
       return stream
         .filter(Files::isDirectory)
@@ -183,7 +170,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setName(avd.getDisplayName())
-      .setKey(new VirtualDevicePath(avd.getDataFolderPath()))
+      .setKey(new VirtualDevicePath(avd.getDataFolderPath().toString()))
       .setAndroidDevice(device)
       .setNameKey(new VirtualDeviceName(avd.getName()))
       .addAllSnapshots(snapshots)

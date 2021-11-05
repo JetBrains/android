@@ -21,7 +21,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 
@@ -50,7 +49,7 @@ public class AvdSummaryAction extends AvdUiAction {
     htmlBuilder.addHtml("<br>Name: ").add(info.getName());
     htmlBuilder.addHtml("<br>CPU/ABI: ").add(AvdInfo.getPrettyAbiType(info));
 
-    htmlBuilder.addHtml("<br>Path: ").add(info.getDataFolderPath());
+    htmlBuilder.addHtml("<br>Path: ").add(info.getDataFolderPath().toString());
 
     if (info.getStatus() != AvdInfo.AvdStatus.OK) {
       htmlBuilder.addHtml("<br>Error: ").add(info.getErrorMessage());
@@ -79,7 +78,7 @@ public class AvdSummaryAction extends AvdUiAction {
       }
 
       // display other hardware
-      HashMap<String, String> copy = new HashMap<String, String>(properties);
+      HashMap<String, String> copy = new HashMap<>(properties);
       // remove stuff we already displayed (or that we don't want to display)
       copy.remove(AvdManager.AVD_INI_ABI_TYPE);
       copy.remove(AvdManager.AVD_INI_CPU_ARCH);

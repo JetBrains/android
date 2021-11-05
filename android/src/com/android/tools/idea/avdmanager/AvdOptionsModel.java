@@ -61,6 +61,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -524,14 +525,14 @@ public final class AvdOptionsModel extends WizardModel {
         sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION);
       }
       else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
-        sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
+        sdCardLocation = avdInfo.getDataFolderPath().resolve("sdcard.img").toString();
       }
       existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
 
-      String dataFolderPath = avdInfo.getDataFolderPath();
-      File sdLocationFile = null;
+      Path dataFolderPath = avdInfo.getDataFolderPath();
+      Path sdLocationFile = null;
       if (sdCardLocation != null) {
-        sdLocationFile = new File(sdCardLocation);
+        sdLocationFile = Paths.get(sdCardLocation);
       }
       if (sdLocationFile != null) {
         if (Objects.equal(sdLocationFile.getParent(), dataFolderPath)) {
@@ -843,7 +844,7 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @Nullable
-  public String getAvdLocation() {
+  public Path getAvdLocation() {
     return (myAvdInfo == null) ? null : myAvdInfo.getDataFolderPath();
   }
 }

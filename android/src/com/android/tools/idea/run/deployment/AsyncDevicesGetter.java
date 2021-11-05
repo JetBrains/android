@@ -116,7 +116,6 @@ final class AsyncDevicesGetter implements Disposable {
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
       .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
-      .setFileSystem(FileSystems.getDefault())
       .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
       .setChecker(myChecker)
       .build();

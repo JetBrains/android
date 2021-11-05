@@ -73,7 +73,7 @@ public final class VirtualDisplayListTest {
                                                   Mockito.mock(VirtualDeviceTableCellRenderer.class));
     AvdInfo avd = new AvdInfo("Pixel 3",
                               Paths.get("ini/file"),
-                              "data/folder/path",
+                              Paths.get("data/folder/path"),
                               Mockito.mock(SystemImage.class),
                               null);
 
