@@ -32,10 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.State> {
+public class DefaultActivityLaunch extends ActivityLaunchOption<DefaultActivityLaunch.State> {
   public static final DefaultActivityLaunch INSTANCE = new DefaultActivityLaunch();
 
-  public static final class State extends LaunchOptionState {
+  public static final class State extends ActivityLaunchOptionState {
     @Nullable
     @Override
     public AppLaunchTask getLaunchTask(@NotNull String applicationId,

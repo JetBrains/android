@@ -24,8 +24,8 @@ import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
-import com.android.tools.idea.run.activity.launch.LaunchOption;
-import com.android.tools.idea.run.activity.launch.LaunchOptionState;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
@@ -88,10 +88,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
   @NonNls public static final String LAUNCH_DEEP_LINK = "launch_deep_link";
-  public static final List<? extends LaunchOption> LAUNCH_OPTIONS =
+  public static final List<? extends ActivityLaunchOption> LAUNCH_OPTIONS =
     Arrays.asList(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE, DeepLinkLaunch.INSTANCE);
   @NonNls private static final String FEATURE_LIST_SEPARATOR = ",";
-  private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
+  private final Map<String, ActivityLaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
   // Deploy options
   public boolean DEPLOY = true;
   public boolean DEPLOY_APK_FROM_BUNDLE = false;
@@ -108,7 +108,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory, false);
 
-    for (LaunchOption option : LAUNCH_OPTIONS) {
+    for (ActivityLaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
     }
 
@@ -130,9 +130,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
     List<ValidationError> errors = new ArrayList<>();
 
-    LaunchOptionState launchOptionState = getLaunchOptionState(MODE);
-    if (launchOptionState != null) {
-      errors.addAll(launchOptionState.checkConfiguration(facet));
+    ActivityLaunchOptionState activityLaunchOptionState = getLaunchOptionState(MODE);
+    if (activityLaunchOptionState != null) {
+      errors.addAll(activityLaunchOptionState.checkConfiguration(facet));
     }
     errors.addAll(checkDeployConfiguration(facet));
     return errors;
@@ -244,7 +244,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                                    @NotNull ApkProvider apkProvider,
                                                    @NotNull ConsolePrinter consolePrinter,
                                                    @NotNull IDevice device) {
-    LaunchOptionState state = getLaunchOptionState(MODE);
+    ActivityLaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
     String extraFlags = ACTIVITY_EXTRA_FLAGS;
@@ -290,7 +290,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
     // TODO: we probably need a better way to do this rather than peeking into the option state
     // Possibly something like setLaunch(LAUNCH_SPECIFIC_ACTIVITY, SpecificLaunchActivity.state(className))
-    LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
+    ActivityLaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state instanceof SpecificActivityLaunch.State;
     SpecificActivityLaunch.State specificActivityLaunchState = ((SpecificActivityLaunch.State)state);
     specificActivityLaunchState.ACTIVITY_CLASS = activityName;
@@ -304,7 +304,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public void setLaunchUrl(@NotNull String url) {
     MODE = LAUNCH_DEEP_LINK;
 
-    final LaunchOptionState state = getLaunchOptionState(LAUNCH_DEEP_LINK);
+    final ActivityLaunchOptionState state = getLaunchOptionState(LAUNCH_DEEP_LINK);
     assert state instanceof DeepLinkLaunch.State;
     ((DeepLinkLaunch.State)state).DEEP_LINK = url;
   }
@@ -315,13 +315,13 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
 
     // TODO: we probably need a better way to do this rather than peeking into the option state, possibly just delegate equals to the option
-    LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
+    ActivityLaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state instanceof SpecificActivityLaunch.State;
     return StringUtil.equals(((SpecificActivityLaunch.State)state).ACTIVITY_CLASS, activityName);
   }
 
   @Nullable
-  public LaunchOptionState getLaunchOptionState(@NotNull String launchOptionId) {
+  public ActivityLaunchOptionState getLaunchOptionState(@NotNull String launchOptionId) {
     return myLaunchOptionStates.get(launchOptionId);
   }
 
@@ -329,7 +329,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
 
-    for (LaunchOptionState state : myLaunchOptionStates.values()) {
+    for (ActivityLaunchOptionState state : myLaunchOptionStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
     }
 
@@ -343,7 +343,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     super.writeExternal(element);
 
-    for (LaunchOptionState state : myLaunchOptionStates.values()) {
+    for (ActivityLaunchOptionState state : myLaunchOptionStates.values()) {
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
   }

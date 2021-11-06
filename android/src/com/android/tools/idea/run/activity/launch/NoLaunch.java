@@ -27,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class NoLaunch extends LaunchOption<NoLaunch.State> {
+public class NoLaunch extends ActivityLaunchOption<NoLaunch.State> {
   public static final NoLaunch INSTANCE = new NoLaunch();
 
-  public static class State extends LaunchOptionState {
+  public static class State extends ActivityLaunchOptionState {
     @Nullable
     @Override
     public AppLaunchTask getLaunchTask(@NotNull String applicationId,

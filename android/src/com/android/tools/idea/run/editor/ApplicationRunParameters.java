@@ -11,9 +11,9 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
-import com.android.tools.idea.run.activity.launch.LaunchOption;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
 import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
-import com.android.tools.idea.run.activity.launch.LaunchOptionState;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -105,7 +105,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myPmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'pm install' command");
 
     myLaunchOptionCombo.setModel(new CollectionComboBoxModel(AndroidRunConfiguration.LAUNCH_OPTIONS));
-    myLaunchOptionCombo.setRenderer(new LaunchOption.Renderer());
+    myLaunchOptionCombo.setRenderer(new ActivityLaunchOption.Renderer());
     myLaunchOptionCombo.addActionListener(this);
 
     myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");
@@ -122,7 +122,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     };
 
     ImmutableMap.Builder<String, LaunchConfigurableWrapper> builder = ImmutableMap.builder();
-    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+    for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       builder.put(option.getId(), new LaunchConfigurableWrapper(project, context, option));
     }
     myConfigurables = builder.build();
@@ -154,7 +154,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       updateBuildArtifactBeforeRunSetting();
     }
     else if (source == myLaunchOptionCombo) {
-      LaunchOption option = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
+      ActivityLaunchOption option = (ActivityLaunchOption)myLaunchOptionCombo.getSelectedItem();
       myAmOptionsLabeledComponent.setVisible(option != NoLaunch.INSTANCE);
       myLaunchOptionsCardPanel.select(myConfigurables.get(option.getId()), true);
     }
@@ -221,25 +221,25 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myAllUsersCheckbox.setSelected(configuration.ALL_USERS);
     myAlwaysInstallWithPmCheckbox.setSelected(configuration.ALWAYS_INSTALL_WITH_PM);
 
-    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
-      LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
+    for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
       assert state != null : "State is null for option: " + option.getDisplayName();
       myConfigurables.get(option.getId()).resetFrom(state);
     }
 
-    LaunchOption launchOption = getLaunchOption(configuration.MODE);
-    myLaunchOptionCombo.setSelectedItem(launchOption);
+    ActivityLaunchOption activityLaunchOption = getLaunchOption(configuration.MODE);
+    myLaunchOptionCombo.setSelectedItem(activityLaunchOption);
     myAmOptionsLabeledComponent.getComponent().setText(configuration.ACTIVITY_EXTRA_FLAGS);
     myDynamicFeaturesParameters.setDisabledDynamicFeatures(configuration.getDisabledDynamicFeatures());
   }
 
   @NotNull
-  private static LaunchOption getLaunchOption(@Nullable String mode) {
+  private static ActivityLaunchOption getLaunchOption(@Nullable String mode) {
     if (StringUtil.isEmpty(mode)) {
       mode = DefaultActivityLaunch.INSTANCE.getId();
     }
 
-    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+    for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
       if (option.getId().equals(mode)) {
         return option;
       }
@@ -265,14 +265,14 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     configuration.ALL_USERS = myAllUsersCheckbox.isSelected();
     configuration.ALWAYS_INSTALL_WITH_PM = myAlwaysInstallWithPmCheckbox.isSelected();
 
-    for (LaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
-      LaunchOptionState state = configuration.getLaunchOptionState(option.getId());
+    for (ActivityLaunchOption option : AndroidRunConfiguration.LAUNCH_OPTIONS) {
+      ActivityLaunchOptionState state = configuration.getLaunchOptionState(option.getId());
       assert state != null : "State is null for option: " + option.getDisplayName();
       myConfigurables.get(option.getId()).applyTo(state);
     }
 
-    LaunchOption launchOption = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
-    configuration.MODE = launchOption.getId();
+    ActivityLaunchOption activityLaunchOption = (ActivityLaunchOption)myLaunchOptionCombo.getSelectedItem();
+    configuration.MODE = activityLaunchOption.getId();
     configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
     configuration.setDisabledDynamicFeatures(myDynamicFeaturesParameters.getDisabledDynamicFeatures());
   }

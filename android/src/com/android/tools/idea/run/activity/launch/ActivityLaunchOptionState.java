@@ -29,7 +29,7 @@ import java.util.List;
 
 // Each Launch Option should extend this class and add a set of public fields such that they can be saved/restored using
 // DefaultJDOMExternalizer
-public abstract class LaunchOptionState {
+public abstract class ActivityLaunchOptionState {
   @Nullable
   public abstract AppLaunchTask getLaunchTask(@NotNull String applicationId,
                                               @NotNull AndroidFacet facet,

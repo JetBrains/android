@@ -33,7 +33,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.State> {
+public class SpecificActivityLaunch extends ActivityLaunchOption<SpecificActivityLaunch.State> {
   public static final SpecificActivityLaunch INSTANCE = new SpecificActivityLaunch();
 
   @NotNull
@@ -60,7 +60,7 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
     return new SpecificActivityConfigurable(project, context);
   }
 
-  public static class State extends LaunchOptionState {
+  public static class State extends ActivityLaunchOptionState {
     public String ACTIVITY_CLASS = "";
     public boolean SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false;
     public boolean SKIP_ACTIVITY_VALIDATION = false;

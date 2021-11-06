@@ -35,10 +35,10 @@ import java.util.List;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
-public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
+public class DeepLinkLaunch extends ActivityLaunchOption<DeepLinkLaunch.State> {
   public static final DeepLinkLaunch INSTANCE = new DeepLinkLaunch();
 
-  public static final class State extends LaunchOptionState {
+  public static final class State extends ActivityLaunchOptionState {
     public String DEEP_LINK = "";
 
     @Nullable

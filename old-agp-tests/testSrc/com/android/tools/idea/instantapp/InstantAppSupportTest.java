@@ -26,7 +26,7 @@ import com.android.testutils.junit4.OldAgpTest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.activity.launch.LaunchOptionState;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
@@ -72,9 +72,9 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
     // Check it is a deep link with the correct URL
     assertEquals(LAUNCH_DEEP_LINK, runConfig.MODE);
-    LaunchOptionState launchOptionState = runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
-    assertInstanceOf(launchOptionState, DeepLinkLaunch.State.class);
-    DeepLinkLaunch.State deepLinkLaunchState = (DeepLinkLaunch.State)launchOptionState;
+    ActivityLaunchOptionState activityLaunchOptionState = runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+    assertInstanceOf(activityLaunchOptionState, DeepLinkLaunch.State.class);
+    DeepLinkLaunch.State deepLinkLaunchState = (DeepLinkLaunch.State)activityLaunchOptionState;
     assertEquals("http://example.com/example", deepLinkLaunchState.DEEP_LINK);
   }
 
