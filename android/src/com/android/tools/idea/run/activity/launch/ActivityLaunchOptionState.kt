@@ -16,7 +16,8 @@
 package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.IShellOutputReceiver
+import com.android.tools.deployer.model.App
+import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
@@ -36,6 +37,20 @@ abstract class ActivityLaunchOptionState {
     profilerState: ProfilerState,
     apkProvider: ApkProvider
   ): AppLaunchTask?
+
+  /**
+   * Method for new execution flow that not based on LaunchTask.
+   * [getLaunchTask] will be deleted after implementation of new execution pipeline.
+   *
+   * @throws ExecutionException
+   */
+  @Throws(ExecutionException::class)
+  abstract fun launch(device: IDevice,
+                      app: App,
+                      config: AndroidRunConfiguration,
+                      isDebug: Boolean,
+                      extraFlags: String,
+                      console: ConsoleView)
 
   open fun checkConfiguration(facet: AndroidFacet): List<ValidationError?> {
     return emptyList<ValidationError>()

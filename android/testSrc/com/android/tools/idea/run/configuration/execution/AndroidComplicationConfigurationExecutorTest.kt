@@ -61,8 +61,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
 
     val device = getMockDevice()
-    val app = createApp(device, appId, servicesName = listOf(componentName))
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
+                                 activitiesName = emptyList())
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
     // Mock installation that returns app.
@@ -118,8 +119,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
 
     val device = getMockDevice()
-    val app = createApp(device, appId, servicesName = listOf(componentName))
-    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
+                                 activitiesName = emptyList())
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
     // Mock installation that returns app.

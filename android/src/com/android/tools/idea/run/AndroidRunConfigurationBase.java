@@ -411,7 +411,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  protected ApkProvider getApkProvider() {
+  public final ApkProvider getApkProvider() {
     return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
   }
 

@@ -15,9 +15,20 @@
  */
 package com.android.tools.idea.run.activity.launch;
 
+import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
+import com.android.tools.deployer.model.App;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
@@ -26,10 +37,17 @@ import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.openapi.util.Disposer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
 
@@ -78,5 +96,23 @@ public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
     };
     List<ValidationError> errors = state.checkConfiguration(myAndroidFacet);
     assertEmpty(errors);
+  }
+
+  public void testLaunch() throws ShellCommandUnresponsiveException, AdbCommandRejectedException, IOException, TimeoutException {
+    SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
+    state.ACTIVITY_CLASS = "com.example.app.MyActivity";
+    IDevice device = Mockito.mock(IDevice.class);
+    AndroidRunConfiguration config =
+      (AndroidRunConfiguration)AndroidRunConfigurationType.getInstance().getFactory().createTemplateConfiguration(getProject());
+    App app =
+      createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
+    ConsoleViewImpl console = new ConsoleViewImpl(getProject(), false);
+    Disposer.register(getTestRootDisposable(), console);
+    state.launch(device, app, config, false, "", console);
+    Mockito.verify(device).executeShellCommand(
+      eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
+      any(IShellOutputReceiver.class),
+      eq(15L),
+      eq(TimeUnit.SECONDS));
   }
 }

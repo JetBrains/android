@@ -19,13 +19,15 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.Apk
 import com.android.tools.deployer.model.App
 import com.android.tools.manifest.parser.XmlNode
+import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
 import com.android.utils.NullLogger
 
 
-internal fun createApp(device: IDevice, appId: String, servicesName: List<String>): App {
+internal fun createApp(device: IDevice, appId: String, servicesName: List<String>, activitiesName: List<String>): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
-  val apk = Apk.Builder().setServices(services).build()
+  val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
+  val apk = Apk.Builder().setServices(services).setActivities(activities).build()
   return App(appId, listOf(apk), device, NullLogger())
 }
 
@@ -38,6 +40,17 @@ private fun createManifestServiceInfo(serviceName: String,
     node.attributes()[attr] = value
   }
   return ManifestServiceInfo(node, appId)
+}
+
+private fun createManifestActivityInfo(activityName: String,
+                                       appId: String,
+                                       attrs: Map<String, String> = emptyMap()): ManifestActivityInfo {
+  val node = XmlNode()
+  node.attributes()["name"] = activityName
+  for ((attr, value) in attrs) {
+    node.attributes()[attr] = value
+  }
+  return ManifestActivityInfo(node, appId)
 }
 
 

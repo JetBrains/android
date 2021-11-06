@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.run.activity.launch;
 
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.tools.deployer.model.App;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +44,13 @@ public class NoLaunch extends ActivityLaunchOption<NoLaunch.State> {
                                        @NotNull ProfilerState profilerState,
                                        @NotNull ApkProvider apkProvider) {
       return null;
+    }
+
+    @Override
+    public void launch(@NotNull IDevice device,
+                       @NotNull App app,
+                       @NotNull AndroidRunConfiguration config, boolean isDebug, @NotNull String extraFlags,
+                       @NotNull ConsoleView console) {
     }
   }
 

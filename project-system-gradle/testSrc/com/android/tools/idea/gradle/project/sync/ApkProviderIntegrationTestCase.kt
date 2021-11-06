@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
@@ -641,13 +640,9 @@ private data class ApkProviderTest(
       }
     }
 
-    fun AndroidRunConfigurationBase.getApkProvider(): ApkProvider {
-      return project.getProjectSystem().getApkProvider(this)!!
-    }
-
     val apkProvider = when (scenario.target) {
       is ManuallyAssembled -> assembleResult!!.getApkProvider(scenario.target.gradlePath, scenario.target.forTests)
-      else -> runConfiguration!!.getApkProvider()
+      else -> runConfiguration!!.apkProvider!!
     }
 
     with(valueNormalizers) {

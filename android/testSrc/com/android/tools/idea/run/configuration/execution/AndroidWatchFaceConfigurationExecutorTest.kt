@@ -49,7 +49,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
     val device = getMockDevice()
-    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
@@ -80,7 +80,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     val executor = Mockito.spy(AndroidWatchFaceConfigurationExecutor(env))
 
     val device = getMockDevice()
-    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()

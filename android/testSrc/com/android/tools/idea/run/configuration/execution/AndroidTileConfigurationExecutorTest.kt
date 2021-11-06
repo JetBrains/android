@@ -67,7 +67,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
                            MockitoKt.any(),
                            MockitoKt.any())
 
-    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
@@ -112,7 +112,7 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
                            MockitoKt.any(IShellOutputReceiver::class.java),
                            MockitoKt.any(),
                            MockitoKt.any())
-    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
