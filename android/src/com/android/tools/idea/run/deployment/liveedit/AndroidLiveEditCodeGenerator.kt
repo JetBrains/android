@@ -129,7 +129,11 @@ class AndroidLiveEditCodeGenerator {
    */
   fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext {
     val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
-      resolution.analyzeWithAllCompilerChecks(input)
+      resolution.analyzeWithAllCompilerChecks(input) {
+        if (it.severity== Severity.ERROR) {
+          throw LiveEditUpdateException.analysisError("Analyze Error. $it")
+        }
+      }
     }
 
     if (analysisResult.isError()) {
@@ -138,7 +142,7 @@ class AndroidLiveEditCodeGenerator {
 
     for (diagnostic in analysisResult.bindingContext.diagnostics) {
       if (diagnostic.severity == Severity.ERROR) {
-        throw LiveEditUpdateException.analysisError(diagnostic.toString())
+        throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
       }
     }
 
