@@ -30,8 +30,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.Optional;
@@ -41,12 +43,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
-import javax.swing.JTable;
 import javax.swing.SwingConstants;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -58,7 +55,9 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   private final @NotNull JButton myHelpButton;
   private @Nullable SearchTextField mySearchTextField;
 
-  private @Nullable VirtualDisplayList myAvdDisplayList;
+  private final @Nullable Project myProject;
+  private final @NotNull Component myScrollPane;
+  private VirtualDeviceTable myTable;
   private @Nullable DetailsPanel myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
@@ -69,11 +68,12 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   VirtualDevicePanel(@Nullable Project project,
                      @NotNull Disposable parent,
                      @NotNull Function<@NotNull AvdInfoProvider, @NotNull ActionListener> createAvdActionProvider) {
-    initVirtualDisplayList(project);
-    DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
+    myProject = project;
+    initTable();
+    myScrollPane = new JBScrollPane(myTable);
 
     myCreateButton = new JButton("Create device");
-    myCreateButton.addActionListener(createAvdActionProvider.apply(myAvdDisplayList));
+    myCreateButton.addActionListener(createAvdActionProvider.apply(myTable));
 
     Dimension separatorSize = new JBDimension(3, 20);
     mySeparator = new JSeparator(SwingConstants.VERTICAL);
@@ -82,11 +82,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
     if (enableHalfBakedFeatures()) {
       myRefreshButton = new CommonButton(AllIcons.Actions.Refresh);
-
-      myRefreshButton.addActionListener(event -> {
-        assert myAvdDisplayList != null;
-        myAvdDisplayList.refreshAvds();
-      });
+      myRefreshButton.addActionListener(event -> myTable.refreshAvds());
     }
 
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
@@ -95,20 +91,16 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     if (enableHalfBakedFeatures()) {
       mySearchTextField = new SearchTextField(true);
       mySearchTextField.setToolTipText("Search virtual devices by name");
-      mySearchTextField.addDocumentListener(searchDocumentListener);
     }
 
     setLayout(createGroupLayout());
+
     Disposer.register(parent, this);
   }
 
-  private void initVirtualDisplayList(@Nullable Project project) {
-    myAvdDisplayList = new VirtualDisplayList(project);
-    JTable table = myAvdDisplayList.getTable();
-
-    table.setShowGrid(false);
-    table.getTableHeader().setReorderingAllowed(false);
-    table.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+  private void initTable() {
+    myTable = new VirtualDeviceTable(myProject);
+    myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
   }
 
   private @NotNull GroupLayout createGroupLayout() {
@@ -119,7 +111,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
     Group horizontalGroup = groupLayout.createParallelGroup(Alignment.LEADING)
       .addGroup(toolbarHorizontalGroup)
-      .addComponent(myAvdDisplayList);
+      .addComponent(myScrollPane);
 
     if (myDetailsPanel != null) {
       horizontalGroup.addComponent(myDetailsPanel);
@@ -127,7 +119,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
     Group verticalGroup = groupLayout.createSequentialGroup()
       .addGroup(toolbarVerticalGroup)
-      .addComponent(myAvdDisplayList, 0, 0, Short.MAX_VALUE);
+      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
 
     if (myDetailsPanel != null) {
       verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
@@ -183,41 +175,6 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     return StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get();
   }
 
-  private static final class SearchDocumentListener implements DocumentListener {
-    private final @NotNull VirtualDisplayList myAvdDisplayList;
-
-    private SearchDocumentListener(@NotNull VirtualDisplayList avdDisplayList) {
-      myAvdDisplayList = avdDisplayList;
-    }
-
-    @Override
-    public void insertUpdate(@NotNull DocumentEvent event) {
-      updateSearchResults(event);
-    }
-
-    @Override
-    public void removeUpdate(@NotNull DocumentEvent event) {
-      updateSearchResults(event);
-    }
-
-    @Override
-    public void changedUpdate(@NotNull DocumentEvent event) {
-      updateSearchResults(event);
-    }
-
-    private void updateSearchResults(@NotNull DocumentEvent event) {
-      String text;
-      try {
-        Document document = event.getDocument();
-        text = document.getText(0, document.getLength());
-      }
-      catch (@NotNull BadLocationException exception) {
-        text = "";
-      }
-      myAvdDisplayList.updateSearchResults(text);
-    }
-  }
-
   @Override
   public void dispose() {
     if (myDetailsPanel != null) {
@@ -232,8 +189,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
   @Override
   public @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
-    assert myAvdDisplayList != null;
-    return Optional.ofNullable(myAvdDisplayList.getAvdInfo());
+    return myTable.getSelectedDevice();
   }
 
   @Override
@@ -255,8 +211,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     myDetailsPanel = new VirtualDeviceDetailsPanel(device);
 
     myDetailsPanel.getCloseButton().addActionListener(event -> {
-      assert myAvdDisplayList != null;
-      myAvdDisplayList.getTable().clearSelection();
+      myTable.clearSelection();
 
       removeDetailsPanel();
       layOut();

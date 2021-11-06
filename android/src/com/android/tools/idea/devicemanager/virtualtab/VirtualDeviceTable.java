@@ -47,8 +47,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvider, AvdInfoProvider {
-  VirtualDeviceTable() {
+  private final @Nullable Project myProject;
+
+  VirtualDeviceTable(@Nullable Project project) {
     super(new VirtualDeviceTableModel());
+
+    myProject = project;
 
     TableModel model = getModel();
     model.addTableModelListener(event -> sizeWidthsToFit());
@@ -124,7 +128,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
     return getSelectedDevice().orElse(null);
   }
 
-  private @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
+  @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {
@@ -176,7 +180,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
   @Override
   public @Nullable Project getProject() {
-    return null; // TODO
+    return myProject;
   }
 
   @Override

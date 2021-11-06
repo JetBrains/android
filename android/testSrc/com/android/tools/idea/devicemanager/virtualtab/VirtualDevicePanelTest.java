@@ -27,7 +27,6 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDevicePanelTest {
-  private VirtualDevicePanel myVirtualDevicePanel;
   private BareTestFixture myFixture;
 
   @Before
@@ -44,9 +43,11 @@ public final class VirtualDevicePanelTest {
   @Test
   public void createDeviceButton() {
     CreateAvdAction createAvdAction = Mockito.mock(CreateAvdAction.class);
-    myVirtualDevicePanel = new VirtualDevicePanel(null, myFixture.getTestRootDisposable(), avdInfoProvider -> createAvdAction);
+    VirtualDevicePanel virtualDevicePanel = new VirtualDevicePanel(null,
+                                                                   myFixture.getTestRootDisposable(),
+                                                                   avdInfoProvider -> createAvdAction);
 
-    myVirtualDevicePanel.getCreateButton().doClick();
+    virtualDevicePanel.getCreateButton().doClick();
 
     Mockito.verify(createAvdAction).actionPerformed(Mockito.any());
   }
