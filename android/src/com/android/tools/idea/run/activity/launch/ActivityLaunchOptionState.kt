@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity.launch;
+package com.android.tools.idea.run.activity.launch
 
-import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.IShellOutputReceiver
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider
+import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.tasks.AppLaunchTask
+import com.intellij.execution.ExecutionException
+import com.intellij.execution.ui.ConsoleView
+import org.jetbrains.android.facet.AndroidFacet
 
 // Each Launch Option should extend this class and add a set of public fields such that they can be saved/restored using
 // DefaultJDOMExternalizer
-public abstract class ActivityLaunchOptionState {
-  @Nullable
-  public abstract AppLaunchTask getLaunchTask(@NotNull String applicationId,
-                                              @NotNull AndroidFacet facet,
-                                              @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                              @NotNull ProfilerState profilerState,
-                                              @NotNull ApkProvider apkProvider);
+abstract class ActivityLaunchOptionState {
+  abstract fun getLaunchTask(
+    applicationId: String,
+    facet: AndroidFacet,
+    startActivityFlagsProvider: StartActivityFlagsProvider,
+    profilerState: ProfilerState,
+    apkProvider: ApkProvider
+  ): AppLaunchTask?
 
-  @NotNull
-  public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    return Collections.emptyList();
+  open fun checkConfiguration(facet: AndroidFacet): List<ValidationError?> {
+    return emptyList<ValidationError>()
   }
 }

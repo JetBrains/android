@@ -13,98 +13,84 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity.launch;
+package com.android.tools.idea.run.activity.launch
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.activity.*;
-import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.activity.ActivityLocator
+import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.idea.run.activity.DefaultApkActivityLocator
+import com.android.tools.idea.run.activity.MavenDefaultActivityLocator
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider
+import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.tasks.AppLaunchTask
+import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask
+import com.google.common.collect.ImmutableList
+import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.JComponent
 
-import javax.swing.*;
-import java.util.List;
-
-public class DefaultActivityLaunch extends ActivityLaunchOption<DefaultActivityLaunch.State> {
-  public static final DefaultActivityLaunch INSTANCE = new DefaultActivityLaunch();
-
-  public static final class State extends ActivityLaunchOptionState {
-    @Nullable
-    @Override
-    public AppLaunchTask getLaunchTask(@NotNull String applicationId,
-                                       @NotNull AndroidFacet facet,
-                                       @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                       @NotNull ProfilerState profilerState,
-                                       @NotNull ApkProvider apkProvider) {
-      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(facet, apkProvider), startActivityFlagsProvider);
+class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State?>() {
+  class State : ActivityLaunchOptionState() {
+    override fun getLaunchTask(
+      applicationId: String,
+      facet: AndroidFacet,
+      startActivityFlagsProvider: StartActivityFlagsProvider,
+      profilerState: ProfilerState,
+      apkProvider: ApkProvider
+    ): AppLaunchTask {
+      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(facet, apkProvider), startActivityFlagsProvider)
     }
 
-    @NotNull
-    @Override
-    public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
+    override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
       // Neither MavenDefaultActivityLocator nor DefaultApkActivityLocator can validate
       // based on Facets. There is no point calling validate().
-      return ImmutableList.of();
+      return ImmutableList.of()
     }
 
-    @NotNull
-    private static ActivityLocator getActivityLocatorForLaunch(@NotNull AndroidFacet facet,
-                                                               @NotNull ApkProvider apkProvider) {
-      if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-        return new MavenDefaultActivityLocator(facet);
-      }
-
-      if (StudioFlags.DEFAULT_ACTIVITY_LOCATOR_FROM_APKS.get()) {
-         return new DefaultApkActivityLocator(apkProvider);
-      } else {
-        return new DefaultActivityLocator(facet);
+    companion object {
+      private fun getActivityLocatorForLaunch(facet: AndroidFacet, apkProvider: ApkProvider): ActivityLocator {
+        if (facet.properties.USE_CUSTOM_COMPILER_MANIFEST) {
+          return MavenDefaultActivityLocator(facet)
+        }
+        return if (StudioFlags.DEFAULT_ACTIVITY_LOCATOR_FROM_APKS.get()) {
+          DefaultApkActivityLocator(apkProvider)
+        }
+        else {
+          DefaultActivityLocator(facet)
+        }
       }
     }
   }
 
-  @NotNull
-  @Override
-  public String getId() {
-    return AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
+  override fun getId(): String {
+    return AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
   }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return "Default Activity";
+  override fun getDisplayName(): String {
+    return "Default Activity"
   }
 
-  @NotNull
-  @Override
-  public State createState() {
+  override fun createState(): State {
     // there is no state to save in this case
-    return new State();
+    return State()
   }
 
-  @NotNull
-  @Override
-  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
-    return new LaunchOptionConfigurable<State>() {
-      @Nullable
-      @Override
-      public JComponent createComponent() {
-        return null;
+  override fun createConfigurable(project: Project, context: LaunchOptionConfigurableContext): LaunchOptionConfigurable<State?> {
+    return object : LaunchOptionConfigurable<State?> {
+      override fun createComponent(): JComponent? {
+        return null
       }
 
-      @Override
-      public void resetFrom(@NotNull State state) {
-      }
+      override fun resetFrom(state: State) {}
+      override fun applyTo(state: State) {}
+    }
+  }
 
-      @Override
-      public void applyTo(@NotNull State state) {
-      }
-    };
+  companion object {
+    @JvmField
+    val INSTANCE = DefaultActivityLaunch()
   }
 }

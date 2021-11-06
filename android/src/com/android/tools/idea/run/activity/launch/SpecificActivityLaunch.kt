@@ -13,90 +13,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.activity.launch;
+package com.android.tools.idea.run.activity.launch
 
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.activity.ActivityLocator;
-import com.android.tools.idea.run.activity.SpecificActivityLocator;
-import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.search.GlobalSearchScope;
-import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOption
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurable
+import com.android.tools.idea.run.activity.launch.SpecificActivityConfigurable
+import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
+import org.jetbrains.android.facet.AndroidFacet
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider
+import com.android.tools.idea.run.editor.ProfilerState
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.tasks.AppLaunchTask
+import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask
+import com.android.tools.idea.run.activity.ActivityLocator.ActivityLocatorException
+import com.android.tools.idea.run.activity.SpecificActivityLocator
+import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
 
-public class SpecificActivityLaunch extends ActivityLaunchOption<SpecificActivityLaunch.State> {
-  public static final SpecificActivityLaunch INSTANCE = new SpecificActivityLaunch();
-
-  @NotNull
-  @Override
-  public String getId() {
-    return AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
+class SpecificActivityLaunch : ActivityLaunchOption<SpecificActivityLaunch.State?>() {
+  override fun getId(): String {
+    return AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY
   }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return "Specified Activity";
+  override fun getDisplayName(): String {
+    return "Specified Activity"
   }
 
-  @NotNull
-  @Override
-  public State createState() {
-    return new State();
+  override fun createState(): State {
+    return State()
   }
 
-  @NotNull
-  @Override
-  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
-    return new SpecificActivityConfigurable(project, context);
+  override fun createConfigurable(project: Project, context: LaunchOptionConfigurableContext): LaunchOptionConfigurable<State?> {
+    return SpecificActivityConfigurable(project, context)
   }
 
-  public static class State extends ActivityLaunchOptionState {
-    public String ACTIVITY_CLASS = "";
-    public boolean SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false;
-    public boolean SKIP_ACTIVITY_VALIDATION = false;
-
-    @Nullable
-    @Override
-    public AppLaunchTask getLaunchTask(@NotNull String applicationId,
-                                       @NotNull AndroidFacet facet,
-                                       @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                       @NotNull ProfilerState profilerState,
-                                       @NotNull ApkProvider apkProvider) {
-      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, startActivityFlagsProvider);
+  open class State : ActivityLaunchOptionState() {
+    @JvmField
+    var ACTIVITY_CLASS = ""
+    @JvmField
+    var SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false
+    @JvmField
+    var SKIP_ACTIVITY_VALIDATION = false
+    override fun getLaunchTask(
+      applicationId: String,
+      facet: AndroidFacet,
+      startActivityFlagsProvider: StartActivityFlagsProvider,
+      profilerState: ProfilerState,
+      apkProvider: ApkProvider
+    ): AppLaunchTask? {
+      return SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, startActivityFlagsProvider)
     }
 
-    @NotNull
-    @Override
-    public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      try {
+    override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
+      return try {
         if (!SKIP_ACTIVITY_VALIDATION) {
-          getActivityLocator(facet).validate();
+          getActivityLocator(facet).validate()
         }
-        return ImmutableList.of();
-      }
-      catch (ActivityLocator.ActivityLocatorException e) {
+        ImmutableList.of()
+      } catch (e: ActivityLocatorException) {
         // The launch will probably fail, but we allow the user to continue in case we are looking at stale data.
-        return ImmutableList.of(ValidationError.warning(e.getMessage()));
+        ImmutableList.of(
+          ValidationError.warning(
+            e.message!!
+          )
+        )
       }
     }
 
     @VisibleForTesting
-    @NotNull
-    protected SpecificActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
-      Project project = facet.getModule().getProject();
-      GlobalSearchScope scope = SEARCH_ACTIVITY_IN_GLOBAL_SCOPE ? GlobalSearchScope.allScope(project)
-                                                                : GlobalSearchScope.projectScope(project);
-      return new SpecificActivityLocator(facet, ACTIVITY_CLASS, scope);
+    protected open fun getActivityLocator(facet: AndroidFacet): SpecificActivityLocator {
+      val project = facet.module.project
+      val scope = if (SEARCH_ACTIVITY_IN_GLOBAL_SCOPE) GlobalSearchScope.allScope(project) else GlobalSearchScope.projectScope(project)
+      return SpecificActivityLocator(facet, ACTIVITY_CLASS, scope)
     }
+  }
+
+  companion object {
+    @JvmField
+    val INSTANCE = SpecificActivityLaunch()
   }
 }
