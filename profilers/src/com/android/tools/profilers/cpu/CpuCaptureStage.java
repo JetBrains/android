@@ -589,7 +589,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // Jank
     List<AndroidFrameTimelineEvent> events = systemTraceData.getAndroidFrameTimelineEvents();
     List<AndroidFrameTimelineEvent> jankEvents = events.stream()
-      .filter(frame -> frame.getActualEndUs() > frame.getExpectedEndUs())
+      .filter(AndroidFrameTimelineEvent::isJank)
       .collect(Collectors.toList());
     List<SeriesData<Long>> vsyncs = systemTraceData.getVsyncCounterValues();
     AndroidFrameTimelineModel jankyFrameModel =
