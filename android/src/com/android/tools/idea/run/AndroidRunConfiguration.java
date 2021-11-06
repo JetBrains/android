@@ -22,16 +22,16 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
+import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
+import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
+import com.android.tools.idea.run.activity.launch.LaunchOption;
+import com.android.tools.idea.run.activity.launch.LaunchOptionState;
+import com.android.tools.idea.run.activity.launch.NoLaunch;
+import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
-import com.android.tools.idea.run.editor.DeepLinkLaunch;
-import com.android.tools.idea.run.editor.DefaultActivityLaunch;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
-import com.android.tools.idea.run.editor.LaunchOption;
-import com.android.tools.idea.run.editor.LaunchOptionState;
-import com.android.tools.idea.run.editor.NoLaunch;
-import com.android.tools.idea.run.editor.SpecificActivityLaunch;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -84,16 +84,14 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
-  @NonNls private static final String FEATURE_LIST_SEPARATOR = ",";
-
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
   @NonNls public static final String LAUNCH_DEEP_LINK = "launch_deep_link";
-
   public static final List<? extends LaunchOption> LAUNCH_OPTIONS =
     Arrays.asList(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE, DeepLinkLaunch.INSTANCE);
-
+  @NonNls private static final String FEATURE_LIST_SEPARATOR = ",";
+  private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
   // Deploy options
   public boolean DEPLOY = true;
   public boolean DEPLOY_APK_FROM_BUNDLE = false;
@@ -103,12 +101,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public boolean ALL_USERS = false;
   public boolean ALWAYS_INSTALL_WITH_PM = false;
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
-
   // Launch options
   public String ACTIVITY_EXTRA_FLAGS = "";
   public String MODE = LAUNCH_DEFAULT_ACTIVITY;
-
-  private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
     super(project, factory, false);
@@ -272,7 +267,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     }
 
     try {
-      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState(), apkProvider);
+      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState(),
+                                 apkProvider);
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);
@@ -284,7 +280,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   /**
    * Configures the {@link SpecificActivityLaunch.State} and sets the {@link #MODE} to {@link #LAUNCH_SPECIFIC_ACTIVITY}.
    *
-   * @param activityName Name of the activity to be launched.
+   * @param activityName                Name of the activity to be launched.
    * @param searchActivityInGlobalScope Whether the activity should be searched in the global scope, as opposed to the project scope. Please
    *                                    note that setting it to {@code true} might result in a slower search, so prefer using {@code false}
    *                                    if the activity is located inside the project.
@@ -339,7 +335,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
     // Ensure invariant in case persisted state is manually edited or corrupted for some reason
     if (DEPLOY_APK_FROM_BUNDLE) {
-      DEPLOY=true;
+      DEPLOY = true;
     }
   }
 
@@ -375,13 +371,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       if (isRunning) {
         // Use the system's restart icon for the default run executor.
         return AllIcons.Actions.Restart;
-      } else {
+      }
+      else {
         // this is default "run" icon without "live" indicator.
         return executor instanceof ExecutorIconProvider ?
                ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor) :
                executor.getIcon();
       }
-    } else {
+    }
+    else {
       return null; // use platform default icon
     }
   }

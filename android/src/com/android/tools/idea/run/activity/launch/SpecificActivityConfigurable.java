@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.editor;
+package com.android.tools.idea.run.activity.launch;
 
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurable;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
+import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.ide.util.TreeClassChooser;

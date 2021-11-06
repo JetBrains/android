@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.editor.LaunchOptionConfigurableContext;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Editor;

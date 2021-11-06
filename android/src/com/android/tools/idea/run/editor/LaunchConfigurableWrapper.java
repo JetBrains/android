@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.activity.launch.LaunchOption;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurable;
+import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
+import com.android.tools.idea.run.activity.launch.LaunchOptionState;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;

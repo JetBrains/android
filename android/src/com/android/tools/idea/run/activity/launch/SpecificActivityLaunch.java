@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.editor;
+package com.android.tools.idea.run.activity.launch;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
+import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.State> {
   public static final SpecificActivityLaunch INSTANCE = new SpecificActivityLaunch();
+
+  @NotNull
+  @Override
+  public String getId() {
+    return AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
+  }
+
+  @NotNull
+  @Override
+  public String getDisplayName() {
+    return "Specified Activity";
+  }
+
+  @NotNull
+  @Override
+  public State createState() {
+    return new State();
+  }
+
+  @NotNull
+  @Override
+  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
+    return new SpecificActivityConfigurable(project, context);
+  }
 
   public static class State extends LaunchOptionState {
     public String ACTIVITY_CLASS = "";
@@ -74,29 +98,5 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
                                                                 : GlobalSearchScope.projectScope(project);
       return new SpecificActivityLocator(facet, ACTIVITY_CLASS, scope);
     }
-  }
-
-  @NotNull
-  @Override
-  public String getId() {
-    return AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY;
-  }
-
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return "Specified Activity";
-  }
-
-  @NotNull
-  @Override
-  public State createState() {
-    return new State();
-  }
-
-  @NotNull
-  @Override
-  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
-    return new SpecificActivityConfigurable(project, context);
   }
 }

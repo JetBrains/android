@@ -138,7 +138,7 @@ com.android.tools.idea.run.editor.AndroidTestExtraParamsDialogTest
 com.android.tools.idea.run.editor.AndroidTestExtraParamsTableTest
 com.android.tools.idea.run.editor.ApplicationRunParametersTest
 com.android.tools.idea.run.editor.InstantAppRunConfigurationsDialogTest
-com.android.tools.idea.run.editor.SpecificActivityLaunchTest
+com.android.tools.idea.run.activity.launch.SpecificActivityLaunchTest
 com.android.tools.idea.sdk.IdeSdksAndroidTest
 com.android.tools.idea.sdk.wizard.SdkQuickfixUtilsTest
 com.android.tools.idea.startup.GradleSpecificInitializerTest

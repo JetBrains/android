@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.editor;
+package com.android.tools.idea.run.activity.launch;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -22,6 +22,8 @@ import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
+import com.android.tools.idea.run.editor.NoApksProvider;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
