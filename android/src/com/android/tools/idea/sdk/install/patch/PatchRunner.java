@@ -69,7 +69,7 @@ public class PatchRunner {
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
-  private static final Map<LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
+  private static final Map<@NotNull LocalPackage, PatchRunner> ourCache = CollectionFactory.createWeakMap();
 
   /**
    * Run the IJ patcher by reflection.
