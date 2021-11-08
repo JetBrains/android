@@ -19,6 +19,11 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.DescriptionEnumValue
+import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
+import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
+import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
+import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
 import com.android.tools.property.panel.api.EnumValue
 import icons.StudioIcons
 import javax.swing.Icon
@@ -53,14 +58,16 @@ internal class DeviceEnumValueBuilder {
     Pair(DeviceClass.Generic, mutableListOf())
   )
 
-  fun addDeviceDp(
+  fun addCanonical(
     name: String,
-    type: DeviceClass,
+    description: String?,
     widthDp: Int,
     heightDp: Int
   ): DeviceEnumValueBuilder = apply {
     val deviceSpec = DeviceConfig(widthDp, heightDp, DimUnit.dp).deviceSpec()
-    deviceEnumValues[type]?.add(EnumValue.indented(deviceSpec, name))
+    deviceEnumValues[DeviceClass.Canonical]?.add(
+      DescriptionEnumValue(deviceSpec, name, description)
+    )
   }
 
   private fun addDevicePx(
@@ -159,17 +166,17 @@ internal class DeviceEnumValueBuilder {
 
   companion object {
     fun withDefaultDevices(): DeviceEnumValueBuilder =
-        DeviceEnumValueBuilder()
-          .addDeviceDp("Phone", DeviceClass.Canonical, 360, 640)
-          .addDeviceDp("Foldable", DeviceClass.Canonical, 673, 841)
-          .addDeviceDp("Tablet", DeviceClass.Canonical, 1280, 800)
-          .addDeviceDp("Desktop", DeviceClass.Canonical, 1920, 1080)
-          .addWearDevice(Shape.Square)
-          .addWearDevice(Shape.Round)
-          .addWearDevice(Shape.Chin)
-          .addTvDevice(3840, 2160, 55.0)
-          .addTvDevice(1920, 1080, 55.0)
-          .addTvDevice(1280, 720, 55.0)
-          .addAutoDevice(1024, 768, 8.4)
-    }
+      DeviceEnumValueBuilder()
+        .addCanonical("Phone", DEVICE_CLASS_PHONE_TOOLTIP, 360, 640)
+        .addCanonical("Foldable", DEVICE_CLASS_FOLDABLE_TOOLTIP, 673, 841)
+        .addCanonical("Tablet", DEVICE_CLASS_TABLET_TOOLTIP, 1280, 800)
+        .addCanonical("Desktop", DEVICE_CLASS_DESKTOP_TOOLTIP, 1920, 1080)
+        .addWearDevice(Shape.Square)
+        .addWearDevice(Shape.Round)
+        .addWearDevice(Shape.Chin)
+        .addTvDevice(3840, 2160, 55.0)
+        .addTvDevice(1920, 1080, 55.0)
+        .addTvDevice(1280, 720, 55.0)
+        .addAutoDevice(1024, 768, 8.4)
+  }
 }

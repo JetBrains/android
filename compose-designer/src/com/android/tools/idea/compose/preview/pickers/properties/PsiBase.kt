@@ -31,6 +31,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
+import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
@@ -88,9 +89,8 @@ internal class PsiPropertyView(
     addTab("").apply {
       builders.add(
         PsiPropertiesInspectorBuilder(
-          EditorProvider.create(
-            PsiEnumProvider(enumSupportValuesProvider),
-            PsiPropertyItemControlTypeProvider
+          PsiEditorProvider(
+            PsiEnumProvider(enumSupportValuesProvider)
           )
         )
       )

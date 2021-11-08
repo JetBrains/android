@@ -15,9 +15,31 @@
  */
 package com.android.tools.property.panel.impl.support
 
-import com.android.tools.property.panel.api.*
-import com.android.tools.property.panel.impl.model.*
-import com.android.tools.property.panel.impl.ui.*
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.LinkPropertyItem
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
+import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ColorFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
+import com.android.tools.property.panel.impl.model.LinkPropertyEditorModel
+import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.ui.ActionButtonBinding
+import com.android.tools.property.panel.impl.ui.FlagPropertyEditor
+import com.android.tools.property.panel.impl.ui.PropertyCheckBox
+import com.android.tools.property.panel.impl.ui.PropertyComboBox
+import com.android.tools.property.panel.impl.ui.PropertyLink
+import com.android.tools.property.panel.impl.ui.PropertyTextField
+import com.android.tools.property.panel.impl.ui.PropertyTextFieldWithLeftButton
+import com.android.tools.property.panel.impl.ui.PropertyThreeStateCheckBox
 import javax.swing.JComponent
 
 /**
@@ -29,7 +51,7 @@ import javax.swing.JComponent
  * @property enumSupportProvider provides an [EnumSupport] for a property or null if there isn't any
  * @property controlTypeProvider provides the [ControlType] given a property and its [EnumSupport]
  */
-class EditorProviderImpl<in P : PropertyItem>(
+open class EditorProviderImpl<in P : PropertyItem>(
   private val enumSupportProvider: EnumSupportProvider<P>,
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
@@ -82,17 +104,17 @@ class EditorProviderImpl<in P : PropertyItem>(
       ControlType.CUSTOM_EDITOR_2 -> throw NotImplementedError()
     }
 
-  private fun createComboBoxEditor(property: P,
-                                   editable: Boolean,
-                                   enumSupport: EnumSupport,
-                                   asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+  protected open fun createComboBoxEditor(property: P,
+                                          editable: Boolean,
+                                          enumSupport: EnumSupport,
+                                          asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
     val comboBox = PropertyComboBox(model, asTableCellEditor)
     comboBox.renderer = enumSupport.renderer
     return Pair(model, addActionButtonBinding(model, comboBox))
   }
 
-  private fun addActionButtonBinding(model: BasePropertyEditorModel, editor: JComponent): JComponent {
+  protected open fun addActionButtonBinding(model: BasePropertyEditorModel, editor: JComponent): JComponent {
     return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }
 }

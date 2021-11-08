@@ -261,3 +261,15 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
     return true
   }
 }
+
+/**
+ * [EnumValue] that includes a description, to be shown as a tooltip in [PsiEnumValueCellRenderer]
+ */
+internal data class DescriptionEnumValue(
+  override val value: String,
+  override val display: String,
+  val description: String? = null
+): EnumValue {
+  override val indented: Boolean = true
+  override fun toString(): String = value
+}

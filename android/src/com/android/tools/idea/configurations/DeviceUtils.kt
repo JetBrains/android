@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("DeviceUtils")
+
 package com.android.tools.idea.configurations
 
 import com.android.annotations.concurrency.Slow
@@ -141,13 +142,25 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
  * The formula is "px = dp * (dpi / 160)"
  */
 internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
+
 /**
  * Convert dp to px.
  * The formula is "px = dp * (dpi / 160)"
  */
 internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
+
 /**
  * Convert px to dp.
  * The formula is "px = dp * (dpi / 160)"
  */
 internal fun Int.toDp(density: Density): Double = (this.toDouble() * 160 / density.dpiValue)
+
+const val DEVICE_CLASS_PHONE_TOOLTIP = "This reference device uses the COMPACT width size class," +
+                                       " which represents 99% of Android phones in portrait orientation."
+const val DEVICE_CLASS_FOLDABLE_TOOLTIP = "This reference device uses the MEDIUM width size class," +
+                                          " which represents foldables in unfolded portrait orientation," +
+                                          " or 94% of all tablets in portrait orientation."
+const val DEVICE_CLASS_TABLET_TOOLTIP = "This reference device uses the EXPANDED width size class," +
+                                        " which represents 97% of Android tablets in landscape orientation."
+const val DEVICE_CLASS_DESKTOP_TOOLTIP = "This reference device uses the EXPANDED width size class," +
+                                         " which represents 97% of Android desktops in landscape orientation."

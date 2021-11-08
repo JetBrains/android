@@ -72,7 +72,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     return separator
   }
 
-  private fun updateBorder(panel: JPanel, line: JSeparator) {
+  protected fun updateBorder(panel: JPanel, line: JComponent) {
     val rowHeight = UIManager.getInt("List.rowHeight")
     val spacing = (rowHeight - line.preferredSize.height) / 2 - JBUI.scale(OUTER_BORDER_UNSCALED)
     panel.border = BorderFactory.createEmptyBorder(spacing, 0, spacing, 0)
@@ -90,7 +90,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     }
   }
 
-  private fun getHeaderRenderer(header: String, headerIcon: Icon?): Component {
+  protected open fun getHeaderRenderer(header: String, headerIcon: Icon?): Component {
     headerLabel.text = header
     headerLabel.icon = headerIcon
     return headerLabel

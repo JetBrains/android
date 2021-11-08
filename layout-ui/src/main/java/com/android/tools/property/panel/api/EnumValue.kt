@@ -93,6 +93,7 @@ interface EnumValue {
     fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
     fun header(header: String): EnumValue = HeaderEnumValue(header)
     fun header(header: String, icon: Icon?): EnumValue = HeaderEnumValue(header, icon)
+    fun empty(display: String) = EmptyDisplayEnumValue(display)
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}

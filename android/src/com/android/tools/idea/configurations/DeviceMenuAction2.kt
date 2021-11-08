@@ -64,15 +64,10 @@ private val GENERIC_DEVICE_FILTER: (Map<DeviceGroup, List<Device>>) -> List<Devi
 }
 
 internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
-  "_device_class_phone" to "This reference device uses the COMPACT width size class, " +
-    "which represents 99% of Android phones in portrait orientation.",
-  "_device_class_foldable" to "This reference device uses the MEDIUM width size class," +
-    " which represents foldables in unfolded portrait orientation," +
-    " or 94% of all tablets in portrait orientation.",
-  "_device_class_tablet" to "This reference device uses the EXPANDED width size class," +
-    " which represents 97% of Android tablets in landscape orientation.",
-  "_device_class_desktop" to "This reference device uses the EXPANDED width size class," +
-    " which represents 97% of Android desktops in landscape orientation."
+  "_device_class_phone" to DEVICE_CLASS_PHONE_TOOLTIP,
+  "_device_class_foldable" to DEVICE_CLASS_FOLDABLE_TOOLTIP,
+  "_device_class_tablet" to DEVICE_CLASS_TABLET_TOOLTIP,
+  "_device_class_desktop" to DEVICE_CLASS_DESKTOP_TOOLTIP
 )
 
 /**
