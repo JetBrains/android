@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager;
+package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.IconTableCell;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.util.Optional;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class IconButton extends JButton implements IconTableCell {
-  private final @NotNull Icon myDefaultIcon;
+final class IconLabel extends JBLabel implements IconTableCell {
+  private @Nullable Icon myDefaultIcon;
 
-  public IconButton(@NotNull Icon defaultIcon) {
+  IconLabel() {
+    this(null);
+  }
+
+  IconLabel(@Nullable Icon defaultIcon) {
     super(defaultIcon);
     Dimension size = new JBDimension(22, 22);
 
-    setBorder(null);
-    setContentAreaFilled(false);
     setMaximumSize(size);
     setMinimumSize(size);
     setPreferredSize(size);
@@ -40,6 +44,10 @@ public final class IconButton extends JButton implements IconTableCell {
 
   @Override
   public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
-    return Optional.of(myDefaultIcon);
+    return Optional.ofNullable(myDefaultIcon);
+  }
+
+  void setDefaultIcon(@Nullable Icon defaultIcon) {
+    myDefaultIcon = defaultIcon;
   }
 }

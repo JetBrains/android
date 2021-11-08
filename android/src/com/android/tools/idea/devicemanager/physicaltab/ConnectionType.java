@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 public enum ConnectionType {
   USB,
   WI_FI;
+
+  static final @NotNull Object USB_SET = Sets.immutableEnumSet(USB);
+  static final @NotNull Object WI_FI_SET = Sets.immutableEnumSet(WI_FI);
+  static final @NotNull Object USB_AND_WI_FI_SET = Sets.immutableEnumSet(USB, WI_FI);
 
   @Override
   public final @NotNull String toString() {

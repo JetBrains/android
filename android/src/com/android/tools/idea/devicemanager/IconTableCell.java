@@ -15,31 +15,33 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.intellij.util.ui.JBDimension;
-import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.Component;
 import java.util.Optional;
 import javax.swing.Icon;
-import javax.swing.JButton;
+import javax.swing.JTable;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class IconButton extends JButton implements IconTableCell {
-  private final @NotNull Icon myDefaultIcon;
+public interface IconTableCell {
+  default @NotNull Component getTableCellComponent(@NotNull JTable table, boolean selected, boolean focused) {
+    setBackground(Tables.getBackground(table, selected));
+    setBorder(Tables.getBorder(selected, focused));
 
-  public IconButton(@NotNull Icon defaultIcon) {
-    super(defaultIcon);
-    Dimension size = new JBDimension(22, 22);
+    Icon icon = getDefaultIcon()
+      .map(i -> Tables.getIcon(table, selected, i))
+      .orElse(null);
 
-    setBorder(null);
-    setContentAreaFilled(false);
-    setMaximumSize(size);
-    setMinimumSize(size);
-    setPreferredSize(size);
-
-    myDefaultIcon = defaultIcon;
+    setIcon(icon);
+    return (Component)this;
   }
 
-  @Override
-  public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
-    return Optional.of(myDefaultIcon);
-  }
+  @NotNull Optional<@NotNull Icon> getDefaultIcon();
+
+  void setBackground(@Nullable Color background);
+
+  void setBorder(@Nullable Border border);
+
+  void setIcon(@Nullable Icon icon);
 }

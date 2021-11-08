@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
@@ -23,6 +24,7 @@ import java.awt.Component;
 import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -66,6 +68,14 @@ public final class Tables {
     }
 
     return table.getForeground();
+  }
+
+  static @NotNull Icon getIcon(@NotNull JTable table, boolean selected, @NotNull Icon icon) {
+    if (selected) {
+      return ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, table.getSelectionForeground());
+    }
+
+    return icon;
   }
 
   public static void selectNextOrFirstRow(@NotNull JTable table) {

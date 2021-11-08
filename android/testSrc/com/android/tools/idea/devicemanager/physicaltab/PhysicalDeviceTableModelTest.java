@@ -282,6 +282,6 @@ public final class PhysicalDeviceTableModelTest {
     Object value = model.getValueAt(0, PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
 
     // Assert
-    assertEquals("", value);
+    assertEquals(Collections.EMPTY_SET, value);
   }
 }

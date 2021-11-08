@@ -223,8 +223,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-      case TYPE_MODEL_COLUMN_INDEX:
         return Object.class;
+      case TYPE_MODEL_COLUMN_INDEX:
+        return Collection.class;
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.class;
       case REMOVE_MODEL_COLUMN_INDEX:
@@ -260,9 +261,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return myCombinedDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return myCombinedDevices.get(modelRowIndex).getConnectionTypes().stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(" "));
+        return myCombinedDevices.get(modelRowIndex).getConnectionTypes();
       case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
         return ActivateDeviceFileExplorerWindowValue.INSTANCE;
       case REMOVE_MODEL_COLUMN_INDEX:

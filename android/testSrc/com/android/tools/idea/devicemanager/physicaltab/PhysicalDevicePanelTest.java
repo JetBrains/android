@@ -116,7 +116,7 @@ public final class PhysicalDevicePanelTest {
 
     Object data = Collections.singletonList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                           "31",
-                                                          "USB",
+                                                          ConnectionType.USB_SET,
                                                           ActivateDeviceFileExplorerWindowValue.INSTANCE,
                                                           RemoveValue.INSTANCE,
                                                           PopUpMenuValue.INSTANCE));
@@ -144,13 +144,13 @@ public final class PhysicalDevicePanelTest {
 
     Object data = Arrays.asList(Arrays.asList(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                               "31",
-                                              "USB",
+                                              ConnectionType.USB_SET,
                                               ActivateDeviceFileExplorerWindowValue.INSTANCE,
                                               RemoveValue.INSTANCE,
                                               PopUpMenuValue.INSTANCE),
                                 Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5,
                                               "30",
-                                              "",
+                                              Collections.EMPTY_SET,
                                               ActivateDeviceFileExplorerWindowValue.INSTANCE,
                                               RemoveValue.INSTANCE,
                                               PopUpMenuValue.INSTANCE));

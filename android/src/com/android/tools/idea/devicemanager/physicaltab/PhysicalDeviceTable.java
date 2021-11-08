@@ -63,6 +63,7 @@ final class PhysicalDeviceTable extends JBTable {
     setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(project));
 
     setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
+    setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
     setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellRenderer());
     setDefaultRenderer(RemoveValue.class, new RemoveButtonTableCellRenderer());
     setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
