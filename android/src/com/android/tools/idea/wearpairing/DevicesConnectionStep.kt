@@ -86,6 +86,7 @@ import javax.swing.event.HyperlinkListener
 
 private const val WEAR_MAIN_ACTIVITY = "com.google.android.clockwork.companion.launcher.LauncherActivity"
 private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
+private const val TIME_TO_INSTALL_COMPANION_APP = 120_000L
 private const val PATH_PLAY_SCREEN = "/wearPairing/screens/playStore.png"
 private const val PATH_PAIR_SCREEN = "/wearPairing/screens/wearPair.png"
 
@@ -242,7 +243,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
                                         scanningLabel = message("wear.assistant.device.connection.scanning.wear.os.lnk"))
     }
 
-    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { phoneDevice.isCompanionAppInstalled(wearDevice.getCompanionAppIdForWatch()) }) {
+    if (waitForCondition(TIME_TO_INSTALL_COMPANION_APP) { phoneDevice.isCompanionAppInstalled(wearDevice.getCompanionAppIdForWatch()) }) {
       showUiInstallCompanionAppSuccess(phoneDevice, wearDevice)
       canGoForward.set(true)
     }
