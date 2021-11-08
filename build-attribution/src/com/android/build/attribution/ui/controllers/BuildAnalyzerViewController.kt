@@ -226,8 +226,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<String?>): AnAction {
-    return FindSelectedLibVersionDeclarationAction(selectionSupplier, project)
-    //TODO(mlazeba): add analytics on action
+    return FindSelectedLibVersionDeclarationAction(selectionSupplier, project, analytics)
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

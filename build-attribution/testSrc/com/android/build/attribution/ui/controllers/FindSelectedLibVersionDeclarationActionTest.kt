@@ -24,7 +24,7 @@ import org.junit.Before
 import org.junit.Test
 
 @RunsInEdt
-class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
+class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
 
   @Before
   fun setUpTestDataPath() {
@@ -34,8 +34,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testVersionInLiteral() {
     writeToBuildFile(TestFileName("libraries/versionInLiteral"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(1)
   }
@@ -43,8 +42,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testVersionInMapNotation() {
     writeToBuildFile(TestFileName("libraries/versionInMapNotation"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(1)
   }
@@ -52,8 +50,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testVersionInVariable() {
     writeToBuildFile(TestFileName("libraries/versionInVariable"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(0)
   }
@@ -61,8 +58,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testVersionInUnknownVariable() {
     writeToBuildFile(TestFileName("libraries/versionInUnknownVariable"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     // In case of problems with resolving version return declaration itself.
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(2)
@@ -71,8 +67,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testSeveralDeclarationsVersionInLiteral() {
     writeToBuildFile(TestFileName("libraries/versionInLiteralSeveralDeclarations"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     // Return several all declarations when they are defined separately.
     Truth.assertThat(arrayOfUsageInfos).hasLength(2)
   }
@@ -80,8 +75,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testSeveralDeclarationsVersionInOneVariable() {
     writeToBuildFile(TestFileName("libraries/versionInVariableSeveralDeclarations"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     // Return one single version variable declaration references from both dependency declarations.
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(0)
@@ -90,8 +84,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testDependencyInVariable() {
     writeToBuildFile(TestFileName("libraries/dependencyInVariable"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(0)
   }
@@ -99,8 +92,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testDependencyInMap() {
     writeToBuildFile(TestFileName("libraries/dependencyInMap"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(1)
   }
@@ -108,8 +100,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testDependencyAsReferenceMap() {
     writeToBuildFile(TestFileName("libraries/dependencyAsReferenceMap"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(0)
   }
@@ -117,8 +108,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase(){
   @Test
   fun testDependencyInVariableVersionInVariable() {
     writeToBuildFile(TestFileName("libraries/dependencyInVariableVersionInVariable"))
-    val action = FindSelectedLibVersionDeclarationAction({ "org.jetbrains.kotlin:kotlin-stdlib:1.5.31" }, project)
-    val arrayOfUsageInfos = action.findVersionDeclarations("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     Truth.assertThat(arrayOfUsageInfos).hasLength(1)
     Truth.assertThat(arrayOfUsageInfos[0].element?.getLineNumber()).isEqualTo(0)
   }

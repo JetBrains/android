@@ -193,6 +193,12 @@ class BuildAttributionUiAnalytics(
       .setEventProcessingTimeMs(duration.toMillis())
   )
 
+  fun findLibraryVersionDeclarationActionUsed(duration: Duration) = doLog(
+  newUiEventBuilder()
+  .setEventType(BuildAttributionUiEvent.EventType.FIND_LIBRARY_DECLARATION_CLICKED)
+  .setEventProcessingTimeMs(duration.toMillis())
+  )
+
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)

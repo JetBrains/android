@@ -15,10 +15,12 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.google.common.base.Stopwatch
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -29,12 +31,17 @@ import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfoSearcherAdapter
 import com.intellij.usages.UsageSearcher
 import com.intellij.usages.UsageTarget
+import com.intellij.usages.UsageView
 import com.intellij.usages.UsageViewManager
 import com.intellij.usages.UsageViewPresentation
 import com.intellij.util.Processor
 import java.util.function.Supplier
 
-class FindSelectedLibVersionDeclarationAction(private val selectionSupplier: Supplier<String?>, private val project: Project) : AnAction(
+class FindSelectedLibVersionDeclarationAction(
+  private val selectionSupplier: Supplier<String?>,
+  private val project: Project,
+  private val analytics: BuildAttributionUiAnalytics,
+  ) : AnAction(
   "Find Version Declarations") {
   override fun update(e: AnActionEvent) {
     if (selectionSupplier.get() == null) {
@@ -44,6 +51,8 @@ class FindSelectedLibVersionDeclarationAction(private val selectionSupplier: Sup
 
   override fun actionPerformed(e: AnActionEvent) {
     val selectedDependency = selectionSupplier.get() ?: return
+
+    val watch = Stopwatch.createStarted()
 
     val usageViewPresentation = UsageViewPresentation()
     usageViewPresentation.tabName = "Dependency Version Declaration"
@@ -62,37 +71,42 @@ class FindSelectedLibVersionDeclarationAction(private val selectionSupplier: Sup
         }
 
         override fun findUsages(): Array<UsageInfo> {
-          return findVersionDeclarations(selectedDependency)
+          return findVersionDeclarations(project, selectedDependency)
         }
       }
     }
+    val listener = object : UsageViewManager.UsageViewStateListener {
+      override fun usageViewCreated(usageView: UsageView) = Unit
+      override fun findingUsagesFinished(usageView: UsageView?) = analytics.findLibraryVersionDeclarationActionUsed(watch.elapsed())
+    }
     UsageViewManager.getInstance(project)
-      .searchAndShowUsages(arrayOf<UsageTarget>(), factory, processPresentation, usageViewPresentation, null)
+      .searchAndShowUsages(arrayOf<UsageTarget>(), factory, processPresentation, usageViewPresentation, listener)
   }
 
-  fun findVersionDeclarations(selectedDependency: String): Array<UsageInfo> {
-    val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency) ?: return emptyArray()
-    return ProjectBuildModel.get(project).allIncludedBuildModels.asSequence()
-      .flatMap { model -> model.dependencies().artifacts() }
-      .filter { dependency -> dependency.spec.group == selectedParsed.group && dependency.spec.name == selectedParsed.name }
-      .mapNotNull { dependency ->
-        val versionElement = dependency.version().resultModel.rawElement
-        fun extractDependencyPsi() = when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {
-          is GradleDslLiteral -> dependencyElement.expression
-          else -> dependencyElement?.psiElement
-        }
-        when (versionElement) {
-          null -> // Version declaration is not found, return dependency declaration.
-            extractDependencyPsi()
-          is FakeArtifactElement -> // Version declared as part of dependency declaration, return dependency declaration.
-            extractDependencyPsi()
-          else -> // Version declared in a separate element, return it's psi.
-            versionElement.psiElement
-        }
+}
+
+fun findVersionDeclarations(project: Project, selectedDependency: String): Array<UsageInfo> {
+  val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency) ?: return emptyArray()
+  return ProjectBuildModel.get(project).allIncludedBuildModels.asSequence()
+    .flatMap { model -> model.dependencies().artifacts() }
+    .filter { dependency -> dependency.spec.group == selectedParsed.group && dependency.spec.name == selectedParsed.name }
+    .mapNotNull { dependency ->
+      val versionElement = dependency.version().resultModel.rawElement
+      fun extractDependencyPsi() = when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {
+        is GradleDslLiteral -> dependencyElement.expression
+        else -> dependencyElement?.psiElement
       }
-      .map { UsageInfo(it) }
-      .distinct()
-      .toList()
-      .toTypedArray()
-  }
+      when (versionElement) {
+        null -> // Version declaration is not found, return dependency declaration.
+          extractDependencyPsi()
+        is FakeArtifactElement -> // Version declared as part of dependency declaration, return dependency declaration.
+          extractDependencyPsi()
+        else -> // Version declared in a separate element, return it's psi.
+          versionElement.psiElement
+      }
+    }
+    .map { UsageInfo(it) }
+    .distinct()
+    .toList()
+    .toTypedArray()
 }
