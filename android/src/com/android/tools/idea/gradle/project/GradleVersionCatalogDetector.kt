@@ -19,6 +19,11 @@ import com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_USED
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.OLD_GRADLE
 import com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
@@ -113,20 +118,35 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       return settingsVisitorResults.also { _settingsVisitorResults = settingsVisitorResults }
     }
 
-  val isVersionCatalogProject: Boolean
+  val _isVersionCatalogProject: DetectorResult
     get() {
       val gradleVersion = gradleVersion
-      if (gradleVersion < PREVIEW_GRADLE_VERSION) return false
+      if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
       val settingsVisitorResults = settingsVisitorResults
       val needEnableFeaturePreview = gradleVersion < STABLE_GRADLE_VERSION
-      if (needEnableFeaturePreview && !settingsVisitorResults.enableFeaturePreview) return false
-      if (settingsVisitorResults.versionCatalogsCall) return true
-      return project.baseDir?.findChild("gradle")?.findChild("libs.versions.toml") != null
+      if (needEnableFeaturePreview && !settingsVisitorResults.enableFeaturePreview) return NOT_ENABLED
+      if (settingsVisitorResults.versionCatalogsCall) return EXPLICIT_CALL
+      return when(project.baseDir?.findChild("gradle")?.findChild("libs.versions.toml")) {
+        null -> NOT_USED
+        else -> IMPLICIT_LIBS_VERSIONS
+      }
     }
+
+  val isVersionCatalogProject: Boolean
+    get() = _isVersionCatalogProject.result
+
 
   interface SettingsVisitorResults {
     val enableFeaturePreview: Boolean
     val versionCatalogsCall: Boolean
+  }
+
+  enum class DetectorResult(val result: Boolean) {
+    OLD_GRADLE(false), // Gradle version is too old for Version Catalogs.
+    NOT_ENABLED(false), // Gradle version requires explicit preview feature, not present.
+    EXPLICIT_CALL(true), // Found an explicit call to versionCatalogs in settings.
+    IMPLICIT_LIBS_VERSIONS(true), // No explicit call, but implicit use through libs.versions.toml.
+    NOT_USED(false), // No use of Version Catalogs found in this project.
   }
 
   private fun visitGroovySettings(settingsPsiFile: GroovyFile): SettingsVisitorResults {
