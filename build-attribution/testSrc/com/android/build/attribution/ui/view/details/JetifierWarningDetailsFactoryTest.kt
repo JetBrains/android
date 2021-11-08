@@ -53,7 +53,7 @@ class JetifierWarningDetailsFactoryTest {
 
   @Test
   fun testCheckRequiredPageCreation() {
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false))
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired))
 
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().let {
       val html = it.text.clearHtml()
@@ -68,13 +68,18 @@ class JetifierWarningDetailsFactoryTest {
     val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
     Truth.assertThat(declaredDependenciesTable.isEmpty).isTrue()
 
+    Truth.assertThat(declaredDependenciesTable.getColumnName(0)).isEqualTo("Declared Dependencies Requiring Jetifier")
+
     val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
     Truth.assertThat(dependenciesTree.isEmpty).isTrue()
   }
 
   @Test
   fun testJetifierCanBeRemovedPageCreation() {
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierCanBeRemoved, false))
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
+      JetifierCanBeRemoved,
+      lastCheckJetifierBuildTimestamp = 0
+    ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -86,6 +91,7 @@ class JetifierWarningDetailsFactoryTest {
 
       val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
       Truth.assertThat(declaredDependenciesTable.isEmpty).isTrue()
+      Truth.assertThat(declaredDependenciesTable.getColumnName(0)).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
 
       val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
       Truth.assertThat(dependenciesTree.isEmpty).isTrue()
@@ -113,7 +119,10 @@ class JetifierWarningDetailsFactoryTest {
       ))
     })
 
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(checkJetifierResult), false))
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
+      JetifierRequiredForLibraries(checkJetifierResult),
+      lastCheckJetifierBuildTimestamp = 0
+    ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -138,6 +147,7 @@ class JetifierWarningDetailsFactoryTest {
     // example:A:1.0
     // example:B:1.0
 
+    Truth.assertThat(declaredDependenciesTableModel.getColumnName(0)).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
     Truth.assertThat(declaredDependenciesTableModel.getValueAt(1, 0)).isEqualTo("example:A:1.0")
     declaredDependenciesTable.changeSelection(1, 0, false, false)
     Truth.assertThat(dependenciesTree.isEmpty).isFalse()
@@ -175,8 +185,10 @@ class JetifierWarningDetailsFactoryTest {
       ))
     })
 
-    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(
-      JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(checkJetifierResult), false))
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
+      JetifierRequiredForLibraries(checkJetifierResult),
+      lastCheckJetifierBuildTimestamp = 0
+    ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()

@@ -218,10 +218,10 @@ class WarningsDataPageModelImplTest {
   }
 
   @Test
-  fun testNoJetifierIssueDetected() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(JetifierNotUsed, false))
+  fun testNoJetifierIssueDetected() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(JetifierNotUsed))
 
   @Test
-  fun testJetifierAnalyzerSwitchedOff() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(AnalyzerNotRun, false))
+  fun testJetifierAnalyzerSwitchedOff() = testNoJetifierWarningShown(JetifierUsageAnalyzerResult(AnalyzerNotRun))
 
   private fun testNoJetifierWarningShown(jetifierData: JetifierUsageAnalyzerResult) {
     // Arrange
@@ -249,7 +249,7 @@ class WarningsDataPageModelImplTest {
   fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
     // Arrange
     val model = WarningsDataPageModelImpl(MockUiData().apply {
-      jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, true)
+      jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
     })
 
     // Assert

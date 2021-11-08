@@ -378,7 +378,11 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
   fun testAutoOpenedOnCheckJetifierBuilds() {
     val buildAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
-      override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, true)
+      override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(
+        JetifierCanBeRemoved,
+        lastCheckJetifierBuildTimestamp = 0,
+        checkJetifierBuild = true
+      )
     }
     val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult, 0, mock()).build()
     setNewReportData(reportUiData, buildSessionId)

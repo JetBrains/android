@@ -127,7 +127,7 @@ class BuildAnalyzerViewModelTest {
 
   @Test
   fun testJetifierWarningAutoSelectedOnCheckJetifierBuilds() {
-    mockData.jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, true)
+    mockData.jetifierData = JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp = 0, checkJetifierBuild = true)
     val model = BuildAnalyzerViewModel(mockData, warningSuppressions).apply {
       dataSetSelectionListener = listenerMock
     }

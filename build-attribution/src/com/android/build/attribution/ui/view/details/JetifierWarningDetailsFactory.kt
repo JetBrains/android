@@ -20,7 +20,6 @@ import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
-import com.android.build.attribution.analyzers.JetifierUsageProjectStatus
 import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
@@ -43,6 +42,7 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.table.TableView
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
+import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
@@ -123,7 +123,7 @@ class JetifierWarningDetailsFactory(
       addActionListener { actionHandlers.runCheckJetifierTask() }
       putClientProperty(DEFAULT_STYLE_KEY, true)
     }
-    val result = createCheckJetifierResultPresentation(data.projectStatus)
+    val result = createCheckJetifierResultPresentation(data)
 
     val headerPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -156,12 +156,17 @@ class JetifierWarningDetailsFactory(
     }
   }
 
-  private fun createCheckJetifierResultPresentation(projectState: JetifierUsageProjectStatus) = JPanel().apply {
+  private fun createCheckJetifierResultPresentation(data: JetifierUsageAnalyzerResult) = JPanel().apply {
+    val projectStatus = data.projectStatus
     name = "jetifier-libraries-list"
     layout = BorderLayout()
     val resultsTable = TableView(object : ListTableModel<String>() {
       init {
-        columnInfos = arrayOf(object : ColumnInfo<String, String>("Declared Dependencies Requiring Jetifier") {
+        val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
+          val lastUpdatedTime = DateFormatUtil.formatDateTime(it)
+          " (last updated $lastUpdatedTime)"
+        } ?: ""
+        columnInfos = arrayOf(object : ColumnInfo<String, String>("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix") {
           override fun valueOf(item: String?): String? {
             return item
           }
@@ -173,8 +178,8 @@ class JetifierWarningDetailsFactory(
                 isIconOpaque = true
                 setFocusBorderAroundIcon(true)
                 setPaintFocusBorder(false)
-                if (projectState is JetifierRequiredForLibraries) {
-                  val supportLibrary = projectState.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.dependencyPath?.elements?.size == 1
+                if (projectStatus is JetifierRequiredForLibraries) {
+                  val supportLibrary = projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.dependencyPath?.elements?.size == 1
                   toolTipText = treeToolTip(supportLibrary = supportLibrary, declaredDependency = true)
                 }
                 append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
@@ -188,9 +193,9 @@ class JetifierWarningDetailsFactory(
 
     resultsTable.resetDefaultFocusTraversalKeys()
     resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-    when (projectState) {
+    when (projectStatus) {
       is JetifierRequiredForLibraries -> {
-        resultsTable.listTableModel.items = projectState.checkJetifierResult.dependenciesDependingOnSupportLibs.keys.sorted()
+        resultsTable.listTableModel.items = projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.keys.sorted()
         resultsTable.updateColumnSizes()
       }
       is JetifierUsedCheckRequired -> {
@@ -236,11 +241,11 @@ class JetifierWarningDetailsFactory(
     }
 
     resultsTable.selectionModel.addListSelectionListener {
-      if (projectState is JetifierRequiredForLibraries) {
+      if (projectStatus is JetifierRequiredForLibraries) {
         val newRoot = DefaultMutableTreeNode()
         val selectedDependency = resultsTable.selection.singleOrNull()
         if (selectedDependency != null) {
-          projectState.checkJetifierResult.dependenciesDependingOnSupportLibs[selectedDependency]?.let {
+          projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[selectedDependency]?.let {
             val descriptors = it.dependencyPath.elements.map { DependencyDescriptor(it) }
             descriptors.last().supportLibrary = true
             descriptors.first().declaredDependency = true

@@ -35,6 +35,8 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   private var useAndroidXFlagState: Boolean? = null
   private var checkJetifierResult: CheckJetifierResult? = null
   private var isCheckJetifierBuild: Boolean = false
+  private var lastCheckJetifierBuildTimestamp: Long? = null
+
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return
@@ -44,6 +46,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
     checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest).let {
       if (it.exists()) {
         checkJetifierResult = CheckJetifierResult.load(it)
+        lastCheckJetifierBuildTimestamp = System.currentTimeMillis()
         isCheckJetifierBuild = true
       }
     }
@@ -51,18 +54,18 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {
-    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return JetifierUsageAnalyzerResult(AnalyzerNotRun, false)
+    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return JetifierUsageAnalyzerResult(AnalyzerNotRun, lastCheckJetifierBuildTimestamp, false)
     if (enableJetifierFlagState == true && useAndroidXFlagState == true) {
       return checkJetifierResult?.let {
-        if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, isCheckJetifierBuild)
-        else JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(it), isCheckJetifierBuild)
-      } ?: JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, false)
+        if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
+        else JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(it), lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
+      } ?: JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, lastCheckJetifierBuildTimestamp, false)
     }
-    return JetifierUsageAnalyzerResult(JetifierNotUsed, false)
+    return JetifierUsageAnalyzerResult(JetifierNotUsed, lastCheckJetifierBuildTimestamp, false)
   }
 
   override fun cleanupTempState() {
-    // Leave checkJetifierResult for future reports to not load it on every build.
+    // Leave checkJetifierResult and lastCheckJetifierBuildTimestamp for future reports to not load it on every build.
     enableJetifierFlagState = null
     useAndroidXFlagState = null
     isCheckJetifierBuild = false
@@ -71,6 +74,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
 
 data class JetifierUsageAnalyzerResult(
   val projectStatus: JetifierUsageProjectStatus,
+  val lastCheckJetifierBuildTimestamp: Long? = null,
   /** If current build was a checkJetifier task request. */
   val checkJetifierBuild: Boolean = false
 ) : AnalyzerResult
