@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.logcat.messages
 
+//import com.android.tools.idea.logcat.filters.FullMessageTextFilter
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
-import com.android.tools.idea.logcat.filters.FullMessageTextFilter
+import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -149,7 +151,7 @@ class MessageProcessorTest {
     val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2")
     val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter)
     val batch = listOf(message1, message2)
-    messageProcessor.setFilter(FullMessageTextFilter("tag2"))
+    messageProcessor.setFilter(StringFilter("tag2", LINE))
 
     messageProcessor.appendMessages(batch)
 

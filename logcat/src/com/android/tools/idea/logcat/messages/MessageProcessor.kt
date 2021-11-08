@@ -19,6 +19,7 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.filters.EmptyFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -46,7 +47,7 @@ internal class MessageProcessor(
   private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
   private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
-  private var logcatFilter = LogcatFilter.NOOP_FILTER
+  private var logcatFilter: LogcatFilter = EmptyFilter()
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
   init {

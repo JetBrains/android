@@ -19,9 +19,7 @@ import com.android.tools.adtui.RegexTextField
 import com.android.tools.adtui.RegexTextField.OnChangeListener
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.DevicePanel
-import com.android.tools.idea.logcat.filters.FullMessageRegexFilter
-import com.android.tools.idea.logcat.filters.FullMessageTextFilter
-import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.NOOP_FILTER
+import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
@@ -41,6 +39,7 @@ private const val QUICK_FILTER_HISTORY_SIZE = 10
 internal class LogcatHeaderPanel(project: Project, logcatPresenter: LogcatPresenter, deviceContext: DeviceContext) : JPanel() {
   private val deviceComboBox: Component
   private val quickFilterTextField = RegexTextField(logcatPresenter, QUICK_FILTER_HISTORY_PROPERTY_NAME, QUICK_FILTER_HISTORY_SIZE)
+  private val filterParser = LogcatFilterParser(project)
 
   init {
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
@@ -51,12 +50,7 @@ internal class LogcatHeaderPanel(project: Project, logcatPresenter: LogcatPresen
 
     quickFilterTextField.addOnChangeListener(object : OnChangeListener {
       override fun onChange(component: RegexTextField) {
-        val logcatFilter = when {
-          quickFilterTextField.text.isEmpty() -> NOOP_FILTER
-          quickFilterTextField.isRegex -> FullMessageRegexFilter(quickFilterTextField.text)
-          else -> FullMessageTextFilter(quickFilterTextField.text)
-        }
-        logcatPresenter.applyFilter(logcatFilter)
+        logcatPresenter.applyFilter(filterParser.parse(quickFilterTextField.text))
       }
     })
 

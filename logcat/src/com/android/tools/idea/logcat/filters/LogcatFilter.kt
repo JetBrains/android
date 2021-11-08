@@ -15,17 +15,93 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatMessage
+import java.time.Clock
+import java.time.Duration
+import java.time.ZoneId
+import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
  * Filters a list of [LogCatMessage]s
  */
 internal interface LogcatFilter {
-  fun filter(messages: List<LogCatMessage>): List<LogCatMessage>
+  fun filter(messages: List<LogCatMessage>, zoneId: ZoneId = ZoneId.systemDefault()) =
+    messages.filter { matches(LogcatMessageWrapper(it, zoneId)) }
 
-  companion object {
-    val NOOP_FILTER = object : LogcatFilter {
-      override fun filter(messages: List<LogCatMessage>) = messages
-    }
+  fun matches(message: LogcatMessageWrapper): Boolean
+}
+
+internal class EmptyFilter : LogcatFilter {
+  override fun filter(messages: List<LogCatMessage>, zoneId: ZoneId) = messages
+
+  override fun matches(message: LogcatMessageWrapper): Boolean {
+    throw UnsupportedOperationException("matches() should never be called for this filter")
   }
+}
+
+internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
+  constructor(vararg filters: LogcatFilter) : this(filters.asList())
+
+  override fun matches(message: LogcatMessageWrapper) = filters.all { it.matches(message) }
+}
+
+internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
+  constructor(vararg filters: LogcatFilter) : this(filters.asList())
+
+  override fun matches(message: LogcatMessageWrapper) = filters.any { it.matches(message) }
+}
+
+internal enum class LogcatFilterField {
+  TAG {
+    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.tag
+  },
+  APP {
+    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.header.appName
+  },
+  MESSAGE {
+    override fun getValue(message: LogcatMessageWrapper) = message.logCatMessage.message
+  },
+  LINE {
+    override fun getValue(message: LogcatMessageWrapper) = message.logLine
+  };
+
+  abstract fun getValue(message: LogcatMessageWrapper): String
+}
+
+internal data class StringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = field.getValue(message).contains(string, ignoreCase = true)
+}
+
+internal data class NegatedStringFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).contains(string, ignoreCase = true)
+}
+
+internal data class RegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  private val regex = string.toRegex(IGNORE_CASE)
+
+  override fun matches(message: LogcatMessageWrapper) = regex.containsMatchIn(field.getValue(message))
+}
+
+internal data class NegatedRegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
+  private val regex = string.toRegex(IGNORE_CASE)
+
+  override fun matches(message: LogcatMessageWrapper) = !regex.containsMatchIn(field.getValue(message))
+}
+
+internal data class LevelFilter(val level: Log.LogLevel) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel == level
+}
+
+internal data class FromLevelFilter(val level: Log.LogLevel) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel.ordinal >= level.ordinal
+}
+
+internal data class ToLevelFilter(val level: Log.LogLevel) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) = message.logCatMessage.header.logLevel.ordinal <= level.ordinal
+}
+
+internal data class AgeFilter(val age: Duration, private val clock: Clock) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) =
+    clock.millis() - message.logCatMessage.header.timestamp.toEpochMilli() <= age.toMillis()
 }

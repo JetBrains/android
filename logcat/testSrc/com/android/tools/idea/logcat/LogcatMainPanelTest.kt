@@ -26,7 +26,8 @@ import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
-import com.android.tools.idea.logcat.filters.FullMessageTextFilter
+import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -155,7 +156,7 @@ class LogcatMainPanelTest {
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
-      logcatMainPanel.applyFilter(FullMessageTextFilter("tag1"))
+      logcatMainPanel.applyFilter(StringFilter("tag1", LINE))
     }
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)

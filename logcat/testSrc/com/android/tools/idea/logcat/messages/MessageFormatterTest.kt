@@ -24,7 +24,6 @@ import com.android.ddmlib.Log.LogLevel.VERBOSE
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.tools.idea.logcat.logCatMessage
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
@@ -364,12 +363,6 @@ class MessageFormatterTest {
     textAccumulator.hintRanges.forEach {
       assertThat(it.getText(textAccumulator.text).trim()).isEqualTo(it.data)
     }
-  }
-
-  @Test
-  fun formatMessageForFilter() {
-    assertThat(logCatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message").formatMessageForFilter(ZONE_ID))
-      .isEqualTo("1970-01-01 04:00:01.000 1-2 tag app W message")
   }
 }
 

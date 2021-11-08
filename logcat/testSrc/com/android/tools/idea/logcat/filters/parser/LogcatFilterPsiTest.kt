@@ -188,10 +188,11 @@ class LogcatFilterPsiTest {
 
   @Test
   fun topLevelExpressions() {
-    val psi = parse("foo    bar   tag: bar   app: foobar")
+    val psi = parse("level: I foo    bar   tag: bar   app: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       AndFilter(
+        KeyFilter("level", "I"),
         TopLevelFilter("foo    bar"),
         KeyFilter("tag", "bar"),
         KeyFilter("app", "foobar"),
@@ -297,7 +298,7 @@ private fun PsiFile.toFilter(): Filter {
 
       // First, group consecutive top level value expressions.
       val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
-        if (expression.firstChild.elementType == LogcatFilterTypes.VALUE && accumulator.isNotEmpty()) {
+        if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
           accumulator.last().add(expression)
         }
         else {
@@ -329,21 +330,6 @@ private fun LogcatFilterLiteralExpression.literalToFilter() =
     LogcatFilterTypes.KEY -> KeyFilter(this)
     else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1)
   }
-
-private fun PsiElement.toText(): String {
-  return when (elementType) {
-    LogcatFilterTypes.VALUE -> {
-      when (text.first()) {
-        '\'' -> text.substring(1, textLength - 1).replace("\\'", "'")
-        '"' -> text.substring(1, textLength - 1).replace("\\\"", "\"")
-        else -> text.replace("\\ ", " ")
-      }
-    }
-    else -> {
-      text
-    }
-  }
-}
 
 private interface Filter
 
