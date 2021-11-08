@@ -13,154 +13,142 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.fs;
+package com.android.tools.idea.explorer.fs
 
-import com.google.common.util.concurrent.ListenableFuture;
-import java.nio.file.Path;
-import java.util.List;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.google.common.util.concurrent.ListenableFuture
+import java.nio.file.Path
 
 /**
- * An file or directory entry in a {@link DeviceFileSystem}
+ * An file or directory entry in a [DeviceFileSystem]
  */
-public interface DeviceFileEntry {
+interface DeviceFileEntry {
   /**
-   * The {@link DeviceFileSystem} this entry belongs to.
+   * The [DeviceFileSystem] this entry belongs to.
    */
-  @NotNull
-  DeviceFileSystem getFileSystem();
+  val fileSystem: DeviceFileSystem
 
   /**
-   * The parent {@link DeviceFileEntry} or <code>null</code> if this is the root directory.
+   * The parent [DeviceFileEntry] or `null` if this is the root directory.
    */
-  @Nullable
-  DeviceFileEntry getParent();
+  val parent: DeviceFileEntry?
 
   /**
    * The name of this entry in its parent directory.
    */
-  @NotNull
-  String getName();
+  val name: String
 
   /**
    * The full path of the entry in the device file system.
    */
-  @NotNull
-  String getFullPath();
+  val fullPath: String
 
   /**
    * The list of entries contained in this directory.
    */
-  @NotNull
-  ListenableFuture<List<DeviceFileEntry>> getEntries();
+  val entries: ListenableFuture<List<DeviceFileEntry?>?>
 
   /**
    * Deletes the entry from the device file system.
    */
-  @NotNull
-  ListenableFuture<Unit> delete();
+  fun delete(): ListenableFuture<Unit>
 
   /**
-   * Creates a new file "{@code fileName}" in this directory, and returns a future that
+   * Creates a new file "`fileName`" in this directory, and returns a future that
    * completes when the file is created. If there is any error creating the file (including the path
    * already exists), the future completes with an exception.
    */
-  @NotNull
-  ListenableFuture<Unit> createNewFile(@NotNull String fileName);
+  fun createNewFile(fileName: String): ListenableFuture<Unit>
 
   /**
-   * Creates a new directory "{@code directoryName}" in this directory, and returns a future that
+   * Creates a new directory "`directoryName`" in this directory, and returns a future that
    * completes when the directory is created. If there is any error creating the directory
    * (including the path already exists), the future completes with an exception.
    */
-  @NotNull
-  ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName);
+  fun createNewDirectory(directoryName: String): ListenableFuture<Unit>
 
   /**
-   * Returns {@code true} if the entry is a symbolic link that points to a directory.
+   * Returns `true` if the entry is a symbolic link that points to a directory.
    *
-   * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing#isDirectoryLink
+   * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing.isDirectoryLink
    */
-  @NotNull
-  ListenableFuture<Boolean> isSymbolicLinkToDirectory();
+  val isSymbolicLinkToDirectory: ListenableFuture<Boolean?>
 
   /**
-   * Downloads the contents of the {@link DeviceFileEntry} to a local file.
+   * Downloads the contents of the [DeviceFileEntry] to a local file.
    */
-  @NotNull
-  ListenableFuture<Unit> downloadFile(@NotNull Path localPath,
-                                      @NotNull FileTransferProgress progress);
+  fun downloadFile(
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit>
 
   /**
-   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
+   * Uploads the contents of a local file to a remote [DeviceFileEntry] directory.
    */
-  @NotNull
-  default ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
-                                            @NotNull FileTransferProgress progress) {
-    return uploadFile(localPath, localPath.getFileName().toString(), progress);
+  fun uploadFile(
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return uploadFile(localPath, localPath.fileName.toString(), progress)
   }
 
   /**
-   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
+   * Uploads the contents of a local file to a remote [DeviceFileEntry] directory.
    */
-  @NotNull
-  ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
-                                    @NotNull String fileName,
-                                    @NotNull FileTransferProgress progress);
+  fun uploadFile(
+    localPath: Path,
+    fileName: String,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit>
 
   /**
    * The permissions associated to this entry, similar to unix permissions.
    */
-  @NotNull
-  Permissions getPermissions();
+  val permissions: Permissions
 
   /**
    * The last modification date & time of this entry
    */
-  @NotNull
-  DateTime getLastModifiedDate();
+  val lastModifiedDate: DateTime
 
   /**
-   * The size (in bytes) of this entry, or <code>-1</code> if the size is unknown.
+   * The size (in bytes) of this entry, or `-1` if the size is unknown.
    */
-  long getSize();
+  val size: Long
 
   /**
-   * <code>true</code> if the entry is a directory, i.e. it contains entries.
+   * `true` if the entry is a directory, i.e. it contains entries.
    */
-  boolean isDirectory();
+  val isDirectory: Boolean
 
   /**
-   * <code>true</code> if the entry is a file, i.e. it has content and does not contain entries.
+   * `true` if the entry is a file, i.e. it has content and does not contain entries.
    */
-  boolean isFile();
+  val isFile: Boolean
 
   /**
-   * <code>true</code> if the entry is a symbolic link.
+   * `true` if the entry is a symbolic link.
    */
-  boolean isSymbolicLink();
+  val isSymbolicLink: Boolean
 
   /**
-   * The link target of the entry if {@link #isSymbolicLink()} is <code>true</code>, <code>null</code> otherwise.
+   * The link target of the entry if [.isSymbolicLink] is `true`, `null` otherwise.
    */
-  @Nullable
-  String getSymbolicLinkTarget();
+  val symbolicLinkTarget: String?
 
   /**
-   * Permissions associated to a {@link DeviceFileEntry}.
+   * Permissions associated to a [DeviceFileEntry].
    */
   interface Permissions {
-    @NotNull
-    String getText();
+    val text: String
   }
 
   /**
-   * Date & time associated to a {@link DeviceFileEntry}.
+   * Date & time associated to a [DeviceFileEntry].
    */
   interface DateTime {
-    @NotNull
-    String getText();
+    val text: String
   }
 }

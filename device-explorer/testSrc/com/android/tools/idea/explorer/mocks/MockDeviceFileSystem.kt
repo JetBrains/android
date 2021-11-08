@@ -13,395 +13,341 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.mocks;
+package com.android.tools.idea.explorer.mocks
 
-import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemServiceKt.OPERATION_TIMEOUT_MILLIS;
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry.Companion.createRoot
+import com.android.tools.idea.concurrency.delayedError
+import com.android.tools.idea.concurrency.delayedValue
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.name
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService.edtExecutor
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry.size
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry.addFile
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.ddmlib.FileListingService
+import java.lang.IllegalArgumentException
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem.DownloadWorker
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem.UploadWorker
+import com.intellij.util.Alarm
+import java.io.FileOutputStream
+import java.lang.Runnable
+import java.io.IOException
+import kotlin.Throws
+import java.lang.RuntimeException
+import com.android.tools.idea.adb.AdbShellCommandException
+import com.android.tools.idea.explorer.fs.DeviceState
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.concurrent.Executor
 
-import com.android.ddmlib.FileListingService;
-import com.android.tools.idea.adb.AdbShellCommandException;
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceState;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.Alarm;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class MockDeviceFileSystem(val service: MockDeviceFileSystemService, override val name: String, taskExecutor: Executor) : DeviceFileSystem {
+  override val deviceSerialNumber: String
+  val root: MockDeviceFileEntry
+  private var myDownloadChunkSize: Long = 1024
+  private var myUploadChunkSize: Long = 1024
+  private var myDownloadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS
+  private var myUploadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS
+  private var myDownloadError: Throwable? = null
+  private var myRootDirectoryError: Throwable? = null
+  private var myUploadError: Throwable? = null
+  private val myTaskExectuor: FutureCallbackExecutor
+  override val deviceState: DeviceState
+    get() = DeviceState.ONLINE
+  override val rootDirectory: ListenableFuture<DeviceFileEntry>
+    get() = if (myRootDirectoryError != null) {
+      delayedError(myRootDirectoryError!!, OPERATION_TIMEOUT_MILLIS)
+    } else delayedValue(this.root, OPERATION_TIMEOUT_MILLIS)
 
-@SuppressWarnings("SameParameterValue")
-public class MockDeviceFileSystem implements DeviceFileSystem {
-  @NotNull private final MockDeviceFileSystemService myService;
-  @NotNull private final String myName;
-  @NotNull private final String mySerialNumber;
-  @NotNull private final MockDeviceFileEntry myRoot;
-  private long myDownloadChunkSize = 1024;
-  private long myUploadChunkSize = 1024;
-  private int myDownloadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS;
-  private int myUploadFileChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS;
-  private Throwable myDownloadError;
-  private Throwable myRootDirectoryError;
-  private Throwable myUploadError;
-  private FutureCallbackExecutor myTaskExectuor;
-
-  public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name, @NotNull Executor taskExecutor) {
-    myService = service;
-    myName = name;
-    mySerialNumber = name;
-    myRoot = MockDeviceFileEntry.createRoot(this);
-    myTaskExectuor = new FutureCallbackExecutor(taskExecutor);
-  }
-
-  @NotNull
-  public MockDeviceFileSystemService getService() {
-    return myService;
-  }
-
-  @NotNull
-  public MockDeviceFileEntry getRoot() {
-    return myRoot;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myName;
-  }
-
-  @Override
-  public @NotNull String getDeviceSerialNumber() {
-    return mySerialNumber;
-  }
-
-  @NotNull
-  @Override
-  public DeviceState getDeviceState() {
-    return DeviceState.ONLINE;
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<DeviceFileEntry> getRootDirectory() {
-    if (myRootDirectoryError != null) {
-      return FutureUtils.delayedError(myRootDirectoryError, OPERATION_TIMEOUT_MILLIS);
-    }
-    return FutureUtils.delayedValue(myRoot, OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path) {
-    SettableFuture<DeviceFileEntry> resultFuture = SettableFuture.create();
-
-    ListenableFuture<DeviceFileEntry> currentDir = getRootDirectory();
-    myTaskExectuor.addCallback(currentDir, new FutureCallback<DeviceFileEntry>() {
-      @Override
-      public void onSuccess(@Nullable DeviceFileEntry result) {
-        assert result != null;
-
+  override fun getEntry(path: String): ListenableFuture<DeviceFileEntry?> {
+    val resultFuture = SettableFuture.create<DeviceFileEntry?>()
+    val currentDir = rootDirectory
+    myTaskExectuor.addCallback(currentDir, object : FutureCallback<DeviceFileEntry?> {
+      override fun onSuccess(result: DeviceFileEntry?) {
+        assert(result != null)
         if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
-          resultFuture.set(result);
-          return;
+          resultFuture.set(result)
+          return
         }
-
-        String[] pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR);
-        resolvePathSegments(resultFuture, result, pathSegments, 0);
+        val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toTypedArray()
+        resolvePathSegments(resultFuture, result!!, pathSegments, 0)
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        resultFuture.setException(t);
+      override fun onFailure(t: Throwable) {
+        resultFuture.setException(t)
       }
-    });
-
-    return resultFuture;
+    })
+    return resultFuture
   }
 
-  private void resolvePathSegments(@NotNull SettableFuture<DeviceFileEntry> future,
-                                   @NotNull DeviceFileEntry currentEntry,
-                                   @NotNull String[] segments,
-                                   int segmentIndex) {
-    if (segmentIndex >= segments.length) {
-      future.set(currentEntry);
-      return;
+  private fun resolvePathSegments(
+    future: SettableFuture<DeviceFileEntry?>,
+    currentEntry: DeviceFileEntry,
+    segments: Array<String>,
+    segmentIndex: Int
+  ) {
+    if (segmentIndex >= segments.size) {
+      future.set(currentEntry)
+      return
     }
-
-    ListenableFuture<List<DeviceFileEntry>> entriesFuture = currentEntry.getEntries();
-    myTaskExectuor.addCallback(entriesFuture, new FutureCallback<List<DeviceFileEntry>>() {
-      @Override
-      public void onSuccess(@Nullable List<DeviceFileEntry> result) {
-        assert result != null;
-
-        Optional<DeviceFileEntry> entry = result
+    val entriesFuture = currentEntry.entries
+    myTaskExectuor.addCallback(entriesFuture, object : FutureCallback<List<DeviceFileEntry>?> {
+      override fun onSuccess(result: List<DeviceFileEntry>?) {
+        assert(result != null)
+        val entry = result
           .stream()
-          .filter(x -> x.getName().equals(segments[segmentIndex]))
-          .findFirst();
-        if (!entry.isPresent()) {
-          future.setException(new IllegalArgumentException("Path not found"));
-        }
-        else {
-          resolvePathSegments(future, entry.get(), segments, segmentIndex + 1);
+          .filter { x: DeviceFileEntry -> x.name == segments[segmentIndex] }
+          .findFirst()
+        if (!entry.isPresent) {
+          future.setException(IllegalArgumentException("Path not found"))
+        } else {
+          resolvePathSegments(future, entry.get(), segments, segmentIndex + 1)
         }
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        future.setException(t);
+      override fun onFailure(t: Throwable) {
+        future.setException(t)
       }
-    });
+    })
   }
 
-  @NotNull
-  public ListenableFuture<Unit> downloadFile(@NotNull DeviceFileEntry entry,
-                                             @NotNull Path localPath,
-                                             @NotNull FileTransferProgress progress) {
-    if (myDownloadError != null) {
-      return FutureUtils.delayedError(myDownloadError, OPERATION_TIMEOUT_MILLIS);
-    }
-    return new DownloadWorker((MockDeviceFileEntry)entry, localPath, progress).myFutureResult;
+  fun downloadFile(
+    entry: DeviceFileEntry,
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return if (myDownloadError != null) {
+      delayedError(myDownloadError!!, OPERATION_TIMEOUT_MILLIS)
+    } else DownloadWorker(entry as MockDeviceFileEntry, localPath, progress).myFutureResult
   }
 
-  @NotNull
-  public ListenableFuture<Unit> uploadFile(@NotNull Path localFilePath,
-                                           @NotNull DeviceFileEntry remoteDirectory,
-                                           @NotNull String fileName,
-                                           @NotNull FileTransferProgress progress) {
-    if (myUploadError != null) {
-      return FutureUtils.delayedError(myUploadError, OPERATION_TIMEOUT_MILLIS);
-    }
-
-    return new UploadWorker((MockDeviceFileEntry)remoteDirectory, fileName, localFilePath, progress).myFutureResult;
+  fun uploadFile(
+    localFilePath: Path,
+    remoteDirectory: DeviceFileEntry,
+    fileName: String,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return if (myUploadError != null) {
+      delayedError(myUploadError!!, OPERATION_TIMEOUT_MILLIS)
+    } else UploadWorker(remoteDirectory as MockDeviceFileEntry, fileName, localFilePath, progress).myFutureResult
   }
 
-  public void setDownloadFileChunkSize(long size) {
-    myDownloadChunkSize = size;
+  fun setDownloadFileChunkSize(size: Long) {
+    myDownloadChunkSize = size
   }
 
-  public void setDownloadFileChunkIntervalMillis(int millis) {
-    myDownloadFileChunkIntervalMillis = millis;
+  fun setDownloadFileChunkIntervalMillis(millis: Int) {
+    myDownloadFileChunkIntervalMillis = millis
   }
 
-  public void setUploadFileChunkSize(long size) {
-    myUploadChunkSize = size;
+  fun setUploadFileChunkSize(size: Long) {
+    myUploadChunkSize = size
   }
 
-  public void setUploadFileChunkIntervalMillis(int millis) {
-    myUploadFileChunkIntervalMillis = millis;
+  fun setUploadFileChunkIntervalMillis(millis: Int) {
+    myUploadFileChunkIntervalMillis = millis
   }
 
-  public void setDownloadError(@Nullable Throwable t) {
-    myDownloadError = t;
+  fun setDownloadError(t: Throwable?) {
+    myDownloadError = t
   }
 
-  public void setRootDirectoryError(@Nullable Throwable t) {
-    myRootDirectoryError = t;
+  fun setRootDirectoryError(t: Throwable?) {
+    myRootDirectoryError = t
   }
 
-  public void setUploadError(@Nullable Throwable t) {
-    myUploadError = t;
+  fun setUploadError(t: Throwable?) {
+    myUploadError = t
   }
 
-  public class DownloadWorker implements Disposable {
-    @NotNull private final MockDeviceFileEntry myEntry;
-    @NotNull private final Path myPath;
-    @NotNull private final FileTransferProgress myProgress;
-    @NotNull private final SettableFuture<Unit> myFutureResult;
-    @NotNull private final Alarm myAlarm;
-    private long myCurrentOffset;
-    @Nullable private FileOutputStream myOutputStream;
-
-    public DownloadWorker(@NotNull MockDeviceFileEntry entry, @NotNull Path path, @NotNull FileTransferProgress progress) {
-      myEntry = entry;
-      myPath = path;
-      myProgress = progress;
-      myFutureResult = SettableFuture.create();
-      myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
-      Disposer.register(ApplicationManager.getApplication(), this);
-      addRequest();
+  inner class DownloadWorker(
+    private val myEntry: MockDeviceFileEntry,
+    private val myPath: Path,
+    private val myProgress: FileTransferProgress
+  ) : Disposable {
+    val myFutureResult: SettableFuture<Unit>
+    private val myAlarm: Alarm
+    private var myCurrentOffset: Long = 0
+    private var myOutputStream: FileOutputStream? = null
+    private fun addRequest() {
+      myAlarm.addRequest({ processNextChunk() }, myDownloadFileChunkIntervalMillis)
     }
 
-    private void addRequest() {
-      myAlarm.addRequest(this::processNextChunk, myDownloadFileChunkIntervalMillis);
-    }
-
-    public void processNextChunk() {
-      assert !myFutureResult.isDone();
+    fun processNextChunk() {
+      assert(!myFutureResult.isDone)
 
       // Create file if needed
       try {
-        writeBytes(0);
-      }
-      catch (IOException e) {
-        doneWithError(e);
-        return;
+        writeBytes(0)
+      } catch (e: IOException) {
+        doneWithError(e)
+        return
       }
 
       // Report progress
-      final long currentOffset = myCurrentOffset;
-      myService.getEdtExecutor().execute(() -> myProgress.progress(currentOffset, myEntry.getSize()));
+      val currentOffset = myCurrentOffset
+      service.edtExecutor.execute { myProgress.progress(currentOffset, myEntry.size) }
 
       // Write bytes and enqueue next request if not done yet
-      if (myCurrentOffset < myEntry.getSize()) {
-        addRequest();
-
-        long chunkSize = Math.min(myDownloadChunkSize, myEntry.getSize() - myCurrentOffset);
+      if (myCurrentOffset < myEntry.size) {
+        addRequest()
+        val chunkSize = Math.min(myDownloadChunkSize, myEntry.size - myCurrentOffset)
         try {
-          writeBytes(chunkSize);
-          myCurrentOffset += chunkSize;
+          writeBytes(chunkSize)
+          myCurrentOffset += chunkSize
+        } catch (e: IOException) {
+          doneWithError(e)
         }
-        catch (IOException e) {
-          doneWithError(e);
-        }
-        return;
+        return
       }
 
       // Complete future if done
-      done();
+      done()
     }
 
-    private void done() {
+    private fun done() {
       try {
-        Disposer.dispose(this);
-      }
-      finally {
-        myFutureResult.set(Unit.INSTANCE);
+        Disposer.dispose(this)
+      } finally {
+        myFutureResult.set(Unit)
       }
     }
 
-    private void doneWithError(Throwable t) {
+    private fun doneWithError(t: Throwable) {
       try {
-        Disposer.dispose(this);
-      }
-      finally {
-        myFutureResult.setException(t);
+        Disposer.dispose(this)
+      } finally {
+        myFutureResult.setException(t)
       }
     }
 
-    private void writeBytes(long count) throws IOException {
+    @Throws(IOException::class)
+    private fun writeBytes(count: Long) {
       if (myOutputStream == null) {
-        myOutputStream = new FileOutputStream(myPath.toFile());
+        myOutputStream = FileOutputStream(myPath.toFile())
       }
       if (count > 0) {
-        byte[] bytes = new byte[(int)count];
+        val bytes = ByteArray(count.toInt())
         // Write ascii characters to that the file is easily auto-detected as a text file
         // in unit tests.
-        for (int i = 0; i < count; i++) {
-          bytes[i] = (byte)((i % 80 == 0) ? '\n' : ('0' + (i % 10)));
+        for (i in 0 until count) {
+          bytes.get(i) = (if (i % 80 == 0) '\n' else '0'.toInt() + i % 10) as Byte
         }
-        myOutputStream.write(bytes);
+        myOutputStream!!.write(bytes)
       }
     }
 
-    @Override
-    public void dispose() {
-      myAlarm.cancelAllRequests();
+    override fun dispose() {
+      myAlarm.cancelAllRequests()
       if (myOutputStream != null) {
-        try {
-          myOutputStream.close();
-          myOutputStream = null;
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
+        myOutputStream = try {
+          myOutputStream!!.close()
+          null
+        } catch (e: IOException) {
+          throw RuntimeException(e)
         }
       }
+    }
+
+    init {
+      myFutureResult = SettableFuture.create()
+      myAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+      Disposer.register(ApplicationManager.getApplication(), this)
+      addRequest()
     }
   }
 
-  public class UploadWorker implements Disposable {
-    @NotNull private final MockDeviceFileEntry myEntry;
-    @NotNull private final String myFileName;
-    @NotNull private final Path myPath;
-    @NotNull private final FileTransferProgress myProgress;
-    @NotNull private final SettableFuture<Unit> myFutureResult;
-    @NotNull private final Alarm myAlarm;
-    private long myCurrentOffset;
-    private long myFileLength;
-    private MockDeviceFileEntry myCreatedEntry;
-
-    public UploadWorker(@NotNull MockDeviceFileEntry entry, @NotNull String fileName, @NotNull Path path, @NotNull FileTransferProgress progress) {
-      myEntry = entry;
-      myFileName = fileName;
-      myPath = path;
-      myProgress = progress;
-      myFutureResult = SettableFuture.create();
-      myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
-      Disposer.register(ApplicationManager.getApplication(), this);
-      addRequest();
+  inner class UploadWorker(
+    private val myEntry: MockDeviceFileEntry,
+    private val myFileName: String,
+    private val myPath: Path,
+    private val myProgress: FileTransferProgress
+  ) : Disposable {
+    val myFutureResult: SettableFuture<Unit>
+    private val myAlarm: Alarm
+    private var myCurrentOffset: Long = 0
+    private var myFileLength: Long = 0
+    private var myCreatedEntry: MockDeviceFileEntry? = null
+    private fun addRequest() {
+      myAlarm.addRequest({ processNextChunk() }, myUploadFileChunkIntervalMillis)
     }
 
-    private void addRequest() {
-      myAlarm.addRequest(this::processNextChunk, myUploadFileChunkIntervalMillis);
-    }
-
-    public void processNextChunk() {
-      assert !myFutureResult.isDone();
+    fun processNextChunk() {
+      assert(!myFutureResult.isDone)
 
       // Add entry right away (simulate behavior of device upload, where an empty file is immediately created on upload)
       if (myCreatedEntry == null) {
         try {
-          myFileLength = Files.size(myPath);
-          myCreatedEntry = myEntry.addFile(myFileName);
-        }
-        catch (AdbShellCommandException | IOException e) {
-          doneWithError(e);
-          return;
+          myFileLength = Files.size(myPath)
+          myCreatedEntry = myEntry.addFile(myFileName)
+        } catch (e: AdbShellCommandException) {
+          doneWithError(e)
+          return
+        } catch (e: IOException) {
+          doneWithError(e)
+          return
         }
       }
 
       // Report progress
-      final long currentOffset = myCurrentOffset;
-      myService.getEdtExecutor().execute(() -> myProgress.progress(currentOffset, myFileLength));
+      val currentOffset = myCurrentOffset
+      service.edtExecutor.execute { myProgress.progress(currentOffset, myFileLength) }
 
       // Write bytes and enqueue next request if not done yet
       if (myCurrentOffset < myFileLength) {
-        addRequest();
-
-        long chunkSize = Math.min(myUploadChunkSize, myFileLength - myCurrentOffset);
-        myCreatedEntry.setSize(myCreatedEntry.getSize() + chunkSize);
-        myCurrentOffset += chunkSize;
-        return;
+        addRequest()
+        val chunkSize = Math.min(myUploadChunkSize, myFileLength - myCurrentOffset)
+        myCreatedEntry!!.size = myCreatedEntry!!.size + chunkSize
+        myCurrentOffset += chunkSize
+        return
       }
 
       // Complete future if done
-      done();
+      done()
     }
 
-    private void done() {
+    private fun done() {
       try {
-        Disposer.dispose(this);
-      }
-      finally {
-        myFutureResult.set(Unit.INSTANCE);
+        Disposer.dispose(this)
+      } finally {
+        myFutureResult.set(Unit)
       }
     }
 
-    private void doneWithError(Throwable t) {
+    private fun doneWithError(t: Throwable) {
       try {
-        Disposer.dispose(this);
-      }
-      finally {
-        myFutureResult.setException(t);
+        Disposer.dispose(this)
+      } finally {
+        myFutureResult.setException(t)
       }
     }
 
-    @Override
-    public void dispose() {
-      myAlarm.cancelAllRequests();
+    override fun dispose() {
+      myAlarm.cancelAllRequests()
     }
+
+    init {
+      myFutureResult = SettableFuture.create()
+      myAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+      Disposer.register(ApplicationManager.getApplication(), this)
+      addRequest()
+    }
+  }
+
+  init {
+    deviceSerialNumber = name
+    this.root = createRoot(this)
+    myTaskExectuor = FutureCallbackExecutor(taskExecutor)
   }
 }

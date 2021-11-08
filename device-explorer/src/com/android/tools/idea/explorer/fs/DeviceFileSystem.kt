@@ -13,47 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.fs;
+package com.android.tools.idea.explorer.fs
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.google.common.util.concurrent.ListenableFuture
 
 /**
  * Abstraction over the file system of a single device.
  */
-public interface DeviceFileSystem {
+interface DeviceFileSystem {
   /**
    * The device name
    */
-  @NotNull
-  String getName();
+  val name: String
 
   /**
    * A string created by adb to uniquely identify the device by its port number.
    */
-  @NotNull
-  String getDeviceSerialNumber();
+  val deviceSerialNumber: String
 
   /**
-   * The device state, as defined by {@link DeviceState}
+   * The device state, as defined by [DeviceState]
    */
-  @NotNull
-  DeviceState getDeviceState();
+  val deviceState: DeviceState
 
   /**
-   * Returns the root {@link DeviceFileEntry} of the device. The returned directory
+   * Returns the root [DeviceFileEntry] of the device. The returned directory
    * can be used to traverse the file system recursively.
    */
-  @NotNull
-  ListenableFuture<DeviceFileEntry> getRootDirectory();
+  val rootDirectory: ListenableFuture<DeviceFileEntry?>
 
   /**
-   * Returns the {@link DeviceFileEntry} corresponding to the given <code>path</code>
-   * The path follows the Unix syntax, i.e. starts with <code>/</code> and uses <code>/</code>
+   * Returns the [DeviceFileEntry] corresponding to the given `path`
+   * The path follows the Unix syntax, i.e. starts with `/` and uses `/`
    * as name separator.
    *
    * If the path is not found the future fails with an IllegalArgumentException.
    */
-  @NotNull
-  ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path);
+  fun getEntry(path: String): ListenableFuture<DeviceFileEntry?>
 }

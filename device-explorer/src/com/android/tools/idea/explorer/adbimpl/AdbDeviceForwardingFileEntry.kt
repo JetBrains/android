@@ -13,75 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.nio.file.Path;
-import java.util.List;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.delete
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewFile
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.createNewDirectory
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.isSymbolicLinkToDirectory
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.uploadFile
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbPermissions
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileEntry.AdbDateTime
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceForwardingFileEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDirectFileEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataAppDirectoryEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataDataDirectoryEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDeviceDataLocalDirectoryEntry
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDataDirectoryEntry.AdbDevicePackageDirectoryEntry
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntryBuilder
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceDefaultFileEntry
+import com.android.ddmlib.SyncException
+import com.android.tools.idea.adb.AdbShellCommandException
+import kotlin.Throws
+import com.android.ddmlib.AdbCommandRejectedException
+import com.android.ddmlib.ShellCommandUnresponsiveException
+import com.google.common.util.concurrent.ListenableFuture
+import java.io.IOException
+import java.nio.file.Path
 
 /**
- * An abstract {@link AdbDeviceFileEntry} that goes through another {@link AdbDeviceFileEntry}
- * (see {@link #getForwardedFileEntry()}) for its file operations.
+ * An abstract [AdbDeviceFileEntry] that goes through another [AdbDeviceFileEntry]
+ * (see [.getForwardedFileEntry]) for its file operations.
  *
- * <p>This class should be extended by {@link AdbDeviceFileEntry} implementations that override
- * only a subset of the abstract methods, using another instance of {@link AdbDeviceFileEntry}
+ *
+ * This class should be extended by [AdbDeviceFileEntry] implementations that override
+ * only a subset of the abstract methods, using another instance of [AdbDeviceFileEntry]
  * as the default implementation of the non-overridden methods.
  */
-public abstract class AdbDeviceForwardingFileEntry extends AdbDeviceFileEntry {
+abstract class AdbDeviceForwardingFileEntry(
+  device: AdbDeviceFileSystem,
+  entry: AdbFileListingEntry,
+  parent: AdbDeviceFileEntry?
+) : AdbDeviceFileEntry(device, entry, parent) {
+  abstract val forwardedFileEntry: AdbDeviceFileEntry
+  override val entries: ListenableFuture<List<DeviceFileEntry?>?>
+    get() = forwardedFileEntry.entries
 
-  public AdbDeviceForwardingFileEntry(@NotNull AdbDeviceFileSystem device,
-                                      @NotNull AdbFileListingEntry entry,
-                                      @Nullable AdbDeviceFileEntry parent) {
-    super(device, entry, parent);
+  override fun delete(): ListenableFuture<Unit> {
+    return forwardedFileEntry.delete()
   }
 
-  @NotNull
-  public abstract AdbDeviceFileEntry getForwardedFileEntry();
-
-  @NotNull
-  @Override
-  public ListenableFuture<List<DeviceFileEntry>> getEntries() {
-    return getForwardedFileEntry().getEntries();
+  override fun createNewFile(fileName: String): ListenableFuture<Unit> {
+    return forwardedFileEntry.createNewFile(fileName)
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> delete() {
-    return getForwardedFileEntry().delete();
+  override fun createNewDirectory(directoryName: String): ListenableFuture<Unit> {
+    return forwardedFileEntry.createNewDirectory(directoryName)
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
-    return getForwardedFileEntry().createNewFile(fileName);
+  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean?>
+    get() = forwardedFileEntry.isSymbolicLinkToDirectory
+
+  override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> {
+    return forwardedFileEntry.downloadFile(localPath, progress)
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
-    return getForwardedFileEntry().createNewDirectory(directoryName);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
-    return getForwardedFileEntry().isSymbolicLinkToDirectory();
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
-    return getForwardedFileEntry().downloadFile(localPath, progress);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
-    return getForwardedFileEntry().uploadFile(localPath, fileName, progress);
+  override fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress): ListenableFuture<Unit> {
+    return forwardedFileEntry.uploadFile(localPath, fileName, progress)
   }
 }

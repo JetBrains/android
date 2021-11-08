@@ -13,256 +13,175 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.mocks;
+package com.android.tools.idea.explorer.mocks
 
-import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemServiceKt.OPERATION_TIMEOUT_MILLIS;
+import com.android.tools.idea.concurrency.delayedError
+import com.android.tools.idea.concurrency.delayedValue
+import com.android.tools.idea.concurrency.delayedOperation
+import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
+import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import kotlin.Throws
+import com.android.tools.idea.adb.AdbShellCommandException
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.google.common.util.concurrent.ListenableFuture
+import java.nio.file.Path
+import java.util.ArrayList
+import java.util.stream.Collectors
 
-import com.android.tools.idea.adb.AdbShellCommandException;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-@SuppressWarnings({"SameParameterValue"})
-public class MockDeviceFileEntry implements DeviceFileEntry {
-  private final MockDeviceFileSystem myFileSystem;
-  private final MockDeviceFileEntry myParent;
-  private final List<MockDeviceFileEntry> myEntries = new ArrayList<>();
-  private final String myName;
-  private final boolean myIsDirectory;
-  private final boolean myIsLink;
-  private final String myLinkTarget;
-  private long mySize;
-  private boolean myIsSymbolicLinkToDirectory;
-  private Throwable myGetEntriesError;
-  private Throwable myDeleteError;
-  private int myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS;
-
-  @Override
-  @NotNull
-  public String toString() {
-    return getName();
+class MockDeviceFileEntry(
+  private val myFileSystem: MockDeviceFileSystem,
+  private val myParent: MockDeviceFileEntry?,
+  name: String,
+  isDirectory: Boolean,
+  isLink: Boolean,
+  linkTarget: String?
+) : DeviceFileEntry {
+  private val myEntries: MutableList<MockDeviceFileEntry> = ArrayList()
+  override val name: String
+  override val isDirectory: Boolean
+  override val isSymbolicLink: Boolean
+  override val symbolicLinkTarget: String?
+  override var size: Long = 0
+  private var myIsSymbolicLinkToDirectory = false
+  private var myGetEntriesError: Throwable? = null
+  private var myDeleteError: Throwable? = null
+  private var myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS
+  override fun toString(): String {
+    return name
   }
 
-  @NotNull
-  public static MockDeviceFileEntry createRoot(@NotNull MockDeviceFileSystem fileSystem) {
-    return new MockDeviceFileEntry(fileSystem, null, "", true, false, null);
+  @Throws(AdbShellCommandException::class)
+  fun addFile(name: String): MockDeviceFileEntry {
+    assert(isDirectory)
+    throwIfEntryExists(name)
+    return MockDeviceFileEntry(myFileSystem, this, name, false, false, null)
   }
 
-  @NotNull
-  public MockDeviceFileEntry addFile(@NotNull String name) throws AdbShellCommandException {
-    assert myIsDirectory;
-    throwIfEntryExists(name);
-    return new MockDeviceFileEntry(myFileSystem, this, name, false, false, null);
+  @Throws(AdbShellCommandException::class)
+  fun addDirLink(name: String, linkTarget: String): MockDeviceFileEntry {
+    assert(isDirectory)
+    throwIfEntryExists(name)
+    val entry = MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget)
+    entry.setSymbolicLinkToDirectory(true)
+    return entry
   }
 
-  @NotNull
-  public MockDeviceFileEntry addDirLink(@NotNull String name, @NotNull String linkTarget) throws AdbShellCommandException {
-    assert myIsDirectory;
-    throwIfEntryExists(name);
-    MockDeviceFileEntry entry = new MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget);
-    entry.setSymbolicLinkToDirectory(true);
-    return entry;
+  @Throws(AdbShellCommandException::class)
+  fun addFileLink(name: String, linkTarget: String): MockDeviceFileEntry {
+    assert(isDirectory)
+    throwIfEntryExists(name)
+    return MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget)
   }
 
-  @NotNull
-  public MockDeviceFileEntry addFileLink(@NotNull String name, @NotNull String linkTarget) throws AdbShellCommandException {
-    assert myIsDirectory;
-    throwIfEntryExists(name);
-    return new MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget);
+  @Throws(AdbShellCommandException::class)
+  fun addDirectory(name: String): MockDeviceFileEntry {
+    assert(isDirectory)
+    throwIfEntryExists(name)
+    return MockDeviceFileEntry(myFileSystem, this, name, true, false, null)
   }
 
-  @NotNull
-  public MockDeviceFileEntry addDirectory(@NotNull String name) throws AdbShellCommandException {
-    assert myIsDirectory;
-    throwIfEntryExists(name);
-    return new MockDeviceFileEntry(myFileSystem, this, name, true, false, null);
+  private fun removeEntry(childEntry: MockDeviceFileEntry) {
+    myEntries.remove(childEntry)
   }
 
-  private void removeEntry(MockDeviceFileEntry childEntry) {
-    myEntries.remove(childEntry);
-  }
-
-
-  public MockDeviceFileEntry(@NotNull MockDeviceFileSystem fileSystem,
-                             @Nullable MockDeviceFileEntry parent,
-                             @NotNull String name,
-                             boolean isDirectory,
-                             boolean isLink,
-                             @Nullable String linkTarget) {
-    myFileSystem = fileSystem;
-    myParent = parent;
-    if (myParent != null) {
-      myParent.myEntries.add(this);
-    }
-    myName = name;
-    myIsDirectory = isDirectory;
-    myIsLink = isLink;
-    myLinkTarget = linkTarget;
-  }
-
-  private void throwIfEntryExists(@NotNull String name) throws AdbShellCommandException {
-    if (myEntries.stream().anyMatch(x -> Objects.equals(x.getName(), name))) {
-      throw new AdbShellCommandException("File already exists");
+  @Throws(AdbShellCommandException::class)
+  private fun throwIfEntryExists(name: String) {
+    if (myEntries.stream().anyMatch { x: MockDeviceFileEntry -> x.name == name }) {
+      throw AdbShellCommandException("File already exists")
     }
   }
 
-  @NotNull
-  public List<MockDeviceFileEntry> getMockEntries() {
-    return myEntries;
+  val mockEntries: List<MockDeviceFileEntry>
+    get() = myEntries
+  override val fileSystem: DeviceFileSystem
+    get() = myFileSystem
+  override val parent: DeviceFileEntry?
+    get() = myParent
+  override val fullPath: String
+    get() = if (myParent == null) {
+      name
+    } else AdbPathUtil.resolve(myParent.fullPath, name)
+  override val entries: ListenableFuture<List<DeviceFileEntry>>
+    get() = if (myGetEntriesError != null) {
+      delayedError(myGetEntriesError!!, myGetEntriesTimeoutMillis)
+    } else delayedValue(
+      myEntries.stream().collect(
+        Collectors.toList()
+      ), myGetEntriesTimeoutMillis
+    )
+
+  override fun delete(): ListenableFuture<Unit> {
+    return if (myDeleteError != null) {
+      delayedError(myDeleteError!!, OPERATION_TIMEOUT_MILLIS)
+    } else delayedOperation({
+                              myParent!!.removeEntry(this)
+                              Unit
+                            }, OPERATION_TIMEOUT_MILLIS)
   }
 
-  @NotNull
-  @Override
-  public DeviceFileSystem getFileSystem() {
-    return myFileSystem;
+  override fun createNewFile(fileName: String): ListenableFuture<Unit> {
+    return delayedOperation({
+                              addFile(fileName)
+                              Unit
+                            }, OPERATION_TIMEOUT_MILLIS)
   }
 
-  @Nullable
-  @Override
-  public DeviceFileEntry getParent() {
-    return myParent;
+  override fun createNewDirectory(directoryName: String): ListenableFuture<Unit> {
+    return delayedOperation({
+                              addDirectory(directoryName)
+                              Unit
+                            }, OPERATION_TIMEOUT_MILLIS)
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return myName;
+  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
+    get() = delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS)
+
+  override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> {
+    return myFileSystem.downloadFile(this, localPath, progress)
   }
 
-  @NotNull
-  @Override
-  public String getFullPath() {
-    if (myParent == null) {
-      return myName;
+  override fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress): ListenableFuture<Unit> {
+    return myFileSystem.uploadFile(localPath, this, fileName, progress)
+  }
+
+  override val permissions: DeviceFileEntry.Permissions
+    get() = DeviceFileEntry.Permissions { "rwxrwxrwx" }
+  override val lastModifiedDate: DeviceFileEntry.DateTime
+    get() = DeviceFileEntry.DateTime { "" }
+  override val isFile: Boolean
+    get() = !isDirectory
+
+  fun setGetEntriesError(t: Throwable?) {
+    myGetEntriesError = t
+  }
+
+  fun setGetEntriesTimeoutMillis(timeoutMillis: Int) {
+    myGetEntriesTimeoutMillis = timeoutMillis
+  }
+
+  fun setSymbolicLinkToDirectory(symbolicLinkToDirectory: Boolean) {
+    myIsSymbolicLinkToDirectory = symbolicLinkToDirectory
+  }
+
+  fun setDeleteError(t: Throwable?) {
+    myDeleteError = t
+  }
+
+  companion object {
+    @JvmStatic
+    fun createRoot(fileSystem: MockDeviceFileSystem): MockDeviceFileEntry {
+      return MockDeviceFileEntry(fileSystem, null, "", true, false, null)
     }
-    return AdbPathUtil.resolve(myParent.getFullPath(), myName);
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<List<DeviceFileEntry>> getEntries() {
-    if (myGetEntriesError != null) {
-      return FutureUtils.delayedError(myGetEntriesError, myGetEntriesTimeoutMillis);
-    }
-    return FutureUtils.delayedValue(myEntries.stream().collect(Collectors.toList()), myGetEntriesTimeoutMillis);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> delete() {
-    if (myDeleteError != null) {
-      return FutureUtils.delayedError(myDeleteError, OPERATION_TIMEOUT_MILLIS);
-    }
-    return FutureUtils.delayedOperation(() -> {
-      myParent.removeEntry(this);
-      return Unit.INSTANCE;
-    }, OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> createNewFile(@NotNull String fileName) {
-    return FutureUtils.delayedOperation(() -> {
-      addFile(fileName);
-      return Unit.INSTANCE;
-    }, OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> createNewDirectory(@NotNull String directoryName) {
-    return FutureUtils.delayedOperation(() -> {
-      addDirectory(directoryName);
-      return Unit.INSTANCE;
-    }, OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
-    return FutureUtils.delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
-    return myFileSystem.downloadFile(this, localPath, progress);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
-    return myFileSystem.uploadFile(localPath, this, fileName, progress);
-  }
-
-  @NotNull
-  @Override
-  public Permissions getPermissions() {
-    return () -> "rwxrwxrwx";
-  }
-
-  @NotNull
-  @Override
-  public DateTime getLastModifiedDate() {
-    return () -> "";
-  }
-
-  @Override
-  public long getSize() {
-    return mySize;
-  }
-
-  public void setSize(long size) {
-    mySize = size;
-  }
-
-  @Override
-  public boolean isDirectory() {
-    return myIsDirectory;
-  }
-
-  @Override
-  public boolean isFile() {
-    return !myIsDirectory;
-  }
-
-  @Override
-  public boolean isSymbolicLink() {
-    return myIsLink;
-  }
-
-  @Nullable
-  @Override
-  public String getSymbolicLinkTarget() {
-    return myLinkTarget;
-  }
-
-  public void setGetEntriesError(@Nullable Throwable t) {
-    myGetEntriesError = t;
-  }
-
-  public void setGetEntriesTimeoutMillis(int timeoutMillis) {
-    myGetEntriesTimeoutMillis = timeoutMillis;
-  }
-
-  @SuppressWarnings("unused")
-  public void setSymbolicLinkToDirectory(boolean symbolicLinkToDirectory) {
-    myIsSymbolicLinkToDirectory = symbolicLinkToDirectory;
-  }
-
-  public void setDeleteError(@Nullable Throwable t) {
-    myDeleteError = t;
+  init {
+    myParent?.myEntries?.add(this)
+    this.name = name
+    this.isDirectory = isDirectory
+    isSymbolicLink = isLink
+    symbolicLinkTarget = linkTarget
   }
 }
-
