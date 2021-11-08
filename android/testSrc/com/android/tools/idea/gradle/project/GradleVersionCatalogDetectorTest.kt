@@ -16,9 +16,19 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_VERSION_CATALOG_DETECTOR
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.EXPLICIT
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.IMPLICIT
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.NONE
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.PlatformTestCase
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -39,26 +49,42 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
   @Parameter
   lateinit var settingsFilename: String
 
+  private val tracker = TestUsageTracker(VirtualTimeScheduler())
+
+  @Before
+  fun setUpTracker(): Unit = UsageTracker.setWriterForTest(tracker).let { }
+
+  @After
+  fun tearDownTracker(): Unit = UsageTracker.cleanAfterTesting()
+
   @Test fun testEmptyProject() {
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle6CallProject() {
     addWrapperFile("6.9")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = true)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle70PreviewCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = true)
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle70PreviewNoCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle70PreviewLibsProject() {
@@ -66,6 +92,8 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     addSettingsFile(settingsFilename, enablePreview = true, callVersionCatalogs = false)
     addLibsTomlFile()
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(IMPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   // This would fail to configure, but let's test the logic anyway: since we have a Gradle version of 7.0 and
@@ -74,6 +102,8 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   // Likewise, this will fail to configure: the presence of libs.versions.toml without the preview feature causes an early abort in
@@ -83,24 +113,32 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     addLibsTomlFile()
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle70NoPreviewNoCallProject() {
     addWrapperFile("7.0")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle74CallProject() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true)
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle74NoCallProject() {
     addWrapperFile("7.4")
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(NONE, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   @Test fun testGradle74LibsProject() {
@@ -108,6 +146,15 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = false)
     addLibsTomlFile()
     assertTrue(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(IMPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
+  }
+
+  @Test fun testMultipleCallsSingleEvent() {
+    assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    assertFalse(GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
   private fun addWrapperFile(gradleVersion: String) {

@@ -19,6 +19,8 @@ import com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED
@@ -26,7 +28,16 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.Detect
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.OLD_GRADLE
 import com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_VERSION_CATALOG_DETECTOR
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.EXPLICIT
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.IMPLICIT
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.NONE
+import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -132,8 +143,27 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
+  var shouldSendTrackerEvent = true
+
   val isVersionCatalogProject: Boolean
-    get() = _isVersionCatalogProject.result
+    get() = _isVersionCatalogProject.run {
+      if (shouldSendTrackerEvent) {
+        shouldSendTrackerEvent = false
+        val thunk = {
+          val event = AndroidStudioEvent.newBuilder()
+            .setCategory(PROJECT_SYSTEM).setKind(GRADLE_VERSION_CATALOG_DETECTOR)
+            .setGradleVersionCatalogDetectorEvent(
+              GradleVersionCatalogDetectorEvent.newBuilder().setState(state)
+            )
+          UsageTracker.log(event)
+        }
+        when (ApplicationManager.getApplication().isUnitTestMode) {
+          true -> thunk()
+          false -> executeOnPooledThread(thunk)
+        }
+      }
+      result
+    }
 
 
   interface SettingsVisitorResults {
@@ -141,12 +171,12 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     val versionCatalogsCall: Boolean
   }
 
-  enum class DetectorResult(val result: Boolean) {
-    OLD_GRADLE(false), // Gradle version is too old for Version Catalogs.
-    NOT_ENABLED(false), // Gradle version requires explicit preview feature, not present.
-    EXPLICIT_CALL(true), // Found an explicit call to versionCatalogs in settings.
-    IMPLICIT_LIBS_VERSIONS(true), // No explicit call, but implicit use through libs.versions.toml.
-    NOT_USED(false), // No use of Version Catalogs found in this project.
+  enum class DetectorResult(val result: Boolean, val state: GradleVersionCatalogDetectorEvent.State) {
+    OLD_GRADLE(false, UNSUPPORTED), // Gradle version is too old for Version Catalogs.
+    NOT_ENABLED(false, NONE), // Gradle version requires explicit preview feature, not present.
+    EXPLICIT_CALL(true, EXPLICIT), // Found an explicit call to versionCatalogs in settings.
+    IMPLICIT_LIBS_VERSIONS(true, IMPLICIT), // No explicit call, but implicit use through libs.versions.toml.
+    NOT_USED(false, NONE), // No use of Version Catalogs found in this project.
   }
 
   private fun visitGroovySettings(settingsPsiFile: GroovyFile): SettingsVisitorResults {
