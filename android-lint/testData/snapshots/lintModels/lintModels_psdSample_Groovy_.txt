@@ -257,7 +257,7 @@ MODULE                        : project.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         ManifestPlaceholders
             aa                            : aaa
             bb                            : bbb
@@ -1150,7 +1150,7 @@ MODULE                        : project.lib
         - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
             ManifestFile                  : <ROOT>/lib/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/lib/src/main/java

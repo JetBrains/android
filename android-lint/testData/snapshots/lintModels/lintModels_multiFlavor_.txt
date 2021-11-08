@@ -221,7 +221,7 @@ MODULE                        : MultiFlavor.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         ResValues
             string/v_a                    : v_a:string=firstAbc
             string/v_b                    : v_b:string=debug

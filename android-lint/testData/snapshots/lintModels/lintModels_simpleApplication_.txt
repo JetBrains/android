@@ -251,7 +251,7 @@ MODULE                        : project.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion                 : API 19
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
             ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/app/src/main/java

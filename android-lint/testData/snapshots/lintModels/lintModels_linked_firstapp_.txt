@@ -255,7 +255,7 @@ MODULE                        : My_First_App.app
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
             ManifestFile                  : <ROOT>/firstapp/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/firstapp/app/src/main/java
@@ -946,7 +946,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API 30
+        TargetSdkVersion              : API <SDK_VERSION>
         - ConsumerProguardFiles       : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
         SourceProviders
             ManifestFile                  : <ROOT>/shared/mysharedlibrary/src/main/AndroidManifest.xml

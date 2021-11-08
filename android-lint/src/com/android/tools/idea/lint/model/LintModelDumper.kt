@@ -149,7 +149,7 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       }
       prop("Package") { `package` }
       prop("MinSdkVersion") { minSdkVersion?.toString() }
-      prop("TargetSdkVersion") { targetSdkVersion?.toString() }
+      prop("TargetSdkVersion") { targetSdkVersion?.toString()?.replaceCurrentSdkVersion() }
       if (resValues.isNotEmpty()) {
         head("ResValues")
         nest {
