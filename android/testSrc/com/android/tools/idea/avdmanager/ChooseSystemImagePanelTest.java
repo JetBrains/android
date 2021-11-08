@@ -40,7 +40,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
@@ -51,8 +50,10 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.ProductDetails;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,14 +61,14 @@ import org.jetbrains.android.AndroidTestCase;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
-  private static final String SDK_LOCATION = "/sdk";
-  private static final String AVD_LOCATION = "/avd";
+  private final Path mSdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
+  private final Path mAvdRoot = mSdkRoot.getRoot().resolve("avd");
   private static final String SDK_SEPARATOR = Character.toString(RepoPackage.PATH_SEPARATOR);
 
   private static FakePackage.FakeLocalPackage createSysimgPackage(String sysimgPath, String abi, IdDisplay tag, IdDisplay vendor,
-                                                                  int apiLevel, MockFileOp fileOp) {
+                                                                  int apiLevel, Path sdkRoot) {
     FakePackage.FakeLocalPackage pkg = new FakePackage.FakeLocalPackage(
-      sysimgPath, fileOp.toPath(SDK_LOCATION + "/" + sysimgPath.replaceAll(SDK_SEPARATOR, "/")));
+      sysimgPath, sdkRoot.resolve(sysimgPath.replaceAll(SDK_SEPARATOR, "/")));
     DetailsTypes.SysImgDetailsType sysimgDetails =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     sysimgDetails.getTags().add(tag);
@@ -75,7 +76,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     sysimgDetails.setVendor(vendor);
     sysimgDetails.setApiLevel(apiLevel);
     pkg.setTypeDetails((TypeDetails) sysimgDetails);
-    fileOp.recordExistingFile(pkg.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkg.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     return pkg;
   }
@@ -139,7 +140,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription tv30ImageDescription;
     SystemImageDescription tv31ImageDescription;
 
-    SystemImageTestList(String abi, MockFileOp fileOp) {
+    SystemImageTestList(String abi, Path sdkRoot) {
       gapiPath += abi;
       gapi29Path += abi;
       gapi30Path += abi;
@@ -155,34 +156,34 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       tv31Path += abi;
 
       pkgGapi = createSysimgPackage(gapiPath, abi, IdDisplay.create("google_apis", "Google APIs"),
-                                    IdDisplay.create("google", "Google"), 23, fileOp);
+                                    IdDisplay.create("google", "Google"), 23, sdkRoot);
       pkgGapi29 = createSysimgPackage(gapi29Path, abi, IdDisplay.create("google_apis", "Google APIs"),
-                                      IdDisplay.create("google", "Google"), 29, fileOp);
+                                      IdDisplay.create("google", "Google"), 29, sdkRoot);
       pkgGapi30 = createSysimgPackage(gapi30Path, abi, IdDisplay.create("google_apis", "Google APIs"),
-                                      IdDisplay.create("google", "Google"), 30, fileOp);
+                                      IdDisplay.create("google", "Google"), 30, sdkRoot);
       pkgGapi31 = createSysimgPackage(gapi31Path, abi, IdDisplay.create("google_apis", "Google APIs"),
-                                      IdDisplay.create("google", "Google"), 31, fileOp);
+                                      IdDisplay.create("google", "Google"), 31, sdkRoot);
       pkgGapi32 = createSysimgPackage(gapi32Path, abi, IdDisplay.create("google_apis", "Google APIs"),
-                                      IdDisplay.create("google", "Google"), 32, fileOp);
+                                      IdDisplay.create("google", "Google"), 32, sdkRoot);
       pkgPs = createSysimgPackage(psPath, abi, IdDisplay.create("google_apis_playstore", "Google Play"),
-                                  IdDisplay.create("google", "Google"), 24, fileOp);
+                                  IdDisplay.create("google", "Google"), 24, sdkRoot);
       pkgWear = createSysimgPackage(wearPath, abi, IdDisplay.create("android-wear", "Wear OS"),
-                                    IdDisplay.create("google", "Google"), 25, fileOp);
+                                    IdDisplay.create("google", "Google"), 25, sdkRoot);
       pkgWear29 = createSysimgPackage(wear29Path, abi, IdDisplay.create("android-wear", "Wear OS"),
-                                      IdDisplay.create("google", "Google"), 29, fileOp);
+                                      IdDisplay.create("google", "Google"), 29, sdkRoot);
       pkgCnWear = createSysimgPackage(wearCnPath, abi, IdDisplay.create("android-wear", "Wear OS for China"),
-                                      IdDisplay.create("google", "Google"), 25, fileOp);
+                                      IdDisplay.create("google", "Google"), 25, sdkRoot);
       pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
-                                          IdDisplay.create("google", "Google"), 28, fileOp);
+                                          IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgAutomotivePs = createSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
                                                                                     "Android Automotive with Google Play"),
-                                            IdDisplay.create("google", "Google"), 28, fileOp);
+                                            IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
-                                          IdDisplay.create("google", "Google"), 28, fileOp);
+                                          IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Android TV"),
-                                    IdDisplay.create("google", "Google"), 30, fileOp);
+                                    IdDisplay.create("google", "Google"), 30, sdkRoot);
       pkgTv31 = createSysimgPackage(tv31Path, abi, IdDisplay.create("android-tv", "Android TV"),
-                                    IdDisplay.create("google", "Google"), 31, fileOp);
+                                    IdDisplay.create("google", "Google"), 31, sdkRoot);
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
@@ -258,14 +259,13 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
 
-    mSysImgsArm = new SystemImageTestList("armeabi", fileOp);
-    mSysImgsArmv7a = new SystemImageTestList("armeabi-v7a", fileOp);
-    mSysImgsArm64 = new SystemImageTestList("arm64-v8a", fileOp);
-    mSysImgsX86 = new SystemImageTestList("x86", fileOp);
-    mSysImgsX86_64 = new SystemImageTestList("x86_64", fileOp);
+    mSysImgsArm = new SystemImageTestList("armeabi", mSdkRoot);
+    mSysImgsArmv7a = new SystemImageTestList("armeabi-v7a", mSdkRoot);
+    mSysImgsArm64 = new SystemImageTestList("arm64-v8a", mSdkRoot);
+    mSysImgsX86 = new SystemImageTestList("x86", mSdkRoot);
+    mSysImgsX86_64 = new SystemImageTestList("x86_64", mSdkRoot);
 
     Collection<LocalPackage> pkgs = new ArrayList<>();
     pkgs.addAll(mSysImgsArm.getPackageInfoList());
@@ -275,10 +275,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     pkgs.addAll(mSysImgsX86_64.getPackageInfoList());
     packages.setLocalPkgInfos(pkgs);
 
-    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr);
+      new AndroidSdkHandler(mSdkRoot, mAvdRoot, mgr);
 
     mSysImgsArm.generateSystemImageDescriptions(sdkHandler);
     mSysImgsArmv7a.generateSystemImageDescriptions(sdkHandler);
@@ -376,16 +376,16 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testWarningTextOnX86HostsWithNonX86Images() {
     // Should not get any warning if x86 image on any host os.
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86_64), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86_64));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86_ON_ARM));
 
     // Should get a warning if non-x86 image on x86 host.
     assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
@@ -402,24 +402,24 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                                                                     ProductDetails.CpuArchitecture.X86_64).isEmpty());
 
     // Shouldn't get warning if non-x86 image on non-x86 host.
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.X86_ON_ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.ARM), null);
-    assertEquals(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
-                                                                     ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE), null);
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86_ON_ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86_ON_ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.X86_ON_ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.ARM));
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+                                                                   ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
   }
 
   public void testClassificationForDevice_x86() {
