@@ -207,9 +207,6 @@ object GuiTestLauncher {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"
     }
     if (TestUtils.runningFromBazel()) {
-      if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
-        options += "-Didea.home.path=${resolveWorkspacePath("tools/idea").toFile()}"
-      }
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"

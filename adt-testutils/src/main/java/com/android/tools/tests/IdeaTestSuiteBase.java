@@ -49,9 +49,6 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setProperties() throws IOException {
-    if (!isUnbundledBazelTestTarget()) {
-      System.setProperty("idea.home.path", TestUtils.resolveWorkspacePath("tools/idea").toString());
-    }
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
@@ -197,42 +194,5 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /** @return true if the current Bazel test uses unbundled SDK. */
-  public static boolean isUnbundledBazelTestTarget() {
-    String classPath = System.getProperty("java.class.path", "");
-    if (!classPath.endsWith("classpath.jar")) {
-      return containsPrebuiltSdk(classPath);
-    }
-
-    // Looks like using JAR Manifest for classpath.
-    Path dir = Paths.get(classPath).getParent();
-    try(JarFile jarFile = new JarFile(classPath)) {
-      Manifest mf = jarFile.getManifest();
-      String classPathList = mf.getMainAttributes().getValue("Class-Path");
-      String[] paths = classPathList.split(" ");
-      for (String path : paths) {
-        // Paths are relative to the directory of the classpath.jar file, and
-        // may contain symlinks, so we must convert them to realpath.
-        try {
-          String realPath = dir.resolve(path).toRealPath().toString();
-          if (containsPrebuiltSdk(realPath)) {
-            return true;
-          }
-        } catch (IOException e) {
-          // Fall through. Try the next path.
-        }
-      }
-    } catch (IOException|IllegalArgumentException e) {
-      return false;
-    }
-
-    return false;
-  }
-
-  private static boolean containsPrebuiltSdk(@NotNull String path) {
-    return path.contains("prebuilts/studio/intellij-sdk/") ||
-           path.contains("prebuilts\\studio\\intellij-sdk\\");
   }
 }
