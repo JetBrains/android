@@ -29,7 +29,8 @@ import com.google.common.truth.Truth
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.table.JBTable
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBList
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
@@ -65,10 +66,12 @@ class JetifierWarningDetailsFactoryTest {
       it.doClick()
       Mockito.verify(mockHandlers).runCheckJetifierTask()
     }
-    val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
-    Truth.assertThat(declaredDependenciesTable.isEmpty).isTrue()
+    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+    Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
 
-    Truth.assertThat(declaredDependenciesTable.getColumnName(0)).isEqualTo("Declared Dependencies Requiring Jetifier")
+    val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
+      .single { it.name == "declared-dependencies-header" }
+    Truth.assertThat(header.toString()).isEqualTo("Declared Dependencies Requiring Jetifier")
 
     val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
     Truth.assertThat(dependenciesTree.isEmpty).isTrue()
@@ -89,9 +92,12 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(html).contains("<b>Jetifier flag can be removed</b>")
       Truth.assertThat(html).contains("The last check did not find any dependencies that require Jetifier in your project.")
 
-      val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
-      Truth.assertThat(declaredDependenciesTable.isEmpty).isTrue()
-      Truth.assertThat(declaredDependenciesTable.getColumnName(0)).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
+      val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+      Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
+
+      val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
+        .single { it.name == "declared-dependencies-header" }
+      Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
 
       val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
       Truth.assertThat(dependenciesTree.isEmpty).isTrue()
@@ -131,13 +137,13 @@ class JetifierWarningDetailsFactoryTest {
       val html = it.text.clearHtml()
       Truth.assertThat(html).contains("<b>Some project dependencies require Jetifier</b>")
       Truth.assertThat(html).contains("This check found 3 declared dependencies that require legacy support libraries.")
-      Truth.assertThat(html).contains("To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives.")
+      Truth.assertThat(html).contains(
+        "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives.")
     }
 
-    val declaredDependenciesTable = TreeWalker(page).descendants().filterIsInstance<JBTable>().single()
-    val declaredDependenciesTableModel = declaredDependenciesTable.model
-    Truth.assertThat(declaredDependenciesTableModel.columnCount).isEqualTo(1)
-    Truth.assertThat(declaredDependenciesTableModel.rowCount).isEqualTo(3)
+    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+    val declaredDependenciesListModel = declaredDependenciesList.model
+    Truth.assertThat(declaredDependenciesListModel.size).isEqualTo(3)
 
     val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
     Truth.assertThat(dependenciesTree.isEmpty).isTrue()
@@ -147,9 +153,11 @@ class JetifierWarningDetailsFactoryTest {
     // example:A:1.0
     // example:B:1.0
 
-    Truth.assertThat(declaredDependenciesTableModel.getColumnName(0)).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
-    Truth.assertThat(declaredDependenciesTableModel.getValueAt(1, 0)).isEqualTo("example:A:1.0")
-    declaredDependenciesTable.changeSelection(1, 0, false, false)
+    val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
+      .single { it.name == "declared-dependencies-header" }
+    Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
+    Truth.assertThat(declaredDependenciesListModel.getElementAt(1)).isEqualTo("example:A:1.0")
+    declaredDependenciesList.selectedIndex = 1
     Truth.assertThat(dependenciesTree.isEmpty).isFalse()
 
     fun treePresentation(dependenciesTree: Tree) = (dependenciesTree.model.root as DefaultMutableTreeNode).preorderEnumeration().asSequence()
@@ -167,8 +175,8 @@ class JetifierWarningDetailsFactoryTest {
       |      []example:A:1.0
     """.trimMargin())
 
-    Truth.assertThat(declaredDependenciesTableModel.getValueAt(0, 0)).isEqualTo("com.android.support:collections:28.0.0")
-    declaredDependenciesTable.changeSelection(0, 0, false, false)
+    Truth.assertThat(declaredDependenciesListModel.getElementAt(0)).isEqualTo("com.android.support:collections:28.0.0")
+    declaredDependenciesList.selectedIndex = 0
     Truth.assertThat(treePresentation(dependenciesTree)).isEqualTo("""
       |[]com.android.support:collections:28.0.0
     """.trimMargin())
@@ -197,7 +205,8 @@ class JetifierWarningDetailsFactoryTest {
       val html = it.text.clearHtml()
       Truth.assertThat(html).contains("<b>Some project dependencies require Jetifier</b>")
       Truth.assertThat(html).contains("found a declared dependency that requires")
-      Truth.assertThat(html).contains("To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.")
+      Truth.assertThat(html).contains(
+        "To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.")
     }
   }
 
