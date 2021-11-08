@@ -134,7 +134,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
     myIssuesViewer = issuesViewer;
-    myIssuesViewer.setShowEmptyText(false);
     myInfoPanel.setIssuesViewer(myIssuesViewer);
   }
 

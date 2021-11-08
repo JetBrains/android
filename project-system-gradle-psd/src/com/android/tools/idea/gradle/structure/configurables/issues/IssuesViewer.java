@@ -41,8 +41,6 @@ public class IssuesViewer {
   @NotNull private final PsContext myContext;
   @NotNull private final DependencyViewIssuesRenderer myRenderer;
 
-  private JBLabel myEmptyIssuesLabel;
-
   @NotNull private List<IssuesViewerPanel> myIssuesPanels;
   private JPanel myIssuesPanel1;
   private JPanel myIssuesPanel2;
@@ -50,7 +48,6 @@ public class IssuesViewer {
   private JPanel myIssuesPanel4;
   private JPanel myMainPanel;
 
-  private boolean myShowEmptyText;
   @Nullable private Set<PsIssue> myLastDisplayedIssues = null;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull DependencyViewIssuesRenderer renderer) {
@@ -63,17 +60,11 @@ public class IssuesViewer {
     if (newIssues.equals(myLastDisplayedIssues)) return;
     myLastDisplayedIssues = newIssues;
     if (newIssues.isEmpty()) {
-      if (myShowEmptyText) {
-        myEmptyIssuesLabel.setVisible(true);
-      }
       for (IssuesViewerPanel panel : myIssuesPanels) {
         panel.setVisible(false);
       }
       revalidateAndRepaintPanels();
       return;
-    }
-    else {
-      myEmptyIssuesLabel.setVisible(false);
     }
 
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
@@ -133,13 +124,6 @@ public class IssuesViewer {
                                    (IssuesViewerPanel) myIssuesPanel4);
     for (IssuesViewerPanel panel : myIssuesPanels) {
       panel.setVisible(false);
-    }
-  }
-
-  public void setShowEmptyText(boolean showEmptyText) {
-    myShowEmptyText = showEmptyText;
-    if (!myShowEmptyText) {
-      myEmptyIssuesLabel.setVisible(false);
     }
   }
 }
