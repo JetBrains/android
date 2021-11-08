@@ -17,6 +17,7 @@ package com.android.tools.idea.testingutils
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
@@ -36,6 +37,11 @@ class FakeAdbServiceRule(
 ) : ExternalResource() {
   private var serverKilled = false
   private var serviceDisposable: Disposable? = null
+
+  init {
+    // Ensure we use the protocol compliant `sync` handler. We can remove this when it is the default.
+    adbRule.withDeviceCommandHandler(SyncCommandHandler())
+  }
 
   override fun before() {
     val adbFile: File = MockitoKt.mock()
