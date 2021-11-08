@@ -59,6 +59,7 @@ private fun createToolbarActions(context: PsContext, perspective: BasePerspectiv
 
 private fun createToolbar(actions: ActionGroup) =
   ActionManager.getInstance().createActionToolbar("TOP", actions, true).apply {
+    setTargetComponent(null)
     component.border = IdeBorderFactory.createBorder(SideBorder.BOTTOM)
   }
 

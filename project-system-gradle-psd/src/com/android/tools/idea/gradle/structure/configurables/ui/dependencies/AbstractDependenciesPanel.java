@@ -223,6 +223,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     }
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
+    toolbar.setTargetComponent(null);
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     actionsPanel.add(toolbarComponent, BorderLayout.CENTER);
