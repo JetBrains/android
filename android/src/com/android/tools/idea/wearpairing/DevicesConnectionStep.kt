@@ -445,6 +445,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         gridConstraint(x = 0, y = RELATIVE, gridwidth = 2, anchor = LINE_START)
       )
     }
+    add(
+      JBLabel(additionalStepsLabel).addBorder(empty(8, 0, 0, 0)),
+      gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2)
+    )
     if (showLoadingIcon) {
       add(
         AsyncProcessIcon("ScanningLabel").addBorder(empty(0, 0, 0, 8)),
@@ -472,10 +476,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2)
       )
     }
-    add(
-      JBLabel(additionalStepsLabel).addBorder(empty(8, 0, 0, 0)),
-      gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2)
-    )
 
     isOpaque = false
     border = empty(8, 2, 12, 4)
