@@ -21,16 +21,17 @@ import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.toPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.NavigateAction
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -53,6 +54,8 @@ import javax.swing.Icon
  * Returns a [LineMarkerInfo] that brings up a properties panel to edit the annotation.
  */
 class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
+  private val log = Logger.getInstance(this.javaClass)
+
   override fun getName(): String = message("picker.preview.annotator.name")
 
   override fun getIcon(): Icon = AllIcons.Actions.InlayGear
@@ -60,6 +63,7 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (element !is LeafPsiElement) return null
     if (element.tokenType != KtTokens.IDENTIFIER) return null
+    if (!element.isValid) return null
     if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) return null
     if (!StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()) return null
     if (!ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled) return null
@@ -70,11 +74,17 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     val uElement = (parentElement.toUElement() as? UAnnotation) ?: return null
 
     if (uElement.isPreviewAnnotation()) {
-      uElement.toPreviewElement()?.let {
-        val info = createInfo(element, element.textRange, parentElement.project, parentElement.module, it)
-        NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
-        return info
+      val previewElement = uElement.toPreviewElement() ?: run {
+        log.warn("Couldn't obtain PreviewElement from Preview annotation")
+        return null
       }
+      val module = parentElement.module ?: run {
+        log.warn("Couldn't obtain current module")
+        return null
+      }
+      val info = createInfo(element, element.textRange, parentElement.project, module, previewElement)
+      NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
+      return info
     }
     return null
   }
@@ -88,21 +98,26 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     element: PsiElement,
     textRange: TextRange,
     project: Project,
-    module: Module?,
+    module: Module,
     previewElement: PreviewElement
-  ) = LineMarkerInfo<PsiElement>(
-    element,
-    textRange,
-    AllIcons.Actions.InlayGear,
-    { message("picker.preview.annotator.tooltip") },
-    { mouseEvent, _ ->
-      val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElement)
-      val valuesProvider = module?.let {
-        PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, element.containingFile.virtualFile)
-      } ?: EnumSupportValuesProvider.EMPTY
-      PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)
-    },
-    GutterIconRenderer.Alignment.LEFT,
-    { message("picker.preview.annotator.tooltip") }
-  )
+  ): LineMarkerInfo<PsiElement> {
+    // Make sure there's a configuration available
+    ConfigurationManager.getOrCreateInstance(module)
+    return LineMarkerInfo<PsiElement>(
+      element,
+      textRange,
+      AllIcons.Actions.InlayGear,
+      { message("picker.preview.annotator.tooltip") },
+      { mouseEvent, _ ->
+        val model = PsiCallPropertyModel.fromPreviewElement(project, module, previewElement)
+        val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(
+          module,
+          previewElement.previewElementDefinitionPsi?.virtualFile
+        )
+        PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model, valuesProvider)
+      },
+      GutterIconRenderer.Alignment.LEFT,
+      { message("picker.preview.annotator.tooltip") }
+    )
+  }
 }

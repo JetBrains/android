@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.inspector
 
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIMENSIONS
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
@@ -122,6 +122,8 @@ private fun EditorProvider<PsiPropertyItem>.createEditor(
 ): JComponent {
   val editorPair = createEditor(property)
   existing.add(editorPair.first)
+  // Set the preferred size, to avoid layout managers from changing it, which may cause popups close unexpectedly
+  editorPair.second.preferredSize = editorPair.second.preferredSize
   return editorPair.second
 }
 

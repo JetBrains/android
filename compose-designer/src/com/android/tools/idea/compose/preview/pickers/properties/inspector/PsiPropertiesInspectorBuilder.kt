@@ -64,9 +64,7 @@ internal class PsiPropertiesInspectorBuilder(
     val remainingProperties = allProps.values
 
     // Main preview parameters
-    previewProperties.forEach {
-      inspector.addEditor(editorProvider.createEditor(it))
-    }
+    inspector.addEditorsForProperties(previewProperties)
 
     // Hardware parameters
     inspector.addSectionLabel("Hardware")
@@ -74,8 +72,15 @@ internal class PsiPropertiesInspectorBuilder(
 
     // Display parameters
     inspector.addSectionLabel("Display")
-    remainingProperties.forEach {
-      inspector.addEditor(editorProvider.createEditor(it))
+    inspector.addEditorsForProperties(remainingProperties)
+  }
+
+  private fun InspectorPanel.addEditorsForProperties(properties: Collection<PsiPropertyItem>) {
+    properties.forEach {
+      val modelEditor = editorProvider.createEditor(it)
+      // Set the preferred size, to avoid layout managers from changing it, which may cause popups close unexpectedly
+      modelEditor.second.preferredSize = modelEditor.second.preferredSize
+      this.addEditor(modelEditor)
     }
   }
 }
