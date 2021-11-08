@@ -29,9 +29,11 @@ import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
@@ -50,12 +52,18 @@ import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.JTree
+import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
@@ -207,10 +215,7 @@ class JetifierWarningDetailsFactory(
     resultsTable.setShowGrid(false)
     resultsTable.tableHeader.reorderingAllowed = false
 
-    DefaultActionGroup().let { group ->
-      group.add(actionHandlers.createFindSelectedLibVersionDeclarationAction { resultsTable.selection.singleOrNull() })
-      PopupHandler.installPopupMenu(resultsTable, group, ActionPlaces.POPUP)
-    }
+    installResultsTableActions(resultsTable)
     val dependencyTreeModel = DefaultTreeModel(null)
     val treeHeader = JBPanel<JBPanel<*>>().apply {
       layout = BorderLayout()
@@ -261,6 +266,31 @@ class JetifierWarningDetailsFactory(
     add(splitter, BorderLayout.CENTER)
 
     TableSpeedSearch(resultsTable)
+  }
+
+  private fun installResultsTableActions(resultsTable: TableView<String>) {
+    val findSelectedLibVersionDeclarationAction = actionHandlers.createFindSelectedLibVersionDeclarationAction { resultsTable.selection.singleOrNull() }
+    DefaultActionGroup().let { group ->
+      group.add(findSelectedLibVersionDeclarationAction)
+      PopupHandler.installPopupMenu(resultsTable, group, ActionPlaces.POPUP)
+    }
+    object : DoubleClickListener() {
+      override fun onDoubleClick(e: MouseEvent): Boolean {
+        ActionManager.getInstance().tryToExecute(findSelectedLibVersionDeclarationAction, e, resultsTable, null, true)
+        return true
+      }
+    }.installOn(resultsTable)
+    resultsTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).apply {
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+      put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter")
+    }
+    resultsTable.actionMap.apply {
+      put("enter", object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          ActionManager.getInstance().tryToExecute(findSelectedLibVersionDeclarationAction, null, resultsTable, null, true)
+        }
+      })
+    }
   }
 
 
