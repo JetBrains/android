@@ -26,28 +26,19 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.model.util.FakeAction
+import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.components.JBList
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseListener
-import java.awt.event.MouseMotionListener
-import javax.swing.JComboBox
 import javax.swing.JComponent
-import javax.swing.JList
 import javax.swing.JPanel
-import javax.swing.plaf.basic.ComboPopup
 import kotlin.test.assertEquals
 
 class PropertyComboBoxTest {
@@ -222,68 +213,6 @@ class PropertyComboBoxTest {
     MyKeyboardConsumer().apply {
       add(comboBox)
     }
-
-  private class FakeComboBoxUI : DarculaComboBoxUI() {
-    override fun installUI(component: JComponent) {
-      @Suppress("UNCHECKED_CAST")
-      comboBox = component as JComboBox<Any>
-      popup = MyComboPopup(comboBox)
-      installListeners()
-      installComponents()
-      installKeyboardActions()
-    }
-
-    override fun setPopupVisible(comboBox: JComboBox<*>?, visible: Boolean) {
-      if (visible) {
-        popup.show()
-      }
-      else {
-        popup.hide()
-      }
-    }
-
-    override fun isPopupVisible(comboBox: JComboBox<*>?): Boolean = popup.isVisible
-  }
-
-  private class MyComboPopup(private val comboBox: JComboBox<Any>) : ComboPopup {
-    private var visible = false
-    private val list = JBList(comboBox.model)
-    private val mouseListener = object : MouseAdapter() {}
-    private val keyListener = object : KeyAdapter() {}
-
-    override fun getMouseListener(): MouseListener = mouseListener
-
-    override fun getMouseMotionListener(): MouseMotionListener = mouseListener
-
-    override fun getKeyListener(): KeyListener = keyListener
-
-    override fun hide() {
-      comboBox.firePopupMenuWillBecomeInvisible()
-      visible = false
-    }
-
-    override fun show() {
-      comboBox.firePopupMenuWillBecomeVisible()
-      setListSelection(comboBox.selectedIndex)
-      visible = true
-    }
-
-    private fun setListSelection(selectedIndex: Int) {
-      if (selectedIndex == -1) {
-        list.clearSelection()
-      }
-      else {
-        list.selectedIndex = selectedIndex
-        list.ensureIndexIsVisible(selectedIndex)
-      }
-    }
-
-    override fun isVisible(): Boolean = visible
-
-    override fun getList(): JList<Any> = list
-
-    override fun uninstallingUI() {}
-  }
 
   /**
    * Container that may consume ESCAPE keyboard events.

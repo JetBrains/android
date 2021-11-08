@@ -94,6 +94,11 @@ public final class FakeKeyboard {
     release(keyCode);
   }
 
+  public void pressAndRelease(Key key) {
+    press(key);
+    release(key);
+  }
+
   /**
    * Types the specified key. This is a convenience method for generating {@code KEY_TYPED} events.
    *

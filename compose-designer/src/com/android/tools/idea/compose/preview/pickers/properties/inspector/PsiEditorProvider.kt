@@ -38,10 +38,18 @@ internal class PsiEditorProvider(
     enumSupport: EnumSupport,
     asTableCellEditor: Boolean
   ): Pair<PropertyEditorModel, JComponent> {
-    // TODO: USe a custom component for non-editable (Dropdown)
-    val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
-    val comboBox = PropertyComboBox(model, asTableCellEditor)
-    comboBox.renderer = enumSupport.renderer
-    return Pair(model, addActionButtonBinding(model, comboBox))
+    return if (editable) {
+      // Use existing components for ComboBox
+      val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
+      val comboBox = PropertyComboBox(model, asTableCellEditor)
+      comboBox.renderer = enumSupport.renderer
+      Pair(model, addActionButtonBinding(model, comboBox))
+    }
+    else {
+      // Use a specific component for DropDown
+      val model = PsiDropDownModel(property, enumSupport)
+      val comboBox = PsiPropertyDropDown(model, asTableCellEditor, enumSupport.renderer)
+      Pair(model, addActionButtonBinding(model, comboBox))
+    }
   }
 }
