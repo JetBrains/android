@@ -154,13 +154,6 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new EditAvdAction(this, logDeviceManagerEvents));
-
-    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
-      actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
-      actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
-      actionList.add(new Separator(this));
-    }
-
     actionList.add(new DuplicateAvdAction(this, logDeviceManagerEvents));
     actionList.add(new WipeAvdDataAction(this, logDeviceManagerEvents));
 
@@ -177,6 +170,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new Separator(this));
+
+    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {
+      actionList.add(new PairDeviceAction(this, logDeviceManagerEvents));
+      actionList.add(new UnpairDeviceAction(this, logDeviceManagerEvents));
+    }
+
     actionList.add(new DeleteAvdAction(this, logDeviceManagerEvents));
 
     if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
