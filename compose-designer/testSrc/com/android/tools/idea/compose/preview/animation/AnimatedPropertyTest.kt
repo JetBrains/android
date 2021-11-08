@@ -49,6 +49,27 @@ class AnimatedPropertyTest {
   }
 
   @Test
+  fun buildCurveWithStartEndPointsSet() {
+    var result = AnimatedProperty.Builder()
+      .add(2, ComposeUnit.Dp(10f))
+      .add(3, ComposeUnit.Dp(15f))
+      .setStartTimeMs(0).setEndTimeMs(4).build()
+    assertNotNull(result)
+    assertEquals(result.startMs, 0)
+    assertEquals(result.endMs, 4)
+    assertEquals(result.dimension, 1)
+    assertEquals(result.components.size, 1)
+    assertTrue(result.grouped)
+
+    result.components[0].let {
+      assertFalse { it.linkToNext }
+      assertEquals(15.0, it.maxValue)
+      assertEquals(10.0, it.minValue)
+      assertEquals(mapOf(2 to 10.0, 3 to 15.0), it.points)
+    }
+  }
+
+  @Test
   fun buildRectCurve() {
     val builder = AnimatedProperty.Builder()
     builder.add(10, ComposeUnit.Rect(6f, 3f, 6f, 2f))
