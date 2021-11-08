@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 
+@Deprecated
+// TODO(b/205694878): Review this class and delete if no longer needed after next platform merge.
 public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
   @Override
   public @NotNull List<String> getTasks(@NotNull Module module) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.gradle
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider
 import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
 import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElement
 import com.android.tools.idea.testartifacts.getPsiElement
@@ -24,6 +25,7 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_D
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import junit.framework.TestCase
+import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestTasksProvider
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
 /**
@@ -67,6 +69,12 @@ class AndroidGradleTestTasksProviderTest: AndroidGradleTestCase() {
     val libGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, libModulePsiLocation)
     TestCase.assertNotNull(libGradleTestPackageConfiguration)
     TestCase.assertNotSame(appGradleTestPackageConfiguration, libGradleTestPackageConfiguration)
+  }
+
+  @Throws(Exception::class)
+  fun testAndroidGradleTestTaskProviderIsNotRegistered() {
+    val androidGradleTestTasksProvider = GradleTestTasksProvider.EP_NAME.extensions.filterIsInstance<AndroidGradleTestTasksProvider>()
+    TestCase.assertTrue(androidGradleTestTasksProvider.isEmpty())
   }
 
   private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {

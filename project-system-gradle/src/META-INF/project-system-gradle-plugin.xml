@@ -51,7 +51,6 @@
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
-    <testTasksProvider implementation="com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">

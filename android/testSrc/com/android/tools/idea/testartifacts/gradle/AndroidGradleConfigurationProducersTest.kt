@@ -154,8 +154,6 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val module2 = ModuleManager.getInstance(project).modules
       .first { module ->  module.name == moduleName }
     TestCase.assertNotNull(module2)
-    val androidGradleTestTasksProvider = GradleTestTasksProvider.EP_NAME.extensions.filterIsInstance<AndroidGradleTestTasksProvider>().first()
-    TestCase.assertNotNull(androidGradleTestTasksProvider)
 
     TestCase.assertEquals(configuration!!.settings.taskNames, listOf(":module2:testDebugUnitTest"))
   }
