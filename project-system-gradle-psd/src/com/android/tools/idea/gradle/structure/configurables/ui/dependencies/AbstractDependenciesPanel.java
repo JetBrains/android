@@ -22,6 +22,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
@@ -39,6 +40,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.Header;
 import com.android.tools.idea.structure.dialog.TrackedConfigurableKt;
+import com.android.tools.idea.structure.dialog.VersionCatalogWarningHeader;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
@@ -48,8 +50,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -72,6 +74,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -99,7 +102,8 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private AddJarDependencyAction myAddJarDependencyAction;
 
   protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsModule module) {
-    super(new BorderLayout());
+    super();
+    this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     myContext = context;
     myModule = module;
 
@@ -112,7 +116,13 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoScrollPane.setBorder(JBUI.Borders.empty());
 
     myHeader = new Header(title);
-    add(myHeader, BorderLayout.NORTH);
+    add(myHeader);
+
+    Project project = context.getProject().getIdeProject();
+    boolean projectUsesVersionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject();
+    if (projectUsesVersionCatalogs) {
+      add(new VersionCatalogWarningHeader());
+    }
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
