@@ -13,718 +13,631 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer
 
-import static com.android.tools.idea.concurrency.FutureUtils.ignoreResult;
-
-import com.android.annotations.NonNull;
-import com.android.annotations.concurrency.UiThread;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.adb.AdbFileProvider;
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
-import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
-import com.android.tools.idea.explorer.fs.DeviceState;
-import com.android.tools.idea.explorer.fs.DownloadProgress;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.android.tools.idea.explorer.ui.TreeUtil;
-import com.android.utils.FileUtils;
-import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.DeviceExplorerEvent;
-import com.intellij.CommonBundle;
-import com.intellij.openapi.application.ApplicationBundle;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
-import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidatorEx;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.UIBundle;
-import com.intellij.util.Alarm;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.ExceptionUtil;
-import com.intellij.util.containers.ContainerUtil;
-import java.awt.datatransfer.StringSelection;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultTreeSelectionModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService.addListener
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService.start
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService.restart
+import com.android.tools.idea.adb.AdbFileProvider.Companion.fromProject
+import com.android.tools.idea.adb.AdbFileProvider.adbFile
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService.devices
+import com.android.tools.idea.concurrency.ignoreResult
+import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.idea.explorer.DeviceExplorerModel
+import com.android.tools.idea.explorer.DeviceExplorerView
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.DeviceExplorerFileManager
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.FileTransferWorkEstimator
+import com.android.tools.idea.explorer.DeviceFileEntryNode
+import com.intellij.util.Alarm
+import com.android.tools.idea.explorer.LongRunningOperationTracker
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.DefaultTreeSelectionModel
+import java.lang.Runnable
+import com.android.tools.idea.adb.AdbFileProvider
+import java.lang.IllegalStateException
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.DeviceExplorerController.MyTransferringNodesRepaint
+import com.android.tools.idea.explorer.DeviceExplorerController.MyLoadingChildrenRepaint
+import kotlin.Throws
+import com.android.tools.idea.explorer.DeviceExplorerController
+import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener
+import com.android.tools.idea.explorer.DeviceExplorerViewListener
+import java.lang.RuntimeException
+import com.android.tools.idea.explorer.DeviceExplorerFilesUtils
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.explorer.FileTransferSummary
+import com.android.tools.idea.explorer.FileTransferOperationTracker
+import java.util.concurrent.CancellationException
+import com.android.tools.idea.explorer.FileTransferWorkEstimatorProgress
+import com.android.tools.idea.explorer.FileTransferWorkEstimate
+import java.util.function.BiConsumer
+import com.intellij.openapi.ide.CopyPasteManager
+import java.awt.datatransfer.StringSelection
+import com.intellij.ui.UIBundle
+import com.intellij.openapi.application.ApplicationBundle
+import com.intellij.CommonBundle
+import java.util.LinkedList
+import com.intellij.openapi.ui.InputValidatorEx
+import java.lang.InterruptedException
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.vfs.VfsUtil
+import com.android.tools.idea.explorer.DeviceExplorerController.ViewListener.UploadFileState
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.fileChooser.FileSaverDescriptor
+import com.intellij.openapi.fileChooser.FileSaverDialog
+import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.android.tools.idea.explorer.DeviceExplorerController.ShowLoadingNodeRequest
+import com.android.tools.idea.explorer.DeviceExplorerController.NodeSorting
+import com.android.tools.idea.explorer.ui.TreeUtil.UpdateChildrenOps
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.MutableTreeNode
+import com.android.tools.idea.explorer.MyLoadingNode
+import com.android.tools.idea.explorer.fs.DeviceState
+import com.android.tools.idea.explorer.fs.DownloadProgress
+import com.android.tools.idea.explorer.ui.TreeUtil
+import com.android.utils.FileUtils
+import com.google.common.primitives.Ints
+import com.google.common.util.concurrent.AsyncFunction
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ArrayUtil
+import com.intellij.util.ExceptionUtil
+import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.annotations.TestOnly
+import java.io.File
+import java.lang.Exception
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.Comparator
+import java.util.HashSet
+import java.util.Locale
+import java.util.Objects
+import java.util.Stack
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Consumer
+import java.util.function.Function
+import java.util.function.Predicate
+import java.util.stream.Collectors
+import java.util.stream.Stream
+import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
 
 /**
  * Implementation of the Device Explorer application logic
  */
-public class DeviceExplorerController {
-  @NotNull
-  private static final Logger LOGGER = Logger.getInstance(DeviceExplorerController.class);
-  @NotNull
-  private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
-  @NotNull
-  private static final String DEVICE_EXPLORER_BUSY_MESSAGE = "Device Explorer is busy, please retry later or cancel current operation";
-  private static final long FILE_ENTRY_CREATION_TIMEOUT_MILLIS = 10_000;
-  private static final long FILE_ENTRY_DELETION_TIMEOUT_MILLIS = 10_000;
-
-  private int myShowLoadingNodeDelayMillis = 200;
-  private int myTransferringNodeRepaintMillis = 100;
-
-  @NotNull private final Project myProject;
-  @NotNull private final DeviceExplorerModel myModel;
-  @NotNull private final DeviceExplorerView myView;
-  @NotNull private final DeviceFileSystemService<? extends DeviceFileSystem> myService;
-  @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @NotNull private final DeviceExplorerFileManager myFileManager;
-  @NotNull private final FileTransferWorkEstimator myWorkEstimator;
-  @NotNull private final Set<DeviceFileEntryNode> myTransferringNodes = new HashSet<>();
-  @NotNull private final Set<DeviceFileEntryNode> myLoadingChildren = new HashSet<>();
-  @NotNull private final Alarm myLoadingNodesAlarms;
-  @NotNull private final Alarm myTransferringNodesAlarms;
-  @NotNull private final Alarm myLoadingChildrenAlarms;
-  @NotNull private final FileOpener myFileOpener;
-  @NotNull private final SettableFuture<Unit> mySetupFuture = SettableFuture.create();
-  @Nullable private LongRunningOperationTracker myLongRunningOperationTracker;
-
-  public DeviceExplorerController(@NotNull Project project,
-                                  @NotNull DeviceExplorerModel model,
-                                  @NotNull DeviceExplorerView view,
-                                  @NotNull DeviceFileSystemService<? extends DeviceFileSystem> service,
-                                  @NotNull DeviceExplorerFileManager fileManager,
-                                  @NotNull FileOpener fileOpener,
-                                  @NotNull Executor edtExecutor,
-                                  @NotNull Executor taskExecutor) {
-    myProject = project;
-    myModel = model;
-    myView = view;
-    myService = service;
-    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor);
-    myService.addListener(new ServiceListener());
-    myView.addListener(new ViewListener());
-    myFileManager = fileManager;
-    myWorkEstimator = new FileTransferWorkEstimator(myEdtExecutor, taskExecutor);
-    myLoadingNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
-    myTransferringNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
-    myLoadingChildrenAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
-    myFileOpener = fileOpener;
-
-    project.putUserData(KEY, this);
+class DeviceExplorerController(
+  private val myProject: Project,
+  private val myModel: DeviceExplorerModel,
+  private val myView: DeviceExplorerView,
+  private val myService: DeviceFileSystemService<out DeviceFileSystem>,
+  fileManager: DeviceExplorerFileManager,
+  fileOpener: FileOpener,
+  edtExecutor: Executor,
+  taskExecutor: Executor
+) {
+  private var myShowLoadingNodeDelayMillis = 200
+  private var myTransferringNodeRepaintMillis = 100
+  private val myEdtExecutor: FutureCallbackExecutor
+  private val myFileManager: DeviceExplorerFileManager
+  private val myWorkEstimator: FileTransferWorkEstimator
+  private val myTransferringNodes: MutableSet<DeviceFileEntryNode> = HashSet()
+  private val myLoadingChildren: MutableSet<DeviceFileEntryNode> = HashSet()
+  private val myLoadingNodesAlarms: Alarm
+  private val myTransferringNodesAlarms: Alarm
+  private val myLoadingChildrenAlarms: Alarm
+  private val myFileOpener: FileOpener
+  private val mySetupFuture = SettableFuture.create<Unit>()
+  private var myLongRunningOperationTracker: LongRunningOperationTracker? = null
+  private fun getTreeModel(): DefaultTreeModel? {
+    return myModel.treeModel
   }
 
-  @Nullable
-  public static DeviceExplorerController getProjectController(@Nullable Project project) {
-    if (project == null) {
-      return null;
-    }
-    return project.getUserData(KEY);
+  private fun getTreeSelectionModel(): DefaultTreeSelectionModel? {
+    return myModel.treeSelectionModel
   }
 
-  @Nullable
-  private DefaultTreeModel getTreeModel() {
-    return myModel.getTreeModel();
-  }
-
-  @Nullable
-  private DefaultTreeSelectionModel getTreeSelectionModel() {
-    return myModel.getTreeSelectionModel();
-  }
-
-  public void setup() {
-    myView.setup();
-    myView.startRefresh("Initializing ADB");
-    ListenableFuture<Unit> future = myService.start(this::getAdbFile);
-    myEdtExecutor.addListener(future, myView::stopRefresh);
-    myEdtExecutor.addCallback(future, new FutureCallback<Unit>() {
-      @Override
-      public void onSuccess(@Nullable Unit result) {
-        mySetupFuture.set(Unit.INSTANCE);
-        refreshDeviceList(null);
+  fun setup() {
+    myView.setup()
+    myView.startRefresh("Initializing ADB")
+    val future = myService.start { getAdbFile() }
+    myEdtExecutor.addListener(future) { myView.stopRefresh() }
+    myEdtExecutor.addCallback(future, object : FutureCallback<Unit> {
+      override fun onSuccess(result: Unit) {
+        mySetupFuture.set(Unit)
+        refreshDeviceList(null)
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        mySetupFuture.setException(t);
-        myView.reportErrorRelatedToService(myService, "Error initializing ADB", t);
+      override fun onFailure(t: Throwable) {
+        mySetupFuture.setException(t)
+        myView.reportErrorRelatedToService(myService, "Error initializing ADB", t)
       }
-    });
+    })
   }
 
-  public void restartService() {
-    myView.startRefresh("Restarting ADB");
-    ListenableFuture<Unit> future = myService.restart(this::getAdbFile);
-    myEdtExecutor.addListener(future, myView::stopRefresh);
-    myEdtExecutor.addCallback(future, new FutureCallback<Unit>() {
-      @Override
-      public void onSuccess(@Nullable Unit result) {
+  fun restartService() {
+    myView.startRefresh("Restarting ADB")
+    val future = myService.restart { getAdbFile() }
+    myEdtExecutor.addListener(future) { myView.stopRefresh() }
+    myEdtExecutor.addCallback(future, object : FutureCallback<Unit> {
+      override fun onSuccess(result: Unit) {
         // A successful restart invokes {@link ServiceListener#serviceRestarted()} which
         // eventually refreshes the list of devices
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myView.reportErrorRelatedToService(myService, "Error restarting ADB", t);
+      override fun onFailure(t: Throwable) {
+        myView.reportErrorRelatedToService(myService, "Error restarting ADB", t)
       }
-    });
+    })
   }
 
-  @Nullable
-  private File getAdbFile() {
-    AdbFileProvider provider = AdbFileProvider.fromProject(myProject);
-    if (provider != null) {
-      return provider.getAdbFile();
-    }
-    else {
-      return null;
-    }
+  private fun getAdbFile(): File? {
+    val provider = fromProject(myProject)
+    return provider?.adbFile
   }
 
-  void reportErrorFindingDevice(@NotNull String message) {
-    myView.reportErrorGeneric(message, new IllegalStateException());
+  fun reportErrorFindingDevice(message: String) {
+    myView.reportErrorGeneric(message, IllegalStateException())
   }
 
-  public void selectActiveDevice(@NotNull String serialNumber) {
-    if (mySetupFuture.isDone()) {
-      selectTheDevice(serialNumber);
-    }
-    else {
-      myEdtExecutor.transform(mySetupFuture, unused -> {
-        selectTheDevice(serialNumber);
-        return unused;
-      });
-    }
-  }
-
-  private void selectTheDevice(@NotNull String serialNumber) {
-    assert mySetupFuture.isDone();
-    for (DeviceFileSystem device : myModel.getDevices()) {
-      if (serialNumber.equals(device.getDeviceSerialNumber())) {
-        setActiveDevice(device);
-        return;
+  fun selectActiveDevice(serialNumber: String) {
+    if (mySetupFuture.isDone) {
+      selectTheDevice(serialNumber)
+    } else {
+      myEdtExecutor.transform(mySetupFuture) { unused: Unit ->
+        selectTheDevice(serialNumber)
+        unused
       }
     }
-
-    refreshDeviceList(serialNumber);
   }
 
-  private void refreshDeviceList(@Nullable String serialNumberToSelect) {
-    cancelOrMoveToBackgroundPendingOperations();
+  private fun selectTheDevice(serialNumber: String) {
+    assert(mySetupFuture.isDone)
+    for (device in myModel.devices) {
+      if (serialNumber == device.deviceSerialNumber) {
+        setActiveDevice(device)
+        return
+      }
+    }
+    refreshDeviceList(serialNumber)
+  }
 
-    myView.startRefresh("Refreshing list of devices");
-    ListenableFuture<? extends List<? extends DeviceFileSystem>> futureDevices = myService.getDevices();
-    myEdtExecutor.addListener(futureDevices, myView::stopRefresh);
-    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<? extends DeviceFileSystem>>() {
-      @Override
-      public void onSuccess(@Nullable List<? extends DeviceFileSystem> result) {
-        assert result != null;
-        myModel.removeAllDevices();
-        result.forEach(myModel::addDevice);
+  private fun refreshDeviceList(serialNumberToSelect: String?) {
+    cancelOrMoveToBackgroundPendingOperations()
+    myView.startRefresh("Refreshing list of devices")
+    val futureDevices = myService.devices
+    myEdtExecutor.addListener(futureDevices) { myView.stopRefresh() }
+    myEdtExecutor.addCallback(futureDevices, object : FutureCallback<List<DeviceFileSystem?>?> {
+      override fun onSuccess(result: List<DeviceFileSystem?>?) {
+        assert(result != null)
+        myModel.removeAllDevices()
+        result!!.forEach { device: DeviceFileSystem? -> myModel.addDevice(device!!) }
         if (result.isEmpty()) {
-          myView.showNoDeviceScreen();
-        }
-        else if (serialNumberToSelect != null) {
-          for (DeviceFileSystem device : myModel.getDevices()) {
-            if (serialNumberToSelect.equals(device.getDeviceSerialNumber())) {
-              setActiveDevice(device);
-              return;
+          myView.showNoDeviceScreen()
+        } else if (serialNumberToSelect != null) {
+          for (device in myModel.devices) {
+            if (serialNumberToSelect == device.deviceSerialNumber) {
+              setActiveDevice(device)
+              return
             }
           }
-          reportErrorFindingDevice("Unable to find device with serial number " + serialNumberToSelect + ". Please retry.");
+          reportErrorFindingDevice("Unable to find device with serial number $serialNumberToSelect. Please retry.")
         }
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myModel.removeAllDevices();
-        myView.reportErrorRelatedToService(myService, "Error refreshing list of devices", t);
+      override fun onFailure(t: Throwable) {
+        myModel.removeAllDevices()
+        myView.reportErrorRelatedToService(myService, "Error refreshing list of devices", t)
       }
-    });
+    })
   }
 
-  private void setNoActiveDevice() {
-    cancelOrMoveToBackgroundPendingOperations();
-    myModel.setActiveDevice(null);
-    myModel.setActiveDeviceTreeModel(null, null, null);
-    myView.showNoDeviceScreen();
+  private fun setNoActiveDevice() {
+    cancelOrMoveToBackgroundPendingOperations()
+    myModel.activeDevice = null
+    myModel.setActiveDeviceTreeModel(null, null, null)
+    myView.showNoDeviceScreen()
   }
 
-  private void setActiveDevice(@NotNull DeviceFileSystem device) {
-    cancelOrMoveToBackgroundPendingOperations();
-    myModel.setActiveDevice(device);
-    trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE);
-    refreshActiveDevice(device);
+  private fun setActiveDevice(device: DeviceFileSystem) {
+    cancelOrMoveToBackgroundPendingOperations()
+    myModel.activeDevice = device
+    trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
+    refreshActiveDevice(device)
   }
 
-  private void deviceStateUpdated(@NotNull DeviceFileSystem device) {
-    if (!Objects.equals(device, myModel.getActiveDevice())) {
-      return;
+  private fun deviceStateUpdated(device: DeviceFileSystem) {
+    if (device != myModel.activeDevice) {
+      return
     }
 
     // Refresh the active device view only if the device state has changed,
     // for example from offline -> online.
-    DeviceState newState = device.getDeviceState();
-    DeviceState lastKnownState = myModel.getActiveDeviceLastKnownState(device);
-    if (Objects.equals(newState, lastKnownState)) {
-      return;
+    val newState = device.deviceState
+    val lastKnownState = myModel.getActiveDeviceLastKnownState(device)
+    if (newState == lastKnownState) {
+      return
     }
-    myModel.setActiveDeviceLastKnownState(device);
-    refreshActiveDevice(device);
+    myModel.setActiveDeviceLastKnownState(device)
+    refreshActiveDevice(device)
   }
 
-  private void refreshActiveDevice(@NotNull DeviceFileSystem device) {
-    if (!Objects.equals(device, myModel.getActiveDevice())) {
-      return;
+  private fun refreshActiveDevice(device: DeviceFileSystem) {
+    if (device != myModel.activeDevice) {
+      return
     }
-
-    if (device.getDeviceState() != DeviceState.ONLINE) {
-      String message;
-      if (device.getDeviceState() == DeviceState.UNAUTHORIZED ||
-          device.getDeviceState() == DeviceState.OFFLINE) {
-        message = "Device is pending authentication: please accept debugging session on the device";
+    if (device.deviceState != DeviceState.ONLINE) {
+      val message: String
+      message = if (device.deviceState == DeviceState.UNAUTHORIZED ||
+        device.deviceState == DeviceState.OFFLINE
+      ) {
+        "Device is pending authentication: please accept debugging session on the device"
+      } else {
+        String.format("Device is not online (%s)", device.deviceState)
       }
-      else {
-        message = String.format("Device is not online (%s)", device.getDeviceState());
-      }
-      myView.reportMessageRelatedToDevice(device, message);
-      myModel.setActiveDeviceTreeModel(device, null, null);
-      return;
+      myView.reportMessageRelatedToDevice(device, message)
+      myModel.setActiveDeviceTreeModel(device, null, null)
+      return
     }
-
-    ListenableFuture<DeviceFileEntry> futureRoot = device.getRootDirectory();
-    myEdtExecutor.addCallback(futureRoot, new FutureCallback<DeviceFileEntry>() {
-      @Override
-      public void onSuccess(@Nullable DeviceFileEntry result) {
-        assert result != null;
-        DeviceFileEntryNode rootNode = new DeviceFileEntryNode(result);
-        DefaultTreeModel model = new DefaultTreeModel(rootNode);
-        myModel.setActiveDeviceTreeModel(device, model, new DefaultTreeSelectionModel());
+    val futureRoot = device.rootDirectory
+    myEdtExecutor.addCallback(futureRoot, object : FutureCallback<DeviceFileEntry?> {
+      override fun onSuccess(result: DeviceFileEntry?) {
+        assert(result != null)
+        val rootNode = DeviceFileEntryNode(result!!)
+        val model = DefaultTreeModel(rootNode)
+        myModel.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myModel.setActiveDeviceTreeModel(device, null, null);
-        myView.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t);
+      override fun onFailure(t: Throwable) {
+        myModel.setActiveDeviceTreeModel(device, null, null)
+        myView.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t)
       }
-    });
+    })
   }
 
-  private void cancelOrMoveToBackgroundPendingOperations() {
-    myLoadingNodesAlarms.cancelAllRequests();
-    myLoadingChildrenAlarms.cancelAllRequests();
-    myTransferringNodesAlarms.cancelAllRequests();
-    myLoadingChildren.clear();
-    myTransferringNodes.clear();
+  private fun cancelOrMoveToBackgroundPendingOperations() {
+    myLoadingNodesAlarms.cancelAllRequests()
+    myLoadingChildrenAlarms.cancelAllRequests()
+    myTransferringNodesAlarms.cancelAllRequests()
+    myLoadingChildren.clear()
+    myTransferringNodes.clear()
     if (myLongRunningOperationTracker != null) {
-      if (myLongRunningOperationTracker.isBackgroundable()) {
-        myLongRunningOperationTracker.moveToBackground();
-        myLongRunningOperationTracker = null;
-      }
-      else {
-        myLongRunningOperationTracker.cancel();
+      if (myLongRunningOperationTracker!!.isBackgroundable) {
+        myLongRunningOperationTracker!!.moveToBackground()
+        myLongRunningOperationTracker = null
+      } else {
+        myLongRunningOperationTracker!!.cancel()
       }
     }
   }
 
-  private <T> ListenableFuture<Unit> executeFuturesInSequence(@NotNull Iterator<T> iterator,
-                                                              @NotNull Function<T, ListenableFuture<Unit>> taskFactory) {
-    return myEdtExecutor.executeFuturesInSequence(iterator, taskFactory);
+  private fun <T> executeFuturesInSequence(
+    iterator: Iterator<T>,
+    taskFactory: Function<T, ListenableFuture<Unit>>
+  ): ListenableFuture<Unit> {
+    return myEdtExecutor.executeFuturesInSequence(iterator, taskFactory)
   }
 
-  private void startNodeDownload(@NotNull DeviceFileEntryNode node) {
-    startNodeTransfer(node, true);
+  private fun startNodeDownload(node: DeviceFileEntryNode) {
+    startNodeTransfer(node, true)
   }
 
-  private void startNodeUpload(@NotNull DeviceFileEntryNode node) {
-    startNodeTransfer(node, false);
+  private fun startNodeUpload(node: DeviceFileEntryNode) {
+    startNodeTransfer(node, false)
   }
 
-  private void startNodeTransfer(@NotNull DeviceFileEntryNode node, boolean download) {
-    myView.startTreeBusyIndicator();
-    if (download)
-      node.setDownloading(true);
-    else
-      node.setUploading(true);
+  private fun startNodeTransfer(node: DeviceFileEntryNode, download: Boolean) {
+    myView.startTreeBusyIndicator()
+    if (download) node.isDownloading = true else node.isUploading = true
     if (myTransferringNodes.isEmpty()) {
-      myTransferringNodesAlarms.addRequest(new MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis);
+      myTransferringNodesAlarms.addRequest(MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis)
     }
-    myTransferringNodes.add(node);
+    myTransferringNodes.add(node)
   }
 
-  private void stopNodeDownload(@NotNull DeviceFileEntryNode node) {
-    stopNodeTransfer(node, true);
+  private fun stopNodeDownload(node: DeviceFileEntryNode) {
+    stopNodeTransfer(node, true)
   }
 
-  private void stopNodeUpload(@NotNull DeviceFileEntryNode node) {
-    stopNodeTransfer(node, false);
+  private fun stopNodeUpload(node: DeviceFileEntryNode) {
+    stopNodeTransfer(node, false)
   }
 
-  private void stopNodeTransfer(@NotNull DeviceFileEntryNode node, boolean download) {
-    myView.stopTreeBusyIndicator();
-    if (download)
-      node.setDownloading(false);
-    else
-      node.setUploading(false);
+  private fun stopNodeTransfer(node: DeviceFileEntryNode, download: Boolean) {
+    myView.stopTreeBusyIndicator()
+    if (download) node.isDownloading = false else node.isUploading = false
     if (getTreeModel() != null) {
-      getTreeModel().nodeChanged(node);
+      getTreeModel()!!.nodeChanged(node)
     }
-    myTransferringNodes.remove(node);
+    myTransferringNodes.remove(node)
     if (myTransferringNodes.isEmpty()) {
-      myTransferringNodesAlarms.cancelAllRequests();
+      myTransferringNodesAlarms.cancelAllRequests()
     }
   }
 
-  private void startLoadChildren(@NotNull DeviceFileEntryNode node) {
-    myView.startTreeBusyIndicator();
+  private fun startLoadChildren(node: DeviceFileEntryNode) {
+    myView.startTreeBusyIndicator()
     if (myLoadingChildren.isEmpty()) {
-      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis);
+      myLoadingChildrenAlarms.addRequest(MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis)
     }
-    myLoadingChildren.add(node);
+    myLoadingChildren.add(node)
   }
 
-  private void stopLoadChildren(@NotNull DeviceFileEntryNode node) {
-    myView.stopTreeBusyIndicator();
-    myLoadingChildren.remove(node);
+  private fun stopLoadChildren(node: DeviceFileEntryNode) {
+    myView.stopTreeBusyIndicator()
+    myLoadingChildren.remove(node)
     if (myLoadingChildren.isEmpty()) {
-      myLoadingChildrenAlarms.cancelAllRequests();
+      myLoadingChildrenAlarms.cancelAllRequests()
     }
   }
 
-  private boolean checkLongRunningOperationAllowed() {
-    return myLongRunningOperationTracker == null;
+  private fun checkLongRunningOperationAllowed(): Boolean {
+    return myLongRunningOperationTracker == null
   }
 
-  private void registerLongRunningOperation(@NotNull LongRunningOperationTracker tracker) throws Exception {
+  @Throws(Exception::class)
+  private fun registerLongRunningOperation(tracker: LongRunningOperationTracker) {
     if (!checkLongRunningOperationAllowed()) {
-      throw new Exception(DEVICE_EXPLORER_BUSY_MESSAGE);
+      throw Exception(DEVICE_EXPLORER_BUSY_MESSAGE)
     }
-
-    myLongRunningOperationTracker = tracker;
-    Disposer.register(myLongRunningOperationTracker, () -> {
-      assert ApplicationManager.getApplication().isDispatchThread();
-      if (myLongRunningOperationTracker == tracker) {
-        myLongRunningOperationTracker = null;
+    myLongRunningOperationTracker = tracker
+    Disposer.register(myLongRunningOperationTracker!!) {
+      assert(ApplicationManager.getApplication().isDispatchThread)
+      if (myLongRunningOperationTracker === tracker) {
+        myLongRunningOperationTracker = null
       }
-    });
+    }
   }
 
-  public boolean hasActiveDevice() {
-    return myModel.getActiveDevice() != null;
-  }
-
-  @TestOnly
-  @SuppressWarnings("SameParameterValue")
-  public void setShowLoadingNodeDelayMillis(int showLoadingNodeDelayMillis) {
-    myShowLoadingNodeDelayMillis = showLoadingNodeDelayMillis;
+  fun hasActiveDevice(): Boolean {
+    return myModel.activeDevice != null
   }
 
   @TestOnly
-  @SuppressWarnings("SameParameterValue")
-  public void setTransferringNodeRepaintMillis(int transferringNodeRepaintMillis) {
-    myTransferringNodeRepaintMillis = transferringNodeRepaintMillis;
+  fun setShowLoadingNodeDelayMillis(showLoadingNodeDelayMillis: Int) {
+    myShowLoadingNodeDelayMillis = showLoadingNodeDelayMillis
   }
 
-  private class ServiceListener implements DeviceFileSystemServiceListener {
-    @Override
-    public void serviceRestarted() {
-      refreshDeviceList(null);
+  @TestOnly
+  fun setTransferringNodeRepaintMillis(transferringNodeRepaintMillis: Int) {
+    myTransferringNodeRepaintMillis = transferringNodeRepaintMillis
+  }
+
+  private inner class ServiceListener : DeviceFileSystemServiceListener {
+    override fun serviceRestarted() {
+      refreshDeviceList(null)
     }
 
-    @Override
-    public void deviceAdded(@NotNull DeviceFileSystem device) {
-      myModel.addDevice(device);
+    override fun deviceAdded(device: DeviceFileSystem) {
+      myModel.addDevice(device)
     }
 
-    @Override
-    public void deviceRemoved(@NotNull DeviceFileSystem device) {
-      myModel.removeDevice(device);
+    override fun deviceRemoved(device: DeviceFileSystem) {
+      myModel.removeDevice(device)
     }
 
-    @Override
-    public void deviceUpdated(@NotNull DeviceFileSystem device) {
-      myModel.updateDevice(device);
-      deviceStateUpdated(device);
+    override fun deviceUpdated(device: DeviceFileSystem) {
+      myModel.updateDevice(device)
+      deviceStateUpdated(device)
     }
   }
 
-  private class ViewListener implements DeviceExplorerViewListener {
-    @Override
-    public void noDeviceSelected() {
-      setNoActiveDevice();
+  private inner class ViewListener : DeviceExplorerViewListener {
+    override fun noDeviceSelected() {
+      setNoActiveDevice()
     }
 
-    @Override
-    public void deviceSelected(@NotNull DeviceFileSystem device) {
-      setActiveDevice(device);
+    override fun deviceSelected(device: DeviceFileSystem) {
+      setActiveDevice(device)
     }
 
-    @Override
-    public void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    override fun openNodesInEditorInvoked(treeNodes: List<DeviceFileEntryNode>) {
       if (treeNodes.isEmpty()) {
-        return;
+        return
       }
-
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(getCommonParentNode(treeNodes), DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(getCommonParentNode(treeNodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-
-      DeviceFileSystem device = myModel.getActiveDevice();
-
-      myEdtExecutor.executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
-        if (!Objects.equals(device, myModel.getActiveDevice())) {
-          return Futures.immediateFuture(null);
+      val device = myModel.activeDevice
+      myEdtExecutor.executeFuturesInSequence(treeNodes.iterator()) { treeNode: DeviceFileEntryNode ->
+        if (device != myModel.activeDevice) {
+          return@executeFuturesInSequence Futures.immediateFuture<Unit>(null)
         }
-
-        if (treeNode.getEntry().isDirectory()) {
-          return Futures.immediateFuture(null);
+        if (treeNode.entry.isDirectory) {
+          return@executeFuturesInSequence Futures.immediateFuture<Unit>(null)
         }
-
-        if (treeNode.isTransferring()) {
-          myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", new RuntimeException());
-          return Futures.immediateFuture(null);
+        if (treeNode.isTransferring) {
+          myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", RuntimeException())
+          return@executeFuturesInSequence Futures.immediateFuture<Unit>(null)
         }
-
-        return myEdtExecutor.transformAsync(treeNode.getEntry().isSymbolicLinkToDirectory(), isSymlinkToDir -> {
-          assert isSymlinkToDir != null;
-
-          if (isSymlinkToDir) {
-            return Futures.<Unit>immediateFuture(null);
+        myEdtExecutor.transformAsync(treeNode.entry.isSymbolicLinkToDirectory) { isSymlinkToDir: Boolean? ->
+          assert(isSymlinkToDir != null)
+          if (isSymlinkToDir!!) {
+            return@transformAsync Futures.immediateFuture<Unit>(null)
+          } else {
+            return@transformAsync downloadAndOpenFile(treeNode)
           }
-          else {
-            return downloadAndOpenFile(treeNode);
-          }
-        });
-      });
+        }
+      }
     }
 
-    private ListenableFuture<Unit> downloadAndOpenFile(DeviceFileEntryNode treeNode) {
-      ListenableFuture<Path> futurePath = downloadFileEntryToDefaultLocation(treeNode);
-
-      ListenableFuture<Unit> done = myEdtExecutor.transformAsync(futurePath, path -> {
-        assert path != null;
-
-        ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, path);
-
-        return myEdtExecutor.transform(getVirtualFile, virtualFile -> {
-          myFileOpener.openFile(virtualFile);
-          return Unit.INSTANCE;
-        });
-      });
+    private fun downloadAndOpenFile(treeNode: DeviceFileEntryNode): ListenableFuture<Unit> {
+      val futurePath = downloadFileEntryToDefaultLocation(treeNode)
+      val done = myEdtExecutor.transformAsync(futurePath) { path: Path? ->
+        assert(path != null)
+        val getVirtualFile = DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, path!!)
+        myEdtExecutor.transform(getVirtualFile) { virtualFile: VirtualFile ->
+          myFileOpener.openFile(virtualFile)
+          Unit
+        }
+      }
 
       // handle exceptions
-      return myEdtExecutor.catching(done, Throwable.class, t -> {
-        String message = String.format("Error opening contents of device file %s", getUserFacingNodeName(treeNode));
-        myView.reportErrorRelatedToNode(treeNode, message, t);
-        return Unit.INSTANCE;
-      });
-    }
-
-    @Nullable
-    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull String entryFullPath) {
-      TreeNode treeNodeRoot = getTreeNodeRoot(treeNode);
-
-      if (!(treeNodeRoot instanceof DeviceFileEntryNode)) {
-        return null;
+      return myEdtExecutor.catching(done, Throwable::class.java) { t: Throwable? ->
+        val message = String.format("Error opening contents of device file %s", getUserFacingNodeName(treeNode))
+        myView.reportErrorRelatedToNode(treeNode, message, t!!)
+        Unit
       }
-
-      DeviceFileEntryNode treeRoot = (DeviceFileEntryNode)treeNodeRoot;
-      return findDeviceFileEntryNodeFromPath(treeRoot, entryFullPath);
     }
 
-    @NonNull
-    private TreeNode getTreeNodeRoot(@NonNull TreeNode node) {
-      while (node.getParent() != null)
-        node = node.getParent();
-
-      return node;
+    private fun getTreeNodeFromEntry(treeNode: DeviceFileEntryNode, entryFullPath: String): DeviceFileEntryNode? {
+      val treeNodeRoot = getTreeNodeRoot(treeNode) as? DeviceFileEntryNode ?: return null
+      return findDeviceFileEntryNodeFromPath(treeNodeRoot, entryFullPath)
     }
 
-    @Nullable
-    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull String entryFullPath) {
-      List<String> pathComponents = AdbPathUtil.getSegments(entryFullPath);
+    private fun getTreeNodeRoot(node: TreeNode): TreeNode {
+      var node = node
+      while (node.parent != null) node = node.parent
+      return node
+    }
 
+    private fun findDeviceFileEntryNodeFromPath(root: DeviceFileEntryNode, entryFullPath: String): DeviceFileEntryNode? {
+      val pathComponents = AdbPathUtil.getSegments(entryFullPath)
       if (pathComponents.isEmpty()) {
-        return root;
+        return root
       }
-
-      DeviceFileEntryNode currentNode = root;
-      for (String segment : pathComponents) {
-        currentNode = currentNode.findChildEntry(segment);
+      var currentNode: DeviceFileEntryNode? = root
+      for (segment in pathComponents) {
+        currentNode = currentNode!!.findChildEntry(segment)
         if (currentNode == null) {
-          return null;
+          return null
         }
       }
-
-      return currentNode;
+      return currentNode
     }
 
     @UiThread
-    @NotNull
-    private ListenableFuture<Path> downloadFileEntryToDefaultLocation(@NotNull DeviceFileEntryNode treeNode) {
-      Path localPath;
-      try {
-        localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
-      } catch (Throwable t) {
-        return Futures.immediateFailedFuture(t);
+    private fun downloadFileEntryToDefaultLocation(treeNode: DeviceFileEntryNode): ListenableFuture<Path> {
+      val localPath: Path
+      localPath = try {
+        myFileManager.getDefaultLocalPathForEntry(treeNode.entry)
+      } catch (t: Throwable) {
+        return Futures.immediateFailedFuture(t)
       }
-
-      ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
-        tracker -> addDownloadOperationWork(tracker, treeNode),
-        tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)),
-        true);
-      return myEdtExecutor.transform(futureSave, summary -> localPath);
+      val futureSave = wrapFileTransfer(
+        { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
+        { tracker: FileTransferOperationTracker -> downloadFileEntry(treeNode, localPath, tracker).ignoreResult() },
+        true
+      )
+      return myEdtExecutor.transform(futureSave) { summary: FileTransferSummary? -> localPath }
     }
 
-    @Override
-    public void saveNodesAsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    override fun saveNodesAsInvoked(treeNodes: List<DeviceFileEntryNode>) {
       if (treeNodes.isEmpty()) {
-        return;
+        return
       }
-
-      DeviceFileEntryNode commonParentNode = getCommonParentNode(treeNodes);
+      val commonParentNode = getCommonParentNode(treeNodes)
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(commonParentNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(commonParentNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-
-      ListenableFuture<FileTransferSummary> futureSummary = (treeNodes.size() == 1) ?
-                                                            saveSingleNodeAs(treeNodes.get(0)) :
-                                                            saveMultiNodesAs(commonParentNode, treeNodes);
-
-      myEdtExecutor.addCallback(futureSummary, new FutureCallback<FileTransferSummary>() {
-        @Override
-        public void onSuccess(@Nullable FileTransferSummary result) {
-          assert result != null;
-          result.setAction(DeviceExplorerEvent.Action.SAVE_AS);
-          reportSaveNodesAsSummary(commonParentNode, result);
+      val futureSummary = if (treeNodes.size == 1) saveSingleNodeAs(treeNodes[0]) else saveMultiNodesAs(commonParentNode, treeNodes)
+      myEdtExecutor.addCallback(futureSummary, object : FutureCallback<FileTransferSummary?> {
+        override fun onSuccess(result: FileTransferSummary?) {
+          assert(result != null)
+          result!!.action = DeviceExplorerEvent.Action.SAVE_AS
+          reportSaveNodesAsSummary(commonParentNode, result)
         }
 
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          myView.reportErrorRelatedToNode(commonParentNode, "Error saving file(s) to local file system", t);
+        override fun onFailure(t: Throwable) {
+          myView.reportErrorRelatedToNode(commonParentNode, "Error saving file(s) to local file system", t)
         }
-      });
+      })
     }
 
-    private void reportSaveNodesAsSummary(@NotNull DeviceFileEntryNode node, @NotNull FileTransferSummary summary) {
-      reportFileTransferSummary(node, summary, "downloaded", "downloading");
+    private fun reportSaveNodesAsSummary(node: DeviceFileEntryNode, summary: FileTransferSummary) {
+      reportFileTransferSummary(node, summary, "downloaded", "downloading")
     }
 
-    @NotNull
-    private ListenableFuture<FileTransferSummary> saveSingleNodeAs(@NotNull DeviceFileEntryNode treeNode) {
+    private fun saveSingleNodeAs(treeNode: DeviceFileEntryNode): ListenableFuture<FileTransferSummary> {
       // When saving a single entry, we should consider whether the entry is a symbolic link to
       // a directory, not just a plain directory.
-      if (treeNode.getEntry().isDirectory() || treeNode.isSymbolicLinkToDirectory()) {
+      return if (treeNode.entry.isDirectory || treeNode.isSymbolicLinkToDirectory) {
         // If single directory, choose the local directory path to download to, then download
-        Path localDirectory;
-        try {
-          localDirectory = chooseSaveAsDirectoryPath(treeNode);
-        }
-        catch (Exception e) {
-          return Futures.immediateFailedFuture(e);
+        val localDirectory: Path?
+        localDirectory = try {
+          chooseSaveAsDirectoryPath(treeNode)
+        } catch (e: Exception) {
+          return Futures.immediateFailedFuture(e)
         }
         if (localDirectory == null) {
           // User cancelled operation
-          return Futures.immediateFailedFuture(new CancellationException());
-        }
-
-        return wrapFileTransfer(
-          tracker -> addDownloadOperationWork(tracker, treeNode),
-          tracker -> downloadSingleDirectory(treeNode, localDirectory, tracker),
-          false);
-      }
-      else {
+          Futures.immediateFailedFuture(CancellationException())
+        } else wrapFileTransfer(
+          { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
+          { tracker: FileTransferOperationTracker -> downloadSingleDirectory(treeNode, localDirectory, tracker) },
+          false
+        )
+      } else {
         // If single file, choose the local file path to download to, then download
-        Path localFile;
-        try {
-          localFile = chooseSaveAsFilePath(treeNode);
-        }
-        catch (Exception e) {
-          return Futures.immediateFailedFuture(e);
+        val localFile: Path?
+        localFile = try {
+          chooseSaveAsFilePath(treeNode)
+        } catch (e: Exception) {
+          return Futures.immediateFailedFuture(e)
         }
         if (localFile == null) {
           // User cancelled operation
-          return Futures.immediateFailedFuture(new CancellationException());
-        }
-
-        return wrapFileTransfer(
-          tracker -> addDownloadOperationWork(tracker, treeNode),
-          tracker -> downloadSingleFile(treeNode, localFile, tracker),
-          false);
+          Futures.immediateFailedFuture(CancellationException())
+        } else wrapFileTransfer(
+          { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
+          { tracker: FileTransferOperationTracker -> downloadSingleFile(treeNode, localFile, tracker) },
+          false
+        )
       }
     }
 
-    @NotNull
-    private ListenableFuture<FileTransferSummary> saveMultiNodesAs(@NotNull DeviceFileEntryNode commonParentNode,
-                                                                   @NotNull List<DeviceFileEntryNode> treeNodes) {
-      assert !treeNodes.isEmpty();
+    private fun saveMultiNodesAs(
+      commonParentNode: DeviceFileEntryNode,
+      treeNodes: List<DeviceFileEntryNode>
+    ): ListenableFuture<FileTransferSummary> {
+      assert(!treeNodes.isEmpty())
 
       // For downloading multiple entries, choose a local directory path to download to, then download
       // each entry relative to the chosen path
-      Path localDirectory;
-      try {
-        localDirectory = chooseSaveAsDirectoryPath(commonParentNode);
+      val localDirectory: Path?
+      localDirectory = try {
+        chooseSaveAsDirectoryPath(commonParentNode)
+      } catch (e: Exception) {
+        return Futures.immediateFailedFuture(e)
       }
-      catch (Exception e) {
-        return Futures.immediateFailedFuture(e);
-      }
-      if (localDirectory == null) {
+      return if (localDirectory == null) {
         // User cancelled operation
-        return Futures.immediateFailedFuture(new CancellationException());
-      }
-
-      return wrapFileTransfer(
-        tracker -> addDownloadOperationWork(tracker, treeNodes),
-        tracker -> executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
-          Path nodePath = localDirectory.resolve(treeNode.getEntry().getName());
-          return downloadSingleNode(treeNode, nodePath, tracker);
-        }),
-        true);
+        Futures.immediateFailedFuture(CancellationException())
+      } else wrapFileTransfer(
+        { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNodes) },
+        { tracker: FileTransferOperationTracker ->
+          executeFuturesInSequence(treeNodes.iterator()) { treeNode: DeviceFileEntryNode ->
+            val nodePath = localDirectory.resolve(treeNode.entry.name)
+            downloadSingleNode(treeNode, nodePath, tracker)
+          }
+        },
+        true
+      )
     }
 
     /**
@@ -733,1232 +646,1227 @@ public class DeviceExplorerController {
      * is over).
      *
      * @param prepareTransfer An operation to run before the transfer, typically
-     *                        to estimate the amount of work, used for tracking progress
-     *                        later on
+     * to estimate the amount of work, used for tracking progress
+     * later on
      * @param performTransfer The transfer operation itself
-     * @return A {@link ListenableFuture}&lt;{@link FileTransferSummary}&gt; that completes
+     * @return A [ListenableFuture]&lt;[FileTransferSummary]&gt; that completes
      * when the whole transfer operation finishes. In case of cancellation, the future
-     * completes with a {@link CancellationException}.
+     * completes with a [CancellationException].
      */
     @UiThread
-    @NotNull
-    private ListenableFuture<FileTransferSummary> wrapFileTransfer(
-        @NotNull Function<FileTransferOperationTracker, ListenableFuture<Unit>> prepareTransfer,
-        @NotNull Function<FileTransferOperationTracker, ListenableFuture<Unit>> performTransfer,
-        boolean backgroundable) {
-      FileTransferOperationTracker tracker = new FileTransferOperationTracker(myView, backgroundable);
+    private fun wrapFileTransfer(
+      prepareTransfer: Function<FileTransferOperationTracker, ListenableFuture<Unit>>,
+      performTransfer: Function<FileTransferOperationTracker, ListenableFuture<Unit>>,
+      backgroundable: Boolean
+    ): ListenableFuture<FileTransferSummary> {
+      val tracker = FileTransferOperationTracker(myView, backgroundable)
       try {
-        registerLongRunningOperation(tracker);
+        registerLongRunningOperation(tracker)
+      } catch (e: Exception) {
+        return Futures.immediateFailedFuture(e)
       }
-      catch (Exception e) {
-        return Futures.immediateFailedFuture(e);
+      tracker.start()
+      tracker.setCalculatingText(0, 0)
+      tracker.setIndeterminate(true)
+      Disposer.register(myProject, tracker)
+      myView.startTreeBusyIndicator()
+      val futurePrepare = prepareTransfer.apply(tracker)
+      val futureTransfer = myEdtExecutor.transformAsync(futurePrepare, AsyncFunction { aVoid: Unit ->
+        tracker.setIndeterminate(false)
+        performTransfer.apply(tracker)
+      })
+      myEdtExecutor.addListener(futureTransfer) { myView.stopTreeBusyIndicator() }
+      myEdtExecutor.addListener(futureTransfer) { Disposer.dispose(tracker) }
+      return myEdtExecutor.transform(futureTransfer) { aVoid: Unit -> tracker.summary }
+    }
+
+    fun addUploadOperationWork(
+      tracker: FileTransferOperationTracker,
+      files: List<Path>
+    ): ListenableFuture<Unit> {
+      return executeFuturesInSequence(files.iterator()) { x: Path -> addUploadOperationWork(tracker, x) }
+    }
+
+    fun addUploadOperationWork(
+      tracker: FileTransferOperationTracker,
+      path: Path
+    ): ListenableFuture<Unit> {
+      val progress = createFileTransferEstimatorProgress(tracker)
+      val futureWork = myWorkEstimator.estimateUploadWork(path, progress)
+      return myEdtExecutor.transform(futureWork) { work: FileTransferWorkEstimate? ->
+        assert(work != null)
+        tracker.addWorkEstimate(work)
+        Unit
       }
-
-      tracker.start();
-      tracker.setCalculatingText(0, 0);
-      tracker.setIndeterminate(true);
-      Disposer.register(myProject, tracker);
-
-      myView.startTreeBusyIndicator();
-      ListenableFuture<Unit> futurePrepare = prepareTransfer.apply(tracker);
-      ListenableFuture<Unit> futureTransfer = myEdtExecutor.transformAsync(futurePrepare, aVoid -> {
-        tracker.setIndeterminate(false);
-        return performTransfer.apply(tracker);
-      });
-      myEdtExecutor.addListener(futureTransfer, myView::stopTreeBusyIndicator);
-      myEdtExecutor.addListener(futureTransfer, () -> Disposer.dispose(tracker));
-      return myEdtExecutor.transform(futureTransfer, aVoid -> tracker.getSummary());
     }
 
-    public ListenableFuture<Unit> addUploadOperationWork(@NotNull FileTransferOperationTracker tracker,
-                                                         @NotNull List<Path> files) {
-
-      return executeFuturesInSequence(files.iterator(), x -> addUploadOperationWork(tracker, x));
+    fun addDownloadOperationWork(
+      tracker: FileTransferOperationTracker,
+      entryNodes: List<DeviceFileEntryNode>
+    ): ListenableFuture<Unit> {
+      return executeFuturesInSequence(entryNodes.iterator()) { node: DeviceFileEntryNode -> addDownloadOperationWork(tracker, node) }
     }
 
-    public ListenableFuture<Unit> addUploadOperationWork(@NotNull FileTransferOperationTracker tracker,
-                                                         @NotNull Path path) {
-      FileTransferWorkEstimatorProgress progress = createFileTransferEstimatorProgress(tracker);
-      ListenableFuture<FileTransferWorkEstimate> futureWork = myWorkEstimator.estimateUploadWork(path, progress);
-      return myEdtExecutor.transform(futureWork, work -> {
-        assert work != null;
-        tracker.addWorkEstimate(work);
-        return Unit.INSTANCE;
-      });
+    fun addDownloadOperationWork(
+      tracker: FileTransferOperationTracker,
+      entryNode: DeviceFileEntryNode
+    ): ListenableFuture<Unit> {
+      val progress = createFileTransferEstimatorProgress(tracker)
+      val futureEstimate = myWorkEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress)
+      return myEdtExecutor.transform(futureEstimate) { estimate: FileTransferWorkEstimate? ->
+        assert(estimate != null)
+        tracker.addWorkEstimate(estimate)
+        Unit
+      }
     }
 
-    public ListenableFuture<Unit> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
-                                                           @NotNull List<DeviceFileEntryNode> entryNodes) {
-      return executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
-    }
-
-    public ListenableFuture<Unit> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
-                                                           @NotNull DeviceFileEntryNode entryNode) {
-      FileTransferWorkEstimatorProgress progress = createFileTransferEstimatorProgress(tracker);
-      ListenableFuture<FileTransferWorkEstimate> futureEstimate =
-        myWorkEstimator.estimateDownloadWork(entryNode.getEntry(), entryNode.isSymbolicLinkToDirectory(), progress);
-      return myEdtExecutor.transform(futureEstimate, estimate -> {
-        assert estimate != null;
-        tracker.addWorkEstimate(estimate);
-        return Unit.INSTANCE;
-      });
-    }
-
-    @NotNull
-    private FileTransferWorkEstimatorProgress createFileTransferEstimatorProgress(@NotNull final FileTransferOperationTracker tracker) {
-      return new FileTransferWorkEstimatorProgress() {
-        @Override
-        public void progress(int fileCount, int directoryCount) {
-          tracker.setCalculatingText(fileCount, directoryCount);
+    private fun createFileTransferEstimatorProgress(tracker: FileTransferOperationTracker): FileTransferWorkEstimatorProgress {
+      return object : FileTransferWorkEstimatorProgress {
+        override fun progress(fileCount: Int, directoryCount: Int) {
+          tracker.setCalculatingText(fileCount, directoryCount)
         }
 
-        @Override
-        public boolean isCancelled() {
-          return tracker.isCancelled();
+        override fun isCancelled(): Boolean {
+          return tracker.isCancelled
         }
-      };
-    }
-
-    @NotNull
-    private ListenableFuture<Unit> downloadSingleNode(@NotNull DeviceFileEntryNode node,
-                                                      @NotNull Path localPath,
-                                                      @NotNull FileTransferOperationTracker tracker) {
-      if (node.getEntry().isDirectory()) {
-        return downloadSingleDirectory(node, localPath, tracker);
-      }
-      else {
-        return downloadSingleFile(node, localPath, tracker);
       }
     }
 
-    @NotNull
-    private ListenableFuture<Unit> downloadSingleFile(@NotNull DeviceFileEntryNode treeNode,
-                                                      @NotNull Path localPath,
-                                                      @NotNull FileTransferOperationTracker tracker) {
-      assert !treeNode.getEntry().isDirectory();
+    private fun downloadSingleNode(
+      node: DeviceFileEntryNode,
+      localPath: Path,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      return if (node.entry.isDirectory) {
+        downloadSingleDirectory(node, localPath, tracker)
+      } else {
+        downloadSingleFile(node, localPath, tracker)
+      }
+    }
+
+    private fun downloadSingleFile(
+      treeNode: DeviceFileEntryNode,
+      localPath: Path,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      assert(!treeNode.entry.isDirectory)
 
       // Download single file
-      if (treeNode.isTransferring()) {
-        tracker.addProblem(new Exception(String.format("File %s is already downloading or uploading", getUserFacingNodeName(treeNode))));
-        return Futures.immediateFuture(null);
+      if (treeNode.isTransferring) {
+        tracker.addProblem(Exception(String.format("File %s is already downloading or uploading", getUserFacingNodeName(treeNode))))
+        return Futures.immediateFuture(null)
       }
-
-      ListenableFuture<Long> futureEntrySize = downloadFileEntry(treeNode, localPath, tracker);
-      SettableFuture<Unit> futureResult = SettableFuture.create();
-      myEdtExecutor.addConsumer(futureEntrySize, (byteCount, throwable) -> {
+      val futureEntrySize = downloadFileEntry(treeNode, localPath, tracker)
+      val futureResult = SettableFuture.create<Unit>()
+      myEdtExecutor.addConsumer(futureEntrySize) { byteCount: Long?, throwable: Throwable? ->
         if (throwable != null) {
-          tracker.addProblem(new Exception(String.format("Error saving contents of device file %s", getUserFacingNodeName(treeNode)),
-                                           throwable));
+          tracker.addProblem(
+            Exception(
+              String.format("Error saving contents of device file %s", getUserFacingNodeName(treeNode)),
+              throwable
+            )
+          )
+        } else {
+          tracker.summary.addFileCount(1)
+          tracker.summary.addByteCount(byteCount!!)
         }
-        else {
-          tracker.getSummary().addFileCount(1);
-          tracker.getSummary().addByteCount(byteCount);
-        }
-        futureResult.set(Unit.INSTANCE);
-      });
-      return futureResult;
+        futureResult.set(Unit)
+      }
+      return futureResult
     }
 
-    @NotNull
-    private ListenableFuture<Unit> downloadSingleDirectory(@NotNull DeviceFileEntryNode treeNode,
-                                                           @NotNull Path localDirectoryPath,
-                                                           @NotNull FileTransferOperationTracker tracker) {
-      assert treeNode.getEntry().isDirectory() || treeNode.isSymbolicLinkToDirectory();
-      if (tracker.isCancelled()) {
-        return Futures.immediateCancelledFuture();
+    private fun downloadSingleDirectory(
+      treeNode: DeviceFileEntryNode,
+      localDirectoryPath: Path,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      assert(treeNode.entry.isDirectory || treeNode.isSymbolicLinkToDirectory)
+      if (tracker.isCancelled) {
+        return Futures.immediateCancelledFuture()
       }
-      tracker.processDirectory();
+      tracker.processDirectory()
 
       // Ensure directory is created locally
       try {
-        FileUtils.mkdirs(localDirectoryPath.toFile());
+        FileUtils.mkdirs(localDirectoryPath.toFile())
+      } catch (e: Exception) {
+        return Futures.immediateFailedFuture(e)
       }
-      catch (Exception e) {
-        return Futures.immediateFailedFuture(e);
-      }
-      tracker.getSummary().addDirectoryCount(1);
-
-      SettableFuture<Unit> futureResult = SettableFuture.create();
-
-      ListenableFuture<Unit> futureLoadChildren = loadNodeChildren(treeNode);
-      myEdtExecutor.addCallback(futureLoadChildren, new FutureCallback<Unit>() {
-        @Override
-        public void onSuccess(@Nullable Unit result) {
-          ListenableFuture<Unit> futureDownloadChildren = executeFuturesInSequence(treeNode.getChildEntryNodes().iterator(), node -> {
-            Path nodePath = localDirectoryPath.resolve(node.getEntry().getName());
-            return downloadSingleNode(node, nodePath, tracker);
-          });
-          myEdtExecutor.addConsumer(futureDownloadChildren, (aVoid, throwable) -> {
+      tracker.summary.addDirectoryCount(1)
+      val futureResult = SettableFuture.create<Unit>()
+      val futureLoadChildren = loadNodeChildren(treeNode)
+      myEdtExecutor.addCallback(futureLoadChildren, object : FutureCallback<Unit> {
+        override fun onSuccess(result: Unit) {
+          val futureDownloadChildren = executeFuturesInSequence(treeNode.childEntryNodes.iterator()) { node: DeviceFileEntryNode ->
+            val nodePath = localDirectoryPath.resolve(node.entry.name)
+            downloadSingleNode(node, nodePath, tracker)
+          }
+          myEdtExecutor.addConsumer(futureDownloadChildren) { aVoid: Unit, throwable: Throwable? ->
             if (throwable != null) {
-              tracker.addProblem(throwable);
+              tracker.addProblem(throwable)
             }
-            futureResult.set(Unit.INSTANCE);
-          });
+            futureResult.set(Unit)
+          }
         }
 
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          tracker.addProblem(t);
-          futureResult.set(Unit.INSTANCE);
+        override fun onFailure(t: Throwable) {
+          tracker.addProblem(t)
+          futureResult.set(Unit)
         }
-      });
-
-      return futureResult;
+      })
+      return futureResult
     }
 
-    @Override
-    public void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
-      String text = treeNodes.stream().map(x -> x.getEntry().getFullPath()).collect(Collectors.joining("\n"));
-      CopyPasteManager.getInstance().setContents(new StringSelection(text));
-      trackAction(DeviceExplorerEvent.Action.COPY_PATH);
+    override fun copyNodePathsInvoked(treeNodes: List<DeviceFileEntryNode>) {
+      val text = treeNodes.stream().map { x: DeviceFileEntryNode -> x.entry.fullPath }
+        .collect(Collectors.joining("\n"))
+      CopyPasteManager.getInstance().setContents(StringSelection(text))
+      trackAction(DeviceExplorerEvent.Action.COPY_PATH)
     }
 
-    @Override
-    public void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+    override fun newFileInvoked(parentTreeNode: DeviceFileEntryNode) {
       newFileOrDirectory(parentTreeNode,
                          "NewTextFile.txt",
                          UIBundle.message("new.file.dialog.title"),
                          UIBundle.message("create.new.file.enter.new.file.name.prompt.text"),
                          UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
-                         x -> UIBundle.message("create.new.file.could.not.create.file.error.message", x),
-                         x -> parentTreeNode.getEntry().createNewFile(x));
-      trackAction(DeviceExplorerEvent.Action.NEW_FILE);
+                         { x: String? -> UIBundle.message("create.new.file.could.not.create.file.error.message", x) }
+      ) { x: String? ->
+        parentTreeNode.entry.createNewFile(
+          x!!
+        )
+      }
+      trackAction(DeviceExplorerEvent.Action.NEW_FILE)
     }
 
-    @Override
-    public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
+    override fun synchronizeNodesInvoked(nodes: List<DeviceFileEntryNode>) {
       if (nodes.isEmpty()) {
-        return;
+        return
       }
 
       // Collect directories as well as parent directories of files
-      Set<DeviceFileEntryNode> directoryNodes = nodes.stream()
-        .map(x -> {
-          if (x.isSymbolicLinkToDirectory() || x.getEntry().isDirectory()) {
-            return x;
+      var directoryNodes = nodes.stream()
+        .map { x: DeviceFileEntryNode ->
+          if (x.isSymbolicLinkToDirectory || x.entry.isDirectory) {
+            return@map x
           }
-          return DeviceFileEntryNode.fromNode(x.getParent());
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+          DeviceFileEntryNode.fromNode(x.parent)
+        }
+        .filter { obj: DeviceFileEntryNode? -> Objects.nonNull(obj) }
+        .collect(Collectors.toSet())
 
       // Add descendant directories that have been expanded/loaded
       directoryNodes = directoryNodes.stream()
-        .flatMap(node -> {
-          List<DeviceFileEntryNode> nodesToSynchronize = new ArrayList<>();
-          Stack<DeviceFileEntryNode> stack = new Stack<>(); // iterative DFS traversal
-          stack.push(node);
+        .flatMap(Function<DeviceFileEntryNode?, Stream<out DeviceFileEntryNode?>> { node: DeviceFileEntryNode ->
+          val nodesToSynchronize: MutableList<DeviceFileEntryNode?> = ArrayList()
+          val stack = Stack<DeviceFileEntryNode>() // iterative DFS traversal
+          stack.push(node)
           while (!stack.isEmpty()) {
-            DeviceFileEntryNode currentNode = stack.pop();
-            nodesToSynchronize.add(currentNode);
-            currentNode.getChildEntryNodes().stream()
-              .filter(x -> x.getEntry().isDirectory() || x.isSymbolicLinkToDirectory())
-              .filter(DeviceFileEntryNode::isLoaded)
-              .forEach(stack::push);
+            val currentNode = stack.pop()
+            nodesToSynchronize.add(currentNode)
+            currentNode.childEntryNodes.stream()
+              .filter { x: DeviceFileEntryNode -> x.entry.isDirectory || x.isSymbolicLinkToDirectory }
+              .filter { obj: DeviceFileEntryNode -> obj.isLoaded }
+              .forEach { item: DeviceFileEntryNode -> stack.push(item) }
           }
-          return nodesToSynchronize.stream();
+          nodesToSynchronize.stream()
         })
-        .collect(Collectors.toSet());
-
-      trackAction(DeviceExplorerEvent.Action.SYNC);
-      myView.startTreeBusyIndicator();
-      ListenableFuture<Unit> futuresRefresh = executeFuturesInSequence(directoryNodes.iterator(), treeNode -> {
-        treeNode.setLoaded(false);
-        return loadNodeChildren(treeNode);
-      });
-      myEdtExecutor.addListener(futuresRefresh, myView::stopTreeBusyIndicator);
+        .collect(Collectors.toSet())
+      trackAction(DeviceExplorerEvent.Action.SYNC)
+      myView.startTreeBusyIndicator()
+      val futuresRefresh =
+        executeFuturesInSequence<DeviceFileEntryNode?>(directoryNodes.iterator(), Function { treeNode: DeviceFileEntryNode ->
+          treeNode.isLoaded = false
+          loadNodeChildren(treeNode)
+        })
+      myEdtExecutor.addListener(futuresRefresh) { myView.stopTreeBusyIndicator() }
     }
 
-    @Override
-    public void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
+    override fun deleteNodesInvoked(nodes: List<DeviceFileEntryNode>) {
       if (nodes.isEmpty()) {
-        return;
+        return
       }
-
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-
-      List<DeviceFileEntry> fileEntries = ContainerUtil.map(nodes, DeviceFileEntryNode::getEntry);
-      String message = createDeleteConfirmationMessage(fileEntries);
-      int returnValue = Messages.showOkCancelDialog(message,
-                                                    UIBundle.message("delete.dialog.title"),
-                                                    ApplicationBundle.message("button.delete"),
-                                                    CommonBundle.getCancelButtonText(),
-                                                    Messages.getQuestionIcon());
+      val fileEntries = ContainerUtil.map(nodes) { obj: DeviceFileEntryNode -> obj.entry }
+      val message = createDeleteConfirmationMessage(fileEntries)
+      val returnValue = Messages.showOkCancelDialog(
+        message,
+        UIBundle.message("delete.dialog.title"),
+        ApplicationBundle.message("button.delete"),
+        CommonBundle.getCancelButtonText(),
+        Messages.getQuestionIcon()
+      )
       if (returnValue != Messages.OK) {
-        return;
+        return
       }
-
-      fileEntries.sort(Comparator.comparing(DeviceFileEntry::getFullPath));
-
-      List<String> problems = new LinkedList<>();
-      for (DeviceFileEntry fileEntry : fileEntries) {
-        ListenableFuture<Unit> futureDelete = fileEntry.delete();
+      fileEntries.sort(Comparator.comparing { obj: DeviceFileEntry -> obj.fullPath })
+      val problems: MutableList<String> = LinkedList()
+      for (fileEntry in fileEntries) {
+        val futureDelete = fileEntry.delete()
         try {
-          futureDelete.get(FILE_ENTRY_DELETION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
-        }
-        catch (Throwable t) {
-          LOGGER.info(String.format("Error deleting file \"%s\"", fileEntry.getFullPath()), t);
-          String problemMessage = ExceptionUtil.getRootCause(t).getMessage();
+          futureDelete[FILE_ENTRY_DELETION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS]
+        } catch (t: Throwable) {
+          LOGGER.info(String.format("Error deleting file \"%s\"", fileEntry.fullPath), t)
+          var problemMessage = ExceptionUtil.getRootCause(t).message
           if (StringUtil.isEmpty(problemMessage)) {
-            problemMessage = "Error deleting file";
+            problemMessage = "Error deleting file"
           }
-          problemMessage = String.format("%s: %s", fileEntry.getFullPath(), problemMessage);
-          problems.add(problemMessage);
+          problemMessage = String.format("%s: %s", fileEntry.fullPath, problemMessage)
+          problems.add(problemMessage)
         }
       }
-
       if (!problems.isEmpty()) {
-        reportDeletionProblem(problems);
+        reportDeletionProblem(problems)
       } else {
-        trackAction(DeviceExplorerEvent.Action.DELETE);
+        trackAction(DeviceExplorerEvent.Action.DELETE)
       }
 
       // Refresh the parent node(s) to remove the deleted files
-      Set<DeviceFileEntryNode> parentsToRefresh = nodes.stream()
-        .map(x -> DeviceFileEntryNode.fromNode(x.getParent()))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
-
-      executeFuturesInSequence(parentsToRefresh.iterator(), parentNode -> {
-        parentNode.setLoaded(false);
-        return loadNodeChildren(parentNode);
-      });
+      val parentsToRefresh = nodes.stream()
+        .map { x: DeviceFileEntryNode -> DeviceFileEntryNode.fromNode(x.parent) }
+        .filter { obj: DeviceFileEntryNode? -> Objects.nonNull(obj) }
+        .collect(Collectors.toSet())
+      executeFuturesInSequence<DeviceFileEntryNode?>(parentsToRefresh.iterator(), Function { parentNode: DeviceFileEntryNode ->
+        parentNode.isLoaded = false
+        loadNodeChildren(parentNode)
+      })
     }
 
-    private void reportDeletionProblem(@NotNull List<String> problems) {
-      if (problems.size() == 1) {
-        Messages.showMessageDialog("Could not erase file or folder:\n" + problems.get(0),
-                                   UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
-        return;
+    private fun reportDeletionProblem(problems: List<String>) {
+      var problems = problems
+      if (problems.size == 1) {
+        Messages.showMessageDialog(
+          """
+  Could not erase file or folder:
+  ${problems[0]}
+  """.trimIndent(),
+          UIBundle.message("error.dialog.title"), Messages.getErrorIcon()
+        )
+        return
       }
-      boolean more = false;
-      if (problems.size() > 10) {
-        problems = problems.subList(0, 10);
-        more = true;
+      var more = false
+      if (problems.size > 10) {
+        problems = problems.subList(0, 10)
+        more = true
       }
-      Messages.showMessageDialog("Could not erase files or folders:\n  " + StringUtil.join(problems, ",\n  ") + (more ? "\n  ..." : ""),
-                                 UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
+      Messages.showMessageDialog(
+        """Could not erase files or folders:
+  ${StringUtil.join(problems, ",\n  ")}${if (more) "\n  ..." else ""}""",
+        UIBundle.message("error.dialog.title"), Messages.getErrorIcon()
+      )
     }
 
-    private String createDeleteConfirmationMessage(@NotNull List<DeviceFileEntry> filesToDelete) {
-      if (filesToDelete.size() == 1) {
-        if (filesToDelete.get(0).isDirectory()) {
-          return UIBundle.message("are.you.sure.you.want.to.delete.selected.folder.confirmation.message", filesToDelete.get(0).getName());
+    private fun createDeleteConfirmationMessage(filesToDelete: List<DeviceFileEntry>): String {
+      return if (filesToDelete.size == 1) {
+        if (filesToDelete[0].isDirectory) {
+          UIBundle.message("are.you.sure.you.want.to.delete.selected.folder.confirmation.message", filesToDelete[0].name)
+        } else {
+          UIBundle.message("are.you.sure.you.want.to.delete.selected.file.confirmation.message", filesToDelete[0].name)
         }
-        else {
-          return UIBundle.message("are.you.sure.you.want.to.delete.selected.file.confirmation.message", filesToDelete.get(0).getName());
-        }
-      }
-      else {
-        boolean hasFiles = false;
-        boolean hasFolders = false;
-        for (DeviceFileEntry file : filesToDelete) {
-          boolean isDirectory = file.isDirectory();
-          hasFiles |= !isDirectory;
-          hasFolders |= isDirectory;
+      } else {
+        var hasFiles = false
+        var hasFolders = false
+        for (file in filesToDelete) {
+          val isDirectory = file.isDirectory
+          hasFiles = hasFiles or !isDirectory
+          hasFolders = hasFolders or isDirectory
         }
         if (hasFiles && hasFolders) {
-          return UIBundle
-            .message("are.you.sure.you.want.to.delete.selected.files.and.directories.confirmation.message", filesToDelete.size());
-        }
-        else if (hasFolders) {
-          return UIBundle.message("are.you.sure.you.want.to.delete.selected.folders.confirmation.message", filesToDelete.size());
-        }
-        else {
-          return UIBundle.message("are.you.sure.you.want.to.delete.selected.files.and.files.confirmation.message", filesToDelete.size());
+          UIBundle
+            .message("are.you.sure.you.want.to.delete.selected.files.and.directories.confirmation.message", filesToDelete.size)
+        } else if (hasFolders) {
+          UIBundle.message("are.you.sure.you.want.to.delete.selected.folders.confirmation.message", filesToDelete.size)
+        } else {
+          UIBundle.message("are.you.sure.you.want.to.delete.selected.files.and.files.confirmation.message", filesToDelete.size)
         }
       }
     }
 
-    @Override
-    public void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+    override fun newDirectoryInvoked(parentTreeNode: DeviceFileEntryNode) {
       newFileOrDirectory(parentTreeNode,
                          "NewFolder",
                          UIBundle.message("new.folder.dialog.title"),
                          UIBundle.message("create.new.folder.enter.new.folder.name.prompt.text"),
                          UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
-                         x -> UIBundle.message("create.new.folder.could.not.create.folder.error.message", x),
-                         x -> parentTreeNode.getEntry().createNewDirectory(x));
-      trackAction(DeviceExplorerEvent.Action.NEW_DIRECTORY);
+                         { x: String? -> UIBundle.message("create.new.folder.could.not.create.folder.error.message", x) }
+      ) { x: String? ->
+        parentTreeNode.entry.createNewDirectory(
+          x!!
+        )
+      }
+      trackAction(DeviceExplorerEvent.Action.NEW_DIRECTORY)
     }
 
-    private void newFileOrDirectory(@NotNull DeviceFileEntryNode parentTreeNode,
-                                    @NotNull String initialName,
-                                    @NotNull String title,
-                                    @NotNull String prompt,
-                                    @NotNull String emptyErrorMessage,
-                                    @NotNull Function<String, String> errorMessage,
-                                    @NotNull Function<String, ListenableFuture<Unit>> createFunction) {
-      DefaultTreeModel treeModel = getTreeModel();
-      if (treeModel == null) {
-        return;
-      }
-
+    private fun newFileOrDirectory(
+      parentTreeNode: DeviceFileEntryNode,
+      initialName: String,
+      title: String,
+      prompt: String,
+      emptyErrorMessage: String,
+      errorMessage: Function<String, String>,
+      createFunction: Function<String, ListenableFuture<Unit>>
+    ) {
+      var initialName = initialName
+      val treeModel = getTreeModel() ?: return
       while (true) {
-        String newFileName = Messages.showInputDialog(prompt, title, Messages.getQuestionIcon(), initialName, new InputValidatorEx() {
-          @Nullable
-          @Override
-          public String getErrorText(String inputString) {
-            if (StringUtil.isEmpty(inputString.trim())) {
-              return emptyErrorMessage;
+        val newFileName = Messages.showInputDialog(prompt, title, Messages.getQuestionIcon(), initialName, object : InputValidatorEx {
+          override fun getErrorText(inputString: String): String? {
+            if (StringUtil.isEmpty(inputString.trim { it <= ' ' })) {
+              return emptyErrorMessage
+            } else if (inputString.contains(AdbPathUtil.FILE_SEPARATOR)) {
+              return "Path cannot contain \"/\" characters"
             }
-            else if (inputString.contains(AdbPathUtil.FILE_SEPARATOR)) {
-              return "Path cannot contain \"/\" characters";
-            }
-            return null;
+            return null
           }
 
-          @Override
-          public boolean checkInput(String inputString) {
-            return canClose(inputString);
+          override fun checkInput(inputString: String): Boolean {
+            return canClose(inputString)
           }
 
-          @Override
-          public boolean canClose(String inputString) {
-            return !StringUtil.isEmpty(inputString.trim());
+          override fun canClose(inputString: String): Boolean {
+            return !StringUtil.isEmpty(inputString.trim { it <= ' ' })
           }
-        });
-        if (newFileName == null) {
-          return;
-        }
-
-        ListenableFuture<Unit> futureResult = createFunction.apply(newFileName);
+        }) ?: return
+        val futureResult = createFunction.apply(newFileName)
         try {
-          futureResult.get(FILE_ENTRY_CREATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+          futureResult[FILE_ENTRY_CREATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS]
 
           // Refresh the parent node to show the newly created file
-          parentTreeNode.setLoaded(false);
-          ListenableFuture<Unit> futureLoad = loadNodeChildren(parentTreeNode);
-          myEdtExecutor.addListener(futureLoad, () -> myView.expandNode(parentTreeNode));
+          parentTreeNode.isLoaded = false
+          val futureLoad = loadNodeChildren(parentTreeNode)
+          myEdtExecutor.addListener(futureLoad) { myView.expandNode(parentTreeNode) }
+        } catch (e: ExecutionException) {
+          showErrorMessage(errorMessage.apply(newFileName), e)
+          initialName = newFileName
+          continue  // Try again
+        } catch (e: InterruptedException) {
+          showErrorMessage(errorMessage.apply(newFileName), e)
+          initialName = newFileName
+          continue
+        } catch (e: TimeoutException) {
+          showErrorMessage(errorMessage.apply(newFileName), e)
+          initialName = newFileName
+          continue
         }
-        catch (ExecutionException | InterruptedException | TimeoutException e) {
-          showErrorMessage(errorMessage.apply(newFileName), e);
-          initialName = newFileName;
-          continue;  // Try again
-        }
-        return;
+        return
       }
     }
 
-    private void showErrorMessage(@NotNull String message, @NotNull Throwable error) {
+    private fun showErrorMessage(message: String, error: Throwable) {
       // Execution exceptions contain the actual cause of the error
-      if (error instanceof ExecutionException) {
-        if (error.getCause() != null) {
-          error = error.getCause();
+      var message = message
+      var error = error
+      if (error is ExecutionException) {
+        if (error.cause != null) {
+          error = error.cause!!
         }
       }
       // Add error message from exception if we have one
-      if (error.getMessage() != null) {
-        message += ":\n" + error.getMessage();
+      if (error.message != null) {
+        message += """
+                :
+                ${error.message}
+                """.trimIndent()
       }
 
       // Show error dialog
-      Messages.showMessageDialog(message, UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
+      Messages.showMessageDialog(message, UIBundle.message("error.dialog.title"), Messages.getErrorIcon())
     }
 
-    @Override
-    public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode) {
+    override fun uploadFilesInvoked(treeNode: DeviceFileEntryNode) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-
-      FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createAllButJarContentsDescriptor();
-      AtomicReference<List<VirtualFile>> filesRef = new AtomicReference<>();
-      FileChooser.chooseFiles(descriptor, myProject, null, filesRef::set);
+      val descriptor = FileChooserDescriptorFactory.createAllButJarContentsDescriptor()
+      val filesRef = AtomicReference<List<VirtualFile?>>()
+      FileChooser.chooseFiles(descriptor, myProject, null) { newValue: List<VirtualFile?> -> filesRef.set(newValue) }
       if (filesRef.get() == null || filesRef.get().isEmpty()) {
-        return;
+        return
       }
-      List<VirtualFile> files = filesRef.get();
-      uploadVirtualFilesInvoked(treeNode, files, DeviceExplorerEvent.Action.UPLOAD);
+      val files = filesRef.get()
+      uploadVirtualFilesInvoked(treeNode, files, DeviceExplorerEvent.Action.UPLOAD)
     }
 
-    @Override
-    public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files) {
+    override fun uploadFilesInvoked(treeNode: DeviceFileEntryNode, files: List<Path>) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-      List<VirtualFile> vfiles = files.stream()
-        .map(f -> VfsUtil.findFile(f, true))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-      uploadVirtualFilesInvoked(treeNode, vfiles, DeviceExplorerEvent.Action.DROP);
+      val vfiles = files.stream()
+        .map { f: Path? ->
+          VfsUtil.findFile(
+            f!!, true
+          )
+        }
+        .filter { obj: VirtualFile? -> Objects.nonNull(obj) }
+        .collect(Collectors.toList())
+      uploadVirtualFilesInvoked(treeNode, vfiles, DeviceExplorerEvent.Action.DROP)
     }
 
-
-    private void uploadVirtualFilesInvoked(@NotNull DeviceFileEntryNode treeNode,
-                                           List<VirtualFile> files,
-                                           DeviceExplorerEvent.Action action) {
+    private fun uploadVirtualFilesInvoked(
+      treeNode: DeviceFileEntryNode,
+      files: List<VirtualFile?>,
+      action: DeviceExplorerEvent.Action
+    ) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
-        return;
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        return
       }
-
-      ListenableFuture<FileTransferSummary> futureSummary =
-        wrapFileTransfer(tracker -> {
-                           List<Path> paths = files.stream()
-                             .map(x -> Paths.get(x.getPath()))
-                             .collect(Collectors.toList());
-                           return addUploadOperationWork(tracker, paths);
-                         },
-                         tracker -> uploadVirtualFiles(treeNode, files, tracker),
-                         true);
-      myEdtExecutor.addCallback(futureSummary, new FutureCallback<FileTransferSummary>() {
-        @Override
-        public void onSuccess(@Nullable FileTransferSummary result) {
-          assert result != null;
-          result.setAction(action);
-          reportUploadFilesSummary(treeNode, result);
+      val futureSummary = wrapFileTransfer(
+        { tracker: FileTransferOperationTracker ->
+          val paths = files.stream()
+            .map { x: VirtualFile? ->
+              Paths.get(
+                x!!.path
+              )
+            }
+            .collect(Collectors.toList())
+          addUploadOperationWork(tracker, paths)
+        },
+        { tracker: FileTransferOperationTracker -> uploadVirtualFiles(treeNode, files, tracker) },
+        true
+      )
+      myEdtExecutor.addCallback(futureSummary, object : FutureCallback<FileTransferSummary?> {
+        override fun onSuccess(result: FileTransferSummary?) {
+          assert(result != null)
+          result!!.action = action
+          reportUploadFilesSummary(treeNode, result)
         }
 
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          myView.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t);
+        override fun onFailure(t: Throwable) {
+          myView.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t)
         }
-      });
-
+      })
     }
 
-    private void reportUploadFilesSummary(@NotNull DeviceFileEntryNode treeNode, @NotNull FileTransferSummary summary) {
-      reportFileTransferSummary(treeNode, summary, "uploaded", "uploading");
+    private fun reportUploadFilesSummary(treeNode: DeviceFileEntryNode, summary: FileTransferSummary) {
+      reportFileTransferSummary(treeNode, summary, "uploaded", "uploading")
     }
 
-    private ListenableFuture<Unit> uploadVirtualFiles(@NotNull DeviceFileEntryNode parentNode,
-                                                      @NotNull List<VirtualFile> files,
-                                                      @NotNull FileTransferOperationTracker tracker) {
+    private fun uploadVirtualFiles(
+      parentNode: DeviceFileEntryNode,
+      files: List<VirtualFile?>,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
       // Upload each file
-      ListenableFuture<Unit> futureUploadFiles =
-        executeFuturesInSequence(files.iterator(), file -> uploadVirtualFile(parentNode, file, tracker));
+      val futureUploadFiles = executeFuturesInSequence<VirtualFile?>(
+        files.iterator(),
+        Function { file: VirtualFile -> uploadVirtualFile(parentNode, file, tracker) })
 
       // Refresh children nodes
-      return myEdtExecutor.transformAsync(futureUploadFiles, aVoid -> {
-        parentNode.setLoaded(false);
-        return loadNodeChildren(parentNode);
-      });
+      return myEdtExecutor.transformAsync(futureUploadFiles, AsyncFunction { aVoid: Unit ->
+        parentNode.isLoaded = false
+        loadNodeChildren(parentNode)
+      })
     }
 
-    @NotNull
-    private ListenableFuture<Unit> uploadVirtualFile(@NotNull DeviceFileEntryNode treeNode,
-                                                     @NotNull VirtualFile file,
-                                                     @NotNull FileTransferOperationTracker tracker) {
-      if (file.isDirectory()) {
-        return uploadDirectory(treeNode, file, tracker);
-      }
-      else {
-        return uploadFile(treeNode, file, tracker);
+    private fun uploadVirtualFile(
+      treeNode: DeviceFileEntryNode,
+      file: VirtualFile,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      return if (file.isDirectory) {
+        uploadDirectory(treeNode, file, tracker)
+      } else {
+        uploadFile(treeNode, file, tracker)
       }
     }
 
-    @NotNull
-    private ListenableFuture<Unit> uploadDirectory(@NotNull DeviceFileEntryNode parentNode,
-                                                   @NotNull VirtualFile file,
-                                                   @NotNull FileTransferOperationTracker tracker) {
-      if (tracker.isCancelled()) {
-        return Futures.immediateCancelledFuture();
+    private fun uploadDirectory(
+      parentNode: DeviceFileEntryNode,
+      file: VirtualFile,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      if (tracker.isCancelled) {
+        return Futures.immediateCancelledFuture()
       }
-      tracker.processDirectory();
-      tracker.getSummary().addDirectoryCount(1);
-
-      SettableFuture<Unit> futureResult = SettableFuture.create();
+      tracker.processDirectory()
+      tracker.summary.addDirectoryCount(1)
+      val futureResult = SettableFuture.create<Unit>()
 
       // Create directory in destination device
-      DeviceFileEntry parentEntry = parentNode.getEntry();
-      String directoryName = file.getName();
-      ListenableFuture<Unit> futureDirectory = parentEntry.createNewDirectory(directoryName);
-      myEdtExecutor.addConsumer(futureDirectory, (aVoid, createDirectoryError) -> {
+      val parentEntry = parentNode.entry
+      val directoryName = file.name
+      val futureDirectory = parentEntry.createNewDirectory(directoryName)
+      myEdtExecutor.addConsumer(futureDirectory) { aVoid: Unit, createDirectoryError: Throwable? ->
         // Refresh node entries
-        parentNode.setLoaded(false);
-        ListenableFuture<Unit> futureLoadChildren = loadNodeChildren(parentNode);
-        myEdtExecutor.addCallback(futureLoadChildren, new FutureCallback<Unit>() {
-          @Override
-          public void onSuccess(@Nullable Unit result) {
+        parentNode.isLoaded = false
+        val futureLoadChildren = loadNodeChildren(parentNode)
+        myEdtExecutor.addCallback(futureLoadChildren, object : FutureCallback<Unit> {
+          override fun onSuccess(result: Unit) {
             // Find node for newly created directory
-            DeviceFileEntryNode childNode = parentNode.findChildEntry(directoryName);
+            val childNode = parentNode.findChildEntry(directoryName)
             if (childNode == null) {
               // Note: This would happen if we didn't filter hidden files in the code below
               //       or if we failed to create the child directory
               if (createDirectoryError != null) {
-                tracker.addProblem(createDirectoryError);
+                tracker.addProblem(createDirectoryError)
+              } else {
+                tracker.addProblem(Exception(String.format("Error creating directory \"%s\"", directoryName)))
               }
-              else {
-                tracker.addProblem(new Exception(String.format("Error creating directory \"%s\"", directoryName)));
-              }
-              futureResult.set(Unit.INSTANCE);
-              return;
+              futureResult.set(Unit)
+              return@addConsumer
             }
 
             // Upload all files into destination device
             // Note: We ignore hidden files ("." prefix) for now, as the listing service
             //       currently does not list hidden files/directories.
-            List<VirtualFile> childFiles = Arrays.stream(file.getChildren())
-              .filter(x -> !x.getName().startsWith("."))
-              .collect(Collectors.toList());
-            ListenableFuture<Unit> futureFileUploads = uploadVirtualFiles(childNode, childFiles, tracker);
-            myEdtExecutor.addListener(futureFileUploads, () -> futureResult.set(null));
+            val childFiles = Arrays.stream(file.children)
+              .filter { x: VirtualFile? -> !x!!.name.startsWith(".") }
+              .collect(Collectors.toList())
+            val futureFileUploads = uploadVirtualFiles(childNode, childFiles, tracker)
+            myEdtExecutor.addListener(futureFileUploads) { futureResult.set(null) }
           }
 
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-            tracker.addProblem(t);
-            futureResult.set(Unit.INSTANCE);
+          override fun onFailure(t: Throwable) {
+            tracker.addProblem(t)
+            futureResult.set(Unit)
           }
-        });
-      });
-      return futureResult;
+        })
+      }
+      return futureResult
     }
 
-    @NotNull
-    private ListenableFuture<Unit> uploadFile(@NotNull DeviceFileEntryNode parentNode,
-                                              @NotNull VirtualFile file,
-                                              @NotNull FileTransferOperationTracker tracker) {
-      if (tracker.isCancelled()) {
-        return Futures.immediateCancelledFuture();
+    private fun uploadFile(
+      parentNode: DeviceFileEntryNode,
+      file: VirtualFile,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Unit> {
+      if (tracker.isCancelled) {
+        return Futures.immediateCancelledFuture()
       }
-      tracker.processFile();
-      tracker.setUploadFileText(file, 0, 0);
-
-      SettableFuture<Unit> futureResult = SettableFuture.create();
-      logFuture(futureResult,
-                millis -> String.format(Locale.US,
-                                        "Uploaded file in %,d msec: %s",
-                                        millis,
-                                        AdbPathUtil.resolve(parentNode.getEntry().getFullPath(), file.getName())));
-
-      DeviceFileEntry parentEntry = parentNode.getEntry();
-      Path localPath = Paths.get(file.getPath());
-      UploadFileState uploadState = new UploadFileState();
-      ListenableFuture<Unit> futureUpload = parentEntry.uploadFile(localPath, new FileTransferProgress() {
-        private long previousBytes;
-
-        @Override
-        public void progress(long currentBytes, long totalBytes) {
+      tracker.processFile()
+      tracker.setUploadFileText(file, 0, 0)
+      val futureResult = SettableFuture.create<Unit>()
+      logFuture(
+        futureResult
+      ) { millis: Long? ->
+        String.format(
+          Locale.US,
+          "Uploaded file in %,d msec: %s",
+          millis,
+          AdbPathUtil.resolve(parentNode.entry.fullPath, file.name)
+        )
+      }
+      val parentEntry = parentNode.entry
+      val localPath = Paths.get(file.path)
+      val uploadState = UploadFileState()
+      val futureUpload = parentEntry.uploadFile(localPath, object : FileTransferProgress {
+        private var previousBytes: Long = 0
+        override fun progress(currentBytes: Long, totalBytes: Long) {
           // Update progress UI
-          tracker.processFileBytes(currentBytes - previousBytes);
-          tracker.setUploadFileText(file, currentBytes, totalBytes);
-          previousBytes = currentBytes;
-
-          if (tracker.isInForeground()) {
+          tracker.processFileBytes(currentBytes - previousBytes)
+          tracker.setUploadFileText(file, currentBytes, totalBytes)
+          previousBytes = currentBytes
+          if (tracker.isInForeground) {
             // Update Tree UI
-            uploadState.byteCount = totalBytes;
+            uploadState.byteCount = totalBytes
             // First check if child node already exists
             if (uploadState.childNode == null) {
-              String fileName = localPath.getFileName().toString();
-              uploadState.childNode = parentNode.findChildEntry(fileName);
+              val fileName = localPath.fileName.toString()
+              uploadState.childNode = parentNode.findChildEntry(fileName)
               if (uploadState.childNode != null) {
-                startNodeUpload(uploadState.childNode);
+                startNodeUpload(uploadState.childNode!!)
               }
             }
 
             // If the child node entry is present, simply update its upload status
             if (uploadState.childNode != null) {
-              uploadState.childNode.setTransferProgress(currentBytes, totalBytes);
-              return;
+              uploadState.childNode!!.setTransferProgress(currentBytes, totalBytes)
+              return
             }
 
             // If we already tried to load the children, reset so we try again
-            if (uploadState.loadChildrenFuture != null && uploadState.loadChildrenFuture.isDone()) {
-              uploadState.loadChildrenFuture = null;
+            if (uploadState.loadChildrenFuture != null && uploadState.loadChildrenFuture!!.isDone) {
+              uploadState.loadChildrenFuture = null
             }
 
             // Start loading children
             if (currentBytes > 0) {
               if (uploadState.loadChildrenFuture == null) {
-                parentNode.setLoaded(false);
-                uploadState.loadChildrenFuture = loadNodeChildren(parentNode);
+                parentNode.isLoaded = false
+                uploadState.loadChildrenFuture = loadNodeChildren(parentNode)
               }
             }
           }
         }
 
-        @Override
-        public boolean isCancelled() {
-          return tracker.isCancelled();
+        override fun isCancelled(): Boolean {
+          return tracker.isCancelled
         }
-      });
-
-      myEdtExecutor.addConsumer(futureUpload, (aVoid, throwable) -> {
+      })
+      myEdtExecutor.addConsumer(futureUpload) { aVoid: Unit, throwable: Throwable? ->
         // Complete this method
-        futureResult.set(Unit.INSTANCE);
+        futureResult.set(Unit)
 
         // Update summary
         if (throwable != null) {
-          tracker.addProblem(throwable);
-        }
-        else {
-          tracker.getSummary().addFileCount(1);
-          tracker.getSummary().addByteCount(uploadState.byteCount);
+          tracker.addProblem(throwable)
+        } else {
+          tracker.summary.addFileCount(1)
+          tracker.summary.addByteCount(uploadState.byteCount)
         }
 
         // Signal upload is done
-        if (uploadState.childNode != null && tracker.isInForeground()) {
-          stopNodeUpload(uploadState.childNode);
+        if (uploadState.childNode != null && tracker.isInForeground) {
+          stopNodeUpload(uploadState.childNode!!)
         }
-      });
-
-      return futureResult;
+      }
+      return futureResult
     }
 
-    private class UploadFileState {
-      @Nullable public ListenableFuture<Unit> loadChildrenFuture;
-      @Nullable public DeviceFileEntryNode childNode;
-      public long byteCount;
+    private inner class UploadFileState {
+      var loadChildrenFuture: ListenableFuture<Unit>? = null
+      var childNode: DeviceFileEntryNode? = null
+      var byteCount: Long = 0
     }
 
-    private void reportFileTransferSummary(@NotNull DeviceFileEntryNode node,
-                                           @NotNull FileTransferSummary summary,
-                                           @NotNull String pastParticiple,
-                                           @NotNull String presentParticiple) {
-      String fileString = StringUtil.pluralize("file", summary.getFileCount());
-      String directoryString = StringUtil.pluralize("directory", summary.getDirectoryCount());
-      String byteCountString = StringUtil.pluralize("byte", Ints.saturatedCast(summary.getByteCount()));
-
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-        .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder()
-          .setAction(summary.getAction())
-          .setTransferFileCount(summary.getFileCount())
-          .setTransferTotalSize((int)summary.getByteCount())
-          .setTransferTimeMs((int)summary.getDurationMillis())));
+    private fun reportFileTransferSummary(
+      node: DeviceFileEntryNode,
+      summary: FileTransferSummary,
+      pastParticiple: String,
+      presentParticiple: String
+    ) {
+      val fileString = StringUtil.pluralize("file", summary.fileCount)
+      val directoryString = StringUtil.pluralize("directory", summary.directoryCount)
+      val byteCountString = StringUtil.pluralize("byte", Ints.saturatedCast(summary.byteCount))
+      log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+          .setDeviceExplorerEvent(
+            DeviceExplorerEvent.newBuilder()
+              .setAction(summary.action)
+              .setTransferFileCount(summary.fileCount)
+              .setTransferTotalSize(summary.byteCount.toInt())
+              .setTransferTimeMs(summary.durationMillis.toInt())
+          )
+      )
 
       // Report success if no errors
-      if (summary.getProblems().isEmpty()) {
-        String successMessage;
-        if (summary.getDirectoryCount() > 0) {
-          successMessage = String.format(Locale.getDefault(),
-                                         "Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
-                                         pastParticiple,
-                                         summary.getFileCount(),
-                                         fileString,
-                                         summary.getDirectoryCount(),
-                                         directoryString,
-                                         summary.getByteCount(),
-                                         byteCountString,
-                                         StringUtil.formatDuration(summary.getDurationMillis()));
+      if (summary.problems.isEmpty()) {
+        val successMessage: String
+        successMessage = if (summary.directoryCount > 0) {
+          String.format(
+            Locale.getDefault(),
+            "Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
+            pastParticiple,
+            summary.fileCount,
+            fileString,
+            summary.directoryCount,
+            directoryString,
+            summary.byteCount,
+            byteCountString,
+            StringUtil.formatDuration(summary.durationMillis)
+          )
+        } else {
+          String.format(
+            Locale.getDefault(),
+            "Successfully %s %,d %s for a total of size of %,d %s in %s.",
+            pastParticiple,
+            summary.fileCount,
+            fileString,
+            summary.byteCount,
+            byteCountString,
+            StringUtil.formatDuration(summary.durationMillis)
+          )
         }
-        else {
-          successMessage = String.format(Locale.getDefault(),
-                                         "Successfully %s %,d %s for a total of size of %,d %s in %s.",
-                                         pastParticiple,
-                                         summary.getFileCount(),
-                                         fileString,
-                                         summary.getByteCount(),
-                                         byteCountString,
-                                         StringUtil.formatDuration(summary.getDurationMillis()));
-        }
-        myView.reportMessageRelatedToNode(node, successMessage);
-        return;
+        myView.reportMessageRelatedToNode(node, successMessage)
+        return
       }
 
       // Report error if there were any
-      List<String> problems = summary.getProblems().stream()
-        .map(x -> ExceptionUtil.getRootCause(x).getMessage())
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
-      boolean more = false;
-      if (problems.size() > 10) {
-        problems = problems.subList(0, 10);
-        more = true;
-      }
-
-      String message = String.format("There were errors %s files and/or directories", presentParticiple);
-      if (summary.getFileCount() > 0) {
-        message += String.format(Locale.getDefault(),
-                                 ", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
-                                 summary.getFileCount(),
-                                 fileString,
-                                 (summary.getFileCount() <= 1 ? "was" : "were"),
-                                 pastParticiple,
-                                 StringUtil.formatDuration(summary.getDurationMillis()),
-                                 summary.getByteCount(),
-                                 byteCountString);
-      }
-      myView.reportErrorRelatedToNode(node,
-                                      message,
-                                      new Exception("\n  " + StringUtil.join(problems, ",\n  ") + (more ? "\n  ..." : "")));
-    }
-
-    @NotNull
-    private DeviceFileEntryNode getCommonParentNode(@NotNull List<DeviceFileEntryNode> treeNodes) {
-      TreePath commonPath = TreeUtil.getCommonPath(treeNodes);
-      LOGGER.assertTrue(commonPath != null);
-      DeviceFileEntryNode result = DeviceFileEntryNode.fromNode(commonPath.getLastPathComponent());
-      LOGGER.assertTrue(result != null);
-      return result;
-    }
-
-    private <V> void logFuture(@NotNull ListenableFuture<V> future, @NotNull Function<Long, String> message) {
-      long startNano = System.nanoTime();
-      myEdtExecutor.addListener(future, () -> {
-        long endNano = System.nanoTime();
-        LOGGER.trace(message.apply((endNano - startNano) / 1_000_000));
-      });
-    }
-
-    @Nullable
-    private Path chooseSaveAsFilePath(@NotNull DeviceFileEntryNode treeNode) throws Exception {
-      DeviceFileEntry entry = treeNode.getEntry();
-      Path localPath = myFileManager.getDefaultLocalPathForEntry(entry);
-
-      FileUtils.mkdirs(localPath.getParent().toFile());
-      VirtualFile baseDir = VfsUtil.findFileByIoFile(localPath.getParent().toFile(), true);
-      if (baseDir == null) {
-        throw new Exception(String.format("Unable to locate file \"%s\"", localPath.getParent()));
-      }
-
-      FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "");
-      FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-      VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, localPath.getFileName().toString());
-      if (fileWrapper == null) {
-        throw new CancellationException();
-      }
-      return fileWrapper.getFile().toPath();
-    }
-
-    @Nullable
-    private Path chooseSaveAsDirectoryPath(@NotNull DeviceFileEntryNode treeNode) throws Exception {
-      DeviceFileEntry entry = treeNode.getEntry();
-      Path localPath = myFileManager.getDefaultLocalPathForEntry(entry);
-
-      FileUtils.mkdirs(localPath.toFile());
-      VirtualFile localDir = VfsUtil.findFileByIoFile(localPath.toFile(), true);
-      if (localDir == null) {
-        throw new Exception(String.format("Unable to locate directory \"%s\"", localPath.getParent()));
-      }
-
-      FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-      AtomicReference<Path> result = new AtomicReference<>();
-      FileChooser.chooseFiles(descriptor, myProject, localDir, files -> {
-        if (files.size() == 1) {
-          Path path = Paths.get(files.get(0).getPath());
-          result.set(path);
+      var problems = summary.problems.stream()
+        .map { x: Throwable? ->
+          ExceptionUtil.getRootCause(
+            x!!
+          ).message
         }
-      });
-
-      return result.get();
+        .filter { obj: String? -> Objects.nonNull(obj) }
+        .collect(Collectors.toList())
+      var more = false
+      if (problems.size > 10) {
+        problems = problems.subList(0, 10)
+        more = true
+      }
+      var message = String.format("There were errors %s files and/or directories", presentParticiple)
+      if (summary.fileCount > 0) {
+        message += String.format(
+          Locale.getDefault(),
+          ", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
+          summary.fileCount,
+          fileString,
+          if (summary.fileCount <= 1) "was" else "were",
+          pastParticiple,
+          StringUtil.formatDuration(summary.durationMillis),
+          summary.byteCount,
+          byteCountString
+        )
+      }
+      myView.reportErrorRelatedToNode(
+        node,
+        message,
+        Exception(
+          """
+  ${StringUtil.join(problems, ",\n  ")}${if (more) "\n  ..." else ""}"""
+        )
+      )
     }
 
-    @NotNull
-    private ListenableFuture<Long> downloadFileEntry(@NotNull DeviceFileEntryNode treeNode,
-                                                     @NotNull Path localPath,
-                                                     @NotNull FileTransferOperationTracker tracker) {
-      if (tracker.isCancelled()) {
-        return Futures.immediateCancelledFuture();
+    private fun getCommonParentNode(treeNodes: List<DeviceFileEntryNode>): DeviceFileEntryNode {
+      val commonPath = TreeUtil.getCommonPath(treeNodes)
+      LOGGER.assertTrue(commonPath != null)
+      val result = DeviceFileEntryNode.fromNode(commonPath!!.lastPathComponent)
+      LOGGER.assertTrue(result != null)
+      return result!!
+    }
+
+    private fun <V> logFuture(future: ListenableFuture<V>, message: Function<Long, String>) {
+      val startNano = System.nanoTime()
+      myEdtExecutor.addListener(future) {
+        val endNano = System.nanoTime()
+        LOGGER.trace(message.apply((endNano - startNano) / 1000000))
       }
-      tracker.processFile();
+    }
 
-      DeviceFileEntry entry = treeNode.getEntry();
+    @Throws(Exception::class)
+    private fun chooseSaveAsFilePath(treeNode: DeviceFileEntryNode): Path? {
+      val entry = treeNode.entry
+      val localPath = myFileManager.getDefaultLocalPathForEntry(entry)
+      FileUtils.mkdirs(localPath.parent.toFile())
+      val baseDir = VfsUtil.findFileByIoFile(localPath.parent.toFile(), true)
+        ?: throw Exception(String.format("Unable to locate file \"%s\"", localPath.parent))
+      val descriptor = FileSaverDescriptor("Save As", "")
+      val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject)
+      val fileWrapper = saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: throw CancellationException()
+      return fileWrapper.file.toPath()
+    }
 
-      AtomicReference<Long> sizeRef = new AtomicReference<>(0L);
-      ListenableFuture<VirtualFile> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new DownloadProgress() {
-        private long previousBytes;
+    @Throws(Exception::class)
+    private fun chooseSaveAsDirectoryPath(treeNode: DeviceFileEntryNode): Path? {
+      val entry = treeNode.entry
+      val localPath = myFileManager.getDefaultLocalPathForEntry(entry)
+      FileUtils.mkdirs(localPath.toFile())
+      val localDir = VfsUtil.findFileByIoFile(localPath.toFile(), true)
+        ?: throw Exception(String.format("Unable to locate directory \"%s\"", localPath.parent))
+      val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
+      val result = AtomicReference<Path>()
+      FileChooser.chooseFiles(descriptor, myProject, localDir) { files: List<VirtualFile> ->
+        if (files.size == 1) {
+          val path = Paths.get(files[0].path)
+          result.set(path)
+        }
+      }
+      return result.get()
+    }
 
-        @Override
-        public void onStarting(@NotNull String entryFullPath) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
-          assert currentNode != null;
-
-          previousBytes = 0;
-          startNodeDownload(currentNode);
+    private fun downloadFileEntry(
+      treeNode: DeviceFileEntryNode,
+      localPath: Path,
+      tracker: FileTransferOperationTracker
+    ): ListenableFuture<Long> {
+      if (tracker.isCancelled) {
+        return Futures.immediateCancelledFuture()
+      }
+      tracker.processFile()
+      val entry = treeNode.entry
+      val sizeRef = AtomicReference(0L)
+      val futureDownload = myFileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
+        private var previousBytes: Long = 0
+        override fun onStarting(entryFullPath: String) {
+          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+          previousBytes = 0
+          startNodeDownload(currentNode)
         }
 
-        @Override
-        public void onProgress(@NotNull String entryFullPath, long currentBytes, long totalBytes) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
-          assert currentNode != null;
-
-          tracker.processFileBytes(currentBytes - previousBytes);
-          previousBytes = currentBytes;
-          tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes);
-          if (tracker.isInForeground()) {
-            currentNode.setTransferProgress(currentBytes, totalBytes);
+        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
+          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+          tracker.processFileBytes(currentBytes - previousBytes)
+          previousBytes = currentBytes
+          tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes)
+          if (tracker.isInForeground) {
+            currentNode.setTransferProgress(currentBytes, totalBytes)
           }
         }
 
-        @Override
-        public void onCompleted(@NotNull String entryFullPath) {
-          sizeRef.set(sizeRef.get() + previousBytes);
-
-          if (tracker.isInForeground()) {
-            DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
-            assert currentNode != null;
-
-            stopNodeDownload(currentNode);
+        override fun onCompleted(entryFullPath: String) {
+          sizeRef.set(sizeRef.get() + previousBytes)
+          if (tracker.isInForeground) {
+            val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+            stopNodeDownload(currentNode)
           }
         }
 
-        @Override
-        public boolean isCancelled() {
-          return tracker.isCancelled();
+        override fun isCancelled(): Boolean {
+          return tracker.isCancelled
         }
-      });
-
-      logFuture(futureDownload, millis -> String.format(Locale.US, "Downloaded file in %,d msec: %s", millis, entry.getFullPath()));
-      return myEdtExecutor.transform(futureDownload, aVoid -> sizeRef.get());
+      })
+      logFuture(futureDownload) { millis: Long? -> String.format(Locale.US, "Downloaded file in %,d msec: %s", millis, entry.fullPath) }
+      return myEdtExecutor.transform(futureDownload) { aVoid: VirtualFile? -> sizeRef.get() }
     }
 
-    @Override
-    public void treeNodeExpanding(@NotNull DeviceFileEntryNode node) {
-      loadNodeChildren(node);
+    override fun treeNodeExpanding(node: DeviceFileEntryNode) {
+      loadNodeChildren(node)
     }
 
-    private ListenableFuture<Unit> loadNodeChildren(@NotNull final DeviceFileEntryNode node) {
+    private fun loadNodeChildren(node: DeviceFileEntryNode): ListenableFuture<Unit> {
 
       // Track a specific set of directories to analyze user behaviour
-      if (node.getEntry().getFullPath().matches("^/data/data/[^/]+$")) {
-        trackAction(DeviceExplorerEvent.Action.EXPAND_APP_DATA);
+      if (node.entry.fullPath.matches("^/data/data/[^/]+$")) {
+        trackAction(DeviceExplorerEvent.Action.EXPAND_APP_DATA)
       }
 
       // Ensure node is expanded only once
-      if (node.isLoaded()) {
-        return Futures.immediateFuture(null);
+      if (node.isLoaded) {
+        return Futures.immediateFuture(null)
       }
-      node.setLoaded(true);
+      node.isLoaded = true
 
       // Leaf nodes are not expandable
-      if (node.isLeaf()) {
-        return Futures.immediateFuture(null);
+      if (node.isLeaf) {
+        return Futures.immediateFuture(null)
       }
-
-      DefaultTreeModel treeModel = getTreeModel();
-      DefaultTreeSelectionModel treeSelectionModel = getTreeSelectionModel();
+      val treeModel = getTreeModel()
+      val treeSelectionModel = getTreeSelectionModel()
       if (treeModel == null || treeSelectionModel == null) {
-        return Futures.immediateFuture(null);
+        return Futures.immediateFuture(null)
       }
-
-      DeviceFileSystem fileSystem = myModel.getActiveDevice();
-      if (!Objects.equals(fileSystem, node.getEntry().getFileSystem())) {
-        return Futures.immediateFuture(null);
+      val fileSystem = myModel.activeDevice
+      if (fileSystem != node.entry.fileSystem) {
+        return Futures.immediateFuture(null)
       }
-
-      ShowLoadingNodeRequest showLoadingNode = new ShowLoadingNodeRequest(treeModel, node);
-      myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis);
-
-      startLoadChildren(node);
-      ListenableFuture<List<DeviceFileEntry>> futureEntries = node.getEntry().getEntries();
-      myEdtExecutor.addCallback(futureEntries, new FutureCallback<List<DeviceFileEntry>>() {
-        @Override
-        public void onSuccess(List<DeviceFileEntry> result) {
-          if (!Objects.equals(treeModel, getTreeModel())) {
+      val showLoadingNode = ShowLoadingNodeRequest(treeModel, node)
+      myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis)
+      startLoadChildren(node)
+      val futureEntries = node.entry.entries
+      myEdtExecutor.addCallback(futureEntries, object : FutureCallback<List<DeviceFileEntry>> {
+        override fun onSuccess(result: List<DeviceFileEntry>) {
+          if (treeModel != getTreeModel()) {
             // We switched to another device, ignore this callback
-            return;
+            return
           }
 
           // Save selection
-          TreePath[] oldSelections = treeSelectionModel.getSelectionPaths();
+          val oldSelections = treeSelectionModel.selectionPaths
 
           // Collect existing entries that have the "isLinkToDirectory" property set
-          Set<String> isLinkToDirectory = node.getChildEntryNodes().stream()
-            .filter(DeviceFileEntryNode::isSymbolicLinkToDirectory)
-            .map(x -> x.getEntry().getName())
-            .collect(Collectors.toSet());
+          val isLinkToDirectory = node.childEntryNodes.stream()
+            .filter { obj: DeviceFileEntryNode -> obj.isSymbolicLinkToDirectory }
+            .map { x: DeviceFileEntryNode -> x.entry.name }
+            .collect(Collectors.toSet())
 
           // Sort new entries according to presentation sort order
-          Comparator<DeviceFileEntry> comparator = NodeSorting.getCustomComparator(
-            DeviceFileEntry::getName,
-            x -> x.isDirectory() || isLinkToDirectory.contains(x.getName()));
-          result.sort(comparator);
-
-          List<DeviceFileEntryNode> addedNodes = updateChildrenNodes(treeModel, node, result);
+          val comparator = NodeSorting.getCustomComparator(
+            { obj: DeviceFileEntry -> obj.name }
+          ) { x: DeviceFileEntry -> x.isDirectory || isLinkToDirectory.contains(x.name) }
+          result.sort(comparator)
+          val addedNodes = updateChildrenNodes(treeModel, node, result)
 
           // Restore selection
-          restoreTreeSelection(treeSelectionModel, oldSelections, node);
-
-          List<DeviceFileEntryNode> symlinkNodes = addedNodes
+          restoreTreeSelection(treeSelectionModel, oldSelections, node)
+          val symlinkNodes = addedNodes
             .stream()
-            .filter(x -> x.getEntry().isSymbolicLink())
-            .collect(Collectors.toList());
-          querySymbolicLinks(symlinkNodes, treeModel);
+            .filter { x: DeviceFileEntryNode -> x.entry.isSymbolicLink }
+            .collect(Collectors.toList())
+          querySymbolicLinks(symlinkNodes, treeModel)
         }
 
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          String message = ExceptionUtil.getRootCause(t).getMessage();
+        override fun onFailure(t: Throwable) {
+          var message = ExceptionUtil.getRootCause(t).message
           if (StringUtil.isEmpty(message)) {
-            message = String.format("Unable to list entries of directory %s", getUserFacingNodeName(node));
+            message = String.format("Unable to list entries of directory %s", getUserFacingNodeName(node))
           }
-
-          node.removeAllChildren();
-          node.add(new ErrorNode(message));
-          node.setAllowsChildren(true);
-          treeModel.nodeStructureChanged(node);
+          node.removeAllChildren()
+          node.add(ErrorNode(message!!))
+          node.allowsChildren = true
+          treeModel.nodeStructureChanged(node)
         }
-      });
-      myEdtExecutor.addListener(futureEntries, () -> {
-        stopLoadChildren(node);
-        myLoadingNodesAlarms.cancelRequest(showLoadingNode);
-      });
-
-      return ignoreResult(futureEntries);
+      })
+      myEdtExecutor.addListener(futureEntries) {
+        stopLoadChildren(node)
+        myLoadingNodesAlarms.cancelRequest(showLoadingNode)
+      }
+      return futureEntries.ignoreResult()
     }
 
-    @NotNull
-    private List<DeviceFileEntryNode> updateChildrenNodes(@NotNull DefaultTreeModel treeModel,
-                                                          @NotNull DeviceFileEntryNode parentNode,
-                                                          @NotNull List<DeviceFileEntry> newEntries) {
-
-      TreeUtil.UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry> updateChildrenOps =
-        new TreeUtil.UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry>() {
-          @Nullable
-          @Override
-          public DeviceFileEntryNode getChildNode(@NotNull DeviceFileEntryNode parentNode, int index) {
+    private fun updateChildrenNodes(
+      treeModel: DefaultTreeModel,
+      parentNode: DeviceFileEntryNode,
+      newEntries: List<DeviceFileEntry>
+    ): List<DeviceFileEntryNode> {
+      val updateChildrenOps: UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry> =
+        object : UpdateChildrenOps<DeviceFileEntryNode?, DeviceFileEntry?> {
+          override fun getChildNode(parentNode: DeviceFileEntryNode, index: Int): DeviceFileEntryNode? {
             // Some nodes (e.g. "error" or "loading" nodes) are not of the same type,
             // we return null in those cases to that the update algorithm will remove them from
             // the parent node.
-            return DeviceFileEntryNode.fromNode(parentNode.getChildAt(index));
+            return DeviceFileEntryNode.fromNode(parentNode.getChildAt(index))
           }
 
-          @NotNull
-          @Override
-          public DeviceFileEntryNode mapEntry(@NotNull DeviceFileEntry entry) {
-            return new DeviceFileEntryNode(entry);
+          override fun mapEntry(entry: DeviceFileEntry): DeviceFileEntryNode {
+            return DeviceFileEntryNode(entry)
           }
 
-          @Override
-          public int compareNodeWithEntry(@NotNull DeviceFileEntryNode node,
-                                          @NotNull DeviceFileEntry entry) {
-            return node.getEntry().getName().compareTo(entry.getName());
+          override fun compareNodeWithEntry(
+            node: DeviceFileEntryNode,
+            entry: DeviceFileEntry
+          ): Int {
+            return node.entry.name.compareTo(entry.name)
           }
 
-          @Override
-          public void updateNode(@NotNull DeviceFileEntryNode node,
-                                 @NotNull DeviceFileEntry entry) {
-            node.setEntry(entry);
+          override fun updateNode(
+            node: DeviceFileEntryNode,
+            entry: DeviceFileEntry
+          ) {
+            node.entry = entry
           }
-        };
-
-      List<DeviceFileEntryNode> addedNodes = TreeUtil.updateChildrenNodes(treeModel, parentNode, newEntries, updateChildrenOps);
-      parentNode.setAllowsChildren(parentNode.getChildCount() > 0);
-      return addedNodes;
+        }
+      val addedNodes = TreeUtil.updateChildrenNodes(treeModel, parentNode, newEntries, updateChildrenOps)
+      parentNode.allowsChildren = parentNode.childCount > 0
+      return addedNodes
     }
 
-    private void restoreTreeSelection(@NotNull DefaultTreeSelectionModel treeSelectionModel,
-                                      @NotNull TreePath[] oldSelections,
-                                      @NotNull DefaultMutableTreeNode parentNode) {
-      Set<TreePath> newSelections = new HashSet<>();
-      TreePath parentPath = new TreePath(parentNode.getPath());
+    private fun restoreTreeSelection(
+      treeSelectionModel: DefaultTreeSelectionModel,
+      oldSelections: Array<TreePath>,
+      parentNode: DefaultMutableTreeNode
+    ) {
+      val newSelections: MutableSet<TreePath> = HashSet()
+      val parentPath = TreePath(parentNode.path)
       Arrays.stream(oldSelections)
-        .forEach(x -> restorePathSelection(treeSelectionModel, parentPath, x, newSelections));
-
-      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(new ArrayList<>(newSelections), TreePath.class);
-      treeSelectionModel.addSelectionPaths(newSelectionArray);
+        .forEach { x: TreePath -> restorePathSelection(treeSelectionModel, parentPath, x, newSelections) }
+      val newSelectionArray = ArrayUtil.toObjectArray(ArrayList(newSelections), TreePath::class.java)
+      treeSelectionModel.addSelectionPaths(newSelectionArray)
     }
 
-    private void restorePathSelection(@NotNull DefaultTreeSelectionModel treeSelectionModel,
-                                      @NotNull TreePath parentPath,
-                                      @NotNull TreePath oldPath,
-                                      @NotNull Set<TreePath> selections) {
+    private fun restorePathSelection(
+      treeSelectionModel: DefaultTreeSelectionModel,
+      parentPath: TreePath,
+      oldPath: TreePath,
+      selections: MutableSet<TreePath>
+    ) {
       if (treeSelectionModel.isPathSelected(oldPath)) {
-        return;
+        return
       }
-      if (Objects.equals(parentPath, oldPath)) {
-        return;
+      if (parentPath == oldPath) {
+        return
       }
       if (!parentPath.isDescendant(oldPath)) {
-        return;
+        return
       }
-      TreeNode node = (TreeNode)parentPath.getLastPathComponent();
-
-      TreeNode existingChild = TreeUtil.getChildren(node)
-        .filter(x -> Objects.equals(x, oldPath.getLastPathComponent()))
+      val node = parentPath.lastPathComponent as TreeNode
+      val existingChild = TreeUtil.getChildren(node)
+        .filter { x: TreeNode? -> x == oldPath.lastPathComponent }
         .findFirst()
-        .orElse(null);
+        .orElse(null)
       if (existingChild == null) {
-        selections.add(parentPath);
+        selections.add(parentPath)
       }
     }
 
     /**
-     * Asynchronously update the tree node UI of the {@code symlinkNodes} entries if they target
+     * Asynchronously update the tree node UI of the `symlinkNodes` entries if they target
      * a directory, i.e. update tree nodes with a "Folder" and "Expandable arrow" icon.
      */
-    private void querySymbolicLinks(@NotNull List<DeviceFileEntryNode> symlinkNodes, @NotNull DefaultTreeModel treeModel) {
+    private fun querySymbolicLinks(symlinkNodes: List<DeviceFileEntryNode>, treeModel: DefaultTreeModel) {
       // Note: We process (asynchronously) one entry at a time, instead of all of them in parallel,
       //       to avoid flooding the device with too many requests, which would eventually lead
       //       to the device to reject additional requests.
-      executeFuturesInSequence(symlinkNodes.iterator(), treeNode -> {
-        ListenableFuture<Boolean> futureIsLinkToDirectory = treeNode.getEntry().isSymbolicLinkToDirectory();
-        myEdtExecutor.addConsumer(futureIsLinkToDirectory, (@Nullable Boolean result, @Nullable Throwable throwable) -> {
+      executeFuturesInSequence(symlinkNodes.iterator()) { treeNode: DeviceFileEntryNode ->
+        val futureIsLinkToDirectory = treeNode.entry.isSymbolicLinkToDirectory
+        myEdtExecutor.addConsumer(futureIsLinkToDirectory) { result: Boolean?, throwable: Throwable? ->
           // Log error, but keep going as we may have more symlinkNodes to examine
           if (throwable != null) {
-            LOGGER.info(String.format("Error determining if file entry \"%s\" is a link to a directory",
-                                      treeNode.getEntry().getName()),
-                        throwable);
+            LOGGER.info(
+              String.format(
+                "Error determining if file entry \"%s\" is a link to a directory",
+                treeNode.entry.name
+              ),
+              throwable
+            )
           }
 
           // Stop all processing if tree model has changed, i.e. UI has been switched to another device
-          if (!Objects.equals(myModel.getTreeModel(), treeModel)) {
-            return;
+          if (myModel.treeModel != treeModel) {
+            return@addConsumer
           }
 
           // Update tree node appearance (in case of "null"" result, we assume the entry
           // does not target a directory).
-          boolean isDirectory = result != null && result;
-
-          if (treeNode.isSymbolicLinkToDirectory() != isDirectory) {
-            MutableTreeNode parent = (MutableTreeNode)treeNode.getParent();
+          val isDirectory = result != null && result
+          if (treeNode.isSymbolicLinkToDirectory != isDirectory) {
+            val parent = treeNode.parent as MutableTreeNode
 
             // Remove element from tree at current position (assume tree is sorted)
-            int previousIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator());
+            val previousIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator())
             if (previousIndex >= 0) {
-              treeModel.removeNodeFromParent(treeNode);
+              treeModel.removeNodeFromParent(treeNode)
             }
 
             // Update node state (is-link-to-directory)
-            treeNode.setSymbolicLinkToDirectory(isDirectory);
+            treeNode.isSymbolicLinkToDirectory = isDirectory
 
             // Insert node in its new position
-            int newIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator());
+            val newIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator())
             if (newIndex < 0) {
-              treeModel.insertNodeInto(treeNode, parent, -(newIndex + 1));
+              treeModel.insertNodeInto(treeNode, parent, -(newIndex + 1))
             }
           }
-        });
-        return ignoreResult(futureIsLinkToDirectory);
-      });
-    }
-
-
-    @NotNull
-    private String getUserFacingNodeName(@NotNull DeviceFileEntryNode node) {
-      return StringUtil.isEmpty(node.getEntry().getName()) ?
-             "[root]" :
-             "\"" + node.getEntry().getName() + "\"";
-    }
-  }
-
-  private void trackAction(DeviceExplorerEvent.Action action) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
-                       .setDeviceExplorerEvent(DeviceExplorerEvent.newBuilder()
-                                                 .setAction(action)));
-  }
-
-  private static class ShowLoadingNodeRequest implements Runnable {
-    @NotNull private DefaultTreeModel myTreeModel;
-    @NotNull private DeviceFileEntryNode myNode;
-
-    private ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
-      myTreeModel = treeModel;
-      myNode = node;
-    }
-
-    @Override
-    public void run() {
-      myNode.setAllowsChildren(true);
-      myNode.add(new MyLoadingNode(myNode.getEntry()));
-      myTreeModel.nodeStructureChanged(myNode);
-    }
-  }
-
-  private class MyTransferringNodesRepaint implements Runnable {
-    @Override
-    public void run() {
-      myTransferringNodes.forEach(x -> {
-        x.incTransferringTick();
-        if (getTreeModel() != null) {
-          getTreeModel().nodeChanged(x);
         }
-      });
-      myTransferringNodesAlarms.addRequest(new MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis);
+        futureIsLinkToDirectory.ignoreResult()
+      }
+    }
+
+    private fun getUserFacingNodeName(node: DeviceFileEntryNode): String {
+      return if (StringUtil.isEmpty(node.entry.name)) "[root]" else "\"" + node.entry.name + "\""
     }
   }
 
-  private class MyLoadingChildrenRepaint implements Runnable {
-    @Override
-    public void run() {
-      myLoadingChildren.forEach(x -> {
-        if (x.getChildCount() == 0)
-          return;
+  private fun trackAction(action: DeviceExplorerEvent.Action) {
+    log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+        .setDeviceExplorerEvent(
+          DeviceExplorerEvent.newBuilder()
+            .setAction(action)
+        )
+    )
+  }
 
-        TreeNode node = x.getFirstChild();
-        if (node instanceof MyLoadingNode) {
-          MyLoadingNode loadingNode = (MyLoadingNode)node;
-          loadingNode.incTick();
+  private class ShowLoadingNodeRequest(private val myTreeModel: DefaultTreeModel, private val myNode: DeviceFileEntryNode) : Runnable {
+    override fun run() {
+      myNode.allowsChildren = true
+      myNode.add(MyLoadingNode(myNode.entry))
+      myTreeModel.nodeStructureChanged(myNode)
+    }
+  }
+
+  private inner class MyTransferringNodesRepaint : Runnable {
+    override fun run() {
+      myTransferringNodes.forEach(Consumer { x: DeviceFileEntryNode ->
+        x.incTransferringTick()
+        if (getTreeModel() != null) {
+          getTreeModel()!!.nodeChanged(x)
+        }
+      })
+      myTransferringNodesAlarms.addRequest(MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis)
+    }
+  }
+
+  private inner class MyLoadingChildrenRepaint : Runnable {
+    override fun run() {
+      myLoadingChildren.forEach(Consumer { x: DeviceFileEntryNode ->
+        if (x.childCount == 0) return@forEach
+        val node = x.firstChild
+        if (node is MyLoadingNode) {
+          val loadingNode = node
+          loadingNode.incTick()
           if (getTreeModel() != null) {
-            getTreeModel().nodeChanged(loadingNode);
+            getTreeModel()!!.nodeChanged(loadingNode)
           }
         }
-      });
-      myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis);
+      })
+      myLoadingChildrenAlarms.addRequest(MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis)
     }
   }
 
-  private static class NodeSorting {
+  private object NodeSorting {
+    val entryNodeComparator: Comparator<DeviceFileEntryNode>
+      get() = getCustomComparator({ x: DeviceFileEntryNode -> x.entry.name }) { o1: DeviceFileEntryNode -> o1.entry.isDirectory || o1.isSymbolicLinkToDirectory }
+
     /**
-     * Compare {@link DeviceFileEntryNode} by directory first, by name second.
+     * Compare [DeviceFileEntryNode] by directory first, by name second.
      */
-    @NotNull
-    public static Comparator<DeviceFileEntryNode> getEntryNodeComparator() {
-      return getCustomComparator(x -> x.getEntry().getName(), o1 -> o1.getEntry().isDirectory() || o1.isSymbolicLinkToDirectory());
+    fun getEntryNodeComparator(): Comparator<DeviceFileEntryNode> {
+      return getCustomComparator({ x: DeviceFileEntryNode -> x.entry.name }) { o1: DeviceFileEntryNode -> o1.entry.isDirectory || o1.isSymbolicLinkToDirectory }
     }
 
     /**
-     * Compare {@link TreeNode} as {@link DeviceFileEntryNode}. Any other type of tree node
+     * Compare [TreeNode] as [DeviceFileEntryNode]. Any other type of tree node
      * is considered "less than".
      */
-    @NotNull
-    public static Comparator<TreeNode> getTreeNodeComparator() {
-      return (o1, o2) -> {
-        if (o1 instanceof DeviceFileEntryNode && o2 instanceof DeviceFileEntryNode) {
-          return getEntryNodeComparator().compare((DeviceFileEntryNode)o1, (DeviceFileEntryNode)o2);
+    fun getTreeNodeComparator(): Comparator<TreeNode> {
+      return label@ Comparator { o1: TreeNode?, o2: TreeNode? ->
+        if (o1 is DeviceFileEntryNode && o2 is DeviceFileEntryNode) {
+          return@label entryNodeComparator.compare(o1, o2)
+        } else if (o1 is DeviceFileEntryNode) {
+          return@label 1
+        } else if (o2 is DeviceFileEntryNode) {
+          return@label -1
+        } else {
+          return@label 0
         }
-        else if (o1 instanceof DeviceFileEntryNode) {
-          return 1;
-        }
-        else if (o2 instanceof DeviceFileEntryNode) {
-          return -1;
-        }
-        else {
-          return 0;
-        }
-      };
+      }
     }
 
     /**
-     * Apply the same ordering as {@link NodeSorting#getEntryNodeComparator()} on any
-     * object type given a custom {@code isDirectory} predicate and @{link getName}
+     * Apply the same ordering as [NodeSorting.getEntryNodeComparator] on any
+     * object type given a custom `isDirectory` predicate and @{link getName}
      * function.
      */
-    @NotNull
-    public static <V> Comparator<V> getCustomComparator(@NotNull Function<V, String> nameProvider,
-                                                        @NotNull Predicate<V> isDirectory) {
+    fun <V> getCustomComparator(
+      nameProvider: Function<V, String>,
+      isDirectory: Predicate<V>
+    ): Comparator<V> {
       // Compare so that directory are always before files
-      return (o1, o2) -> {
+      return label@ Comparator { o1: V?, o2: V? ->
         if (o1 == null && o2 == null) {
-          return 0;
-        }
-        else if (o1 == null) {
-          return -1;
-        }
-        else if (o2 == null) {
-          return 1;
-        }
-        else {
-          boolean isDir1 = isDirectory.test(o1);
-          boolean isDir2 = isDirectory.test(o2);
+          return@label 0
+        } else if (o1 == null) {
+          return@label -1
+        } else if (o2 == null) {
+          return@label 1
+        } else {
+          val isDir1 = isDirectory.test(o1)
+          val isDir2 = isDirectory.test(o2)
           if (isDir1 == isDir2) {
-            return StringUtil.compare(nameProvider.apply(o1), nameProvider.apply(o2), true);
-          }
-          else if (isDir1) {
-            return -1;
-          }
-          else {
-            return 1;
+            return@label StringUtil.compare(nameProvider.apply(o1), nameProvider.apply(o2), true)
+          } else if (isDir1) {
+            return@label -1
+          } else {
+            return@label 1
           }
         }
-      };
+      }
     }
   }
 
-  public interface FileOpener {
+  interface FileOpener {
     @UiThread
-    void openFile(@NotNull Path localPath);
+    fun openFile(localPath: Path)
+
     @UiThread
-    void openFile(@NotNull VirtualFile virtualFile);
+    fun openFile(virtualFile: VirtualFile)
+  }
+
+  companion object {
+    private val LOGGER = Logger.getInstance(
+      DeviceExplorerController::class.java
+    )
+    private val KEY = Key.create<DeviceExplorerController>(
+      DeviceExplorerController::class.java.name
+    )
+    private const val DEVICE_EXPLORER_BUSY_MESSAGE = "Device Explorer is busy, please retry later or cancel current operation"
+    private const val FILE_ENTRY_CREATION_TIMEOUT_MILLIS: Long = 10000
+    private const val FILE_ENTRY_DELETION_TIMEOUT_MILLIS: Long = 10000
+    fun getProjectController(project: Project?): DeviceExplorerController? {
+      return project?.getUserData(KEY)
+    }
+  }
+
+  init {
+    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
+    myService.addListener(ServiceListener())
+    myView.addListener(ViewListener())
+    myFileManager = fileManager
+    myWorkEstimator = FileTransferWorkEstimator(myEdtExecutor, taskExecutor)
+    myLoadingNodesAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
+    myTransferringNodesAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
+    myLoadingChildrenAlarms = Alarm(Alarm.ThreadToUse.SWING_THREAD)
+    myFileOpener = fileOpener
+    myProject.putUserData(KEY, this)
   }
 }
