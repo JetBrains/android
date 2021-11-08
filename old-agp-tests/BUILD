@@ -167,7 +167,6 @@ local_old_agp_test(
     shard_count = 4,
     tags = [
         "block-network",
-        "manual",  # b/199740328
         "no_test_mac",
         "no_test_windows",
     ],
