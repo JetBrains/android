@@ -26,6 +26,8 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
@@ -174,3 +176,15 @@ fun Project?.getAndroidFacets(): List<AndroidFacet> {
     }
   } ?: listOf()
 }
+
+fun isAndroidTestFile(project: Project, file: VirtualFile?): Boolean {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  return module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) } ?: false
+}
+
+fun isUnitTestFile(project: Project, file: VirtualFile?): Boolean {
+  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  return module?.let { TestArtifactSearchScopes.getInstance(module)?.isUnitTestSource(file) } ?: false
+}
+
+fun isTestFile(project: Project, file: VirtualFile?) = isUnitTestFile(project, file) || isAndroidTestFile(project, file)

@@ -47,6 +47,7 @@ import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
+import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -100,8 +101,17 @@ class GradleModuleSystem(
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder(module)
+  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder(module, true)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
+
+  /**
+   * Return the corresponding [ClassFileFinder], depending on whether the [sourceFile] is an android
+   * test file or not. In case the [sourceFile] is not specified (is null), the [androidTestsClassFileFinder]
+   * will be returned, as it has a wider search scope than [moduleClassFileFinder].
+   */
+  override fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) =
+    if (sourceFile == null || isAndroidTestFile(module.project, sourceFile)) androidTestsClassFileFinder else moduleClassFileFinder
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getDependenciesFor(module, scope)

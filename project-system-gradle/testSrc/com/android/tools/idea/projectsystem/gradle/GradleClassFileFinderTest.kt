@@ -31,4 +31,26 @@ class GradleClassFileFinderTest : AndroidGradleTestCase() {
     assertNotNull(classFinder.findClassFile("com.example.app.AppJavaClass"))
     assertNotNull(classFinder.findClassFile("com.example.app.AppKotlinClass"))
   }
+
+  fun testClassFileFinder_androidTest() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    GradleProjectSystemBuildManager(project).compileProject()
+
+    val classFinder = GradleClassFileFinder(project.findAppModule(), true)
+
+    // Fqcns present in the main module or in android test files should be found
+    assertNotNull(classFinder.findClassFile("google.simpleapplication.ApplicationTest"))
+    assertNotNull(classFinder.findClassFile("google.simpleapplication.MyActivity"))
+  }
+
+  fun testClassFileFinder_nonAndroidTest() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    GradleProjectSystemBuildManager(project).compileProject()
+
+    val classFinder = GradleClassFileFinder(project.findAppModule())
+
+    // Only fqcns present in the main module should be found
+    assertNull(classFinder.findClassFile("google.simpleapplication.ApplicationTest"))
+    assertNotNull(classFinder.findClassFile("google.simpleapplication.MyActivity"))
+  }
 }

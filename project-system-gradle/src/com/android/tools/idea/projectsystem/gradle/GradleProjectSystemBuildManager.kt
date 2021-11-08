@@ -8,6 +8,8 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.isAndroidTestFile
+import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
@@ -67,7 +69,7 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
     val modules = files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.toSet()
-    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
+    GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), getTestCompileType(files))
   }
 
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =
@@ -80,4 +82,19 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) =
     project.getService(GradleProjectSystemBuildPublisher::class.java).addBuildListener(parentDisposable, buildListener)
+
+  private fun getTestCompileType(files: Collection<VirtualFile>): TestCompileType {
+    var haveUnitTestFiles = false
+    var haveAndroidTestFiles = false
+
+    for (file in files) {
+      haveAndroidTestFiles = haveAndroidTestFiles || isAndroidTestFile(project, file)
+      haveUnitTestFiles = haveUnitTestFiles || isUnitTestFile(project, file)
+      if (haveUnitTestFiles && haveAndroidTestFiles) return TestCompileType.ALL
+    }
+
+    if (haveUnitTestFiles) return TestCompileType.UNIT_TESTS
+    if (haveAndroidTestFiles) return TestCompileType.ANDROID_TESTS
+    return TestCompileType.NONE
+  }
 }

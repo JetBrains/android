@@ -27,8 +27,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +44,15 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   @NotNull private static final String TEST_FOLDER_NAME = "test";
   @NotNull private static final String KOTLIN_FOLDER_NAME = "kotlin";
 
+  private final boolean includeAndroidTests;
+
   public GradleClassFileFinder(@NotNull Module module) {
+    this(module, false);
+  }
+
+  public GradleClassFileFinder(@NotNull Module module, boolean includeAndroidTests) {
     super(module);
+    this.includeAndroidTests = includeAndroidTests;
   }
 
   @Override
@@ -59,25 +68,32 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   }
 
   @NotNull
-  private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull GradleAndroidModel model) {
-    IdeAndroidArtifact mainArtifactInfo = model.getMainArtifact();
-    File classesFolder = mainArtifactInfo.getClassesFolder();
+  private Collection<VirtualFile> getCompilerOutputRoots(@NotNull GradleAndroidModel model) {
+    List<IdeAndroidArtifact> artifacts = new ArrayList<>();
+    artifacts.add(model.getMainArtifact());
+    if (includeAndroidTests) {
+      artifacts.add(model.getArtifactForAndroidTest());
+    }
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
-    //noinspection ConstantConditions
-    if (classesFolder != null) {
-      if (classesFolder.exists()) {
-        VirtualFile file = VfsUtil.findFileByIoFile(classesFolder, true);
+    for (IdeAndroidArtifact artifactInfo : artifacts) {
+      File classesFolder = artifactInfo.getClassesFolder();
+
+      //noinspection ConstantConditions
+      if (classesFolder != null) {
+        if (classesFolder.exists()) {
+          VirtualFile file = VfsUtil.findFileByIoFile(classesFolder, true);
+          if (file != null) {
+            compilerOutputs.add(file);
+          }
+        }
+      }
+
+      for (File additionalFolder : artifactInfo.getAdditionalClassesFolders()) {
+        VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
         if (file != null) {
           compilerOutputs.add(file);
         }
-      }
-    }
-
-    for (File additionalFolder : mainArtifactInfo.getAdditionalClassesFolders()) {
-      VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
-      if (file != null) {
-        compilerOutputs.add(file);
       }
     }
 
@@ -170,7 +186,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   }
 
   @NotNull
-  private static Collection<VirtualFile> getModuleCompileOutputs(@NotNull Module module) {
+  private Collection<VirtualFile> getModuleCompileOutputs(@NotNull Module module) {
     GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       return getCompilerOutputRoots(androidModel);
