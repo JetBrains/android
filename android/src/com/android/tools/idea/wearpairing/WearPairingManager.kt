@@ -35,6 +35,7 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.Disposable
@@ -389,6 +390,13 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   suspend fun PairingDevice.supportsMultipleWatchConnections(): Boolean =
     getConnectedDevices()[deviceID]?.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING) == true
 
+  internal fun launchDevice(project: Project?, deviceId: String, avdInfo: AvdInfo): ListenableFuture<IDevice> {
+    connectedDevicesProvider().find { it.getDeviceID() == deviceId }?.apply {
+      return Futures.immediateFuture(this)
+    }
+    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+  }
+
   private fun findAdb() : AndroidDebugBridge? {
     AndroidDebugBridge.getBridge()?.also {
       return it // Instance found, just return it
@@ -465,7 +473,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
-    launch = { project -> AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, this@toPairingDevice) }
+    launch = { project -> WearPairingManager.launchDevice(project, deviceID, this@toPairingDevice) }
   }
 }
 
