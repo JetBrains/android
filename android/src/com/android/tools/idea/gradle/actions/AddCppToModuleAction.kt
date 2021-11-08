@@ -120,10 +120,6 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
         // Already has C++
         return false
       }
-      if (ProjectBuildModel.get(project).getModuleBuildModel(this) == null) {
-        // Not synced
-        return false
-      }
       return true
     }
 
