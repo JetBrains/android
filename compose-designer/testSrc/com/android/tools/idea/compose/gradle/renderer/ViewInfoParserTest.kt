@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.gradle.renderer
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
 import com.android.tools.idea.compose.preview.navigation.remapInline
@@ -57,7 +58,7 @@ class ViewInfoParserTest {
     val module = facet.module
     val previewStartLine = runReadAction {
       val file = VfsUtil.findRelativeFile(
-        "app/src/main/java/google/simpleapplication/MainActivity.kt",
+        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
       )!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile

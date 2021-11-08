@@ -19,6 +19,7 @@ import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
@@ -63,7 +64,7 @@ class PreviewLiveEditManagerTest {
   @Before
   fun setUp() {
     val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     liveEditManager = PreviewLiveEditManager.getInstance(projectRule.project)
     invokeAndWaitIfNeeded {

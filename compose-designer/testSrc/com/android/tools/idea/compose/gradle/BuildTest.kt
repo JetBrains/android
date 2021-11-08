@@ -15,47 +15,62 @@
  */
 package com.android.tools.idea.compose.gradle
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.preview.COMPOSITE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
-import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
-class BuildTest {
+@RunWith(Parameterized::class)
+class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "onlyKotlinBuildFlag = {0}")
+    val flagValues = listOf(true, false)
+  }
+
   @get:Rule
   val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
+
+  @get:Rule
+  val onlyKotlinBuildFlagRule = SetFlagRule(StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD, onlyKotlinBuildFlag)
 
   @get:Rule
   val edtRule = EdtRule()
@@ -89,29 +104,21 @@ class BuildTest {
     return@runBlocking buildsStarted.get()
   }
 
-  @Test
-  fun testHasBeenBuiltSuccessfully() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
-    val project = projectRule.project
-    val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
-                                                ProjectRootManager.getInstance(project).contentRoots[0])!!
-    val psiFile = ReadAction.compute<PsiFile, Throwable> {
-      PsiUtil.getPsiFile(project, activityFile)
-    }
-    val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
-      SmartPointerManager.createPointer(psiFile)
-    }
+  private fun doTestHasBeenBuiltSuccessfully(project: Project, filePaths: List<String>, expectedBuildsTriggered: Int) {
+    val activityFiles = filePaths.map { VfsUtil.findRelativeFile(it, ProjectRootManager.getInstance(project).contentRoots[0])!! }
+    val psiFiles = activityFiles.map { runReadAction { PsiUtil.getPsiFile(project, it) } }
+    val psiFilePointers = psiFiles.map { runReadAction { SmartPointerManager.createPointer(it) } }
 
-    assertFalse(hasBeenBuiltSuccessfully(psiFilePointer))
-    assertFalse(hasExistingClassFile(psiFile))
+    assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
+    assertTrue(psiFiles.none { hasExistingClassFile(it) })
     val buildsTriggered = runAndWaitForBuildToComplete {
       // Regression test for http://b/192223556
-      val files = listOf(activityFile, activityFile, activityFile)
+      val files = activityFiles + activityFiles + activityFiles
       requestBuild(project, files, false)
     }
-    assertEquals(1, buildsTriggered)
-    assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
-    assertTrue(hasExistingClassFile(psiFile))
+    assertEquals(expectedBuildsTriggered, buildsTriggered)
+    assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
+    assertTrue(psiFiles.all { hasExistingClassFile(it) })
 
     runAndWaitForBuildToComplete {
       GradleBuildInvoker.getInstance(project).cleanProject()
@@ -122,8 +129,29 @@ class BuildTest {
         VirtualFileManager.getInstance().syncRefresh()
       }
     }
-    assertFalse(hasBeenBuiltSuccessfully(psiFilePointer))
-    assertFalse(hasExistingClassFile(psiFile))
+    assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
+    assertTrue(psiFiles.none { hasExistingClassFile(it) })
+  }
+
+  @Test
+  fun testHasBeenBuiltSuccessfully_main() {
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path), expectedBuildsTriggered = 1)
+  }
+
+  @Test
+  fun testHasBeenBuiltSuccessfully_androidTest() {
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path),
+                                   expectedBuildsTriggered = 1)
+  }
+
+  @Test
+  fun testHasBeenBuiltSuccessfully_both() {
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    doTestHasBeenBuiltSuccessfully(projectRule.project, listOf(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path,
+                                                               SimpleComposeAppPaths.APP_PREVIEWS_ANDROID_TEST.path),
+                                   expectedBuildsTriggered = if (onlyKotlinBuildFlag) 2 else 1)
   }
 
   @Test
@@ -137,7 +165,7 @@ class BuildTest {
       defaultPatchPreparedProject(File(projectRule.project.basePath), null, null, DEFAULT_KOTLIN_VERSION, *listOf<File>().toTypedArray())
     })
     val project = projectRule.project
-    val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/app/src/main/java/google/simpleapplication/MainActivity.kt",
+    val activityFile = VfsUtil.findRelativeFile("SimpleComposeApplication/${SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path}",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!
     val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
       SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))

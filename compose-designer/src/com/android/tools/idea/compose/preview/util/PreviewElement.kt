@@ -30,6 +30,8 @@ import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
@@ -129,13 +131,17 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   return false
 }
 
+internal fun KtNamedFunction.isInTestFile() = isTestFile(this.project, this.containingFile.virtualFile)
+
+internal fun KtNamedFunction.isInUnitTestFile() = isUnitTestFile(this.project, this.containingFile.virtualFile)
+
 /**
- *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQNS] and is defined in a valid location.
+ *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQNS], is not in a test file and is defined in a valid location.
  *
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQNS) }
+  !isInTestFile() && isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQNS) }
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,

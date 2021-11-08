@@ -16,27 +16,15 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-
-/**
- * Returns the [HighlightInfo] description adding the relative line number
- */
-private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
-  "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
-}
 
 @RunWith(Parameterized::class)
 class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {

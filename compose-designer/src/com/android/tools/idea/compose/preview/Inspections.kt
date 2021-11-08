@@ -20,6 +20,7 @@ import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
+import com.android.tools.idea.compose.preview.util.isInUnitTestFile
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
@@ -192,6 +193,22 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
 
+  }
+}
+
+/**
+ * Inspection that checks that `@Preview` is not present in unit test files
+ */
+class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry) {
+    // If the annotation is not in a unit test file, then this inspection has nothing to do
+    if (!function.isInUnitTestFile()) return
+
+    holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
+                           message("inspection.unit.test.files"),
+                           ProblemHighlightType.ERROR)
   }
 }
 

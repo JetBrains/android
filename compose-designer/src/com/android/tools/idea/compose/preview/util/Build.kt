@@ -21,14 +21,19 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.build.invoker.getArtifacts
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
@@ -40,22 +45,32 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
+ * Each of these [modules] has an associated flag to indicate if it is necessary to execute
+ * the build using the android test artifact.
  */
-private fun requestKotlinBuild(project: Project, modules: Set<Module>, requestedByUser: Boolean) {
-  fun createBuildTasks(module: Module): String? {
+private fun requestKotlinBuild(project: Project, modules: Set<Pair<Module, Boolean>>, requestedByUser: Boolean) {
+  fun createBuildTasks(module: Module, fromAndroidTestFile: Boolean): List<String>? {
     if (module.isDisposed) return null
     val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
-    val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
+    val currentVariant = AndroidModuleModel.get(module)?.selectedVariant ?: return null
+
+    if (fromAndroidTestFile) {
+      return TestCompileType.ANDROID_TESTS.getArtifacts(currentVariant)
+        .mapNotNull { it.compileTaskName }
+        .filter { it.isNotEmpty() }
+        .map { GradleProjectSystemUtil.createFullTaskName(gradlePath, it) }
+        .toList()
+    }
     // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
     // we just build it ourselves.
     // TODO(b/145199867): Replace this with the right API call to obtain compileVariantKotlin after the bug is fixed.
-    return "${gradlePath}${SdkConstants.GRADLE_PATH_SEPARATOR}compile${currentVariant}Kotlin"
+    return listOf("${gradlePath}${SdkConstants.GRADLE_PATH_SEPARATOR}compile${currentVariant.name.capitalize()}Kotlin")
   }
 
-  fun createBuildTasks(modules: Collection<Module>): Map<Module, List<String>> =
+  fun createBuildTasks(modules: Collection<Pair<Module, Boolean>>): Map<Module, List<String>> =
     modules
       .mapNotNull {
-        Pair(it, listOf(createBuildTasks(it) ?: return@mapNotNull null))
+        Pair(it.first, createBuildTasks(it.first, it.second) ?: return@mapNotNull null)
       }
       .filter { it.second.isNotEmpty() }
       .toMap()
@@ -98,7 +113,10 @@ internal fun requestBuild(project: Project, files: Collection<VirtualFile>, requ
 
   // TODO: Move gradle compose builds to AndroidProjectSystem
   // For Gradle projects, build modules associated with files instead
-  files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }
+  files.mapNotNull { it.getSourceFile() }.mapNotNull {
+      val module = ModuleUtil.findModuleForFile(it, project) ?: return@mapNotNull null
+      Pair(module, isAndroidTestFile(project, it))
+    }
     .toSet()
     .ifNotEmpty {
       requestKotlinBuild(project, this, requestByUser)
@@ -111,8 +129,8 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
       psiFile.getModuleSystem()
     }
   }
-  ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
-    .mapNotNull { androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) }
+  runReadAction { psiFile.classes.mapNotNull { it.qualifiedName } }
+    .mapNotNull { androidModuleSystem?.getClassFileFinderForSourceFile(runReadAction { psiFile.virtualFile })?.findClassFile(it) }
     .firstOrNull() != null
 }
 else false

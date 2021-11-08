@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.StaticPreviewProvider
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
@@ -75,7 +76,7 @@ class ParametrizedPreviewTest {
   fun testParametrizedPreview() = runBlocking {
     val project = projectRule.project
 
-    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
+    val parametrizedPreviews = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
                                                         ProjectRootManager.getInstance(project).contentRoots[0])!!
 
     val elements = PreviewElementTemplateInstanceProvider(
@@ -96,7 +97,7 @@ class ParametrizedPreviewTest {
   fun testLoremIpsumInstance() = runBlocking {
     val project = projectRule.project
 
-    val parametrizedPreviews = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt",
+    val parametrizedPreviews = VfsUtil.findRelativeFile(SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
                                                         ProjectRootManager.getInstance(project).contentRoots[0])!!
 
     val elements = PreviewElementTemplateInstanceProvider(

@@ -16,14 +16,30 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
+
+/**
+ * Relative paths to some useful files in the SimpleComposeApplication ([SIMPLE_COMPOSE_PROJECT_PATH]) test project
+ */
+internal enum class SimpleComposeAppPaths(val path: String) {
+  APP_MAIN_ACTIVITY("app/src/main/java/google/simpleapplication/MainActivity.kt"),
+  APP_PARAMETRIZED_PREVIEWS("app/src/main/java/google/simpleapplication/ParametrizedPreviews.kt"),
+  APP_PREVIEWS_ANDROID_TEST("app/src/androidTest/java/google/simpleapplication/AndroidPreviews.kt"),
+  APP_PREVIEWS_UNIT_TEST("app/src/test/java/google/simpleapplication/UnitPreviews.kt"),
+  LIB_PREVIEWS("lib/src/main/java/google/simpleapplicationlib/Previews.kt"),
+  LIB_PREVIEWS_ANDROID_TEST("lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"),
+  LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt")
+}
 
 /**
  * List of variations of namespaces to be tested by the Compose tests. This is done
@@ -70,3 +86,10 @@ fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, f
   addFileToProject(relativePath, fileText).also {
     it.invalidateDocumentCache()
   }
+
+/**
+ * Returns the [HighlightInfo] description adding the relative line number
+ */
+internal fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<String, Throwable> {
+  "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
+}

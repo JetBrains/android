@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.ProjectBuildStatusManager
 import com.android.tools.idea.compose.preview.ProjectStatus
 import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -63,7 +64,7 @@ class ProjectBuildStatusManagerTest {
   @Test
   fun testProjectStatusManagerStates() {
     val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     WriteAction.run<Throwable> {
       projectRule.fixture.openFileInEditor(mainFile)
     }
@@ -90,7 +91,7 @@ class ProjectBuildStatusManagerTest {
   @Test
   fun testProjectStatusManagerStatesFailureModes() {
     val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
 
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
 
@@ -139,7 +140,7 @@ class ProjectBuildStatusManagerTest {
   @Test
   fun testFilteringChange() {
     val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     WriteAction.run<Throwable> {
       projectRule.fixture.openFileInEditor(mainFile)
     }
