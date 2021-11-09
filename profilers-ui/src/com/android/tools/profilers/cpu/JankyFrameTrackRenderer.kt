@@ -34,11 +34,11 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
+import kotlin.math.min
 
 class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackRenderer<AndroidFrameTimelineModel> {
   override fun render(trackModel: TrackModel<AndroidFrameTimelineModel, *>) =
@@ -59,25 +59,24 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
   private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =
     { g, rect, fontMetrics, hovered, event ->
       if (event != null) {
-        val duration = event.actualDurationUs
-        val nonJankPortion = event.expectedDurationUs / duration.toFloat()
         val borderY = 1
         val borderX = 1
         val textPadding = borderX + 1
         val active = hovered || multiSelectionModel.activeSelectionKey === event
+        val duration = event.actualDurationUs
+        val blankRectWidth = rect.width * min(event.expectedDurationUs / duration.toFloat(), 1f)
 
         // draw entire frame
         g.color = if (active) event.getActiveColor() else event.getPassiveColor()
         g.fill(rect)
 
         // draw non-jank portion
-        val expectedFrameWidth = rect.width * nonJankPortion
         g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
         g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
-                                 expectedFrameWidth - 2 * borderX, rect.height - 2 * borderY - 1))
+                                 blankRectWidth - 2 * borderX, rect.height - 2 * borderY - 1))
 
         // draw text
-        val availableTextSpace = expectedFrameWidth - textPadding * 2
+        val availableTextSpace = blankRectWidth - textPadding * 2
         if (availableTextSpace > 1) {
           val fullText = "Frame ${event.surfaceFrameToken}: ${TimeFormatter.getSingleUnitDurationString(duration)}"
           val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)

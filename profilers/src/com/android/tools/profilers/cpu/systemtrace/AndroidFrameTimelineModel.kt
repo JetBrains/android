@@ -20,11 +20,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
-import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
+import kotlin.math.max
 
 class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEvent>,
                                 vsyncs: List<SeriesData<Long>>,
@@ -44,7 +44,7 @@ class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEve
   init {
     val layers = events.groupBy { it.layoutDepth }.toSortedMap(compareByDescending { it }).values
     layers.forEach { frames ->
-      val paddedFrames = frames.padded({ it.expectedStartUs }, { it.actualEndUs }, { it }, { _, _ -> null })
+      val paddedFrames = frames.padded({ it.expectedStartUs }, { max(it.actualEndUs, it.expectedEndUs) }, { it }, { _, _ -> null })
       addSeries(RangedSeries(viewRange, LazyDataSeries { paddedFrames }))
     }
   }
