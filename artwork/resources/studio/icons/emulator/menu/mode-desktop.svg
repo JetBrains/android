@@ -1,18 +1,1 @@
-<!--
-  - Copyright (C) 2021 The Android Open Source Project
-  -
-  - Licensed under the Apache License, Version 2.0 (the "License");
-  - you may not use this file except in compliance with the License.
-  - You may obtain a copy of the License at
-  -
-  -      http://www.apache.org/licenses/LICENSE-2.0
-  -
-  - Unless required by applicable law or agreed to in writing, software
-  - distributed under the License is distributed on an "AS IS" BASIS,
-  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  - See the License for the specific language governing permissions and
-  - limitations under the License.
-  -->
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
-  <path fill="#6E6E6E" d="M22 18V3H2v15H0v2h24v-2h-2zm-8 0h-4v-1h4v1zm6-3H4V5h16v10z"/>
-</svg>
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2284:710)"><path d="M15 12V2H1v10H0v2h16v-2h-1zm-5 0H6v-1h4v1zm3-2H3V4h10v6z" fill="#6E6E6E"/></g><defs><clipPath id="clip0_2284:710"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

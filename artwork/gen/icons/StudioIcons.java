@@ -216,6 +216,7 @@ public class StudioIcons {
 
   public static class DeviceExplorer {
     public static final Icon DATABASE_FOLDER = load("/studio/icons/device-explorer/database-folder.svg"); // 16x16
+    public static final Icon DEVICE_PAIRED_AND_CONNECTED = load("/studio/icons/device-explorer/device-paired-and-connected.svg"); // 16x16
     public static final Icon DEVICE_PAIRED = load("/studio/icons/device-explorer/device-paired.svg"); // 16x16
     public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
@@ -232,6 +233,13 @@ public class StudioIcons {
   }
 
   public static class Emulator {
+    public static class Menu {
+      public static final Icon MODE_DESKTOP = load("/studio/icons/emulator/menu/mode-desktop.svg"); // 16x16
+      public static final Icon MODE_FOLDABLE = load("/studio/icons/emulator/menu/mode-foldable.svg"); // 16x16
+      public static final Icon MODE_PHONE = load("/studio/icons/emulator/menu/mode-phone.svg"); // 16x16
+      public static final Icon MODE_TABLET = load("/studio/icons/emulator/menu/mode-tablet.svg"); // 16x16
+    }
+
     public static class Snapshots {
       public static final Icon INVALID_SNAPSHOT_DECORATOR = load("/studio/icons/emulator/snapshots/invalid-snapshot-decorator.svg"); // 16x16
       public static final Icon LOAD_SNAPSHOT = load("/studio/icons/emulator/snapshots/load-snapshot.svg"); // 16x16
@@ -251,11 +259,10 @@ public class StudioIcons {
       public static final Icon VOLUME_UP = load("/studio/icons/emulator/toolbar/volume-up.svg"); // 16x16
     }
 
-    public static class Menu {
-      public static final Icon MODE_DESKTOP = load("/studio/icons/emulator/menu/mode-desktop.svg"); // 16x16
-      public static final Icon MODE_FOLDABLE = load("/studio/icons/emulator/menu/mode-foldable.svg"); // 16x16
-      public static final Icon MODE_PHONE = load("/studio/icons/emulator/menu/mode-phone.svg"); // 16x16
-      public static final Icon MODE_TABLET = load("/studio/icons/emulator/menu/mode-tablet.svg"); // 16x16
+    public static class Wear {
+      public static final Icon BUTTON_1 = load("/studio/icons/emulator/wear/button-1.svg"); // 16x16
+      public static final Icon BUTTON_2 = load("/studio/icons/emulator/wear/button-2.svg"); // 16x16
+      public static final Icon PALM = load("/studio/icons/emulator/wear/palm.svg"); // 16x16
     }
   }
 
