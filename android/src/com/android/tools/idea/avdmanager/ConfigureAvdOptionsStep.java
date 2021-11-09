@@ -379,7 +379,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       String snapshotFileName = snapshotDir.getName();
       if ("default_boot".equals(snapshotFileName)) continue; // Don't include the "Quick boot" option
       try {
-        SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf, snapshotFileName);
+        SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf.toPath(), snapshotFileName);
         String logicalName = protoParser.getLogicalName();
         if (!logicalName.isEmpty()) {
           mySnapshotList.add(new SnapshotListItem(snapshotFileName, logicalName, protoParser.getCreationTime()));

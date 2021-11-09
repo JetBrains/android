@@ -16,9 +16,10 @@
 package com.android.emulator
 
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
+import com.android.io.CancellableFileIo
 import com.intellij.util.text.nullize
-import java.io.File
-import java.io.FileInputStream
+import java.io.IOException
+import java.nio.file.Path
 
 class SnapshotProtoException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
@@ -29,7 +30,7 @@ class SnapshotProtoException(message: String, cause: Throwable? = null) : Except
  */
 class SnapshotProtoParser
 @Throws(SnapshotProtoException::class)
-constructor(snapshotProtobufFile: File, private val fileName: String) {
+constructor(snapshotProtobufFile: Path, private val fileName: String) {
   private val snapshot: Snapshot
 
   val logicalName: String
@@ -39,12 +40,17 @@ constructor(snapshotProtobufFile: File, private val fileName: String) {
     get() = snapshot.creationTime
 
   init {
-    if (!snapshotProtobufFile.isFile) {
-      throw SnapshotProtoException(
-        "Snapshot file " + snapshotProtobufFile.absolutePath + " does not exist.")
+    try {
+      snapshot = CancellableFileIo.newInputStream(snapshotProtobufFile).use {
+        Snapshot.parseFrom(it)
+      }
     }
-    snapshot = FileInputStream(snapshotProtobufFile).use {
-      Snapshot.parseFrom(it)
+    catch (exception: IOException) {
+      if (!CancellableFileIo.isRegularFile(snapshotProtobufFile)) {
+        throw SnapshotProtoException(
+          "Snapshot file " + snapshotProtobufFile.toAbsolutePath() + " does not exist")
+      }
+      throw exception
     }
     if (snapshot.imagesCount <= 0) {
       // Treat a degenerate protobuf as invalid

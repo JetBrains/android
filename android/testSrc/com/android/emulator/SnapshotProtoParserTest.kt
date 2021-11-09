@@ -22,6 +22,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -41,7 +42,7 @@ class SnapshotProtoParserTest {
     val arbitraryDateTime = 1_500_000_000L // (In July 2017)
     // Try to read a non-existing protobuf
     assertFailsWith(SnapshotProtoException::class) {
-      SnapshotProtoParser(File("bogus_name"), "base_name")
+      SnapshotProtoParser(Path.of("bogus_name"), "base_name")
     }
 
     // Create a snapshot protobuf without any images
@@ -54,7 +55,7 @@ class SnapshotProtoParserTest {
 
     // Try to read the protobuf with no images
     assertFailsWith(SnapshotProtoException::class) {
-      SnapshotProtoParser(noImageFile, "base_name")
+      SnapshotProtoParser(noImageFile.toPath(), "base_name")
     }
 
     // Add an image to the protobuf--then it should be valid
@@ -67,7 +68,7 @@ class SnapshotProtoParserTest {
     val hasImageFile = temporaryFolder.newFile(hasImageName)
     val oStreamHasImage = FileOutputStream(hasImageFile)
     protoBufHasImage.writeTo(oStreamHasImage)
-    val hasImageProtoParser = SnapshotProtoParser(hasImageFile, "base_name")
+    val hasImageProtoParser = SnapshotProtoParser(hasImageFile.toPath(), "base_name")
     assertEquals("base_name", hasImageProtoParser.logicalName, "Wrong default logical name")
     assertEquals(arbitraryDateTime, hasImageProtoParser.creationTime, "Wrong creation time")
 
@@ -78,7 +79,7 @@ class SnapshotProtoParserTest {
     val oStreamLogicalName = FileOutputStream(allGoodFile)
     protoBufLogicalName.writeTo(oStreamLogicalName)
 
-    val allGoodProtoParser = SnapshotProtoParser(allGoodFile, "base_name")
+    val allGoodProtoParser = SnapshotProtoParser(allGoodFile.toPath(), "base_name")
     assertEquals(snapLogicalName, allGoodProtoParser.logicalName, "Wrong logical name")
   }
 }
