@@ -41,7 +41,7 @@ internal fun createDeviceEnumSupport(
   trimmedValue.nullize()?.let {
     val isDeviceSpec = it.startsWith("spec:") // TODO(b/197021783): Reuse constant from PreviewElement.kt
     if (isDeviceSpec) {
-      val knownSpec = DeviceEnumValueBuilder.withDefaultDevices().build()
+      val knownSpec = DeviceEnumValueBuilder().includeDefaultsAndBuild()
         .filter { enumValue ->
           enumValue.value?.isNotBlank() == true
         }.firstOrNull { enumValue ->

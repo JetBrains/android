@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceClass
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
@@ -82,14 +83,22 @@ class PsiCallEnumSupportValuesProvider private constructor(
 
 private fun createDeviceEnumProvider(module: Module): EnumValuesProvider =
   {
-    val existingDevices = getGroupedDevices(module)
-    val devicesEnumValueBuilder = DeviceEnumValueBuilder.withDefaultDevices()
-
-    existingDevices[DeviceGroup.NEXUS_XL]?.forEach(devicesEnumValueBuilder::addPhone)
-    existingDevices[DeviceGroup.NEXUS_TABLET]?.forEach(devicesEnumValueBuilder::addTablet)
-    existingDevices[DeviceGroup.GENERIC]?.forEach(devicesEnumValueBuilder::addGeneric)
-
-    devicesEnumValueBuilder.build()
+    val devicesEnumValueBuilder = DeviceEnumValueBuilder()
+    getGroupedDevices(module).forEach { (group, devices) ->
+      when (group) {
+        DeviceGroup.NEXUS,
+        DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
+        DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
+        DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
+        DeviceGroup.WEAR -> devices.forEach(devicesEnumValueBuilder::addWear)
+        DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
+        DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
+        DeviceGroup.OTHER -> {
+          // Do nothing
+        }
+      }
+    }
+    devicesEnumValueBuilder.includeDefaultsAndBuild()
   }
 
 private fun DeviceEnumValueBuilder.addPhone(device: Device) {
@@ -98,6 +107,18 @@ private fun DeviceEnumValueBuilder.addPhone(device: Device) {
 
 private fun DeviceEnumValueBuilder.addTablet(device: Device) {
   addTabletById(displayName = device.displayName, id = device.id)
+}
+
+private fun DeviceEnumValueBuilder.addWear(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Wear)
+}
+
+private fun DeviceEnumValueBuilder.addTv(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Tv)
+}
+
+private fun DeviceEnumValueBuilder.addAuto(device: Device) {
+  addById(displayName = device.displayName, id = device.id, type = DeviceClass.Auto)
 }
 
 private fun DeviceEnumValueBuilder.addGeneric(device: Device) {

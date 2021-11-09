@@ -19,6 +19,10 @@ import com.android.SdkConstants
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceDesktopConfig
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceFoldableConfig
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferenceTabletConfig
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -107,8 +111,8 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[6].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
-    assertEquals(15, deviceValues.size)
-    // Phones & Tablets, Generic Devices. Are not shown since they are empty when running on test
+    assertEquals(15, deviceValues.size) // 4 headers + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
+    // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Phone", deviceValues[1].display)
     assertEquals("Foldable", deviceValues[2].display)
@@ -117,6 +121,21 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Wear", (deviceValues[5] as HeaderEnumValue).header)
     assertEquals("Tv", (deviceValues[9] as HeaderEnumValue).header)
     assertEquals("Auto", (deviceValues[13] as HeaderEnumValue).header)
+
+    // Verify reference values
+    assertEquals(ReferencePhoneConfig.deviceSpec(), deviceValues[1].value)
+    assertEquals(ReferenceFoldableConfig.deviceSpec(), deviceValues[2].value)
+    assertEquals(ReferenceTabletConfig.deviceSpec(), deviceValues[3].value)
+    assertEquals(ReferenceDesktopConfig.deviceSpec(), deviceValues[4].value)
+
+    // Verify Wear, Tv and Auto are custom devices (start with "spec:")
+    assertTrue(deviceValues[6].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[7].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[8].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[10].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[11].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[12].value!!.startsWith("spec:"))
+    assertTrue(deviceValues[14].value!!.startsWith("spec:"))
 
     val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
     assertEquals(4, localeValues.size)
@@ -149,8 +168,9 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Normal", uiModeValues[++nightModeIndex].display)
     assertEquals("Undefined", uiModeValues[++nightModeIndex].display)
 
-    val deviceHeaders = valuesProvider.getValuesProvider("Device")!!.invoke().filterIsInstance<HeaderEnumValue>()
-    // With Sdk we just check that there's a Device Manager separator, the Library options are constant from the test setup
+    val deviceEnumValues = valuesProvider.getValuesProvider("Device")!!.invoke()
+    val deviceHeaders = deviceEnumValues.filterIsInstance<HeaderEnumValue>()
+    // With Sdk we just check that each Device category exists, meaning that they are populated
     assertEquals("Reference Devices", deviceHeaders[0].header)
     assertEquals("Phone", deviceHeaders[1].header)
     assertEquals("Tablet", deviceHeaders[2].header)
@@ -158,6 +178,16 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Tv", deviceHeaders[4].header)
     assertEquals("Auto", deviceHeaders[5].header)
     assertEquals("Generic Devices", deviceHeaders[6].header)
+
+    // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:" instead of "spec:")
+    val wearIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Wear" }
+    assertTrue(deviceEnumValues[wearIndex + 1].value!!.startsWith("id:"))
+
+    val tvIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Tv" }
+    assertTrue(deviceEnumValues[tvIndex + 1].value!!.startsWith("id:"))
+
+    val autoIndex = deviceEnumValues.indexOfFirst { it is HeaderEnumValue && it.header == "Auto" }
+    assertTrue(deviceEnumValues[autoIndex + 1].value!!.startsWith("id:"))
 
     // For api, we just check that there's at least an element available
     val apiLevelValues = valuesProvider.getValuesProvider("apiLevel")!!.invoke()
