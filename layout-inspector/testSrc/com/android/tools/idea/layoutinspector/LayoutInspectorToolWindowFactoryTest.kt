@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -236,7 +237,8 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
     val target: AppInspectionTarget = mock()
     `when`(service.apiServices).thenReturn(apiServices)
     `when`(service.apiServices.processDiscovery).thenReturn(discovery)
-    `when`(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(mock())
+    `when`(apiServices.attachToProcess(eq(MODERN_PROCESS), anyString())).thenReturn(target)
+    `when`(apiServices.launchInspector(any())).thenReturn(mock())
     `when`(target.getLibraryVersions(any())).thenReturn(emptyList())
 
     // In this test we want to close the project BEFORE the tear down of this test method.
@@ -252,9 +254,14 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
         ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
       }
       val deviceViewPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewPanel>()
+      val deviceViewContentPanel = ComponentUtil.flatten(deviceViewPanel).firstIsInstance<DeviceViewContentPanel>()
       val processes = deviceViewPanel.processes!!
       RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
+
+      val modelUpdatedLatch = ReportingCountDownLatch(1)
+      deviceViewContentPanel.inspectorModel.modificationListeners.add { _, _, _ ->  modelUpdatedLatch.countDown() }
       discovery.fireConnected(MODERN_PROCESS)
+      modelUpdatedLatch.await(1L, TimeUnit.SECONDS)
 
       // In this test we want to close the project BEFORE the tear down of this test method.
       // Existing project rules do not allow this since they assume the project is closed in the tear down.
