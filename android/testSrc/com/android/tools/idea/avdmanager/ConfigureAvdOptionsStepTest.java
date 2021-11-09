@@ -35,7 +35,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -53,7 +52,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import java.io.File;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,9 +67,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
-  private static final String SDK_LOCATION = "/sdk";
-  private static final String AVD_LOCATION = "/avd";
-
   private AvdInfo myQAvdInfo;
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
@@ -85,34 +80,34 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
 
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
     // Q image (API 29)
     String qPath = "system-images;android-29;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, fileOp.toPath("/sdk/qSysImg"));
+    FakePackage.FakeLocalPackage pkgQ = new FakePackage.FakeLocalPackage(qPath, sdkRoot.resolve("qSysImg"));
     DetailsTypes.SysImgDetailsType detailsQ =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsQ.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsQ.setAbi("x86");
     detailsQ.setApiLevel(29);
     pkgQ.setTypeDetails((TypeDetails) detailsQ);
-    fileOp.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgQ.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp.toPath("/sdk/mSysImg"));
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, sdkRoot.resolve("mSysImg"));
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
-    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Preview image
     String previewPath = "system-images;android-ZZZ;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp.toPath("/sdk/previewSysImg"));
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, sdkRoot.resolve("previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -120,24 +115,23 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
     pkgPreview.setTypeDetails((TypeDetails) detailsPreview);
-    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with an unknown API level
     // (This is not supposed to happen. But it does sometimes.)
     String zuluPath = "system-images;android-Z;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, fileOp.toPath("/sdk/zSysImg"));
+    FakePackage.FakeLocalPackage pkgZulu = new FakePackage.FakeLocalPackage(zuluPath, sdkRoot.resolve("zSysImg"));
     DetailsTypes.SysImgDetailsType detailsZulu =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsZulu.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsZulu.setAbi("x86");
     detailsZulu.setApiLevel(99);
     pkgZulu.setTypeDetails((TypeDetails)detailsZulu);
-    fileOp.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
-
+    InMemoryFileSystems.recordExistingFile(pkgZulu.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image that contains SDK extensions and is not the base SDK
     String extensionsPath = "system-images;android-32-3;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, fileOp.toPath("/sdk/extensionSysImg"));
+    FakePackage.FakeLocalPackage pkgExtensions = new FakePackage.FakeLocalPackage(extensionsPath, sdkRoot.resolve("extensionSysImg"));
     DetailsTypes.SysImgDetailsType detailsExtensions =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsExtensions.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -146,14 +140,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsExtensions.setExtensionLevel(3);
     detailsExtensions.setBaseExtension(false);
     pkgExtensions.setTypeDetails((TypeDetails)detailsExtensions);
-    fileOp.recordExistingFile(pkgExtensions.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgExtensions.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgQ, pkgMarshmallow, pkgPreview, pkgZulu, pkgExtensions));
 
-    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(sdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr);
+      new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);

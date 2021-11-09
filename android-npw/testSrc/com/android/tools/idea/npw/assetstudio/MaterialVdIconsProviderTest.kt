@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.assetstudio
 
 import com.android.prefs.AndroidLocationsSingleton
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
@@ -28,7 +27,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.util.io.write
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
@@ -36,10 +34,7 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

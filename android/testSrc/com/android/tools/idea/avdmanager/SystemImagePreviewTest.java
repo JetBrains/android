@@ -22,17 +22,18 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.adtui.swing.FakeUi;
 import com.google.common.collect.ImmutableList;
 
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
+import java.nio.file.Path;
 import java.util.function.Predicate;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -43,9 +44,6 @@ import javax.swing.*;
  *
  */
 public class SystemImagePreviewTest extends AndroidTestCase {
-  private static final String SDK_LOCATION = "/sdk";
-  private static final String AVD_LOCATION = "/avd";
-
   private SystemImageDescription mMarshmallowImageDescr;
   private SystemImageDescription mPreviewImageDescr;
   private SystemImageDescription mWearOsImageDescr;
@@ -53,12 +51,12 @@ public class SystemImagePreviewTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
     // Marshmallow image (API 23)
     String marshmallowPath = "system-images;android-23;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp.toPath("/sdk/mSysImg"));
+    FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, sdkRoot.resolve("mSysImg"));
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -66,11 +64,11 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
     pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
-    fileOp.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgMarshmallow.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Fake preview image
     String previewPath = "system-images;android-ZZZ;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp.toPath("/sdk/previewSysImg"));
+    FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, sdkRoot.resolve("previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
@@ -79,11 +77,11 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     detailsPreview.setApiLevel(99);
     detailsPreview.setCodename("Z"); // Setting a code name is the key!
     pkgPreview.setTypeDetails((TypeDetails)detailsPreview);
-    fileOp.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgPreview.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Fake preview image
     String wearOsPath = "system-images;android-wear-cn;android-30;google_apis;x86";
-    FakePackage.FakeLocalPackage pkgWearOs = new FakePackage.FakeLocalPackage(wearOsPath, fileOp.toPath("/sdk/cnPreviewSysImg"));
+    FakePackage.FakeLocalPackage pkgWearOs = new FakePackage.FakeLocalPackage(wearOsPath, sdkRoot.resolve("cnPreviewSysImg"));
     DetailsTypes.SysImgDetailsType detailsWearOs =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsWearOs.getTags().add(IdDisplay.create("android-wear", "Wear OS Image"));
@@ -91,14 +89,14 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     detailsWearOs.setVendor(IdDisplay.create("google", "Google"));
     detailsWearOs.setApiLevel(30);
     pkgWearOs.setTypeDetails((TypeDetails)detailsWearOs);
-    fileOp.recordExistingFile(pkgWearOs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgWearOs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview, pkgWearOs));
 
-    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(sdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr);
+      new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);

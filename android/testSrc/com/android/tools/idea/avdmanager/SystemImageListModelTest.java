@@ -22,20 +22,18 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.google.common.collect.ImmutableList;
+import java.nio.file.Path;
 import org.jetbrains.android.AndroidTestCase;
 
 public class SystemImageListModelTest extends AndroidTestCase {
-
-  private static final String SDK_LOCATION = "/sdk";
-  private static final String AVD_LOCATION = "/avd";
 
   private SystemImageDescription myKnownApiImageDescription;
   private SystemImageDescription myDeprecatedApiImageDescription;
@@ -47,67 +45,67 @@ public class SystemImageListModelTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    MockFileOp fileOp = new MockFileOp();
     RepositoryPackages packages = new RepositoryPackages();
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
     // Image with known API level
     String knownApiPath = "system-images;android-26;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, fileOp.toPath("/sdk/26SysImg"));
+    FakePackage.FakeLocalPackage pkgKnownApi = new FakePackage.FakeLocalPackage(knownApiPath, sdkRoot.resolve("26SysImg"));
     DetailsTypes.SysImgDetailsType detailsKnownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsKnownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsKnownApi.setApiLevel(26);
     pkgKnownApi.setTypeDetails((TypeDetails) detailsKnownApi);
-    fileOp.recordExistingFile(pkgKnownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgKnownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with deprecated API level (Honeycomb)
     String deprecatedApiPath = "system-images;android-13;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, fileOp.toPath("/sdk/13SysImg"));
+    FakePackage.FakeLocalPackage pkgDeprecatedApi = new FakePackage.FakeLocalPackage(deprecatedApiPath, sdkRoot.resolve("13SysImg"));
     DetailsTypes.SysImgDetailsType detailsDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsDeprecatedApi.setApiLevel(13);
     pkgDeprecatedApi.setTypeDetails((TypeDetails) detailsDeprecatedApi);
-    fileOp.recordExistingFile(pkgDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image with deprecated API level (whatever is most-recently deprecated)
     String justDeprecatedApiPath = "system-images;android-97;google_apis_playstore;x86";
     FakePackage.FakeLocalPackage pkgJustDeprecatedApi =
-      new FakePackage.FakeLocalPackage(justDeprecatedApiPath, fileOp.toPath("/sdk/97SysImg"));
+      new FakePackage.FakeLocalPackage(justDeprecatedApiPath, sdkRoot.resolve("97SysImg"));
     DetailsTypes.SysImgDetailsType detailsJustDeprecatedApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsJustDeprecatedApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsJustDeprecatedApi.setApiLevel(SdkVersionInfo.LOWEST_ACTIVE_API - 1);
     pkgJustDeprecatedApi.setTypeDetails((TypeDetails) detailsJustDeprecatedApi);
-    fileOp.recordExistingFile(pkgJustDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgJustDeprecatedApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Preview image (with unknown API level)
     String PreviewApiPath = "system-images;android-98;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, fileOp.toPath("/sdk/previewSysImg"));
+    FakePackage.FakeLocalPackage pkgPreviewApi = new FakePackage.FakeLocalPackage(PreviewApiPath, sdkRoot.resolve("previewSysImg"));
     DetailsTypes.SysImgDetailsType detailsPreviewApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsPreviewApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsPreviewApi.setApiLevel(98);
     detailsPreviewApi.setCodename("Zwieback-preview"); // The codename makes it a "preview"
     pkgPreviewApi.setTypeDetails((TypeDetails) detailsPreviewApi);
-    fileOp.recordExistingFile(pkgPreviewApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgPreviewApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Non-preview image with unknown API level
     // (This shouldn't happen.)
     String unknownApiPath = "system-images;android-99;google_apis_playstore;x86";
-    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, fileOp.toPath("/sdk/zSysImg"));
+    FakePackage.FakeLocalPackage pkgUnknownApi = new FakePackage.FakeLocalPackage(unknownApiPath, sdkRoot.resolve("zSysImg"));
     DetailsTypes.SysImgDetailsType detailsUnknownApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     detailsUnknownApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
     detailsUnknownApi.setApiLevel(99);
     // (Leaving codename null)
     pkgUnknownApi.setTypeDetails((TypeDetails)detailsUnknownApi);
-    fileOp.recordExistingFile(pkgUnknownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgUnknownApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     // Image that has extension level specified and is not the base SDK
     String extentionsApiPath = "system-images;android-99-3;google_apis_playstore;x86";
     FakePackage.FakeLocalPackage pkgExtensionsApi =
-      new FakePackage.FakeLocalPackage(extentionsApiPath, fileOp.toPath("/sdk/extensionSysImg"));
+      new FakePackage.FakeLocalPackage(extentionsApiPath, sdkRoot.resolve("extensionSysImg"));
     DetailsTypes.SysImgDetailsType extensionsApi =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     extensionsApi.getTags().add(IdDisplay.create("google_apis_playstore", "Google Play"));
@@ -116,15 +114,15 @@ public class SystemImageListModelTest extends AndroidTestCase {
     extensionsApi.setExtensionLevel(3);
 
     pkgExtensionsApi.setTypeDetails((TypeDetails)extensionsApi);
-    fileOp.recordExistingFile(pkgExtensionsApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    InMemoryFileSystems.recordExistingFile(pkgExtensionsApi.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     packages.setLocalPkgInfos(
       ImmutableList.of(pkgKnownApi, pkgDeprecatedApi, pkgJustDeprecatedApi, pkgPreviewApi, pkgUnknownApi, pkgExtensionsApi));
 
-    RepoManager mgr = new FakeRepoManager(fileOp.toPath(SDK_LOCATION), packages);
+    RepoManager mgr = new FakeRepoManager(sdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
-      new AndroidSdkHandler(fileOp.toPath(SDK_LOCATION), fileOp.toPath(AVD_LOCATION), mgr);
+      new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), mgr);
 
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
