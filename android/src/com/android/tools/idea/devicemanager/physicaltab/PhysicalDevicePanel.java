@@ -20,6 +20,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel;
+import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -160,7 +161,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   private void initTable(@NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable) {
     myTable = newPhysicalDeviceTable.apply(this);
-    myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+
+    if (!DetailsPanelPanel2.ENABLED) {
+      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+    }
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
@@ -242,6 +246,11 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
   @Override
   public void layOut() {
+    if (DetailsPanelPanel2.ENABLED) {
+      layOut2();
+      return;
+    }
+
     GroupLayout layout = new GroupLayout(this);
     Group toolbarHorizontalGroup = layout.createSequentialGroup();
 
@@ -280,6 +289,46 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     if (myDetailsPanel != null) {
       verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
     }
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
+  }
+
+  private void layOut2() {
+    Component panel = new DetailsPanelPanel2(myScrollPane);
+
+    GroupLayout layout = new GroupLayout(this);
+    Group toolbarHorizontalGroup = layout.createSequentialGroup();
+
+    if (myPairUsingWiFiButton != null) {
+      toolbarHorizontalGroup
+        .addGap(JBUIScale.scale(5))
+        .addComponent(myPairUsingWiFiButton)
+        .addGap(JBUIScale.scale(4))
+        .addComponent(mySeparator);
+    }
+
+    toolbarHorizontalGroup.addComponent(myHelpButton);
+
+    Group toolbarVerticalGroup = layout.createParallelGroup(Alignment.CENTER);
+
+    if (myPairUsingWiFiButton != null) {
+      toolbarVerticalGroup
+        .addComponent(myPairUsingWiFiButton)
+        .addComponent(mySeparator);
+    }
+
+    toolbarVerticalGroup.addComponent(myHelpButton);
+
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(toolbarHorizontalGroup)
+      .addComponent(panel);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(toolbarVerticalGroup)
+      .addComponent(panel);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);

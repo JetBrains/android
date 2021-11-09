@@ -21,14 +21,13 @@ import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel;
+import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
@@ -51,9 +50,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements Disposable, DetailsPanelPanel<AvdInfo> {
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
-  private @Nullable JButton myRefreshButton;
   private final @NotNull JButton myHelpButton;
-  private @Nullable SearchTextField mySearchTextField;
 
   private final @Nullable Project myProject;
   private final @NotNull Component myScrollPane;
@@ -80,99 +77,19 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     mySeparator.setPreferredSize(separatorSize);
     mySeparator.setMaximumSize(separatorSize);
 
-    if (enableHalfBakedFeatures()) {
-      myRefreshButton = new CommonButton(AllIcons.Actions.Refresh);
-      myRefreshButton.addActionListener(event -> myTable.refreshAvds());
-    }
-
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
     myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/virtual"));
 
-    if (enableHalfBakedFeatures()) {
-      mySearchTextField = new SearchTextField(true);
-      mySearchTextField.setToolTipText("Search virtual devices by name");
-    }
-
-    setLayout(createGroupLayout());
-
+    layOut();
     Disposer.register(parent, this);
   }
 
   private void initTable() {
     myTable = new VirtualDeviceTable(myProject);
-    myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
-  }
 
-  private @NotNull GroupLayout createGroupLayout() {
-    GroupLayout groupLayout = new GroupLayout(this);
-
-    Group toolbarHorizontalGroup = createToolbarHorizontalGroup(groupLayout);
-    Group toolbarVerticalGroup = createToolbarVerticalGroup(groupLayout);
-
-    Group horizontalGroup = groupLayout.createParallelGroup(Alignment.LEADING)
-      .addGroup(toolbarHorizontalGroup)
-      .addComponent(myScrollPane);
-
-    if (myDetailsPanel != null) {
-      horizontalGroup.addComponent(myDetailsPanel);
+    if (!DetailsPanelPanel2.ENABLED) {
+      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
     }
-
-    Group verticalGroup = groupLayout.createSequentialGroup()
-      .addGroup(toolbarVerticalGroup)
-      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
-
-    if (myDetailsPanel != null) {
-      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
-    }
-
-    groupLayout.setHorizontalGroup(horizontalGroup);
-    groupLayout.setVerticalGroup(verticalGroup);
-    return groupLayout;
-  }
-
-  private @NotNull Group createToolbarHorizontalGroup(@NotNull GroupLayout groupLayout) {
-    Group toolbarHorizontalGroup = groupLayout.createSequentialGroup()
-      .addGap(JBUIScale.scale(5))
-      .addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-      .addGap(JBUIScale.scale(4))
-      .addComponent(mySeparator, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-
-    if (myRefreshButton != null) {
-      toolbarHorizontalGroup
-        .addComponent(myRefreshButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-    }
-
-    toolbarHorizontalGroup.addComponent(myHelpButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-
-    if (mySearchTextField != null) {
-      toolbarHorizontalGroup
-        .addComponent(mySearchTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE);
-    }
-
-    return toolbarHorizontalGroup;
-  }
-
-  private @NotNull Group createToolbarVerticalGroup(@NotNull GroupLayout groupLayout) {
-    Group toolbarVerticalGroup = groupLayout.createParallelGroup(Alignment.CENTER);
-    toolbarVerticalGroup.addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-      .addComponent(mySeparator, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-
-    if (myRefreshButton != null) {
-      toolbarVerticalGroup.addComponent(myRefreshButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-    }
-
-    toolbarVerticalGroup.addComponent(myHelpButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-
-    if (mySearchTextField != null) {
-      toolbarVerticalGroup
-        .addComponent(mySearchTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-    }
-
-    return toolbarVerticalGroup;
-  }
-
-  private static boolean enableHalfBakedFeatures() {
-    return StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get();
   }
 
   @Override
@@ -220,6 +137,66 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
 
   @Override
   public void layOut() {
-    setLayout(createGroupLayout());
+    if (DetailsPanelPanel2.ENABLED) {
+      layOut2();
+      return;
+    }
+
+    GroupLayout layout = new GroupLayout(this);
+
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+                  .addGap(JBUIScale.scale(5))
+                  .addComponent(myCreateButton)
+                  .addGap(JBUIScale.scale(4))
+                  .addComponent(mySeparator)
+                  .addComponent(myHelpButton))
+      .addComponent(myScrollPane);
+
+    if (myDetailsPanel != null) {
+      horizontalGroup.addComponent(myDetailsPanel);
+    }
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup(Alignment.CENTER)
+                  .addComponent(myCreateButton)
+                  .addComponent(mySeparator)
+                  .addComponent(myHelpButton))
+      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
+
+    if (myDetailsPanel != null) {
+      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
+    }
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
+  }
+
+  private void layOut2() {
+    Component panel = new DetailsPanelPanel2(myScrollPane);
+    GroupLayout layout = new GroupLayout(this);
+
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(layout.createSequentialGroup()
+                  .addGap(JBUIScale.scale(5))
+                  .addComponent(myCreateButton)
+                  .addGap(JBUIScale.scale(4))
+                  .addComponent(mySeparator)
+                  .addComponent(myHelpButton))
+      .addComponent(panel);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(layout.createParallelGroup(Alignment.CENTER)
+                  .addComponent(myCreateButton)
+                  .addComponent(mySeparator)
+                  .addComponent(myHelpButton))
+      .addComponent(panel);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
   }
 }
