@@ -18,10 +18,10 @@ package com.android.tools.idea.res
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
-import com.android.resources.base.Base128OutputStream
 import com.android.resources.base.BasicResourceItem
 import com.android.resources.base.RepositoryConfiguration
 import com.android.resources.base.ResourceSourceFile
+import com.android.utils.Base128OutputStream
 import com.google.common.collect.ArrayListMultimap
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
