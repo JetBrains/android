@@ -29,6 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByCachedCompilerArguments
+import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataNodeOrNull
 import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinIdeaProjectDataOrNull
 import org.jetbrains.kotlin.idea.gradleJava.configuration.sourceSetName
 import org.jetbrains.plugins.gradle.util.GradleUtil
@@ -51,15 +52,19 @@ private fun setupKotlinOptionsOnFacet(module: Module) {
   if (module.sourceSetName == sourceSetName) return
   val moduleDataNode = GradleUtil.findGradleModuleData(module) ?: return
   val kotlinIdeaProjectData = moduleDataNode.kotlinIdeaProjectDataOrNull ?: return
+  val kotlinGradleProjectDataNode = moduleDataNode.kotlinGradleProjectDataNodeOrNull ?: return
   val cacheHolder = kotlinIdeaProjectData.compilerArgumentsCacheHolder
-  val kotlinGradleSourceSetData = ExternalSystemApiUtil.findAllRecursively(moduleDataNode, KotlinGradleSourceSetData.KEY)
+  val kotlinGradleSourceSetData = ExternalSystemApiUtil.findAll(kotlinGradleProjectDataNode, KotlinGradleSourceSetData.KEY)
                                     .map { it.data }
                                     .find { it.sourceSetName == sourceSetName } ?: return
+  //Continue only if kotlin facet was not already built by KotlinGradleSourceSetDataServiceKt#configureFacetByGradleModule
+  if (kotlinGradleSourceSetData.isProcessed) return
   val argsInfo = kotlinGradleSourceSetData.cachedArgsInfo
 
   val kotlinFacet = KotlinFacet.get(module) ?: return
   module.sourceSetName = sourceSetName
   configureFacetByCachedCompilerArguments(kotlinFacet, argsInfo, cacheHolder, null)
+  kotlinGradleSourceSetData.isProcessed = true
 }
 
 private fun setupAndroidRunConfiguration(module: Module) {
