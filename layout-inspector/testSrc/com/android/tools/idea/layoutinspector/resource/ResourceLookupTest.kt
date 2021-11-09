@@ -33,10 +33,9 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -80,12 +79,12 @@ class ResourceLookupTest {
     val title = ViewNode(1, "TextView", null, 30, 60, 300, 100, null, null, "Hello Folks", 0)
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup = ResourceLookup(projectRule.project)
-      override fun get(id: Long): ViewNode? = title
+      override fun get(id: Long): ViewNode = title
       override val selection: ViewNode? = null
     }
     val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title.drawId, context)
     val icon = context.resourceLookup.resolveAsIcon(property, title)
-    assertThat(icon).isEqualTo(JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
+    assertThat(icon).isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }
 }

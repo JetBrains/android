@@ -488,8 +488,8 @@ private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int,
   val colors = resolveMultipleColors(value, project)
   return when (colors.size) {
     0 -> null
-    1 -> ColorIcon(size, colors.first(), false).scale(JBUIScale.scale(1f))
-    else -> ColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())).scale(JBUIScale.scale(1f))
+    1 -> JBUIScale.scaleIcon(ColorIcon(size, colors.first(), false))
+    else -> JBUIScale.scaleIcon(ColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())))
   }
 }
 

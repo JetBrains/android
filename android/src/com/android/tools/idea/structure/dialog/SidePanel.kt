@@ -32,6 +32,7 @@ import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.Navigator
 import com.intellij.ui.popup.list.GroupedItemsListRenderer
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.JBUI
@@ -69,7 +70,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
   val descriptor: ListItemDescriptor<PlaceData> = object : ListItemDescriptor<PlaceData> {
     override fun getTextFor(place: PlaceData): String? = place.presentation.text
     override fun getTooltipFor(place: PlaceData): String? = null
-    override fun getIconFor(place: PlaceData): Icon? = JBUI.scale(EmptyIcon.create(16, 20))
+    override fun getIconFor(place: PlaceData): Icon? = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
     override fun hasSeparatorAboveOf(value: PlaceData): Boolean = value.separator != null
     override fun getCaptionAboveOf(value: PlaceData): String? = value.separator
   }

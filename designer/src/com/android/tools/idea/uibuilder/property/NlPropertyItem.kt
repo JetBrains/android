@@ -534,7 +534,7 @@ open class NlPropertyItem(
       private fun resolveValueAsIcon(value: String?): Icon? {
         if (value != null && !isReferenceValue(value)) {
           val color = parseColor(value) ?: return null
-          return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
+          return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
         }
         val resValue = asResourceValue(value) ?: return null
         return resolver?.resolveAsIcon(resValue, project, model.facet)
