@@ -655,7 +655,7 @@ public class IdeSdks {
    * @return true if the embedded JDK is used
    */
   public boolean isUsingEmbeddedJdk() {
-    if (!myIdeInfo.isAndroidStudio() && !myIdeInfo.isGameTools()) {
+    if (!myIdeInfo.isAndroidStudio()) {
       return false;
     }
     Path jdkPath = doGetJdkPath(false);
@@ -667,14 +667,14 @@ public class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public void setUseEmbeddedJdk() {
-    checkState(myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools(), "This method is for use in Android Studio only.");
+    checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
     Path embeddedJdkPath = getEmbeddedJdkPath();
     setJdkPath(embeddedJdkPath);
   }
 
   @Nullable
   public Path getEmbeddedJdkPath() {
-    if (!myIdeInfo.isAndroidStudio() && !myIdeInfo.isGameTools()) {
+    if (!myIdeInfo.isAndroidStudio()) {
       return null;
     }
     return myEmbeddedDistributionPaths.getEmbeddedJdkPath();
@@ -691,7 +691,7 @@ public class IdeSdks {
 
   @VisibleForTesting
   boolean isUsingJavaHomeJdk(boolean assumeUnitTest) {
-    if (!myIdeInfo.isAndroidStudio() && myIdeInfo.isGameTools()) {
+    if (!myIdeInfo.isAndroidStudio()) {
       return false;
     }
     // Do not create Jdk in ProjectJDKTable when running from unit tests, to prevent leaking
@@ -835,7 +835,7 @@ public class IdeSdks {
   private Sdk createNewJdk(@Nullable JavaSdkVersion preferredVersion) {
     // The following code tries to detect the best JDK (partially duplicates com.android.tools.idea.sdk.Jdks#chooseOrCreateJavaSdk)
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
-    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
+    if (myIdeInfo.isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
       if (jdk != null) {
         assert isJdkCompatible(jdk, preferredVersion);
