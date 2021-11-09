@@ -300,6 +300,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   internal fun invalidatePanel() {
     tabbedPane.removeAll()
+    tabbedPane.removeAllTabs()
     animationTabs.clear()
     showNoAnimationsPanel()
   }

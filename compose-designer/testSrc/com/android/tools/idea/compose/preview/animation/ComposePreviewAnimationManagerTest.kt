@@ -122,23 +122,21 @@ class ComposePreviewAnimationManagerTest {
   fun noAnimationsPanelShownWhenNoAnimationsAreSubscribed() {
     val inspector = createAndOpenInspector()
 
-    fun noAnimationsPanel() = TreeWalker(inspector).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
-
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
-    assertNotNull(noAnimationsPanel())
+    assertNotNull(inspector.noAnimationsPanel())
     assertTrue(inspector.tabbedPane.isEmptyVisible)
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertNull(noAnimationsPanel())
+    assertNull(inspector.noAnimationsPanel())
     assertFalse(inspector.tabbedPane.isEmptyVisible)
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no animations panel
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
     UIUtil.pump() // Wait for the tab to be removed on the UI thread
-    assertNotNull(noAnimationsPanel())
+    assertNotNull(inspector.noAnimationsPanel())
     assertTrue(inspector.tabbedPane.isEmptyVisible)
   }
 
@@ -315,26 +313,26 @@ class ComposePreviewAnimationManagerTest {
 
     val toolbars = TreeWalker(inspector).descendantStream().filter { it is ActionToolbarImpl }.collect(
       Collectors.toList()).map { it as ActionToolbarImpl }
-    var playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
+    val playbackControls = toolbars.firstOrNull { it.place == "Animation Preview" }
     assertNotNull(playbackControls)
     assertEquals(6, playbackControls!!.actions.size)
     val actionEvent = Mockito.mock(AnActionEvent::class.java)
     // Press loop
-    var loopAction = playbackControls.actions[0] as ToggleAction
+    val loopAction = playbackControls.actions[0] as ToggleAction
     loopAction.setSelected(actionEvent, true)
     UIUtil.pump() // Wait for all changes in UI thread
     // Play and pause
-    var playAction = playbackControls.actions[2]
+    val playAction = playbackControls.actions[2]
     playAction.actionPerformed(actionEvent)
     UIUtil.pump() // Wait for all changes in UI thread
     playAction.actionPerformed(actionEvent)
     UIUtil.pump() // Wait for all changes in UI thread
     // Go to start.
-    var goToStart = playbackControls.actions[1]
+    val goToStart = playbackControls.actions[1]
     goToStart.actionPerformed(actionEvent)
     UIUtil.pump() // Wait for all changes in UI thread
     // Go to end.
-    var toToEnd = playbackControls.actions[3]
+    val toToEnd = playbackControls.actions[3]
     toToEnd.actionPerformed(actionEvent)
     UIUtil.pump() // Wait for all changes in UI thread
     // Un-press loop
@@ -418,6 +416,20 @@ class ComposePreviewAnimationManagerTest {
   }
 
   @Test
+  fun invalidateInspectorShouldClearTabsAndShowNoAnimationsPanel() {
+    val inspector = createAndOpenInspector()
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), createComposeAnimation())
+    UIUtil.pump() // Wait for the tab to be added on the UI
+    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertNull(inspector.noAnimationsPanel())
+
+    ComposePreviewAnimationManager.invalidate()
+    UIUtil.pump() // Wait for the tab to be added on the UI
+    assertNotNull(inspector.noAnimationsPanel())
+    assertTrue(inspector.tabbedPane.isEmptyVisible)
+  }
+
+  @Test
   @Throws(IOException::class, ClassNotFoundException::class)
   fun classLoaderRedirectsSubscriptionToAnimationManager() {
     class PreviewAnimationClockClassLoader : DelegatingClassLoader(this.javaClass.classLoader,
@@ -495,6 +507,9 @@ class ComposePreviewAnimationManagerTest {
   private fun AnimationInspectorPanel.tabCount() = invokeAndWaitIfNeeded { tabbedPane.tabCount }
 
   private fun AnimationInspectorPanel.getTabTitleAt(index: Int) = invokeAndWaitIfNeeded { tabbedPane.getTabAt(index).text }
+
+  private fun AnimationInspectorPanel.noAnimationsPanel() =
+    TreeWalker(this).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()
 
   /**
    * Fake class with methods matching PreviewAnimationClock method signatures, so the code doesn't break when the test tries to call them
