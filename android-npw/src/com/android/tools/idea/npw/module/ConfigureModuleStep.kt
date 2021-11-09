@@ -23,6 +23,7 @@ import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result.Companion.OK
+import com.android.tools.adtui.validation.Validator.Severity.INFO
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
@@ -32,6 +33,7 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPack
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
 import com.android.tools.idea.npw.project.determineGradlePluginVersion
+import com.android.tools.idea.npw.project.determineVersionCatalogUse
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
@@ -80,6 +82,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
   protected val gradleVersion: OptionalValueProperty<GradleVersion> = OptionalValueProperty()
+  private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
 
   private val androidVersionsInfo = AndroidVersionsInfo()
   private var installRequests: List<UpdatablePackage> = listOf()
@@ -105,8 +108,13 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
           OK
       }, model.useGradleKts)
 
+      registerValidator(versionCatalogUse, createValidator {
+        if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
+      })
+
       runningJob = GlobalScope.launch(ioThread) {
         gradleVersion.value = determineGradlePluginVersion(model.project, false)
+        versionCatalogUse.value = determineVersionCatalogUse(model.project)
       }
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
