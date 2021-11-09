@@ -28,7 +28,6 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_CURVES
-import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -42,7 +41,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
-import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
@@ -51,16 +49,16 @@ import com.intellij.ui.tabs.TabsListener
 import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseEvent
+import java.awt.geom.Path2D
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
@@ -70,11 +68,6 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.MatteBorder
 import kotlin.math.ceil
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.geom.Path2D
-import javax.swing.JEditorPane
-import javax.swing.text.DefaultCaret
 import kotlin.math.max
 
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
@@ -398,23 +391,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     val stateComboBox: InspectorPainter.StateComboBox
 
-    /**
-     * Displays the animated properties and their value at the current timeline time.
-     */
-    private val animatedPropertiesPanel = AnimatedPropertiesPanel()
-
     private val timelinePanelWithCurves = JBScrollPane()
     private val timelinePanelNoCurves = JPanel(BorderLayout())
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
-
-    /**
-     * Horizontal [JBSplitter] comprising of the animated properties panel and the animation timeline.
-     */
-    private val propertiesTimelineSplitter = JBSplitter(0.45f).apply {
-      firstComponent = createAnimatedPropertiesPanel()
-      secondComponent = timelinePanelNoCurves
-      dividerWidth = 1
-    }
 
     init {
       add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
@@ -438,7 +417,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get())
         splitterWrapper.add(timelinePanelWithCurves)
       else
-        splitterWrapper.add(propertiesTimelineSplitter, BorderLayout.CENTER)
+        splitterWrapper.add(timelinePanelNoCurves, BorderLayout.CENTER)
       add(splitterWrapper, TabularLayout.Constraint(1, 0, 3))
     }
 
@@ -565,21 +544,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       )),
       true).component
 
-
-    private fun createAnimatedPropertiesPanel() = JPanel(TabularLayout("*", "${TIMELINE_HEADER_HEIGHT}px,*")).apply {
-      preferredSize = JBDimension(200, 200)
-      val propKeysTitlePanel = JPanel(TabularLayout("*", "*")).apply {
-        // Bottom border separating this title header from the properties panel.
-        border = MatteBorder(0, 0, 1, 0, JBColor.border())
-        background = UIUtil.getTextFieldBackground()
-        add(JBLabel(message("animation.inspector.transition.properties.panel.title")).apply {
-          border = JBUI.Borders.empty(0, 5)
-        }, TabularLayout.Constraint(0, 0))
-      }
-      add(propKeysTitlePanel, TabularLayout.Constraint(0, 0))
-      add(JBScrollPane(animatedPropertiesPanel), TabularLayout.Constraint(1, 0))
-    }
-
     /**
      * Adds [timeline] to this tab's [timelinePanel]. The timeline is shared across all tabs, and a Swing component can't be added as a
      * child of multiple components simultaneously. Therefore, this method needs to be called everytime we change tabs.
@@ -594,66 +558,15 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     fun updateProperties() {
       val animClock = animationClock ?: return
+      if (!COMPOSE_INTERACTIVE_ANIMATION_CURVES.get()) return
       try {
         val properties = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
-        if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get())
-          timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it, ComposeUnit.parse(it)) })
-        else animatedPropertiesPanel.updateProperties(properties)
+        timeline.updateSelectedProperties(properties.map { ComposeUnit.TimelineUnit(it, ComposeUnit.parse(it)) })
       }
       catch (e: Exception) {
         LOG.warn("Failed to get the Compose Animation properties", e)
       }
     }
-
-    /**
-     * HTML panel to display animated properties and their corresponding values at the time set in [TransitionDurationTimeline].
-     */
-    private inner class AnimatedPropertiesPanel : JEditorPane() {
-
-      init {
-        margin = JBUI.insets(5)
-        editorKit = UIUtil.getHTMLEditorKit()
-        isEditable = false
-        text = createNoPropertiesPanel()
-        // If the caret updates, every time we change the animated properties panel content, the panel will be scrolled to the end.
-        (caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
-      }
-
-      private fun createNoPropertiesPanel() =
-        HtmlBuilder().openHtmlBody().add(message("animation.inspector.no.properties.message")).closeHtmlBody().html
-
-      /**
-       * Updates the properties panel content, displaying one property per line. Each line has the property label (default label color)
-       * followed by the corresponding value at current time (disabled label color).
-       */
-      fun updateProperties(animatedPropKeys: List<ComposeAnimatedProperty>) {
-        text = if (animatedPropKeys.isEmpty()) {
-          createNoPropertiesPanel()
-        }
-        else {
-          val htmlBuilder = HtmlBuilder().openHtmlBody().beginDiv("white-space: nowrap")
-          animatedPropKeys.forEachIndexed { index, property ->
-            if (index > 0) {
-              // Don't add line breaks before the first property, only to separate properties.
-              htmlBuilder.newline().newline()
-            }
-
-            htmlBuilder
-              .beginSpan("color: ${UIUtil.getLabelForeground().toCss()}")
-              .add(property.label)
-              .endSpan()
-              .newline()
-              .beginSpan("color: ${UIUtil.getLabelDisabledForeground().toCss()}")
-              .add(property.value.toString())
-              .endSpan()
-          }
-          htmlBuilder.endDiv().closeHtmlBody().html
-        }
-      }
-
-      private fun Color.toCss() = "rgb($red, $green, $blue)"
-    }
-
 
     /**
      * Snap the animation to the start state.
