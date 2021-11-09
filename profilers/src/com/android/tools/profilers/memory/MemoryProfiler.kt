@@ -98,10 +98,9 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
       // Early return if JVMTI agent is not attached.
       !myProfilers.isAgentAttached -> {}
       else -> try {
-        // Attempts to stop an existing tracking session first.
+        // Attempts to stop an existing tracking session.
         // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
         trackAllocations(myProfilers, session, false, null)
-        trackAllocations(myProfilers, session, true, null)
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)

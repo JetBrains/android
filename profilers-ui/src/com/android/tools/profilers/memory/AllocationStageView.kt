@@ -23,6 +23,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.android.tools.profilers.sessions.SessionAspect
+import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
@@ -32,11 +33,13 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.CardLayout
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JPanel
 
 class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationStage)
   : BaseStreamingMemoryProfilerStageView<AllocationStage>(profilersView, stage) {
@@ -106,10 +109,15 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     secondComponent = instanceDetailsWrapper
   }
 
-  private val mainPanel = JBSplitter(true).apply {
+  private val trackingPanel = JBSplitter(true).apply {
     firstComponent = timelineComponent
     secondComponent = chartCaptureSplitter
     proportion = .2f
+  }
+  private var loadingPanel: LoadingPanel? = null
+  private val mainPanelLayout = CardLayout()
+  private val mainPanel = JPanel(mainPanelLayout).apply {
+    add(trackingPanel, CARD_TRACKING)
   }
 
   init {
@@ -134,11 +142,23 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
       updateLabel()
     }
     stage.studioProfilers.sessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS) {
-      if (!stage.studioProfilers.sessionsManager.isSessionAlive) stopButton.doClick()
+      if (!stage.studioProfilers.sessionsManager.isSessionAlive) {
+        stopButton.doClick()
+        // Also stop loading panel if the session is terminated before successful loading
+        loadingPanel?.stopLoading()
+      }
     }
+    stage.aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS) { showTrackingeUi() }
     updateLabel()
     updateInstanceDetailsSplitter()
+    showLoadingPanel()
     component.add(mainPanel, BorderLayout.CENTER)
+
+    mainPanel.addHierarchyListener {
+      if (!mainPanel.isDisplayable || !mainPanel.isShowing) {
+        hideLoadingPanel()
+      }
+    }
   }
 
   override fun getToolbar() = JBPanel<Nothing>(BorderLayout()).apply {
@@ -167,6 +187,31 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     selectAllButton.isEnabled = !stage.isAlmostAllSelected()
   }
 
+  private fun showTrackingeUi() {
+    hideLoadingPanel()
+    mainPanelLayout.show(mainPanel, CARD_TRACKING)
+  }
+
+  private fun showLoadingPanel() {
+    if (loadingPanel == null)
+      profilersView.ideProfilerComponents.createLoadingPanel(-1).apply {
+        setLoadingText("Setting up allocation tracking")
+      }.let {
+        loadingPanel = it
+        it.startLoading()
+        mainPanel.add(it.component, CARD_LOADING)
+        mainPanelLayout.show(mainPanel, CARD_LOADING)
+      }
+  }
+
+  private fun hideLoadingPanel() {
+    loadingPanel?.let {
+      it.stopLoading()
+      mainPanel.remove(it.component)
+      loadingPanel = null
+    }
+  }
+
   // Customize the time axis to start from 0
   override fun buildTimeAxis(profilers: StudioProfilers): JComponent {
     fun rebase(r: Range) = Range(0.0, r.max - r.min).apply {
@@ -184,6 +229,11 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
       background = ProfilerColors.DEFAULT_BACKGROUND
       add(timeAxis, BorderLayout.CENTER)
     }
+  }
+
+  private companion object {
+    const val CARD_TRACKING = "tracking"
+    const val CARD_LOADING = "loading"
   }
 }
 

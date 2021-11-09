@@ -1,7 +1,7 @@
 package com.android.tools.profilers.memory
 
-import com.android.tools.adtui.TreeWalker
 import com.android.sdklib.AndroidVersion
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -10,6 +10,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -101,6 +103,16 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     stage.stopTracking()
     profilersView.backButton.doClick()
     assertThat(profilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
+  }
+
+  @Test
+  fun `back button issues stop alloc tracking command`() {
+    val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
+    val prevCommandId = handler.lastCommand.commandId
+    stage.stopTracking()
+    profilersView.backButton.doClick()
+    assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
+    assertThat(handler.lastCommand.commandId).isGreaterThan(prevCommandId)
   }
 
   fun `test allocation sampling rate attachment`() {

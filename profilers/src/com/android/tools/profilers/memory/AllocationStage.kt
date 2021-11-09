@@ -2,6 +2,8 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
@@ -37,6 +39,32 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
 
   private val allocationDurationData = makeModel(CaptureDataSeries::ofAllocationInfos)
   override val captureSeries get() = listOf(allocationDurationData)
+
+  init {
+    if (studioProfilers.sessionsManager.isSessionAlive && isLiveAllocationTrackingSupported) {
+      // Note the max of current data range which is the current timestamp on device
+      val currentRangeMax = TimeUnit.MICROSECONDS.toNanos(profilers.timeline.dataRange.max.toLong())
+      val listener = TransportEventListener(
+        Common.Event.Kind.MEMORY_ALLOC_SAMPLING, studioProfilers.ideServices.mainExecutor,
+        // The host issues START_ALLOC_TRACKING (through trackAllocations()) and MEMORY_ALLOC_SAMPLING
+        // (through requestLiveAllocationSamplingModeUpdate()) commands to start live allocation tracking.
+        // START_ALLOC_TRACKING would make the agent generate a MEMORY_ALLOC_SAMPLING event using the
+        // previous sampling internal (which is always 0). Then, the MEMORY_ALLOC_SAMPLING command would
+        // make the agent generate another MEMORY_ALLOC_SAMPLING event of the given sampling interval
+        // (which is always DEFAULT_SAMPLING_MODE).
+        // TODO: simplify the logic by removing unnecessary MEMORY_ALLOC_SAMPLING command.
+        { event -> event.memoryAllocSampling.samplingNumInterval == DEFAULT_SAMPLING_MODE.value },
+        { sessionData.streamId }, { sessionData.pid }, null,
+        // wait for only new events, not old ones such as those from previous recordings
+        { currentRangeMax }
+      ) {
+        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
+        true
+      }
+      studioProfilers.transportPoller.registerListener(listener)
+
+    }
+  }
 
   override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
   override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
@@ -74,7 +102,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       aspect.addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE) {
         if (hasStartedTracking) aspect.removeDependencies(this) else startTracking()
       }
-      requestLiveAllocationSamplingModeUpdate(FULL)
+      MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, null);
+      requestLiveAllocationSamplingModeUpdate(DEFAULT_SAMPLING_MODE)
       // Prevent selecting outside of range
       timeline.selectionRange.apply {
         addDependency(this@AllocationStage).onChange(Range.Aspect.RANGE) {
@@ -114,6 +143,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       maxTrackingTimeUs = timeline.dataRange.max
     }
     requestLiveAllocationSamplingModeUpdate(NONE)
+    MemoryProfiler.trackAllocations(studioProfilers, sessionData, false, null);
   }
 
   private fun onNewData() = with(timeline) {
@@ -137,6 +167,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_JVM_RECORDING_STAGE
 
   companion object {
+    private val DEFAULT_SAMPLING_MODE = FULL  // The sampling mode when entering Allocation Stage.
+
     @JvmStatic @JvmOverloads
     fun makeLiveStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader()) =
       AllocationStage(profilers, loader, NEGATIVE_INFINITY, POSITIVE_INFINITY)

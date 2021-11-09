@@ -55,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
-  private static final String LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP = "Allocation tracking isn't ready. Please wait.";
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
   private static final String RECORD_JAVA_TOOLTIP = "View how each Java / Kotlin object was allocated over a period of time";
@@ -147,17 +146,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     }
     RecordingOption javaRecordingOption = makeJavaRecodingOption();
     adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, javaRecordingOption);
-    if (isLiveAllocationTrackingSupported() && !isLiveAllocationTrackingReady()) {
-      Runnable update = () -> {
-        if (isLiveAllocationTrackingReady()) {
-          myRecordingOptionsModel.setOptionReady(javaRecordingOption);
-        } else {
-          myRecordingOptionsModel.setOptionNotReady(javaRecordingOption, LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP);
-        }
-      };
-      update.run();
-      getAspect().addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS, update);
-    }
 
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();

@@ -149,24 +149,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       }
     }
 
-    // Get ready to fire LIVE_ALLOCATION_STATUS if applicable.
-    if (studioProfilers.sessionsManager.isSessionAlive && isLiveAllocationTrackingSupported) {
-      // Note the max of current data range as isLiveAllocationTrackingReady() returns info before it.
-      val currentRangeMax = profilers.timeline.dataRange.max.toLong().microsToNanos()
-      if (!isLiveAllocationTrackingReady) {
-        val listener = TransportEventListener(
-          Common.Event.Kind.MEMORY_ALLOC_SAMPLING, studioProfilers.ideServices.mainExecutor,
-          { true }, { sessionData.streamId }, { sessionData.pid },
-          null,  // wait for only new events, not old ones such as those from previous sessions
-          { currentRangeMax }
-        ) {
-          aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS)
-          true
-        }
-        studioProfilers.transportPoller.registerListener(listener)
-      }
-    }
-
     allocationSamplingRateUpdatable.update(0)
   }
 

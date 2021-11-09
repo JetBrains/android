@@ -5,6 +5,8 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -56,6 +58,8 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   @Test
   fun `stage starts tracking when entered then stops when stopped`() {
     assumeTrue(isLive)
+    val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
+    val prevCommand = handler.lastCommand
     assertThat(stage.hasEndedTracking).isFalse()
     assertThat(stage.confirmExitMessage).isNotNull()
 
@@ -64,6 +68,8 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     assertThat(stage.confirmExitMessage).isNull()
     tickOneSec()
     assertThat(stage.liveAllocationSamplingMode).isEqualTo(NONE)
+    assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
+    assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
   }
 
   @Test
@@ -88,10 +94,14 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   }
 
   @Test
-  fun `exiting stage disables live allocations`() {
+  fun `exiting stage disables live allocations and issues stop command`() {
+    val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
+    val prevCommand = handler.lastCommand
     stage.exit()
     tickOneSec()
     assertThat(stage.getLiveAllocationSamplingModeFromData()).isEqualTo(NONE)
+    assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
+    assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
   }
 
   private fun getSelectedRange() = with(stage.timeline.selectionRange) { Pair(min, max) }
