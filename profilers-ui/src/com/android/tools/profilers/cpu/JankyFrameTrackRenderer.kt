@@ -35,6 +35,7 @@ import com.android.tools.profilers.cpu.analysis.JankAnalysisModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
@@ -81,7 +82,7 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
           val fullText = "Frame ${event.surfaceFrameToken}: ${TimeFormatter.getSingleUnitDurationString(duration)}"
           val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
           if (text.isNotEmpty()) {
-            g.color = if (active) JBColor.DARK_GRAY else JBColor.LIGHT_GRAY
+            g.color = if (active) JBUI.CurrentTheme.Label.foreground() else JBUI.CurrentTheme.Label.disabledForeground()
             val textOffset = rect.y + (rect.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
             g.drawString(text, rect.x + textPadding, textOffset)
           }
