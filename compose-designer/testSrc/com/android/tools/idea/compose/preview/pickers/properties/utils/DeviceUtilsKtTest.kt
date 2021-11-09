@@ -20,6 +20,7 @@ import com.android.resources.ScreenRound
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.MutableDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import org.junit.Test
@@ -30,7 +31,7 @@ internal class DeviceUtilsKtTest {
 
   @Test
   fun deviceToDeviceConfig() {
-    val device = DeviceConfig().createDeviceInstance()
+    val device = MutableDeviceConfig().createDeviceInstance()
     val screen = device.defaultHardware.screen
 
     screen.xDimension = 1080
@@ -38,11 +39,11 @@ internal class DeviceUtilsKtTest {
     screen.pixelDensity = Density.HIGH
 
     val modifiedConfig = device.toDeviceConfig()
-    assertEquals(DimUnit.px, modifiedConfig.dimensionUnit)
+    assertEquals(DimUnit.px, modifiedConfig.dimUnit)
     assertEquals(Orientation.portrait, modifiedConfig.orientation)
     assertEquals(1080, modifiedConfig.width)
     assertEquals(2280, modifiedConfig.height)
-    assertEquals(240, modifiedConfig.density)
+    assertEquals(240, modifiedConfig.dpi)
     assertEquals(Shape.Normal, modifiedConfig.shape)
 
     screen.screenRound = ScreenRound.ROUND
@@ -96,11 +97,11 @@ internal class DeviceUtilsKtTest {
 private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
-  return listOf<DeviceConfig>(
-    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, density = 320, shape = Shape.Normal),
-    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, density = 480, shape = Shape.Normal),
-    DeviceConfig(width = 1080, height = 2280, dimUnit = DimUnit.px, density = 480, shape = Shape.Normal),
-    DeviceConfig(width = 600, height = 600, dimUnit = DimUnit.px, density = 480, shape = Shape.Round)
+  return listOf(
+    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
+    DeviceConfig(width = 1080, height = 1920, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+    DeviceConfig(width = 1080, height = 2280, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
+    DeviceConfig(width = 600, height = 600, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
   ).map {
     Device.Builder(it.createDeviceInstance()).also { builder ->
       if (nameOrIdCount % 2 == 0) {

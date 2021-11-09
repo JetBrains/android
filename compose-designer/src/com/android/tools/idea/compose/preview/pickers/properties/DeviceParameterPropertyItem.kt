@@ -27,7 +27,6 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findByIdOrName
-import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
 import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -66,13 +65,13 @@ internal class DeviceParameterPropertyItem(
     } ?: emptyList()
   }
 
-  private val defaultDeviceValues: DeviceValues =
-    ConfigurationManager.findExistingInstance(model.module)?.defaultDevice?.toDeviceConfig()?.toImmutableValues() ?: DeviceValues(
+  private val defaultDeviceValues: DeviceConfig =
+    ConfigurationManager.findExistingInstance(model.module)?.defaultDevice?.toDeviceConfig() ?: DeviceConfig(
       shape = DEFAULT_SHAPE,
       width = DEFAULT_WIDTH,
       height = DEFAULT_HEIGHT,
-      unit = DEFAULT_UNIT,
-      density = DEFAULT_DENSITY.dpiValue
+      dimUnit = DEFAULT_UNIT,
+      dpi = DEFAULT_DENSITY.dpiValue
     )
 
   override var name: String = PARAMETER_HARDWARE_DEVICE
@@ -98,19 +97,19 @@ internal class DeviceParameterPropertyItem(
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DIM_UNIT,
-      defaultValue = defaultDeviceValues.unit.name,
-      getter = { it.dimensionUnit.name }) { config, newValue ->
+      defaultValue = defaultDeviceValues.dimUnit.name,
+      getter = { it.dimUnit.name }) { config, newValue ->
       enumValueOfOrNull<DimUnit>(newValue)?.let {
-        config.dimensionUnit = it
+        config.dimUnit = it
       }
     },
     DevicePropertyItem(
       name = PARAMETER_HARDWARE_DENSITY,
-      defaultValue = defaultDeviceValues.density.toString(),
+      defaultValue = defaultDeviceValues.dpi.toString(),
       inputValidation = IntegerStrictValidator,
-      getter = { it.density.toString() }) { config, newValue ->
+      getter = { it.dpi.toString() }) { config, newValue ->
       newValue.toIntOrNull()?.let {
-        config.density = it
+        config.dpi = it
       }
     },
     DevicePropertyItem(
@@ -123,11 +122,10 @@ internal class DeviceParameterPropertyItem(
     },
   )
 
-  private fun getCurrentDeviceConfig(): DeviceConfig {
-    val defaultConfig = defaultDeviceValues.toMutableConfig()
+  private fun getCurrentDeviceConfig(): MutableDeviceConfig {
     return value?.let { currentValue ->
       DeviceConfig.toDeviceConfigOrNull(currentValue) ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-    } ?: defaultConfig
+    }?.toMutableConfig() ?: defaultDeviceValues.toMutableConfig()
   }
 
   /**
@@ -137,8 +135,8 @@ internal class DeviceParameterPropertyItem(
     name: String,
     defaultValue: String?,
     inputValidation: EditingValidation = { EDITOR_NO_ERROR },
-    private val getter: (DeviceConfig) -> String,
-    private val setter: (DeviceConfig, String) -> Unit
+    private val getter: (MutableDeviceConfig) -> String,
+    private val setter: (MutableDeviceConfig, String) -> Unit
   ) : MemoryParameterPropertyItem(
     name, defaultValue, inputValidation
   ) {
@@ -153,35 +151,3 @@ internal class DeviceParameterPropertyItem(
       }
   }
 }
-
-private fun DeviceConfig.toImmutableValues(): DeviceValues =
-  DeviceValues(
-    shape = this.shape,
-    width = this.width,
-    height = this.height,
-    unit = this.dimensionUnit,
-    density = this.density
-  )
-
-private fun DeviceValues.toMutableConfig(): DeviceConfig =
-  DeviceConfig(
-    shape = this.shape,
-    width = this.width,
-    height = this.height,
-    dimUnit = this.unit,
-    density = this.density
-  )
-
-/**
- * Immutable equivalent of [DeviceConfig]
- */
-private data class DeviceValues(
-  val shape: Shape,
-  val width: Int,
-  val height: Int,
-  val unit: DimUnit,
-  val density: Int
-) {
-  val orientation = if (height >= width) Orientation.portrait else Orientation.landscape
-}
-

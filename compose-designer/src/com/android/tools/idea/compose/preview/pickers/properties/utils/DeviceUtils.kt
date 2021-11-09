@@ -26,8 +26,10 @@ import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
+import com.android.tools.idea.compose.preview.pickers.properties.MutableDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
+import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
 import com.android.tools.idea.configurations.Configuration
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.sqrt
@@ -42,29 +44,28 @@ internal const val DEVICE_BY_NAME_PREFIX = "name:"
 internal const val DEVICE_BY_SPEC_PREFIX = "spec:"
 
 internal fun Device.toDeviceConfig(): DeviceConfig {
-  val config = DeviceConfig().apply { dimensionUnit = DimUnit.px }
+  val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
   val deviceState = this.defaultState
   val screen = deviceState.hardware.screen
   config.width = screen.xDimension
   config.height = screen.yDimension
-  config.density = screen.pixelDensity.dpiValue
+  config.dpi = screen.pixelDensity.dpiValue
   if (screen.screenRound == ScreenRound.ROUND) {
     config.shape = if (screen.chin != 0) Shape.Square else Shape.Round
   }
   else {
     config.shape = Shape.Normal
   }
-  return DeviceConfig(
-    shape = config.shape,
-    width = config.width,
-    height = config.height,
-    dimUnit = config.dimensionUnit,
-    density = config.density
-  )
+  return config
 }
 
 internal fun DeviceConfig.createDeviceInstance(): Device {
-  val deviceConfig = this
+  val deviceConfig = if (this !is MutableDeviceConfig) {
+    this.toMutableConfig()
+  }
+  else {
+    this
+  }
   val customDevice = Device.Builder().apply {
     setTagId("")
     setName("Custom")
@@ -80,10 +81,10 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
     }
     hardware = Hardware().apply {
       screen = Screen().apply {
-        deviceConfig.dimensionUnit = DimUnit.px // Transforms dimension to Pixels
+        deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
         xDimension = deviceConfig.width
         yDimension = deviceConfig.height
-        pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.density.toDouble(), yDimension)
+        pixelDensity = AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), yDimension)
         diagonalLength =
           sqrt((1.0 * xDimension * xDimension) + (1.0 * yDimension * yDimension)) / pixelDensity.dpiValue
         screenRound = when (deviceConfig.shape) {
@@ -108,12 +109,12 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
  */
 internal fun Collection<Device>.findOrParseFromDefinition(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(DeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
 ): Device? {
   return when {
     deviceDefinition.isBlank() -> null
     deviceDefinition.startsWith(DEVICE_BY_SPEC_PREFIX) -> {
-      val deviceBySpec = DeviceConfig.toDeviceConfigOrNull(deviceDefinition)?.createDeviceInstance()
+      val deviceBySpec = DeviceConfig.toMutableDeviceConfigOrNull(deviceDefinition)?.createDeviceInstance()
       if (deviceBySpec == null) {
         logger.warn("Unable to parse device configuration: $deviceDefinition")
       }
@@ -125,7 +126,7 @@ internal fun Collection<Device>.findOrParseFromDefinition(
 
 internal fun Collection<Device>.findByIdOrName(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(DeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
 ): Device? {
   val availableDevices = this
   return when {

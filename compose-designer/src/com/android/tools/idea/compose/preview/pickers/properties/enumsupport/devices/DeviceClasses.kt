@@ -83,7 +83,7 @@ internal class DeviceEnumValueBuilder {
       round(dpiCalc * 100) / 100.0
     }
     val density = AvdScreenData.getScreenDensity(null, true, dpi, heightPx)
-    val deviceSpec = DeviceConfig(width = widthPx, height = heightPx, dimUnit = DimUnit.px, density = density.dpiValue).deviceSpec()
+    val deviceSpec = DeviceConfig(width = widthPx, height = heightPx, dimUnit = DimUnit.px, dpi = density.dpiValue).deviceSpec()
     val display = overrideDisplayName ?: "${round(diagonalIn * 100) / 100}\" ${type.name} ${heightPx}p"
     val enumValue = EnumValue.indented(deviceSpec, display)
     deviceEnumValues[type]?.add(enumValue)
@@ -93,7 +93,7 @@ internal class DeviceEnumValueBuilder {
     shape: Shape
   ): DeviceEnumValueBuilder = apply {
     val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
-    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, density = density.dpiValue, shape = shape).deviceSpec()
+    val deviceSpec = DeviceConfig(width = 300, height = 300, dimUnit = DimUnit.px, dpi = density.dpiValue, shape = shape).deviceSpec()
     deviceEnumValues[DeviceClass.Wear]?.add(EnumValue.indented(deviceSpec, shape.display))
   }
 

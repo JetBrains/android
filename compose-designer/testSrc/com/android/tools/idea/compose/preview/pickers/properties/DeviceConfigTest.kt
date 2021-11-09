@@ -31,8 +31,8 @@ internal class DeviceConfigTest {
     assertNotNull(config)
     assertEquals(120, config.width)
     assertEquals(240, config.height)
-    assertEquals(DimUnit.px, config.dimensionUnit)
-    assertEquals(480, config.density)
+    assertEquals(DimUnit.px, config.dimUnit)
+    assertEquals(480, config.dpi)
     assertEquals(Orientation.portrait, config.orientation)
 
     config = DeviceConfig.toDeviceConfigOrNull("spec:shape=Round,width=240,height=120,unit=px,dpi=480")
@@ -50,8 +50,8 @@ internal class DeviceConfigTest {
     assertNotNull(config)
     assertEquals(120, config.width)
     assertEquals(240, config.height)
-    assertEquals(DimUnit.px, config.dimensionUnit)
-    assertEquals(480, config.density)
+    assertEquals(DimUnit.px, config.dimUnit)
+    assertEquals(480, config.dpi)
     assertEquals(Orientation.portrait, config.orientation)
 
     config = DeviceConfig.toDeviceConfigOrNull("spec:Round;240w;120h;px;480dpi")
@@ -65,16 +65,17 @@ internal class DeviceConfigTest {
 
   @Test
   fun modificationsTest() {
-    val config = DeviceConfig()
+    val config = MutableDeviceConfig()
     assertEquals(1080, config.width)
     assertEquals(1920, config.height)
 
-    config.dimensionUnit = DimUnit.dp
+    config.dimUnit = DimUnit.dp
     assertEquals(360, config.width)
     assertEquals(640, config.height)
 
-    config.density = config.density / 2
-    config.dimensionUnit = DimUnit.px
+    // We change the dpi, which should result in different dimensions in pixels (half pixel density = half pixels on each dimension)
+    config.dpi = config.dpi / 2
+    config.dimUnit = DimUnit.px
     assertEquals(540, config.width)
     assertEquals(960, config.height)
 
