@@ -143,7 +143,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_JANK_DETECTION_UI = Flag.create(
     PROFILER, "jank.ui", "Enable jank detection UI",
     "Add a track in the display group showing frame janks.",
-    false
+    true
   );
 
   public static final Flag<Boolean> PROFILER_CUSTOM_EVENT_VISUALIZATION = Flag.create(

@@ -159,6 +159,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForPerfetto() {
+    services.enableJankDetectionUi(false)
     services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), SESSION_ID)
@@ -196,6 +197,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForPerfettoWithFrameLifecycle() {
+    services.enableJankDetectionUi(false)
     services.setListBoxOptionsMatcher { option -> option.contains("profilertester") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace"), SESSION_ID)
@@ -273,6 +275,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun captureHintSelectsProperProcessStringName() {
+    services.enableJankDetectionUi(false)
     services.setListBoxOptionsIndex(-1) // This makes process selector throws if we didn't selected based on name hint first.
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 SESSION_ID, "/system/bin/surfaceflinger", 0)
@@ -284,6 +287,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun captureHintSelectsProperProcessPID() {
+    services.enableJankDetectionUi(false)
     services.setListBoxOptionsIndex(-1) // This makes process selector throws if we didn't selected based on pid hint first.
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 SESSION_ID, null, 709)
@@ -295,6 +299,7 @@ class CpuCaptureStageTest {
 
   @Test
   fun nullCaptureHintSelectsCaptureFromDialog() {
+    services.enableJankDetectionUi(false)
     services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage(profilers, ProfilersTestData.DEFAULT_CONFIG, CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
                                 SESSION_ID, null, 0)
