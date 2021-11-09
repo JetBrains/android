@@ -18,13 +18,18 @@ package com.android.tools.adtui.common;
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.TabularLayout;
+import com.intellij.openapi.util.Pair;
+import com.intellij.ui.AbstractExpandableItemsHandler;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.TableCell;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.table.JBTable;
+import com.intellij.ui.tree.ui.DefaultTreeUI;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import java.awt.Adjustable;
 import java.awt.BorderLayout;
@@ -33,8 +38,10 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -64,6 +71,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -75,6 +84,7 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
@@ -137,6 +147,9 @@ public class ColumnTreeBuilder {
 
   @Nullable
   private TreeCellRenderer myHeaderRowCellRenderer = null;
+
+  @Nullable
+  private ColumnTreeExpandableItemsHandler myExpandableItemsHandler;
 
   private static final String LAST_TREE_PREFERRED_WIDTH = "last.tree.width";
 
@@ -326,6 +339,8 @@ public class ColumnTreeBuilder {
       column.create(myTableModel);
     }
 
+    myExpandableItemsHandler = new ColumnTreeExpandableItemsHandler(myTree, myTable);
+
     for (int i = 0; i < myColumnBuilders.size(); i++) {
       ColumnBuilder column = myColumnBuilders.get(i);
       column.configure(i, myTable, rowSorter, myCellRenderer, myShowHeaderTooltips);
@@ -408,6 +423,132 @@ public class ColumnTreeBuilder {
 
   public interface TreeSorter<T> {
     void sort(Comparator<T> comparator, SortOrder order);
+  }
+
+  private class ColumnTreeExpandableItemsHandler extends AbstractExpandableItemsHandler<TableCell, JTree> {
+
+    @NotNull
+    private final JTable myTable;
+
+    protected ColumnTreeExpandableItemsHandler(@NotNull JTree tree, @NotNull JTable table) {
+      super(tree);
+      myTable = table;
+
+      final TreeModelListener modelListener = new TreeModelAdapter() {
+        @Override
+        protected void process(@NotNull TreeModelEvent event, @NotNull TreeModelAdapter.EventType type) {
+          if (type == EventType.NodesChanged) {
+            updateCurrentSelection();
+          }
+        }
+      };
+
+      if (tree.getModel() != null) tree.getModel().addTreeModelListener(modelListener);
+      tree.addPropertyChangeListener("model", evt -> {
+        updateCurrentSelection();
+
+        if (evt.getOldValue() != null) {
+          ((TreeModel)evt.getOldValue()).removeTreeModelListener(modelListener);
+        }
+        if (evt.getNewValue() != null) {
+          ((TreeModel)evt.getNewValue()).addTreeModelListener(modelListener);
+        }
+      });
+    }
+
+    @Override
+    protected @Nullable
+    Pair<Component, Rectangle> getCellRendererAndBounds(TableCell key) {
+      int rowIndex = key.row;
+
+      TreePath path = myComponent.getPathForRow(rowIndex);
+      if (path == null) return null;
+
+      Rectangle treeCellRect = myComponent.getPathBounds(path);
+      if (treeCellRect == null) return null;
+
+      TreeCellRenderer treeCellRenderer = myComponent.getCellRenderer();
+      if (treeCellRenderer == null) return null;
+
+      if (key.row < 0 || key.row >= myComponent.getRowCount() ||
+          key.column < 0 || key.column >= myTable.getColumnCount() ||
+          hasDraggingOrResizingColumn()) {
+        return null;
+      }
+
+      Object node = path.getLastPathComponent();
+      Component treeCellComponent = treeCellRenderer.getTreeCellRendererComponent(
+        myComponent,
+        node,
+        myComponent.isRowSelected(rowIndex),
+        myComponent.isExpanded(rowIndex),
+        myComponent.getModel().isLeaf(node),
+        rowIndex,
+        myComponent.hasFocus()
+      );
+      // Ignore header rows.
+      if (!(treeCellComponent instanceof ColumnTreeCellRenderer)) {
+        return null;
+      }
+
+      Component tableCellComponent = ((ColumnTreeCellRenderer)treeCellComponent).getComponent(key.column);
+      Rectangle tableHeaderRect = myTable.getTableHeader().getHeaderRect(key.column);
+      Rectangle tableCellRect = new Rectangle(Math.max(treeCellRect.x, tableHeaderRect.x),
+                                              treeCellRect.y,
+                                              tableCellComponent.getPreferredSize().width,
+                                              treeCellRect.height);
+
+      return Pair.create(tableCellComponent, tableCellRect);
+    }
+
+    @Override
+    protected TableCell getCellKeyForPoint(Point point) {
+      int rowIndex = myTree.getRowForLocation(point.x, point.y);
+      if (rowIndex == -1) {
+        return null;
+      }
+
+      int columnIndex = myTable.columnAtPoint(point);
+      if (columnIndex == -1) {
+        return null;
+      }
+      return new TableCell(rowIndex, columnIndex);
+    }
+
+    private boolean hasDraggingOrResizingColumn() {
+      JTableHeader header = myTable.getTableHeader();
+      return header != null && (header.getResizingColumn() != null || header.getDraggedColumn() != null);
+    }
+
+    @Override
+    public Rectangle getVisibleRect(TableCell key) {
+      Rectangle columnVisibleRect = myComponent.getVisibleRect();
+      Rectangle tableHeaderRect = myTable.getTableHeader().getHeaderRect(key.column);
+      int visibleRight = Math.min(columnVisibleRect.x + columnVisibleRect.width, tableHeaderRect.x + tableHeaderRect.width);
+      columnVisibleRect.x = Math.min(columnVisibleRect.x, tableHeaderRect.x);
+      columnVisibleRect.width = Math.max(0, visibleRight - columnVisibleRect.x);
+      return columnVisibleRect;
+    }
+
+    @Override
+    protected void doPaintTooltipImage(Component rComponent,
+                                       Rectangle cellBounds,
+                                       Graphics2D g,
+                                       TableCell key) {
+      DefaultTreeUI.setBackground(myComponent, rComponent, key.row);
+      Container parent = rComponent.getParent();
+      if (parent instanceof ColumnTreeCellRenderer) {
+        ColumnTreeCellRenderer parentRenderer = (ColumnTreeCellRenderer)parent;
+        int index = Arrays.asList(parentRenderer.getComponents()).indexOf(rComponent);
+        if (index == -1) {
+          return;
+        }
+        // Calling super.doPaintTooltipImage will remove rComponent from its parent, and we need to restore it afterwards.
+        parentRenderer.remove(rComponent);
+        super.doPaintTooltipImage(rComponent, cellBounds, g, key);
+        parentRenderer.add(rComponent, index);
+      }
+    }
   }
 
   private static class ColumnTreeScrollPanel extends JPanel {
