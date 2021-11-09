@@ -22,7 +22,7 @@ import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 
-class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture): CpuAnalyzable<JankAnalysisModel> {
+data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture): CpuAnalyzable<JankAnalysisModel> {
 
   override fun getAnalysisModel() =
     CpuAnalysisModel<JankAnalysisModel>("Frame ${event.surfaceFrameToken}").also { model ->

@@ -30,12 +30,12 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
 
   fun setSelection(key: Any, selections: Set<S>) = when {
     selections.isEmpty() -> removeSelection(key)
-    selections != currentSelections[key] -> {
+    selections != currentSelections[key]?.value -> {
       activeSelectionKey = key
       currentSelections[key] = Entry(key, selections)
       changed(Aspect.SELECTIONS_CHANGED)
     }
-    else -> {}
+    else -> setActiveSelection(key)
   }
 
   fun removeSelection(key: Any) {

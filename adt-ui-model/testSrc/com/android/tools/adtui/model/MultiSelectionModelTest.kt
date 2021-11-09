@@ -137,6 +137,18 @@ class MultiSelectionModelTest {
       assertThat(activeIndex()).isEqualTo(-1)
     }
 
+  @Test
+  fun `setting the same selection again updates active selection`() =
+    testWithObserver(MultiSelectionModel<Int>::activeSelectionKey) { model, activeSelection ->
+      assertThat(activeSelection()).isNull()
+      model.setSelection("Key0", setOf(0, 1, 2))
+      assertThat(activeSelection()).isEqualTo("Key0")
+      model.setSelection("Key1", setOf(1, 2, 3))
+      assertThat(activeSelection()).isEqualTo("Key1")
+      model.setSelection("Key0", setOf(0, 1, 2))
+      assertThat(activeSelection()).isEqualTo("Key0")
+    }
+
   private fun<T> testWithObserver(run: (MultiSelectionModel<T>, () -> List<Entry<T>>) -> Unit) =
     testWithObserver(MultiSelectionModel<T>::selections, run)
 
