@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.StateChartModel
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 
-class AndroidFrameTimelineTooltip(val timeline: Timeline, private val model: AndroidFrameTimelineModel)
+class AndroidFrameTimelineTooltip(val timeline: Timeline, val model: AndroidFrameTimelineModel)
   : TooltipModel, AspectModel<AndroidFrameTimelineTooltip.Aspect>() {
 
   var activeEvent: AndroidFrameTimelineEvent? = null

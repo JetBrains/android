@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.LazyDataSeries
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.analysis.TableUtils.setColumnRenderers
@@ -35,6 +36,7 @@ import javax.swing.table.DefaultTableCellRenderer
 class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnalysisModel.Summary)
       : SummaryDetailsViewBase<JankAnalysisModel.Summary>(profilersView, model) {
   init {
+    val capture = model.capture
     fun hideablePanel(title: String, content: JComponent) =
       HideablePanel(HideablePanel.Builder(title, content)
                       .setPanelBorder(JBUI.Borders.empty())
@@ -45,12 +47,15 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
 
     addRowToCommonSection("Jank type", JBLabel(event.appJankType.getTitle()))
     addRowToCommonSection("Display timing", JBLabel(event.presentType.getTitle()))
-    addRowToCommonSection("App deadline", JBLabel(TimeFormatter.getSemiSimplifiedClockString(event.expectedEndUs)))
-    addRowToCommonSection("Actual render time", JBLabel(TimeFormatter.getSemiSimplifiedClockString(event.actualEndUs)))
+    addRowToCommonSection("App deadline",
+                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.expectedEndUs))))
+    addRowToCommonSection("Actual render time",
+                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.actualEndUs))))
     addRowToCommonSection("Expected duration", JBLabel(TimeFormatter.getSingleUnitDurationString(event.expectedDurationUs)))
     addRowToCommonSection("Actual duration", JBLabel(TimeFormatter.getSingleUnitDurationString(event.actualDurationUs)))
     addSection(hideablePanel("Events associated with Jank",
-                             EventTable.of(model.getThreadChildren(model.renderThreadId) to "Render",
+                             EventTable.of(capture,
+                                           model.getThreadChildren(model.renderThreadId) to "Render",
                                            model.getThreadChildren(model.gpuThreadId) to "GPU",
                                            model.getThreadChildren(model.mainThreadId) to "Main")))
 
@@ -64,9 +69,9 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
 }
 
 private object EventTable {
-  fun of(vararg renderEventLists: Pair<List<CaptureNode>, String>): JComponent =
+  fun of(capture: CpuCapture, vararg renderEventLists: Pair<List<CaptureNode>, String>): JComponent =
     renderEventLists
-      .map { (events, threadName) -> events.asSequence().map { Row(it.start, it.data.name, threadName) } }
+      .map { (events, threadName) -> events.asSequence().map { Row(capture.offset(it.start), it.data.name, threadName) } }
       .reduce(Sequence<Row>::plus)
       .toMutableList()
       .asTableModel(Col::get, Col::type, Col::title).let { model ->
@@ -92,3 +97,5 @@ private object EventTable {
     THREAD("Thread", String::class.java, Row::threadName)
   }
 }
+
+private fun CpuCapture.offset(us: Long) = us - range.min.toLong()

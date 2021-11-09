@@ -39,7 +39,7 @@ data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: 
       model.addTabModel(chart(CpuAnalysisTabModel.Type.BOTTOM_UP))
     }
 
-  class Summary(val event: AndroidFrameTimelineEvent, private val capture: CpuCapture)
+  class Summary(val event: AndroidFrameTimelineEvent, val capture: CpuCapture)
         : CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
     val mainThreadId = firstThreadId { it.isMainThread }
     val gpuThreadId = firstThreadId { it.isGpuThread }

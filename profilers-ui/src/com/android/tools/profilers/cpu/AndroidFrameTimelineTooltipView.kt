@@ -30,10 +30,10 @@ import javax.swing.JComponent
 
 class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFrameTimelineTooltip): TooltipView(tooltip.timeline) {
   @VisibleForTesting val container = JBPanel<Nothing>(TabularLayout("*").setVGap(12))
-  private val typeLabel = JBLabel().apply { font = ProfilerFonts.H3_FONT }
-  private val frameLabel = JBLabel()
-  private val durationlabel = JBLabel()
-  private val expectedLabel = JBLabel()
+  @VisibleForTesting val typeLabel = JBLabel().apply { font = ProfilerFonts.H3_FONT }
+  @VisibleForTesting val frameLabel = JBLabel()
+  @VisibleForTesting val durationlabel = JBLabel()
+  @VisibleForTesting val expectedLabel = JBLabel()
 
   init {
     with(container) {
@@ -59,7 +59,8 @@ class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFr
       typeLabel.text = event.appJankType.getTitle()
       frameLabel.text = "Frame: ${event.surfaceFrameToken}"
       durationlabel.text = "Duration: ${TimeFormatter.getSingleUnitDurationString(event.actualDurationUs)}"
-      expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(event.expectedEndUs)}"
+      expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(
+        event.expectedEndUs - tooltip.model.capture.range.min.toLong())}"
     }
   }
 }

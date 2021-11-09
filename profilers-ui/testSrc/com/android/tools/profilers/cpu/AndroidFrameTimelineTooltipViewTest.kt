@@ -15,9 +15,9 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel
@@ -27,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
 import perfetto.protos.PerfettoTrace
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 class AndroidFrameTimelineTooltipViewTest {
@@ -41,9 +40,6 @@ class AndroidFrameTimelineTooltipViewTest {
                                           FAKE_SELECTION_MODEL as MultiSelectionModel<CpuAnalyzable<*>>, FAKE_CAPTURE)
     val tooltip = AndroidFrameTimelineTooltip(timeline, model)
     val tooltipView = AndroidFrameTimelineTooltipView(JPanel(), tooltip)
-    fun checkText(txt: String) =
-      assertThat(TreeWalker(tooltipView.container).descendants().any { it is JLabel && txt in it.text }).isTrue()
-
     run {
       model.activeSeriesIndex = 0
 
@@ -54,9 +50,10 @@ class AndroidFrameTimelineTooltipViewTest {
       timeline.tooltipRange.set(1001.0, 1200.0)
       assertThat(tooltipView.headingText).isEqualTo("00:00.001")
       assertThat(tooltipView.container.isVisible).isTrue()
-      checkText("Frame: 42")
-      checkText("Duration: 2 ms")
-      checkText("Deadline missed")
+      assertThat(tooltipView.frameLabel.text).isEqualTo("Frame: 42")
+      assertThat(tooltipView.durationlabel.text).isEqualTo("Duration: 2 ms")
+      assertThat(tooltipView.typeLabel.text).isEqualTo("Deadline missed")
+      assertThat(tooltipView.expectedLabel.text).isEqualTo("Expected end: 00:00.001")
     }
 
     run {
@@ -68,21 +65,22 @@ class AndroidFrameTimelineTooltipViewTest {
       timeline.tooltipRange.set(1501.0, 2000.0)
       assertThat(tooltipView.headingText).isEqualTo("00:00.001")
       assertThat(tooltipView.container.isVisible).isTrue()
-      checkText("Frame: 43")
-      checkText("Duration: 2 ms")
-      checkText("Buffer stuffing")
+      assertThat(tooltipView.frameLabel.text).isEqualTo("Frame: 43")
+      assertThat(tooltipView.durationlabel.text).isEqualTo("Duration: 2 ms")
+      assertThat(tooltipView.typeLabel.text).isEqualTo("Buffer stuffing")
+      assertThat(tooltipView.expectedLabel.text).isEqualTo("Expected end: 00:00.002")
     }
   }
 }
 
-val FAKE_EVENT_0 =
+private val FAKE_EVENT_0 =
   AndroidFrameTimelineEvent(42L, 42L,
                             1000L, 2000L, 3000L, "",
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                             PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                             onTimeFinish = false, gpuComposition = false, 1)
 
-val FAKE_EVENT_1 =
+private val FAKE_EVENT_1 =
   AndroidFrameTimelineEvent(43L, 43L,
                             1500L, 3000L, 3500L, "",
                             PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
@@ -90,5 +88,8 @@ val FAKE_EVENT_1 =
                             onTimeFinish = false, gpuComposition = false, 0)
 
 
-val FAKE_SELECTION_MODEL = Mockito.mock(MultiSelectionModel::class.java)
-val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java)
+private val FAKE_SELECTION_MODEL = Mockito.mock(MultiSelectionModel::class.java)
+private val CAPTURE_RANGE = Range(1000.0, 10000.0)
+private val FAKE_CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
+  Mockito.`when`(range).thenReturn(CAPTURE_RANGE)
+}
