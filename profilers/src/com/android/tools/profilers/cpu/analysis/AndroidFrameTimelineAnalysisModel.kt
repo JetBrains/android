@@ -52,7 +52,7 @@ object AndroidFrameTimelineAnalysisModel {
 
   enum class Column(val title: String, val type: Class<*>, val getValue: (Row) -> Comparable<*>) {
     FRAME_NUMBER("Frame #", Long::class.java, { it.timelineEvent.surfaceFrameToken }),
-    TOTAL_TIME("Total time", Long::class.java, { it.timelineEvent.actualDurationUs }),
+    TOTAL_TIME("Frame Duration", Long::class.java, { it.timelineEvent.actualDurationUs }),
     APP_TIME("Application", Long::class.java, Row::appUs),
     GPU_TIME("GPU", Long::class.java, Row::gpuUs),
     COMPOSITION_TIME("Composition", Long::class.java, Row::compUs)
