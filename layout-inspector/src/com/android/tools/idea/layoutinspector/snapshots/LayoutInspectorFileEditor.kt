@@ -53,13 +53,13 @@ import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.StatusText
 import java.awt.BorderLayout
+import java.awt.Graphics
 import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
@@ -73,14 +73,14 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
   }
 
   private var component: JComponent? = null
-  private var modificationCount = -1L
+  private var modificationCount = 0L
 
   override fun getComponent(): JComponent {
-    if (modificationCount < (file?.modificationCount ?: 0)) {
+    if (modificationCount < (file?.modificationCount ?: -1)) {
       component = null
     }
     component?.let { return it }
-    modificationCount = file?.modificationCount ?: 0
+    modificationCount = file?.modificationCount ?: -1
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     var stats: SessionStatistics? = null
@@ -143,7 +143,25 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       // TODO: better error panel
       Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
       LayoutInspectorMetrics(project, snapshotLoader?.processDescriptor, stats, metadata).logEvent(SNAPSHOT_LOAD_ERROR)
-      return JBLabel("Error loading snapshot", SwingConstants.CENTER).also { component = it }
+      val status = object : StatusText() {
+        override fun isStatusVisible() = true
+      }
+      status.appendLine("Error loading snapshot")
+      (exception as? SnapshotLoaderException)?.message?.let {
+        status.appendLine(it)
+      }
+
+      return object: JPanel() {
+        init {
+          status.attachTo(this)
+          component = this
+        }
+
+        override fun paintComponent(g: Graphics?) {
+          super.paintComponent(g)
+          status.paint(this, g)
+        }
+      }
     }
     component = workbench
     return workbench

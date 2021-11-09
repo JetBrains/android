@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -23,6 +26,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -35,6 +39,10 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
+import java.awt.image.BufferedImage
+import java.io.ObjectOutputStream
+import java.nio.file.Files
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -44,7 +52,30 @@ class LayoutInspectorFileEditorTest {
   val disposableRule = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(disposableRule).around(EdtRule())!!
+  val chain = RuleChain.outerRule(SetPortableUiFontRule()).around(projectRule).around(disposableRule).around(EdtRule())!!
+
+  @Test
+  fun editorShowsVersionError() {
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(400, 100, BufferedImage.TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
+    val file = createInMemoryFileSystemAndFolder("").resolve("myFile.li")
+    val fakeVersion = mock<ProtocolVersion>()
+    `when`(fakeVersion.value).thenReturn("99")
+    ObjectOutputStream(Files.newOutputStream(file)).use {
+      it.writeUTF(LayoutInspectorCaptureOptions(fakeVersion, "myTitle").toString())
+    }
+    val editor = LayoutInspectorFileEditor(projectRule.project, file)
+    Disposer.register(disposableRule.disposable, editor)
+
+    editor.component.apply {
+      setSize(400, 100)
+      doLayout()
+      paint(graphics)
+    }
+    CheckUtil.assertImageSimilarPerPlatform(TestUtils.getWorkspaceRoot().resolve(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
+                                            0.01)
+  }
 
   @Test
   fun editorCreatesCorrectSettings() {
