@@ -27,12 +27,12 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.lint.common.LintIgnoredResult;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
@@ -96,18 +96,18 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   }
 
   public void testFindCompilationTarget() {
-    MockFileOp fop = new MockFileOp();
-    LocalPackage platformPackage = getLocalPlatformPackage(fop, "23", 23);
-    LocalPackage previewPlatform = getLocalPlatformPackage(fop, "O", 26);
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
+    LocalPackage platformPackage = getLocalPlatformPackage(sdkRoot, "23", 23);
+    LocalPackage previewPlatform = getLocalPlatformPackage(sdkRoot, "O", 26);
     LocalPackage addOnPlatform =
       getLocalAddOnPackage(
-        fop, "google_apis", "Google APIs", "google", "Google Inc.", 23);
+        sdkRoot, "google_apis", "Google APIs", "google", "Google Inc.", 23);
 
     RepositoryPackages packages = new RepositoryPackages();
     packages.setLocalPkgInfos(
       ImmutableList.of(platformPackage, previewPlatform, addOnPlatform));
     RepoManager mgr = new FakeRepoManager(null, packages);
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), null, mgr);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, null, mgr);
     LintClient client = new AndroidLintIdeClient(ideaProject, result) {
       @Override
       public AndroidSdkHandler getSdk() {
@@ -147,10 +147,10 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   }
 
   @NonNull
-  private static LocalPackage getLocalPlatformPackage(MockFileOp fop, String version, int api) {
-    fop.recordExistingFile("/sdk/android-" + version + "/build.prop", "");
+  private static LocalPackage getLocalPlatformPackage(Path sdkRoot, String version, int api) {
+    InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("android-" + version + "/build.prop"));
     FakePackage.FakeLocalPackage local =
-      new FakePackage.FakeLocalPackage("platforms;android-" + version, fop.toPath("/sdk/android-" + version));
+      new FakePackage.FakeLocalPackage("platforms;android-" + version, sdkRoot.resolve("android-" + version));
 
     DetailsTypes.PlatformDetailsType platformDetails =
       AndroidSdkHandler.getRepositoryModule()
@@ -167,15 +167,15 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   @SuppressWarnings("SameParameterValue")
   @NonNull
   private static LocalPackage getLocalAddOnPackage(
-    MockFileOp fop,
+    Path sdkRoot,
     String tag,
     String tagDisplay,
     String vendor,
     String vendorDisplay,
     int version) {
-    Path packagePath = fop.toPath("/sdk/add-ons/addon-" + tag + "-" + vendor + "-" + version);
+    Path packagePath = sdkRoot.resolve("add-ons/addon-" + tag + "-" + vendor + "-" + version);
     // MUST also have platform target of the same version
-    fop.recordExistingFile(packagePath.resolve("source.properties"));
+    InMemoryFileSystems.recordExistingFile(packagePath.resolve("source.properties"));
     FakePackage.FakeLocalPackage local =
       new FakePackage.FakeLocalPackage("add-ons;addon-" + tag + "-" + vendor + "-" + version, packagePath);
 

@@ -21,16 +21,16 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeLocalPackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.testutils.file.recordExistingFile
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
 import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent
-import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -75,14 +75,13 @@ class RetentionViewTest {
 
   private lateinit var retentionView: RetentionView
   private lateinit var androidSdkHandler: AndroidSdkHandler
-  private val sdkPath = "/sdk"
+  private val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
 
   @Mock
   private lateinit var mockRuntime: Runtime
 
   @Mock
   private lateinit var mockProcess: Process
-  private val mockFileOp = MockFileOp()
 
   @Mock
   private lateinit var mockLogReporter: UsageLogReporter
@@ -90,11 +89,11 @@ class RetentionViewTest {
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
-    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, mockFileOp.toPath("/sdk/emulator"))
-    mockFileOp.recordExistingFile(p.location.resolve(SdkConstants.FN_EMULATOR))
+    val p = FakeLocalPackage(SdkConstants.FD_EMULATOR, sdkRoot.resolve("emulator"))
+    p.location.resolve(SdkConstants.FN_EMULATOR).recordExistingFile()
     val packages = RepositoryPackages(listOf(p), listOf())
-    val mgr: RepoManager = FakeRepoManager(mockFileOp.toPath(sdkPath), packages)
-    androidSdkHandler = AndroidSdkHandler(mockFileOp.toPath(sdkPath), mockFileOp.toPath(sdkPath), mgr)
+    val mgr: RepoManager = FakeRepoManager(sdkRoot, packages)
+    androidSdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot, mgr)
     `when`(mockRuntime.exec(any(Array<String>::class.java))).thenReturn(mockProcess)
     `when`(mockRuntime.exec(anyString())).thenReturn(mockProcess)
     retentionView = RetentionView(androidSdkHandler, FakeProgressIndicator(), mockRuntime, mockLogReporter)
