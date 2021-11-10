@@ -39,8 +39,8 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.FakeSettingsController;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.concurrency.AsyncTestUtils;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
@@ -48,6 +48,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.util.Disposer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,12 +66,11 @@ import org.mockito.InOrder;
  * TODO: this does not include tests for in-process installs.
  */
 public class InstallTaskTest extends AndroidTestCase {
-  private static final String SDK_ROOT = "/sdk";
 
   private RemotePackage myAvailable1;
   private RemotePackage myAvailable2;
 
-  private final MockFileOp myFileOp = new MockFileOp();
+  private final Path mySdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
   private final ProgressIndicator myProgressIndicator = new FakeProgressIndicator();
 
   private Installer myInstaller;
@@ -83,7 +83,7 @@ public class InstallTaskTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    LocalPackage existing1 = spy(new FakePackage.FakeLocalPackage("p1", myFileOp.toPath("/sdk/p1")));
+    LocalPackage existing1 = spy(new FakePackage.FakeLocalPackage("p1", mySdkRoot.resolve("p1")));
     myAvailable1 = spy(new FakePackage.FakeRemotePackage("p2"));
     myAvailable2 = spy(new FakePackage.FakeRemotePackage("p3"));
     InstallerFactory factory = mock(InstallerFactory.class);
@@ -93,8 +93,8 @@ public class InstallTaskTest extends AndroidTestCase {
 
     RepositoryPackages repoPackages = new RepositoryPackages(ImmutableList.of(existing1), ImmutableList.of(myAvailable1, myAvailable2));
 
-    FakeRepoManager repoManager = new FakeRepoManager(myFileOp.toPath(SDK_ROOT), repoPackages);
-    mySdkHandler = new AndroidSdkHandler(myFileOp.toPath(SDK_ROOT), myFileOp.toPath("/sdk"), repoManager);
+    FakeRepoManager repoManager = new FakeRepoManager(mySdkRoot, repoPackages);
+    mySdkHandler = new AndroidSdkHandler(mySdkRoot, mySdkRoot, repoManager);
 
     myInstallTask = new InstallTask(factory, mySdkHandler, new FakeSettingsController(false), myProgressIndicator);
     myInstallTask.setInstallRequests(ImmutableList.of(new UpdatablePackage(myAvailable1), new UpdatablePackage(myAvailable2)));

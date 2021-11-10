@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.repository.api.RepoManager
-import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.sdk.AndroidSdks

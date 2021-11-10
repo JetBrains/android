@@ -30,12 +30,13 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
+import java.nio.file.Path;
 import java.util.Collections;
 
 /**
@@ -44,7 +45,7 @@ import java.util.Collections;
 public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   RepoManager myRepoManager;
   AndroidSdkHandler mySdkHandler;
-  MockFileOp fileOp = new MockFileOp();
+  private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
   @Override
   public void setUp() throws Exception {
@@ -52,10 +53,8 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
     initMocks(this.getClass());
 
     RepositoryPackages packages = new RepositoryPackages();
-    String sdkPath = "/sdk";
-    String avdPath = "/avd";
-    myRepoManager = spy(new FakeRepoManager(fileOp.toPath(sdkPath), packages));
-    mySdkHandler = new AndroidSdkHandler(fileOp.toPath(sdkPath), fileOp.toPath(avdPath), myRepoManager);
+    myRepoManager = spy(new FakeRepoManager(sdkRoot, packages));
+    mySdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
@@ -84,7 +83,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoRepoReloadsWhenUninstallsOnly() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp.toPath("/sdk/p"));
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", sdkRoot.resolve("p"));
 
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialog(null, null, null,
                                                              Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
@@ -97,7 +96,7 @@ public class SdkQuickfixUtilsTest extends AndroidGradleTestCase {
   }
 
   public void testCreateDialogNoUncachedRepoReloads() {
-    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", fileOp.toPath("/sdk/p"));
+    LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", sdkRoot.resolve("p"));
     try {
       SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
                                     null, ImmutableList.of(localPackage), mySdkHandler,

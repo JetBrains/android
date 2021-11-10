@@ -20,9 +20,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.testframework.FakeSettingsController;
-import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerFactory;
+import java.nio.file.Path;
 import org.junit.Test;
 
 public class StudioSdkInstallerUtilTest {
@@ -31,9 +32,8 @@ public class StudioSdkInstallerUtilTest {
     FakeSettingsController settingsController = new FakeSettingsController(true);
     settingsController.setDisableSdkPatches(false);
     StudioSdkInstallerUtil sdkInstallerUtil = new StudioSdkInstallerUtil(settingsController);
-
-    MockFileOp fop = new MockFileOp();
-    final AndroidSdkHandler sdkHandler = new AndroidSdkHandler(fop.toPath("/sdk"), fop.toPath("/android"));
+    Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
+    final AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android"));
     InstallerFactory factory = sdkInstallerUtil.doCreateInstallerFactory(sdkHandler);
     assertThat(factory).isInstanceOf(PatchInstallerFactory.class);
 
