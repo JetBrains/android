@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.tools.idea.projectsystem.DependencyType
+
 /**
  * Registry provides lookup service for Google Maven Artifacts when asked.
  */
@@ -49,7 +51,7 @@ abstract class MavenClassRegistryBase {
   abstract fun getCoordinates(): Collection<Coordinate>
 
   /**
-   * For the given runtime artifact, if it also requires an annotation processor, provide it
+   * For the given runtime artifact, if it also requires an annotation processor, provide it.
    */
   fun findAnnotationProcessor(artifact: String): String? {
     return when (artifact) {
@@ -57,6 +59,21 @@ abstract class MavenClassRegistryBase {
       "android.arch.persistence.room:runtime" -> "android.arch.persistence.room:compiler"
       "androidx.remotecallback:remotecallback" -> "androidx.remotecallback:remotecallback-processor"
       else -> null
+    }
+  }
+
+  /**
+   * For the given artifact, if it also requires extra artifacts for proper functionality, provide it.
+   *
+   * This is to handle those special cases. For example, for an unresolved symbol "@Preview",
+   * "androidx.compose.ui:ui-tooling-preview" is one of the suggested artifacts to import based on the extracted
+   * contents from the GMaven index file. However, this is not enough -"androidx.compose.ui:ui-tooling" should be added
+   * on instead. So we just provide both in the end.
+   */
+  fun findExtraArtifacts(artifact: String): Map<String, DependencyType> {
+    return when (artifact) {
+      "androidx.compose.ui:ui-tooling-preview" -> mapOf("androidx.compose.ui:ui-tooling" to DependencyType.DEBUG_IMPLEMENTATION)
+      else -> emptyMap()
     }
   }
 }

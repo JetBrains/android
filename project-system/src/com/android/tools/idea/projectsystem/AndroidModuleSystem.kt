@@ -335,6 +335,7 @@ data class ManifestOverrides(
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */
 enum class DependencyType {
   IMPLEMENTATION,
+  DEBUG_IMPLEMENTATION,
   // TODO: Add "API," & support in build systems
   ANNOTATION_PROCESSOR
 }

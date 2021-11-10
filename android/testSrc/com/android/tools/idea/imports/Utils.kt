@@ -140,6 +140,15 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "fqcns": [
                   "androidx.camera.view.PreviewView"
                 ]
+              },
+              {
+                "groupId": "androidx.compose.ui",
+                "artifactId": "ui-tooling-preview",
+                "version": "1.0.5",
+                "ktxTargets": [],
+                "fqcns": [
+                  "androidx.compose.ui.tooling.preview.Preview"
+                ]
               }
             ]
           }

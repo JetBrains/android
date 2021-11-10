@@ -331,6 +331,35 @@ class AndroidMavenImportIntentionActionTest {
   }
 
   @Test
+  fun testProvideExtraArtifacts() {
+    // Ensure that if extra artifacts are needed, we also add them.
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule.project) {
+      !it.contains("androidx.compose.ui:ui-tooling-preview:") && !it.contains("androidx.compose.ui:ui-tooling:")
+    }
+    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
+      package test.pkg.imports;
+      public class Test {
+          @Preview
+          @Composable
+          fun Foo()
+      }
+      """.trimIndent())
+
+    val action = AndroidMavenImportIntentionAction()
+    val element = projectRule.fixture.moveCaret("@Previe|w")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.compose.ui:ui-tooling-preview and import")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.compose.ui:ui-tooling-preview:") }
+    assertBuildGradle(projectRule.project) { it.contains("debugImplementation 'androidx.compose.ui:ui-tooling:") }
+  }
+
+  @Test
   fun testUnresolvedSymbol_nonAndroidX() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
     projectRule.loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)

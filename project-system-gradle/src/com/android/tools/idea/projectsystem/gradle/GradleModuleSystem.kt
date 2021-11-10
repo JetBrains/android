@@ -176,18 +176,25 @@ class GradleModuleSystem(
     val manager = GradleDependencyManager.getInstance(module.project)
     val coordinates = Collections.singletonList(coordinate)
 
-    if (type == DependencyType.ANNOTATION_PROCESSOR) {
-      // addDependenciesWithoutSync doesn't support this: more direct implementation
-      manager.addDependenciesWithoutSync(module, coordinates) { _, name, _ ->
-        when {
-          name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
-          name.startsWith("test") -> "testAnnotationProcessor"
-          else -> "annotationProcessor"
+    when (type) {
+      DependencyType.ANNOTATION_PROCESSOR -> {
+        // addDependenciesWithoutSync doesn't support this: more direct implementation
+        manager.addDependenciesWithoutSync(module, coordinates) { _, name, _ ->
+          when {
+            name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
+            name.startsWith("test") -> "testAnnotationProcessor"
+            else -> "annotationProcessor"
+          }
         }
       }
-    }
-    else {
-      manager.addDependenciesWithoutSync(module, coordinates)
+      DependencyType.DEBUG_IMPLEMENTATION -> {
+        manager.addDependenciesWithoutSync(module, coordinates) { _, _, _ ->
+          "debugImplementation"
+        }
+      }
+      else -> {
+        manager.addDependenciesWithoutSync(module, coordinates)
+      }
     }
   }
 
