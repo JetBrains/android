@@ -378,8 +378,8 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testMinSdkVersion() {
-    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/MinSdkVersion"))
+  fun testResConfigs() {
+    writeToBuildFile(TestFileName("RewriteDeprecatedOperators/ResConfigs"))
     val processor =
       REWRITE_DEPRECATED_OPERATORS_INFO.RefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
     processor.run()

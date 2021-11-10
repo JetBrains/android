@@ -43,15 +43,18 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
   propertiesOperationInfos = listOf(
     RewriteObsoletePropertiesInfo(
       propertyModelListGetter = {
-        listOf(android().buildToolsVersion(), android().compileSdkVersion(), android().flavorDimensions()) +
+        listOf(
+          android().buildToolsVersion(),
+          // TODO(b/205806471) android().compileSdkVersion(),
+          android().flavorDimensions()) +
         android().defaultConfig().let {
           listOf(
             it.manifestPlaceholders(),
             it.matchingFallbacks(),
-            it.maxSdkVersion(),
-            it.minSdkVersion(),
+            // TODO(b/205806471) it.maxSdkVersion(),
+            // TODO(b/205806471) it.minSdkVersion(),
             it.resConfigs(),
-            it.targetSdkVersion(),
+            // TODO(b/205806471) it.targetSdkVersion(),
             it.testFunctionalTest(),
             it.testHandleProfiling(),
             it.testInstrumentationRunnerArguments(),
@@ -68,10 +71,10 @@ val REWRITE_DEPRECATED_OPERATORS = PropertiesOperationsRefactoringInfo(
             it.dimension(),
             it.manifestPlaceholders(),
             it.matchingFallbacks(),
-            it.maxSdkVersion(),
-            it.minSdkVersion(),
+            // TODO(b/205806471) it.maxSdkVersion(),
+            // TODO(b/205806471) it.minSdkVersion(),
             it.resConfigs(),
-            it.targetSdkVersion(),
+            // TODO(b/205806471) it.targetSdkVersion(),
             it.testFunctionalTest(),
             it.testHandleProfiling(),
             it.testInstrumentationRunnerArguments(),

@@ -3,10 +3,10 @@ android {
     testInstrumentationRunnerArguments += mapOf("three" to "four", "five" to "six")
     testHandleProfiling = true
     testFunctionalTest = false
-    targetSdk = 29
+    targetSdkVersion(29)
     resourceConfigurations += setOf("en", "fr")
-    minSdk = 28
-    maxSdk = 30
+    minSdkVersion(28)
+    maxSdkVersion(30)
     matchingFallbacks += listOf("demo", "trial")
     manifestPlaceholders += mapOf("a" to "b")
   }
@@ -15,10 +15,10 @@ android {
       testInstrumentationRunnerArguments += mapOf("one" to "two")
       testHandleProfiling = false
       testFunctionalTest = true
-      targetSdk = 28
+      targetSdkVersion(28)
       resourceConfigurations += setOf("uk")
-      minSdk = 27
-      maxSdk = 29
+      minSdkVersion(27)
+      maxSdkVersion(29)
       matchingFallbacks += listOf("trial")
       manifestPlaceholders += mapOf("e" to "f", "g" to "h")
       dimension = "paid"
@@ -31,6 +31,6 @@ android {
     }
   }
   flavorDimensions += listOf("paid", "country")
-  compileSdk = 30
+  compileSdkVersion(30)
   buildToolsVersion = "1.2.3"
 }
