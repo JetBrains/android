@@ -177,6 +177,7 @@ class LayoutInspectorTreePanelTest {
         LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
+    inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(PROCESS)
     inspectorRule.processes.selectedProcess = PROCESS
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }

@@ -41,6 +41,7 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.DisposableRule
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -62,6 +63,11 @@ class AppInspectionInspectorMetricsTest {
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
+
+  @Before
+  fun before() {
+    inspectorRule.attachDevice(MODERN_DEVICE)
+  }
 
   @Test
   fun attachMetricsLoggedAfterProcessSuccessfullyAttached() {

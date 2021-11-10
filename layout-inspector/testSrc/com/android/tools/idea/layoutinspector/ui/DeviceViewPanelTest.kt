@@ -115,6 +115,11 @@ class DeviceViewPanelWithFullInspectorTest {
   private var latch: CountDownLatch? = null
   private val commands = mutableListOf<LayoutInspectorViewProtocol.Command>()
 
+  @Before
+  fun before() {
+    inspectorRule.attachDevice(MODERN_DEVICE)
+  }
+
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
     val settings = EditorDeviceViewSettings()

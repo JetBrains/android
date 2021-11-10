@@ -87,6 +87,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.createAllResponses()
+    inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   @Test

@@ -111,6 +111,7 @@ class AppInspectionInspectorClientTest {
   @Before
   fun before() {
     inspectorRule.projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
+    inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   @Test

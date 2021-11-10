@@ -66,6 +66,7 @@ class AppInspectionSnapshotSupportTest {
   @Before
   fun setUp() {
     inspectorRule.projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
+    inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
   private val savePath = createInMemoryFileSystemAndFolder("snapshot").resolve("snapshot.li")
