@@ -20,6 +20,8 @@ import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider
 import com.android.tools.adtui.chart.statechart.StateChartTextConverter
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.common.fadedNeutralLifecycleEvent
+import com.android.tools.adtui.common.neutralLifecycleEvent
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.model.trackgroup.TrackModel
@@ -30,8 +32,10 @@ import com.android.tools.profilers.cpu.FrameTimelineSelectionOverlayPanel.GrayOu
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
+import com.android.tools.profilers.cpu.systemtrace.AndroidFramePhase
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.geom.Rectangle2D
@@ -47,7 +51,9 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
     val isSharedTimeline = model.timelineEventByFrameNumber.isNotEmpty()
     val stateChart = when {
       isSharedTimeline ->
-        StateChart(model, rendererForSharedTimeline(model.multiSelectionModel, model.timelineEventByFrameNumber))
+        StateChart(model, rendererForSharedTimeline(model.androidFramePhase,
+                                                    model.multiSelectionModel,
+                                                    model.timelineEventByFrameNumber))
       else -> StateChart(model, AndroidFrameEventColorProvider(), AndroidFrameEventTextProvider())
     }
     stateChart.addRowIndexChangeListener { model.activeSeriesIndex = it }
@@ -59,7 +65,8 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
     return VsyncPanel.of(content, model.vsyncSeries, vsyncEnabler)
   }
 
-  private fun rendererForSharedTimeline(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+  private fun rendererForSharedTimeline(phase: AndroidFramePhase,
+                                        multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
                                         timelineEventIndex: Map<Long, AndroidFrameTimelineEvent>)
     : Renderer<AndroidFrameEvent> = { g, boundary, fontMetrics, hovered, frame ->
     if (frame is AndroidFrameEvent.Data) {
@@ -67,9 +74,15 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
       val isActive = correspondingTimelineEvent === multiSelectionModel.activeSelectionKey
       // paint frame
       val borderColor = when {
-        correspondingTimelineEvent == null -> JBColor.LIGHT_GRAY
-        isActive -> correspondingTimelineEvent.getActiveColor()
-        else -> correspondingTimelineEvent.getPassiveColor()
+        correspondingTimelineEvent == null -> fadedNeutralLifecycleEvent
+        isActive -> when (phase) {
+          AndroidFramePhase.Composition, AndroidFramePhase.Display -> neutralLifecycleEvent
+          else -> correspondingTimelineEvent.getActiveColor()
+        }
+        else -> when (phase) {
+          AndroidFramePhase.Composition, AndroidFramePhase.Display -> fadedNeutralLifecycleEvent
+          else -> correspondingTimelineEvent.getPassiveColor()
+        }
       }
       val borderX = 1
       val borderY = 1
@@ -86,7 +99,7 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
         val fullText = "${frame.frameNumber}: ${TimeFormatter.getSingleUnitDurationString(frame.durationUs)}"
         val text = AdtUiUtils.shrinkToFit(fullText, fontMetrics, availableTextSpace)
         if (text.isNotEmpty()) {
-          g.color = if (hovered || isActive) JBColor.DARK_GRAY else JBColor.LIGHT_GRAY
+          g.color = if (hovered || isActive) JBUI.CurrentTheme.Label.foreground() else JBUI.CurrentTheme.Label.disabledForeground()
           val textOffset = boundary.y + (boundary.height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat()
           g.drawString(text, boundary.x + textPadding, textOffset)
         }

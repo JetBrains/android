@@ -181,3 +181,13 @@ val goodFrame = JBColor.namedColor("Profiler.otherJank", JBColor(0x36a336, 0x36a
  * Color of good-frame event when not hovered
  */
 val fadedGoodFrame = JBColor.namedColor("Profiler.fadedOtherJank", JBColor(0xc3e3c3, 0x335533))
+
+/**
+ * Neutral color of lifecycle event when selected
+ */
+val neutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.DARK_GRAY, Color.LIGHT_GRAY))
+
+/**
+ * Neutral color of lifecycle event when not selected
+ */
+val fadedNeutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.LIGHT_GRAY, Color.DARK_GRAY))
