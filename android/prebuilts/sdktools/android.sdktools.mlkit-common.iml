@@ -16,11 +16,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="tensorflow-lite-metadata" type="repository">
-        <properties maven-id="org.tensorflow:tensorflow-lite-metadata:0.1.0-rc2">
-          <exclude>
-            <dependency maven-id="com.google.flatbuffers:flatbuffers-java" />
-          </exclude>
-        </properties>
+        <properties include-transitive-deps="false" maven-id="org.tensorflow:tensorflow-lite-metadata:0.1.0-rc2" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar!/" />
         </CLASSES>

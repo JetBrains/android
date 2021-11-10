@@ -51,7 +51,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="auto-common" type="repository">
-        <properties maven-id="com.google.auto:auto-common:0.10" />
+        <properties include-transitive-deps="false" maven-id="com.google.auto:auto-common:0.10" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar!/" />
         </CLASSES>
