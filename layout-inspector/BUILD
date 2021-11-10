@@ -55,6 +55,7 @@ iml_module(
 iml_module(
     name = "intellij.android.layout-inspector.tests",
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
+    tags = ["manual"],  # These tests are failing very often due to timeout errors, b/202751425.
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
