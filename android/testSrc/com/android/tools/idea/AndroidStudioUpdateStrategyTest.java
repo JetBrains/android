@@ -76,7 +76,7 @@ public final class AndroidStudioUpdateStrategyTest {
 
   // It's not clear this is important, but it's what overriding haveSameMajorVersion still does now that we also override isNewerVersion.
   @Test
-  public void testUpdateStrategyPrefersSameAndroidStudioVersion() throws Exception {
+  public void testUpdateStrategyPrefersSameAndroidStudioVersionIfAvailable() throws Exception {
     @Language("XML") String updatesXml =
       "<products>" +
       "  <product name='Android Studio'>" +
@@ -94,7 +94,49 @@ public final class AndroidStudioUpdateStrategyTest {
     when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
 
     assertThat(createBuild("AI-191.7479.19.35.5717577", updatesXml, settings).getNumber().asString())
-      .isEqualTo("AI-191.7479.19.35.5763348");  // not AI-191.7479.19.36.5721125
+      .isEqualTo("AI-191.7479.19.36.5721125");  // not AI-191.7479.19.35.5763348
+  }
+
+  @Test
+  public void testUpdateStrategyUpdatesFromSameAndroidStudioVersionPreferred() throws Exception {
+    @Language("XML") String updatesXml =
+      "<products>" +
+      "  <product name='Android Studio'>" +
+      "    <code>AI</code>" +
+      "    <channel id='AI-2-eap' status='eap'>" +
+      "      <build number='AI-191.7480.19.35.5721732' version='3.6 Canary 5'/>" +
+      "      <build number='AI-191.7480.19.35.5821739' version='3.6 Canary 6'/>" +
+      "      <build number='AI-191.7488.19.38.5821125' version='3.6 Canary 7'/>" +
+      "    </channel>" +
+      "    <channel id='AI-2-beta' status='beta'>" +
+      "      <build number='AI-191.7479.19.35.5763348' version='3.5 RC 2'/>" +
+      "    </channel>" +
+      "  </product>" +
+      "</products>";
+
+    UpdateSettings settings = mock(UpdateSettings.class);
+    when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
+
+    assertThat(createBuild("AI-191.7479.19.35.5717577", updatesXml, settings).getNumber().asString())
+      .isEqualTo("AI-191.7480.19.35.5821739");
+  }
+
+  @Test
+  public void testUpdateStrategyCrossChannelUpdatesFromSameMajorVersionNotLegal() throws Exception {
+    @Language("XML") String updatesXml =
+      "<products>" +
+      "  <product name='Android Studio'>" +
+      "    <code>AI</code>" +
+      "    <channel id='AI-2-beta' status='beta'>" +
+      "      <build number='AI-191.7479.19.35.5763348' version='3.5 RC 2'/>" +
+      "    </channel>" +
+      "  </product>" +
+      "</products>";
+
+    UpdateSettings settings = mock(UpdateSettings.class);
+    when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
+
+    assertThat(createBuild("AI-191.7479.19.35.5717577", updatesXml, settings)).isNull();
   }
 
   private static BuildInfo createBuild(String version, String updatesXml, UpdateSettings settings) throws Exception {
