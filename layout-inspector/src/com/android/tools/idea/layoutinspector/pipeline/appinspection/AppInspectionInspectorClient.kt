@@ -69,6 +69,7 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
 import java.util.EnumSet
+import java.util.concurrent.TimeUnit
 
 
 @com.google.common.annotations.VisibleForTesting
@@ -328,7 +329,7 @@ fun checkSystemImageForAppInspectionCompatibility(
 ): Pair<Boolean, RepoPackage?> {
   if (process.device.isEmulator && process.device.apiLevel == 29) {
     val adb = AdbUtils.getAdbFuture(project).get()
-    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdName
+    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdData?.get(1, TimeUnit.SECONDS)?.name
     val avd = avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {
