@@ -37,6 +37,13 @@ fun reportDeployerError(error: LiveUpdateDeployer.UpdateLiveEditError) {
   report("E: Live Edit ${error.msg}\n")
 }
 
+fun reportDeployPerformance(metric: PerformanceTracker) {
+  // These are the 3 that is most interesting to monitor.
+  println("analysis = ${metric["analysis"]}")
+  println("codegen = ${metric["codegen"]}")
+  println("deploy = ${metric["deploy"]}")
+}
+
 private fun report(message: String) {
   print(message)
   log.warn(message)

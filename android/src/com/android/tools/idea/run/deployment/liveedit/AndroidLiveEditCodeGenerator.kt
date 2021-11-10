@@ -22,7 +22,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.analyzer.AnalysisResult.Companion.compilationError
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
@@ -70,6 +69,7 @@ class AndroidLiveEditCodeGenerator {
    */
   @Trace
   fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback) {
+    val tracker = PerformanceTracker()
 
     // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
     // that multiple change events of the same file can be queue up. We keep track of what we have deploy
@@ -90,19 +90,19 @@ class AndroidLiveEditCodeGenerator {
 
           // 1) Compute binding context based on any previous cached analysis results.
           //    On small edits of previous analyzed project, this operation should be below 30ms or so.
-          var resolution = fetchResolution(project, inputs)
-          var bindingContext = analyze(inputs, resolution)
+          var resolution = tracker.record({fetchResolution(project, inputs)}, "resolution_fetch")
+          var bindingContext = tracker.record({analyze(inputs, resolution)}, "analysis")
 
           // 2) Invoke the backend with the inputs and the binding context computed from step 1.
           //    This is the one of the most time consuming step with 80 to 500ms turnaround depending the
           //    complexity of the input .kt file.
-          var classes = backendCodeGen(project, resolution, bindingContext, inputs,
-                                       AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))
+          var classes = tracker.record({backendCodeGen(project, resolution, bindingContext, inputs,
+                                       AndroidLiveEditLanguageVersionSettings(root.languageVersionSettings))}, "codegen")
 
           // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
           //    decide which classes we want to send to the device along with what extra meta-information the
           //    agent need.
-          if (!deployLiveEditToDevice(method.function, bindingContext, classes, callback)) return@runReadAction
+          if (!tracker.record({deployLiveEditToDevice(method.function, bindingContext, classes, callback)}, "deploy")) return@runReadAction
         } catch (e : LiveEditUpdateException) {
           // TODO: We need to make deployLiveEditToDevice() atomic when there are multiple functions getting
           //       update even thought that's probably a very unlikely scenario.
@@ -110,6 +110,7 @@ class AndroidLiveEditCodeGenerator {
         } finally {
           compiled.add(root)
         }
+        reportDeployPerformance(tracker)
       }
     }
   }
