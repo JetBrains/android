@@ -46,13 +46,14 @@ constructor(phaseName: String,
               viewRange: Range,
               vsyncSeries: List<SeriesData<Long>>,
               multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,
+              keepEvent: (TraceProcessor.AndroidFrameEventsResult.FrameEvent) -> Boolean = { true },
               timelineEventByFrameNumber: Map<Long, AndroidFrameTimelineEvent> = mapOf())
     : this(phase.phaseName,
            viewRange,
            phase.frameEventList.groupBy { it.depth }
              .toSortedMap(compareByDescending { it }) // Display lower depth on top.
              .values
-             .map { it.padded() }
+             .map { it.filter(keepEvent).padded() }
              .filterNot { it.isEmpty() }
              .map { series -> RangedSeries(viewRange, LazyDataSeries { series }) },
            RangedSeries(viewRange, LazyDataSeries { vsyncSeries }),
