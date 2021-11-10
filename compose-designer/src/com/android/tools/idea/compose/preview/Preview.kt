@@ -198,6 +198,9 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
     }
     setQuality(if (isInPowerSaveMode) 0.5f else 0.7f)
     setShowDecorations(showDecorations)
+    // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene Manager to not
+    // report it via the regular log.
+    doNotReportOutOfDateUserClasses()
     if (reinflate) {
       forceReinflate()
     }

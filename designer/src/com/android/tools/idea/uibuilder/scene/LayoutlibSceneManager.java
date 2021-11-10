@@ -348,6 +348,13 @@ public class LayoutlibSceneManager extends SceneManager {
   private float quality = 1f;
 
   /**
+   * If true, the rendering will report when the user classes used by this {@link SceneManager} are out of date and have been modified
+   * after the last build. The reporting will be done via the rendering log.
+   * Compose has its own mechanism to track out of date files so it will disable this reporting.
+   */
+  private boolean reportOutOfDateUserClasses = false;
+
+  /**
    * Additional bytecode transform to apply to project classes when loaded.
    */
   private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
@@ -953,6 +960,10 @@ public class LayoutlibSceneManager extends SceneManager {
     myLogRenderErrors = enabled;
   }
 
+  public void doNotReportOutOfDateUserClasses() {
+    this.reportOutOfDateUserClasses = false;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayoutAsync(boolean animate) {
@@ -1206,6 +1217,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     if (myIsInteractive) {
       taskBuilder.preloadClasses(Arrays.asList(INTERACTIVE_CLASSES_TO_PRELOAD));
+    }
+
+    if (!reportOutOfDateUserClasses) {
+      taskBuilder.doNotReportOutOfDateUserClasses();
     }
 
     taskBuilder
