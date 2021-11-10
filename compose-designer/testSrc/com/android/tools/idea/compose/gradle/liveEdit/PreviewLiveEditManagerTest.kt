@@ -15,30 +15,40 @@
  */
 package com.android.tools.idea.compose.gradle.liveEdit
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.liveEdit.CompilationResult
 import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
+import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 
 class PreviewLiveEditManagerTest {
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, true)
   lateinit var psiMainFile: PsiFile
   lateinit var liveEditManager: PreviewLiveEditManager
 
@@ -71,6 +81,7 @@ class PreviewLiveEditManagerTest {
     runWriteActionAndWait {
       projectRule.fixture.type("Text(\"Hello 3\")\n")
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
@@ -84,6 +95,7 @@ class PreviewLiveEditManagerTest {
     runWriteActionAndWait {
       projectRule.fixture.type("Text(\"Hello 3\")\n")
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
     }
     runBlocking {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
@@ -94,5 +106,28 @@ class PreviewLiveEditManagerTest {
       val (result, _) = liveEditManager.compileRequest(psiMainFile, module)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
     }
+  }
+
+  @Test
+  fun testLiveEditChangeRender() {
+    val previewElement = SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
+    val initialState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+
+    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    runWriteActionAndWait {
+      projectRule.fixture.type("Text(\"Hello 3\")\n")
+      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
+    }
+    runBlocking {
+      val (result, outputPath) = liveEditManager.compileRequest(psiMainFile, module)
+      assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
+      ModuleClassLoaderOverlays.getInstance(module).overlayPath = File(outputPath).toPath()
+    }
+    val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    assertTrue(
+      "Resulting image is expected to be at least 20% higher since a new text line was added",
+
+      finalState.height > initialState.height * 1.20)
   }
 }

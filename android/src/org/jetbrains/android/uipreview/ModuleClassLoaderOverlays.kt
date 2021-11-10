@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.module.Module
@@ -64,7 +65,7 @@ class ModuleClassLoaderOverlays private constructor() : ModificationTracker {
     }
 
     @JvmStatic
-    fun getInstance(module: Module): ModuleClassLoaderOverlays = OVERLAY_KEY.getValue(module)
+    fun getInstance(module: Module): ModuleClassLoaderOverlays = OVERLAY_KEY.getValue(module.getHolderModule())
   }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount

@@ -19,6 +19,7 @@ package org.jetbrains.android.uipreview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
@@ -205,17 +206,28 @@ internal class ModuleClassLoaderImpl(module: Module,
    * Modification count for the overlay when the first overlay class was loaded. Used to detect if this [ModuleClassLoaderImpl] is up to
    * date or if the overlay has changed.
    */
-  @GuardedBy("overlayModificationTracker")
+  @GuardedBy("overlayManager")
   private var overlayFirstLoadModificationCount = -1L
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
                                   onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
     projectTransforms,
-    ListeningLoader(loader, onAfterLoad = { fqcn, _ -> _projectLoadedClassNames.add(fqcn) }),
+    ListeningLoader(loader, onAfterLoad = { fqcn, _ ->
+      recordFirstLoadModificationCount()
+      _projectLoadedClassNames.add(fqcn) }),
     PseudoClassLocatorForLoader(projectSystemLoader),
     ClassWriter.COMPUTE_FRAMES,
     onClassRewrite
   )
+
+  private fun recordFirstLoadModificationCount() {
+    if (!hasLoadedAnyUserCode) {
+      // First class being added, record the current overlay status
+      synchronized(overlayManager) {
+        overlayFirstLoadModificationCount = overlayManager.modificationCount
+      }
+    }
+  }
 
   fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
                              binaryCache: ClassBinaryCache,
@@ -281,13 +293,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   }
 
   private fun recordOverlayLoadedClass(fqcn: String) {
-    synchronized(overlayManager) {
-      if (_projectOverlayLoadedClassNames.isNotEmpty() && overlayFirstLoadModificationCount != overlayManager.modificationCount) {
-        Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("The overlay was modified after the class loading started")
-      }
-
-      overlayFirstLoadModificationCount = overlayManager.modificationCount
-    }
+    recordFirstLoadModificationCount()
     _projectOverlayLoadedClassNames.add(fqcn)
   }
 
@@ -323,6 +329,7 @@ internal class ModuleClassLoaderImpl(module: Module,
    */
   @TestOnly
   fun injectProjectClassFile(fqcn: String, virtualFile: VirtualFile) {
+    recordFirstLoadModificationCount()
     _projectLoadedClassNames.add(fqcn)
     projectSystemLoader.injectClassFile(fqcn, virtualFile)
   }
@@ -342,8 +349,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Returns if the overlay is up-to-date.
    */
-  internal fun isOverlayUpToDate() = projectOverlayLoadedClassNames.isEmpty() ||
-                                     synchronized(overlayManager) {
+  internal fun isOverlayUpToDate() = synchronized(overlayManager) {
                                        overlayManager.modificationCount == overlayFirstLoadModificationCount
                                      }
 }

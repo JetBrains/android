@@ -106,7 +106,7 @@ internal class PreviewLiveEditManagerTest {
           return CompilationResult.Success
         }
       }
-    }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
+    }, moduleClassPathLocator = { listOf("A.jar", "b/c/Test.class") }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
       Disposer.register(projectRule.testRootDisposable, it)
     }
     assertTrue(compilationRequests.isEmpty())
@@ -122,7 +122,7 @@ internal class PreviewLiveEditManagerTest {
       -jvm-target
       1.8
       -cp
-      null/build/tmp/kotlin-classes/debug:null/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar
+      A.jar:b/c/Test.class
       -d
       /tmp/overlay0
       /src/test.kt

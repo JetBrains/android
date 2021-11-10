@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.sdk.IdeSdks
@@ -278,11 +279,14 @@ private class DaemonRegistry(
  */
 private fun defaultCompileClassPathLocator(module: Module): List<String> {
   // Build classpath
+  val mainArtifact = AndroidModuleModel.get(module)
+    ?.selectedVariant
+    ?.mainArtifact
   val modulePath = listOfNotNull(
     CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path,
-    "${module.externalProjectPath}/build/tmp/kotlin-classes/debug",
-    "${module.externalProjectPath}/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar"
-  )
+    mainArtifact?.classesFolder?.absolutePath
+  ) + (mainArtifact?.additionalClassesFolders?.map { it.absolutePath } ?: emptyList())
+
   val libraryDeps = module.getLibraryDependenciesJars()
     .map { it.toString() }
 
@@ -413,11 +417,11 @@ class PreviewLiveEditManager private constructor(
         "-version",
         "-no-stdlib", "-no-reflect", // Included as part of the libraries classpath
         "-Xdisable-default-scripting-plugin",
-        "-jvm-target", "1.8",
-        "-cp", classPathString,
-        "-d", outputAbsolutePath,
-        file.virtualFile.path
-      )
+        "-jvm-target", "1.8") +
+                 (if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()) +
+                 listOf(
+                   "-d", outputAbsolutePath,
+                   file.virtualFile.path)
 
       indicator.text = "Compiling"
       val result = daemon.compileRequest(args)
