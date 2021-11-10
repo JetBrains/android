@@ -44,6 +44,11 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
       return ""
     }
 
+    // coroutine debugger can be disabled from studio settings
+    if (!CoroutineDebuggerSettings.isCoroutineDebuggerEnabled()) {
+      return ""
+    }
+
     if (DefaultDebugExecutor.EXECUTOR_ID != executor.id) {
       return ""
     }

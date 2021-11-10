@@ -31,7 +31,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
-  
+
   private val configuration = mock( AndroidRunConfigurationBase
   ::class.java)
   fun testContributorHasNoTask() {
@@ -61,6 +61,23 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
                                                          DefaultRunExecutor.getRunExecutorInstance())
       assertEmpty(amStartOptions)
     }
+  }
+
+  fun testNoAmOptionsIfSettingsNotEnabled() {
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
+    val launchOptions = LaunchOptions.builder().setDebug(true).build()
+    val contributor = CoroutineDebuggerLaunchTaskContributor()
+    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+
+
+    runWithFlagState(true) {
+      val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+      assertEquals("", amStartOptions)
+    }
+
+    CoroutineDebuggerSettings.reset()
   }
 
   fun testNoAmOptionsOnAPI28AndLower() {
@@ -103,23 +120,14 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
   fun testAmOptionsIsCorrect() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
-
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
                                                          DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("--attach-agent /data/data/com.test.application/code_cache/coroutine_debugger_agent.so", amStartOptions)
     }
-  }
-
-  private fun runWithFlagState(flagState: Boolean, task: () -> Unit) {
-    val flagPreviousState = FlagController.isCoroutineDebuggerEnabled
-    FlagController.enableCoroutineDebugger(true)
-
-    task()
-
-    FlagController.enableCoroutineDebugger(flagPreviousState)
   }
 }
