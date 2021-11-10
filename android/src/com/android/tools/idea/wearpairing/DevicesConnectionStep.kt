@@ -25,6 +25,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -171,6 +172,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD)) {
       showDeviceGmscoreNeedsUpdate()
       wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
+      showEmbeddedEmulator(wearDevice)
       return
     }
     showUiBridgingDevices()
@@ -237,6 +239,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
                                         scanningLabel = message("wear.assistant.device.connection.scanning.wear.os.btn"))
       phoneDevice.executeShellCommand(
         "am start -a android.intent.action.VIEW -d 'market://details?id=${wearDevice.getCompanionAppIdForWatch()}'")
+      showEmbeddedEmulator(phoneDevice)
     }
     else {
       showUiInstallCompanionAppScanning(phoneDevice, wearDevice,
@@ -298,6 +301,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiPairingScanning(phoneWearPair, phoneDevice, wearDevice,
                             scanningLabel = message("wear.assistant.device.connection.wait.pairing.btn"))
       phoneDevice.executeShellCommand("am start -n ${wearDevice.getCompanionAppIdForWatch()}/$WEAR_MAIN_ACTIVITY")
+      showEmbeddedEmulator(phoneDevice)
     }
     else {
       showUiPairingScanning(phoneWearPair, phoneDevice, wearDevice,
@@ -766,6 +770,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     delay(100) // Backup, in case "go next" fails
     showUiInstallCompanionAppSuccess(phoneDevice, wearDevice)
     wizardFacade.goForward()
+  }
+
+  private fun showEmbeddedEmulator(device: IDevice) {
+    // Show embedded emulator tab if needed
+    project?.messageBus?.syncPublisher(
+      DeviceHeadsUpListener.TOPIC)?.deviceNeedsAttention(device, project)
   }
 }
 

@@ -22,7 +22,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
-import com.android.tools.idea.run.AppDeploymentListener
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
@@ -154,8 +154,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
                                      }
                                    })
 
-    messageBusConnection.subscribe(AppDeploymentListener.TOPIC,
-                                   AppDeploymentListener { device, project ->
+    messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC,
+                                   DeviceHeadsUpListener { device, project ->
                                      if (project == this.project && device.isEmulator) {
                                        onDeploymentToEmulator(device)
                                      }

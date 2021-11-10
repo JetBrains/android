@@ -21,16 +21,16 @@ import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Listener of Android app deployment events.
+ * Listener of events indicating that a device requires user attention, for example, an app deployment or launch.
  */
-public interface AppDeploymentListener {
-  Topic<AppDeploymentListener> TOPIC = new Topic<>("App deployment events", AppDeploymentListener.class);
+public interface DeviceHeadsUpListener {
+  Topic<DeviceHeadsUpListener> TOPIC = new Topic<>("Device attention or Device heads-up events", DeviceHeadsUpListener.class);
 
   /**
-   * Called when an app is deployed to an Android device.
+   * Called when a device requires user attention.
    *
-   * @param device the device the app is deployed to
-   * @param project the project associated with the deployment
+   * @param device the device requiring user attention
+   * @param project the project associated with the event
    */
-  void appDeployedToDevice(@NotNull IDevice device, @NotNull Project project);
+  void deviceNeedsAttention(@NotNull IDevice device, @NotNull Project project);
 }

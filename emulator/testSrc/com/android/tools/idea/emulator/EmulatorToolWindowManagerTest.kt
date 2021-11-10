@@ -27,7 +27,7 @@ import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.run.AppDeploymentListener
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -136,7 +136,7 @@ class EmulatorToolWindowManagerTest {
       val device = mock<IDevice>()
       `when`(device.isEmulator).thenReturn(true)
       `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
-      project.messageBus.syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, project)
+      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, project)
     }
 
     // Deploying an app activates the corresponding emulator panel.

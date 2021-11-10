@@ -283,7 +283,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         }
 
         // Notify listeners of the deployment.
-        myProject.getMessageBus().syncPublisher(AppDeploymentListener.TOPIC).appDeployedToDevice(device, myProject);
+        myProject.getMessageBus().syncPublisher(DeviceHeadsUpListener.TOPIC).deviceNeedsAttention(device, myProject);
       }
 
       // Update the indicator progress.
