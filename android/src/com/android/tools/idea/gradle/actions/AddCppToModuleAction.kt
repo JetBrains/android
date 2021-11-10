@@ -48,6 +48,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.observable.properties.GraphPropertyImpl.Companion.graphProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
@@ -112,17 +113,10 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
 
   private val Module.canAddCppToIt: Boolean
     get() {
-      val androidModuleModel = AndroidModuleModel.get(this)
-      if (androidModuleModel == null) {
-        // Not Android module or it's too old.
-        return false
-      }
+      // Not Android module or it's too old.
+      AndroidModuleModel.get(this) ?: return false
       if (NdkModuleModel.get(this) != null) {
         // Already has C++
-        return false
-      }
-      if (ProjectBuildModel.get(project).getModuleBuildModel(this) == null) {
-        // Not synced
         return false
       }
       return true
@@ -206,8 +200,14 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
     }
 
     private fun onOkClicked(module: Module, dialogModel: AddCppToModuleDialogModel, moduleRoot: File?): List<ValidationInfo> {
-      val buildModel = ProjectBuildModel.get(module.project).getModuleBuildModel(module) ?: throw IllegalStateException(
-        "Cannot find gradle model for module ${module.name}")
+      val buildModel = ProjectBuildModel.get(module.project).getModuleBuildModel(module)
+      if (buildModel == null) {
+        @Suppress("UnstableApiUsage")
+        MessageDialogBuilder.Message(
+          TITLE, "Unable to understand or edit build files for this project, please perform the operation manually."
+        ).buttons("Ok").asWarning().show()
+        return emptyList()
+      }
 
       val filesToOpen = mutableListOf<File>()
       WriteCommandAction.writeCommandAction(module.project).withName("Adding C++ to module ${module.name}").run<Throwable> {
