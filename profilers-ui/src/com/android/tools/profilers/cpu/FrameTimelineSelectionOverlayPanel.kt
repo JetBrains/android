@@ -25,6 +25,7 @@ import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
@@ -36,16 +37,16 @@ import kotlin.math.min
 
 
 object FrameTimelineSelectionOverlayPanel {
-  @JvmStatic
+  @JvmStatic @JvmOverloads
   fun of(content: JComponent, captureRange: Range, selection: MultiSelectionModel<*>,
-         grayOut: GrayOutMode, deadLineBar: Boolean): JComponent =
+         grayOut: GrayOutMode, deadLineBar: Boolean, text: String = ""): JComponent =
     object: JPanel() {
       override fun isOptimizedDrawingEnabled() = false
     }.apply {
       layout = OverlayLayout(this)
       isOpaque = false
       content.isOpaque = false
-      add(overlay(captureRange, selection, grayOut, deadLineBar))
+      add(overlay(captureRange, selection, grayOut, deadLineBar, text))
       add(content)
       val handler = object : MouseListener, MouseMotionListener {
         override fun mouseClicked(e: MouseEvent) = content.dispatchEvent(e)
@@ -61,7 +62,7 @@ object FrameTimelineSelectionOverlayPanel {
     }
 
   private fun overlay(captureRange: Range, selection: MultiSelectionModel<*>,
-                      grayOutMode: GrayOutMode, deadLineBar: Boolean) = object : JComponent() {
+                      grayOutMode: GrayOutMode, deadLineBar: Boolean, text: String) = object : JComponent() {
     val observer = AspectObserver()
     init {
       selection.addDependency(observer)
@@ -91,6 +92,14 @@ object FrameTimelineSelectionOverlayPanel {
               color = missedDeadlineJank
               stroke = DASHED_LINE_STROKE
               drawLine(x, 0, x, height)
+
+              if (text.isNotEmpty()) {
+                setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                val oldFont = font
+                font = font.deriveFont(10f)
+                drawString(text, x.toFloat() + 4, (height - fontMetrics.height) * .5f + fontMetrics.ascent.toFloat())
+                font = oldFont
+              }
             }
           }
         }

@@ -61,6 +61,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
+import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -649,6 +650,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
                    return event != null && event.isJank();
                  },
                  toggles -> toggles.contains(toggleLifeCycle) && !toggles.contains(toggleAllFrames));
+    // Deadline text
+    display.addTrackModel(TrackModel.newBuilder(new DeadlineTextModel(multiSelectionModel,
+                                                                      systemTraceData.getVsyncCounterValues(),
+                                                                      timeline.getViewRange()),
+                                                ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT, ""));
     return display;
   }
 
