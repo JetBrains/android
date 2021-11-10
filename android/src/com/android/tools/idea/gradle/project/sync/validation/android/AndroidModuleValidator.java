@@ -38,9 +38,7 @@ public abstract class AndroidModuleValidator {
     @NotNull private final AndroidProjectValidationStrategy[] myStrategies;
 
     AndroidModuleValidatorImpl(@NotNull Project project) {
-      this(new EncodingValidationStrategy(project),
-           new BuildTools23Rc1ValidationStrategy(project)
-      );
+      this(new EncodingValidationStrategy(project));
     }
 
     @VisibleForTesting

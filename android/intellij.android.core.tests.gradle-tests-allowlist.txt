@@ -89,7 +89,6 @@ com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcess
 com.android.tools.idea.gradle.project.sync.issues.processor.UpdateGradlePluginProcessorTest
 com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest
 com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidatorImplIntegrationTest
-com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategyTest
 com.android.tools.idea.gradle.project.sync.validation.android.EncodingValidationStrategyTest
 com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidatorTest
 com.android.tools.idea.gradle.repositories.RepositoryUrlManagerTest

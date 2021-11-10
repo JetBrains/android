@@ -30,8 +30,7 @@ public class AndroidModuleValidatorImplIntegrationTest extends AndroidGradleTest
     AndroidModuleValidatorImpl validator = new AndroidModuleValidatorImpl(project);
 
     Class<?>[] expectedStrategyTypes = new Class[]{
-      EncodingValidationStrategy.class,
-      BuildTools23Rc1ValidationStrategy.class
+      EncodingValidationStrategy.class
     };
     int strategyCount = expectedStrategyTypes.length;
 
