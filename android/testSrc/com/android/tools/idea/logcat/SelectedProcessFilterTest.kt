@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import java.time.Instant
 
 private const val PROCESS_ID = 123
@@ -33,27 +36,47 @@ private const val OTHER_PACKAGE_NAME = "com.package.other"
 class SelectedProcessFilterTest {
   @Test
   fun presentation() {
-    assertThat(SelectedProcessFilter(PROCESS_ID, PACKAGE_NAME).name).isEqualTo("Show only selected application")
+    assertThat(SelectedProcessFilter(null).name).isEqualTo("Show only selected application")
   }
 
   @Test
   fun isApplicable_matchesPid() {
-    assertThat(SelectedProcessFilter(PROCESS_ID, PACKAGE_NAME).isApplicable(newLogMessage(PROCESS_ID, OTHER_PACKAGE_NAME))).isTrue()
+    assertThat(SelectedProcessFilter(mockClientData(PROCESS_ID, PACKAGE_NAME)).isApplicable(newLogMessage(PROCESS_ID, OTHER_PACKAGE_NAME)))
+      .isTrue()
   }
 
   @Test
   fun isApplicable_matchesPackageName() {
-    assertThat(SelectedProcessFilter(PROCESS_ID, PACKAGE_NAME).isApplicable(newLogMessage(OTHER_PROCESS_ID, PACKAGE_NAME))).isTrue()
+    assertThat(SelectedProcessFilter(mockClientData(PROCESS_ID, PACKAGE_NAME)).isApplicable(newLogMessage(OTHER_PROCESS_ID, PACKAGE_NAME)))
+      .isTrue()
   }
 
   @Test
   fun isApplicable_noMatch() {
     assertThat(
-      SelectedProcessFilter(PROCESS_ID, PACKAGE_NAME)
+      SelectedProcessFilter(mockClientData(PROCESS_ID, PACKAGE_NAME))
         .isApplicable(newLogMessage(OTHER_PROCESS_ID, OTHER_PACKAGE_NAME))
     ).isFalse()
   }
 
-  private fun newLogMessage(processId: Int, packageName: String): LogCatMessage =
-    LogCatMessage(LogCatHeader(Log.LogLevel.INFO, processId, 321, packageName, "Tag", Instant.EPOCH), "message")
+  @Test
+  fun setClient() {
+    val selectedProcessFilter = SelectedProcessFilter(mockClientData(OTHER_PROCESS_ID, OTHER_PACKAGE_NAME))
+
+    selectedProcessFilter.setClient(mockClientData(PROCESS_ID, PACKAGE_NAME))
+
+    assertThat(selectedProcessFilter.isApplicable(newLogMessage(PROCESS_ID, PACKAGE_NAME))).isTrue()
+  }
+
+}
+
+private fun newLogMessage(processId: Int, packageName: String): LogCatMessage =
+  LogCatMessage(LogCatHeader(Log.LogLevel.INFO, processId, 321, packageName, "Tag", Instant.EPOCH), "message")
+
+private fun mockClientData(pid: Int, packageName: String): ClientData {
+  return mock<ClientData>().apply {
+    `when`(this.pid).thenReturn(pid)
+    `when`(this.packageName).thenReturn(packageName)
+  }
+
 }

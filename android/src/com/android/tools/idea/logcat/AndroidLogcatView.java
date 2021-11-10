@@ -41,7 +41,6 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.time.ZoneId;
@@ -50,7 +49,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -64,11 +62,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidLogcatView {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
-  /**
-   * This is a fake version of the selected app filter that acts as a placeholder before a real one
-   * is swapped in, which happens when the pulldown of processes is populated.
-   */
-  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(getSelectedAppFilter());
   static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 
   // TODO Refactor all this filter combo box stuff to its own class
@@ -208,13 +201,16 @@ public class AndroidLogcatView {
   }
 
   @NotNull
-  public Component createEditFiltersComboBox() {
-    JComboBox<AndroidLogcatFilter> editFiltersCombo = new ComboBox<>();
+  public ComboBox<AndroidLogcatFilter> createEditFiltersComboBox() {
+    ComboBox<AndroidLogcatFilter> editFiltersCombo = new ComboBox<>();
     myFilterComboBoxModel = new DefaultComboBoxModel<>();
+    myFilterComboBoxModel.addElement(new SelectedProcessFilter(null));
+    for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
+      myFilterComboBoxModel.addElement(filterProvider.getFilter());
+    }
     myFilterComboBoxModel.addElement(NO_FILTERS_ITEM);
     myFilterComboBoxModel.addElement(EDIT_FILTER_CONFIGURATION_ITEM);
 
-    updateDefaultFilters(null);
     updateUserFilters();
     String selectName = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(selectName)) {
@@ -337,19 +333,8 @@ public class AndroidLogcatView {
    */
   @VisibleForTesting
   void updateDefaultFilters(@Nullable ClientData client) {
-    int noFilterIndex = myFilterComboBoxModel.getIndexOf(NO_FILTERS_ITEM);
-    for (int i = 0; i < noFilterIndex; i++) {
-      myFilterComboBoxModel.removeElementAt(0);
-    }
-
-    AndroidLogcatFilter filter =
-      client == null ? FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER : new SelectedProcessFilter(client.getPid(), client.getPackageName());
-    int insertIndex = 0;
-
-    myFilterComboBoxModel.insertElementAt(filter, insertIndex++);
-
-    for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
-      myFilterComboBoxModel.insertElementAt(filterProvider.getFilter(client), insertIndex++);
+    for (int i = 0; i < myFilterComboBoxModel.getSize(); i++) {
+      myFilterComboBoxModel.getElementAt(i).setClient(client);
     }
   }
 
