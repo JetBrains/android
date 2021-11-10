@@ -32,6 +32,8 @@ import java.awt.Dialog
 import java.awt.Dimension
 import java.awt.Frame
 import java.awt.Graphics2D
+import java.awt.GraphicsDevice
+import java.awt.GraphicsEnvironment
 import java.awt.Image
 import java.awt.MouseInfo
 import java.awt.Point
@@ -49,12 +51,12 @@ import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
-import javax.swing.Timer
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
+import javax.swing.Timer
 import javax.swing.WindowConstants
 
 /**
@@ -223,7 +225,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
     val location = pointerInfo.location
     val capture = captureScreen(picker, Rectangle(location.x, location.y, 1, 1))
     val pickedColor = if (capture == null) {
-      Logger.getInstance(GraphicalColorPipette::class.java).warn("Cannot capture screen, use ${Color.WHITE} instead")
+      Logger.getInstance(PickerDialogBase::class.java).warn("Cannot capture screen, use ${Color.WHITE} instead")
       Color.WHITE
     }
     else {
@@ -323,9 +325,21 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
 }
 
 private class DefaultPickerDialog(parent: JComponent, callback: ColorPipette.Callback) : PickerDialogBase(parent, callback, false) {
-  private val robot = Robot()
+  private val graphicsDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices
+  private val graphicsToRobots: Map<GraphicsDevice, Robot> = graphicsDevices.associateWith { device -> Robot(device) }
 
-  override fun captureScreen(belowWindow: Window?, rect: Rectangle): BufferedImage? = robot.createScreenCapture(rect)
+  override fun captureScreen(belowWindow: Window?, rect: Rectangle): BufferedImage? {
+    try {
+      val mousePoint = MouseInfo.getPointerInfo().location
+      val device = graphicsDevices.firstOrNull { it.defaultConfiguration?.bounds?.contains(mousePoint) ?: false } ?: return null
+      val robot = graphicsToRobots[device] ?: return null
+      return robot.createScreenCapture(rect)
+    }
+    catch (e: Exception) {
+      Logger.getInstance(DefaultPickerDialog::class.java).warn("Cannot capture the image from screen")
+      return null
+    }
+  }
 }
 
 private class MacPickerDialog(parent: JComponent, callback: ColorPipette.Callback) : PickerDialogBase(parent, callback, true) {
