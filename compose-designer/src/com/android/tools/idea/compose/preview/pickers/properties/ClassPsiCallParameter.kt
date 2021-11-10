@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -63,10 +64,10 @@ internal class ClassPsiCallParameter(
     val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
-      writeNewValue(newValue, true)
+      writeNewValue(newValue, true, PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED)
     }
     else {
-      writeNewValue(fqValue, true)
+      writeNewValue(fqValue, true, PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED)
     }
   }
 

@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Enu
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.preview.pickers.properties.inspector.PsiPropertiesInspectorBuilder
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
@@ -55,8 +56,10 @@ interface PsiPropertyItem : NewPropertyItem {
 /**
  * Base [PropertiesModel] for pickers interacting with PSI elements.
  */
-abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
+internal abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
+
+  abstract val tracker: PreviewPickerTracker
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.

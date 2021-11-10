@@ -23,8 +23,10 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.Point
@@ -35,22 +37,26 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.LayoutFocusTraversalPolicy
 
-object PsiPickerManager {
+internal object PsiPickerManager {
 
   /**
    * Shows a picker for editing a [PsiPropertyModel]s. The user can modify the model using this dialog.
    */
   fun show(location: Point, model: PsiPropertyModel, valuesProvider: EnumSupportValuesProvider) {
+    val tracker = model.tracker
     val disposable = Disposer.newDisposable()
-    val popup = createPopup(disposable)
+    val onClosedOrCancelled: () -> Unit = {
+      Disposer.dispose(disposable)
+      tracker.pickerClosed()
+      ApplicationManager.getApplication().executeOnPooledThread(tracker::logUsageData)
+    }
+    val popup = LightCalloutPopup(closedCallback = onClosedOrCancelled, cancelCallBack = onClosedOrCancelled)
     val previewPickerPanel = createPreviewPickerPanel(disposable, popup::close, model, valuesProvider)
 
+    tracker.pickerShown()
     popup.show(previewPickerPanel, null, location)
   }
 }
-
-private fun createPopup(disposable: Disposable) =
-  LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) }, cancelCallBack = { Disposer.dispose(disposable) })
 
 private fun createPreviewPickerPanel(
   disposable: Disposable,

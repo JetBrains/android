@@ -19,6 +19,7 @@ package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.resources.Density
 import com.android.tools.idea.compose.preview.pickers.properties.utils.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.utils.HashCodes
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
@@ -232,12 +233,12 @@ internal enum class Shape(val display: String) {
 /**
  * Unit for the Device's width and height.
  */
-internal enum class DimUnit {
-  px,
-  dp
+internal enum class DimUnit(val trackableValue: PickerTrackableValue) {
+  px(PickerTrackableValue.UNIT_PIXELS),
+  dp(PickerTrackableValue.UNIT_DP)
 }
 
-internal enum class Orientation {
-  portrait,
-  landscape
+internal enum class Orientation(val trackableValue: PickerTrackableValue) {
+  portrait(PickerTrackableValue.ORIENTATION_PORTRAIT),
+  landscape(PickerTrackableValue.ORIENTATION_LANDSCAPE)
 }

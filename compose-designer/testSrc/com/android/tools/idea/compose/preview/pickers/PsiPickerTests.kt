@@ -21,6 +21,9 @@ import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
+import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
@@ -54,8 +57,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val namespaces = namespaceVariations
   }
 
-  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
+  private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
+  private val previewToolingPackage = previewAnnotationPackage
 
   @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
@@ -72,8 +75,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun `the psi model reads the preview annotation correctly`() {
     @Language("kotlin")
     val fileContent = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview
@@ -102,16 +105,16 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val previews = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).toList()
     ReadAction.run<Throwable> {
       previews[0].also { noParametersPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview, NoOpTracker)
         assertNotNull(parsed.properties["", "name"])
         assertNull(parsed.properties.getOrNull("", "name2"))
       }
       previews[1].also { namedPreview ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreview, NoOpTracker)
         assertEquals("named", parsed.properties["", "name"].value)
       }
       previews[3].also { namedPreviewFromConst ->
-        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst)
+        val parsed = PsiCallPropertyModel.fromPreviewElement(project, module, namedPreviewFromConst, NoOpTracker)
         assertEquals("Name from Const", parsed.properties["", "name"].value)
       }
     }
@@ -122,8 +125,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun `updating model updates the psi correctly`() {
     @Language("kotlin")
     val annotationWithParameters = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview(name = "Test")
@@ -135,8 +138,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     @Language("kotlin")
     val emptyAnnotation = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview
@@ -152,8 +155,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun `supported parameters displayed correctly`() {
     @Language("kotlin")
     val fileContent = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview(name = "Test", fontScale = 1.2f, backgroundColor = 4294901760)
@@ -161,7 +164,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
     """.trimIndent()
 
-    val model = getPsiPropertyModel(fileContent)
+    val model = getFirstModel(fileContent)
     assertNotNull(model.properties["", "backgroundColor"].colorButton)
     assertEquals("1.2", runReadAction { model.properties["", "fontScale"].value })
     assertEquals("0xFFFF0000", runReadAction { model.properties["", "backgroundColor"].value })
@@ -178,8 +181,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun `preview default values`() {
     @Language("kotlin")
     val fileContent = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview(name = "Test")
@@ -188,7 +191,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     """.trimIndent()
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
-    val model = getPsiPropertyModel(fileContent)
+    val model = getFirstModel(fileContent)
     assertEquals("1f", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
@@ -218,8 +221,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun fontScaleEditing() {
     @Language("kotlin")
     val fileContent = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview
@@ -227,7 +230,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
       """.trimIndent()
 
-    val model = getPsiPropertyModel(fileContent)
+    val model = getFirstModel(fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
 
     fun checkFontScaleChange(newValue: String, expectedPropertyValue: String) {
@@ -252,8 +255,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   fun `original order is preserved`() {
     @Language("kotlin")
     val fileContent = """
-      import $COMPOSABLE_ANNOTATION_FQN
-      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
 
       @Composable
       @Preview(fontScale = 1.0f, name = "MyPreview", apiLevel = 1)
@@ -261,7 +264,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
       """.trimIndent()
 
-    val model = getPsiPropertyModel(fileContent)
+    val model = getFirstModel(fileContent)
 
     val properties = model.properties.values.iterator()
     assertEquals("name", properties.next().name)
@@ -274,11 +277,84 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("fontScale", properties.next().name)
   }
 
+  @RunsInEdt
+  @Test
+  fun testDevicePropertiesTracked() {
+    @Language("kotlin")
+    val fileContent = """
+      import $composableAnnotationFqName
+      import $previewToolingPackage.Preview
+
+      @Composable
+      @Preview(name = "Test")
+      fun PreviewNoParameters() {
+      }
+    """.trimIndent()
+    val testTracker = object : PreviewPickerTracker {
+      val valuesRegistered = mutableListOf<PickerTrackableValue>()
+
+      override fun registerModification(name: String, value: PickerTrackableValue) {
+        valuesRegistered.add(value)
+      }
+
+      override fun pickerShown() {} // Not tested
+      override fun pickerClosed() {} // Not tested
+      override fun logUsageData() {} // Not tested
+    }
+
+    val model = getFirstModel(fileContent, testTracker)
+
+    model.properties["", "Device"].value = "hello world"
+
+    model.properties["", "Orientation"].value = "portrait"
+    model.properties["", "Orientation"].value = "landscape"
+    model.properties["", "Orientation"].value = "bad input"
+
+    model.properties["", "Density"].value = "480" // XXHIGH
+    model.properties["", "Density"].value = "470" // Close to XXHIGH
+    model.properties["", "Density"].value = "320" // XHIGH
+    model.properties["", "Density"].value = "10000" // Extremely high (XXXHIGH is closest)
+    model.properties["", "Density"].value = "bad input"
+
+    model.properties["", "DimensionUnit"].value = "dp"
+    model.properties["", "DimensionUnit"].value = "px"
+    model.properties["", "DimensionUnit"].value = "bad input"
+
+    model.properties["", "Width"].value = "100"
+    model.properties["", "Height"].value = "200"
+
+    assertEquals(14, testTracker.valuesRegistered.size)
+    var index = 0
+    // Device
+    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+
+    // Orientation
+    assertEquals(PickerTrackableValue.ORIENTATION_PORTRAIT, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.ORIENTATION_LANDSCAPE, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+
+    // Density
+    assertEquals(PickerTrackableValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.DENSITY_XX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.DENSITY_X_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.DENSITY_XXX_HIGH, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+
+    // DimensionUnit
+    assertEquals(PickerTrackableValue.UNIT_DP, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.UNIT_PIXELS, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.UNKNOWN, testTracker.valuesRegistered[index++])
+
+    // Width/Height
+    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index++])
+    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
+  }
+
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
-      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview)
+      PsiCallPropertyModel.fromPreviewElement(project, module, noParametersPreview, NoOpTracker)
     }
     var expectedModificationsCountdown = 13
     model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
@@ -350,10 +426,12 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(0, expectedModificationsCountdown)
   }
 
-  private fun getPsiPropertyModel(fileContent: String): PsiPropertyModel {
+  private fun getFirstModel(fileContent: String, tracker: PreviewPickerTracker = NoOpTracker): PsiPropertyModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     ConfigurationManager.getOrCreateInstance(module)
-    return ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, module, preview) }
+    return ReadAction.compute<PsiPropertyModel, Throwable> {
+      PsiCallPropertyModel.fromPreviewElement(project, module, preview, tracker)
+    }
   }
 }

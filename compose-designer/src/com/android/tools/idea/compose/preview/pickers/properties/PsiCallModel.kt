@@ -29,6 +29,8 @@ import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
+import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
@@ -69,11 +71,12 @@ import org.jetbrains.uast.toUElement
  *
  * In both cases, this [PsiCallPropertyModel] will deal with the named parameters as properties.
  */
-class PsiCallPropertyModel internal constructor(
+internal class PsiCallPropertyModel internal constructor(
   val project: Project,
   val module: Module,
   resolvedCall: ResolvedCall<*>,
-  defaultValues: Map<String, String?>
+  defaultValues: Map<String, String?>,
+  override val tracker: PreviewPickerTracker
 ) : PsiPropertyModel(), DataProvider {
   private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
@@ -95,7 +98,12 @@ class PsiCallPropertyModel internal constructor(
     }
 
   companion object {
-    fun fromPreviewElement(project: Project, module: Module, previewElement: PreviewElement): PsiCallPropertyModel {
+    fun fromPreviewElement(
+      project: Project,
+      module: Module,
+      previewElement: PreviewElement,
+      tracker: PreviewPickerTracker
+    ): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
       val libraryDefaultValues: Map<String, String?> =
@@ -126,7 +134,7 @@ class PsiCallPropertyModel internal constructor(
           }
         }
 
-      return PsiCallPropertyModel(project, module, resolvedCall, defaultValues)
+      return PsiCallPropertyModel(project, module, resolvedCall, defaultValues, tracker)
     }
 
     private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
