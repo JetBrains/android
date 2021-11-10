@@ -625,7 +625,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
     for (int i = 0; i < systemTraceData.getAndroidFrameLayers().size(); ++i) {
       TraceProcessor.AndroidFrameEventsResult.Layer layer = systemTraceData.getAndroidFrameLayers().get(i);
       layer.getPhaseList().stream()
-        .filter(phase -> !phase.getPhaseName().equals("Display"))
         .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues(),
                                                       multiSelectionModel, timelineEventIndex))
         .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
