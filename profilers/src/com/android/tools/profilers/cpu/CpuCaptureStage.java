@@ -564,7 +564,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String title = "Frame Lifecycle (" + layer.getLayerName().substring(layer.getLayerName().lastIndexOf('/') + 1) + ")";
     TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
       .setTitle(title)
-      .setTitleHelpText("This section shows the lifecycle of every frame.")
+      .setTitleHelpText("<p><b>Application</b>: Duration of the app drawing the frame. " +
+                        "<p><b>Wait for GPU</b>: Time it takes the GPU to complete the frame.</p>" +
+                        "<p><b>Composition</b>: Composition time by SurfaceFlinger (not controlled by your app process).</p>" +
+                        "<p><b>Frames on display</b>: Duration of the frame presented on screen display.</p>")
       .setTitleHelpLink("Learn more", "https://d.android.com/r/studio-ui/profiler/frame-lifecycle")
       .setCollapsedInitially(collapseInitially)
       .build();
@@ -593,9 +596,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String toggleLifeCycle = "Lifecycle";
     TrackGroupModel.Builder displayBuilder = TrackGroupModel.newBuilder()
       .setTitle("Display")
-      .setTitleHelpText("This section contains display info. " +
-                        "<p><b>Janky Frames</b>: frames that are janky. " +
-                        "Frames missing deadlines are colored red, buffer stuffing yellow.</p>")
+      .setTitleHelpText("<p><b>Janky frames</b>: Frames that lead to unstable frame rate or increased UI latency. " +
+                        "Frames in red are janky due to app process running longer than expected. " +
+                        "Frames in yellow are janky due to stuffed buffer queue.</p>" +
+                        "<p><b>All frames</b>: All frames being rendered by your app. " +
+                        "Frames in green are on-time.</p>" +
+                        "<p><b>Application</b>: Duration of the app drawing the frame. " +
+                        "Look for threads and events associated with the frame to fix jank.</p>" +
+                        "<p><b>Wait for GPU</b>: Time it takes the GPU to complete the frame.</p>" +
+                        "<p><b>Composition</b>: Composition time by SurfaceFlinger (not controlled by your app process).</p>" +
+                        "<p><b>Frames on display</b>: Duration of the frame presented on screen display.</p>")
       .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
       .addDisplayToggle(toggleAllFrames, false);
     if (!systemTraceData.getAndroidFrameLayers().isEmpty()) {
