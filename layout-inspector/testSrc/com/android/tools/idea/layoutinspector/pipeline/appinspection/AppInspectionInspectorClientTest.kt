@@ -42,6 +42,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.InspectorClientProvider
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -51,6 +53,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
@@ -103,7 +106,15 @@ class AppInspectionInspectorClientTest {
 
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(monitor)) { it == preferredProcess}
+  private val inspectorRule = LayoutInspectorRule(object : InspectorClientProvider {
+    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+      return AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
+                                          inspector.stats, disposableRule.disposable, inspectionRule.inspectionService.apiServices,
+                                          inspectionRule.inspectionService.scope).apply {
+        launchMonitor = monitor
+      }
+    }
+  }) { it == preferredProcess}
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
