@@ -18,14 +18,15 @@ package com.android.tools.idea.startup;
 import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.openapi.application.Application;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Initialization code common between Android Studio and Android plugin in IntelliJ.
  */
-public class AndroidPluginInitializer implements ApplicationLoadListener {
+final class AndroidPluginInitializer implements ApplicationLoadListener {
   @Override
-  public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
+  public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path config) {
     // AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl()); // classes from modified platform
     StudioProgressManagerAdapter.initialize();
   }
