@@ -58,6 +58,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -214,6 +215,7 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 }
 
+@Ignore("b/205981893")
 class LayoutInspectorToolWindowFactoryDisposeTest {
 
   @get:Rule
