@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.withProjectId
@@ -35,6 +36,8 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.command.undo.BasicUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
@@ -261,6 +264,15 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
         override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
       }
       syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, listener)
+      UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
+        override fun undo() {
+          GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE, listener)
+        }
+
+        override fun redo() {
+          GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE, listener)
+        }
+      })
     }
   }
 
