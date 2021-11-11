@@ -31,7 +31,7 @@ class CpuAnalysisFramesTabTest {
   @Test
   fun tableIsPopulatedByLayer() {
     val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(getAndroidFrameLayers()).thenReturn(LAYERS)
+      Mockito.`when`(androidFrameLayers).thenReturn(LAYERS)
     }
     val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(systemTraceData).thenReturn(traceData)
@@ -55,7 +55,7 @@ class CpuAnalysisFramesTabTest {
   @Test
   fun selectingTableRowUpdatedViewRange() {
     val traceData: CpuSystemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(getAndroidFrameLayers()).thenReturn(LAYERS.subList(0, 1))
+      Mockito.`when`(androidFrameLayers).thenReturn(LAYERS.subList(0, 1))
     }
     val cpuCapture: CpuCapture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(systemTraceData).thenReturn(traceData)

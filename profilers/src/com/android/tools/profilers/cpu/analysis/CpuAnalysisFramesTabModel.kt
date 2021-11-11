@@ -27,7 +27,7 @@ class CpuAnalysisFramesTabModel(val captureRange: Range) : CpuAnalysisTabModel<C
    * Frame table data by layer. This is lazily initialized because at the time of construction, the [CpuCapture] data is not yet available.
    */
   val tableModels: List<PaginatedTableModel<FrameEventRow>> by lazy {
-    val layers = dataSeries.flatMap { it.systemTraceData?.getAndroidFrameLayers() ?: listOf() }
+    val layers = dataSeries.flatMap { it.systemTraceData?.androidFrameLayers ?: listOf() }
     // Transform frame event proto (grouped by phase) into table model (grouped by frame number).
     layers.map { layer ->
       val frameNumberToRow = mutableMapOf<Int, FrameEventRow>().also {

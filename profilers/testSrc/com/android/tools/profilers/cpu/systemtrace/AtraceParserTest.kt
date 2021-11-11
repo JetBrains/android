@@ -105,7 +105,7 @@ class AtraceParserTest {
 
   @Test
   fun testGetCpuUtilizationDataSeries() {
-    val dataSeries = myCapture.systemTraceData!!.getCpuUtilizationSeries()
+    val dataSeries = myCapture.systemTraceData!!.cpuUtilizationSeries
     var avg = 0.0
     // No values should exceed the bounds
     for (data in dataSeries) {
@@ -133,14 +133,14 @@ class AtraceParserTest {
     val parser = AtraceParser()
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
 
-    assertThat(capture.systemTraceData!!.isMissingData()).isTrue()
+    assertThat(capture.systemTraceData!!.isMissingData).isTrue()
   }
 
   @Test
   fun atraceCpuUtilizationBucketed() {
     // Cpu utilization is computed at the same time cpu slices are generated, this makes it challenging to test in isolation.
     // Here we take an already parsed capture and test it has utilization series, as well as the max value in the series.
-    val series = myCapture.systemTraceData!!.getCpuUtilizationSeries()
+    val series = myCapture.systemTraceData!!.cpuUtilizationSeries
     assertThat(series).hasSize(268)
     // To test the bucketing we verify the delta of each point in the series is the bucket time.
     for (i in 1 until series.size) {

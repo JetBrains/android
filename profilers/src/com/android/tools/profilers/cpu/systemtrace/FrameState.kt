@@ -40,6 +40,6 @@ class FrameState(threadType: FrameThread, systemTraceData: CpuSystemTraceData, r
     series = LazyDataSeries { systemTraceData.getFrames(threadType) }
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     model.addSeries(RangedSeries(range, series))
-    vsyncSeries = RangedSeries(range, LazyDataSeries { systemTraceData.getVsyncCounterValues() })
+    vsyncSeries = RangedSeries(range, LazyDataSeries { systemTraceData.vsyncCounterValues })
   }
 }

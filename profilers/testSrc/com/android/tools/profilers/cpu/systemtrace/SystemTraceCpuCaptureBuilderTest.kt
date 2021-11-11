@@ -55,7 +55,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
     assertThat(systemTraceData.getCpuThreadSliceInfoStates(0).map { "${it.x}-${it.value.processId}-${it.value.durationUs}" })
@@ -90,10 +90,10 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
     // We map the values to some string representation so we can compare the content easily, because SeriesData<*> does
     // not have a proper equals override.
-    assertThat(systemTraceData.getCpuUtilizationSeries().map { "${it.x}-${it.value}" })
+    assertThat(systemTraceData.cpuUtilizationSeries.map { "${it.x}-${it.value}" })
       .containsExactly("0-30", "50000-20").inOrder() // First bucket = 30% utilization, Second bucket = 20% utilization.
   }
 
@@ -129,11 +129,11 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
-    assertThat(systemTraceData.getCpuCounters()[0]).containsExactly(
+    assertThat(systemTraceData.cpuCount).isEqualTo(2)
+    assertThat(systemTraceData.cpuCounters[0]).containsExactly(
       "cpufreq", listOf(SeriesData(1, 0L), SeriesData(2, 1000L)),
       "cpuidle", listOf(SeriesData(2, 0L), SeriesData(3, 4294967295L)))
-    assertThat(systemTraceData.getCpuCounters()[1]).containsExactly(
+    assertThat(systemTraceData.cpuCounters[1]).containsExactly(
       "cpufreq", listOf(SeriesData(10, 2000L)),
       "cpuidle", listOf(SeriesData(20, 0L)))
   }
@@ -159,8 +159,8 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getMemoryCounters()).hasSize(2)
-    assertThat(systemTraceData.getMemoryCounters()).containsExactly(
+    assertThat(systemTraceData.memoryCounters).hasSize(2)
+    assertThat(systemTraceData.memoryCounters).containsExactly(
       "mem.locked", listOf(
       SeriesData(1, 1L),
       SeriesData(4, 2L),
@@ -171,7 +171,7 @@ class SystemTraceCpuCaptureBuilderTest {
       SeriesData(7, 4L)))
       .inOrder()
 
-    assertThat(systemTraceData.getMemoryCounters()).doesNotContainKey("non-memory")
+    assertThat(systemTraceData.memoryCounters).doesNotContainKey("non-memory")
   }
 
   @Test
@@ -187,7 +187,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
-    assertThat(systemTraceData.getBufferQueueCounterValues()).containsExactly(
+    assertThat(systemTraceData.bufferQueueCounterValues).containsExactly(
       SeriesData(1, 1L),
       SeriesData(4, 2L),
       SeriesData(7, 3L)

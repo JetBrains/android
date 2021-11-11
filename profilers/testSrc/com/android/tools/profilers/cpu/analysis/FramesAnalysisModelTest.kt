@@ -28,7 +28,7 @@ class FramesAnalysisModelTest {
   @Test
   fun `frames model has all-frames tab`() {
     val systemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
-      Mockito.`when`(getAndroidFrameLayers()).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
+      Mockito.`when`(androidFrameLayers).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
     }
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       Mockito.`when`(this.range).thenReturn(Range())

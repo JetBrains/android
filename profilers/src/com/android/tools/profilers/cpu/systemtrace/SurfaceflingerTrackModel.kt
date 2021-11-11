@@ -30,7 +30,7 @@ class SurfaceflingerTrackModel(val systemTraceData: CpuSystemTraceData,
   val surfaceflingerEvents: DataSeries<SurfaceflingerEvent>
 
   init {
-    surfaceflingerEvents = LazyDataSeries(Supplier { systemTraceData.getSurfaceflingerEvents() })
+    surfaceflingerEvents = LazyDataSeries(Supplier { systemTraceData.surfaceflingerEvents })
     addSeries(RangedSeries(viewRange, surfaceflingerEvents))
   }
 }

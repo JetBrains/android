@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 object AndroidFrameTimelineAnalysisModel {
   @JvmStatic
   fun of(capture: CpuCapture): CpuAnalysisModel<CpuCapture>? = when {
-    capture.systemTraceData?.getAndroidFrameTimelineEvents()?.isNotEmpty() ?: false -> {
+    capture.systemTraceData?.androidFrameTimelineEvents?.isNotEmpty() ?: false -> {
       CpuAnalysisModel<CpuCapture>("All Frames").apply {
         addTabModel(Tab(capture, { true }, Type.FRAMES))
         addTabModel(Tab(capture, { it.timelineEvent.isJank }, Type.JANKS))
@@ -38,8 +38,8 @@ object AndroidFrameTimelineAnalysisModel {
       dataSeries.asSequence()
         .flatMap {
           val data = it.systemTraceData!!
-          val lifeCycleDurationIndex = lifeCycleDurationIndex(data.getAndroidFrameLayers())
-          data.getAndroidFrameTimelineEvents().asSequence().map{ it.toRow(lifeCycleDurationIndex) }
+          val lifeCycleDurationIndex = lifeCycleDurationIndex(data.androidFrameLayers)
+          data.androidFrameTimelineEvents.asSequence().map{ it.toRow(lifeCycleDurationIndex) }
         }
         .filter(keep)
         .toMutableList()

@@ -75,8 +75,8 @@ object MockCaptureUtils {
   )
 
   val SYSTEM_TRACE_DATA = Mockito.mock(CpuSystemTraceData::class.java).apply {
-    Mockito.`when`(getAndroidFrameLayers()).thenReturn(LAYERS)
-    Mockito.`when`(getAndroidFrameTimelineEvents()).thenReturn(TIMELINE_EVENTS)
+    Mockito.`when`(androidFrameLayers).thenReturn(LAYERS)
+    Mockito.`when`(androidFrameTimelineEvents).thenReturn(TIMELINE_EVENTS)
   }
   val CPU_CAPTURE = Mockito.mock(CpuCapture::class.java).apply {
     Mockito.`when`(systemTraceData).thenReturn(SYSTEM_TRACE_DATA)

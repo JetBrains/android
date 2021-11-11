@@ -35,6 +35,6 @@ class BufferQueueTrackRenderer(private val vsyncEnabler: BooleanSupplier) : Trac
       LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(DataVisualizationColors.BACKGROUND_DATA_COLOR_NAME, 0))
         .setStepped(true))
     lineChart.setFillEndGap(true)
-    VsyncPanel.of(lineChart, lineChartModel.viewRange, lineChartModel.systemTraceData.getVsyncCounterValues(), vsyncEnabler)
+    VsyncPanel.of(lineChart, lineChartModel.viewRange, lineChartModel.systemTraceData.vsyncCounterValues, vsyncEnabler)
   }
 }
