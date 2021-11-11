@@ -89,7 +89,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     val wear: PairingDevice,
   ) {
     var pairingStatus = PairingState.UNKNOWN
-      internal set
     internal var hostPort = 0
 
     fun getPeerDevice(deviceID: String) =

@@ -26,11 +26,16 @@ import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
+import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
+import java.util.Collections;
 import javax.swing.JTable;
+import kotlin.coroutines.Continuation;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -61,6 +66,37 @@ public final class DeviceTableCellRendererTest {
     assertEquals(device.getName(), renderer.getNameLabel().getText());
     assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
+  }
+
+  @Test
+  public void getTableCellRendererComponentDeviceIsPairedAndConnected() throws InterruptedException {
+    // Arrange
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
+    assert renderer.getPairedLabel().getIcon() == null;
+
+    // noinspection KotlinInternalInJava
+    WearPairingManager.INSTANCE.setDataProviders$intellij_android_core(Collections::emptyList, Collections::emptyList);
+
+    // Act
+    BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(), (scope, continuation) -> connect(continuation));
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
+
+    // Assert
+    assertEquals(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED, renderer.getPairedLabel().getIcon());
+  }
+
+  private static boolean connect(@NotNull Continuation<? super PhoneWearPair> continuation) {
+    PairingDevice phone = new PairingDevice("86UX00F4R", "Google Pixel 3", 30, false, false, true, ConnectionState.ONLINE);
+    IDevice device = Mockito.mock(IDevice.class);
+    PairingDevice wear = new PairingDevice("wearId1", "Wear 1", 30, true, true, true, ConnectionState.ONLINE);
+
+    PhoneWearPair pair =
+      (PhoneWearPair)WearPairingManager.INSTANCE.createPairedDeviceBridge(phone, device, wear, device, false, continuation);
+
+    assert pair != null;
+    pair.setPairingStatus(PairingState.CONNECTED);
+
+    return true;
   }
 
   @Test
