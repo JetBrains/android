@@ -1,5 +1,14 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="action" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="and" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="create" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="files" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="for" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="layout" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="qualifiers" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="switch" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
+    <option name="to" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="action" path="ActionManager" hit="Add Action" />
     <option name="add" path="ActionManager" hit="Add Action" />
     <option name="add" path="ActionManager" hit="Add Deep Link" />
@@ -124,6 +133,9 @@
     <option name="design" path="ActionManager" hit="Switch Design Mode" />
     <option name="mode" path="ActionManager" hit="Switch Design Mode" />
     <option name="switch" path="ActionManager" hit="Switch Design Mode" />
+    <option name="layout" path="ActionManager" hit="Switch Layout Qualifier" />
+    <option name="qualifier" path="ActionManager" hit="Switch Layout Qualifier" />
+    <option name="switch" path="ActionManager" hit="Switch Layout Qualifier" />
     <option name="and" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="blueprint" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="cycling" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />

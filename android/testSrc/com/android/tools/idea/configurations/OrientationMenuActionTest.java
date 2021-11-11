@@ -22,7 +22,6 @@ import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -62,10 +61,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
     checkAction(actions[index++], Separator.class, null);
     checkAction(actions[index++], ActionGroup.class, "UI Mode");
-    checkAction(actions[index++], Separator.class, null);
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Landscape Variation");
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
     assertThat(actions).hasLength(index);
   }
 
@@ -73,7 +68,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     waitForResourceRepositoryUpdates();
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
-    Presentation presentation = action.getTemplatePresentation().clone();
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
@@ -82,12 +76,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
                 "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
     checkAction(actions[index++], Separator.class, null);
     checkAction(actions[index++], ActionGroup.class, "UI Mode");
-    checkAction(actions[index++], Separator.class, null);
-    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
-    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
-    checkAction(actions[index++], Separator.class, null);
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Tablet Variation");
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
     assertThat(actions).hasLength(index);
   }
 
@@ -104,12 +92,6 @@ public class OrientationMenuActionTest extends AndroidTestCase {
                 "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
     checkAction(actions[index++], Separator.class, null);
     checkAction(actions[index++], ActionGroup.class, "UI Mode");
-    checkAction(actions[index++], Separator.class, null);
-    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout");
-    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-land");
-    checkAction(actions[index++], OrientationMenuAction.SwitchToVariationAction.class, "Switch to layout-sw600dp");
-    checkAction(actions[index++], Separator.class, null);
-    checkAction(actions[index++], OrientationMenuAction.CreateVariationAction.class, "Create Other...");
     assertThat(actions).hasLength(index);
   }
 
