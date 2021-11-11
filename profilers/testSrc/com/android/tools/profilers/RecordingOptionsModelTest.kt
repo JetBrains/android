@@ -139,6 +139,23 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(model.customConfigurationModel.size).isEqualTo(0)
   }
 
+  @Test
+  fun selectOptionBy() {
+    // Select built-in option.
+    model.selectOptionBy { recordingOption -> recordingOption.title == "Built in 3" }
+    assertThat(model.selectedOption).isEqualTo(BuiltIns[2])
+
+    // Select custom option.
+    model.selectOptionBy { recordingOption -> recordingOption.title == "Config 2" }
+    if (model.customConfigurationModel.size > 0) {
+      assertThat(model.selectedOption).isEqualTo(CustomConfigs[1])
+    }
+    else {
+      // First built-in option is selected if no match.
+      assertThat(model.selectedOption).isEqualTo(BuiltIns[0])
+    }
+  }
+
   companion object {
     val BuiltIns = arrayOf(
       RecordingOption("Built in 1", "Description 1", {}),

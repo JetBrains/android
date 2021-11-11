@@ -46,12 +46,37 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   val isSelectedOptionCustom get() = selectedOption in customConfigurationModel
 
   fun selectBuiltInOption(opt: RecordingOption) {
-    require (opt in builtInOptionList)
+    require(opt in builtInOptionList)
     selectedOption = opt
   }
 
   fun selectCurrentCustomConfiguration() {
     selectedOption = customConfigurationModel.selectedItem as RecordingOption
+  }
+
+  /**
+   * Select the first recording option when the [criteria] is met. If no option
+   * meets the [criteria], the first built-in option is selected.
+   */
+  fun selectOptionBy(criteria: (recordingOption: RecordingOption) -> Boolean) {
+    // Search in built-in options first.
+    val builtInOption = builtInOptionList.firstOrNull(criteria)
+    if (builtInOption != null) {
+      selectBuiltInOption(builtInOption)
+    }
+    else {
+      // Search in custom options.
+      for (i in 0 until customConfigurationModel.size) {
+        val customOption = customConfigurationModel.getElementAt(i)
+        if (criteria(customOption)) {
+          customConfigurationModel.selectedItem = customOption
+          selectCurrentCustomConfiguration()
+          return
+        }
+      }
+      // If nothing is found, select the first built-in option.
+      selectBuiltInOption(builtInOptionList[0])
+    }
   }
 
   fun canStop() = isRecording && selectedOption?.stopAction != null

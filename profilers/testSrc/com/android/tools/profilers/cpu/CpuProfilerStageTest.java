@@ -133,8 +133,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     List<ProfilingConfiguration> defaultConfigurations = myStage.getProfilerConfigModel().getDefaultProfilingConfigurations();
     assertThat(myStage.getRecordingModel().getBuiltInOptions()).hasSize(defaultConfigurations.size());
     for(int i = 0; i < defaultConfigurations.size(); i++) {
-      ProfilingTechnology tech = ProfilingTechnology.fromConfig(defaultConfigurations.get(i));
-      assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(tech.getName());
+      assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(defaultConfigurations.get(i).getName());
     }
   }
 
@@ -360,7 +359,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void suggestedProfilingConfigurationDependsOnNativePreference() {
+  public void suggestedProfilingConfigurationIsSimpleperf() {
     // Make sure simpleperf is supported by setting an O device.
     addAndSetDevice(AndroidVersion.VersionCodes.O, "Any Serial");
 
@@ -369,7 +368,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.enter();
     // ART Sampled should be the default configuration when there is no preference for a native config.
     assertThat(
-      myStage.getProfilerConfigModel().getProfilingConfiguration().getName()).isEqualTo(FakeIdeProfilerServices.FAKE_ART_SAMPLED_NAME);
+      myStage.getProfilerConfigModel().getProfilingConfiguration().getName()).isEqualTo(FakeIdeProfilerServices.FAKE_SIMPLEPERF_NAME);
 
     myServices.setNativeProfilingConfigurationPreferred(true);
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
@@ -463,14 +462,31 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void rightOptionSelectedForStartUpTracing() {
+    Cpu.CpuTraceConfiguration startUpTracingConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                        .setName(FakeIdeProfilerServices.FAKE_ATRACE_NAME)
+                        .setTraceType(Cpu.CpuTraceType.PERFETTO))
+      .build();
+    addTraceInfoHelper(1, FAKE_DEVICE_ID, FAKE_PROCESS.getPid(), 100, -1, startUpTracingConfig);
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+    assertThat(myStage.getCaptureInitiationType()).isEqualTo(Cpu.TraceInitiationType.INITIATED_BY_STARTUP);
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+    assertThat(myStage.getRecordingModel().getSelectedOption()).isNotNull();
+    assertThat(myStage.getRecordingModel().getSelectedOption().getTitle()).isEqualTo(FakeIdeProfilerServices.FAKE_ATRACE_NAME);
+  }
+
+  @Test
   public void captureStageTransitionTest() throws Exception {
-    myServices.enableEventsPipeline(true);
     // Needs to be set true else null is inserted into the capture parser.
     myServices.setShouldProceedYesNoDialog(true);
-    // Try to parse a simpleperf trace with ART config.
+    // Select the right configuration for trace.
     ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     assertThat(myStage.getStudioProfilers().getStage().getClass()).isAssignableTo(CpuCaptureStage.class);
   }
 
@@ -553,6 +569,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void setCaptureShouldUseTraceType() throws IOException, InterruptedException {
+    // Select the right configuration for trace.
+    myStage.getProfilerConfigModel().setProfilingConfiguration(new ArtSampledConfiguration("My Config"));
     // Capture a new trace.
     long traceId =
       CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
