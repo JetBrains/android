@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 class ImportDependenciesDialog extends DialogWrapper {
-  private final CheckBoxList myCheckBoxList = new CheckBoxList();
+  private final CheckBoxList<?> myCheckBoxList = new CheckBoxList<>();
   private final List<ImportDependenciesTask> myTasks;
   private final Map<ImportDependenciesTask, JCheckBox> myTask2Checkbox = new HashMap<ImportDependenciesTask, JCheckBox>();
 
@@ -36,7 +36,7 @@ class ImportDependenciesDialog extends DialogWrapper {
       myTask2Checkbox.put(task, checkBox);
     }
 
-    myCheckBoxList.setModel(new CollectionListModel(checkBoxes));
+    myCheckBoxList.setModel(new CollectionListModel<>(checkBoxes));
 
     init();
   }
