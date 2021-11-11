@@ -34,7 +34,8 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
       "4.1" to GradleVersion.parse("6.5"),
       "4.2" to GradleVersion.parse("6.7.1"),
       "7.0" to GradleVersion.parse("7.0.2"),
-      "7.1" to GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
+      "7.1" to GradleVersion.parse("7.2"),
+      "7.2" to GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
     )
     data.forEach { (agpBase, expected) ->
       expect.that(getCompatibleGradleVersion(GradleVersion.parse(agpBase)).version).isEqualTo(expected)
