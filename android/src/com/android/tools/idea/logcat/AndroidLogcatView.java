@@ -180,6 +180,7 @@ public class AndroidLogcatView {
           if (selected != null && myFilterComboBoxModel.getSelectedItem() != selected) {
             selectFilterByName(selected.getName());
           }
+          applySelectedFilter();
         }
       };
     deviceContext.addListener(deviceSelectionListener, parentDisposable);
