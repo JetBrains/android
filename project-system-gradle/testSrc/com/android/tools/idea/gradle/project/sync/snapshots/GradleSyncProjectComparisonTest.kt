@@ -72,9 +72,12 @@ import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil.toSystemDependentName
+import com.intellij.util.indexing.IndexableSetContributor
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesIndexableSetContributor
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -106,6 +109,17 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
   override fun getName(): String = testName.methodName
 
   protected val projectName: String get() = "p/${getName()}"
+
+  @Before
+  fun before() {
+    // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
+    //       re-register it by its class name. It means that this test might affect tests running after this one.
+
+    // [KotlinScriptDependenciesIndexableSetContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
+    // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
+    // run faster.
+    IndexableSetContributor.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesIndexableSetContributor::class.java)
+  }
 
   @RunWith(JUnit4::class)
   @RunsInEdt
