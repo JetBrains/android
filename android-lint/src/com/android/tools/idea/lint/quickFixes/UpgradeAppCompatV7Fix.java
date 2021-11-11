@@ -17,21 +17,12 @@ package com.android.tools.idea.lint.quickFixes;
 
 import static com.android.tools.lint.checks.FontDetector.MIN_APPSUPPORT_VERSION;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.RepoPackage;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.inspections.AndroidLintFontValidationInspection;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.StudioSdkUtil;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
-import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,20 +42,7 @@ public class UpgradeAppCompatV7Fix implements LintIdeQuickFix {
 
   public static void apply(@Nullable Module module) {
     if (module != null) {
-      StudioSdkUtil.reloadRemoteSdkWithModalProgress();
-      AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      StudioLoggerProgressIndicator
-        progress = new StudioLoggerProgressIndicator(AndroidLintFontValidationInspection.class);
-
-      RepoPackage p = SdkMavenRepository.findLatestVersion(MIN_APPSUPPORT_VERSION, sdkHandler, null, progress);
-      if (p != null) {
-        GradleCoordinate gc = SdkMavenRepository.getCoordinateFromSdkPath(p.getPath());
-        if (gc != null) { // should always be the case unless the version suffix is somehow wrong
-          // Update version dependency in the module. Note that this will trigger a sync too.
-          GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-          manager.updateLibrariesToVersion(module, Collections.singletonList(gc), null);
-        }
-      }
+      LintIdeSupport.get().updateToLatest(module, MIN_APPSUPPORT_VERSION);
     }
   }
 
