@@ -18,7 +18,10 @@ package org.jetbrains.android.uipreview
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.idea.util.module
 import java.util.function.Supplier
 
@@ -38,7 +41,10 @@ class ModuleRenderContext private constructor(val module: Module, val fileProvid
     fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)
 
     @JvmStatic
-    fun forFile(file: PsiFile) = ModuleRenderContext(file.module!!) { file }
+    fun forFile(file: PsiFile): ModuleRenderContext {
+      val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
+      return ModuleRenderContext(file.module!!) { filePointer.element }
+    }
 
     /**
      * Always use one of the methods that can provide a file, only use this for testing.
