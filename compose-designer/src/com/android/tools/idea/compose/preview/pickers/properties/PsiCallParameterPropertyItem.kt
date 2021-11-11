@@ -67,7 +67,7 @@ internal open class PsiCallParameterPropertyItem(
    * [trackableValue] should be an option that bests represents [newValue]. Use [PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED] if none of
    * the options matches the meaning of the value, or [PickerTrackableValue.UNKNOWN] if the assigned value is unexpected.
    */
-  protected fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PickerTrackableValue) {
+  fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PickerTrackableValue) {
     model.tracker.registerModification(name, trackableValue)
     if (newValue == null) {
       deleteParameter()

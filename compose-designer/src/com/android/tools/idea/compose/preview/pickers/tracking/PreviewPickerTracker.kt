@@ -59,7 +59,8 @@ internal enum class PickerTrackableValue {
   UNKNOWN,
   DELETED,
   UNSUPPORTED_OR_OPEN_ENDED,
-  DEVICE_REF_NONE, // TODO(b/205184728): Support values selected from Device dropdown
+  /** For any non-standard/canonical device selected, eg: Any device manager device */
+  DEVICE_NOT_REF,
   DEVICE_REF_PHONE,
   DEVICE_REF_FOLDABLE,
   DEVICE_REF_TABLET,

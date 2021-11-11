@@ -17,8 +17,45 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
 import com.android.tools.idea.compose.preview.pickers.properties.ClassPsiCallParameter
+import com.android.tools.idea.compose.preview.pickers.properties.PsiCallParameterPropertyItem
+import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
+
+/**
+ * Base interface for psi pickers, to support tracking assigned values.
+ */
+internal interface PsiEnumValue : EnumValue {
+  val trackableValue: PickerTrackableValue
+
+  override fun select(property: PropertyItem): Boolean =
+    if (property is PsiCallParameterPropertyItem) {
+      property.writeNewValue(value, false, trackableValue)
+      true
+    }
+    else {
+      super.select(property)
+    }
+
+  companion object {
+    fun withTooltip(value: String, display: String, description: String?, trackingValue: PickerTrackableValue) =
+      DescriptionEnumValue(value, display, trackingValue, description)
+
+    fun indented(value: String, display: String, trackingValue: PickerTrackableValue) =
+      object: PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
+        override val indented: Boolean = true
+      }
+  }
+}
+
+/**
+ * Base implementation of [PsiEnumValue], should aim to cover most use-cases found in [EnumValue].
+ */
+internal open class PsiEnumValueImpl(
+  override val value: String?,
+  override val display: String,
+  override val trackableValue: PickerTrackableValue
+): PsiEnumValue
 
 /**
  * Base interface that makes use of [ClassPsiCallParameter] functionality.
@@ -263,13 +300,14 @@ internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValu
 }
 
 /**
- * [EnumValue] that includes a description, to be shown as a tooltip in [PsiEnumValueCellRenderer]
+ * [PsiEnumValue] that includes a description, shown as a tooltip in [PsiEnumValueCellRenderer].
  */
 internal data class DescriptionEnumValue(
   override val value: String,
   override val display: String,
-  val description: String? = null
-): EnumValue {
+  override val trackableValue: PickerTrackableValue,
+  val description: String?
+) : PsiEnumValue {
   override val indented: Boolean = true
   override fun toString(): String = value
 }
