@@ -43,6 +43,8 @@ class NewConnectionAlertStep(
       model.selectedPhoneDevice.valueOrNull?.supportsMultipleWatchConnections() == true
     }
   }
+  private lateinit var errorTitle: String
+  private lateinit var errorBody: String
 
   override fun canGoBack(): Boolean {
     return false
@@ -55,36 +57,28 @@ class NewConnectionAlertStep(
     // In case the phone is already running, and we can detect that it has support for multiple emulator connections,
     // we don't need to kill other wear emulators.
     if (model.getNonSelectedRunningWearEmulators().isNotEmpty() && !selectedPhoneSupportsMultipleWatchConnections) {
+      errorTitle = message("wear.assistant.connection.alert.close.emulators.title")
+      errorBody = message("wear.assistant.connection.alert.close.emulators.subtitle", selectedWear.displayName, selectedPhone.displayName)
       return true
     }
 
     // Check if this phone is already paired
     val phoneWearPair = WearPairingManager.getPairedDevices(selectedPhone.deviceID)
-    return phoneWearPair != null &&
-           (phoneWearPair.phone.deviceID != selectedPhone.deviceID || phoneWearPair.wear.deviceID != selectedWear.deviceID)
+    if (phoneWearPair != null &&
+        (phoneWearPair.phone.deviceID != selectedPhone.deviceID || phoneWearPair.wear.deviceID != selectedWear.deviceID)) {
+      errorTitle = message("wear.assistant.connection.alert.disconnect.pairing.title")
+      errorBody = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",
+                          selectedWear.displayName, selectedPhone.displayName,
+                          phoneWearPair.wear.displayName, phoneWearPair.phone.displayName)
+      return true
+    }
+
+    return false
   }
 
   override fun onEntering() {
     // Should always have a value here, otherwise shouldShow() should have returned false
-    val selectedPhoneName = model.selectedPhoneDevice.value.displayName
-    val selectedWearName = model.selectedWearDevice.value.displayName
-
-    if (model.getNonSelectedRunningWearEmulators().isNotEmpty() && !selectedPhoneSupportsMultipleWatchConnections) {
-      showUi(
-        header = message("wear.assistant.connection.alert.close.emulators.title"),
-        description = message("wear.assistant.connection.alert.close.emulators.subtitle", selectedWearName, selectedPhoneName)
-      )
-    }
-    else {
-      val phoneWearPair = WearPairingManager.getPairedDevices(model.selectedPhoneDevice.value.deviceID)
-      val pairedPhoneName = phoneWearPair?.phone?.displayName ?: ""
-      val pairedWearName = phoneWearPair?.wear?.displayName ?: ""
-      showUi(
-        header = message("wear.assistant.connection.alert.disconnect.pairing.title"),
-        description = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",
-                              selectedWearName, selectedPhoneName, pairedWearName, pairedPhoneName)
-      )
-    }
+    showUi(header = errorTitle, description = errorBody)
   }
 
   override fun getComponent(): JComponent = mainPanel
