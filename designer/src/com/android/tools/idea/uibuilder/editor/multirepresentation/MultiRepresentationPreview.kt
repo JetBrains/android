@@ -284,11 +284,8 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     if (currentUpdateRepresentationJob == null) {
       currentUpdateRepresentationJob = scope.launch {
         updateRepresentationsImpl()
-      }.apply {
-        invokeOnCompletion {
-          synchronized(currentUpdateRepresentationJobLock) {
-            currentUpdateRepresentationJob = null
-          }
+        synchronized(currentUpdateRepresentationJobLock) {
+          currentUpdateRepresentationJob = null
         }
       }
     }
@@ -318,7 +315,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   @VisibleForTesting
-  protected suspend fun setStateAndUpdateRepresentations(state: MultiRepresentationPreviewFileEditorState) {
+  suspend fun setStateAndUpdateRepresentations(state: MultiRepresentationPreviewFileEditorState) {
     if (stateFromDisk != null) return
     stateFromDisk = state
 
