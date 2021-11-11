@@ -406,6 +406,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
+      if (d.getIsDeprecated()) {
+        continue;
+      }
       String category = getCategory(d);
       if (!myDeviceCategoryMap.containsKey(category)) {
         myDeviceCategoryMap.put(category, new ArrayList<>(1));
