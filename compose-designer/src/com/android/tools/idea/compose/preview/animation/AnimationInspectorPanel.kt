@@ -405,7 +405,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           updateProperties()
         }
         ComposeAnimationType.ANIMATED_VISIBILITY -> InspectorPainter.AnimatedVisibilityComboBox(logger) {
-          updateAnimationStartAndEndStates()
+          updateAnimatedVisibility()
           loadTransitionFromCacheOrLib()
           updateProperties()
         }
