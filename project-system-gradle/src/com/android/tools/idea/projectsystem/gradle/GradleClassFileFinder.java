@@ -66,19 +66,14 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
 
   @NotNull
   private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull AndroidModuleModel model) {
-    IdeVariant variant = model.getSelectedVariant();
-    String variantName = variant.getName();
     IdeAndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
     //noinspection ConstantConditions
     if (classesFolder != null) {
-      File outFolder = new File(classesFolder,
-                                // Change variant name variant-release into variant/release directories
-                                variantName.replace('-', File.separatorChar));
-      if (outFolder.exists()) {
-        VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
+      if (classesFolder.exists()) {
+        VirtualFile file = VfsUtil.findFileByIoFile(classesFolder, true);
         if (file != null) {
           compilerOutputs.add(file);
         }

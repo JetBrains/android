@@ -146,11 +146,13 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.jacoco.org.jacoco.ant_0.8.7",
+        "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
+        "@maven//:org.mockito.mockito-core_3.0.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
