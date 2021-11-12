@@ -15,30 +15,28 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.SyncException
+import com.android.ddmlib.SyncService
+import com.android.ddmlib.SyncService.ISyncProgressMonitor
 import com.android.tools.idea.adblib.ddmlibcompatibility.pullFile
 import com.android.tools.idea.adblib.ddmlibcompatibility.pushFile
-import com.android.ddmlib.IDevice
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
+import com.android.tools.idea.concurrency.catchingAsync
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.explorer.adbimpl.AdbFileTransfer.SingleFileProgressMonitor
-import com.android.tools.idea.explorer.adbimpl.AdbFileTransfer
-import com.android.ddmlib.SyncService
-import com.android.ddmlib.SyncException
-import java.io.IOException
-import com.android.ddmlib.SyncService.ISyncProgressMonitor
 import com.android.tools.idea.explorer.fs.ThrottledProgress
-import com.google.common.util.concurrent.AsyncFunction
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.diagnostic.Logger
-import java.lang.Runnable
+import com.intellij.openapi.diagnostic.logger
+import java.io.IOException
 import java.nio.file.Path
 import java.util.Locale
 import java.util.concurrent.Executor
+
+private val LOGGER = logger<AdbFileTransfer>()
 
 class AdbFileTransfer(
   private val myDevice: IDevice,
@@ -46,8 +44,9 @@ class AdbFileTransfer(
   progressExecutor: Executor,
   taskExecutor: Executor
 ) {
-  private val myProgressExecutor: FutureCallbackExecutor
-  private val myTaskExecutor: FutureCallbackExecutor
+  private val myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
+  private val myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+
   fun downloadFile(
     remoteFileEntry: AdbFileListingEntry,
     localPath: Path,
@@ -75,23 +74,14 @@ class AdbFileTransfer(
     // Note: We should reach this code only if the device is not root, in which case
     // trying a "pullFile" would fail because of permission error (reading from the /data/data/
     // directory), so we copy the file to a temp. location, then pull from that temp location.
-    val futureTempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
-    return myTaskExecutor.transformAsync(futureTempFile) { tempFile: String? ->
-      assert(tempFile != null)
 
+    return myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY).transformAsync(myTaskExecutor) { tempFile: String ->
       // Copy the remote file to the temporary remote location
-      val futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile!!, runAs)
-      val futureDownload = myTaskExecutor.transformAsync(futureCopy, AsyncFunction { aVoid: Unit ->
-        downloadFile(
-          tempFile, remotePathSize, localPath, progress
-        )
-      })
-      myTaskExecutor.finallyAsync(
-        futureDownload
-      ) {
-        myFileOperations.deleteFile(
-          tempFile
-        )
+      val futureDownload = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs).transformAsync(myTaskExecutor) {
+        downloadFile(tempFile, remotePathSize, localPath, progress)
+      }
+      myTaskExecutor.finallyAsync(futureDownload) {
+        myFileOperations.deleteFile(tempFile)
       }
     }
   }
@@ -110,24 +100,12 @@ class AdbFileTransfer(
     progress: FileTransferProgress,
     runAs: String?
   ): ListenableFuture<Unit> {
-    val futureTempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
-    return myTaskExecutor.transformAsync(futureTempFile) { tempFile: String? ->
-      assert(tempFile != null)
-
+    return myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY).transformAsync(myTaskExecutor) { tempFile ->
       // Upload to temporary location
-      val futureUpload = uploadFile(localPath, tempFile!!, progress)
-      val futureCopy = myTaskExecutor.transformAsync(futureUpload, AsyncFunction { aVoid: Unit ->
-        myFileOperations.copyFileRunAs(
-          tempFile, remotePath, runAs
-        )
-      })
-      myTaskExecutor.finallyAsync(
-        futureCopy
-      ) {
-        myFileOperations.deleteFile(
-          tempFile
-        )
+      val futureCopy = uploadFile(localPath, tempFile, progress).transformAsync(myTaskExecutor) {
+        myFileOperations.copyFileRunAs(tempFile, remotePath, runAs)
       }
+      myTaskExecutor.finallyAsync(futureCopy) { myFileOperations.deleteFile(tempFile) }
     }
   }
 
@@ -137,36 +115,15 @@ class AdbFileTransfer(
     localPath: Path,
     progress: FileTransferProgress
   ): ListenableFuture<Unit> {
-    val futurePull: ListenableFuture<Unit>
-    futurePull = if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-      myTaskExecutor.executeAsync {
-        val startTime = System.nanoTime()
-        pullFile(
-          myDevice,
-          remotePath,
-          localPath.toString(),
-          SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize)
-        )
-        val endTime = System.nanoTime()
-        LOGGER.info(
-          String.format(
-            Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-            remotePath, localPath
-          )
-        )
-        Unit
-      }
-    } else {
-      val futureSyncService = syncService
-      myTaskExecutor.transform(futureSyncService) { syncService: SyncService? ->
-        assert(syncService != null)
-        syncService.use { ignored ->
+    val futurePull: ListenableFuture<Unit> =
+      if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+        myTaskExecutor.executeAsync {
           val startTime = System.nanoTime()
-          syncService!!.pullFile(
+          pullFile(
+            myDevice,
             remotePath,
             localPath.toString(),
-            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize)
-          )
+            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
           val endTime = System.nanoTime()
           LOGGER.info(
             String.format(
@@ -174,18 +131,33 @@ class AdbFileTransfer(
               remotePath, localPath
             )
           )
-          return@transform Unit
+        }
+      } else {
+        syncService.transform(myTaskExecutor) { syncService ->
+          syncService.use {
+            val startTime = System.nanoTime()
+            syncService.pullFile(
+              remotePath,
+              localPath.toString(),
+              SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
+            val endTime = System.nanoTime()
+            LOGGER.info(
+              String.format(
+                Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+                remotePath, localPath
+              )
+            )
+          }
         }
       }
-    }
-    return myTaskExecutor.catchingAsync(futurePull, SyncException::class.java) { syncError: SyncException? ->
-      assert(syncError != null)
-      if (syncError!!.wasCanceled()) {
+    return futurePull.catchingAsync(myTaskExecutor, SyncException::class.java) { syncError: SyncException ->
+      if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        return@catchingAsync Futures.immediateCancelledFuture<Unit>()
+        Futures.immediateCancelledFuture()
+      } else {
+        LOGGER.info("Error pulling file from \"$remotePath\" to \"$localPath\"", syncError)
+        Futures.immediateFailedFuture(syncError)
       }
-      LOGGER.info(String.format("Error pulling file from \"%s\" to \"%s\"", remotePath, localPath), syncError)
-      Futures.immediateFailedFuture(syncError)
     }
   }
 
@@ -194,66 +166,54 @@ class AdbFileTransfer(
     remotePath: String,
     progress: FileTransferProgress
   ): ListenableFuture<Unit> {
-    val futurePush: ListenableFuture<Unit>
-    futurePush = if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-      myTaskExecutor.executeAsync {
-        val fileLength = localPath.toFile().length()
-        val startTime = System.nanoTime()
-        pushFile(
-          myDevice,
-          localPath.toString(),
-          remotePath,
-          SingleFileProgressMonitor(myProgressExecutor, progress, fileLength)
-        )
-        val endTime = System.nanoTime()
-        LOGGER.info(
-          String.format(
-            Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-            localPath,
-            remotePath
-          )
-        )
-        Unit
-      }
-    } else {
-      val futureSyncService = syncService
-      myTaskExecutor.transform(futureSyncService) { syncService: SyncService? ->
-        assert(syncService != null)
-        syncService.use { ignored ->
+    val futurePush: ListenableFuture<Unit> =
+      if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+        myTaskExecutor.executeAsync {
           val fileLength = localPath.toFile().length()
           val startTime = System.nanoTime()
-          syncService!!.pushFile(
-            localPath.toString(),
-            remotePath,
-            SingleFileProgressMonitor(myProgressExecutor, progress, fileLength)
-          )
+          pushFile(myDevice,
+                   localPath.toString(),
+                   remotePath,
+                   SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
           val endTime = System.nanoTime()
-          LOGGER.info(
-            String.format(
-              Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-              localPath,
-              remotePath
+          LOGGER.info(String.format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+                                localPath,
+                                remotePath))
+        }
+      } else {
+        syncService.transform(myTaskExecutor) { syncService ->
+          syncService.use {
+            val fileLength = localPath.toFile().length()
+            val startTime = System.nanoTime()
+            syncService.pushFile(
+              localPath.toString(),
+              remotePath,
+              SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
+            val endTime = System.nanoTime()
+            LOGGER.info(
+              String.format(
+                Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000, localPath,
+                remotePath
+              )
             )
-          )
-          return@transform Unit
+          }
         }
       }
-    }
-    return myTaskExecutor.catchingAsync(futurePush, SyncException::class.java) { syncError: SyncException? ->
-      assert(syncError != null)
-      if (syncError!!.wasCanceled()) {
+
+    return futurePush.catchingAsync(myTaskExecutor, SyncException::class.java) { syncError: SyncException ->
+      if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        return@catchingAsync Futures.immediateCancelledFuture<Unit>()
+        Futures.immediateCancelledFuture()
+      } else {
+        LOGGER.info("Error pushing file from \"$localPath\" to \"$remotePath\"", syncError)
+        Futures.immediateFailedFuture(syncError)
       }
-      LOGGER.info(String.format("Error pushing file from \"%s\" to \"%s\"", localPath, remotePath), syncError)
-      Futures.immediateFailedFuture(syncError)
     }
   }
 
   private val syncService: ListenableFuture<SyncService>
-    private get() = myTaskExecutor.executeAsync {
-      val sync = myDevice.syncService ?: throw IOException("Unable to open synchronization service to device")
-      sync
+    get() = myTaskExecutor.executeAsync {
+      myDevice.syncService ?: throw IOException("Unable to open synchronization service to device")
     }
 
   /**
@@ -266,7 +226,7 @@ class AdbFileTransfer(
     private val myProgress: FileTransferProgress,
     private val myTotalBytes: Long
   ) : ISyncProgressMonitor {
-    private val myThrottledProgress: ThrottledProgress
+    private val myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
     private var myCurrentBytes: Long = 0
     override fun start(totalWork: Int) {
       // Note: We ignore the value of "totalWork" because 1) during a "pull", it is
@@ -300,18 +260,5 @@ class AdbFileTransfer(
     companion object {
       private const val PROGRESS_REPORT_INTERVAL_MILLIS = 50
     }
-
-    init {
-      myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
-    }
-  }
-
-  companion object {
-    private val LOGGER = Logger.getInstance(AdbFileTransfer::class.java)
-  }
-
-  init {
-    myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
-    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   }
 }

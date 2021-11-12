@@ -15,33 +15,28 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.ddmlib.IDevice
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.adb.AdbShellCommandsUtil
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
-import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.adb.AdbShellCommandResult
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
-import com.android.tools.idea.explorer.adbimpl.UniqueFileNameGenerator
-import com.android.tools.idea.explorer.adbimpl.AdbShellCommandBuilder
-import kotlin.Throws
 import com.android.ddmlib.AdbCommandRejectedException
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
-import java.io.IOException
 import com.android.ddmlib.SyncException
 import com.android.ddmlib.TimeoutException
+import com.android.tools.idea.adb.AdbShellCommandException
+import com.android.tools.idea.adb.AdbShellCommandsUtil
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.flags.StudioFlags
+import com.google.common.base.Strings.emptyToNull
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.text.StringUtil
-import java.util.Objects
+import java.io.IOException
 import java.util.concurrent.Executor
-import java.util.stream.Collectors
 
-class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDeviceCapabilities, taskExecutor: Executor) {
-  private val myExecutor: FutureCallbackExecutor
-  private val myDeviceCapabilities: AdbDeviceCapabilities
+class AdbFileOperations(
+    private val myDevice: IDevice,
+    private val deviceCapabilities: AdbDeviceCapabilities,
+    taskExecutor: Executor) {
+  private val myExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   private val myShellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+
   fun createNewFile(parentPath: String, fileName: String): ListenableFuture<Unit> {
     return createNewFileRunAs(parentPath, fileName, null)
   }
@@ -49,25 +44,24 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
   fun createNewFileRunAs(parentPath: String, fileName: String, runAs: String?): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
       if (fileName.contains(AdbPathUtil.FILE_SEPARATOR)) {
-        throw AdbShellCommandException.create("File name \"%s\" contains invalid characters", fileName)
+        throw AdbShellCommandException.create("File name $fileName contains invalid characters")
       }
       val remotePath = AdbPathUtil.resolve(parentPath, fileName)
 
       // Check remote file does not exists, so that we can give a relevant error message.
       // The check + create below is not an atomic operation, but this service does not
       // aim to guarantee strong atomicity for file system operations.
-      val command: String
-      command = if (myDeviceCapabilities.supportsTestCommand()) {
-        getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
-      } else {
-        getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
+      val command = when {
+        deviceCapabilities.supportsTestCommand() ->
+          getCommand(runAs, "test -e ").withEscapedPath(remotePath).build()
+        else ->
+          getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
       }
       val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
       if (!commandResult.isError) {
-        throw AdbShellCommandException.create("File \"%s\" already exists on device", remotePath)
+        throw AdbShellCommandException.create("File $remotePath already exists on device")
       }
       touchFileRunAs(remotePath, runAs)
-      Unit
     }
   }
 
@@ -78,39 +72,31 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
   fun createNewDirectoryRunAs(parentPath: String, directoryName: String, runAs: String?): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
       if (directoryName.contains(AdbPathUtil.FILE_SEPARATOR)) {
-        throw AdbShellCommandException.create("Directory name \"%s\" contains invalid characters", directoryName)
+        throw AdbShellCommandException.create("Directory name \"$directoryName\" contains invalid characters")
       }
 
       // "mkdir" fails if the file/directory already exists
       val remotePath = AdbPathUtil.resolve(parentPath, directoryName)
       val command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build()
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-      commandResult.throwIfError()
-      Unit
+      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
     }
   }
 
-  fun listPackages(): ListenableFuture<List<String?>> {
+  fun listPackages(): ListenableFuture<List<String>> {
     return myExecutor.executeAsync {
       val command = getCommand(null, "pm list packages").build()
       val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
       commandResult.throwIfError()
-      commandResult.output.stream()
-        .map { line: String -> processPackageListLine(line) }
-        .filter { x: String? -> !StringUtil.isEmpty(x) }
-        .collect(Collectors.toList())
+      commandResult.output.mapNotNull(::processPackageListLine)
     }
   }
 
-  fun listPackageInfo(): ListenableFuture<List<PackageInfo?>> {
+  fun listPackageInfo(): ListenableFuture<List<PackageInfo>> {
     return myExecutor.executeAsync {
       val command = getCommand(null, "pm list packages -f").build()
       val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
       commandResult.throwIfError()
-      commandResult.output.stream()
-        .map { line: String -> processPackageInfoLine(line) }
-        .filter { obj: PackageInfo? -> Objects.nonNull(obj) }
-        .collect(Collectors.toList())
+      commandResult.output.mapNotNull(::processPackageInfoLine)
     }
   }
 
@@ -127,9 +113,7 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
   fun deleteFileRunAs(path: String, runAs: String?): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
       val command = getRmCommand(runAs, path, false)
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-      commandResult.throwIfError()
-      Unit
+      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
     }
   }
 
@@ -140,9 +124,7 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
   fun deleteRecursiveRunAs(path: String, runAs: String?): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
       val command = getRmCommand(runAs, path, true)
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-      commandResult.throwIfError()
-      Unit
+      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
     }
   }
 
@@ -152,15 +134,13 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
 
   fun copyFileRunAs(source: String, destination: String, runAs: String?): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
-      val command: String
-      command = if (myDeviceCapabilities.supportsCpCommand()) {
-        getCommand(runAs, "cp ").withEscapedPath(source).withText(" ").withEscapedPath(destination).build()
-      } else {
-        getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build()
+      val command = when {
+        deviceCapabilities.supportsCpCommand() ->
+          getCommand(runAs, "cp ").withEscapedPath(source).withText(" ").withEscapedPath(destination).build()
+        else ->
+          getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build()
       }
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-      commandResult.throwIfError()
-      Unit
+      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
     }
   }
 
@@ -168,7 +148,7 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
     return createTempFileRunAs(tempPath, null)
   }
 
-  fun createTempFileRunAs(tempDirectoy: String, runAs: String?): ListenableFuture<String> {
+  fun createTempFileRunAs(tempDirectory: String, runAs: String?): ListenableFuture<String> {
     return myExecutor.executeAsync {
 
       // Note: Instead of using "mktemp", we use our own unique filename generation + a call to "touch"
@@ -177,7 +157,7 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
       //       * mktemp creates a file with 600 permission, meaning the file is not
       //         accessible by processes running as "run-as"
       val tempFileName = UniqueFileNameGenerator.getInstance().getUniqueFileName("temp", "")
-      val remotePath = AdbPathUtil.resolve(tempDirectoy, tempFileName)
+      val remotePath = AdbPathUtil.resolve(tempDirectory, tempFileName)
       touchFileRunAs(remotePath, runAs)
       remotePath
     }
@@ -185,17 +165,15 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
 
   fun touchFileAsDefaultUser(remotePath: String): ListenableFuture<Unit> {
     return myExecutor.executeAsync {
-      val command: String
-      command = if (myDeviceCapabilities.supportsTouchCommand()) {
-        // Touch creates an empty file if the file does not exist.
-        // Touch fails if there are permissions errors.
-        AdbShellCommandBuilder().withText("touch ").withEscapedPath(remotePath).build()
-      } else {
-        AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build()
+      val command = when {
+        deviceCapabilities.supportsTouchCommand() ->
+          // Touch creates an empty file if the file does not exist.
+          // Touch fails if there are permissions errors.
+          AdbShellCommandBuilder().withText("touch ").withEscapedPath(remotePath).build()
+        else ->
+          AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build()
       }
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-      commandResult.throwIfError()
-      Unit
+      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
     }
   }
 
@@ -207,16 +185,15 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
     AdbShellCommandException::class
   )
   private fun touchFileRunAs(remotePath: String, runAs: String?) {
-    val command: String
-    command = if (myDeviceCapabilities.supportsTouchCommand()) {
-      // Touch creates an empty file if the file does not exist.
-      // Touch fails if there are permissions errors.
-      getCommand(runAs, "touch ").withEscapedPath(remotePath).build()
-    } else {
-      getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build()
+    val command = when {
+      deviceCapabilities.supportsTouchCommand() ->
+        // Touch creates an empty file if the file does not exist.
+        // Touch fails if there are permissions errors.
+        getCommand(runAs, "touch ").withEscapedPath(remotePath).build()
+      else ->
+        getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build()
     }
-    val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
-    commandResult.throwIfError()
+    myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
   }
 
   @Throws(
@@ -227,55 +204,43 @@ class AdbFileOperations(private val myDevice: IDevice, deviceCapabilities: AdbDe
     SyncException::class
   )
   private fun getRmCommand(runAs: String?, path: String, recursive: Boolean): String {
-    return if (myDeviceCapabilities.supportsRmForceFlag()) {
-      getCommand(runAs, String.format("rm %s-f ", if (recursive) "-r " else "")).withEscapedPath(path).build()
-    } else {
-      getCommand(runAs, String.format("rm %s", if (recursive) "-r " else "")).withEscapedPath(path).build()
-    }
+    val recursiveArg = if (recursive) "-r " else ""
+    val forceArg = if (deviceCapabilities.supportsRmForceFlag()) "-f " else ""
+    return getCommand(runAs, "rm $recursiveArg$forceArg").withEscapedPath(path).build()
   }
 
   @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
   private fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
     val command = AdbShellCommandBuilder()
-    if (myDeviceCapabilities.supportsSuRootCommand()) {
+    if (deviceCapabilities.supportsSuRootCommand()) {
       command.withSuRootPrefix()
     } else if (runAs != null) {
       command.withRunAs(runAs)
     }
     return command.withText(text)
   }
+}
 
-  companion object {
-    private fun processPackageListLine(line: String): String? {
-      val prefix = "package:"
-      return if (!line.startsWith(prefix)) {
-        null
-      } else line.substring(prefix.length)
-    }
+private const val PACKAGE_PREFIX = "package:"
 
-    private fun processPackageInfoLine(line: String): PackageInfo? {
-      // Format is: package:<path>=<name>
-      val prefix = "package:"
-      if (!line.startsWith(prefix)) {
-        return null
-      }
-      val separatorIndex = line.indexOf('=', prefix.length)
-      if (separatorIndex < 0) {
-        return null
-      }
-      val path = line.substring(prefix.length, separatorIndex).trim { it <= ' ' }
-      if (StringUtil.isEmpty(path)) {
-        return null
-      }
-      val packageName = line.substring(separatorIndex + 1).trim { it <= ' ' }
-      return if (StringUtil.isEmpty(packageName)) {
-        null
-      } else PackageInfo(packageName, path)
-    }
+private fun processPackageListLine(line: String): String? =
+  if (line.startsWith(PACKAGE_PREFIX)) emptyToNull(line.substring(PACKAGE_PREFIX.length)) else null
+
+private fun processPackageInfoLine(line: String): AdbFileOperations.PackageInfo? {
+  // Format is: package:<path>=<name>
+  if (!line.startsWith(PACKAGE_PREFIX)) {
+    return null
   }
-
-  init {
-    myExecutor = FutureCallbackExecutor.wrap(taskExecutor)
-    myDeviceCapabilities = deviceCapabilities
+  val separatorIndex = line.indexOf('=', PACKAGE_PREFIX.length)
+  if (separatorIndex < 0) {
+    return null
   }
+  val path = line.substring(PACKAGE_PREFIX.length, separatorIndex).trim { it <= ' ' }
+  if (StringUtil.isEmpty(path)) {
+    return null
+  }
+  val packageName = line.substring(separatorIndex + 1).trim { it <= ' ' }
+  return if (StringUtil.isEmpty(packageName)) {
+    null
+  } else AdbFileOperations.PackageInfo(packageName, path)
 }
