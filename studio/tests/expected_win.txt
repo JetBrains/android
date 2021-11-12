@@ -896,10 +896,12 @@ android-studio/plugins/Kotlin/kotlinc/license/COPYRIGHT_HEADER.txt
 android-studio/plugins/Kotlin/kotlinc/license/LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/NOTICE.txt
 android-studio/plugins/Kotlin/kotlinc/license/README.md
+android-studio/plugins/Kotlin/kotlinc/license/third_party/aether_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/aosp_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/args4j_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/asm_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/asmble_license.txt
+android-studio/plugins/Kotlin/kotlinc/license/third_party/assemblyscript_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/boost_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/closure-compiler_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/dart_LICENSE.txt
@@ -970,6 +972,7 @@ android-studio/plugins/Kotlin/lib/kotlin-jvm-debugger-coroutines.jar
 android-studio/plugins/Kotlin/lib/kotlin-jvm-debugger-evaluation.jar
 android-studio/plugins/Kotlin/lib/kotlin-jvm-debugger-sequence.jar
 android-studio/plugins/Kotlin/lib/kotlin-jvm-debugger-util.jar
+android-studio/plugins/Kotlin/lib/kotlin-jvm-run-configurations.jar
 android-studio/plugins/Kotlin/lib/kotlin-jvm.jar
 android-studio/plugins/Kotlin/lib/kotlin-line-indent-provider.jar
 android-studio/plugins/Kotlin/lib/kotlin-maven.jar
@@ -1855,6 +1858,9 @@ android-studio/plugins/android/resources/device-art-resources/tv_720p/back.png
 android-studio/plugins/android/resources/device-art-resources/tv_720p/fore.png
 android-studio/plugins/android/resources/device-art-resources/tv_720p/layout
 android-studio/plugins/android/resources/device-art-resources/tv_720p/shadow.png
+android-studio/plugins/android/resources/device-art-resources/wearos_large_round/device_bezel.png
+android-studio/plugins/android/resources/device-art-resources/wearos_large_round/hardware.ini
+android-studio/plugins/android/resources/device-art-resources/wearos_large_round/layout
 android-studio/plugins/android/resources/device-art-resources/wearos_small_round/back.png
 android-studio/plugins/android/resources/device-art-resources/wearos_small_round/device_bezel.png
 android-studio/plugins/android/resources/device-art-resources/wearos_small_round/fore.png
@@ -1869,9 +1875,6 @@ android-studio/plugins/android/resources/device-art-resources/wearos_square/hard
 android-studio/plugins/android/resources/device-art-resources/wearos_square/layout
 android-studio/plugins/android/resources/device-art-resources/wearos_square/mask.png
 android-studio/plugins/android/resources/device-art-resources/wearos_square/shadow.png
-android-studio/plugins/android/resources/device-art-resources/wearos_large_round/device_bezel.png
-android-studio/plugins/android/resources/device-art-resources/wearos_large_round/hardware.ini
-android-studio/plugins/android/resources/device-art-resources/wearos_large_round/layout
 android-studio/plugins/android/resources/device-art-resources/xoom/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/xoom/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/xoom/land_shadow.webp
