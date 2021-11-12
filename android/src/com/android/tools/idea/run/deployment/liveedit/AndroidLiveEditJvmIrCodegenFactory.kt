@@ -54,6 +54,12 @@ import org.jetbrains.kotlin.psi2ir.generators.generateTypicalIrProviderList
 import org.jetbrains.kotlin.psi2ir.preprocessing.SourceDeclarationsPreprocessor
 import org.jetbrains.kotlin.resolve.CleanableBindingContext
 
+/**
+ * This models after JvmIrCodegenFactory from 1.6.0 but with some temporary workaround (until the fix is merged upstream).
+ *
+ * Workaround #1: JvmIrCodegenFactory has an incorrect check that assume symbols are unbounded even
+ *                if the analysis found a definition.
+ */
 open class AndroidLiveEditJvmIrCodegenFactory(
   configuration: CompilerConfiguration,
   private val phaseConfig: PhaseConfig?,
@@ -157,7 +163,12 @@ open class AndroidLiveEditJvmIrCodegenFactory(
       }
       irLinker.deserializeIrModuleHeader(it, kotlinLibrary, _moduleName = it.name.asString())
     }
-    val irProviders = listOf(irLinker)
+
+    // Workaround #1: We add the stubGenerator as part of the irProvider. This works for Live Edit
+    //                because any references outside of the current must be available in the application's runtime already.
+    // val irProviders = listOf(irLinker)
+    val irProviders = listOf(irLinker, stubGenerator)
+
 
     val irModuleFragment =
       psi2ir.generateModuleFragment(psi2irContext, files, irProviders, pluginExtensions, expectDescriptorToSymbol = null)
