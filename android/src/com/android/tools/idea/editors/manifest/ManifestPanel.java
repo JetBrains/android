@@ -33,9 +33,6 @@ import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -692,8 +689,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                                    currentlyOpenFile));
       }
       else if ("remove".equals(action)) {
-        sb.addHtml(getErrorRemoveHtml(facet, message, position, htmlLinkManager,
-                                   currentlyOpenFile));
+        sb.add(message);
       }
     }
     else {
@@ -865,131 +861,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return sb.getHtml();
   }
 
-  @NotNull
-  private static String getErrorRemoveHtml(final @NotNull AndroidFacet facet,
-                                           @NotNull String message,
-                                           @NotNull final SourceFilePosition position,
-                                           @NotNull HtmlLinkManager htmlLinkManager,
-                                           final @Nullable VirtualFile currentlyOpenFile) {
-    /*
-    Example Input:
-    ERROR Overlay manifest:package attribute declared at AndroidManifest.xml:3:5-49
-    value=(com.foo.manifestapplication.debug) has a different value=(com.foo.manifestapplication)
-    declared in main manifest at AndroidManifest.xml:5:5-43 Suggestion: remove the overlay
-    declaration at AndroidManifest.xml and place it in the build.gradle: flavorName
-    { applicationId = "com.foo.manifestapplication.debug" } AndroidManifest.xml (debug)
-     */
-    HtmlBuilder sb = new HtmlBuilder();
-    int start = message.indexOf('{');
-    int end = message.indexOf('}', start + 1);
-    final String declaration = message.substring(start + 1, end).trim();
-    if (!declaration.startsWith("applicationId")) {
-      throw new IllegalArgumentException("unexpected remove suggestion format " + message);
-    }
-    Runnable link = null;
-
-    final String applicationId = declaration.substring(declaration.indexOf('"') + 1, declaration.lastIndexOf('"'));
-    final File manifestOverlayFile = position.getFile().getSourceFile();
-    assert manifestOverlayFile != null;
-    VirtualFile manifestOverlayVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(manifestOverlayFile);
-    assert manifestOverlayVirtualFile != null;
-
-    NamedIdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
-    assert sourceProvider != null;
-    final String name = sourceProvider.getName();
-
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
-    assert androidModuleModel != null;
-
-    final XmlFile manifestOverlayPsiFile =
-      (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
-    assert manifestOverlayPsiFile != null;
-
-
-    if (androidModuleModel.getBuildTypeNames().contains(name)) {
-      final String packageName = AndroidManifestUtils.getPackageName(facet);
-      assert packageName != null;
-      if (applicationId.startsWith(packageName)) {
-        final String applicationIdSuffix = applicationId.substring(packageName.length());
-        link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, true, applicationIdSuffix);
-      }
-    }
-    else if (androidModuleModel.getProductFlavorNames().contains(name)) {
-      link = createLinkAction(facet, manifestOverlayPsiFile, name, currentlyOpenFile, false, applicationId);
-    }
-
-    if (link != null) {
-      sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(link));
-      sb.add(message.substring(end + 1));
-    }
-    else {
-      sb.add(message);
-    }
-    return sb.getHtml();
-  }
-
-  /**
-   * Creates a link action to remove the package id from the manifest and write the given applicationIdOrSuffix to the Gradle build files.
-   *
-   * @param facet the facet that we are editing
-   * @param manifestOverlayPsiFile the manifest file to remove the package from
-   * @param name the name of the build type or product flavor to add the applicationId and applicationIdSuffix to
-   * @param currentlyOpenFile the currently open file that is marked as part of the command action
-   * @param isBuildType whether or not to edit the build type of a product flavour
-   * @param applicationIdOrSuffix either the applicationIdSuffix for build types or applicationId for product flavours
-   * @return the link the performs the action
-   */
-  @NotNull
-  private static Runnable createLinkAction(final @NotNull AndroidFacet facet,
-                                           final XmlFile manifestOverlayPsiFile,
-                                           String name,
-                                           final @Nullable VirtualFile currentlyOpenFile,
-                                           boolean isBuildType,
-                                           final @NotNull String applicationIdOrSuffix) {
-    return () -> writeCommandAction(facet.getModule().getProject(), manifestOverlayPsiFile).withName("Apply manifest suggestion").run(() -> {
-      ProjectBuildModel projectBuildModel = ProjectBuildModel.get(facet.getModule().getProject());
-      GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.getModule());
-      if (gradleBuildModel == null) {
-        String errorMessage =
-          "Could not edit build file for '" + facet.getHolderModule().getName() + "' please apply the suggestion manually";
-        ApplicationManager.getApplication()
-          .invokeLater(() -> Messages.showErrorDialog(facet.getModule().getProject(), errorMessage, "Apply Manifest Suggestion"));
-        return;
-      }
-
-      if (currentlyOpenFile != null) {
-        // We mark this action as affecting the currently open file and build file, so the Undo is available in this editor
-        CommandProcessor.getInstance()
-          .addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile, gradleBuildModel.getVirtualFile());
-      }
-      removePackageAttribute(manifestOverlayPsiFile);
-
-      if (isBuildType) {
-        BuildTypeModel buildTypeModel = gradleBuildModel.android().buildTypes().stream().filter(type -> type.name().equals(name)).findFirst()
-          .orElse(gradleBuildModel.android().addBuildType(name));
-        buildTypeModel.applicationIdSuffix().setValue(applicationIdOrSuffix);
-      } else {
-        ProductFlavorModel flavorModel = gradleBuildModel.android().productFlavors().stream().filter(type -> type.name().equals(name)).findFirst()
-          .orElse(gradleBuildModel.android().addProductFlavor(name));
-        flavorModel.applicationId().setValue(applicationIdOrSuffix);
-      }
-
-      projectBuildModel.applyChanges();
-
-      requestSync(facet.getModule().getProject());
-    });
-  }
-
-
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-  }
-
-  private static void removePackageAttribute(XmlFile manifestFile) {
-    XmlTag tag = manifestFile.getRootTag();
-    assert tag != null;
-    tag.setAttribute("package", null);
   }
 
   static void addToolsAttribute(final @NotNull XmlFile file,

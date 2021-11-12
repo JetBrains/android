@@ -42,22 +42,6 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
-  public void testResolveBuildPackageConflict() throws Exception {
-    loadProject(MANIFEST_CONFLICT_BUILD_PACKAGE);
-    String[] errors = getErrorHtml();
-    assertEquals(1, errors.length);
-    clickLink(errors[0], 0);
-    assertEquals(0, getErrorHtml().length);
-  }
-
-  public void testResolveFlavorPackageConflict() throws Exception {
-    loadProject(MANIFEST_CONFLICT_FLAVOR_PACKAGE);
-    String[] errors = getErrorHtml();
-    assertEquals(1, errors.length);
-    clickLink(errors[0], 0);
-    assertEquals(0, getErrorHtml().length);
-  }
-
   public void testResolveMinSdkConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_MIN_SDK);
     String[] errors = getErrorHtml();
