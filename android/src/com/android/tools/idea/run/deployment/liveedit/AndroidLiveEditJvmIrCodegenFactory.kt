@@ -18,31 +18,32 @@ package com.android.tools.idea.run.deployment.liveedit
 import org.jetbrains.kotlin.analyzer.hasJdkCapability
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
-import org.jetbrains.kotlin.backend.common.ir.BuiltinSymbolsBase
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
-import org.jetbrains.kotlin.backend.jvm.ir.getKtFile
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmBackendExtension
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
+import org.jetbrains.kotlin.backend.jvm.JvmIrSerializerImpl
+import org.jetbrains.kotlin.backend.jvm.JvmIrTypeSystemContext
 import org.jetbrains.kotlin.backend.jvm.JvmNameProvider
+import org.jetbrains.kotlin.backend.jvm.ir.getKtFile
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.backend.jvm.serialization.JvmIdSignatureDescriptor
 import org.jetbrains.kotlin.codegen.CodegenFactory
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.descriptors.konan.KlibModuleOrigin
 import org.jetbrains.kotlin.idea.MainFunctionDetector
+import org.jetbrains.kotlin.ir.IrBuiltIns
+import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmDescriptorMangler
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmIrLinker
-import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerDesc
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
-import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.descriptors.IrFunctionFactory
 import org.jetbrains.kotlin.ir.linkage.IrProvider
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.psi.KtFile
@@ -53,23 +54,18 @@ import org.jetbrains.kotlin.psi2ir.generators.generateTypicalIrProviderList
 import org.jetbrains.kotlin.psi2ir.preprocessing.SourceDeclarationsPreprocessor
 import org.jetbrains.kotlin.resolve.CleanableBindingContext
 
-/**
- * This models after JvmIrCodegenFactory from 1.5.30 but with some workaround
- *
- * Workaround #1: JvmIrCodegenFactory has an incorrect check that assume symbols are unbounded even
- *                if the analysis found a definition.
- */
-open class AndroidLiveEditJvmIrCodegenFactory (
-  private val phaseConfig: PhaseConfig,
-  private val externalMangler: JvmManglerDesc? = null,
+open class AndroidLiveEditJvmIrCodegenFactory(
+  configuration: CompilerConfiguration,
+  private val phaseConfig: PhaseConfig?,
+  private val externalMangler: JvmDescriptorMangler? = null,
   private val externalSymbolTable: SymbolTable? = null,
-  private val jvmGeneratorExtensions: JvmGeneratorExtensionsImpl = JvmGeneratorExtensionsImpl()
+  private val jvmGeneratorExtensions: JvmGeneratorExtensionsImpl = JvmGeneratorExtensionsImpl(configuration),
 ) : CodegenFactory {
   data class JvmIrBackendInput(
     val state: GenerationState,
     val irModuleFragment: IrModuleFragment,
     val symbolTable: SymbolTable,
-    val phaseConfig: PhaseConfig,
+    val phaseConfig: PhaseConfig?,
     val irProviders: List<IrProvider>,
     val extensions: JvmGeneratorExtensionsImpl,
     val backendExtension: JvmBackendExtension,
@@ -86,7 +82,7 @@ open class AndroidLiveEditJvmIrCodegenFactory (
     val (mangler, symbolTable) =
       if (externalSymbolTable != null) externalMangler!! to externalSymbolTable
       else {
-        val mangler = JvmManglerDesc(MainFunctionDetector(state.bindingContext, state.languageVersionSettings))
+        val mangler = JvmDescriptorMangler(MainFunctionDetector(state.bindingContext, state.languageVersionSettings))
         val symbolTable = SymbolTable(JvmIdSignatureDescriptor(mangler), IrFactoryImpl, JvmNameProvider)
         mangler to symbolTable
       }
@@ -94,11 +90,9 @@ open class AndroidLiveEditJvmIrCodegenFactory (
     val messageLogger = state.configuration[IrMessageLogger.IR_MESSAGE_LOGGER] ?: IrMessageLogger.None
     val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, jvmGeneratorExtensions)
     val pluginExtensions = IrGenerationExtension.getInstances(state.project)
-    val functionFactory = IrFunctionFactory(psi2irContext.irBuiltIns, symbolTable)
-    psi2irContext.irBuiltIns.functionFactory = functionFactory
 
     val stubGenerator =
-      DeclarationStubGeneratorImpl(psi2irContext.moduleDescriptor, symbolTable, state.languageVersionSettings, jvmGeneratorExtensions)
+      DeclarationStubGeneratorImpl(psi2irContext.moduleDescriptor, symbolTable, psi2irContext.irBuiltIns, jvmGeneratorExtensions)
     val frontEndContext = object : TranslationPluginContext {
       override val moduleDescriptor: ModuleDescriptor
         get() = psi2irContext.moduleDescriptor
@@ -112,9 +106,8 @@ open class AndroidLiveEditJvmIrCodegenFactory (
     val irLinker = JvmIrLinker(
       psi2irContext.moduleDescriptor,
       messageLogger,
-      psi2irContext.irBuiltIns,
+      JvmIrTypeSystemContext(psi2irContext.irBuiltIns),
       symbolTable,
-      functionFactory,
       frontEndContext,
       stubGenerator,
       mangler
@@ -122,7 +115,6 @@ open class AndroidLiveEditJvmIrCodegenFactory (
 
     val pluginContext by lazy {
       psi2irContext.run {
-        val symbols = BuiltinSymbolsBase(irBuiltIns, moduleDescriptor.builtIns, symbolTable.lazyWrapper)
         IrPluginContextImpl(
           moduleDescriptor,
           bindingContext,
@@ -131,8 +123,7 @@ open class AndroidLiveEditJvmIrCodegenFactory (
           typeTranslator,
           irBuiltIns,
           irLinker,
-          messageLogger,
-          symbols
+          messageLogger
         )
       }
     }
@@ -158,18 +149,18 @@ open class AndroidLiveEditJvmIrCodegenFactory (
         // Deserializer for built-ins module should exist because built-in types returned from SDK belong to that module,
         // but JDK's built-ins module might not be in current module's dependencies
         // We have to ensure that deserializer for built-ins module is created
-        irLinker.deserializeIrModuleHeader(it.builtIns.builtInsModule, null)
+        irLinker.deserializeIrModuleHeader(
+          it.builtIns.builtInsModule,
+          null,
+          _moduleName = it.builtIns.builtInsModule.name.asString()
+        )
       }
-      irLinker.deserializeIrModuleHeader(it, kotlinLibrary)
+      irLinker.deserializeIrModuleHeader(it, kotlinLibrary, _moduleName = it.name.asString())
     }
+    val irProviders = listOf(irLinker)
 
-    // Workaround #1: We add the stubGenerator as part of the irProvider. This works for Live Edit
-    //                because any references outside of the current must be available in the application's runtime already.
-    // val irProviders = listOf(irLinker)
-    val irProviders = listOf(irLinker, stubGenerator)
-
-
-    val irModuleFragment = psi2ir.generateModuleFragment(psi2irContext, files, irProviders, pluginExtensions, expectDescriptorToSymbol = null)
+    val irModuleFragment =
+      psi2ir.generateModuleFragment(psi2irContext, files, irProviders, pluginExtensions, expectDescriptorToSymbol = null)
     irLinker.postProcess()
 
     stubGenerator.unboundSymbolGeneration = true
@@ -204,9 +195,13 @@ open class AndroidLiveEditJvmIrCodegenFactory (
   }
 
   fun doGenerateFilesInternal(input: JvmIrBackendInput) {
-    val (state, irModuleFragment, symbolTable, phaseConfig, irProviders, extensions, backendExtension, notifyCodegenStart) = input
+    val (state, irModuleFragment, symbolTable, customPhaseConfig, irProviders, extensions, backendExtension, notifyCodegenStart) = input
+    val irSerializer = if (state.configuration.getBoolean(JVMConfigurationKeys.SERIALIZE_IR))
+      JvmIrSerializerImpl(state.configuration)
+    else null
+    val phaseConfig = customPhaseConfig ?: PhaseConfig(jvmPhases)
     val context = JvmBackendContext(
-      state, irModuleFragment.irBuiltins, irModuleFragment, symbolTable, phaseConfig, extensions, backendExtension,
+      state, irModuleFragment.irBuiltins, irModuleFragment, symbolTable, phaseConfig, extensions, backendExtension, irSerializer,
       notifyCodegenStart
     )
     /* JvmBackendContext creates new unbound symbols, have to resolve them. */
@@ -242,7 +237,6 @@ open class AndroidLiveEditJvmIrCodegenFactory (
     symbolTable: SymbolTable,
     extensions: JvmGeneratorExtensionsImpl,
   ): List<IrProvider> {
-    irModuleFragment.irBuiltins.functionFactory = IrFunctionFactory(irModuleFragment.irBuiltins, symbolTable)
     return generateTypicalIrProviderList(
       irModuleFragment.descriptor, irModuleFragment.irBuiltins, symbolTable, extensions = extensions
     )
