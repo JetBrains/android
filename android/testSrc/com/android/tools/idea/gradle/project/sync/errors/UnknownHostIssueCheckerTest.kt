@@ -47,7 +47,7 @@ class UnknownHostIssueCheckerTest: AndroidGradleTestCase() {
       unknownHostIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "Gradle DSL method not found",
-        "Caused by: java.net.UnknownHostException",
+        "java.net.UnknownHostException",
         null,
         "",
         TestMessageEventConsumer()

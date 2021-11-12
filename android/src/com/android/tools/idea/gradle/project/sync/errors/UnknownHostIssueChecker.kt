@@ -34,7 +34,7 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 class UnknownHostIssueChecker: GradleIssueChecker {
-  private val UNKNOWN_HOST_PATTERN = Pattern.compile("Caused by: java.net.UnknownHostException(.*)")
+  private val UNKNOWN_HOST_PATTERN = Pattern.compile("java.net.UnknownHostException(.*)")
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
