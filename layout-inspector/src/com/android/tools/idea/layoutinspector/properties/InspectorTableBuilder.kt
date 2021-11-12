@@ -40,7 +40,7 @@ class InspectorTableBuilder(
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val tableModel = create(model, filter,
+    val tableModel = create(InspectorPropertyItem::class.java, model, filter,
                             itemComparator = itemComparator,
                             valueEditable = { editorProvider.isValueClickable(it) },  // links must be editable for accessibility
                             hasCustomCursor = { editorProvider.isValueClickable(it) }) // enables cursor changes for items not being edited

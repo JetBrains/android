@@ -306,7 +306,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
       };
 
       FilteredPTableModel<NlPropertyItem> tableModel = PTableModelFactory.create(
-        customModel, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(),
+        NlPropertyItem.class, customModel, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(),
         Collections.emptyList(), false, true, p -> true, p -> false);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(myModel, selection);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
@@ -362,8 +362,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
       };
 
       FilteredPTableModel<NlPropertyItem> tableModel =
-        PTableModelFactory.create(model, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(),
-                                  true, true, p -> true, p -> false);
+        PTableModelFactory.create(NlPropertyItem.class, model, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(),
+                                  Collections.emptyList(), true, true, p -> true, p -> false);
       SubSectionControlAction controlAction = new SubSectionControlAction(any);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, model.getProperties());
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction();

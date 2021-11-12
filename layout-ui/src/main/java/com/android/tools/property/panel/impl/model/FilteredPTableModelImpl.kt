@@ -39,6 +39,7 @@ import com.android.tools.property.ptable2.PTableModelUpdateListener
  * this table.
  */
 class FilteredPTableModelImpl<P : PropertyItem>(
+  private val valueType: Class<P>,
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
   private val insertOperation: ((String, String) -> P?)?,
@@ -123,7 +124,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
 
   @Suppress("UNCHECKED_CAST")
   override fun hasCustomCursor(item: PTableItem, column: PTableColumn): Boolean =
-    (column == PTableColumn.VALUE) && hasCustomCursor(item as P)
+    (column == PTableColumn.VALUE) && valueType.isInstance(item) && hasCustomCursor(item as P)
 
   override fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean {
     // Accept any move to the next editor unless we know that that the current row

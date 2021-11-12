@@ -130,6 +130,7 @@ class FavoritesInspectorBuilder(
     }
     val favorites = loadFavoritePropertiesIfNeeded()
     val favoritesTableModel = FilteredPTableModel.create(
+      NlPropertyItem::class.java,
       model,
       itemFilter = { favorites.contains(it.asReference) },
       insertOperation = ::insertNewItem,

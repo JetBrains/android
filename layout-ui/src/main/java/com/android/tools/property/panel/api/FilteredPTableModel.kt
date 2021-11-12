@@ -67,6 +67,7 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * group name. The items are sorted using [itemComparator].
      */
     fun <P : PropertyItem> create(
+      valueType: Class<P>,
       model: PropertiesModel<P>,
       itemFilter: (P) -> Boolean,
       insertOperation: ((String, String) -> P?)? = null,
@@ -78,8 +79,8 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
       valueEditable: (P) -> Boolean = { true },
       hasCustomCursor: (P) -> Boolean = { false }
     ): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, insertOperation, deleteOperation, itemComparator, groups, keepNewAfterFlyAway,
-                                     allowEditing, valueEditable, hasCustomCursor)
+      return FilteredPTableModelImpl(valueType, model, itemFilter, insertOperation, deleteOperation, itemComparator, groups,
+                                     keepNewAfterFlyAway, allowEditing, valueEditable, hasCustomCursor)
     }
   }
 }

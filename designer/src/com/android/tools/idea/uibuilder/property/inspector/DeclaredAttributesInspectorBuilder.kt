@@ -69,7 +69,14 @@ class DeclaredAttributesInspectorBuilder(
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(model, { it.rawValue != null }, insertOp, { it.value = null }, androidSortOrder)
+    val declaredTableModel = FilteredPTableModel.create(
+      NlPropertyItem::class.java,
+      model,
+      { it.rawValue != null },
+      insertOp,
+      { it.value = null },
+      androidSortOrder
+    )
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)

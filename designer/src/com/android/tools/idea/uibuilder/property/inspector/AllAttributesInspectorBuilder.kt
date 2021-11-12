@@ -46,7 +46,7 @@ class AllAttributesInspectorBuilder(
     }
 
     val allTableModel = FilteredPTableModel.create(
-      model, itemFilter = { true }, itemComparator = alphabeticalSortOrder, groups = createGroups(properties))
+      NlPropertyItem::class.java, model, itemFilter = { true }, itemComparator = alphabeticalSortOrder, groups = createGroups(properties))
     val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
     inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
   }
