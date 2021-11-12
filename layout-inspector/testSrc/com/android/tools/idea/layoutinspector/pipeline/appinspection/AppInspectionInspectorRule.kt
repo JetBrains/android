@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
@@ -54,6 +55,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 class AppInspectionClientProvider(
   private val getApiServices: () -> AppInspectionApiServices,
   private val getScope: () -> CoroutineScope,
+  private val getMonitor: () -> InspectorClientLaunchMonitor,
   private val parentDisposable: Disposable
 )
   : InspectorClientProvider {
@@ -61,7 +63,9 @@ class AppInspectionClientProvider(
     val apiServices = getApiServices()
 
     return AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
-                                        parentDisposable, apiServices, getScope())
+                                        parentDisposable, apiServices, getScope()).apply {
+      launchMonitor = getMonitor()
+    }
   }
 }
 
@@ -129,11 +133,11 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(): AppInspectionClientProvider {
+  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()): AppInspectionClientProvider {
     return AppInspectionClientProvider({ inspectionService.apiServices }, {
       // We might want to shut down the client and create a new one, so it needs its own supervisor scope
       inspectionService.scope.createChildScope(true)
-    }, parentDisposable)
+    }, { monitor }, parentDisposable)
   }
 
   override fun apply(base: Statement, description: Description): Statement {
