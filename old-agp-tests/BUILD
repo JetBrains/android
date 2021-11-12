@@ -1,7 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load(":agp_versions.bzl", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5", "GRADLE_LATEST", "local_old_agp_test")
+load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_5", "GRADLE_LATEST", "local_old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -137,6 +137,16 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
+    ],
+)
+
+local_old_agp_test(
+    agp_version = AGP_3_1_4,
+    gradle_version = GRADLE_5_3_1,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
     ],
 )
 

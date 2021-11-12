@@ -31,6 +31,7 @@ COMMON_MAVEN_DEPS = [
     "//tools/data-binding:data_binding_runtime.zip",
 ]
 
+AGP_3_1_4 = "3.1.4"
 AGP_3_3_2 = "3.3.2"
 AGP_3_5 = "3.5.0"
 AGP_4_0 = "4.0.0"
@@ -38,6 +39,7 @@ AGP_4_1 = "4.1.0"
 AGP_4_2 = "4.2.0"
 
 AGP_MAVEN_REPOS = {
+    AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
     AGP_3_3_2: ["//tools/base/build-system/previous-versions:3.3.2"],
     AGP_3_5: ["//tools/base/build-system/previous-versions:3.5.0"],
     AGP_4_0: ["//tools/base/build-system/previous-versions:4.0.0"],
@@ -46,6 +48,7 @@ AGP_MAVEN_REPOS = {
 }
 
 AGP_DATA = {
+    AGP_3_1_4: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
     AGP_3_3_2: ["//prebuilts/studio/sdk:build-tools/28.0.3"],
     AGP_3_5: [
         "//prebuilts/studio/sdk:build-tools/28.0.3",
