@@ -1,2 +1,2 @@
 # The version of the Kotlin IDE plugin that is bundled in Android Studio.
-KOTLIN_IDE_VERSION = "1.5.31"
+KOTLIN_IDE_VERSION = "1.6.0"
