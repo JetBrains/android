@@ -13,173 +13,187 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.ThrottledProgress;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.Executor;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.isDirectory
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.size
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.fs.ThrottledProgress
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.FileTransferWorkEstimatorProgress
+import com.android.tools.idea.explorer.FileTransferWorkEstimate
+import com.android.tools.idea.explorer.FileTransferWorkEstimator
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import java.io.File
+import java.lang.Runnable
+import java.nio.file.Path
+import java.util.concurrent.Executor
 
 /**
  * Helper class used to estimate the amount of work required to transfer files from/to a device.
  * The work is estimated in terms of arbitrary "work units", which can be computed by calling
- * the {@link #estimateDownloadWork(DeviceFileEntry, boolean, FileTransferWorkEstimatorProgress)} or
- * {@link #estimateUploadWork(Path, FileTransferWorkEstimatorProgress)}
+ * the [.estimateDownloadWork] or
+ * [.estimateUploadWork]
  * methods.
  *
- * <p>NOTE: Work Units: When transferring files to/from a device, there is a cost proportional to the
+ *
+ * NOTE: Work Units: When transferring files to/from a device, there is a cost proportional to the
  * amount of bytes transferred to/from the device, but there is also a (non-trivial) fixed cost
  * (a few milliseconds typically) per file/directory corresponding to the initial round-trip to
  * the device (either to create the file, or check its existence).
  *
- * <p>For example, when transferring 2,999 1-byte files and one 1MB file, the transfer
- *    time will be dominated by the # of files, not by amount of bytes, so we need a model
- *    that tries to reflect this additional fixed cost.
  *
- * <p>Options:
- * <ul>
- *   <li>If we had no fixed cost and a cost of 1 per byte, progress would stay at 0 for the
- *   first 2,999 files, then grow very quickly from 0 to 100% while transferring the 1MB file.
- *   This would clearly be inadequate.</li>
+ * For example, when transferring 2,999 1-byte files and one 1MB file, the transfer
+ * time will be dominated by the # of files, not by amount of bytes, so we need a model
+ * that tries to reflect this additional fixed cost.
  *
- *   <li>If we had a fixed cost 1 and a cost of 1 per byte, the total work would be 1,000,000 + 3,000,
- *   meaning the creation of the first 2,999 files would count for about .2% of the total estimated
- *   progress, while the creation and transfer of the 1 MB file would account for remaining 99.8%.
- *   This model is still inadequate, because it underestimate file creation costs.</li>
  *
- *   <li>By picking a larger value for the fixed cost (currently {@code 64,000}), the total work
- *   becomes 1,000,000 + (3,000 * 64,000) = 193,000,000, so the cost of transferring the 2,999
- *   small files account for 99% of the transfer time (2,999 * 64,000), which is closer to actual
- *   time spent transferring the 3,000 files.</li>
- * </ul>
+ * Options:
  *
- * <p>The {@link #getDirectoryWorkUnits()} and {@link #getFileWorkUnits()} methods return the
+ *  * If we had no fixed cost and a cost of 1 per byte, progress would stay at 0 for the
+ * first 2,999 files, then grow very quickly from 0 to 100% while transferring the 1MB file.
+ * This would clearly be inadequate.
+ *
+ *  * If we had a fixed cost 1 and a cost of 1 per byte, the total work would be 1,000,000 + 3,000,
+ * meaning the creation of the first 2,999 files would count for about .2% of the total estimated
+ * progress, while the creation and transfer of the 1 MB file would account for remaining 99.8%.
+ * This model is still inadequate, because it underestimate file creation costs.
+ *
+ *  * By picking a larger value for the fixed cost (currently `64,000`), the total work
+ * becomes 1,000,000 + (3,000 * 64,000) = 193,000,000, so the cost of transferring the 2,999
+ * small files account for 99% of the transfer time (2,999 * 64,000), which is closer to actual
+ * time spent transferring the 3,000 files.
+ *
+ *
+ *
+ * The [.getDirectoryWorkUnits] and [.getFileWorkUnits] methods return the
  * estimated fixed cost (in work units) of creating 1 file/directory.
  *
- * <p>The {@link #getFileContentsWorkUnits(long)} returns the estimated cost (in work units)
+ *
+ * The [.getFileContentsWorkUnits] returns the estimated cost (in work units)
  * proportional to the amount of bytes to transfer.
  */
-public class FileTransferWorkEstimator {
-  private static final int DIRECTORY_TRANSFER_WORK_UNITS = 64_000;
-  private static final int FILE_TRANSFER_WORK_UNITS = 64_000;
-  private static final int PROGRESS_REPORT_INTERVAL_MILLIS = 50;
-  @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @NotNull private final FutureCallbackExecutor myTaskExecutor;
-  @NotNull private final ThrottledProgress myThrottledProgress;
-
-  FileTransferWorkEstimator(@NotNull Executor edtExecutor, @NotNull Executor taskExecutor) {
-    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor);
-    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor);
-    myThrottledProgress = new ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS);
+class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, taskExecutor: Executor) {
+  private val myEdtExecutor: FutureCallbackExecutor
+  private val myTaskExecutor: FutureCallbackExecutor
+  private val myThrottledProgress: ThrottledProgress
+  fun estimateDownloadWork(
+    entry: DeviceFileEntry,
+    isLinkToDirectory: Boolean,
+    progress: FileTransferWorkEstimatorProgress
+  ): ListenableFuture<FileTransferWorkEstimate> {
+    val workEstimate = FileTransferWorkEstimate()
+    val future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress)
+    return myEdtExecutor.transform(future) { aVoid: Unit -> workEstimate }
   }
 
-  public static long getDirectoryWorkUnits() {
-    return DIRECTORY_TRANSFER_WORK_UNITS;
-  }
-
-  public static long getFileWorkUnits() {
-    return FILE_TRANSFER_WORK_UNITS;
-  }
-
-  public static long getFileContentsWorkUnits(long byteCount) {
-    return byteCount;
-  }
-
-  public ListenableFuture<FileTransferWorkEstimate> estimateDownloadWork(@NotNull DeviceFileEntry entry,
-                                                                         boolean isLinkToDirectory,
-                                                                         @NotNull FileTransferWorkEstimatorProgress progress) {
-    FileTransferWorkEstimate workEstimate = new FileTransferWorkEstimate();
-    ListenableFuture<Unit> future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress);
-    return myEdtExecutor.transform(future, aVoid -> workEstimate);
-  }
-
-  public ListenableFuture<Unit> estimateDownloadWorkWorker(@NotNull DeviceFileEntry entry,
-                                                           boolean isLinkToDirectory,
-                                                           @NotNull FileTransferWorkEstimate estimate,
-                                                           @NotNull FileTransferWorkEstimatorProgress progress) {
-    if (progress.isCancelled()) {
-      return Futures.immediateCancelledFuture();
+  fun estimateDownloadWorkWorker(
+    entry: DeviceFileEntry,
+    isLinkToDirectory: Boolean,
+    estimate: FileTransferWorkEstimate,
+    progress: FileTransferWorkEstimatorProgress
+  ): ListenableFuture<Unit> {
+    if (progress.isCancelled) {
+      return Futures.immediateCancelledFuture()
     }
-    reportProgress(estimate, progress);
-
-    if (entry.isDirectory() || isLinkToDirectory) {
-      ListenableFuture<List<DeviceFileEntry>> futureEntries = entry.getEntries();
-      return myEdtExecutor.transformAsync(futureEntries, entries -> {
-        assert entries != null;
-        estimate.addDirectoryCount(1);
-        estimate.addWorkUnits(getDirectoryWorkUnits());
-        return myEdtExecutor.executeFuturesInSequence(entries.iterator(),
-                                                      childEntry -> estimateDownloadWorkWorker(childEntry, false, estimate, progress));
-      });
-    }
-    else {
-      estimate.addFileCount(1);
-      estimate.addWorkUnits(getFileWorkUnits() + getFileContentsWorkUnits(entry.getSize()));
-      return Futures.immediateFuture(null);
+    reportProgress(estimate, progress)
+    return if (entry.isDirectory || isLinkToDirectory) {
+      val futureEntries = entry.entries
+      myEdtExecutor.transformAsync(futureEntries) { entries: List<DeviceFileEntry>? ->
+        assert(entries != null)
+        estimate.addDirectoryCount(1)
+        estimate.addWorkUnits(directoryWorkUnits)
+        myEdtExecutor.executeFuturesInSequence(
+          entries!!.iterator()
+        ) { childEntry: DeviceFileEntry -> estimateDownloadWorkWorker(childEntry, false, estimate, progress) }
+      }
+    } else {
+      estimate.addFileCount(1)
+      estimate.addWorkUnits(fileWorkUnits + getFileContentsWorkUnits(entry.size))
+      Futures.immediateFuture(null)
     }
   }
 
-  public ListenableFuture<FileTransferWorkEstimate> estimateUploadWork(@NotNull Path path,
-                                                                       @NotNull FileTransferWorkEstimatorProgress progress) {
-    ListenableFuture<FileTransferWorkEstimate> futureEstimate = myTaskExecutor.executeAsync(() -> {
-      FileTransferWorkEstimate workEstimate = new FileTransferWorkEstimate();
+  fun estimateUploadWork(
+    path: Path,
+    progress: FileTransferWorkEstimatorProgress
+  ): ListenableFuture<FileTransferWorkEstimate?> {
+    val futureEstimate = myTaskExecutor.executeAsync {
+      val workEstimate = FileTransferWorkEstimate()
       if (!estimateUploadWorkWorker(path.toFile(), workEstimate, progress)) {
-        return null;
+        return@executeAsync null
       }
-      return workEstimate;
-    });
+      workEstimate
+    }
     // Handle "cancel" case
-    return myTaskExecutor.transformAsync(futureEstimate, estimate -> {
+    return myTaskExecutor.transformAsync(futureEstimate) { estimate: FileTransferWorkEstimate? ->
       if (estimate == null) {
-        return Futures.immediateCancelledFuture();
+        return@transformAsync Futures.immediateCancelledFuture<FileTransferWorkEstimate>()
       }
-      return Futures.immediateFuture(estimate);
-    });
+      Futures.immediateFuture(estimate)
+    }
   }
 
-  private boolean estimateUploadWorkWorker(@NotNull File file,
-                                           @NotNull FileTransferWorkEstimate estimate,
-                                           @NotNull FileTransferWorkEstimatorProgress progress) {
-    if (progress.isCancelled()) {
-      return false;
+  private fun estimateUploadWorkWorker(
+    file: File,
+    estimate: FileTransferWorkEstimate,
+    progress: FileTransferWorkEstimatorProgress
+  ): Boolean {
+    if (progress.isCancelled) {
+      return false
     }
-    reportProgress(estimate, progress);
-
-    if (file.isDirectory()) {
-      estimate.addWorkUnits(getDirectoryWorkUnits());
-      estimate.addDirectoryCount(1);
-      File[] children = file.listFiles();
+    reportProgress(estimate, progress)
+    if (file.isDirectory) {
+      estimate.addWorkUnits(directoryWorkUnits)
+      estimate.addDirectoryCount(1)
+      val children = file.listFiles()
       if (children != null) {
-        for (File child : children) {
+        for (child in children) {
           if (!estimateUploadWorkWorker(child, estimate, progress)) {
-            return false;
+            return false
           }
         }
       }
+    } else {
+      estimate.addWorkUnits(fileWorkUnits + getFileContentsWorkUnits(file.length()))
+      estimate.addFileCount(1)
     }
-    else {
-      estimate.addWorkUnits(getFileWorkUnits() + getFileContentsWorkUnits(file.length()));
-      estimate.addFileCount(1);
-    }
-
-    return true;
+    return true
   }
 
-  private void reportProgress(@NotNull FileTransferWorkEstimate estimate, @NotNull FileTransferWorkEstimatorProgress progress) {
+  private fun reportProgress(estimate: FileTransferWorkEstimate, progress: FileTransferWorkEstimatorProgress) {
     if (myThrottledProgress.check()) {
       // Capture values for lambda (since lambda may be executed after some delay)
-      final int fileCount = estimate.getFileCount();
-      final int directoryCount = estimate.getDirectoryCount();
+      val fileCount = estimate.fileCount
+      val directoryCount = estimate.directoryCount
 
       // Report progress on the EDT executor
-      myEdtExecutor.execute(() -> progress.progress(fileCount, directoryCount));
+      myEdtExecutor.execute { progress.progress(fileCount, directoryCount) }
     }
+  }
+
+  companion object {
+    private const val DIRECTORY_TRANSFER_WORK_UNITS = 64000
+    private const val FILE_TRANSFER_WORK_UNITS = 64000
+    private const val PROGRESS_REPORT_INTERVAL_MILLIS = 50
+    @JvmStatic
+    val directoryWorkUnits: Long
+      get() = DIRECTORY_TRANSFER_WORK_UNITS.toLong()
+    @JvmStatic
+    val fileWorkUnits: Long
+      get() = FILE_TRANSFER_WORK_UNITS.toLong()
+
+    @JvmStatic
+    fun getFileContentsWorkUnits(byteCount: Long): Long {
+      return byteCount
+    }
+  }
+
+  init {
+    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
+    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+    myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
   }
 }
