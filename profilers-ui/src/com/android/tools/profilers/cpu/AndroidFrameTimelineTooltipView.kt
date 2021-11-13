@@ -32,15 +32,17 @@ class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFr
   @VisibleForTesting val container = JBPanel<Nothing>(TabularLayout("*").setVGap(12))
   @VisibleForTesting val typeLabel = JBLabel().apply { font = ProfilerFonts.H3_FONT }
   @VisibleForTesting val frameLabel = JBLabel()
-  @VisibleForTesting val durationlabel = JBLabel()
+  @VisibleForTesting val actualLabel = JBLabel()
+  @VisibleForTesting val startLabel = JBLabel()
   @VisibleForTesting val expectedLabel = JBLabel()
 
   init {
     with(container) {
       add(typeLabel, TabularLayout.Constraint(0, 0))
       add(frameLabel, TabularLayout.Constraint(1, 0))
-      add(durationlabel, TabularLayout.Constraint(2, 0))
-      add(expectedLabel, TabularLayout.Constraint(3, 0))
+      add(actualLabel, TabularLayout.Constraint(2, 0))
+      add(startLabel, TabularLayout.Constraint(3, 0))
+      add(expectedLabel, TabularLayout.Constraint(4, 0))
       add(AdtUiUtils.createHorizontalSeparator(), TabularLayout.Constraint(5, 0))
       add(JBLabel("Click to inspect").apply { foreground = ProfilerColors.TOOLTIP_LOW_CONTRAST },
           TabularLayout.Constraint(6, 0))
@@ -54,13 +56,14 @@ class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFr
   private fun updateView() = when (val event = tooltip.activeEvent) {
     null -> container.isVisible = false
     else -> {
+      fun offset(us: Long) = us - tooltip.model.capture.range.min.toLong()
       container.isVisible = true
       typeLabel.isVisible = event.isJank
       typeLabel.text = event.appJankType.getTitle()
       frameLabel.text = "Frame: ${event.surfaceFrameToken}"
-      durationlabel.text = "Duration: ${TimeFormatter.getSingleUnitDurationString(event.actualDurationUs)}"
-      expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(
-        event.expectedEndUs - tooltip.model.capture.range.min.toLong())}"
+      startLabel.text = "Start: ${TimeFormatter.getSemiSimplifiedClockString(offset(event.expectedStartUs))}"
+      expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(offset(event.expectedEndUs))}"
+      actualLabel.text = "Actual end: ${TimeFormatter.getSemiSimplifiedClockString(event.actualEndUs)}"
     }
   }
 }

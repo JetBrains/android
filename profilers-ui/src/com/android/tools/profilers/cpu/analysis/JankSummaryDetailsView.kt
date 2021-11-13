@@ -19,19 +19,22 @@ import com.android.tools.adtui.PaginatedTableView
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.LazyDataSeries
-import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.analysis.TableUtils.setColumnRenderers
+import com.android.tools.profilers.cpu.getActiveColor
 import com.android.tools.profilers.cpu.systemtrace.getTitle
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.Graphics
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableCellRenderer
+import kotlin.math.min
 
 class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnalysisModel.Summary)
       : SummaryDetailsViewBase<JankAnalysisModel.Summary>(profilersView, model) {
@@ -45,15 +48,30 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
         })
     val event = model.event
 
-    addRowToCommonSection("Jank type", JBLabel(event.appJankType.getTitle()))
+    addRowToCommonSection("Jank type", JBLabel(event.appJankType.getTitle()).apply {
+      foreground = event.getActiveColor()
+    })
     addRowToCommonSection("Display timing", JBLabel(event.presentType.getTitle()))
-    addRowToCommonSection("App deadline",
+    addRowToCommonSection("Deadline",
                           JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.expectedEndUs))))
-    addRowToCommonSection("Actual render time",
-                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.actualEndUs))))
-    addRowToCommonSection("Expected duration", JBLabel(TimeFormatter.getSingleUnitDurationString(event.expectedDurationUs)))
-    addRowToCommonSection("Actual duration", JBLabel(TimeFormatter.getSingleUnitDurationString(event.actualDurationUs)))
-    addSection(hideablePanel("Events associated with Jank",
+    addRowToCommonSection("Actual end",
+                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.actualEndUs))).apply {
+                            foreground = event.getActiveColor()
+                          })
+
+    val (expectedPercent, actualPercent) = when {
+      event.expectedDurationUs < event.actualDurationUs -> (event.expectedDurationUs * 100 / event.actualDurationUs).toInt() to 100
+      event.expectedDurationUs > 0 -> 100 to (event.actualDurationUs * 100 / event.expectedDurationUs).toInt()
+      else -> 100 to 100
+    }
+    val maxDurationBarWidth = 100
+    addRowToCommonSection("Expected duration",
+                          FilledLabel(TimeFormatter.getSingleUnitDurationString(event.expectedDurationUs),
+                                      ProfilerColors.CAPTURE_SPARKLINE, expectedPercent, maxDurationBarWidth))
+    addRowToCommonSection("Actual duration",
+                          FilledLabel(TimeFormatter.getSingleUnitDurationString(event.actualDurationUs),
+                                      event.getActiveColor(), actualPercent, maxDurationBarWidth))
+    addSection(hideablePanel("Events associated with frame",
                              EventTable.of(capture,
                                            model.getThreadChildren(model.renderThreadId) to "Render",
                                            model.getThreadChildren(model.gpuThreadId) to "GPU",
@@ -65,6 +83,15 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
                                           LazyDataSeries{model.getThreadState(model.gpuThreadId)}),
                                    model.eventRange)
                  .component)
+  }
+}
+
+private class FilledLabel(text: String, private val barColor: Color, private val percent: Int, private val maxBarWidth: Int): JBLabel(text) {
+  init { require(percent in 0 .. 100) }
+  override fun paintComponent(g: Graphics) {
+    g.color = barColor
+    g.fillRect(0, 0, min(width, maxBarWidth) * percent / 100, height)
+    super.paintComponent(g)
   }
 }
 

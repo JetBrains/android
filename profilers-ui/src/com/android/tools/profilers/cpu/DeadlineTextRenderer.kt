@@ -28,7 +28,7 @@ class DeadlineTextRenderer(private val vsyncEnabler: BooleanSupplier): TrackRend
     VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(content,
                                                         model.viewRange,
                                                         model.multiSelectionModel,
-                                                        GrayOutMode.NONE, true, "Expected deadline"),
+                                                        GrayOutMode.NONE, true, "Deadline"),
     model.vsyncSeries, vsyncEnabler)
   }
 }
