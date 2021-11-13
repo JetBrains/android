@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.DragAndDropList
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
@@ -68,7 +67,6 @@ class CpuThreadsViewTest {
 
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    stage.enter()
   }
 
   @Test
@@ -99,14 +97,7 @@ class CpuThreadsViewTest {
   @Test
   fun testHideablePanelsHaveItemCountsAsTitle() {
     val threadsView = CpuThreadsView(stage)
-    stage.studioProfilers.stage = stage
-    stage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
-    CpuProfilerTestUtils.captureSuccessfully(
-      stage,
-      cpuService,
-      transportService,
-      CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile()))
-    stage.timeline.viewRange.set(stage.capture!!.range)
+    stage.timeline.viewRange.set(0.0, 1.0)
 
     // Find our thread list.
     val hideablePanel = TreeWalker(threadsView.component).ancestors().filterIsInstance<HideablePanel>().first()

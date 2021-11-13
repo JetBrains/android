@@ -26,7 +26,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,19 +59,6 @@ public final class StudioProfilersCommonTest {
     profilers.setMonitoringStage();
 
     assertThat(profilers.getTimeline().getSelectionRange().isEmpty()).isTrue();
-  }
-
-  @Test
-  public void testProfilerModeChange() throws Exception {
-    StudioProfilers profilers = getProfilersWithDeviceAndProcess();
-    assertThat(profilers.getMode()).isEqualTo(ProfilerMode.NORMAL);
-    CpuProfilerStage stage = new CpuProfilerStage(profilers);
-    profilers.setStage(stage);
-    assertThat(profilers.getMode()).isEqualTo(ProfilerMode.NORMAL);
-    stage.setAndSelectCapture(CpuProfilerTestUtils.getValidCapture());
-    assertThat(profilers.getMode()).isEqualTo(ProfilerMode.EXPANDED);
-    profilers.setMonitoringStage();
-    assertThat(profilers.getMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   private StudioProfilers getProfilersWithDeviceAndProcess() {

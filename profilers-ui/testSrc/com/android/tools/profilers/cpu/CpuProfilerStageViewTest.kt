@@ -40,6 +40,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
@@ -78,7 +79,10 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
-  @get:Rule val myEdtRule = EdtRule()
+  @get:Rule
+  val myEdtRule = EdtRule()
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var myStage: CpuProfilerStage
 
@@ -225,21 +229,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewOrigin.x, usageViewOrigin.y)
     assertThat(myStage.tooltip).isInstanceOf(CpuProfilerStageCpuUsageTooltip::class.java)
-  }
-
-  @Test
-  fun showsCpuCaptureViewWhenExpanded() {
-    val stageView = CpuProfilerStageView(myProfilersView, myStage)
-
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
-    // As we don't have an access to change the mode directly,
-    // we're changing to expanded mode indirectly.
-    myStage.capture = CpuProfilerUITestUtils.validCapture()
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
-
-    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
-    assertThat(splitter.secondComponent).isNotNull()
-    assertThat(splitter.secondComponent.isVisible).isTrue()
   }
 
   @Test

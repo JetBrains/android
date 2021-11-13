@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.1.0-dev">
+<issues format="5" by="lint 7.2.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -14,7 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="155"/>
+            line="141"/>
     </issue>
 
     <issue
@@ -22,15 +22,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="213"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="466"/>
+            line="179"/>
     </issue>
 
     <issue
@@ -78,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="108"/>
+            line="110"/>
     </issue>
 
     <issue
@@ -86,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="243"/>
+            line="256"/>
     </issue>
 
     <issue
@@ -94,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="285"/>
+            line="298"/>
     </issue>
 
     <issue
@@ -102,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="291"/>
+            line="304"/>
     </issue>
 
     <issue
@@ -110,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="296"/>
+            line="309"/>
     </issue>
 
     <issue
@@ -118,7 +110,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="300"/>
+            line="313"/>
     </issue>
 
     <issue
@@ -126,7 +118,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="306"/>
+            line="319"/>
     </issue>
 
     <issue
@@ -134,7 +126,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="343"/>
+            line="379"/>
     </issue>
 
     <issue
@@ -142,7 +134,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="346"/>
+            line="382"/>
     </issue>
 
     <issue
@@ -150,7 +142,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="348"/>
+            line="384"/>
     </issue>
 
     <issue
@@ -158,7 +150,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="68"/>
+            line="60"/>
     </issue>
 
     <issue
@@ -166,7 +158,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="129"/>
+            line="120"/>
     </issue>
 
     <issue
@@ -174,7 +166,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfTraceParser.java"
-            line="343"/>
+            line="373"/>
     </issue>
 
     <issue
