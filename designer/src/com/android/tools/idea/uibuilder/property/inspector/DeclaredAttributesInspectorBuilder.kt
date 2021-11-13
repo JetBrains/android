@@ -58,9 +58,7 @@ class DeclaredAttributesInspectorBuilder(
   private val nameEditorProvider = EditorProvider.createForNames<NlNewPropertyItem>()
   private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-  private val tableUIProvider = TableUIProvider.create(
-    NlNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-    NlPropertyItem::class.java, controlTypeProvider, editorProvider)
+  private val tableUIProvider = TableUIProvider(nameControlTypeProvider, nameEditorProvider, controlTypeProvider, editorProvider)
   private val insertOp = ::insertNewItem
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
@@ -69,14 +67,7 @@ class DeclaredAttributesInspectorBuilder(
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(
-      NlPropertyItem::class.java,
-      model,
-      { it.rawValue != null },
-      insertOp,
-      { it.value = null },
-      androidSortOrder
-    )
+    val declaredTableModel = FilteredPTableModel(model, { it.rawValue != null }, insertOp, { it.value = null }, androidSortOrder)
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)

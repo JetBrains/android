@@ -44,43 +44,42 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * Comparator that is sorting [PTableItem] in alphabetical sorting order.
      */
     val alphabeticalSortOrder: Comparator<PTableItem> = Comparator.comparing(PTableItem::name)
-
-    /**
-     * Create an implementation of this interface.
-     *
-     * The [model] specifies where the items are retrieved from. Only
-     * the items satisfying the [itemFilter] are included in the table.
-     *
-     * The [refresh] method will repopulate the table with items from
-     * the available properties from the [model] applying the [itemFilter].
-     * The [deleteOperation] is applied when [removeItem] is called.
-     * If the model includes an item implementing [NewPropertyItem] that
-     * item will be excluded if a corresponding matching item is found
-     * in the [model] except if [keepNewAfterFlyAway] is true, then the
-     * item will be included at the end of the table after setting its
-     * name to null i.e. the new item line will be ready for the user
-     * to add another item to the table.
-     * Use [allowEditing] to turn off editing completely in all cells.
-     * Use [valueEditable] to turn off editing for some values. Group item
-     * and items implementing [NewPropertyItem] will be editable regardless.
-     * The [groups] specifies which item are grouped under a specified
-     * group name. The items are sorted using [itemComparator].
-     */
-    fun <P : PropertyItem> create(
-      valueType: Class<P>,
-      model: PropertiesModel<P>,
-      itemFilter: (P) -> Boolean,
-      insertOperation: ((String, String) -> P?)? = null,
-      deleteOperation: ((P) -> Unit)? = null,
-      itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
-      groups: List<GroupSpec<P>> = emptyList(),
-      keepNewAfterFlyAway: Boolean = true,
-      allowEditing: Boolean = true,
-      valueEditable: (P) -> Boolean = { true },
-      hasCustomCursor: (P) -> Boolean = { false }
-    ): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(valueType, model, itemFilter, insertOperation, deleteOperation, itemComparator, groups,
-                                     keepNewAfterFlyAway, allowEditing, valueEditable, hasCustomCursor)
-    }
   }
+}
+
+/**
+ * Create an implementation of [FilteredPTableModel].
+ *
+ * The [model] specifies where the items are retrieved from. Only
+ * the items satisfying the [itemFilter] are included in the table.
+ *
+ * The [refresh] method will repopulate the table with items from
+ * the available properties from the [model] applying the [itemFilter].
+ * The [deleteOperation] is applied when [removeItem] is called.
+ * If the model includes an item implementing [NewPropertyItem] that
+ * item will be excluded if a corresponding matching item is found
+ * in the [model] except if [keepNewAfterFlyAway] is true, then the
+ * item will be included at the end of the table after setting its
+ * name to null i.e. the new item line will be ready for the user
+ * to add another item to the table.
+ * Use [allowEditing] to turn off editing completely in all cells.
+ * Use [valueEditable] to turn off editing for some values. Group item
+ * and items implementing [NewPropertyItem] will be editable regardless.
+ * The [groups] specifies which item are grouped under a specified
+ * group name. The items are sorted using [itemComparator].
+ */
+inline fun <reified P : PropertyItem> FilteredPTableModel(
+  model: PropertiesModel<P>,
+  noinline itemFilter: (P) -> Boolean,
+  noinline insertOperation: ((String, String) -> P?)? = null,
+  noinline deleteOperation: ((P) -> Unit)? = null,
+  itemComparator: Comparator<PTableItem> = FilteredPTableModel.alphabeticalSortOrder,
+  groups: List<GroupSpec<P>> = emptyList(),
+  keepNewAfterFlyAway: Boolean = true,
+  allowEditing: Boolean = true,
+  noinline valueEditable: (P) -> Boolean = { true },
+  noinline hasCustomCursor: (P) -> Boolean = { false }
+): FilteredPTableModel<P> {
+  return FilteredPTableModelImpl(P::class.java, model, itemFilter, insertOperation, deleteOperation, itemComparator, groups,
+                                 keepNewAfterFlyAway, allowEditing, valueEditable, hasCustomCursor)
 }

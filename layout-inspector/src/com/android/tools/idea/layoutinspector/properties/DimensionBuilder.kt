@@ -48,7 +48,7 @@ object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
       override fun invoke(property: InspectorPropertyItem): ControlType = ControlType.TEXT_EDITOR
     }
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
+    val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
     inspector.addTable(tableModel, true, uiProvider)
   }
 

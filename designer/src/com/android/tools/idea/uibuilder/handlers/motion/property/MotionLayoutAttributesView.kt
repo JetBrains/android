@@ -79,7 +79,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
     val enumSupportProvider = NlEnumSupportProvider(model)
     val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    val tableUIProvider = TableUIProvider.create(NlPropertyItem::class.java, controlTypeProvider, editorProvider)
+    val tableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
     main.builders.add(SelectedTargetBuilder())
     addTab("").builders.add(MotionInspectorBuilder(model, tableUIProvider, enumSupportProvider))
   }
@@ -267,8 +267,8 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
         }
         null
       }
-      val tableModel = FilteredPTableModel.PTableModelFactory.create(NlPropertyItem::class.java, customModel, filter, insertOp, deleteOp,
-                                                                     alphabeticalSortOrder, emptyList(), false, true, { true }, { false })
+      val tableModel = FilteredPTableModel(customModel, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), false, true,
+                                           { true }, { false })
       val addFieldAction = AddCustomFieldAction(this.model, selection)
       val deleteFieldAction = DeleteCustomFieldAction()
       val actions: List<AnAction> = ImmutableList.builder<AnAction>().add(addFieldAction).add(deleteFieldAction).build()
@@ -322,8 +322,8 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
         }
         else null
       }
-      val tableModel = FilteredPTableModel.PTableModelFactory.create(NlPropertyItem::class.java, model, filter, insertOp, deleteOp,
-                                                                     alphabeticalSortOrder, emptyList(), true, true, { true }, { false })
+      val tableModel = FilteredPTableModel(model, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), true, true, { true },
+                                           { false })
       val controlAction = SubSectionControlAction(any)
       val addFieldAction = AddMotionFieldAction(this.model, model.properties)
       val deleteFieldAction = DeleteMotionFieldAction()

@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.FilteredPTableModel
-import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.create
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
@@ -36,14 +35,15 @@ class InspectorTableBuilder(
 ) : InspectorBuilder<InspectorPropertyItem> {
 
   private val editorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
-  // TODO: Check if a reified type parameter can be used instead of the explicit class
-  private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
+  private val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val tableModel = create(InspectorPropertyItem::class.java, model, filter,
-                            itemComparator = itemComparator,
-                            valueEditable = { editorProvider.isValueClickable(it) },  // links must be editable for accessibility
-                            hasCustomCursor = { editorProvider.isValueClickable(it) }) // enables cursor changes for items not being edited
+    val tableModel = FilteredPTableModel(
+      model, filter,
+      itemComparator = itemComparator,
+      valueEditable = { editorProvider.isValueClickable(it) },  // links must be editable for accessibility
+      hasCustomCursor = { editorProvider.isValueClickable(it) } // enables cursor changes for items not being edited
+    )
     if (tableModel.items.isEmpty()) {
       return
     }
