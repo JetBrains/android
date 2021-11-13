@@ -15,28 +15,23 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.isDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.size
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.fs.ThrottledProgress
+import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.concurrency.transformAsyncNullable
+import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.directoryWorkUnits
+import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.fileWorkUnits
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.FileTransferWorkEstimatorProgress
-import com.android.tools.idea.explorer.FileTransferWorkEstimate
-import com.android.tools.idea.explorer.FileTransferWorkEstimator
+import com.android.tools.idea.explorer.fs.ThrottledProgress
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
-import java.lang.Runnable
 import java.nio.file.Path
 import java.util.concurrent.Executor
 
 /**
  * Helper class used to estimate the amount of work required to transfer files from/to a device.
  * The work is estimated in terms of arbitrary "work units", which can be computed by calling
- * the [.estimateDownloadWork] or
- * [.estimateUploadWork]
- * methods.
+ * the [estimateDownloadWork] or [estimateUploadWork] methods.
  *
  *
  * NOTE: Work Units: When transferring files to/from a device, there is a cost proportional to the
@@ -68,7 +63,7 @@ import java.util.concurrent.Executor
  *
  *
  *
- * The [.getDirectoryWorkUnits] and [.getFileWorkUnits] methods return the
+ * The [directoryWorkUnits] and [fileWorkUnits] methods return the
  * estimated fixed cost (in work units) of creating 1 file/directory.
  *
  *
@@ -76,9 +71,10 @@ import java.util.concurrent.Executor
  * proportional to the amount of bytes to transfer.
  */
 class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, taskExecutor: Executor) {
-  private val myEdtExecutor: FutureCallbackExecutor
-  private val myTaskExecutor: FutureCallbackExecutor
-  private val myThrottledProgress: ThrottledProgress
+  private val myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
+  private val myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+  private val myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
+
   fun estimateDownloadWork(
     entry: DeviceFileEntry,
     isLinkToDirectory: Boolean,
@@ -86,7 +82,7 @@ class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, task
   ): ListenableFuture<FileTransferWorkEstimate> {
     val workEstimate = FileTransferWorkEstimate()
     val future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress)
-    return myEdtExecutor.transform(future) { aVoid: Unit -> workEstimate }
+    return myEdtExecutor.transform(future) { workEstimate }
   }
 
   fun estimateDownloadWorkWorker(
@@ -100,42 +96,45 @@ class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, task
     }
     reportProgress(estimate, progress)
     return if (entry.isDirectory || isLinkToDirectory) {
-      val futureEntries = entry.entries
-      myEdtExecutor.transformAsync(futureEntries) { entries: List<DeviceFileEntry>? ->
-        assert(entries != null)
+      entry.entries.transformAsync(myEdtExecutor) { entries: List<DeviceFileEntry> ->
         estimate.addDirectoryCount(1)
         estimate.addWorkUnits(directoryWorkUnits)
-        myEdtExecutor.executeFuturesInSequence(
-          entries!!.iterator()
-        ) { childEntry: DeviceFileEntry -> estimateDownloadWorkWorker(childEntry, false, estimate, progress) }
+        myEdtExecutor.executeFuturesInSequence(entries.iterator()) {
+          estimateDownloadWorkWorker(it, false, estimate, progress)
+        }
       }
     } else {
       estimate.addFileCount(1)
       estimate.addWorkUnits(fileWorkUnits + getFileContentsWorkUnits(entry.size))
-      Futures.immediateFuture(null)
+      Futures.immediateFuture(Unit)
     }
   }
 
   fun estimateUploadWork(
     path: Path,
     progress: FileTransferWorkEstimatorProgress
-  ): ListenableFuture<FileTransferWorkEstimate?> {
-    val futureEstimate = myTaskExecutor.executeAsync {
+  ): ListenableFuture<FileTransferWorkEstimate> {
+    return myTaskExecutor.executeAsync {
       val workEstimate = FileTransferWorkEstimate()
       if (!estimateUploadWorkWorker(path.toFile(), workEstimate, progress)) {
-        return@executeAsync null
+        null
+      } else {
+        workEstimate
       }
-      workEstimate
-    }
-    // Handle "cancel" case
-    return myTaskExecutor.transformAsync(futureEstimate) { estimate: FileTransferWorkEstimate? ->
-      if (estimate == null) {
-        return@transformAsync Futures.immediateCancelledFuture<FileTransferWorkEstimate>()
+    }.transformAsyncNullable(myTaskExecutor) {
+      when (it) {
+        // Handle "cancel" case
+        null -> Futures.immediateCancelledFuture()
+        else -> Futures.immediateFuture(it)
       }
-      Futures.immediateFuture(estimate)
     }
   }
 
+  /**
+   * Build the estimate by scanning the local file system (synchronously).
+   *
+   * @return true if completed; false if canceled via the [progress] parameter.
+   */
   private fun estimateUploadWorkWorker(
     file: File,
     estimate: FileTransferWorkEstimate,
@@ -175,25 +174,17 @@ class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, task
   }
 
   companion object {
-    private const val DIRECTORY_TRANSFER_WORK_UNITS = 64000
-    private const val FILE_TRANSFER_WORK_UNITS = 64000
     private const val PROGRESS_REPORT_INTERVAL_MILLIS = 50
+
     @JvmStatic
-    val directoryWorkUnits: Long
-      get() = DIRECTORY_TRANSFER_WORK_UNITS.toLong()
+    val directoryWorkUnits = 64000L
+
     @JvmStatic
-    val fileWorkUnits: Long
-      get() = FILE_TRANSFER_WORK_UNITS.toLong()
+    val fileWorkUnits = 64000L
 
     @JvmStatic
     fun getFileContentsWorkUnits(byteCount: Long): Long {
       return byteCount
     }
-  }
-
-  init {
-    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
-    myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
   }
 }
