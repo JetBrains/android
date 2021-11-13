@@ -125,7 +125,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import junit.framework.AssertionFailedError;
-import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -307,23 +306,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
 
     String[] sources = guava.getUrls(SOURCES);
     assertThat(sources).isNotEmpty();
-  }
-
-  public void testLegacySourceGenerationIsDisabled() throws Exception {
-    loadSimpleApplication();
-
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidFacet facet = AndroidFacet.getInstance(appModule);
-    assertNotNull(facet);
-
-    try {
-      ModuleSourceAutogenerating.getInstance(facet);
-      fail("Shouldn't be able to construct a source generator for Gradle projects");
-    }
-    catch (IllegalArgumentException e) {
-      assertEquals(TestModuleUtil.findAppModule(getProject()).getName() +
-                   " is built by an external build system and should not require the IDE to generate sources", e.getMessage());
-    }
   }
 
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.

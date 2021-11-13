@@ -254,8 +254,6 @@
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK..." />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK..." />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK..." />
-    <option name="generate" path="ActionManager" hit="Generate Sources" />
-    <option name="sources" path="ActionManager" hit="Generate Sources" />
     <option name="help" path="ActionManager" hit="Help" />
     <option name="connection" path="ActionManager" hit="Help debug device connection" />
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
@@ -1280,28 +1278,5 @@
     <option name="new" hit="Use new dependency mechanism during Gradle sync" />
     <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
-  </configurable>
-  <configurable id="android.dex.compiler" configurable_name="Android Compilers">
-    <option name="add" hit="Add &quot;--core-library&quot; flag" />
-    <option name="core" hit="Add &quot;--core-library&quot; flag" />
-    <option name="flag" hit="Add &quot;--core-library&quot; flag" />
-    <option name="library" hit="Add &quot;--core-library&quot; flag" />
-    <option name="additional" hit="Additional VM options:" />
-    <option name="options" hit="Additional VM options:" />
-    <option name="vm" hit="Additional VM options:" />
-    <option name="android" hit="Android Compilers" />
-    <option name="compilers" hit="Android Compilers" />
-    <option name="dex" hit="DEX" />
-    <option name="force" hit="Force jumbo mode" />
-    <option name="jumbo" hit="Force jumbo mode" />
-    <option name="mode" hit="Force jumbo mode" />
-    <option name="heap" hit="Maximum heap size (MB):" />
-    <option name="maximum" hit="Maximum heap size (MB):" />
-    <option name="mb" hit="Maximum heap size (MB):" />
-    <option name="size" hit="Maximum heap size (MB):" />
-    <option name="optimize" hit="Optimize" />
-    <option name="proguard" hit="ProGuard" />
-    <option name="options" hit="VM options:" />
-    <option name="vm" hit="VM options:" />
   </configurable>
 </options>

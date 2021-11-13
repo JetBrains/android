@@ -721,51 +721,6 @@ public class AndroidCompileUtil {
   }
 
   @Nullable
-  public static ProguardRunningOptions getProguardConfigFilePathIfShouldRun(@NotNull AndroidFacet facet, CompileContext context) {
-    // wizard
-    String pathsStr = context.getCompileScope().getUserData(PROGUARD_CFG_PATHS_KEY);
-    if (pathsStr != null) {
-      final String[] paths = pathsStr.split(File.pathSeparator);
-
-      if (paths.length > 0) {
-        return new ProguardRunningOptions(Arrays.asList(paths));
-      }
-    }
-    final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-    final String sdkHomePath = platform != null ? FileUtil.toCanonicalPath(platform.getSdkData().getPath()) : null;
-
-    // artifact
-    final Project project = context.getProject();
-    final Set<Artifact> artifacts = ArtifactCompileScope.getArtifactsToBuild(project, context.getCompileScope(), false);
-
-    for (Artifact artifact : artifacts) {
-      if (artifact.getArtifactType() instanceof AndroidApplicationArtifactType &&
-          facet.equals(AndroidArtifactUtil.getPackagedFacet(project, artifact))) {
-        final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
-
-        if (properties instanceof AndroidApplicationArtifactProperties) {
-          final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
-
-          if (p.isRunProGuard()) {
-            final List<String> paths = AndroidUtils.urlsToOsPaths(p.getProGuardCfgFiles(), sdkHomePath);
-            return new ProguardRunningOptions(paths);
-          }
-        }
-      }
-    }
-
-    // facet
-    final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    final AndroidFacetProperties properties = configuration.getState();
-    if (properties != null && properties.RUN_PROGUARD) {
-      final List<String> urls = properties.myProGuardCfgFiles;
-      final List<String> paths = AndroidUtils.urlsToOsPaths(urls, sdkHomePath);
-      return new ProguardRunningOptions(paths);
-    }
-    return null;
-  }
-
-  @Nullable
   public static Module findCircularDependencyOnLibraryWithSamePackage(@NotNull AndroidFacet facet) {
     final Manifest manifest = Manifest.getMainManifest(facet);
     final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
