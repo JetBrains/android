@@ -24,70 +24,36 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class CallChartDetailsViewTest {
-  private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
 
   @JvmField
   @Rule
-  val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", cpuService,
-                                    FakeTransportService(timer), FakeProfilerService(timer),
-                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+  val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", FakeTransportService(timer))
 
   private lateinit var profilersView: StudioProfilersView
-  private lateinit var stageView: CpuProfilerStageView
-  private lateinit var stage: CpuProfilerStage
   private val capture = CpuProfilerUITestUtils.validCapture()
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-
-    stage = CpuProfilerStage(profilers)
-    stage.studioProfilers.stage = stage
-    stage.enter()
-
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
-    stageView = CpuProfilerStageView(profilersView, stage)
-  }
-
-  @Test
-  fun callChartModelIsNullOnEmptyThreadData() {
-    stage.apply {
-      val capture = CpuProfilerUITestUtils.validCapture()
-      setAndSelectCapture(capture)
-      selectedThread = CaptureModel.NO_THREAD
-      setCaptureDetails(CaptureDetails.Type.CALL_CHART)
-    }
-
-    val callChart = stage.captureDetails as CaptureDetails.CallChart
-    assertThat(callChart.node).isNull()
   }
 
   @Test
