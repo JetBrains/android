@@ -31,5 +31,14 @@
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
+    <orderEntry type="module-library">
+      <library name="pepk">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/pepk.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

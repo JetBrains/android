@@ -93,15 +93,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
-    <orderEntry type="module-library">
-      <library name="pepk">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/pepk.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
