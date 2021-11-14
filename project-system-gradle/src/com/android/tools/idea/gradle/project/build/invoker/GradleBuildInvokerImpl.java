@@ -40,6 +40,7 @@ import static one.util.streamex.MoreCollectors.onlyOne;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
@@ -149,9 +150,8 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       return;
     }
     // Collect the root project path for all modules, there is one root project path per included project.
-    GradleRootPathFinder pathFinder = new GradleRootPathFinder();
     Set<File> projectRootPaths = Arrays.stream(ModuleManager.getInstance(getProject()).getModules())
-      .map(module -> pathFinder.getProjectRootPath(module).toFile())
+      .map(module -> ProjectStructure.getInstance(myProject).getModuleFinder().getRootProjectPath(module).toFile())
       .collect(Collectors.toSet());
     for (File projectRootPath : projectRootPaths) {
       executeTasks(CLEAN, projectRootPath, Collections.singletonList(CLEAN_TASK_NAME));
@@ -244,9 +244,9 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       .distinct()
       .collect(onlyOne())
       .orElseThrow(() -> new IllegalArgumentException("Each request requires the same not null build mode to be set"));
-    GradleRootPathFinder pathFinder = new GradleRootPathFinder();
     Map<String, List<Module>> modulesByRootProject = Arrays.stream(assembledModules)
-      .map(it -> Pair.create(it, toSystemIndependentName(pathFinder.getProjectRootPath(it).toFile().getPath())))
+      .map(it -> Pair.create(it, toSystemIndependentName(
+        ProjectStructure.getInstance(myProject).getModuleFinder().getRootProjectPath(it).toFile().getPath())))
       .filter(it -> it.second != null)
       .collect(groupingBy(it -> it.second, mapping(it -> it.first, toList())));
     ListenableFuture<GradleMultiInvocationResult> resultFuture = executeTasks(

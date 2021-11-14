@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -64,22 +65,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleTaskFinder {
-  private final GradleRootPathFinder myRootPathFinder;
-
   @NotNull
   public static GradleTaskFinder getInstance() {
     return ApplicationManager.getApplication().getService(GradleTaskFinder.class);
-  }
-
-  @SuppressWarnings("unused") // Invoked by IDEA.
-  public GradleTaskFinder() {
-    this(new GradleRootPathFinder());
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
-    myRootPathFinder = rootPathFinder;
   }
 
   @NotNull
@@ -145,7 +133,7 @@ public class GradleTaskFinder {
       Set<String> moduleTasks = new LinkedHashSet<>();
       findAndAddGradleBuildTasks(module, buildMode, moduleTasks, testCompileType);
 
-      Path keyPath = myRootPathFinder.getProjectRootPath(module);
+      Path keyPath = ProjectStructure.getInstance(module.getProject()).getModuleFinder().getRootProjectPath(module);
       // Remove duplicates.
       moduleTasks.addAll(tasks.get(keyPath));
 
