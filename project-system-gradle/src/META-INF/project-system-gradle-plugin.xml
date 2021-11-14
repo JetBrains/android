@@ -46,6 +46,8 @@
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
     <externalSystemViewContributor id="android" order="before com.intellij.openapi.externalSystem.view.ExternalSystemViewDefaultContributor"
                                    implementation="com.android.tools.idea.projectsystem.gradle.GradleTaskEmptyContributor"/>
+    <externalSystemExecutionConsoleManager implementation="com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager"
+                                           order="before gradle"/>
     <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
     <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
   </extensions>
