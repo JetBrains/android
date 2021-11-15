@@ -44,6 +44,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -53,6 +54,7 @@ import kotlin.concurrent.thread
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
+@Ignore("b/206444803")
 class AppInspectionSnapshotSupportTest {
   private val disposableRule = DisposableRule()
 
