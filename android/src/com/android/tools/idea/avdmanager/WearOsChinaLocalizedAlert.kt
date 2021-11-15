@@ -19,10 +19,12 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
-import java.awt.FlowLayout
+import com.intellij.uiDesigner.core.GridConstraints
+import com.intellij.uiDesigner.core.GridLayoutManager
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 private val INFO_ICON_COLORS = JBColor(0x6E6E6E, 0xAFB1B3)
 
@@ -30,18 +32,21 @@ private val INFO_ICON_COLORS = JBColor(0x6E6E6E, 0xAFB1B3)
  * Small warning label to display that a system image is localized for China.
  */
 class WearOsChinaLocalizedAlert : JPanel() {
-  private val warningLabel = JBLabel("The selected image is a localized version of Wear OS for China",
+  private val warningLabel = JBLabel("<html>The selected image is a localized version of Wear OS for China</html>",
                                      ColoredIconGenerator.generateColoredIcon(AllIcons.General.Information, INFO_ICON_COLORS),
                                      JLabel.LEADING).apply {
     isAllowAutoWrapping = true
+    verticalTextPosition = SwingConstants.CENTER
+    isOpaque = false
   }
 
   init {
-    layout = FlowLayout(FlowLayout.LEADING)
-    border = BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Localized image"),
-                                                BorderFactory.createEmptyBorder(0, 5, 3, 5))
+    this.layout = GridLayoutManager(1, 1)
+    val constraints = GridConstraints()
+    constraints.anchor = GridConstraints.ANCHOR_WEST
+    border = BorderFactory.createTitledBorder("Localized image")
     isOpaque = false
-    warningLabel.isOpaque = false
-    add(warningLabel)
+    add(warningLabel, constraints)
+    constraints.row = 1
   }
 }

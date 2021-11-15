@@ -31,6 +31,7 @@ import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.tools.adtui.swing.FakeUi;
 import com.google.common.collect.ImmutableList;
 
+import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
 import java.util.function.Predicate;
 import org.jetbrains.android.AndroidTestCase;
@@ -140,7 +141,8 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     imagePreview.setImage(mWearOsImageDescr);
 
     final Predicate<JLabel> chinaLocalizedLabelPredicate =
-      label -> label.isShowing() && "The selected image is a localized version of Wear OS for China".equals(label.getText());
+      label -> label.isShowing() &&
+               "The selected image is a localized version of Wear OS for China".equals(StringUtil.stripHtml(label.getText(), false));
 
     assertNotNull(fakeUi.findComponent(JLabel.class, chinaLocalizedLabelPredicate));
 
