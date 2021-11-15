@@ -32,6 +32,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.android.facet.AndroidFacetProperties
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.File
 import java.lang.Math.max
 import java.util.Locale
@@ -229,6 +230,7 @@ class ProjectDumper(
 
   fun String.replaceJavaVersion(): String? = replace(Regex("11|1\\.8"), "<JAVA_VERSION>")
   fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+"), "<JDK_VERSION>")
+    .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 

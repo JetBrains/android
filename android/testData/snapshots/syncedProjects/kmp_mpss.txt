@@ -909,7 +909,7 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : KotlinSDK
             HomePath                      : <DEV>/prebuilts/studio/intellij-sdk/AI-212/linux/android-studio/plugins/Kotlin/kotlinc
-            VersionString                 : 1.5.31-release-556
+            VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : kotlinMultiPlatform.module2.commonTest
         ExternalModuleGroup           : kotlinMultiPlatform
@@ -973,7 +973,7 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : false
             SdkType                       : KotlinSDK
             HomePath                      : <DEV>/prebuilts/studio/intellij-sdk/AI-212/linux/android-studio/plugins/Kotlin/kotlinc
-            VersionString                 : 1.5.31-release-556
+            VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
     MODULE                        : kotlinMultiPlatform.module2.main
