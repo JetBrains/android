@@ -141,12 +141,12 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
     @NotNull
     public static WizardStepHeaderSettings createCustomColorHeader(@NotNull JBColor color, @NotNull String title) {
-      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getProductName(), null, color);
+      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getFullProductName(), null, color);
     }
 
     @NotNull
     public static WizardStepHeaderSettings createProductHeader(@NotNull String title) {
-      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getProductName(), null, null);
+      return new WizardStepHeaderSettings(title, ApplicationNamesInfo.getInstance().getFullProductName(), null, null);
     }
 
     @NotNull

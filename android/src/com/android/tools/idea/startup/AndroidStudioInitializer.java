@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -171,9 +172,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
     // which doesn't delete files that have been removed or renamed
     if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
+      String msg = "Your " + ApplicationNamesInfo.getInstance().getFullProductName() + " installation is corrupt and will not work properly.\n" +
                    "(Found plugins/android-designer which should not be present.)\n" +
-                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
+                   "This usually happens if "+ ApplicationNamesInfo.getInstance().getFullProductName() +" is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
       int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());

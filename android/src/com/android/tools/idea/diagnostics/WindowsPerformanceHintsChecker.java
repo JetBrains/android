@@ -178,7 +178,9 @@ public class WindowsPerformanceHintsChecker {
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
 
-    Notification notification = systemHealthMonitor.new MyNotification(AndroidBundle.message(key, ApplicationNamesInfo.getInstance().getFullProductName(), pathDetails));
+    Notification notification = systemHealthMonitor.new MyNotification(AndroidBundle.message(
+      key,
+      ApplicationNamesInfo.getInstance().getFullProductName(), pathDetails));
     notification.addAction(new NotificationAction(AndroidBundle.message("virus.scanning.dont.show.again")) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {

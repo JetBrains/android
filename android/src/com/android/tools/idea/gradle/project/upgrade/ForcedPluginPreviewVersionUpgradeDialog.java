@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -90,12 +91,12 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     myCurrentPluginVersion = (currentPluginVersion != null) ? currentPluginVersion.toString() : null;
     String versionText = (myCurrentPluginVersion != null) ?
                          ("version " + myCurrentPluginVersion + " of the " + AndroidPluginInfo.DESCRIPTION +
-                          ", which is incompatible with this version of Android Studio") :
+                          ", which is incompatible with this version of " + ApplicationNamesInfo.getInstance().getFullProductName()) :
                          ("an unknown version of the " + AndroidPluginInfo.DESCRIPTION);
     if (AGP_UPGRADE_ASSISTANT.get()) {
       myMessage = "<p><b>This project is using " + versionText + ".</b></p>" +
                   "<p>To continue importing this project (" + myProject.getName() +
-                  "), Android Studio will upgrade the project's build files to use version " +
+                  "), " + ApplicationNamesInfo.getInstance().getFullProductName() + " will upgrade the project's build files to use version " +
                   pluginVersion + " of " + AndroidPluginInfo.DESCRIPTION + " (you can learn more about this version of the plugin " +
                   "from the <a href='"+ url + "'>release notes</a>).</p>";
     }

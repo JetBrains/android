@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.CapabilityUpgradeRequired
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.module.Module
 
 val MIN_PNG_GENERATION_VERSION = GradleVersion(1, 4, 0)
@@ -48,11 +49,11 @@ fun supportsPngGeneration(module: Module): CapabilityStatus {
     CapabilitySupported()
   else
     CapabilityUpgradeRequired(
-        "<html><p>To support vector assets when your minimal SDK version is less than 21,<br>" +
-            "the Android plugin for Gradle version must be 1.4 or above.<br>" +
-            "This will allow Android Studio to convert vector assets into PNG images at build time.</p>" +
-            "<p>See <a href=\"https://developer.android.com/tools/building/plugin-for-gradle.html" +
-            "#projectBuildFile\">here</a> for how to update the version of Android plugin for Gradle." +
-            "</p></html>",
-        "Newer Android Plugin for Gradle Required")
+      "<html><p>To support vector assets when your minimal SDK version is less than 21," +
+      "<br>the Android plugin for Gradle version must be 1.4 or above." +
+      "<br>This will allow ${ApplicationNamesInfo.getInstance().fullProductName} to convert vector " +
+      "assets into PNG images at build time." +
+      "</p><p>See <a href=\"https://developer.android.com/tools/building/plugin-for-gradle.html#projectBuildFile\">here</a> " +
+      "for how to update the version of Android plugin for Gradle.</p></html>",
+      "Newer Android Plugin for Gradle Required")
 }

@@ -43,6 +43,7 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
@@ -315,7 +316,7 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
       $jdkPath
       Using different JDK locations on different processes might cause Gradle to
       spawn multiple daemons, for example, by executing Gradle tasks from a terminal
-      while using Android Studio.
+      while using ${ApplicationNamesInfo.getInstance().fullProductName}.
     """.trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }

@@ -29,6 +29,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import org.gradle.tooling.UnsupportedVersionException
@@ -95,7 +96,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
       val minimumVersion = GradleVersion.parse(matcher.group (1))
       val usedVersion = GradleVersion.parse(matcher.group(2))
       if (minimumVersion <= MINIMUM_GRADLE_VERSION) {
-        return "This version of Android Studio requires projects to use Gradle $MINIMUM_GRADLE_VERSION or newer. This project is using Gradle $usedVersion."
+        return "This version of ${ApplicationNamesInfo.getInstance().fullProductName} requires projects to use Gradle $MINIMUM_GRADLE_VERSION or newer. This project is using Gradle $usedVersion."
       }
     }
     return null

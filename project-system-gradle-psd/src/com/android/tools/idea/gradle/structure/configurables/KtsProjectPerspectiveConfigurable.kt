@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.components.JBLabel
@@ -34,7 +35,7 @@ class KtsProjectPerspectiveConfigurable() :
 
   override fun createComponent(): JComponent? {
     val firstLine = "Project Structure is unavailable for projects that use Gradle KTS build files."
-    val secondLine = "This project uses Gradle KTS build files which are not fully supported in this version of Android Studio."
+    val secondLine = "This project uses Gradle KTS build files which are not fully supported in this version of ${ApplicationNamesInfo.getInstance().fullProductName}."
     return JPanel().apply {
       layout = FlowLayout(FlowLayout.LEADING)
       preferredSize = JBUI.size(700, 500)

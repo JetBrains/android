@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.WizardStepHeaderPanel;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.util.ui.JBUI;
@@ -57,7 +58,7 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
       .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, StudioIllustrations.Common.PRODUCT_ICON,
-              null, "Your Virtual Devices", "Android Studio");
+              null, "Your Virtual Devices", ApplicationNamesInfo.getInstance().getFullProductName());
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
     getFrame().setSize(JBUI.size(1000, 600));

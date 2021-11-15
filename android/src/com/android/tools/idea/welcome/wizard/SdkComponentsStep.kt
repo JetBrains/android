@@ -34,6 +34,7 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
@@ -242,7 +243,7 @@ class SdkComponentsStep(
   }
 
   private fun loadingError() {
-    componentDescription.text = "There was an error while loading a list of components. Please try to restart Android Studio."
+    componentDescription.text = "There was an error while loading a list of components. Please try to restart ${ApplicationNamesInfo.getInstance().fullProductName}."
   }
 
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {

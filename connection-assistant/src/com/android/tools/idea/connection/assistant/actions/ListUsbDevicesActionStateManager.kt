@@ -35,6 +35,7 @@ import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -154,7 +155,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     if (devices.isNotEmpty()) {
       titleHtmlBuilder
         .beginSpan("color: " + UIUtils.getCssColor(UIUtils.getSuccessColor()))
-        .add("Android Studio detected ${devices.size} device(s).")
+        .add("${ApplicationNamesInfo.getInstance().fullProductName} detected ${devices.size} device(s).")
         .endSpan()
     }
     else {
