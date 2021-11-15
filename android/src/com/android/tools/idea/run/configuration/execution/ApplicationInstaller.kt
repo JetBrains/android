@@ -61,7 +61,7 @@ class ApplicationInstallerImpl(private val project: Project) : ApplicationInstal
       return result.app
     }
     catch (e: DeployerException) {
-      throw ExecutionException("Failed to install app. ${e.message ?: ""}", e.cause)
+      throw ExecutionException("Failed to install app '$appId'. ${e.message ?: ""}", e.cause)
     }
   }
 
