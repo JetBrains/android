@@ -26,12 +26,12 @@ import com.intellij.openapi.diagnostic.Logger
  * have information that can be parsed into [DesignInfo].
  */
 internal fun parseDesignInfoList(viewInfo: ViewInfo): List<DesignInfo> {
-  val LOG = Logger.getInstance(DesignInfo::class.java)
+  val logger = Logger.getInstance(DesignInfo::class.java)
   val viewObj = try {
     findComposeViewAdapter(viewInfo.viewObject) ?: return emptyList()
   }
-  catch (e: Exception) {
-    LOG.warn("Error finding the ComposeViewAdapter", e)
+  catch (e: Throwable) {
+    logger.warn("Error finding the ComposeViewAdapter", e)
     return emptyList()
   }
 
@@ -41,15 +41,15 @@ internal fun parseDesignInfoList(viewInfo: ViewInfo): List<DesignInfo> {
         method.name.contains("getDesignInfoList")
       }
       if (designInfoListMethod == null) {
-        LOG.warn("Missing designInfoList property from ComposeViewAdapter")
+        logger.warn("Missing designInfoList property from ComposeViewAdapter")
         return emptyList()
       }
       else {
         designInfoListMethod.invoke(viewObj) as List<*>
       }
     }
-    catch (e: Exception) {
-      LOG.warn("Error while obtaining DesignInfo list object", e)
+    catch (e: Throwable) {
+      logger.warn("Error while obtaining DesignInfo list object", e)
       return emptyList()
     }
 
@@ -57,8 +57,8 @@ internal fun parseDesignInfoList(viewInfo: ViewInfo): List<DesignInfo> {
     try {
       parseDesignInfo(designInfoJson as String)
     }
-    catch (e: Exception) {
-      LOG.warn("Error while parsing", e)
+    catch (e: Throwable) {
+      logger.warn("Error while parsing", e)
       null
     }
   }
