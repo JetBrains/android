@@ -21,13 +21,16 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
+import com.android.tools.idea.run.configuration.addComplication
 import com.google.common.truth.Truth.assertThat
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import javax.swing.JList
 import javax.swing.JPanel
 
 
@@ -138,6 +141,20 @@ class AndroidComplicationConfigurationEditorTes : AndroidTestCase() {
 
     //Check that without applying we don't update configuration
     assertThat(runConfiguration.chosenSlots.find { it.id == 0 }!!.type).isEqualTo(ComplicationType.RANGED_VALUE)
+  }
+
+  fun testRestoreComponentName() {
+    val appComplication = myFixture.addComplication().qualifiedName
+
+    runConfiguration.componentName = appComplication
+    runConfiguration.setModule(myModule)
+
+    settingsEditor.resetFrom(runConfiguration)
+
+    val editor = settingsEditor.component as DialogPanel
+    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
+
+    assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyComplication")
   }
 
 }

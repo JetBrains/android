@@ -70,8 +70,8 @@ internal object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       arrayOf(ComplicationType.PHOTO_IMAGE)
     )
   )
-  override val apk
-    get() = javaClass.classLoader.getResource("/apks/ComplicationWatchFace.apk")!!.path
+  override val apk: String
+    get() = javaClass.classLoader.getResource("apks/ComplicationWatchFace.apk")!!.path
   override val appId = "androidx.wear.watchface.samples.app"
   override val watchFaceFQName = "androidx.wear.watchface.samples.ExampleCanvasDigitalWatchFaceService"
 }

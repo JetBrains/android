@@ -37,3 +37,23 @@ internal fun JavaCodeInsightTestFixture.addWatchFace(): PsiClass {
 
   return javaFacade.findClass("com.example.MyWatchFace")
 }
+
+internal fun JavaCodeInsightTestFixture.addComplication(): PsiClass {
+  addFileToProject(
+    "src/lib/ComplicationDataSourceService.kt",
+    """
+      package androidx.wear.watchface.complications.datasource
+
+      open class ComplicationDataSourceService
+    """.trimIndent())
+
+  addFileToProject(
+    "src/com/example/MyComplication.kt",
+    """
+      package com.example
+
+      class MyComplication : androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+    """.trimIndent())
+
+  return javaFacade.findClass("com.example.MyComplication")
+}

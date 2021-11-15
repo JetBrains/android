@@ -79,7 +79,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
           facade.findClass(it, ProjectScope.getAllScope(project))
         }
         surfaceBaseClasses.flatMap { baseClass ->
-          ClassInheritorsSearch.search(baseClass, module.getMainModule().getModuleSystem().getResolveScope(ScopeType.MAIN), true)
+          ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
             .findAll()
             // TODO: filter base on manifest index.
             .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
@@ -95,13 +95,15 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   override fun resetEditorFrom(runConfiguration: T) {
     moduleSelector.reset(runConfiguration)
-    val componentClass = moduleSelector.findClass(runConfiguration.componentName)
+    val componentClass = moduleSelector.module?.let { getComponentSearchScope(it) }
     if (componentClass != null) {
       componentName = runConfiguration.componentName
     }
     installFlags = runConfiguration.installFlags
     (component as DialogPanel).reset()
   }
+
+  private fun getComponentSearchScope(module: Module) = module.getMainModule().getModuleSystem().getResolveScope(ScopeType.MAIN)
 
   override fun applyEditorTo(runConfiguration: T) {
     (component as DialogPanel).apply()
@@ -136,7 +138,8 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             text = when {
               value != null -> value
               modulesComboBox.item == null -> "Module is not chosen"
-              else -> "${configuration.userVisibleComponentTypeName} not found"
+              list.selectionModel.maxSelectionIndex == -1 -> "${configuration.userVisibleComponentTypeName} not found"
+              else -> "${configuration.userVisibleComponentTypeName} is not chosen"
             }
           }
         })
