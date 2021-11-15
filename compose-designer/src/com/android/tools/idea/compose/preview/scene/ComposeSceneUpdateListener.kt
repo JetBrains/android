@@ -59,7 +59,7 @@ class ComposeSceneUpdateListener: SceneManager.SceneUpdateListener {
       }
       previewElement.hasAnimations = previewHasAnimations
     }
-    catch (e: Exception) {
+    catch (e: Throwable) {
       LOG.debug("Could not check if the Composable has animations.", e)
     }
   }
