@@ -63,11 +63,8 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
-import com.android.tools.profilers.cpu.systemtrace.CpuKernelModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -92,10 +89,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   // Default timeout value is 2 mintues (120 seconds).
   public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 120),
                                                                           5 * 60));
-  /**
-   * Percentage of space on either side of an imported trace.
-   */
-  static final double IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE = 0.1;
 
   /**
    * Default capture details to be set after stopping a capture.
@@ -111,7 +104,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     new ArtInstrumentedConfiguration("Debug API (Java)");
 
   private final CpuThreadsModel myThreadsStates;
-  private final CpuKernelModel myCpuKernelModel;
   private final ClampedAxisComponentModel myCpuUsageAxis;
   private final ClampedAxisComponentModel myThreadCountAxis;
   private final ResizingAxisComponentModel myTimeAxisGuide;
@@ -122,7 +114,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private final RangeSelectionModel myRangeSelectionModel;
   private final EaseOutModel myInstructionsEaseOutModel;
   private final CpuProfilerConfigModel myProfilerConfigModel;
-  private final CpuFramesModel myFramesModel;
 
   public enum CaptureState {
     // Waiting for a capture to start (displaying the current capture or not)
@@ -224,8 +215,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
 
     myThreadsStates = new CpuThreadsModel(viewRange, profilers, mySession);
-    myCpuKernelModel = new CpuKernelModel(viewRange, this);
-    myFramesModel = new CpuFramesModel(viewRange, this);
 
     myEventMonitor = new EventMonitor(profilers);
 
@@ -708,11 +697,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   }
 
   @NotNull
-  public List<ClockType> getClockTypes() {
-    return ImmutableList.of(ClockType.GLOBAL, ClockType.THREAD);
-  }
-
-  @NotNull
   public ClockType getClockType() {
     return myCaptureModel.getClockType();
   }
@@ -815,16 +799,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   @NotNull
   public CpuThreadsModel getThreadStates() {
     return myThreadsStates;
-  }
-
-  @NotNull
-  public CpuKernelModel getCpuKernelModel() {
-    return myCpuKernelModel;
-  }
-
-  @NotNull
-  public CpuFramesModel getFramesModel() {
-    return myFramesModel;
   }
 
   @NotNull

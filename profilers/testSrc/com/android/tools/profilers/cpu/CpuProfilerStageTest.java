@@ -28,7 +28,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
@@ -56,15 +55,11 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
-import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
-import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
-import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -685,43 +680,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     tooltipTimeUs = TimeUnit.SECONDS.toMicros(12);
     tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
     assertThat(tooltip.getThreadState()).isEqualTo(ThreadState.DEAD);
-  }
-
-  @Test
-  public void testCpuKernelTooltip() throws IOException {
-    Range viewRange = myStage.getTimeline().getViewRange();
-    Range tooltipRange = myStage.getTimeline().getTooltipRange();
-
-    viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
-    CpuCapture cpuCapture = new AtraceParser(new MainProcessSelector("", 1, null))
-      .parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0);
-    myStage.setCapture(cpuCapture);
-    myStage.enter();
-    myStage.setTooltip(new CpuKernelTooltip(myStage.getTimeline(), FAKE_PID));
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuKernelTooltip.class);
-    CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
-
-    // Null series
-    tooltip.setCpuSeries(0, null);
-    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
-
-    // Test Series
-    tooltipRange.set(11, 11);
-    List<SeriesData<CpuThreadSliceInfo>> cpuSeriesData = new ArrayList<>();
-    cpuSeriesData.add(new SeriesData<>(5, CpuThreadSliceInfo.NULL_THREAD));
-    cpuSeriesData.add(new SeriesData<>(10, new CpuThreadSliceInfo(0, "Test", 0, "Test")));
-    LazyDataSeries<CpuThreadSliceInfo> series = new LazyDataSeries<>(() -> cpuSeriesData);
-    tooltip.setCpuSeries(1, series);
-    assertThat(tooltip.getCpuThreadSliceInfo().getProcessName()).isEqualTo("Test");
-
-    // Tooltip before all data.
-    long tooltipTimeUs = TimeUnit.SECONDS.toMicros(0);
-    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
-    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
-
-    // Tooltip null process is null.
-    tooltipRange.set(0, 9);
-    assertThat(tooltip.getCpuThreadSliceInfo()).isNull();
   }
 
   @Test

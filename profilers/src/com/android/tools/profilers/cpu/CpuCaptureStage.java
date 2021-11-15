@@ -49,19 +49,19 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
-import com.android.tools.profilers.cpu.systemtrace.CpuFramesModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
-import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
-import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
+import com.android.tools.profilers.cpu.systemtrace.FrameState;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -527,9 +527,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // Frame
     if (systemTraceData.getAndroidFrameLayers().isEmpty()) {
       // Hide frames if we have Frame Lifecycle data.
-      CpuFramesModel.FrameState mainFrames = new CpuFramesModel.FrameState(
-        "Main", mainThreadId, SystemTraceFrame.FrameThread.MAIN,
-        systemTraceData, timeline.getViewRange());
+      FrameState mainFrames = new FrameState(SystemTraceFrame.FrameThread.MAIN, systemTraceData, timeline.getViewRange());
       CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(timeline);
       mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
       display.addTrackModel(
