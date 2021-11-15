@@ -33,11 +33,11 @@ import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiBinaryFile
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 
 /**
  * Returns the list of local resources of the [forFacet] module.

@@ -26,11 +26,11 @@ import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.scale.JBUIScale
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 import java.awt.image.BufferedImage
 import java.io.File
 

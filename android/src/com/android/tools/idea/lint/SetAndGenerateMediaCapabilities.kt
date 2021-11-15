@@ -26,9 +26,9 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.lint.checks.MediaCapabilitiesDetector
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 
 /**
  * A [DefaultLintQuickFix] implementation responsible for

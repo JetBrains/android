@@ -51,13 +51,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
