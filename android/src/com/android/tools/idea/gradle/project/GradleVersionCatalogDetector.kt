@@ -72,7 +72,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
  *    a. it has a versionCatalogs clause in its settings file; or if not
  *    b. it has a gradle/libs.versions.toml file relative to its base directory
  */
-class GradleVersionCatalogDetector(private val project: Project) {
+class GradleVersionCatalogDetector(private val project: Project): Disposable {
   var _gradleVersion: GradleVersion? = null
   var _settingsVisitorResults: SettingsVisitorResults? = null
 
@@ -90,9 +90,7 @@ class GradleVersionCatalogDetector(private val project: Project) {
         }
       }
     }
-    if (!project.isDisposed) {
-      EditorFactory.getInstance().eventMulticaster.addDocumentListener(documentListener, project)
-    }
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(documentListener, this)
   }
 
   companion object {
@@ -250,4 +248,6 @@ class GradleVersionCatalogDetector(private val project: Project) {
     settingsPsiFile.accept(visitor)
     return visitor
   }
+
+  override fun dispose() {}
 }
