@@ -77,7 +77,7 @@ class NewConnectionAlertStep(
       errorTitle = message("wear.assistant.connection.alert.disconnect.pairing.title")
       errorBody = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",
                           selectedWear.displayName, selectedPhone.displayName,
-                          phoneWearPair.wear.displayName, selectedPhone.displayName)
+                          phoneWearPair.wear.displayName)
       return true
     }
 

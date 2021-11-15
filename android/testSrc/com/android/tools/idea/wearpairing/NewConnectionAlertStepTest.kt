@@ -80,7 +80,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
 
     val fakeUi = createNewConnectionAlertStepUi()
-    fakeUi.waitForText("Disconnecting existing devices")
+    fakeUi.waitForText("Shutting down other Wear virtual device")
   }
 
   @Test
