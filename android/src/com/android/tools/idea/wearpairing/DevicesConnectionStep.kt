@@ -348,7 +348,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       return iDevice
     }
     catch (ex: Throwable) {
-      showDeviceError(value)
+      showDeviceError(
+        header = message("wear.assistant.connection.alert.cant.start.device.title", value.displayName), description = " ",
+        errorMessage = message("wear.assistant.connection.alert.cant.start.device.subtitle", value.displayName)
+      )
       throw RuntimeException(ex)
     }
   }
@@ -737,20 +740,23 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       val errorDevice = model.selectedPhoneDevice.valueOrNull.takeIf { it?.isOnline() == false }
                         ?: model.selectedWearDevice.valueOrNull.takeIf { it?.isOnline() == false }
       if (errorDevice != null) {
-        showDeviceError(errorDevice)
+        showDeviceError(
+          header = currentUiHeader, description = currentUiDescription,
+          errorMessage = message("wear.assistant.device.connection.error", errorDevice.displayName)
+        )
       }
     }
   }
 
-  private fun showDeviceError(errorDevice: PairingDevice) {
+  private fun showDeviceError(header: String, description: String, errorMessage: String) {
     dispose()
     GlobalScope.launch(ioThread) {
-      val body = createWarningPanel(message("wear.assistant.device.connection.error", errorDevice.displayName))
+      val body = createWarningPanel(errorMessage)
       body.add(
-        LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> wizardAction.restart(project) },
+        JButton(message("wear.assistant.connection.alert.button.try.again")).apply { addActionListener { wizardAction.restart(project) } },
         gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START)
       )
-      showUI(header = currentUiHeader, description = currentUiDescription, body = body)
+      showUI(header = header, description = description, body = body)
     }
   }
 
