@@ -38,10 +38,12 @@ import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.S
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -78,6 +80,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
 
   private val fileDocumentManager = FileDocumentManager.getInstance()
   init {
+    ApplicationManager.getApplication().assertReadAccessAllowed()
     val documentListener = object : DocumentListener {
       override fun documentChanged(event: DocumentEvent) {
         if (_gradleVersion == null && _settingsVisitorResults == null) return
@@ -95,7 +98,10 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): GradleVersionCatalogDetector = project.getService(GradleVersionCatalogDetector::class.java)
+    fun getInstance(project: Project): GradleVersionCatalogDetector =
+      runReadAction {
+        if(project.isDisposed) throw ProcessCanceledException() else project.getService(GradleVersionCatalogDetector::class.java)
+      }
 
     val MISSING_GRADLE_VERSION = GradleVersion.parse("0.0")
     val PREVIEW_GRADLE_VERSION = GradleVersion.parse("7.0")
@@ -110,23 +116,29 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   val gradleVersion: GradleVersion
     get() {
       _gradleVersion?.let { return it }
-      val gradleWrapper = GradleWrapper.find(project)
-      ProgressManager.checkCanceled()
-      val gradleVersion = gradleWrapper?.gradleVersion?.let { GradleVersion.tryParse(it) } ?: MISSING_GRADLE_VERSION
-      return gradleVersion.also { _gradleVersion = gradleVersion }
+      return runReadAction {
+        if (project.isDisposed) throw ProcessCanceledException()
+        val gradleWrapper = GradleWrapper.find(project)
+        ProgressManager.checkCanceled()
+        val gradleVersion = gradleWrapper?.gradleVersion?.let { GradleVersion.tryParse(it) } ?: MISSING_GRADLE_VERSION
+        return@runReadAction gradleVersion.also { _gradleVersion = gradleVersion }
+      }
     }
 
   val settingsVisitorResults: SettingsVisitorResults
     get() {
       _settingsVisitorResults?.let { return it }
-      val baseDir = project.baseDir ?: return EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-      val settingsFile = findGradleSettingsFile(baseDir) ?: return EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-      val settingsVisitorResults = when(val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
-        is GroovyFile -> visitGroovySettings(settingsPsiFile)
-        is KtFile -> visitKtSettings(settingsPsiFile)
-        else -> EMPTY_SETTINGS
+      return runReadAction {
+        if (project.isDisposed) throw ProcessCanceledException()
+        val baseDir = project.baseDir ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
+        val settingsFile = findGradleSettingsFile(baseDir) ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
+        val settingsVisitorResults = when (val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
+          is GroovyFile -> visitGroovySettings(settingsPsiFile)
+          is KtFile -> visitKtSettings(settingsPsiFile)
+          else -> EMPTY_SETTINGS
+        }
+        return@runReadAction settingsVisitorResults.also { _settingsVisitorResults = settingsVisitorResults }
       }
-      return settingsVisitorResults.also { _settingsVisitorResults = settingsVisitorResults }
     }
 
   val _isVersionCatalogProject: DetectorResult
