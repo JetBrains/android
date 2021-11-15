@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.debug;
 
+import static com.android.SdkConstants.TYPE_DEF_FLAG_ATTRIBUTE;
+import static com.android.SdkConstants.TYPE_DEF_VALUE_ATTRIBUTE;
+
 import com.android.SdkConstants;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.collect.Maps;
@@ -22,22 +25,35 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiArrayInitializerMemberValue;
+import com.intellij.psi.PsiAssignmentExpression;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiLocalVariable;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiVariable;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PropertyUtilBase;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.Collection;
+import java.util.Map;
+import javax.swing.*;
 import org.jetbrains.android.inspections.ResourceTypeCompletionContributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
-import java.util.Map;
-
-import static com.android.SdkConstants.TYPE_DEF_FLAG_ATTRIBUTE;
-import static com.android.SdkConstants.TYPE_DEF_VALUE_ATTRIBUTE;
 
 public class AndroidResolveHelper {
   public static class ResolveResult {
@@ -291,30 +307,14 @@ public class AndroidResolveHelper {
         return IntDefResolution.createError();
       }
 
-      // For each name, we need to identify the integer value corresponding to it. We first attempt to check if we can quickly
-      // extract the value set by ConstantExpressionVisitor.VALUE.
-      Key<?> key = Key.findKeyByName("VALUE");
-      Integer constantValue = null;
-      if (key != null) {
-        Object v = value.getUserData(key);
-        if (v instanceof Integer) {
-          constantValue = (Integer)v;
-        }
-      }
-
-      // If that didn't work, we invoke it directly
-      if (constantValue == null && (resolved instanceof PsiField)) {
-        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(((PsiField)resolved).getInitializer(), null, false);
-        if (v instanceof Integer) {
-          constantValue = (Integer)v;
-        }
-      }
-
-      if (constantValue == null) {
+      if (!(resolved instanceof PsiField)) {
         return IntDefResolution.createError();
       }
-
-      valuesMap.put(constantValue, ((PsiNamedElement)resolved).getName());
+      Object v = JavaConstantExpressionEvaluator.computeConstantExpression(((PsiField)resolved).getInitializer(), null, false);
+      if (!(v instanceof Integer)) {
+        return IntDefResolution.createError();
+      }
+      valuesMap.put((Integer)v, ((PsiNamedElement)resolved).getName());
     }
 
     PsiAnnotationMemberValue orValue = annotation.findAttributeValue(TYPE_DEF_FLAG_ATTRIBUTE);
