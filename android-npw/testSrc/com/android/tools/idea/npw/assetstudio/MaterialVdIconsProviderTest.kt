@@ -48,7 +48,7 @@ import kotlin.test.assertTrue
 
 private const val TEST_PATH = "images/material/icons/"
 private const val METADATA_FILE_NAME = "icons_metadata_test.txt"
-private const val WAIT_TIMEOUT = 30L
+private const val WAIT_TIMEOUT_SECONDS = 10L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class MaterialVdIconsProviderTest {
@@ -81,15 +81,15 @@ class MaterialVdIconsProviderTest {
     }
     MaterialVdIconsProvider.loadMaterialVdIcons(
       uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider(), disposable)
-    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals("Style 1", materialIcons.styles[0])
     assertEquals("Style 2", materialIcons.styles[1])
     Truth.assertThat(materialIcons.getCategories("Style 1")).asList().containsAllIn(materialIcons.getCategories("Style 2"))
     val icons = materialIcons.getAllIcons("Style 1")
     Truth.assertThat(icons).hasLength(2)
-    assertEquals("my_icon_1.xml", icons[0].name)
-    assertEquals("my_icon_2.xml", icons[1].name)
+    assertEquals("style1_my_icon_1_24.xml", icons[0].name)
+    assertEquals("style1_my_icon_2_24.xml", icons[1].name)
   }
 
   @Test
@@ -104,7 +104,7 @@ class MaterialVdIconsProviderTest {
     MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, object : MaterialIconsMetadataUrlProvider {
       override fun getMetadataUrl(): URL? = null
     }, null, disposable)
-    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons!!.styles).isEmpty()
   }
 
@@ -120,7 +120,7 @@ class MaterialVdIconsProviderTest {
       override fun getStyleUrl(style: String): URL? = null
       override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? = null
     }, disposable)
-    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     val materialIcons = icons!!
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals("Style 1", materialIcons.styles[0])
@@ -171,6 +171,7 @@ private const val SIMPLE_METADATA =
   "    }\n" +
   "  ]\n" +
   "}"
+
 @Language("XML")
 private const val SIMPLE_VD =
   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -197,8 +198,8 @@ class MaterialVdIconsProviderTestWithSdk {
     val testSdkDirectory = testDirectory.resolve("FakeSdk").apply { mkdir() }
     val testMaterialIconsSdkDirectory = testSdkDirectory.resolve("icons").resolve("material").apply { mkdirs() }
     testMaterialIconsSdkDirectory.resolve("icons_metadata.txt").writeText(SIMPLE_METADATA)
-    testMaterialIconsSdkDirectory.resolve("style1").resolve("my_sdk_icon").apply { mkdirs() }.resolve("my_sdk_icon.xml").writeText(
-      SIMPLE_VD)
+    testMaterialIconsSdkDirectory.resolve("style1").resolve("my_sdk_icon").apply { mkdirs() }.resolve(
+      "style1_my_sdk_icon_24.xml").writeText(SIMPLE_VD)
 
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, testSdkDirectory.toPath())
     Mockito.`when`(rule.mockService(AndroidSdks::class.java).tryToChooseSdkHandler()).thenReturn(sdkHandler)
@@ -214,11 +215,11 @@ class MaterialVdIconsProviderTestWithSdk {
     }
     MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, null, null, // Use the 'real' URL providers
                                                 rule.fixture.projectDisposable)
-    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(1)
     assertEquals("Style 1", materialIcons.styles[0])
     val icons = materialIcons.getAllIcons("Style 1")
     Truth.assertThat(icons).hasLength(1)
-    assertEquals("my_sdk_icon.xml", icons[0].name)
+    assertEquals("style1_my_sdk_icon_24.xml", icons[0].name)
   }
 }

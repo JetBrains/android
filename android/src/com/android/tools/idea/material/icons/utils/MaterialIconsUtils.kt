@@ -42,6 +42,19 @@ object MaterialIconsUtils {
   const val METADATA_FILE_NAME = "icons_metadata.txt"
 
   /**
+   * Path from classpath to the bundled style in the Material Icons directory.
+   *
+   * Does not end on trailing slash.
+   */
+  fun getBundledStyleDirectoryPath(styleName: String): String = MATERIAL_ICONS_PATH + styleName.toDirFormat()
+
+  /**
+   * Path from classpath to the bundled icon in the Material Icons directory.
+   */
+  fun getBundledIconPath(styleName: String, iconName: String, iconFileName: String) =
+    getBundledStyleDirectoryPath(styleName) + "/" + iconName + "/" + iconFileName
+
+  /**
    * Transform the verbose Material Icon family name into a format used for File directories.
    *
    * Eg: 'Material Icons Outlined' -> 'materialiconsoutlined'
@@ -82,5 +95,22 @@ object MaterialIconsUtils {
       LOG.error("Error obtaining metadata file", e)
       null
     }
+  }
+
+  /**
+   * Returns the expected file name for material icons given the [iconName] and the [styleName].
+   *
+   * E.g. For 'android' of 'Material Icons Rounded' returns 'rounded_android_24'
+   *
+   * This should be used whenever we want to read or write material icons, since we rely on this consistency.
+   */
+  fun getIconFileNameWithoutExtension(iconName: String, styleName: String): String {
+    val family = styleName.toDirFormat().substringAfter("materialicons")
+    val familyPrefix = when (family) {
+      "" -> "baseline"
+      "outlined" -> "outline"
+      else -> family
+    }
+    return "${familyPrefix}_${iconName}_24"
   }
 }

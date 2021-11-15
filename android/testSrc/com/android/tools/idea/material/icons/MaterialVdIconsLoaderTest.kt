@@ -18,6 +18,7 @@ package com.android.tools.idea.material.icons
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils
 import com.android.utils.SdkUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
@@ -40,16 +41,16 @@ import kotlin.test.assertFailsWith
 private const val PATH = "images/material/icons/"
 private const val SIMPLE_VD =
   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-    "    android:height=\"100dp\"\n" +
-    "    android:width=\"100dp\"\n" +
-    "    android:viewportHeight=\"100\"\n" +
-    "    android:viewportWidth=\"100\">\n" +
-    "  <path\n" +
-    "      android:fillColor=\"#FF000000\"\n" +
-    "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
-    "\n" +
-    "</vector>"
+  "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+  "    android:height=\"100dp\"\n" +
+  "    android:width=\"100dp\"\n" +
+  "    android:viewportHeight=\"100\"\n" +
+  "    android:viewportWidth=\"100\">\n" +
+  "  <path\n" +
+  "      android:fillColor=\"#FF000000\"\n" +
+  "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
+  "\n" +
+  "</vector>"
 
 class MaterialVdIconsLoaderTest {
 
@@ -146,8 +147,8 @@ class MaterialVdIconsLoaderTest {
     Truth.assertThat(style1Categories[2]).isEqualTo("category3")
     val style1Icons = icons.getAllIcons("style 1")
     Truth.assertThat(style1Icons).hasLength(2)
-    Truth.assertThat(style1Icons[0].name).isEqualTo("my_icon_1.xml")
-    Truth.assertThat(style1Icons[1].name).isEqualTo("my_icon_2.xml")
+    Truth.assertThat(style1Icons[0].name).isEqualTo("style1_my_icon_1_24.xml")
+    Truth.assertThat(style1Icons[1].name).isEqualTo("style1_my_icon_2_24.xml")
     Truth.assertThat(icons.getIcons("style 1", "category1")).hasLength(2)
     Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
     Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
@@ -162,8 +163,8 @@ class MaterialVdIconsLoaderTest {
     Truth.assertThat(style2Categories[2]).isEqualTo("category3")
     val style2Icons = icons.getAllIcons("style 2")
     Truth.assertThat(style2Icons).hasLength(2)
-    Truth.assertThat(style2Icons[0].name).isEqualTo("my_icon_1.xml")
-    Truth.assertThat(style2Icons[1].name).isEqualTo("my_icon_2.xml")
+    Truth.assertThat(style2Icons[0].name).isEqualTo("style2_my_icon_1_24.xml")
+    Truth.assertThat(style2Icons[1].name).isEqualTo("style2_my_icon_2_24.xml")
     Truth.assertThat(icons.getIcons("style 2", "category1")).hasLength(2)
     Truth.assertThat(icons.getIcons("style 2", "category2")).hasLength(1)
     Truth.assertThat(icons.getIcons("style 2", "category2")).hasLength(1)
@@ -176,13 +177,18 @@ class MaterialVdIconsLoaderTest {
  */
 private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
 
-  private val jarUrls: Map<String, URL> = mapOf(Pair("style 1", createMockJarUrl("style1")), Pair("style 2", createMockJarUrl("style2")))
+  private val jarUrls: Map<String, URL?> = mapOf(
+    Pair("images/material/icons/style1", createMockJarUrl("style1")),
+    Pair("images/material/icons/style1/", null),
+    Pair("images/material/icons/style2", createMockJarUrl("style2")),
+    Pair("images/material/icons/style2/", null)
+  )
 
-  override fun getStyleUrl(style: String): URL? = jarUrls[style]
+  override fun getStyleUrl(style: String): URL? = jarUrls[MaterialIconsUtils.getBundledStyleDirectoryPath(style)]
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
     return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(
-      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName"
+      MaterialIconsUtils.getBundledIconPath(style, iconName, iconFileName)
     )
   }
 
@@ -190,11 +196,11 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
     val jarMock = Mockito.mock(JarFile::class.java)
     `when`(jarMock.stream()).thenAnswer {
       Stream.of(
-        JarEntry("images/material/icons/$style/"),
-        JarEntry("images/material/icons/$style/my_icon_1/"),
-        JarEntry("images/material/icons/$style/my_icon_1/my_icon_1.xml"),
-        JarEntry("images/material/icons/$style/my_icon_2/"),
-        JarEntry("images/material/icons/$style/my_icon_2/my_icon_2.xml")
+        JarEntry("images/material/icons/$style"),
+        JarEntry("images/material/icons/$style/my_icon_1"),
+        JarEntry("images/material/icons/$style/my_icon_1/${style}_my_icon_1_24.xml"),
+        JarEntry("images/material/icons/$style/my_icon_2"),
+        JarEntry("images/material/icons/$style/my_icon_2/${style}_my_icon_2_24.xml")
       )
     }
     val jarConnectionMock = Mockito.mock(JarURLConnection::class.java)
@@ -214,7 +220,10 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
  */
 private class FakeStyleFileUrlProvider(private val tempFilePath: String) : MaterialIconsUrlProvider {
 
-  private val fileUrls: Map<String, URL> = mapOf(Pair("style 1", createFakeFileUrl("style1")), Pair("style 2", createFakeFileUrl("style2")))
+  private val fileUrls: Map<String, URL> = mapOf(
+    Pair("style 1", createFakeFileUrl("style1")),
+    Pair("style 2", createFakeFileUrl("style2"))
+  )
 
   override fun getStyleUrl(style: String): URL? = fileUrls[style]
 
@@ -226,9 +235,9 @@ private class FakeStyleFileUrlProvider(private val tempFilePath: String) : Mater
 
   private fun createFakeFileUrl(styleDir: String): URL {
     val styleFile = FileUtil.createTempDirectory(javaClass.simpleName, null).resolve("${tempFilePath}$styleDir/").apply { mkdirs() }.also {
-      it.resolve("my_icon_1").apply { mkdir() }.resolve("my_icon_1.xml").writeText(SIMPLE_VD)
-      it.resolve("my_icon_2").apply { mkdir() }.resolve("my_icon_2.xml").writeText(SIMPLE_VD)
-      it.resolve("my_icon_3").apply { mkdir() }.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
+      it.resolve("my_icon_1").apply { mkdir() }.resolve("${styleDir}_my_icon_1_24.xml").writeText(SIMPLE_VD)
+      it.resolve("my_icon_2").apply { mkdir() }.resolve("${styleDir}_my_icon_2_24.xml").writeText(SIMPLE_VD)
+      it.resolve("my_icon_3").apply { mkdir() }.resolve("${styleDir}_my_icon_3_24.xml").writeText(SIMPLE_VD)
       it.resolve("my_icon_3.xml").writeText(SIMPLE_VD)
     }
     return SdkUtils.fileToUrl(styleFile)
@@ -237,15 +246,13 @@ private class FakeStyleFileUrlProvider(private val tempFilePath: String) : Mater
 
 private class MaterialIconsTestUrlProvider : MaterialIconsUrlProvider {
   override fun getStyleUrl(style: String): URL? {
-    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(getStylePath(style))
+    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(MaterialIconsUtils.getBundledStyleDirectoryPath(style))
   }
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource("${getStylePath(style)}$iconName/$iconFileName")
-  }
-
-  private fun getStylePath(style: String): String {
-    return "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/"
+    return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(
+      MaterialIconsUtils.getBundledIconPath(style, iconName, iconFileName)
+    )
   }
 }
 
