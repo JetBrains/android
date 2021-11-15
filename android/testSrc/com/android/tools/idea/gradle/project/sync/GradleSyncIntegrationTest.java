@@ -311,8 +311,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
   // See https://code.google.com/p/android/issues/detail?id=170722
   public void testWithAndroidProjectWithoutVariants() throws Exception {
-    //TODO(b/202142748): enable for V2 as well when bug is fixed.
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false);
     Project project = getProject();
 
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
@@ -325,7 +323,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
 
     String failure = requestSyncAndGetExpectedFailure();
     assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride();
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {
@@ -349,8 +346,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   // due to conflicts in variant attributes.
   // See b/64213214.
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
-    //TODO(b/202142748): enable for V2 as well when bug is fixed.
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false);
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
@@ -374,7 +369,6 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
                     || m.getMessage().contains("Failed to resolve: project :lib\nAffected Modules:")))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride();
   }
 
   // Verify that custom properties on local.properties are preserved after sync (b/70670394)
