@@ -22,7 +22,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -291,30 +290,14 @@ public class AndroidResolveHelper {
         return IntDefResolution.createError();
       }
 
-      // For each name, we need to identify the integer value corresponding to it. We first attempt to check if we can quickly
-      // extract the value set by ConstantExpressionVisitor.VALUE.
-      Key<?> key = Key.findKeyByName("VALUE");
-      Integer constantValue = null;
-      if (key != null) {
-        Object v = value.getUserData(key);
-        if (v instanceof Integer) {
-          constantValue = (Integer)v;
-        }
-      }
-
-      // If that didn't work, we invoke it directly
-      if (constantValue == null && (resolved instanceof PsiField)) {
-        Object v = JavaConstantExpressionEvaluator.computeConstantExpression(((PsiField)resolved).getInitializer(), null, false);
-        if (v instanceof Integer) {
-          constantValue = (Integer)v;
-        }
-      }
-
-      if (constantValue == null) {
+      if (!(resolved instanceof PsiField)) {
         return IntDefResolution.createError();
       }
-
-      valuesMap.put(constantValue, ((PsiNamedElement)resolved).getName());
+      Object v = JavaConstantExpressionEvaluator.computeConstantExpression(((PsiField)resolved).getInitializer(), null, false);
+      if (!(v instanceof Integer)) {
+        return IntDefResolution.createError();
+      }
+      valuesMap.put((Integer)v, ((PsiNamedElement)resolved).getName());
     }
 
     PsiAnnotationMemberValue orValue = annotation.findAttributeValue(TYPE_DEF_FLAG_ATTRIBUTE);
