@@ -36,8 +36,8 @@ import java.text.ParseException
 
 private val parserDefinition = LogcatFilterParserDefinition()
 
-private val stringKeys = listOf("tag", "app", "package", "message", "msg", "line")
-private val nonStringKeys = listOf("level", "fromLevel", "toLevel", "age")
+private val STRING_KEYS = listOf("tag", "app", "package", "message", "msg", "line")
+private val NON_STRING_KEYS = listOf("level", "fromLevel", "toLevel", "age")
 
 @RunsInEdt
 class LogcatFilterPsiTest {
@@ -59,24 +59,24 @@ class LogcatFilterPsiTest {
 
   @Test
   fun nonStringKeys() {
-    for (key in nonStringKeys) {
-      val psi = parse("$key: bar")
-
-      assertThat(psi.toFilter()).isEqualTo(
-        KeyFilter(key, "bar"),
-      )
+    for (key in NON_STRING_KEYS) {
+      assertThat(parse("$key: bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))
+      assertThat(parse("$key:bar").toFilter()).isEqualTo(KeyFilter(key, "bar"))
     }
   }
 
   @Test
   fun stringKeys_unquoted() {
-    for (key in stringKeys) {
+    for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: bar $key: b\ a\ r $key: b\a\r
+            $key: bar $key: b\ a\ r $key: b\a\r $key:bar $key:b\ a\ r $key:b\a\r
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
         AndFilter(
+          KeyFilter(key, "bar"),
+          KeyFilter(key, "b a r"),
+          KeyFilter(key, "b\\a\\r"),
           KeyFilter(key, "bar"),
           KeyFilter(key, "b a r"),
           KeyFilter(key, "b\\a\\r"),
@@ -87,13 +87,16 @@ class LogcatFilterPsiTest {
 
   @Test
   fun stringKeys_singleQuote() {
-    for (key in stringKeys) {
+    for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r'
+            $key: 'bar' $key: 'b\'a\'r' $key: 'b\a\r' $key:'bar' $key:'b\'a\'r' $key:'b\a\r'
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
         AndFilter(
+          KeyFilter(key, "bar"),
+          KeyFilter(key, "b'a'r"),
+          KeyFilter(key, "b\\a\\r"),
           KeyFilter(key, "bar"),
           KeyFilter(key, "b'a'r"),
           KeyFilter(key, "b\\a\\r"),
@@ -104,13 +107,16 @@ class LogcatFilterPsiTest {
 
   @Test
   fun stringKeys_doubleQuote() {
-    for (key in stringKeys) {
+    for (key in STRING_KEYS) {
       val psi = parse("""
-            $key: "bar" $key: "b\"a\"r" $key: "b\a\r"
+            $key: "bar" $key: "b\"a\"r" $key: "b\a\r" $key:"bar" $key:"b\"a\"r" $key:"b\a\r"
           """.trim())
 
       assertThat(psi.toFilter()).isEqualTo(
         AndFilter(
+          KeyFilter(key, "bar"),
+          KeyFilter(key, "b\"a\"r"),
+          KeyFilter(key, "b\\a\\r"),
           KeyFilter(key, "bar"),
           KeyFilter(key, "b\"a\"r"),
           KeyFilter(key, "b\\a\\r"),
@@ -121,34 +127,25 @@ class LogcatFilterPsiTest {
 
   @Test
   fun stringKeys_negate() {
-    for (key in stringKeys) {
-      val psi = parse("-$key: bar")
-
-      assertThat(psi.toFilter()).isEqualTo(
-        KeyFilter(key, "bar", isNegated = true),
-      )
+    for (key in STRING_KEYS) {
+      assertThat(parse("-$key: bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true))
+      assertThat(parse("-$key:bar").toFilter()).isEqualTo(KeyFilter(key, "bar", isNegated = true))
     }
   }
 
   @Test
   fun stringKeys_regex() {
-    for (key in stringKeys) {
-      val psi = parse("$key~: foo|bar")
-
-      assertThat(psi.toFilter()).isEqualTo(
-        KeyFilter(key, "foo|bar", isRegex = true),
-      )
+    for (key in STRING_KEYS) {
+      assertThat(parse("$key~: foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
+      assertThat(parse("$key~:foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isRegex = true))
     }
   }
 
   @Test
   fun stringKeys_negateRegex() {
-    for (key in stringKeys) {
-      val psi = parse("-$key~: foo|bar")
-
-      assertThat(psi.toFilter()).isEqualTo(
-        KeyFilter(key, "foo|bar", isNegated = true, isRegex = true),
-      )
+    for (key in STRING_KEYS) {
+      assertThat(parse("-$key~: foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
+      assertThat(parse("-$key~:foo|bar").toFilter()).isEqualTo(KeyFilter(key, "foo|bar", isNegated = true, isRegex = true))
     }
   }
 
@@ -184,7 +181,6 @@ class LogcatFilterPsiTest {
       TopLevelFilter("bar b\"a\"r b\\a\\r"),
     )
   }
-
 
   @Test
   fun topLevelExpressions() {

@@ -92,6 +92,7 @@ class LogcatFilterParserTest {
   fun parse_stringKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("$key: Foo")).isEqualTo(StringFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("$key:Foo")).isEqualTo(StringFilter("Foo", field))
     }
   }
 
@@ -99,6 +100,7 @@ class LogcatFilterParserTest {
   fun parse_negatedStringKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("-$key: Foo")).isEqualTo(NegatedStringFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("-$key:Foo")).isEqualTo(NegatedStringFilter("Foo", field))
     }
   }
 
@@ -106,6 +108,7 @@ class LogcatFilterParserTest {
   fun parse_regexKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("$key~: Foo")).isEqualTo(RegexFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("$key~:Foo")).isEqualTo(RegexFilter("Foo", field))
     }
   }
 
@@ -113,6 +116,7 @@ class LogcatFilterParserTest {
   fun parse_negatedRegexKey() {
     for ((key, field) in KEYS) {
       assertThat(logcatFilterParser().parse("-$key~: Foo")).isEqualTo(NegatedRegexFilter("Foo", field))
+      assertThat(logcatFilterParser().parse("-$key~:Foo")).isEqualTo(NegatedRegexFilter("Foo", field))
     }
   }
 
@@ -120,9 +124,8 @@ class LogcatFilterParserTest {
   fun parse_levelKeys() {
     for ((key, expectedFilter) in LEVEL_KEYS) {
       for (logLevel in Log.LogLevel.values()) {
-        val filter = logcatFilterParser().parse("${key}: $logLevel")
-
-        assertThat(filter).isEqualTo(expectedFilter(logLevel))
+        assertThat(logcatFilterParser().parse("${key}: $logLevel")).isEqualTo(expectedFilter(logLevel))
+        assertThat(logcatFilterParser().parse("${key}:$logLevel")).isEqualTo(expectedFilter(logLevel))
       }
     }
   }
@@ -142,9 +145,8 @@ class LogcatFilterParserTest {
   fun parse_age() {
     for ((key, duration) in AGE_VALUES) {
       val clock = Clock.systemUTC()
-      val filter = logcatFilterParser(clock).parse("age: $key")
-
-      assertThat(filter).isEqualTo(AgeFilter(duration, clock))
+      assertThat(logcatFilterParser(clock).parse("age: $key")).isEqualTo(AgeFilter(duration, clock))
+      assertThat(logcatFilterParser(clock).parse("age:$key")).isEqualTo(AgeFilter(duration, clock))
     }
   }
 

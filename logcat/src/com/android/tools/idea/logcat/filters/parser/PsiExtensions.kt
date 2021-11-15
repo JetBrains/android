@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 
@@ -23,7 +25,7 @@ import com.intellij.psi.util.elementType
  */
 internal fun PsiElement.toText(): String {
   return when (elementType) {
-    LogcatFilterTypes.VALUE -> {
+    VALUE, KVALUE -> {
       when {
         text.isSurroundedBy('\'') -> text.substring(1, textLength - 1).replace("\\'", "'")
         text.isSurroundedBy('"') -> text.substring(1, textLength - 1).replace("\\\"", "\"")
@@ -36,6 +38,6 @@ internal fun PsiElement.toText(): String {
   }
 }
 
-internal fun PsiElement.isTopLevelValue() = firstChild.elementType == LogcatFilterTypes.VALUE
+internal fun PsiElement.isTopLevelValue() = firstChild.elementType == VALUE
 
 private fun String.isSurroundedBy(char: Char) = length >= 2 && first() == char && first() == last()

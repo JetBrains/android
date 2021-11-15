@@ -16,6 +16,7 @@ public interface LogcatFilterTypes {
 
   IElementType AND = new LogcatFilterTokenType("AND");
   IElementType KEY = new LogcatFilterTokenType("KEY");
+  IElementType KVALUE = new LogcatFilterTokenType("KVALUE");
   IElementType LPAREN = new LogcatFilterTokenType("LPAREN");
   IElementType OR = new LogcatFilterTokenType("OR");
   IElementType RPAREN = new LogcatFilterTokenType("RPAREN");

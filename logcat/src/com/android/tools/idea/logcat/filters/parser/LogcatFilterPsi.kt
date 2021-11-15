@@ -54,7 +54,7 @@ internal class LogcatFilterTokenType(debugName: @NonNls String) : IElementType(d
 
 internal class LogcatFilterElementType(debugName: @NonNls String) : IElementType(debugName, LogcatFilterLanguage)
 
-internal class LogcatFilterLexerAdapter : FlexAdapter(LogcatFilterLexer(null))
+internal class LogcatFilterLexerAdapter : FlexAdapter(LogcatFilterLexerWrapper())
 
 internal class LogcatFilterFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, LogcatFilterLanguage) {
   override fun getFileType() = LogcatFilterFileType

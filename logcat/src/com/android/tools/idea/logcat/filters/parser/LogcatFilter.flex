@@ -81,10 +81,20 @@ DOUBLE_QUOTED_VALUE = \" ([^\"] | \\\")* \"
 STRING_VALUE        = {UNQUOTED_VALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_VALUE}
 
 // Keys that accept quoted or unquoted strings.
-TEXT_KEY = "tag" | "app" | "package" | "message" | "msg" | "line"
+TEXT_KEY
+  = "app"
+  | "line"
+  | "message"
+  | "msg"
+  | "package"
+  | "tag"
 
 // Keys that accept unquoted, non-whitespace values
-KEY = "level" | "fromLevel" | "toLevel" | "age"
+KEY
+  = "age"
+  | "fromLevel"
+  | "level"
+  | "toLevel"
 
 %state STRING_VALUE
 %state VALUE
@@ -105,8 +115,8 @@ KEY = "level" | "fromLevel" | "toLevel" | "age"
 
 {WHITE_SPACE}+                         { return TokenType.WHITE_SPACE; }
 
-<STRING_VALUE>   {STRING_VALUE}        { yybegin(YYINITIAL); return LogcatFilterTypes.VALUE; }
+<STRING_VALUE>   {STRING_VALUE}        { yybegin(YYINITIAL); return LogcatFilterTypes.KVALUE; }
 
-<VALUE>  \S+                           { yybegin(YYINITIAL); return LogcatFilterTypes.VALUE; }
+<VALUE>  \S+                           { yybegin(YYINITIAL); return LogcatFilterTypes.KVALUE; }
 
 [^]                                    { return TokenType.BAD_CHARACTER; }

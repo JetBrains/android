@@ -82,7 +82,7 @@ orExpression ::= expression OR expression
 andExpression ::= expression AND expression
 
 literalExpression
-  ::= KEY VALUE
+  ::= KEY KVALUE
   |   VALUE
 
 parenExpression ::= LPAREN expression RPAREN
