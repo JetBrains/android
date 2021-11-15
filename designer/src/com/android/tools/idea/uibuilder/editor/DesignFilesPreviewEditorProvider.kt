@@ -19,7 +19,7 @@ import com.android.tools.idea.common.editor.DesignerEditorProvider
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
-import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
+import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.FontFileType
 import com.android.tools.idea.uibuilder.type.StateListFileType
@@ -27,17 +27,19 @@ import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
+val DESIGNER_PREVIEW_FILE_TYPES = listOf(AdaptiveIconFileType,
+                                         StateListFileType,
+                                         AnimationListFileType,
+                                         AnimatedStateListFileType,
+                                         AnimatedStateListTempFileType,
+                                         AnimatedVectorFileType,
+                                         FontFileType,
+                                         ZoomableDrawableFileType)
+
 /**
  * Register and accepts types supported by [DesignFilesPreviewEditor].
  */
-class DesignFilesPreviewEditorProvider : DesignerEditorProvider(listOf(AdaptiveIconFileType,
-                                                                       StateListFileType,
-                                                                       AnimationListFileType,
-                                                                       AnimatedStateListFileType,
-                                                                       AnimatedStateListTempFile,
-                                                                       AnimatedVectorFileType,
-                                                                       FontFileType,
-                                                                       ZoomableDrawableFileType))
+class DesignFilesPreviewEditorProvider : DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES)
 {
 
   override fun createDesignEditor(project: Project, file: VirtualFile) = DesignFilesPreviewEditor(file, project)

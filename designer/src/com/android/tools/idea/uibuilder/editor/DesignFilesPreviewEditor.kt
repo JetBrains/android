@@ -26,6 +26,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -36,7 +37,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
-import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
+import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.DrawableFileType
@@ -56,6 +57,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.function.Consumer
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
@@ -77,6 +79,9 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
       NlDesignSurface.builder(myProject, this)
+        .setActionManagerProvider { surface ->
+          PreviewEditorActionManagerProvider(surface as NlDesignSurface, file?.toPsiFile(myProject)?.typeOf())
+        }
         .build()
         .apply {
           val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
@@ -123,7 +128,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   }
 
   private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?): JPanel? {
-    val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFile) {
+    val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
     else if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get() && model?.type is AnimatedVectorFileType) {
@@ -162,6 +167,20 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   }
 
   override fun getName() = "Design"
+}
+
+/**
+ * The [com.android.tools.idea.common.editor.ActionManager] for [DesignFilesPreviewEditor]. This gives the chance to have different actions
+ * depends on the give [fileType].
+ */
+class PreviewEditorActionManagerProvider(surface: NlDesignSurface,
+                                         private val fileType: DesignerEditorFileType?) : NlActionManager(surface) {
+  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? {
+    return when (fileType) {
+      is AnimatedStateListFileType, is AnimatedStateListTempFileType, is AnimatedVectorFileType, is AnimationListFileType -> null
+      else -> super.getSceneViewContextToolbar(sceneView)
+    }
+  }
 }
 
 /**

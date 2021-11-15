@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.type
 
-private val rootTags = setOf("animation-list")
+import com.android.SdkConstants
+
+private val rootTags = setOf(SdkConstants.TAG_ANIMATION_LIST)
 
 /**
  * File type for <animation-list> xml file.
