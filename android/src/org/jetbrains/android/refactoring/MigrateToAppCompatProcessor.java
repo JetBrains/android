@@ -56,6 +56,7 @@ import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.SmartHashSet;
 import com.siyeh.ig.psiutils.MethodUtils;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
 import org.jetbrains.android.util.AndroidBundle;
@@ -456,15 +457,19 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
       SmartPointerManager smartPointerManager = SmartPointerManager.getInstance(myProject);
 
-      for (UsageInfo usage : usages) {
-        PsiElement psiElement = null;
+      List<MigrateToAppCompatUsageInfo> migrateToAppCompatUsageInfos = Arrays.stream(usages)
+        .filter(MigrateToAppCompatUsageInfo.class::isInstance)
+        .map(MigrateToAppCompatUsageInfo.class::cast)
+        .collect(Collectors.toList());
+      for (MigrateToAppCompatUsageInfo usage : MigrateToAppCompatUsageInfoUtilKt.sortToApply(migrateToAppCompatUsageInfos)) {
+        PsiElement psiElement;
         if (usage instanceof ClassMigrationUsageInfo) {
           ClassMigrationUsageInfo classMigrationUsageInfo = (ClassMigrationUsageInfo)usage;
           myClassMigrations.add(classMigrationUsageInfo);
           psiElement = classMigrationUsageInfo.applyChange(psiMigration);
         }
-        else if (usage instanceof MigrateToAppCompatUsageInfo) {
-          psiElement = ((MigrateToAppCompatUsageInfo)usage).applyChange(psiMigration);
+        else  {
+          psiElement = usage.applyChange(psiMigration);
         }
 
         if (psiElement != null) {

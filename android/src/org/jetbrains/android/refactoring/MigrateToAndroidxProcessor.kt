@@ -72,14 +72,7 @@ import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHel
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.FileSystems
 
-private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
-private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
-private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
-
 private val log = logger<MigrateToAndroidxProcessor>()
-
-private fun isImportElement(element: PsiElement?): Boolean =
-  element != null && (element.node?.elementType.toString() == "IMPORT_LIST" || isImportElement(element.parent))
 
 /**
  * Returns the latest available version for the given `AppCompatMigrationEntry.GradleMigrationEntry`
@@ -239,28 +232,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
         // First, unwrap any KotlinFileWrapper
         .map { (it as? KotlinFileWrapper)?.delegate ?: it }
         .filterIsInstance<MigrateToAppCompatUsageInfo>()
-        .sortedByDescending {
-          // The refactoring operations need to be done in a specific order to work correctly.
-          // We need to refactor the imports first in order to allow shortenReferences to work (since it needs
-          // to check that the imports are there).
-          // We need to process first the class migrations since they have higher priority. If we don't,
-          // the package refactoring would be applied first and then the class would incorrectly be refactored.
-          // Then, we need to first process the longest package names so, if there are conflicting refactorings,
-          // the most specific one applies.
-
-          var value = when (it) {
-            is ClassMigrationUsageInfo -> CLASS_MIGRATION_BASE_PRIORITY
-            is PackageMigrationUsageInfo -> PACKAGE_MIGRATION_BASE_PRIORITY + it.mapEntry.myOldName.length
-            else -> DEFAULT_MIGRATION_BASE_PRIORITY
-          }
-
-          if (isImportElement(it.element)) {
-            // This is an import, promote
-            value += 1000
-          }
-
-          value
-        }
+        .sortToApply()
         .mapNotNull { it.applyChange(migration) }
         .filter { it.isValid }
         .map { smartPointerManager.createSmartPsiElementPointer(it) }
