@@ -79,6 +79,12 @@ import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FATAL
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGNORE
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
+import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
@@ -1045,13 +1051,24 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     )
   }
 
+  fun severityOverridesFrom(lintOptions: LintOptions): Map<String, Int>? {
+    val severityOverrides = mutableMapOf<String, Int>()
+    lintOptions.fatal.forEach{ severityOverrides[it] = SEVERITY_FATAL }
+    lintOptions.error.forEach { severityOverrides[it] = SEVERITY_ERROR }
+    lintOptions.warning.forEach { severityOverrides[it] = SEVERITY_WARNING }
+    lintOptions.informational.forEach { severityOverrides[it] = SEVERITY_INFORMATIONAL }
+    lintOptions.disable.forEach { severityOverrides[it] = SEVERITY_IGNORE }
+    lintOptions.enable.forEach { severityOverrides[it] = SEVERITY_DEFAULT_ENABLED }
+    return severityOverrides.ifEmpty { null }
+  }
+
   fun lintOptionsFrom(options: LintOptions, modelVersion: GradleVersion?): IdeLintOptionsImpl = IdeLintOptionsImpl(
     baselineFile = if (modelVersion != null)
       options.baseline
     else
       null,
     lintConfig = copy(options::lintConfig),
-    severityOverrides = null,
+    severityOverrides = severityOverridesFrom(options),
     isCheckTestSources = modelVersion != null && options.checkTestSources,
     isCheckDependencies = options.checkDependencies,
     disable = copy(options::disable, ::deduplicateString),

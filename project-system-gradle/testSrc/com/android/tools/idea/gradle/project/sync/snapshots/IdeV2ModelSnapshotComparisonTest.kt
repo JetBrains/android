@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -88,7 +87,8 @@ class IdeV2ModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparis
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984. more info b/111168382.
       TestProject(TestProjectToSnapshotPaths.NAMESPACES, skipV1toV2Comparison = true),
       TestProject(TestProjectToSnapshotPaths.INCLUDE_FROM_LIB),
-      TestProject(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES)
+      TestProject(TestProjectToSnapshotPaths.LOCAL_AARS_AS_MODULES),
+      TestProject(TestProjectToSnapshotPaths.BASIC)
     )
   }
 
