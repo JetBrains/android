@@ -1091,7 +1091,8 @@ class EmulatorView(
       }
 
       if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
-        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.width} image contains ${response.image.size()} bytes")
+        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.width} image contains ${response.image.size()} bytes" +
+                  " instead of ${imageFormat.width * imageFormat.height * 3}")
         return
       }
 
