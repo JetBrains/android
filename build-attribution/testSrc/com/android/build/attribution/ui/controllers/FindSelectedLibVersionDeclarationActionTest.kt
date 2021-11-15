@@ -96,6 +96,14 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testSeveralDeclarationsVersionInLiteralDifferentVersions() {
+    writeToBuildFile(TestFileName("libraries/versionInLiteralSeveralDeclarationsDifferentVersions"))
+    val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
+    // Return several all declarations when they are defined separately.
+    Truth.assertThat(arrayOfUsageInfos).hasLength(1)
+  }
+
+  @Test
   fun testSeveralDeclarationsVersionInOneVariable() {
     writeToBuildFile(TestFileName("libraries/versionInVariableSeveralDeclarations"))
     val arrayOfUsageInfos = findVersionDeclarations(project, "org.jetbrains.kotlin:kotlin-stdlib:1.5.31")

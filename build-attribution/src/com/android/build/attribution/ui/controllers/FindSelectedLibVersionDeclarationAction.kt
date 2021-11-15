@@ -41,7 +41,7 @@ class FindSelectedLibVersionDeclarationAction(
   private val selectionSupplier: Supplier<String?>,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics,
-  ) : AnAction(
+) : AnAction(
   "Find Version Declarations") {
   override fun update(e: AnActionEvent) {
     if (selectionSupplier.get() == null) {
@@ -87,9 +87,15 @@ class FindSelectedLibVersionDeclarationAction(
 
 fun findVersionDeclarations(project: Project, selectedDependency: String): Array<UsageInfo> {
   val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency) ?: return emptyArray()
-  return ProjectBuildModel.get(project).allIncludedBuildModels.asSequence()
+  val artifactsMatchingGroupAndName = ProjectBuildModel.get(project).allIncludedBuildModels
     .flatMap { model -> model.dependencies().artifacts() }
-    .filter { dependency -> dependency.spec.group == selectedParsed.group && dependency.spec.name == selectedParsed.name }
+    .filter { dependency ->
+      dependency.spec.let {
+        it.group == selectedParsed.group && it.name == selectedParsed.name
+      }
+    }
+  val artifactsMatchingVersion = artifactsMatchingGroupAndName.filter { dependency -> dependency.spec.version == selectedParsed.version }
+  return artifactsMatchingVersion.ifEmpty { artifactsMatchingGroupAndName }.asSequence()
     .mapNotNull { dependency ->
       val versionElement = dependency.version().resultModel.rawElement
       fun extractDependencyPsi() = when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {
