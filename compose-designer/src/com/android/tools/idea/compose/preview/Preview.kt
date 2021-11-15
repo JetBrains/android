@@ -116,7 +116,7 @@ import kotlin.properties.Delegates
 /**
  * Background color for the surface while "Interactive" is enabled.
  */
-private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ourInteractiveBackgroundColor)
+private val INTERACTIVE_BACKGROUND_COLOR = MEUI.ourInteractiveBackgroundColor
 
 /**
  * [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`.
