@@ -24,7 +24,9 @@ import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -109,7 +111,7 @@ class ComposePreviewTest {
   private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
                                                                                              null,
                                                                                              null,
-                                                                                             "1.4.32",
+                                                                                             "1.5.31",
                                                                                              GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
   @Test
@@ -412,12 +414,12 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/155879999
   @Throws(Exception::class)
   fun testDeployPreview() {
     val fixture = getSyncedProjectFixture()
 
     val previewActivityName = fixture.project.allModules()
+      .filter { it.name.contains("app") }
       .map { it.findComposeToolingNamespace() }
       .distinct()
       .single()
@@ -436,7 +438,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE).waitUntilEnabledAndShowing().click()
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
