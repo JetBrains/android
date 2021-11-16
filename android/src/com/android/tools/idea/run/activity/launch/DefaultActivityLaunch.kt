@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.run.activity.launch
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.activity.ActivityLocator
-import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.activity.DefaultApkActivityLocator
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
 import com.android.tools.idea.run.editor.ProfilerState
@@ -40,7 +38,7 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State?>
       profilerState: ProfilerState,
       apkProvider: ApkProvider
     ): AppLaunchTask {
-      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(facet, apkProvider), startActivityFlagsProvider)
+      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(apkProvider), startActivityFlagsProvider)
     }
 
     override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
@@ -48,13 +46,8 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State?>
     }
 
     companion object {
-      private fun getActivityLocatorForLaunch(facet: AndroidFacet, apkProvider: ApkProvider): ActivityLocator {
-        return if (StudioFlags.DEFAULT_ACTIVITY_LOCATOR_FROM_APKS.get()) {
-          DefaultApkActivityLocator(apkProvider)
-        }
-        else {
-          DefaultActivityLocator(facet)
-        }
+      private fun getActivityLocatorForLaunch(apkProvider: ApkProvider): ActivityLocator {
+        return DefaultApkActivityLocator(apkProvider)
       }
     }
   }
