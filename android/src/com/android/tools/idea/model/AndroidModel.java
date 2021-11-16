@@ -99,7 +99,7 @@ public interface AndroidModel {
    * @return the minimum supported SDK version.
    * {@link AndroidModuleInfo#getMinSdkVersion()}
    */
-  @Nullable
+  @NotNull
   AndroidVersion getMinSdkVersion();
 
   /**

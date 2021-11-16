@@ -328,6 +328,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the {@link AndroidVersion} to use for this Gradle project, or {@code null} if not specified.
    */
   @Override
+  @NotNull
   public AndroidVersion getMinSdkVersion() {
     if (myMinSdkVersion == null) {
       IdeApiVersion minSdkVersion = getSelectedVariant().getMinSdkVersion();
