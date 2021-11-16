@@ -68,8 +68,8 @@ public class PreviewProviderTest extends LayoutTestCase {
     when(surface.getScale()).thenReturn(1.0);
     when(surface.getScreenScalingFactor()).thenReturn(1.0);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
-    myPreviewProvider.myRenderTimeoutMillis = 10000L;
-    myPreviewProvider.myRenderTaskTimeoutMillis = 10000L;
+    myPreviewProvider.setRenderTimeoutMillis(10000L);
+    myPreviewProvider.setRenderTaskTimeoutMillis(10000L);
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
     RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
@@ -97,14 +97,14 @@ public class PreviewProviderTest extends LayoutTestCase {
     }
     File goldenFile = new File(getTestDataPath() + separator + "palette" + separator + "TextView.png");
     BufferedImage goldenImage = ImageIO.read(goldenFile);
-    ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, imageAndSize.image, MAX_PERCENT_DIFFERENT);
-    assertThat(imageAndSize.dimension.height).isEqualTo(42);
-    assertThat(imageAndSize.dimension.width).isEqualTo(119);
+    ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, imageAndSize.getImage(), MAX_PERCENT_DIFFERENT);
+    assertThat(imageAndSize.getDimension().height).isEqualTo(42);
+    assertThat(imageAndSize.getDimension().width).isEqualTo(119);
   }
 
   public void testRenderTaskTimeOutReturnsANullDragImage() {
-    myPreviewProvider.myRenderTimeoutMillis = 0L;
-    myPreviewProvider.myRenderTaskTimeoutMillis = 0L;
+    myPreviewProvider.setRenderTimeoutMillis(0L);
+    myPreviewProvider.setRenderTaskTimeoutMillis(0L);
     assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
   }
 

@@ -508,8 +508,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
 
       PreviewProvider.ImageAndDimension imageAndSize = myPreviewProvider.createPreview(component, item);
-      BufferedImage image = imageAndSize.image;
-      Dimension size = imageAndSize.dimension;
+      BufferedImage image = imageAndSize.getImage();
+      Dimension size = imageAndSize.getDimension();
       setDragImage(image);
       if (SystemInfo.isWindows) {
         // Windows uses opposite conventions for computing offset
