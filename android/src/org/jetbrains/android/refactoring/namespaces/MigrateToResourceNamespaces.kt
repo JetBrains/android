@@ -30,6 +30,7 @@ import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressManager
@@ -197,7 +198,7 @@ class MigrateToResourceNamespacesProcessor(
       for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
         // TODO(b/78765120): process the files in parallel?
         VfsUtil.processFilesRecursively(resourceDir) { vf ->
-          if (vf.fileType == XmlFileType.INSTANCE) {
+          if (FileTypeRegistry.getInstance().isFileOfType(vf, XmlFileType.INSTANCE)) {
             val psiFile = psiManager.findFile(vf)
             if (psiFile is XmlFile) {
               result += findXmlUsages(psiFile, facet)

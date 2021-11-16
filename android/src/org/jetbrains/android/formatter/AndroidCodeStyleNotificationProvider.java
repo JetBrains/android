@@ -8,6 +8,7 @@ import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -45,7 +46,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
   @Nullable
   @Override
   public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (file.getFileType() != XmlFileType.INSTANCE ||
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) ||
         !(fileEditor instanceof TextEditor)) {
       return null;
     }
