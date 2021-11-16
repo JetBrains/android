@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.logcat
 
-import org.junit.Test
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -30,6 +29,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Rule
+import org.junit.Test
 
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
@@ -81,11 +81,12 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun createChildComponent_parsesState() {
-    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)))
+    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)), "filter", showOnlyProjectApps = true)
 
     val logcatMainPanel = LogcatToolWindowFactory()
       .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = Gson().toJson(logcatPanelConfig)) as LogcatMainPanel
 
+    // It's enough to assert on just one field in the config. We test more thoroughly in LogcatMainPanelTest
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingOptions)
     Disposer.dispose(logcatMainPanel)
   }

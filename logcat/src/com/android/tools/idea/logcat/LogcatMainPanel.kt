@@ -27,6 +27,7 @@ import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.android.tools.idea.logcat.folding.EditorFoldingDetector
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
@@ -107,8 +108,20 @@ internal class LogcatMainPanel(
   internal val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
 
   @VisibleForTesting
-  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, packageNamesProvider)
-  private val headerPanel = LogcatHeaderPanel(project, logcatPresenter = this, deviceContext, packageNamesProvider)
+  val headerPanel = LogcatHeaderPanel(
+    project,
+    logcatPresenter = this,
+    deviceContext, packageNamesProvider,
+    state?.filter ?: "",
+    state?.showOnlyProjectApps ?: true)
+
+  @VisibleForTesting
+  internal val messageProcessor = MessageProcessor(
+    this,
+    messageFormatter::formatMessages,
+    packageNamesProvider,
+    LogcatFilterParser(project).parse(headerPanel.getFilterText()),
+    headerPanel.isShowProjectApps())
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
@@ -193,7 +206,9 @@ internal class LogcatMainPanel(
   override fun getState(): String = LogcatPanelConfig.toJson(
     LogcatPanelConfig(
       deviceContext.selectedDevice?.serialNumber,
-      formattingOptions))
+      formattingOptions,
+      headerPanel.getFilterText(),
+      headerPanel.isShowProjectApps()))
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
     if (!isActive) {
@@ -224,7 +239,7 @@ internal class LogcatMainPanel(
 
   @UiThread
   override fun applyFilter(logcatFilter: LogcatFilter) {
-    messageProcessor.setFilter(logcatFilter)
+    messageProcessor.logcatFilter = logcatFilter
     reloadMessages()
   }
 

@@ -33,6 +33,7 @@ import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
@@ -83,7 +84,7 @@ class LogcatMainPanelTest {
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = executor, ioThreadExecutor = executor)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule)
+  val rule = RuleChain(projectRule, EdtRule(), androidExecutorsRule, popupRule, LogcatFilterLanguageRule())
 
   private val myMockHyperlinkDetector = mock<HyperlinkDetector>()
   private val mockFoldingDetector = mock<FoldingDetector>()
@@ -387,10 +388,15 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun appliesState() {
-    val logcatMainPanel = logcatMainPanel(state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17))))
+    val logcatMainPanel = logcatMainPanel(
+      state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17)), "filter", showOnlyProjectApps = true))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow initializing it.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", LINE))
+    assertThat(logcatMainPanel.messageProcessor.showOnlyProjectApps).isTrue()
+    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
+    assertThat(logcatMainPanel.headerPanel.isShowProjectApps()).isTrue()
   }
 
   @Test

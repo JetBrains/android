@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-//import com.android.tools.idea.logcat.filters.FullMessageTextFilter
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
@@ -24,6 +23,7 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.filters.EmptyFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.onIdle
@@ -155,8 +155,7 @@ class MessageProcessorTest {
     val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2")
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
-    messageProcessor.setFilter(StringFilter("tag2", LINE))
-
+    messageProcessor.logcatFilter = StringFilter("tag2", LINE)
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {
@@ -191,7 +190,7 @@ class MessageProcessorTest {
     fakePackageNamesProvider.names.addAll(listOf("app1", "app3"))
     val batch = listOf(message1, message2, message3)
     messageProcessor.showOnlyProjectApps = true
-    messageProcessor.setFilter(StringFilter("tag1", LINE))
+    messageProcessor.logcatFilter = StringFilter("tag1", LINE)
 
     messageProcessor.appendMessages(batch)
 
@@ -207,7 +206,15 @@ class MessageProcessorTest {
     clock: Clock = Clock.systemDefaultZone(),
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
     maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
-  ) = MessageProcessor(logcatPresenter, formatMessagesInto, packageNamesProvider, clock, maxTimePerBatchMs, maxMessagesPerBatch)
+  ) = MessageProcessor(
+    logcatPresenter,
+    formatMessagesInto,
+    packageNamesProvider,
+    EmptyFilter(),
+    showOnlyProjectApps = false,
+    clock,
+    maxTimePerBatchMs,
+    maxMessagesPerBatch)
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {

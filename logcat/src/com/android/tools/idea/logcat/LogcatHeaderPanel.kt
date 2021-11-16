@@ -42,7 +42,9 @@ internal class LogcatHeaderPanel(
   project: Project,
   val logcatPresenter: LogcatPresenter,
   deviceContext: DeviceContext,
-  packageNamesProvider: PackageNamesProvider
+  packageNamesProvider: PackageNamesProvider,
+  filter: String,
+  showOnlyProjectApps: Boolean,
 ) : JPanel() {
   private val deviceComboBox: Component
   private val quickFilterTextField = RegexTextField(logcatPresenter, QUICK_FILTER_HISTORY_PROPERTY_NAME, QUICK_FILTER_HISTORY_SIZE)
@@ -65,12 +67,18 @@ internal class LogcatHeaderPanel(
     val devicePanel = DevicePanel(project, deviceContext)
     deviceComboBox = devicePanel.deviceComboBox
 
-    quickFilterTextField.addOnChangeListener(object : RegexTextField.OnChangeListener {
-      override fun onChange(component: RegexTextField) {
-        logcatPresenter.applyFilter(filterParser.parse(quickFilterTextField.text))
-      }
-    })
-    projectAppsCheckbox.addItemListener { logcatPresenter.setShowOnlyProjectApps(projectAppsCheckbox.isSelected) }
+    quickFilterTextField.apply {
+      text = filter
+      addOnChangeListener(object : RegexTextField.OnChangeListener {
+        override fun onChange(component: RegexTextField) {
+          logcatPresenter.applyFilter(filterParser.parse(text))
+        }
+      })
+    }
+    projectAppsCheckbox.apply {
+      isSelected = showOnlyProjectApps
+      addItemListener { logcatPresenter.setShowOnlyProjectApps(projectAppsCheckbox.isSelected) }
+    }
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(event: ComponentEvent) {
@@ -78,6 +86,10 @@ internal class LogcatHeaderPanel(
       }
     })
   }
+
+  fun getFilterText() = quickFilterTextField.text
+
+  fun isShowProjectApps() = projectAppsCheckbox.isSelected
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)

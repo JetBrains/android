@@ -22,7 +22,6 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.AndLogcatFilter
 import com.android.tools.idea.logcat.filters.AppFilter
-import com.android.tools.idea.logcat.filters.EmptyFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -47,12 +46,12 @@ internal class MessageProcessor(
   private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
   private val packageNamesProvider: PackageNamesProvider,
+  var logcatFilter: LogcatFilter,
+  var showOnlyProjectApps: Boolean,
   private val clock: Clock = Clock.systemDefaultZone(),
   private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
   private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
-  var showOnlyProjectApps = false
-  private var logcatFilter: LogcatFilter = EmptyFilter()
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
   init {
@@ -107,9 +106,5 @@ internal class MessageProcessor(
         }
       }
     }
-  }
-
-  fun setFilter(logcatFilter: LogcatFilter) {
-    this.logcatFilter = logcatFilter
   }
 }
