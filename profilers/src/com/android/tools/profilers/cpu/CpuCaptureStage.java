@@ -662,7 +662,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
     display.addTrackModel(TrackModel.newBuilder(new DeadlineTextModel(multiSelectionModel,
                                                                       systemTraceData.getVsyncCounterValues(),
                                                                       timeline.getViewRange()),
-                                                ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT, ""));
+                                                ProfilerTrackRendererType.ANDROID_FRAME_DEADLINE_TEXT, "")
+                            .setDragEnabled(false));
     return display;
   }
 

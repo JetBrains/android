@@ -75,11 +75,6 @@ public class Track {
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     myTrackContent = trackContent;
 
-    // Icon for reordering tracks via drag-n-drop.
-    JLabel recorderIconLabel = new JLabel(REORDER_ICON);
-    recorderIconLabel.setVerticalAlignment(SwingConstants.TOP);
-    recorderIconLabel.setBorder(JBUI.Borders.emptyTop(4));
-
     myTitleLabel = new JLabel(trackModel.getTitle());
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
     myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
@@ -105,7 +100,13 @@ public class Track {
 
     // Front panel has a dynamic background color based on selection state.
     myTitleFrontPanel = new JPanel(new BorderLayout());
-    myTitleFrontPanel.add(recorderIconLabel, BorderLayout.WEST);
+    if (trackModel.isDragEnabled()) {
+      // Icon for reordering tracks via drag-n-drop.
+      JLabel recorderIconLabel = new JLabel(REORDER_ICON);
+      recorderIconLabel.setVerticalAlignment(SwingConstants.TOP);
+      recorderIconLabel.setBorder(JBUI.Borders.emptyTop(4));
+      myTitleFrontPanel.add(recorderIconLabel, BorderLayout.WEST);
+    }
     myTitleFrontPanel.add(myTitleLabel, BorderLayout.CENTER);
 
     // Back panel has a static background color but its border color changes based on selection state.
