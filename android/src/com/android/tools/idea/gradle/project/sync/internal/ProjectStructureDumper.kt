@@ -319,7 +319,6 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
     prop("UseCustomApkResourceFolder") { USE_CUSTOM_APK_RESOURCE_FOLDER.toString() }
     prop("CustomApkResourceFolder") { CUSTOM_APK_RESOURCE_FOLDER.nullize() }
-    prop("UseCustomCompilerManifest") { USE_CUSTOM_COMPILER_MANIFEST.toString() }
     prop("CustomCompilerManifest") { CUSTOM_COMPILER_MANIFEST.nullize() }
     prop("ApkPath") { APK_PATH.nullize() }
     prop("ProjectType") { PROJECT_TYPE.toString() }

@@ -27,7 +27,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false

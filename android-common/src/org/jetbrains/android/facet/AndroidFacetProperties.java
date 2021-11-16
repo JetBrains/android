@@ -98,7 +98,6 @@ public class AndroidFacetProperties {
   public boolean USE_CUSTOM_APK_RESOURCE_FOLDER = false;
   public String CUSTOM_APK_RESOURCE_FOLDER = "";
 
-  public boolean USE_CUSTOM_COMPILER_MANIFEST = false;
   public String CUSTOM_COMPILER_MANIFEST = "";
 
   public String APK_PATH = "";

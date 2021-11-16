@@ -71,7 +71,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -608,7 +607,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -736,7 +734,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -1076,7 +1073,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 6
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -1374,7 +1370,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -1765,7 +1760,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -1911,7 +1905,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false
@@ -2248,7 +2241,6 @@ PROJECT                       : testPsdSampleRenamingModule
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
-            UseCustomCompilerManifest     : false
             ProjectType                   : 1
             RunProcessResourcesMavenTask  : true
             PackTestCode                  : false

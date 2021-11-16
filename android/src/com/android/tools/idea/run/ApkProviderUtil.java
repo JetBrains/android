@@ -54,59 +54,6 @@ public class ApkProviderUtil {
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
-    else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-      // Ensure the local file system is up to date to enable accurate calculation of the package name.
-      LocalFileSystem.getInstance().refresh(false);
-
-      File manifestCopy = null;
-      final Manifest manifest;
-      final String manifestLocalPath;
-
-      try {
-        Pair<File, String> pair;
-        try {
-          pair = getCopyOfCompilerManifestFile(facet);
-        } catch (IOException e) {
-          throw new ApkProvisionException("Could not compute package name because of I/O error: " + e.getMessage(), e);
-        }
-        manifestCopy = pair != null ? pair.getFirst() : null;
-        VirtualFile
-            manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestCopy) : null;
-        if (manifestVFile != null) {
-          manifestVFile.refresh(false, false);
-          manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
-        }
-        else {
-          manifest = null;
-        }
-        manifestLocalPath = pair != null ? pair.getSecond() : null;
-
-        final Module module = facet.getModule();
-        final String moduleName = module.getName();
-
-        if (manifest == null) {
-          throw new ApkProvisionException("Cannot find " + SdkConstants.FN_ANDROID_MANIFEST_XML + " file for module " + moduleName);
-        }
-
-        return ApplicationManager.getApplication().runReadAction(new ThrowableComputable<String, ApkProvisionException>() {
-          @Override
-          public String compute() throws ApkProvisionException {
-            final GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
-            final String aPackage = packageAttrValue.getValue();
-
-            if (aPackage == null || aPackage.isEmpty()) {
-              throw new ApkProvisionException("[" + moduleName + "] Main package is not specified in file " + manifestLocalPath);
-            }
-            return aPackage;
-          }
-        });
-      }
-      finally {
-        if (manifestCopy != null) {
-          FileUtil.delete(manifestCopy.getParentFile());
-        }
-      }
-    }
     else {
       String pkg = AndroidModuleInfo.getInstance(facet).getPackage();
       if (pkg == null || pkg.isEmpty()) {

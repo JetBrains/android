@@ -67,7 +67,6 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Slow
   @WorkerThread
   public String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
-    assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
     String defaultActivity = computeDefaultActivityWithDevicePreference(getActivitiesFromMergedManifest(myFacet), device);
     if (defaultActivity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
@@ -77,8 +76,6 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @Override
   public void validate() throws ActivityLocatorException {
-    assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-
     if (DumbService.isDumb(myFacet.getModule().getProject())) {
       return;
     }

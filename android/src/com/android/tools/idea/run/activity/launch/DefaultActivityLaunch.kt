@@ -22,7 +22,6 @@ import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.activity.ActivityLocator
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.activity.DefaultApkActivityLocator
-import com.android.tools.idea.run.activity.MavenDefaultActivityLocator
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.tasks.AppLaunchTask
@@ -45,16 +44,11 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State?>
     }
 
     override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
-      // Neither MavenDefaultActivityLocator nor DefaultApkActivityLocator can validate
-      // based on Facets. There is no point calling validate().
       return ImmutableList.of()
     }
 
     companion object {
       private fun getActivityLocatorForLaunch(facet: AndroidFacet, apkProvider: ApkProvider): ActivityLocator {
-        if (facet.properties.USE_CUSTOM_COMPILER_MANIFEST) {
-          return MavenDefaultActivityLocator(facet)
-        }
         return if (StudioFlags.DEFAULT_ACTIVITY_LOCATOR_FROM_APKS.get()) {
           DefaultApkActivityLocator(apkProvider)
         }
