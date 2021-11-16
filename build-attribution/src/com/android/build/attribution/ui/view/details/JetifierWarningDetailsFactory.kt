@@ -82,9 +82,6 @@ class JetifierWarningDetailsFactory(
   private fun createJetifierWarningPage(data: JetifierUsageAnalyzerResult): JPanel {
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE)
-    val removeJetifierFlagActionLink = linksHandler.actionLink("remove the 'android.enableJetifier' flag", "remove.jetifier.action") {
-      actionHandlers.turnJetifierOffInProperties()
-    }
     val headerStatus = when (data.projectStatus) {
       JetifierUsedCheckRequired -> "Check if you need Jetifier in your project"
       is JetifierRequiredForLibraries -> "Some project dependencies require Jetifier"
@@ -104,7 +101,7 @@ class JetifierWarningDetailsFactory(
                                                    "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives."
                                          } + " Run this check again to include recent changes to project files."
       JetifierCanBeRemoved -> "The last check did not find any dependencies that require Jetifier in your project. " +
-                              "You can safely $removeJetifierFlagActionLink."
+                              "You can safely remove the 'android.enableJetifier' flag."
       JetifierNotUsed -> error("Warning should not be shown in this state.")
       AnalyzerNotRun -> error("Warning should not be shown in this state.")
     }
@@ -118,20 +115,38 @@ class JetifierWarningDetailsFactory(
         """.trimIndent().insertBRTags()
     val header = htmlTextLabelWithLinesWrap(contentHtml, linksHandler)
     val runCheckButton = JButton("Run Jetifier check").apply {
+      name = "run-check-button"
       addActionListener { actionHandlers.runCheckJetifierTask() }
-      putClientProperty(DEFAULT_STYLE_KEY, true)
+      putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus !is JetifierCanBeRemoved)
+    }
+    val removeJetifierButton = JButton("Disable Jetifier").apply {
+      name = "disable-jetifier-button"
+      toolTipText = "Remove the 'android.enableJetifier' flag from gradle.properties"
+      addActionListener { actionHandlers.turnJetifierOffInProperties() }
+      putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus is JetifierCanBeRemoved)
+      isVisible = data.projectStatus is JetifierCanBeRemoved
+      // Making this button same size as a bigger "Run Check" button so that they look better when stacked.
+      preferredSize = runCheckButton.preferredSize
+      maximumSize = runCheckButton.maximumSize
+      minimumSize = runCheckButton.minimumSize
     }
     val result = createCheckJetifierResultPresentation(data)
+
+    val buttonsPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(removeJetifierButton)
+      add(runCheckButton)
+    }
 
     val headerPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
       // TODO determine size from font metrics?
       header.maximumSize = JBUI.size(800, Int.MAX_VALUE)
       // Align both components to the bottom.
-      runCheckButton.alignmentY = Component.BOTTOM_ALIGNMENT
+      buttonsPanel.alignmentY = Component.BOTTOM_ALIGNMENT
       header.alignmentY = Component.BOTTOM_ALIGNMENT
       add(header)
-      add(runCheckButton)
+      add(buttonsPanel)
     }
 
     return JPanel().apply {

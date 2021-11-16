@@ -61,10 +61,15 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(html).contains("<b>Check if you need Jetifier in your project</b>")
       Truth.assertThat(html).contains("Run check to see if you have any of such dependencies in your project.")
     }
-    TreeWalker(page).descendants().filterIsInstance<JButton>().single().let {
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
       Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
+      Truth.assertThat(it.isVisible).isTrue()
       it.doClick()
       Mockito.verify(mockHandlers).runCheckJetifierTask()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isFalse()
     }
     val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
     Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
@@ -101,6 +106,16 @@ class JetifierWarningDetailsFactoryTest {
 
       val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
       Truth.assertThat(dependenciesTree.isEmpty).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isTrue()
+      it.doClick()
+      Mockito.verify(mockHandlers).turnJetifierOffInProperties()
     }
   }
 
@@ -139,6 +154,14 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(html).contains("This check found 3 declared dependencies that require legacy support libraries.")
       Truth.assertThat(html).contains(
         "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives.")
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isFalse()
     }
 
     val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
