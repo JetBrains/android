@@ -22,9 +22,7 @@ import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.util.indexing.FileBasedIndex;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,22 +36,15 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
       @Override
       public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
         boolean hasModelFile = false;
-        boolean needRebuildIndex = false;
         for (VFileEvent event : events) {
           VirtualFile file = event.getFile();
           if (file != null && TfliteModelFileType.TFLITE_EXTENSION.equalsIgnoreCase(file.getExtension())) {
             hasModelFile = true;
-            if (event instanceof VFileContentChangeEvent) {
-              needRebuildIndex = true;
-              break;
-            }
+            break;
           }
         }
         if (hasModelFile) {
           incModificationCount();
-        }
-        if (needRebuildIndex) {
-          FileBasedIndex.getInstance().requestRebuild(MlModelFileIndex.INDEX_ID);
         }
       }
     });

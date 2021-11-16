@@ -28,15 +28,12 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,15 +68,7 @@ public class MlModuleService {
     }
 
     return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, () -> {
-      Set<MlModelMetadata> latestModelMetadataSet = new HashSet<>();
-      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
-      FileBasedIndex index = FileBasedIndex.getInstance();
-      for (String key : index.getAllKeys(MlModelFileIndex.INDEX_ID, myModule.getProject())) {
-        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-          latestModelMetadataSet.add(value);
-          return true;
-        }, searchScope);
-      }
+      Set<MlModelMetadata> latestModelMetadataSet = MlModelFileIndex.getModelMetadataSet(myModule);
 
       // Invalidates cached light classes that no longer have model file associated.
       List<MlModelMetadata> outdatedModelMetadataList = ContainerUtil
