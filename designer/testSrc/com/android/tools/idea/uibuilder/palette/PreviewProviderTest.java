@@ -15,35 +15,46 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.io.Images;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.StartupUiUtil;
+import icons.StudioIcons;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.RELATIVE_LAYOUT;
-import static com.google.common.truth.Truth.assertThat;
-import static java.io.File.separator;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.Objects;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PreviewProviderTest extends LayoutTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 6.5f;
+  private static final String TEST_DATA_PATH = "tools/adt/idea/designer/testData/palette";
   private Palette.Item myTextViewItem;
   private JComponent myComponent;
   private PreviewProvider myPreviewProvider;
@@ -68,19 +79,18 @@ public class PreviewProviderTest extends LayoutTestCase {
     when(surface.getScale()).thenReturn(1.0);
     when(surface.getScreenScalingFactor()).thenReturn(1.0);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
-    myPreviewProvider.setRenderTimeoutMillis(10000L);
-    myPreviewProvider.setRenderTaskTimeoutMillis(10000L);
+    myPreviewProvider.setRenderTimeoutMillis(TimeUnit.MINUTES.toMillis(1));
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
     RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
+    IconLoader.activate();
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
       RenderService.setForTesting(getProject(), null);
-      Disposer.dispose(myPreviewProvider);
-      RenderTestUtil.waitForRenderTaskDisposeToFinish();
+      IconLoader.deactivate();
       myPreviewProvider = null;
       myTextViewItem = null;
       myComponent = null;
@@ -92,20 +102,27 @@ public class PreviewProviderTest extends LayoutTestCase {
 
   public void testCreatePreviewOfTextView() throws Exception {
     PreviewProvider.ImageAndDimension imageAndSize = myPreviewProvider.createPreview(myComponent, myTextViewItem);
-    if (imageAndSize == null) {
-      throw new RuntimeException(getTestDataPath());
-    }
-    File goldenFile = new File(getTestDataPath() + separator + "palette" + separator + "TextView.png");
-    BufferedImage goldenImage = ImageIO.read(goldenFile);
-    ImageDiffUtil.assertImageSimilar("TextView.png", goldenImage, imageAndSize.getImage(), MAX_PERCENT_DIFFERENT);
+    Path goldenFile = getWorkspaceRoot().resolve(TEST_DATA_PATH).resolve("TextView.png");
+    Image expected = ImageUtil.scaleImage(Images.readImage(goldenFile), 1.0f / JBUIScale.sysScale());
+    BufferedImage buffered = ImageUtil.toBufferedImage(expected, false);
+    ImageDiffUtil.assertImageSimilar("TextView", buffered, imageAndSize.getImage(), MAX_PERCENT_DIFFERENT);
     assertThat(imageAndSize.getDimension().height).isEqualTo(42);
     assertThat(imageAndSize.getDimension().width).isEqualTo(119);
+    waitFor(imageAndSize.getRendering());
+    waitFor(imageAndSize.getDisposal());
   }
 
-  public void testRenderTaskTimeOutReturnsANullDragImage() {
+  public void testRenderTaskTimeOutReturnsIconForDragImage() throws Exception {
     myPreviewProvider.setRenderTimeoutMillis(0L);
-    myPreviewProvider.setRenderTaskTimeoutMillis(0L);
-    assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
+    PreviewProvider.ImageAndDimension imageAndSize = myPreviewProvider.createPreview(myComponent, myTextViewItem);
+    boolean inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(myComponent);
+    BufferedImage expected = ImageUtil.toBufferedImage(
+      Objects.requireNonNull(IconLoader.toImage(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)), inUserScale);
+    ImageDiffUtil.assertImageSimilar("TextViewIcon.png", expected, imageAndSize.getImage(), MAX_PERCENT_DIFFERENT);
+    assertThat(imageAndSize.getDimension().height).isEqualTo((int)(16 * JBUIScale.sysScale()));
+    assertThat(imageAndSize.getDimension().width).isEqualTo((int)(16 * JBUIScale.sysScale()));
+    waitFor(imageAndSize.getRendering());
+    waitFor(imageAndSize.getDisposal());
   }
 
   private Palette loadPalette() {
@@ -121,6 +138,12 @@ public class PreviewProviderTest extends LayoutTestCase {
                                    .matchParentWidth()
                                    .matchParentHeight());
     return builder.build();
+  }
+
+  private static void waitFor(@Nullable Future<?> future) throws Exception {
+    if (future != null) {
+      future.get();
+    }
   }
 
   // Disable security manager during tests (for bazel)

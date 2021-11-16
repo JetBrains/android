@@ -29,11 +29,9 @@ import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.Futures
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiFileFactory
@@ -48,6 +46,7 @@ import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.RasterFormatException
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
@@ -77,23 +76,25 @@ private const val LINEAR_LAYOUT = """<LinearLayout
 class PreviewProvider(
   private val myDesignSurfaceSupplier: Supplier<DesignSurface?>,
   private val myDependencyManager: DependencyManager
-) : Disposable {
-  class ImageAndDimension(val image: BufferedImage, val dimension: Dimension)
-
-  private var myRenderTask: RenderTask? = null
+) {
+  class ImageAndDimension(val image: BufferedImage, val dimension: Dimension, val rendering: Future<*>?, val disposal: Future<*>?)
 
   @VisibleForTesting
-  var renderTaskTimeoutMillis = 300L
-
-  @VisibleForTesting
-  var renderTimeoutMillis = 300L
+  var renderTimeoutMillis = 600L
 
   @AndroidCoordinate
   fun createPreview(component: JComponent, item: Palette.Item): ImageAndDimension {
     val size: Dimension
     var image: Image?
     val scaleContext = ScaleContext.create(component)
-    val renderedItem: Image? = if (myDependencyManager.needsLibraryLoad(item)) null else renderDragImage(item)
+    val future = if (myDependencyManager.needsLibraryLoad(item)) null else renderDragImage(item)
+    val (renderedItem, disposal) = try {
+      future?.get(renderTimeoutMillis, TimeUnit.MILLISECONDS)
+    }
+    catch (_: Exception) {
+      null
+    } ?: Pair(null, null)
+
     image = if (renderedItem == null) {
       val icon = item.icon
       IconLoader.toImage(icon, scaleContext)
@@ -108,18 +109,27 @@ class PreviewProvider(
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
     val inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(component)
     val bufferedImage = ImageUtil.toBufferedImage(image, inUserScale)
-    return ImageAndDimension(bufferedImage, size)
+    return ImageAndDimension(bufferedImage, size, future, disposal)
   }
 
   @VisibleForTesting
-  fun renderDragImage(item: Palette.Item): BufferedImage? {
-    val sceneView = sceneView
-    if (sceneView == null) {
-      disposeRenderTaskNoWait()
-      return null
-    }
-    val elementFactory = XmlElementFactory.getInstance(sceneView.model.project)
-    var xml = item.dragPreviewXml
+  private fun renderDragImage(item: Palette.Item): CompletableFuture<Pair<BufferedImage?, Future<*>?>> {
+    val scene = sceneView
+    val xml = scene?.let { constructPreviewXml(it, item) } ?: return CompletableFuture.completedFuture(Pair(null, null))
+
+    return getRenderTask(scene.sceneManager.model.configuration)
+      .thenCompose { renderTask -> renderImage(renderTask, xml) }
+      .thenApply { (renderTask, renderResult) ->
+        val image = renderResult?.let { extractImage(it) }
+        val disposal = renderTask?.dispose()
+        Pair(image, disposal)
+      }
+  }
+
+  private fun constructPreviewXml(scene: SceneView, item: Palette.Item): String? {
+    val model = scene.sceneManager.model
+    val elementFactory = XmlElementFactory.getInstance(model.project)
+    val xml = item.dragPreviewXml
     if (xml == PaletteComponentHandler.NO_PREVIEW) {
       return null
     }
@@ -128,27 +138,28 @@ class PreviewProvider(
     } catch (exception: IncorrectOperationException) {
       return null
     }
-    val model = sceneView.sceneManager.model
     val component = runWriteAction {
       model.createComponent(
-        sceneView.surface, tag, null, null, InsertType.CREATE_PREVIEW
+        scene.surface, tag, null, null, InsertType.CREATE_PREVIEW
       )
     } ?: return null
 
     // Some components require a parent to render correctly.
     val componentTag = component.tag ?: return null
-    xml = LINEAR_LAYOUT.format(CONTAINER_ID, componentTag.text)
-    try {
-      myRenderTask = getRenderTask(model.configuration).get(renderTaskTimeoutMillis, TimeUnit.MILLISECONDS)
-    } catch (ex: Exception) {
-      myRenderTask = null
-      return null
-    }
-    val result = renderImage(renderTimeoutMillis, myRenderTask, xml)
-    disposeRenderTaskNoWait()
-    if (result == null) {
-      return null
-    }
+    return LINEAR_LAYOUT.format(CONTAINER_ID, componentTag.text)
+  }
+
+  private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
+    val module = configuration.module ?: return CompletableFuture.completedFuture(null)
+    val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
+    val renderService = RenderService.getInstance(module.project)
+    val logger = renderService.createLogger(facet)
+    return renderService.taskBuilder(facet, configuration)
+      .withLogger(logger)
+      .build()
+  }
+
+  private fun extractImage(result: RenderResult): BufferedImage? {
     val image = result.renderedImage
     if (!image.isValid) {
       return null
@@ -157,8 +168,9 @@ class PreviewProvider(
     if (image.height < view.bottom || image.width < view.right || view.bottom <= view.top || view.right <= view.left) {
       return null
     }
+    val scene = sceneView ?: return null
     @SwingCoordinate
-    val shadowIncrement = 1 + Coordinates.getSwingDimension(sceneView, SHADOW_SIZE)
+    val shadowIncrement = 1 + Coordinates.getSwingDimension(scene, SHADOW_SIZE)
     val imageCopy = image.copy ?: return null
     return try {
       imageCopy.getSubimage(
@@ -179,43 +191,15 @@ class PreviewProvider(
   private val sceneView: SceneView?
     get() = myDesignSurfaceSupplier.get()?.focusedSceneView
 
-  private fun getRenderTask(configuration: Configuration): Future<RenderTask> {
-    val module = configuration.module
-    if (myRenderTask != null && myRenderTask!!.context.module === module) {
-      return Futures.immediateFuture(myRenderTask)
-    }
-    disposeRenderTaskNoWait()
-    if (module == null) {
-      return Futures.immediateFuture(null)
-    }
-    val facet = AndroidFacet.getInstance(module) ?: return Futures.immediateFuture(null)
-    val renderService = RenderService.getInstance(module.project)
-    val logger = renderService.createLogger(facet)
-    return renderService.taskBuilder(facet, configuration)
-      .withLogger(logger)
-      .build()
-  }
-
-  override fun dispose() {
-    if (myRenderTask != null) {
-      // Wait until async dispose finishes
-      Futures.getUnchecked(myRenderTask!!.dispose())
-      myRenderTask = null
-    }
-  }
-
-  private fun disposeRenderTaskNoWait() {
-    myRenderTask?.dispose()
-    myRenderTask = null
-  }
-
-  private fun renderImage(renderTimeoutMillis: Long, renderTask: RenderTask?, xml: String): RenderResult? {
+  private fun renderImage(renderTask: RenderTask?, xml: String): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
     if (renderTask == null) {
-      return null
+      return CompletableFuture.completedFuture(Pair(null, null))
     }
-    val file = PsiFileFactory
-      .getInstance(renderTask.context.module.project)
-      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
+    val file = runReadAction {
+      PsiFileFactory
+        .getInstance(renderTask.context.module.project)
+        .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
+    }
     assert(file is XmlFile)
     renderTask.setXmlFile((file as XmlFile))
     renderTask.setTransparentBackground()
@@ -223,11 +207,6 @@ class PreviewProvider(
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL)
     renderTask.context.folderType = ResourceFolderType.LAYOUT
     renderTask.inflate()
-    try {
-      return renderTask.render()[renderTimeoutMillis, TimeUnit.MILLISECONDS]
-    } catch (ex: Exception) {
-      Logger.getInstance(PreviewProvider::class.java).debug(ex)
-    }
-    return null
+    return renderTask.render().thenApply { result -> Pair(renderTask, result) }
   }
 }
