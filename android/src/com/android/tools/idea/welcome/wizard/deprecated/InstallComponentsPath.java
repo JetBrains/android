@@ -62,6 +62,7 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -251,7 +252,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull
   @Override
   public String getPathName() {
-    return "Setup Android Studio Components";
+    return "Setup " + ApplicationNamesInfo.getInstance().getFullProductName() + " Components";
   }
 
   @Override
@@ -284,8 +285,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         .then(new ConfigureComponents(installContext, selectedComponents, myLocalHandler)).then(checkSdk).execute(destination);
     }
     catch (InstallationCancelledException e) {
-      installContext.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
-      myProgressStep.print("Android Studio setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+      installContext.print(ApplicationNamesInfo.getInstance().getFullProductName()+" setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
+      myProgressStep.print(ApplicationNamesInfo.getInstance().getFullProductName()+" setup was canceled", ConsoleViewContentType.ERROR_OUTPUT);
     }
   }
 

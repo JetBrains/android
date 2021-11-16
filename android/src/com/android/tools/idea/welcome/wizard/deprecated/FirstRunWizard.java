@@ -30,6 +30,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,7 +42,9 @@ import org.jetbrains.annotations.NotNull;
  */
 @Deprecated
 public class FirstRunWizard extends DynamicWizard {
-  private static final String WIZARD_TITLE = "Android Studio Setup Wizard";
+  private static String getWizardTitle() {
+    return ApplicationNamesInfo.getInstance().getFullProductName() + " Setup Wizard";
+  }
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
@@ -55,9 +58,9 @@ public class FirstRunWizard extends DynamicWizard {
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
                         @NotNull FirstRunWizardMode mode) {
-    super(null, null, WIZARD_TITLE, host);
+    super(null, null, getWizardTitle(), host);
     myMode = mode;
-    setTitle(WIZARD_TITLE);
+    setTitle(getWizardTitle());
   }
 
   @Override

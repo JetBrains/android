@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.ui.layout.Cell
 import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel
@@ -36,7 +37,7 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
 
   private val panel = panel {
     row {
-      label("Choose the type of setup you want for Android Studio:")
+      label("Choose the type of setup you want for ${ApplicationNamesInfo.getInstance().fullProductName}:")
     }
     row {
       Spacer()()
@@ -44,7 +45,7 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
     row {
       standardRadioBtn = installationTypeRadioButton(
         "Standard",
-        "Android Studio will be installed with the most common settings and options.\nRecommended for most users.",
+        "${ApplicationNamesInfo.getInstance().fullProductName} will be installed with the most common settings and options.\nRecommended for most users.",
         InstallationType.STANDARD
       ).component
     }

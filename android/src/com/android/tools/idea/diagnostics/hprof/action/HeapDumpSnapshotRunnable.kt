@@ -73,7 +73,7 @@ class HeapDumpSnapshotRunnable(
         val instance = AndroidStudioSystemHealthMonitor.getInstance()
 
         if (instance == null) {
-          LOG.error("Android Studio System Health Monitor not initialized.")
+          LOG.error(ApplicationNamesInfo.getInstance().fullProductName+ " System Health Monitor not initialized.")
           return
         }
 
@@ -198,7 +198,7 @@ class HeapDumpSnapshotRunnable(
 
     private fun confirmRestart() {
       val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
-      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message")
+      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName())
       val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
       val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
       val result = MessageDialogBuilder.yesNo(title, message)

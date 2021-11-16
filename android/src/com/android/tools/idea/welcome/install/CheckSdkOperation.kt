@@ -22,6 +22,7 @@ import com.google.common.base.Joiner
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.ui.Messages
@@ -89,7 +90,7 @@ private fun checkCanRunSdkTool(executable: File): Boolean {
 private fun checkExecutePermission(executable: File) = executable.canExecute() || (SystemInfo.isUnix && executable.setExecutable(true))
 
 private fun retryPrompt(): Boolean {
-  val button = Messages.showOkCancelDialog(MESSAGE_CANT_RUN_TOOL, "Android Studio", "Retry", "Cancel", Messages.getErrorIcon())
+  val button = Messages.showOkCancelDialog(MESSAGE_CANT_RUN_TOOL, ApplicationNamesInfo.getInstance().fullProductName, "Retry", "Cancel", Messages.getErrorIcon())
   return button == Messages.OK
 }
 

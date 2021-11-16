@@ -25,6 +25,7 @@ import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -431,7 +432,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting Android Studio.",
+    "Changing the value of this flag requires restarting " + ApplicationNamesInfo.getInstance().getFullProductName()+".",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
@@ -628,7 +629,7 @@ public final class StudioFlags {
     "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running Android Studio internally.", false);
+    "This option is only respected when running "+ApplicationNamesInfo.getInstance().getFullProductName()+" internally.", false);
   public static final Flag<Boolean> USE_MODULE_PER_SOURCE_SET = Flag.create(
     GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
     "This allows the IDE to more closely represent how the project is configured in Gradle.", false);

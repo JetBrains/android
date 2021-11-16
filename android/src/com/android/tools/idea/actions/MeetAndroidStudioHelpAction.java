@@ -21,12 +21,13 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 
 public class MeetAndroidStudioHelpAction extends AnAction {
 
   public MeetAndroidStudioHelpAction() {
-    super("Android Studio Help", "Help", AllIcons.Actions.Help);
+    super(ApplicationNamesInfo.getInstance().getFullProductName()+" Help", "Help", AllIcons.Actions.Help);
   }
 
   @Override

@@ -38,6 +38,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -177,7 +178,7 @@ public class WindowsPerformanceHintsChecker {
     LOG.info("issue detected: " + key + (ignored ? " (ignored)" : ""));
     if (ignored) return;
 
-    Notification notification = systemHealthMonitor.new MyNotification(AndroidBundle.message(key, pathDetails));
+    Notification notification = systemHealthMonitor.new MyNotification(AndroidBundle.message(key, ApplicationNamesInfo.getInstance().getFullProductName(), pathDetails));
     notification.addAction(new NotificationAction(AndroidBundle.message("virus.scanning.dont.show.again")) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {

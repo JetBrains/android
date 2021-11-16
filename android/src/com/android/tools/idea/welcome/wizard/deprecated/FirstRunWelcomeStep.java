@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.util.FormFactorUtils;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   private JPanel myNewSdkMessage;
 
   public FirstRunWelcomeStep(boolean sdkExists) {
-    super("Welcome", "Android Studio");
+    super("Welcome", ApplicationNamesInfo.getInstance().getFullProductName());
     myIcons.setIcon(FormFactorUtils.getFormFactorsImage(myIcons, false));
     myExistingSdkMessage.setVisible(sdkExists);
     myNewSdkMessage.setVisible(!sdkExists);

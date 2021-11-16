@@ -76,7 +76,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessageTextLabel);
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getProductName());
+    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName());
     myMessageTextLabel.setText(text);
 
     myHttpProxyHostTextField.setText(httpProxySettings.getHost());
