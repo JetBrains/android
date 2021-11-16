@@ -228,10 +228,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     }
   }
 
-  @Synchronized
   fun getPairedDevices(deviceID: String): PhoneWearPair? = pairedDevicesTable[deviceID]
 
-  @Synchronized
   fun isPaired(deviceID: String): Boolean = pairedDevicesTable.containsKey(deviceID)
 
   suspend fun createPairedDeviceBridge(phone: PairingDevice,
