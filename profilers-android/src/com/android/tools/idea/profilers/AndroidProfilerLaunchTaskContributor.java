@@ -94,7 +94,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                             @NotNull IDevice device, @NotNull Executor executor) {
     Module module = configuration.getConfigurationModule().getModule();
     assert module != null;
-    return new AndroidProfilerToolWindowLaunchTask(configuration.getProject(), AndroidProfilerToolWindow.getModuleName(module));
+    return new AndroidProfilerToolWindowLaunchTask(configuration.getProject(), applicationId);
   }
 
   @Override
