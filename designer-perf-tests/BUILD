@@ -29,7 +29,6 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:platforms/android-31",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",

@@ -41,7 +41,7 @@ public class AndroidPluginGenerationIdeaTest extends PlatformTestCase {
     myEmbeddedDistributionPaths = new IdeComponents(myProject).mockApplicationService(EmbeddedDistributionPaths.class);
   }
 
-  public void testGetLatestKnownVersion() throws IOException {
+  public void AndroidtestGetLatestKnownVersion() throws IOException {
     File rootFolderPath = createTempDirectory();
 
     File repo1Path = new File(rootFolderPath, "repo1");

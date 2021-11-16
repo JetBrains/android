@@ -52,10 +52,7 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
-    tags = [
-        "manual",  # TODO(b/203803270): Re-enable this test when fixed.
-        "no_test_windows",
-    ],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         ":test_deps",

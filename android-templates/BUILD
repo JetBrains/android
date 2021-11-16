@@ -54,7 +54,7 @@ iml_module(
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/sdk:platforms/android-31",
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/build-system:gradle-distrib",

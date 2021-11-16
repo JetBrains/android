@@ -132,6 +132,7 @@ object TypeResolver {
       SdkConstants.ATTR_FOREGROUND,
       SdkConstants.ATTR_HAND_HOUR,
       SdkConstants.ATTR_HAND_MINUTE,
+      SdkConstants.ATTR_HAND_SECOND,
       SdkConstants.ATTR_HEADER_BACKGROUND,
       SdkConstants.ATTR_INSET_BACKGROUND,
       SdkConstants.ATTR_INSET_FOREGROUND,
@@ -230,6 +231,10 @@ object TypeResolver {
       "tickColor",
       "tickColorActive",
       "tickColorInactive",
+      "dialTint",
+      "hand_hourTint",
+      "hand_minuteTint",
+      "hand_secondTint",
       "trackColor",
       "trackColorActive",
       "trackColorInactive" -> NlPropertyType.COLOR_STATE_LIST

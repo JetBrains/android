@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.Locale
@@ -76,7 +77,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  30,
+                                                  SdkVersionInfo.HIGHEST_KNOWN_API,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -111,7 +112,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  30,
+                                                  SdkVersionInfo.HIGHEST_KNOWN_API,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.create("en").toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -139,7 +140,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  30,
+                                                  SdkVersionInfo.HIGHEST_KNOWN_API,
                                                   ScreenOrientation.LANDSCAPE,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),

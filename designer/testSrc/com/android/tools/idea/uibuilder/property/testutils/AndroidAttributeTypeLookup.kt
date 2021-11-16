@@ -18,13 +18,27 @@ package com.android.tools.idea.uibuilder.property.testutils
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 
 /**
- * This file has data from analyzing the framework code in P.
+ * This file has data from analyzing the framework code in Android S (API 31).
  * The result were incomplete such that a number of attributes
  * had to be remapped by hand (from the online documentation).
  *
  * This file is assumed to be the truth about the attribute
  * types used in the framework. Use this file to verify any
  * type mappings of android framework attributes.
+ *
+ * Note: when adding attribute names to this list after updating the framework
+ * or a library please look up the code that is reading the attribute.
+ * Examples:
+ *
+ * | Function                         | Type                            | Notes                                 |
+ * | -------------------------------- | ------------------------------- | --------------------------------------|
+ * | TypedArray.getDrawable           | NlPropertyType.DRAWABLE         |                                       |
+ * | TypedArray.getColor              | NlPropertyType.COLOR            | Make sure this is not a color list !! |
+ * | TypedArray.getColorStateList     | NlPropertyType.COLOR_STATE_LIST |                                       |
+ * | TypedArray.getDimensionPixelSize | NlPropertyType.DIMENSION        |                                       |
+ * | TypedArray.getResourceId         | NlPropertyType.ID               |                                       |
+ * | TypedArray.getInt                | NlPropertyType.ENUM             | If attrs.xml defines this as an enum  |
+ * |                                  | NlPropertyType.INTEGER          | If this is not an enum                |
  */
 object AndroidAttributeFact {
 
@@ -81,7 +95,6 @@ object AndroidAttributeFact {
       "endIconDrawable" -> return NlPropertyType.DRAWABLE
       "endIconMode" -> return NlPropertyType.ENUM
       "endIconTint" -> return NlPropertyType.COLOR_STATE_LIST
-      "endIconTintMode" -> return NlPropertyType.ENUM
       "endIconTintMode" -> return NlPropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "errorContentDescription" -> return NlPropertyType.STRING
@@ -409,6 +422,7 @@ object AndroidAttributeFact {
 
       // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NlPropertyType.ENUM
+      "allowClickWhenDisabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "amPmBackgroundColor" -> return NlPropertyType.COLOR_STATE_LIST
       "amPmTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "animationResolution" -> return NlPropertyType.INTEGER
@@ -427,6 +441,7 @@ object AndroidAttributeFact {
       "choiceMode" -> return NlPropertyType.ENUM
       "commitIcon" -> return NlPropertyType.DRAWABLE
       "completionHintView" -> return NlPropertyType.LAYOUT
+      "clipToOutline" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "datePickerMode" -> return NlPropertyType.ENUM
       "dateTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "dayOfWeekBackground" -> return NlPropertyType.COLOR
@@ -678,6 +693,8 @@ object AndroidAttributeFact {
       "dependency" -> return NlPropertyType.STRING
       "detachWallpaper" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "dial" -> return NlPropertyType.DRAWABLE
+      "dialTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "dialTintMode" -> return NlPropertyType.ENUM
       "dialogIcon" -> return NlPropertyType.DRAWABLE
       "dialogLayout" -> return NlPropertyType.ID
       "dialogMessage" -> return NlPropertyType.STRING
@@ -802,7 +819,14 @@ object AndroidAttributeFact {
       "grantUriPermissions" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "groupIndicator" -> return NlPropertyType.DRAWABLE
       "hand_hour" -> return NlPropertyType.DRAWABLE
+      "hand_hourTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "hand_hourTintMode" -> return NlPropertyType.ENUM
       "hand_minute" -> return NlPropertyType.DRAWABLE
+      "hand_minuteTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "hand_minuteTintMode" -> return NlPropertyType.ENUM
+      "hand_second" -> return NlPropertyType.DRAWABLE
+      "hand_secondTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "hand_secondTintMode" -> return NlPropertyType.ENUM
       "handle" -> return NlPropertyType.ID
       "handleProfiling" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "hapticFeedbackEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
