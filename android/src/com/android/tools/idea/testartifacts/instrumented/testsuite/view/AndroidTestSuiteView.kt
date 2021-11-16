@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes.Companion.getInstance
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction
@@ -36,6 +37,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
@@ -206,8 +208,15 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   init {
     val testArtifactSearchScopes = module?.let { getInstance(module) }
+    val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager? = if (runConfiguration is AndroidTestRunConfiguration) {
+      val scheduledDeviceIds = HashSet<String>()
+      myScheduledDevices.forEach { scheduledDeviceIds.add(it.id) }
+      AndroidTestResultsUserPreferencesManager(runConfiguration, scheduledDeviceIds) }
+    else {
+      null
+    }
     myResultsTableView = AndroidTestResultsTableView(
-      this, JavaPsiFacade.getInstance(myProject), testArtifactSearchScopes, myLogger)
+      this, JavaPsiFacade.getInstance(myProject), testArtifactSearchScopes, myLogger, androidTestResultsUserPreferencesManager)
     myResultsTableView.setRowFilter { testResults: AndroidTestResults ->
       if (testResults.isRootAggregationResult()) {
         return@setRowFilter true

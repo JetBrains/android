@@ -36,6 +36,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.ExecutionBundle
@@ -112,9 +113,10 @@ import kotlin.math.max
 class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
                                   javaPsiFacade: JavaPsiFacade,
                                   testArtifactSearchScopes: TestArtifactSearchScopes?,
-                                  logger: AndroidTestSuiteLogger) {
+                                  logger: AndroidTestSuiteLogger,
+                                  androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger)
+  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener, javaPsiFacade, testArtifactSearchScopes, logger, androidTestResultsUserPreferencesManager)
   private val myTableViewContainer = JBScrollPane(myTableView)
   private val failedTestsNavigator = FailedTestsNavigator(myTableView)
 
@@ -393,7 +395,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
                                                    private val listener: AndroidTestResultsTableListener,
                                                    private val javaPsiFacade: JavaPsiFacade,
                                                    private val testArtifactSearchScopes: TestArtifactSearchScopes?,
-                                                   private val logger: AndroidTestSuiteLogger)
+                                                   private val logger: AndroidTestSuiteLogger,
+                                                   private val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager?)
   : TreeTableView(model), DataProvider {
 
   private var myLastReportedResults: AndroidTestResults? = null
@@ -632,6 +635,13 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           }
           refreshTable()
         }
+        override fun mouseReleased(e: MouseEvent) {
+          if (androidTestResultsUserPreferencesManager != null) {
+            for ((index, column) in columnModel.columns.iterator().withIndex()) {
+              androidTestResultsUserPreferencesManager.setUserPreferredColumnWidth(model.columns[index].name, column.width)
+            }
+          }
+        }
       })
     }
   }
@@ -677,9 +687,11 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     for ((index, column) in getColumnModel().columns.iterator().withIndex()) {
       column.resizable = true
       column.maxWidth = Int.MAX_VALUE / 2
-      column.preferredWidth = model.columns[index].getWidth(this)
+      column.preferredWidth = androidTestResultsUserPreferencesManager?.getUserPreferredColumnWidth(model.columns[index].name, model.columns[index].getWidth(this))
+                              ?: model.columns[index].getWidth(this)
       column.minWidth = column.preferredWidth
     }
+
     TreeUtil.restoreExpandedPaths(tree, prevExpandedPaths)
     prevSelectedObject?.let { addSelection(it) }
   }
