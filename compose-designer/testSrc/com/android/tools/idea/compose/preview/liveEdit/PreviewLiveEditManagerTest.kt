@@ -111,9 +111,10 @@ internal class PreviewLiveEditManagerTest {
     }
     assertTrue(compilationRequests.isEmpty())
     assertTrue(manager.compileRequest(file, projectRule.module).first == CompilationResult.Success)
-    val requestParameters = compilationRequests.single().joinToString("\n")
-      .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
-    assertEquals("""
+    run {
+      val requestParameters = compilationRequests.single().joinToString("\n")
+        .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+      assertEquals("""
       -verbose
       -version
       -no-stdlib
@@ -127,5 +128,31 @@ internal class PreviewLiveEditManagerTest {
       /tmp/overlay0
       /src/test.kt
     """.trimIndent(), requestParameters)
+    }
+
+    run {
+      compilationRequests.clear()
+      val file2 = projectRule.fixture.addFileToProject("testB.kt", """
+      fun emptyB() {}
+    """.trimIndent())
+      assertTrue(manager.compileRequest(listOf(file, file2), projectRule.module).first == CompilationResult.Success)
+      val requestParameters = compilationRequests.single().joinToString("\n")
+        .replace(Regex("/.*/overlay\\d+"), "/tmp/overlay0") // Overlay directories are random
+      assertEquals("""
+      -verbose
+      -version
+      -no-stdlib
+      -no-reflect
+      -Xdisable-default-scripting-plugin
+      -jvm-target
+      1.8
+      -cp
+      A.jar:b/c/Test.class
+      -d
+      /tmp/overlay0
+      /src/test.kt
+      /src/testB.kt
+    """.trimIndent(), requestParameters)
+    }
   }
 }

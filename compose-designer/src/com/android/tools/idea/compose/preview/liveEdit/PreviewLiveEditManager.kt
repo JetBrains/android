@@ -390,13 +390,13 @@ class PreviewLiveEditManager private constructor(
   }
 
   /**
-   * Sends a compilation request for the given [file] with the given context [Module] and returns if it was
+   * Sends a compilation request for the given [files]s with the given context [Module] and returns if it was
    * successful and the path where the result classes can be found.
    *
    * The method takes an optional [ProgressIndicator] to update the progress of the request.
    */
   @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
-  suspend fun compileRequest(file: PsiFile,
+  suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
     withContext(scope.coroutineContext) {
@@ -419,15 +419,23 @@ class PreviewLiveEditManager private constructor(
         "-Xdisable-default-scripting-plugin",
         "-jvm-target", "1.8") +
                  (if (classPathString.isNotBlank()) listOf("-cp", classPathString) else emptyList()) +
-                 listOf(
-                   "-d", outputAbsolutePath,
-                   file.virtualFile.path)
+                 listOf("-d", outputAbsolutePath) +
+                 files.map { it.virtualFile.path }.toList()
 
       indicator.text = "Compiling"
       val result = daemon.compileRequest(args)
       log.info("Compiled in ${System.currentTimeMillis() - startTime}ms (result=$result)")
       Pair(result, outputAbsolutePath)
     }
+
+  /**
+   * Sends a compilation request for the a single [file]. See [PreviewLiveEditManager.compileRequest].
+   */
+  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
+  suspend fun compileRequest(file: PsiFile,
+                             module: Module,
+                             indicator: ProgressIndicator = EmptyProgressIndicator()): Pair<CompilationResult, String> =
+    compileRequest(listOf(file), module, indicator)
 
   override fun dispose() {}
 

@@ -99,7 +99,7 @@ internal class SingleFileCompileAction :
         override fun run(indicator: ProgressIndicator) {
           AndroidCoroutineScope(previewManager).async {
             val (result, outputAbsolutePath) = withTimeout(Duration.ofSeconds(LIVE_EDIT_PREVIEW_COMPILE_TIMEOUT)) {
-              PreviewLiveEditManager.getInstance(project).compileRequest(file, contextModule, indicator)
+              PreviewLiveEditManager.getInstance(project).compileRequest(listOf(file), contextModule, indicator)
             }
             val durationString = stopWatch.elapsed().toDisplayString()
             val isSuccess = result == CompilationResult.Success
