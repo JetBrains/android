@@ -146,10 +146,8 @@ class LogcatMainPanelTest {
   }
 
   @Test
-  fun appendMessages_filters() = runBlocking {
-    val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan"))
-    }
+  fun applyFilter() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
     logcatMainPanel.processMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
       LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
@@ -163,6 +161,34 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+
+      """.trimIndent())
+    }
+  }
+
+  @Test
+  fun applyFilter_appOnly() = runBlocking {
+    val packageNamesProvider = FakePackageNamesProvider()
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(packageNamesProvider = packageNamesProvider)
+    }
+    logcatMainPanel.processMessages(listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag", Instant.ofEpochMilli(1000)), "message2"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app3", "tag", Instant.ofEpochMilli(1000)), "message3"),
+    ))
+    packageNamesProvider.names.add("app1")
+    packageNamesProvider.names.add("app3")
+
+    logcatMainPanel.messageProcessor.onIdle {
+      logcatMainPanel.setShowOnlyProjectApps(true)
+    }
+
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
+        1970-01-01 04:00:01.000     1-2     tag                     app1                                 W  message1
+        1970-01-01 04:00:01.000     1-2     tag                     app3                                 I  message3
 
       """.trimIndent())
     }
@@ -393,9 +419,19 @@ class LogcatMainPanelTest {
     state: LogcatPanelConfig? = null,
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
+    packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
     zoneId: ZoneId = ZoneId.of("Asia/Yerevan"),
   ): LogcatMainPanel =
-    LogcatMainPanel(projectRule.project, popupActionGroup, logcatColors, state, hyperlinkDetector, foldingDetector, zoneId).also {
+    LogcatMainPanel(
+      projectRule.project,
+      popupActionGroup,
+      logcatColors,
+      state,
+      hyperlinkDetector,
+      foldingDetector,
+      packageNamesProvider,
+      zoneId
+    ).also {
       Disposer.register(projectRule.project, it)
     }
 }

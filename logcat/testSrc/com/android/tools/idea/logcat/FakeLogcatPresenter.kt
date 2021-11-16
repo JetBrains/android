@@ -46,6 +46,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
+  override fun setShowOnlyProjectApps(enabled: Boolean) {
+    TODO("Not yet implemented")
+  }
+
   override fun clearMessageView() {
     messageBatches.clear()
   }

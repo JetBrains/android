@@ -89,6 +89,7 @@ internal class LogcatMainPanel(
   state: LogcatPanelConfig?,
   hyperlinkDetector: HyperlinkDetector? = null,
   foldingDetector: FoldingDetector? = null,
+  packageNamesProvider: PackageNamesProvider = ProjectPackageNamesProvider(project),
   zoneId: ZoneId = ZoneId.systemDefault()
 ) : BorderLayoutPanel(), LogcatPresenter, SplittingTabsStateProvider, Disposable {
 
@@ -106,8 +107,8 @@ internal class LogcatMainPanel(
   internal val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
 
   @VisibleForTesting
-  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages)
-  private val headerPanel = LogcatHeaderPanel(project, logcatPresenter = this, deviceContext)
+  internal val messageProcessor = MessageProcessor(this, messageFormatter::formatMessages, packageNamesProvider)
+  private val headerPanel = LogcatHeaderPanel(project, logcatPresenter = this, deviceContext, packageNamesProvider)
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
@@ -224,6 +225,12 @@ internal class LogcatMainPanel(
   @UiThread
   override fun applyFilter(logcatFilter: LogcatFilter) {
     messageProcessor.setFilter(logcatFilter)
+    reloadMessages()
+  }
+
+  @UiThread
+  override fun setShowOnlyProjectApps(enabled: Boolean) {
+    messageProcessor.showOnlyProjectApps = enabled
     reloadMessages()
   }
 

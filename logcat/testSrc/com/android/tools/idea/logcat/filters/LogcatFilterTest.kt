@@ -25,7 +25,6 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.logCatMessage
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
 import java.time.Clock
 import java.time.Duration
@@ -52,13 +51,13 @@ class LogcatFilterTest {
   }
 
   @Test
-  fun emptyFilter() {
+  fun emptyFilter_filter() {
     assertThat(EmptyFilter().filter(MESSAGES)).isSameAs(MESSAGES)
   }
 
   @Test
-  fun emptyFilter_matches_notSupported() {
-    assertThrows(UnsupportedOperationException::class.java) { EmptyFilter().matches(MESSAGE1) }
+  fun emptyFilter_matches() {
+    assertThat(EmptyFilter().matches(MESSAGE1)).isTrue()
   }
 
   @Test
@@ -173,6 +172,33 @@ class LogcatFilterTest {
 
     assertThat(AgeFilter(Duration.ofSeconds(10), Clock.offset(clock, Duration.ofSeconds(5))).matches(message)).isTrue()
     assertThat(AgeFilter(Duration.ofSeconds(10), Clock.offset(clock, Duration.ofSeconds(15))).matches(message)).isFalse()
+  }
+
+  @Test
+  fun appFilter_matches() {
+    val message1 = logCatMessage(appName = "foo")
+    val message2 = logCatMessage(appName = "bar")
+    val message3 = logCatMessage(appName = "foobar")
+
+    assertThat(AppFilter(setOf("foo", "bar")).filter(listOf(message1, message2, message3)))
+      .containsExactly(
+        message1,
+        message2
+      ).inOrder()
+  }
+
+  @Test
+  fun appFilter_emptyMatchesAll() {
+    val message1 = logCatMessage(appName = "foo")
+    val message2 = logCatMessage(appName = "bar")
+    val message3 = logCatMessage(appName = "foobar")
+
+    assertThat(AppFilter(setOf()).filter(listOf(message1, message2, message3)))
+      .containsExactly(
+        message1,
+        message2,
+        message3
+      ).inOrder()
   }
 }
 

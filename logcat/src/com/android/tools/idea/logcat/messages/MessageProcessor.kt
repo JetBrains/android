@@ -19,6 +19,9 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.filters.AndLogcatFilter
+import com.android.tools.idea.logcat.filters.AppFilter
 import com.android.tools.idea.logcat.filters.EmptyFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.intellij.openapi.diagnostic.Logger
@@ -43,10 +46,12 @@ private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 internal class MessageProcessor(
   private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
+  private val packageNamesProvider: PackageNamesProvider,
   private val clock: Clock = Clock.systemDefaultZone(),
   private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
   private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
 ) {
+  var showOnlyProjectApps = false
   private var logcatFilter: LogcatFilter = EmptyFilter()
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
 
@@ -55,7 +60,8 @@ internal class MessageProcessor(
   }
 
   internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    messageChannel.send(logcatFilter.filter(messages))
+    val filter = if (showOnlyProjectApps) AndLogcatFilter(logcatFilter, AppFilter(packageNamesProvider.getPackageNames())) else logcatFilter
+    messageChannel.send(filter.filter(messages))
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.

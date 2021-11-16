@@ -35,9 +35,7 @@ internal interface LogcatFilter {
 internal class EmptyFilter : LogcatFilter {
   override fun filter(messages: List<LogCatMessage>, zoneId: ZoneId) = messages
 
-  override fun matches(message: LogcatMessageWrapper): Boolean {
-    throw UnsupportedOperationException("matches() should never be called for this filter")
-  }
+  override fun matches(message: LogcatMessageWrapper) = true
 }
 
 internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
@@ -104,4 +102,12 @@ internal data class ToLevelFilter(val level: Log.LogLevel) : LogcatFilter {
 internal data class AgeFilter(val age: Duration, private val clock: Clock) : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) =
     clock.millis() - message.logCatMessage.header.timestamp.toEpochMilli() <= age.toMillis()
+}
+
+/**
+ * A special filter that matches the appName field in a [LogCatMessage] against a list of package names from the project.
+ */
+internal data class AppFilter(val packageNames: Set<String>) : LogcatFilter {
+  override fun matches(message: LogcatMessageWrapper) =
+    packageNames.isEmpty() || packageNames.contains(message.logCatMessage.header.appName)
 }

@@ -21,6 +21,9 @@ import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
+import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.onIdle
@@ -47,6 +50,7 @@ class MessageProcessorTest {
   val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
+  private val fakePackageNamesProvider = FakePackageNamesProvider()
   private val messageFormatter = ::formatMessages
 
   @After
@@ -56,7 +60,7 @@ class MessageProcessorTest {
 
   @Test
   fun appendMessages_batchesJoined(): Unit = runBlocking {
-    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch1 = listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
@@ -76,7 +80,7 @@ class MessageProcessorTest {
 
   @Test
   fun appendMessages_batchesSplitOnMaxMessagesPerBatch() = runBlocking {
-    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter, maxMessagesPerBatch = 1)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxMessagesPerBatch = 1)
     val batch1 = listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
@@ -105,7 +109,7 @@ class MessageProcessorTest {
     val mockClock = mock<Clock>()
     // First call initializes lastFlushTime, then each call represents a batch.
     `when`(mockClock.millis()).thenReturn(1000, 1000, 2000, 3000)
-    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter, maxTimePerBatchMs = 500, clock = mockClock)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 500, clock = mockClock)
     // We need 3 batches here because the first batch will never be flushed on its own unless the channel is empty. We can fake it by
     // setting up the mock with (1000, 2000, 3000) but that's not an accurate representation of what actually happens where the first 2
     // calls to clock.millis() happen almost at the same time.
@@ -128,7 +132,7 @@ class MessageProcessorTest {
 
   @Test
   fun appendMessages_batchesSplitOnEmptyChannel() = runBlocking {
-    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch1 = listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"))
     val batch2 = listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag2", timestamp), "message2"))
 
@@ -149,7 +153,7 @@ class MessageProcessorTest {
   fun appendMessages_filters() = runBlocking {
     val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1")
     val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2")
-    val messageProcessor = MessageProcessor(fakeLogcatPresenter, messageFormatter)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
     messageProcessor.setFilter(StringFilter("tag2", LINE))
 
@@ -159,6 +163,51 @@ class MessageProcessorTest {
       assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(message2).mapMessages())
     }
   }
+
+  @Test
+  fun appendMessages_showOnlyProjectApps() = runBlocking {
+    val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag", timestamp), "message1")
+    val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag", timestamp), "message2")
+    val message3 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app3", "tag", timestamp), "message3")
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = fakePackageNamesProvider)
+    fakePackageNamesProvider.names.addAll(listOf("app1", "app3"))
+    val batch = listOf(message1, message2, message3)
+    messageProcessor.showOnlyProjectApps = true
+
+    messageProcessor.appendMessages(batch)
+
+    messageProcessor.onIdle {
+      @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
+      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(message1, message3).mapMessages()).inOrder()
+    }
+  }
+
+  @Test
+  fun appendMessages_showOnlyProjectAppsWithFilter() = runBlocking {
+    val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1")
+    val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag1", timestamp), "message2")
+    val message3 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app3", "tag2", timestamp), "message3")
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = fakePackageNamesProvider)
+    fakePackageNamesProvider.names.addAll(listOf("app1", "app3"))
+    val batch = listOf(message1, message2, message3)
+    messageProcessor.showOnlyProjectApps = true
+    messageProcessor.setFilter(StringFilter("tag1", LINE))
+
+    messageProcessor.appendMessages(batch)
+
+    messageProcessor.onIdle {
+      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(message1).mapMessages())
+    }
+  }
+
+  private fun messageProcessor(
+    logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
+    formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit = messageFormatter,
+    packageNamesProvider: PackageNamesProvider = fakePackageNamesProvider,
+    clock: Clock = Clock.systemDefaultZone(),
+    maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
+    maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
+  ) = MessageProcessor(logcatPresenter, formatMessagesInto, packageNamesProvider, clock, maxTimePerBatchMs, maxMessagesPerBatch)
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
