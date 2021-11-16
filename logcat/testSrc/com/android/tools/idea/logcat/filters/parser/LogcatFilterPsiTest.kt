@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
@@ -28,13 +28,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.text.ParseException
-
-private val parserDefinition = LogcatFilterParserDefinition()
 
 private val STRING_KEYS = listOf("tag", "app", "package", "message", "msg", "line")
 private val NON_STRING_KEYS = listOf("level", "fromLevel", "toLevel", "age")
@@ -45,17 +41,7 @@ class LogcatFilterPsiTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
-
-  @Before
-  fun setUp() {
-    LanguageParserDefinitions.INSTANCE.addExplicitExtension(LogcatFilterLanguage, parserDefinition)
-  }
-
-  @After
-  fun tearDown() {
-    LanguageParserDefinitions.INSTANCE.removeExplicitExtension(LogcatFilterLanguage, parserDefinition)
-  }
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
 
   @Test
   fun nonStringKeys() {

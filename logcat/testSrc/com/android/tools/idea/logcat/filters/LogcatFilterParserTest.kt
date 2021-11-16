@@ -21,23 +21,17 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterParserDefinition
+import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-
-private val parserDefinition = LogcatFilterParserDefinition()
 
 private val KEYS = mapOf(
   "tag" to TAG,
@@ -76,17 +70,7 @@ class LogcatFilterParserTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
-
-  @Before
-  fun setUp() {
-    LanguageParserDefinitions.INSTANCE.addExplicitExtension(LogcatFilterLanguage, parserDefinition)
-  }
-
-  @After
-  fun tearDown() {
-    LanguageParserDefinitions.INSTANCE.removeExplicitExtension(LogcatFilterLanguage, parserDefinition)
-  }
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule())
 
   @Test
   fun parse_stringKey() {
