@@ -61,7 +61,7 @@ class AndroidLiveEditCodeGenerator {
   ).iterator().next()
 
   fun interface CodeGenCallback {
-    operator fun invoke(className: String, methodSignature: String, classData: ByteArray, supportClasses: Map<String, ByteArray>)
+    operator fun invoke(className: String, methodName: String, methodDesc: String, classData: ByteArray, supportClasses: Map<String, ByteArray>)
   }
 
   /**
@@ -238,7 +238,10 @@ class AndroidLiveEditCodeGenerator {
         supportClasses[name] = c.asByteArray()
       }
     }
-    callback(internalClassName, methodSignature, primaryClass, supportClasses)
+    val idx = methodSignature.indexOf('(')
+    val methodName = methodSignature.substring(0, idx);
+    val methodDesc = methodSignature.substring(idx)
+    callback(internalClassName, methodName, methodDesc, primaryClass, supportClasses)
     return true
   }
 

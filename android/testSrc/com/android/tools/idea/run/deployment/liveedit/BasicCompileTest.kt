@@ -65,7 +65,7 @@ class BasicCompileTest {
     var output = ByteArray(0)
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(
       LiveEditService.MethodReference(file, function))) {
-      _: String, _: String, bytes: ByteArray, _: Map<String, ByteArray> ->
+      _: String, _: String, _: String, bytes: ByteArray, _: Map<String, ByteArray> ->
       output = bytes
       done.countDown()
     }
@@ -76,7 +76,7 @@ class BasicCompileTest {
   private fun compileFail(file: PsiFile, function: KtNamedFunction) {
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(
       LiveEditService.MethodReference(file, function))) {
-      _: String, _: String, _: ByteArray, _: Map<String, ByteArray> ->
+      _: String, _: String, _: String, _: ByteArray, _: Map<String, ByteArray> ->
       fail("Compilation should fail without this callback being invoked.")
     }
   }

@@ -162,10 +162,10 @@ public class AndroidLiveEditDeployMonitor {
             LiveUpdateDeployer deployer = new LiveUpdateDeployer();
 
             new AndroidLiveEditCodeGenerator().compile(project, changes,
-                                                       (className, methodName, classData, supportClasses) -> {
+                                                       (className, methodName, methodDesc, classData, supportClasses) -> {
               // TODO: Don't fire off one update per class file.
               LiveUpdateDeployer.UpdateLiveEditsParam param =
-                new LiveUpdateDeployer.UpdateLiveEditsParam(className, methodName, classData, supportClasses);
+                new LiveUpdateDeployer.UpdateLiveEditsParam(className, methodName, methodDesc, classData, supportClasses);
 
               List<LiveUpdateDeployer.UpdateLiveEditError> results = deployer.updateLiveEdit(installer, adb, packageName, param);
               for (LiveUpdateDeployer.UpdateLiveEditError result : results ) {
