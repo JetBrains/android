@@ -20,11 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
-import com.intellij.openapi.project.Project;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JMenuItem;
 import javax.swing.JTable;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,7 +31,11 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
-  private final PopUpMenuButtonTableCellEditor myEditor = new PhysicalDevicePopUpMenuButtonTableCellEditor(Mockito.mock(Project.class));
+  private final @NotNull PopUpMenuButtonTableCellEditor myEditor;
+
+  public PhysicalDevicePopUpMenuButtonTableCellEditorTest() {
+    myEditor = new PhysicalDevicePopUpMenuButtonTableCellEditor(Mockito.mock(PhysicalDevicePanel.class));
+  }
 
   @Test
   public void newPairDeviceItemPhoneAndOnline() {
@@ -41,7 +44,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
     myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 5);
 
     // Act
-    List<JMenuItem> items = myEditor.newItems();
+    List<JComponent> items = myEditor.newItems();
 
     // Assert
     JComponent item = items.get(0);
@@ -57,7 +60,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
     myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 5);
 
     // Act
-    List<JMenuItem> items = myEditor.newItems();
+    List<JComponent> items = myEditor.newItems();
 
     // Assert
     JComponent item = items.get(0);

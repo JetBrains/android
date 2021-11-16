@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager;
+package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.intellij.ui.components.JBPanel;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.intellij.util.ui.EmptyIcon;
+import java.awt.event.ActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> {
-  public static final boolean ENABLED = false;
-
-  public DetailsPanelPanel2(@NotNull Component component) {
-    super(new BorderLayout());
-    add(component);
+public final class ViewDetailsAction extends AvdUiAction {
+  public ViewDetailsAction(@NotNull AvdInfoProvider provider) {
+    super(provider, "View details", "", EmptyIcon.ICON_16);
   }
 
-  public void viewDetails() {
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  @Override
+  public void actionPerformed(@NotNull ActionEvent event) {
+    ((VirtualDeviceTable)myAvdInfoProvider.getAvdProviderComponent()).getPanel().getDetailsPanelPanel().viewDetails();
   }
 }

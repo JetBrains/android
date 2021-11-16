@@ -65,6 +65,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   private @Nullable AbstractButton myHelpButton;
   private @Nullable PhysicalDeviceTable myTable;
   private final @NotNull Component myScrollPane;
+  private DetailsPanelPanel2 myDetailsPanelPanel;
   private @Nullable DetailsPanel myDetailsPanel;
 
   @VisibleForTesting
@@ -121,6 +122,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     initHelpButton();
     initTable(newPhysicalDeviceTable);
     myScrollPane = new JBScrollPane(myTable);
+    initDetailsPanelPanel();
     layOut();
 
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetDevices.apply(this));
@@ -167,6 +169,12 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     }
   }
 
+  private void initDetailsPanelPanel() {
+    if (DetailsPanelPanel2.ENABLED) {
+      myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+    }
+  }
+
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
     Collection<PhysicalDevice> persistedDevices = myPhysicalTabPersistentStateComponentGetInstance.get().get();
 
@@ -209,6 +217,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   @NotNull PhysicalDeviceTable getTable() {
     assert myTable != null;
     return myTable;
+  }
+
+  @NotNull DetailsPanelPanel2 getDetailsPanelPanel() {
+    return myDetailsPanelPanel;
   }
 
   @Override
@@ -297,8 +309,6 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   private void layOut2() {
-    Component panel = new DetailsPanelPanel2(myScrollPane);
-
     GroupLayout layout = new GroupLayout(this);
     Group toolbarHorizontalGroup = layout.createSequentialGroup();
 
@@ -324,11 +334,11 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
 
     Group horizontalGroup = layout.createParallelGroup()
       .addGroup(toolbarHorizontalGroup)
-      .addComponent(panel);
+      .addComponent(myDetailsPanelPanel);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGroup(toolbarVerticalGroup)
-      .addComponent(panel);
+      .addComponent(myDetailsPanelPanel);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);

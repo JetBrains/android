@@ -47,12 +47,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvider, AvdInfoProvider {
-  private final @Nullable Project myProject;
+  private final @NotNull VirtualDevicePanel myPanel;
 
-  VirtualDeviceTable(@Nullable Project project) {
+  VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
     super(new VirtualDeviceTableModel());
-
-    myProject = project;
+    myPanel = panel;
 
     TableModel model = getModel();
     model.addTableModelListener(event -> sizeWidthsToFit());
@@ -96,6 +95,10 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
     sorter.setSortKeys(Collections.singletonList(new SortKey(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, SortOrder.ASCENDING)));
 
     return sorter;
+  }
+
+  @NotNull VirtualDevicePanel getPanel() {
+    return myPanel;
   }
 
   @Override
@@ -180,7 +183,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
   @Override
   public @Nullable Project getProject() {
-    return myProject;
+    return myPanel.getProject();
   }
 
   @Override

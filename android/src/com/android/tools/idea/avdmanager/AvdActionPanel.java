@@ -19,6 +19,8 @@ import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPh
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
+import com.android.tools.idea.devicemanager.virtualtab.ViewDetailsAction;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -167,6 +169,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
     if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
       actionList.add(new AvdSummaryAction(this));
+    }
+    else if (DetailsPanelPanel2.ENABLED) {
+      actionList.add(new ViewDetailsAction(this));
     }
 
     actionList.add(new Separator(this));

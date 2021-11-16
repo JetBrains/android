@@ -48,13 +48,14 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements Disposable, DetailsPanelPanel<AvdInfo> {
+  private final @Nullable Project myProject;
+
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private final @NotNull JButton myHelpButton;
-
-  private final @Nullable Project myProject;
-  private final @NotNull Component myScrollPane;
   private VirtualDeviceTable myTable;
+  private final @NotNull Component myScrollPane;
+  private DetailsPanelPanel2 myDetailsPanelPanel;
   private @Nullable DetailsPanel myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
@@ -80,15 +81,23 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
     myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/virtual"));
 
+    initDetailsPanelPanel();
     layOut();
+
     Disposer.register(parent, this);
   }
 
   private void initTable() {
-    myTable = new VirtualDeviceTable(myProject);
+    myTable = new VirtualDeviceTable(this);
 
     if (!DetailsPanelPanel2.ENABLED) {
       myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+    }
+  }
+
+  private void initDetailsPanelPanel() {
+    if (DetailsPanelPanel2.ENABLED) {
+      myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
     }
   }
 
@@ -99,9 +108,17 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
   }
 
+  @Nullable Project getProject() {
+    return myProject;
+  }
+
   @VisibleForTesting
   @NotNull JButton getCreateButton() {
     return myCreateButton;
+  }
+
+  @NotNull DetailsPanelPanel2 getDetailsPanelPanel() {
+    return myDetailsPanelPanel;
   }
 
   @Override
@@ -175,7 +192,6 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   }
 
   private void layOut2() {
-    Component panel = new DetailsPanelPanel2(myScrollPane);
     GroupLayout layout = new GroupLayout(this);
 
     Group horizontalGroup = layout.createParallelGroup()
@@ -185,14 +201,14 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
                   .addGap(JBUIScale.scale(4))
                   .addComponent(mySeparator)
                   .addComponent(myHelpButton))
-      .addComponent(panel);
+      .addComponent(myDetailsPanelPanel);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGroup(layout.createParallelGroup(Alignment.CENTER)
                   .addComponent(myCreateButton)
                   .addComponent(mySeparator)
                   .addComponent(myHelpButton))
-      .addComponent(panel);
+      .addComponent(myDetailsPanelPanel);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
