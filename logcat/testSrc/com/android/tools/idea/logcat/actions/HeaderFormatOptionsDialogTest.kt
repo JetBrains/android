@@ -344,7 +344,8 @@ class HeaderFormatOptionsDialogTest {
         D  Sample logcat message 1.
         I  Sample logcat message 2.
         W  Sample logcat message 3.
-        E  Sample logcat message 4.
+        E  Sample logcat multiline
+           message.
       """.trimIndent().prependIndent(" ").plus("\n"))
 
       showTimestampCheckBox.isSelected = true
@@ -356,7 +357,8 @@ class HeaderFormatOptionsDialogTest {
         11:00:14.234 27217 ExampleTag1             com.example.app1                     D  Sample logcat message 1.
         11:00:14.234 27217 ExampleTag1             com.example.app1                     I  Sample logcat message 2.
         11:00:14.234 24395 ExampleTag2             com.example.app2                     W  Sample logcat message 3.
-        11:00:14.234 24395 ExampleTag2             com.example.app2                     E  Sample logcat message 4.
+        11:00:14.234 24395 ExampleTag2             com.example.app2                     E  Sample logcat multiline
+                                                                                           message.
 
       """.trimIndent())
 

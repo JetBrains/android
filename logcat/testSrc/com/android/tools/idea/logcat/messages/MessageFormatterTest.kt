@@ -56,7 +56,7 @@ class MessageFormatterTest {
         LogCatMessage(LogCatHeader(WARN, 1, 20001, "com.example.app1", "Tag2", TIMESTAMP), "message"),
         LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", TIMESTAMP), "message"),
         LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 2, "com.long.company.name.app2", "LongCompanyNameTag2", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
@@ -65,7 +65,8 @@ class MessageFormatterTest {
       1970-01-01 04:00:01.000     1-20001 Tag2                    com.example.app1                     W  message
       1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
       1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag1     com.long.company.name.app2           W  message
-      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag2     com.long.company.name.app2           W  message
+      1970-01-01 04:00:01.000 10001-2     LongCompanyNameTag2     com.long.company.name.app2           W  multiline
+                                                                                                          message
 
     """.trimIndent())
   }
@@ -77,10 +78,15 @@ class MessageFormatterTest {
 
     messageFormatter.formatMessages(
       textAccumulator,
-      listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message")))
+      listOf(
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+      ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
+      04:00:01.000     1-2     Tag1                    com.example.app1                     W  multiline
+                                                                                               message
 
     """.trimIndent())
   }
@@ -92,9 +98,17 @@ class MessageFormatterTest {
 
     messageFormatter.formatMessages(
       textAccumulator,
-      listOf(LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message")))
+      listOf(
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+      ))
 
-    assertThat(textAccumulator.text).isEqualTo("    1-2     Tag1                    com.example.app1                     W  message\n")
+    assertThat(textAccumulator.text.trimEnd()).isEqualTo("""
+      1-2     Tag1                    com.example.app1                     W  message
+      1-2     Tag1                    com.example.app1                     W  multiline
+                                                                              message
+
+    """.replaceIndent("    ").trimEnd())
   }
 
   @Test
@@ -106,12 +120,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000 1     Tag1                    com.example.app1                     W  message
-      1970-01-01 04:00:01.000 10001 Tag1                    com.example.app2                     W  message
+      1970-01-01 04:00:01.000 10001 Tag1                    com.example.app2                     W  multiline
+                                                                                                    message
 
     """.trimIndent())
   }
@@ -125,12 +140,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 10001, 20001, "com.example.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000 Tag1                    com.example.app1                     W  message
-      1970-01-01 04:00:01.000 Tag1                    com.example.app2                     W  message
+      1970-01-01 04:00:01.000 Tag1                    com.example.app2                     W  multiline
+                                                                                              message
 
     """.trimIndent())
   }
@@ -144,12 +160,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app1", "LongCompanyNameTag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1            com.example.app1                     W  message
-      1970-01-01 04:00:01.000     2-2     Lon...yNameTag1 com.example.app1                     W  message
+      1970-01-01 04:00:01.000     2-2     Lon...yNameTag1 com.example.app1                     W  multiline
+                                                                                                  message
 
     """.trimIndent())
   }
@@ -162,10 +179,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     <no-tag>                com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2     <no-tag>                com.example.app1                     W  multiline
+                                                                                                          message
 
     """.trimIndent())
   }
@@ -180,13 +200,14 @@ class MessageFormatterTest {
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag2", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag2", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
       1970-01-01 04:00:01.000     1-2                             com.example.app1                     W  message
-      1970-01-01 04:00:01.000     1-2     Tag2                    com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2     Tag2                    com.example.app1                     W  multiline
+                                                                                                          message
 
     """.trimIndent())
   }
@@ -200,10 +221,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     com.example.app1                     W  message
+      1970-01-01 04:00:01.000     1-2     com.example.app1                     W  multiline
+                                                                                  message
 
     """.trimIndent())
   }
@@ -217,12 +241,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.long.company.name.app2", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.long.company.name.app2", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1      W  message
-      1970-01-01 04:00:01.000     2-2     Tag1                    com...pany.name.app2  W  message
+      1970-01-01 04:00:01.000     2-2     Tag1                    com...pany.name.app2  W  multiline
+                                                                                           message
 
     """.trimIndent())
   }
@@ -235,12 +260,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "?", "Tag", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 1, 2, "", "Tag", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "", "Tag", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
-      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  message
+      1970-01-01 04:00:01.000     1-2     Tag                     pid-1                                W  multiline
+                                                                                                          message
 
     """.trimIndent())
   }
@@ -255,13 +281,14 @@ class MessageFormatterTest {
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
-        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app2", "Tag2", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 2, 2, "com.example.app2", "Tag2", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  message
       1970-01-01 04:00:01.000     1-2     Tag1                                                         W  message
-      1970-01-01 04:00:01.000     2-2     Tag2                    com.example.app2                     W  message
+      1970-01-01 04:00:01.000     2-2     Tag2                    com.example.app2                     W  multiline
+                                                                                                          message
 
     """.trimIndent())
   }
@@ -275,10 +302,13 @@ class MessageFormatterTest {
       textAccumulator,
       listOf(
         LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "message"),
+        LogCatMessage(LogCatHeader(WARN, 1, 2, "com.example.app1", "Tag1", TIMESTAMP), "multiline\nmessage"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("""
       1970-01-01 04:00:01.000     1-2     Tag1                     W  message
+      1970-01-01 04:00:01.000     1-2     Tag1                     W  multiline
+                                                                      message
 
     """.trimIndent())
   }

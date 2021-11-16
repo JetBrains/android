@@ -68,7 +68,7 @@ private val sampleMessages = listOf(
   LogCatMessage(LogCatHeader(DEBUG, 27217, 3814, "com.example.app1", "ExampleTag1", sampleTimestamp), "Sample logcat message 1."),
   LogCatMessage(LogCatHeader(INFO, 27217, 3814, "com.example.app1", "ExampleTag1", sampleTimestamp), "Sample logcat message 2."),
   LogCatMessage(LogCatHeader(WARN, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp), "Sample logcat message 3."),
-  LogCatMessage(LogCatHeader(ERROR, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp), "Sample logcat message 4."),
+  LogCatMessage(LogCatHeader(ERROR, 24395, 24395, "com.example.app2", "ExampleTag2", sampleTimestamp), "Sample logcat multiline\nmessage."),
 )
 
 private const val MAX_SAMPLE_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE

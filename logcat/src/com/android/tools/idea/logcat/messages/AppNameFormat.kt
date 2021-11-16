@@ -44,4 +44,6 @@ internal data class AppNameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideD
     }
     return appName.padEnd(maxLength + 1)
   }
+
+  fun width() = if (enabled) maxLength + 1 else 0
 }
