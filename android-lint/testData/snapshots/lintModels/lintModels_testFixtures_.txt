@@ -32,71 +32,71 @@ MODULE                        : project.app
             Dependencies
                 CompileDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
-                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
-                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1
-                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
-                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
-                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
-                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
-                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
-                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
                     com.android.support:collections         : null => com.android.support:collections:28.0.0
-                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0
-                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0
-                    com.android.support:customview          : null => com.android.support:customview:28.0.0
-                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0
-                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0
-                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0
-                    com.android.support:loader    : null => com.android.support:loader:28.0.0
-                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0
-                    com.android.support:print     : null => com.android.support:print:28.0.0
-                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
                     com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
-                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0
-                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0
-                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0
-                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0
-                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0
-                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0
-                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0
-                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
-                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
-                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1
-                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
-                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
-                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
-                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
-                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
-                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
                     com.android.support:collections         : null => com.android.support:collections:28.0.0
-                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0
-                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0
-                    com.android.support:customview          : null => com.android.support:customview:28.0.0
-                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0
-                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0
-                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0
-                    com.android.support:loader    : null => com.android.support:loader:28.0.0
-                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0
-                    com.android.support:print     : null => com.android.support:print:28.0.0
-                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
                     com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
-                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0
-                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0
-                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0
-                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0
-                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0
-                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0
-                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0
-                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
@@ -104,44 +104,44 @@ MODULE                        : project.app
             Dependencies
                 CompileDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
-                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
-                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1
-                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
-                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
-                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
+                    artifacts::lib                : null => :lib@testFixtures
+                    artifacts::lib                : null => :lib@main
+                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
-                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
-                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
-                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
                     com.android.support:collections         : null => com.android.support:collections:28.0.0
-                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0
-                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0
-                    com.android.support:customview          : null => com.android.support:customview:28.0.0
-                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0
-                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0
-                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0
-                    com.android.support:loader    : null => com.android.support:loader:28.0.0
-                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0
-                    com.android.support:print     : null => com.android.support:print:28.0.0
-                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
                     com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
-                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0
-                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0
-                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0
-                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0
-                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0
-                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0
-                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0
-                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
-                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
-                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0
-                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0
+                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0 (1)
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar (1)
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -158,44 +158,44 @@ MODULE                        : project.app
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
-                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1
+                    android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                     android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
-                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1
-                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
-                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
-                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
+                    android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                    android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                    android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                    android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::app                : null => :app@main
+                    artifacts::lib                : null => :lib@testFixtures
+                    artifacts::lib                : null => :lib@main
+                    com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
-                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
-                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
-                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
+                    com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                    com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                    com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
                     com.android.support:collections         : null => com.android.support:collections:28.0.0
-                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0
-                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0
-                    com.android.support:customview          : null => com.android.support:customview:28.0.0
-                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0
-                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0
-                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0
-                    com.android.support:loader    : null => com.android.support:loader:28.0.0
-                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0
-                    com.android.support:print     : null => com.android.support:print:28.0.0
-                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0
+                    com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                    com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                    com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                    com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                    com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                    com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                    com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                    com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                    com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                    com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
                     com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
-                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0
-                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0
-                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0
-                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0
-                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0
-                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0
-                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0
-                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0
+                    com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                    com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                    com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                    com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                    com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                    com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                    com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                    com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
-                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
-                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0
-                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0
+                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0 (1)
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar (1)
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -222,42 +222,42 @@ MODULE                        : project.app
         Dependencies
             CompileDependencies
                 android.arch.core:common      : null => android.arch.core:common:1.1.1
-                android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1
+                android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
                 android.arch.lifecycle:common : null => android.arch.lifecycle:common:1.1.1
-                android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1
-                android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1
-                android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1
-                android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1
-                artifacts::app                : null => artifacts::app:unspecified
-                com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2
+                android.arch.lifecycle:livedata         : null => android.arch.lifecycle:livedata:1.1.1@aar
+                android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
+                android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
+                android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                artifacts::app                : null => :app@main
+                com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
-                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
-                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
-                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
-                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2
-                com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0
-                com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0
-                com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0
+                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
+                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2@aar
+                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2@aar
+                com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
+                com.android.support:appcompat-v7        : null => com.android.support:appcompat-v7:28.0.0@aar
+                com.android.support:asynclayoutinflater : null => com.android.support:asynclayoutinflater:28.0.0@aar
                 com.android.support:collections         : null => com.android.support:collections:28.0.0
-                com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0
-                com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0
-                com.android.support:customview          : null => com.android.support:customview:28.0.0
-                com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0
-                com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0
-                com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0
-                com.android.support:loader    : null => com.android.support:loader:28.0.0
-                com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0
-                com.android.support:print     : null => com.android.support:print:28.0.0
-                com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0
+                com.android.support:coordinatorlayout   : null => com.android.support:coordinatorlayout:28.0.0@aar
+                com.android.support:cursoradapter       : null => com.android.support:cursoradapter:28.0.0@aar
+                com.android.support:customview          : null => com.android.support:customview:28.0.0@aar
+                com.android.support:documentfile        : null => com.android.support:documentfile:28.0.0@aar
+                com.android.support:drawerlayout        : null => com.android.support:drawerlayout:28.0.0@aar
+                com.android.support:interpolator        : null => com.android.support:interpolator:28.0.0@aar
+                com.android.support:loader    : null => com.android.support:loader:28.0.0@aar
+                com.android.support:localbroadcastmanager         : null => com.android.support:localbroadcastmanager:28.0.0@aar
+                com.android.support:print     : null => com.android.support:print:28.0.0@aar
+                com.android.support:slidingpanelayout   : null => com.android.support:slidingpanelayout:28.0.0@aar
                 com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
-                com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0
-                com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0
-                com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0
-                com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0
-                com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0
-                com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0
-                com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0
-                com.android.support:viewpager : null => com.android.support:viewpager:28.0.0
+                com.android.support:support-compat      : null => com.android.support:support-compat:28.0.0@aar
+                com.android.support:support-core-ui     : null => com.android.support:support-core-ui:28.0.0@aar
+                com.android.support:support-core-utils  : null => com.android.support:support-core-utils:28.0.0@aar
+                com.android.support:support-fragment    : null => com.android.support:support-fragment:28.0.0@aar
+                com.android.support:support-vector-drawable       : null => com.android.support:support-vector-drawable:28.0.0@aar
+                com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
+                com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
+                com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.google.guava:guava        : null => com.google.guava:guava:19.0
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
@@ -268,11 +268,11 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
-                artifacts::app                : null => artifacts::app:unspecified
-                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
-                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
-                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
-                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2
+                artifacts::app                : null => :app@main
+                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
+                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2@aar
+                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2@aar
                 com.android.support:support-annotations : null => com.android.support:support-annotations:28.0.0
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
@@ -320,13 +320,23 @@ MODULE                        : project.app
             - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
+            LintModelLibrary              : LocalLibrary(:app)
+                Identifier                    : :app@main
+                ProjectPath                   : :app
+            LintModelLibrary              : LocalLibrary(:lib)
+                Identifier                    : :lib@main
+                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                ProjectPath                   : :lib
+            LintModelLibrary              : LocalLibrary(:lib)
+                Identifier                    : :lib@testFixtures
+                ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
-                ArtifactAddress               : android.arch.core:common:1.1.1
+                Identifier                    : android.arch.core:common:1.1.1
                 ResolvedCoordinates           : android.arch.core:common:1.1.1
             LintModelLibrary              : AndroidLibrary(android.arch.core:runtime:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
-                ArtifactAddress               : android.arch.core:runtime:1.1.1
+                Identifier                    : android.arch.core:runtime:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
@@ -338,11 +348,11 @@ MODULE                        : project.app
                 ResolvedCoordinates           : android.arch.core:runtime:1.1.1
             LintModelLibrary              : JavaLibrary(android.arch.lifecycle:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
-                ArtifactAddress               : android.arch.lifecycle:common:1.1.1
+                Identifier                    : android.arch.lifecycle:common:1.1.1
                 ResolvedCoordinates           : android.arch.lifecycle:common:1.1.1
             LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:livedata-core:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
-                ArtifactAddress               : android.arch.lifecycle:livedata-core:1.1.1
+                Identifier                    : android.arch.lifecycle:livedata-core:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res [-]
@@ -354,7 +364,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : android.arch.lifecycle:livedata-core:1.1.1
             LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:livedata:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
-                ArtifactAddress               : android.arch.lifecycle:livedata:1.1.1
+                Identifier                    : android.arch.lifecycle:livedata:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res [-]
@@ -366,7 +376,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : android.arch.lifecycle:livedata:1.1.1
             LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:runtime:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
-                ArtifactAddress               : android.arch.lifecycle:runtime:1.1.1
+                Identifier                    : android.arch.lifecycle:runtime:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
@@ -378,7 +388,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : android.arch.lifecycle:runtime:1.1.1
             LintModelLibrary              : AndroidLibrary(android.arch.lifecycle:viewmodel:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
-                ArtifactAddress               : android.arch.lifecycle:viewmodel:1.1.1
+                Identifier                    : android.arch.lifecycle:viewmodel:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res [-]
@@ -388,19 +398,13 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
                 ResolvedCoordinates           : android.arch.lifecycle:viewmodel:1.1.1
-            LintModelLibrary              : LocalLibrary(:app)
-                ArtifactAddress               : artifacts::app:unspecified
-                ProjectPath                   : :app
-            LintModelLibrary              : LocalLibrary(:lib)
-                ArtifactAddress               : artifacts::lib:unspecified
-                ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
                 - JarFiles                    : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
-                ArtifactAddress               : com.android.support.constraint:constraint-layout-solver:1.0.2
+                Identifier                    : com.android.support.constraint:constraint-layout-solver:1.0.2
                 ResolvedCoordinates           : com.android.support.constraint:constraint-layout-solver:1.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.constraint:constraint-layout:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.constraint:constraint-layout:1.0.2
+                Identifier                    : com.android.support.constraint:constraint-layout:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraint-layout-1.0.2/res
@@ -412,7 +416,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support.constraint:constraint-layout:1.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test.espresso:espresso-core:3.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2
+                Identifier                    : com.android.support.test.espresso:espresso-core:3.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/res [-]
@@ -424,7 +428,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support.test.espresso:espresso-core:3.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test.espresso:espresso-idling-resource:3.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test.espresso:espresso-idling-resource:3.0.2
+                Identifier                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/res [-]
@@ -436,7 +440,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support.test.espresso:espresso-idling-resource:3.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test:monitor:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test:monitor:1.0.2
+                Identifier                    : com.android.support.test:monitor:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/res [-]
@@ -448,7 +452,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support.test:monitor:1.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test:runner:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test:runner:1.0.2
+                Identifier                    : com.android.support.test:runner:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/res [-]
@@ -460,7 +464,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support.test:runner:1.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support:animated-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:animated-vector-drawable:28.0.0
+                Identifier                    : com.android.support:animated-vector-drawable:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/res [-]
@@ -472,7 +476,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:animated-vector-drawable:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:appcompat-v7:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:appcompat-v7:28.0.0
+                Identifier                    : com.android.support:appcompat-v7:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/res
@@ -484,7 +488,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:appcompat-v7:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:asynclayoutinflater:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:asynclayoutinflater:28.0.0
+                Identifier                    : com.android.support:asynclayoutinflater:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res [-]
@@ -496,11 +500,11 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:asynclayoutinflater:28.0.0
             LintModelLibrary              : JavaLibrary(com.android.support:collections:28.0.0)
                 - JarFiles                    : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
-                ArtifactAddress               : com.android.support:collections:28.0.0
+                Identifier                    : com.android.support:collections:28.0.0
                 ResolvedCoordinates           : com.android.support:collections:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:coordinatorlayout:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:coordinatorlayout:28.0.0
+                Identifier                    : com.android.support:coordinatorlayout:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res
@@ -512,7 +516,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:coordinatorlayout:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:cursoradapter:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:cursoradapter:28.0.0
+                Identifier                    : com.android.support:cursoradapter:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res [-]
@@ -524,7 +528,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:cursoradapter:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:customview:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:customview:28.0.0
+                Identifier                    : com.android.support:customview:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res [-]
@@ -536,7 +540,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:customview:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:documentfile:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:documentfile:28.0.0
+                Identifier                    : com.android.support:documentfile:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res [-]
@@ -548,7 +552,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:documentfile:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:drawerlayout:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:drawerlayout:28.0.0
+                Identifier                    : com.android.support:drawerlayout:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res [-]
@@ -560,7 +564,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:drawerlayout:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:interpolator:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:interpolator:28.0.0
+                Identifier                    : com.android.support:interpolator:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res [-]
@@ -572,7 +576,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:interpolator:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:loader:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:loader:28.0.0
+                Identifier                    : com.android.support:loader:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res [-]
@@ -584,7 +588,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:loader:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:localbroadcastmanager:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:localbroadcastmanager:28.0.0
+                Identifier                    : com.android.support:localbroadcastmanager:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res [-]
@@ -596,7 +600,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:localbroadcastmanager:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:print:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:print:28.0.0
+                Identifier                    : com.android.support:print:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res [-]
@@ -608,7 +612,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:print:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:slidingpanelayout:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:slidingpanelayout:28.0.0
+                Identifier                    : com.android.support:slidingpanelayout:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res [-]
@@ -620,11 +624,11 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:slidingpanelayout:28.0.0
             LintModelLibrary              : JavaLibrary(com.android.support:support-annotations:28.0.0)
                 - JarFiles                    : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                ArtifactAddress               : com.android.support:support-annotations:28.0.0
+                Identifier                    : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates           : com.android.support:support-annotations:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:support-compat:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:support-compat:28.0.0
+                Identifier                    : com.android.support:support-compat:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res
@@ -636,7 +640,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:support-compat:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:support-core-ui:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:support-core-ui:28.0.0
+                Identifier                    : com.android.support:support-core-ui:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res [-]
@@ -648,7 +652,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:support-core-ui:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:support-core-utils:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:support-core-utils:28.0.0
+                Identifier                    : com.android.support:support-core-utils:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res [-]
@@ -660,7 +664,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:support-core-utils:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:support-fragment:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:support-fragment:28.0.0
+                Identifier                    : com.android.support:support-fragment:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res [-]
@@ -672,7 +676,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:support-fragment:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:support-vector-drawable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:support-vector-drawable:28.0.0
+                Identifier                    : com.android.support:support-vector-drawable:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/res [-]
@@ -684,7 +688,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:support-vector-drawable:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:swiperefreshlayout:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:swiperefreshlayout:28.0.0
+                Identifier                    : com.android.support:swiperefreshlayout:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res [-]
@@ -696,7 +700,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:swiperefreshlayout:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:versionedparcelable:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:versionedparcelable:28.0.0
+                Identifier                    : com.android.support:versionedparcelable:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res [-]
@@ -708,7 +712,7 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:versionedparcelable:28.0.0
             LintModelLibrary              : AndroidLibrary(com.android.support:viewpager:28.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
-                ArtifactAddress               : com.android.support:viewpager:28.0.0
+                Identifier                    : com.android.support:viewpager:28.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res [-]
@@ -720,11 +724,15 @@ MODULE                        : project.app
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
             LintModelLibrary              : JavaLibrary(com.example.javaLib:javaLib:1.0)
                 - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar
-                ArtifactAddress               : com.example.javaLib:javaLib:1.0
+                Identifier                    : com.example.javaLib:javaLib:1.0
+                ResolvedCoordinates           : com.example.javaLib:javaLib:1.0
+            LintModelLibrary              : JavaLibrary(com.example.javaLib:javaLib:1.0)
+                - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
+                Identifier                    : com.example.javaLib:javaLib:1.0 (1)
                 ResolvedCoordinates           : com.example.javaLib:javaLib:1.0
             LintModelLibrary              : AndroidLibrary(com.example.publishedLib:publishedLib:1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
-                ArtifactAddress               : com.example.publishedLib:publishedLib:1.0
+                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
@@ -734,89 +742,101 @@ MODULE                        : project.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/proguard.txt [-]
                 ResolvedCoordinates           : com.example.publishedLib:publishedLib:1.0
+            LintModelLibrary              : AndroidLibrary(com.example.publishedLib:publishedLib:1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
+                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar (1)
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                ResolvedCoordinates           : com.example.publishedLib:publishedLib:1.0
             LintModelLibrary              : JavaLibrary(com.google.auto.value:auto-value-annotations:1.6.3)
                 - JarFiles                    : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
-                ArtifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3
+                Identifier                    : com.google.auto.value:auto-value-annotations:1.6.3
                 ResolvedCoordinates           : com.google.auto.value:auto-value-annotations:1.6.3
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-                ArtifactAddress               : com.google.code.findbugs:jsr305:2.0.1
+                Identifier                    : com.google.code.findbugs:jsr305:2.0.1
                 ResolvedCoordinates           : com.google.code.findbugs:jsr305:2.0.1
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:3.0.2)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
-                ArtifactAddress               : com.google.code.findbugs:jsr305:3.0.2
+                Identifier                    : com.google.code.findbugs:jsr305:3.0.2
                 ResolvedCoordinates           : com.google.code.findbugs:jsr305:3.0.2
             LintModelLibrary              : JavaLibrary(com.google.errorprone:error_prone_annotations:2.3.1)
                 - JarFiles                    : <M2>/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar
-                ArtifactAddress               : com.google.errorprone:error_prone_annotations:2.3.1
+                Identifier                    : com.google.errorprone:error_prone_annotations:2.3.1
                 ResolvedCoordinates           : com.google.errorprone:error_prone_annotations:2.3.1
             LintModelLibrary              : JavaLibrary(com.google.guava:failureaccess:1.0.1)
                 - JarFiles                    : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
-                ArtifactAddress               : com.google.guava:failureaccess:1.0.1
+                Identifier                    : com.google.guava:failureaccess:1.0.1
                 ResolvedCoordinates           : com.google.guava:failureaccess:1.0.1
             LintModelLibrary              : JavaLibrary(com.google.guava:guava:19.0)
                 - JarFiles                    : <M2>/com/google/guava/guava/19.0/guava-19.0.jar
-                ArtifactAddress               : com.google.guava:guava:19.0
+                Identifier                    : com.google.guava:guava:19.0
                 ResolvedCoordinates           : com.google.guava:guava:19.0
             LintModelLibrary              : JavaLibrary(com.google.guava:guava:27.0.1-android)
                 - JarFiles                    : <M2>/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar
-                ArtifactAddress               : com.google.guava:guava:27.0.1-android
+                Identifier                    : com.google.guava:guava:27.0.1-android
                 ResolvedCoordinates           : com.google.guava:guava:27.0.1-android
             LintModelLibrary              : JavaLibrary(com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava)
                 - JarFiles                    : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
-                ArtifactAddress               : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+                Identifier                    : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
                 ResolvedCoordinates           : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
             LintModelLibrary              : JavaLibrary(com.google.j2objc:j2objc-annotations:1.1)
                 - JarFiles                    : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
-                ArtifactAddress               : com.google.j2objc:j2objc-annotations:1.1
+                Identifier                    : com.google.j2objc:j2objc-annotations:1.1
                 ResolvedCoordinates           : com.google.j2objc:j2objc-annotations:1.1
             LintModelLibrary              : JavaLibrary(com.google.truth:truth:0.44)
                 - JarFiles                    : <M2>/com/google/truth/truth/0.44/truth-0.44.jar
-                ArtifactAddress               : com.google.truth:truth:0.44
+                Identifier                    : com.google.truth:truth:0.44
                 ResolvedCoordinates           : com.google.truth:truth:0.44
             LintModelLibrary              : JavaLibrary(com.googlecode.java-diff-utils:diffutils:1.3.0)
                 - JarFiles                    : <M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar
-                ArtifactAddress               : com.googlecode.java-diff-utils:diffutils:1.3.0
+                Identifier                    : com.googlecode.java-diff-utils:diffutils:1.3.0
                 ResolvedCoordinates           : com.googlecode.java-diff-utils:diffutils:1.3.0
             LintModelLibrary              : JavaLibrary(com.squareup:javawriter:2.1.1)
                 - JarFiles                    : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                ArtifactAddress               : com.squareup:javawriter:2.1.1
+                Identifier                    : com.squareup:javawriter:2.1.1
                 ResolvedCoordinates           : com.squareup:javawriter:2.1.1
             LintModelLibrary              : JavaLibrary(commons-io:commons-io:2.4)
                 - JarFiles                    : <M2>/commons-io/commons-io/2.4/commons-io-2.4.jar
-                ArtifactAddress               : commons-io:commons-io:2.4
+                Identifier                    : commons-io:commons-io:2.4
                 ResolvedCoordinates           : commons-io:commons-io:2.4
             LintModelLibrary              : JavaLibrary(javax.inject:javax.inject:1)
                 - JarFiles                    : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                ArtifactAddress               : javax.inject:javax.inject:1
+                Identifier                    : javax.inject:javax.inject:1
                 ResolvedCoordinates           : javax.inject:javax.inject:1
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
-                ArtifactAddress               : junit:junit:4.12
+                Identifier                    : junit:junit:4.12
                 ResolvedCoordinates           : junit:junit:4.12
             LintModelLibrary              : JavaLibrary(net.sf.kxml:kxml2:2.3.0)
                 - JarFiles                    : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                ArtifactAddress               : net.sf.kxml:kxml2:2.3.0
+                Identifier                    : net.sf.kxml:kxml2:2.3.0
                 ResolvedCoordinates           : net.sf.kxml:kxml2:2.3.0
             LintModelLibrary              : JavaLibrary(org.checkerframework:checker-compat-qual:2.5.5)
                 - JarFiles                    : <M2>/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar
-                ArtifactAddress               : org.checkerframework:checker-compat-qual:2.5.5
+                Identifier                    : org.checkerframework:checker-compat-qual:2.5.5
                 ResolvedCoordinates           : org.checkerframework:checker-compat-qual:2.5.5
             LintModelLibrary              : JavaLibrary(org.codehaus.mojo:animal-sniffer-annotations:1.17)
                 - JarFiles                    : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar
-                ArtifactAddress               : org.codehaus.mojo:animal-sniffer-annotations:1.17
+                Identifier                    : org.codehaus.mojo:animal-sniffer-annotations:1.17
                 ResolvedCoordinates           : org.codehaus.mojo:animal-sniffer-annotations:1.17
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-core:1.3
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-integration:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-integration:1.3
+                Identifier                    : org.hamcrest:hamcrest-integration:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-integration:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-library:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-library:1.3
+                Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -861,8 +881,8 @@ MODULE                        : project.lib
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
+                    artifacts::lib                : null => :lib@testFixtures
+                    artifacts::lib                : null => :lib@main
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -878,8 +898,8 @@ MODULE                        : project.lib
                     org.codehaus.mojo:animal-sniffer-annotations      : null => org.codehaus.mojo:animal-sniffer-annotations:1.17
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
-                    artifacts::lib                : null => artifacts::lib:unspecified
-                    artifacts::lib                : null => artifacts::lib:unspecified
+                    artifacts::lib                : null => :lib@testFixtures
+                    artifacts::lib                : null => :lib@main
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.errorprone:error_prone_annotations     : null => com.google.errorprone:error_prone_annotations:2.3.1
@@ -905,12 +925,12 @@ MODULE                        : project.lib
         - GeneratedSourceFolders      : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts::lib                : null => artifacts::lib:unspecified
-                artifacts::lib                : null => artifacts::lib:unspecified
-                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
-                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
-                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
-                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2
+                artifacts::lib                : null => :lib@testFixtures
+                artifacts::lib                : null => :lib@main
+                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
+                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2@aar
+                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2@aar
                 com.android.support:support-annotations : null => com.android.support:support-annotations:27.1.1
                 com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
@@ -932,12 +952,12 @@ MODULE                        : project.lib
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
-                artifacts::lib                : null => artifacts::lib:unspecified
-                artifacts::lib                : null => artifacts::lib:unspecified
-                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
-                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
-                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2
-                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2
+                artifacts::lib                : null => :lib@testFixtures
+                artifacts::lib                : null => :lib@main
+                com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
+                com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
+                com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2@aar
+                com.android.support.test:runner         : null => com.android.support.test:runner:1.0.2@aar
                 com.android.support:support-annotations : null => com.android.support:support-annotations:27.1.1
                 com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
@@ -966,7 +986,7 @@ MODULE                        : project.lib
             - GeneratedSourceFolders      : <ROOT>/lib/build/generated/ap_generated_sources/debugTestFixtures/out [-]
             Dependencies
                 CompileDependencies
-                    artifacts::lib                : null => artifacts::lib:unspecified
+                    artifacts::lib                : null => :lib@main
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.code.gson:gson     : null => com.google.code.gson:gson:2.2.4
@@ -983,7 +1003,7 @@ MODULE                        : project.lib
                     org.codehaus.mojo:animal-sniffer-annotations      : null => org.codehaus.mojo:animal-sniffer-annotations:1.17
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
-                    artifacts::lib                : null => artifacts::lib:unspecified
+                    artifacts::lib                : null => :lib@main
                     com.google.auto.value:auto-value-annotations      : null => com.google.auto.value:auto-value-annotations:1.6.3
                     com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:3.0.2
                     com.google.code.gson:gson     : null => com.google.code.gson:gson:2.2.4
@@ -1048,11 +1068,15 @@ MODULE                        : project.lib
         Debuggable                    : true
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)
-                ArtifactAddress               : artifacts::lib:unspecified
+                Identifier                    : :lib@main
+                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                ProjectPath                   : :lib
+            LintModelLibrary              : LocalLibrary(:lib)
+                Identifier                    : :lib@testFixtures
                 ProjectPath                   : :lib
             LintModelLibrary              : AndroidLibrary(com.android.support.test.espresso:espresso-core:3.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2
+                Identifier                    : com.android.support.test.espresso:espresso-core:3.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/res [-]
@@ -1064,7 +1088,7 @@ MODULE                        : project.lib
                 ResolvedCoordinates           : com.android.support.test.espresso:espresso-core:3.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test.espresso:espresso-idling-resource:3.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test.espresso:espresso-idling-resource:3.0.2
+                Identifier                    : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/res [-]
@@ -1076,7 +1100,7 @@ MODULE                        : project.lib
                 ResolvedCoordinates           : com.android.support.test.espresso:espresso-idling-resource:3.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test:monitor:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test:monitor:1.0.2
+                Identifier                    : com.android.support.test:monitor:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/res [-]
@@ -1088,7 +1112,7 @@ MODULE                        : project.lib
                 ResolvedCoordinates           : com.android.support.test:monitor:1.0.2
             LintModelLibrary              : AndroidLibrary(com.android.support.test:runner:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
-                ArtifactAddress               : com.android.support.test:runner:1.0.2
+                Identifier                    : com.android.support.test:runner:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/res [-]
@@ -1100,87 +1124,87 @@ MODULE                        : project.lib
                 ResolvedCoordinates           : com.android.support.test:runner:1.0.2
             LintModelLibrary              : JavaLibrary(com.android.support:support-annotations:27.1.1)
                 - JarFiles                    : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                ArtifactAddress               : com.android.support:support-annotations:27.1.1
+                Identifier                    : com.android.support:support-annotations:27.1.1
                 ResolvedCoordinates           : com.android.support:support-annotations:27.1.1
             LintModelLibrary              : JavaLibrary(com.google.auto.value:auto-value-annotations:1.6.3)
                 - JarFiles                    : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
-                ArtifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3
+                Identifier                    : com.google.auto.value:auto-value-annotations:1.6.3
                 ResolvedCoordinates           : com.google.auto.value:auto-value-annotations:1.6.3
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:3.0.2)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
-                ArtifactAddress               : com.google.code.findbugs:jsr305:3.0.2
+                Identifier                    : com.google.code.findbugs:jsr305:3.0.2
                 ResolvedCoordinates           : com.google.code.findbugs:jsr305:3.0.2
             LintModelLibrary              : JavaLibrary(com.google.code.gson:gson:2.2.4)
                 - JarFiles                    : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
-                ArtifactAddress               : com.google.code.gson:gson:2.2.4
+                Identifier                    : com.google.code.gson:gson:2.2.4
                 ResolvedCoordinates           : com.google.code.gson:gson:2.2.4
             LintModelLibrary              : JavaLibrary(com.google.errorprone:error_prone_annotations:2.3.1)
                 - JarFiles                    : <M2>/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar
-                ArtifactAddress               : com.google.errorprone:error_prone_annotations:2.3.1
+                Identifier                    : com.google.errorprone:error_prone_annotations:2.3.1
                 ResolvedCoordinates           : com.google.errorprone:error_prone_annotations:2.3.1
             LintModelLibrary              : JavaLibrary(com.google.guava:failureaccess:1.0.1)
                 - JarFiles                    : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
-                ArtifactAddress               : com.google.guava:failureaccess:1.0.1
+                Identifier                    : com.google.guava:failureaccess:1.0.1
                 ResolvedCoordinates           : com.google.guava:failureaccess:1.0.1
             LintModelLibrary              : JavaLibrary(com.google.guava:guava:27.0.1-android)
                 - JarFiles                    : <M2>/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar
-                ArtifactAddress               : com.google.guava:guava:27.0.1-android
+                Identifier                    : com.google.guava:guava:27.0.1-android
                 ResolvedCoordinates           : com.google.guava:guava:27.0.1-android
             LintModelLibrary              : JavaLibrary(com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava)
                 - JarFiles                    : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
-                ArtifactAddress               : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+                Identifier                    : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
                 ResolvedCoordinates           : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
             LintModelLibrary              : JavaLibrary(com.google.j2objc:j2objc-annotations:1.1)
                 - JarFiles                    : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
-                ArtifactAddress               : com.google.j2objc:j2objc-annotations:1.1
+                Identifier                    : com.google.j2objc:j2objc-annotations:1.1
                 ResolvedCoordinates           : com.google.j2objc:j2objc-annotations:1.1
             LintModelLibrary              : JavaLibrary(com.google.truth:truth:0.44)
                 - JarFiles                    : <M2>/com/google/truth/truth/0.44/truth-0.44.jar
-                ArtifactAddress               : com.google.truth:truth:0.44
+                Identifier                    : com.google.truth:truth:0.44
                 ResolvedCoordinates           : com.google.truth:truth:0.44
             LintModelLibrary              : JavaLibrary(com.googlecode.java-diff-utils:diffutils:1.3.0)
                 - JarFiles                    : <M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar
-                ArtifactAddress               : com.googlecode.java-diff-utils:diffutils:1.3.0
+                Identifier                    : com.googlecode.java-diff-utils:diffutils:1.3.0
                 ResolvedCoordinates           : com.googlecode.java-diff-utils:diffutils:1.3.0
             LintModelLibrary              : JavaLibrary(com.squareup:javawriter:2.1.1)
                 - JarFiles                    : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                ArtifactAddress               : com.squareup:javawriter:2.1.1
+                Identifier                    : com.squareup:javawriter:2.1.1
                 ResolvedCoordinates           : com.squareup:javawriter:2.1.1
             LintModelLibrary              : JavaLibrary(commons-io:commons-io:2.4)
                 - JarFiles                    : <M2>/commons-io/commons-io/2.4/commons-io-2.4.jar
-                ArtifactAddress               : commons-io:commons-io:2.4
+                Identifier                    : commons-io:commons-io:2.4
                 ResolvedCoordinates           : commons-io:commons-io:2.4
             LintModelLibrary              : JavaLibrary(javax.inject:javax.inject:1)
                 - JarFiles                    : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                ArtifactAddress               : javax.inject:javax.inject:1
+                Identifier                    : javax.inject:javax.inject:1
                 ResolvedCoordinates           : javax.inject:javax.inject:1
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
-                ArtifactAddress               : junit:junit:4.12
+                Identifier                    : junit:junit:4.12
                 ResolvedCoordinates           : junit:junit:4.12
             LintModelLibrary              : JavaLibrary(net.sf.kxml:kxml2:2.3.0)
                 - JarFiles                    : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                ArtifactAddress               : net.sf.kxml:kxml2:2.3.0
+                Identifier                    : net.sf.kxml:kxml2:2.3.0
                 ResolvedCoordinates           : net.sf.kxml:kxml2:2.3.0
             LintModelLibrary              : JavaLibrary(org.checkerframework:checker-compat-qual:2.5.5)
                 - JarFiles                    : <M2>/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar
-                ArtifactAddress               : org.checkerframework:checker-compat-qual:2.5.5
+                Identifier                    : org.checkerframework:checker-compat-qual:2.5.5
                 ResolvedCoordinates           : org.checkerframework:checker-compat-qual:2.5.5
             LintModelLibrary              : JavaLibrary(org.codehaus.mojo:animal-sniffer-annotations:1.17)
                 - JarFiles                    : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar
-                ArtifactAddress               : org.codehaus.mojo:animal-sniffer-annotations:1.17
+                Identifier                    : org.codehaus.mojo:animal-sniffer-annotations:1.17
                 ResolvedCoordinates           : org.codehaus.mojo:animal-sniffer-annotations:1.17
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-core:1.3
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-integration:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-integration:1.3
+                Identifier                    : org.hamcrest:hamcrest-integration:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-integration:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-library:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-library:1.3
+                Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main

@@ -32,19 +32,19 @@ MODULE                        : project.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
             Dependencies
                 CompileDependencies
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::library            : null => :library@main
                 PackageDependencies
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::library            : null => :library@main
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::app                : null => :app@main
+                    artifacts::library            : null => :library@main
                 PackageDependencies
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::app                : null => :app@main
+                    artifacts::library            : null => :library@main
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId                 :
@@ -56,11 +56,11 @@ MODULE                        : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts::app                : null => artifacts::app:unspecified
-                artifacts::library            : null => artifacts::library:unspecified
+                artifacts::app                : null => :app@main
+                artifacts::library            : null => :library@main
             PackageDependencies
-                artifacts::app                : null => artifacts::app:unspecified
-                artifacts::library            : null => artifacts::library:unspecified
+                artifacts::app                : null => :app@main
+                artifacts::library            : null => :library@main
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
@@ -100,10 +100,10 @@ MODULE                        : project.app
         Debuggable                    : true
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:app)
-                ArtifactAddress               : artifacts::app:unspecified
+                Identifier                    : :app@main
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:library)
-                ArtifactAddress               : artifacts::library:unspecified
+                Identifier                    : :library@main
                 LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library
 MODULE                        : project.app.androidTest
@@ -147,9 +147,9 @@ MODULE                        : project.library
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::library            : null => :library@main
                 PackageDependencies
-                    artifacts::library            : null => artifacts::library:unspecified
+                    artifacts::library            : null => :library@main
             - ClassOutputs                : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId                 :
@@ -161,9 +161,9 @@ MODULE                        : project.library
         - GeneratedSourceFolders      : <ROOT>/library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts::library            : null => artifacts::library:unspecified
+                artifacts::library            : null => :library@main
             PackageDependencies
-                artifacts::library            : null => artifacts::library:unspecified
+                artifacts::library            : null => :library@main
         - ClassOutputs                : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
@@ -203,7 +203,7 @@ MODULE                        : project.library
         Debuggable                    : true
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:library)
-                ArtifactAddress               : artifacts::library:unspecified
+                Identifier                    : :library@main
                 LintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library
 MODULE                        : project.library-remote
@@ -244,9 +244,9 @@ MODULE                        : project.library-remote
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts::library-remote     : null => artifacts::library-remote:unspecified
+                    artifacts::library-remote     : null => :library-remote@main
                 PackageDependencies
-                    artifacts::library-remote     : null => artifacts::library-remote:unspecified
+                    artifacts::library-remote     : null => :library-remote@main
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
             - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId                 :
@@ -258,9 +258,9 @@ MODULE                        : project.library-remote
         - GeneratedSourceFolders      : <ROOT>/library-remote/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts::library-remote     : null => artifacts::library-remote:unspecified
+                artifacts::library-remote     : null => :library-remote@main
             PackageDependencies
-                artifacts::library-remote     : null => artifacts::library-remote:unspecified
+                artifacts::library-remote     : null => :library-remote@main
         - ClassOutputs                : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
         MinSdkVersion                 : API 16
@@ -300,7 +300,7 @@ MODULE                        : project.library-remote
         Debuggable                    : true
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:library-remote)
-                ArtifactAddress               : artifacts::library-remote:unspecified
+                Identifier                    : :library-remote@main
                 LintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath                   : :library-remote
 MODULE                        : project.library-remote.androidTest

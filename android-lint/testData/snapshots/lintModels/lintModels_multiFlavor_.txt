@@ -31,121 +31,121 @@ MODULE                        : MultiFlavor.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
             Dependencies
                 CompileDependencies
-                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0
-                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.core:core            : null => androidx.core:core:1.1.0
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                 PackageDependencies
-                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0
-                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.core:core            : null => androidx.core:core:1.1.0
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
-                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0
-                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.core:core            : null => androidx.core:core:1.1.0
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app                : null => artifacts::app:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 PackageDependencies
-                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0
+                    androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0
-                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                    androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.1.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.core:core            : null => androidx.core:core:1.1.0
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
+                    androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app                : null => artifacts::app:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
@@ -159,39 +159,39 @@ MODULE                        : MultiFlavor.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                androidx.activity:activity    : null => androidx.activity:activity:1.0.0
+                androidx.activity:activity    : null => androidx.activity:activity:1.0.0@aar
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
-                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0
-                androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0
+                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.1.0@aar
+                androidx.appcompat:appcompat-resources  : null => androidx.appcompat:appcompat-resources:1.1.0@aar
                 androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.1.0
-                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
+                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
                 androidx.collection:collection          : null => androidx.collection:collection:1.1.0
-                androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                 androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                androidx.core:core            : null => androidx.core:core:1.1.0
-                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0
-                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
+                androidx.core:core            : null => androidx.core:core:1.1.0@aar
+                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.1.0@aar
+                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
                 androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0
-                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0
-                androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0
-                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0
-                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0
-                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1
-                androidx.test:core            : null => androidx.test:core:1.2.0
-                androidx.test:monitor         : null => androidx.test:monitor:1.2.0
-                androidx.test:runner          : null => androidx.test:runner:1.2.0
-                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0
-                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0
-                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0
-                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts::app                : null => artifacts::app:unspecified
+                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+                androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                androidx.savedstate:savedstate          : null => androidx.savedstate:savedstate:1.0.0@aar
+                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
+                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1@aar
+                androidx.test:core            : null => androidx.test:core:1.2.0@aar
+                androidx.test:monitor         : null => androidx.test:monitor:1.2.0@aar
+                androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
+                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.1.0@aar
+                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                artifacts::app                : null => :app@main
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
@@ -203,13 +203,13 @@ MODULE                        : MultiFlavor.app
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.1.0
                 androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.1.0
-                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0
-                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0
-                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1
-                androidx.test:core            : null => androidx.test:core:1.2.0
-                androidx.test:monitor         : null => androidx.test:monitor:1.2.0
-                androidx.test:runner          : null => androidx.test:runner:1.2.0
-                artifacts::app                : null => artifacts::app:unspecified
+                androidx.test.espresso:espresso-core    : null => androidx.test.espresso:espresso-core:3.2.0@aar
+                androidx.test.espresso:espresso-idling-resource   : null => androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+                androidx.test.ext:junit       : null => androidx.test.ext:junit:1.1.1@aar
+                androidx.test:core            : null => androidx.test:core:1.2.0@aar
+                androidx.test:monitor         : null => androidx.test:monitor:1.2.0@aar
+                androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
+                artifacts::app                : null => :app@main
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
@@ -308,9 +308,12 @@ MODULE                        : MultiFlavor.app
             - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
+            LintModelLibrary              : LocalLibrary(:app)
+                Identifier                    : :app@main
+                ProjectPath                   : :app
             LintModelLibrary              : AndroidLibrary(androidx.activity:activity:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.activity:activity:1.0.0
+                Identifier                    : androidx.activity:activity:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
@@ -322,11 +325,11 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.activity:activity:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.1.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar
-                ArtifactAddress               : androidx.annotation:annotation:1.1.0
+                Identifier                    : androidx.annotation:annotation:1.1.0
                 ResolvedCoordinates           : androidx.annotation:annotation:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat-resources:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.appcompat:appcompat-resources:1.1.0
+                Identifier                    : androidx.appcompat:appcompat-resources:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
@@ -338,7 +341,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.appcompat:appcompat-resources:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.appcompat:appcompat:1.1.0
+                Identifier                    : androidx.appcompat:appcompat:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.1.0/res
@@ -350,11 +353,11 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.appcompat:appcompat:1.1.0
             LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:2.1.0)
                 - JarFiles                    : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                ArtifactAddress               : androidx.arch.core:core-common:2.1.0
+                Identifier                    : androidx.arch.core:core-common:2.1.0
                 ResolvedCoordinates           : androidx.arch.core:core-common:2.1.0
             LintModelLibrary              : AndroidLibrary(androidx.arch.core:core-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0
+                Identifier                    : androidx.arch.core:core-runtime:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
@@ -366,15 +369,15 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.arch.core:core-runtime:2.0.0
             LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.1.0)
                 - JarFiles                    : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                ArtifactAddress               : androidx.collection:collection:1.1.0
+                Identifier                    : androidx.collection:collection:1.1.0
                 ResolvedCoordinates           : androidx.collection:collection:1.1.0
             LintModelLibrary              : JavaLibrary(androidx.constraintlayout:constraintlayout-solver:1.1.3)
                 - JarFiles                    : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3
+                Identifier                    : androidx.constraintlayout:constraintlayout-solver:1.1.3
                 ResolvedCoordinates           : androidx.constraintlayout:constraintlayout-solver:1.1.3
             LintModelLibrary              : AndroidLibrary(androidx.constraintlayout:constraintlayout:1.1.3)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
-                ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3
+                Identifier                    : androidx.constraintlayout:constraintlayout:1.1.3@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
@@ -386,7 +389,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.constraintlayout:constraintlayout:1.1.3
             LintModelLibrary              : AndroidLibrary(androidx.core:core:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.core:core:1.1.0
+                Identifier                    : androidx.core:core:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/res
@@ -398,7 +401,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.core:core:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.cursoradapter:cursoradapter:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0
+                Identifier                    : androidx.cursoradapter:cursoradapter:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
@@ -410,7 +413,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.cursoradapter:cursoradapter:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.customview:customview:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.customview:customview:1.0.0
+                Identifier                    : androidx.customview:customview:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
@@ -422,7 +425,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.customview:customview:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.drawerlayout:drawerlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0
+                Identifier                    : androidx.drawerlayout:drawerlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
@@ -434,7 +437,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.drawerlayout:drawerlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.fragment:fragment:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.fragment:fragment:1.1.0
+                Identifier                    : androidx.fragment:fragment:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res [-]
@@ -446,7 +449,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.fragment:fragment:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.interpolator:interpolator:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.interpolator:interpolator:1.0.0
+                Identifier                    : androidx.interpolator:interpolator:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
@@ -458,11 +461,11 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.interpolator:interpolator:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:2.1.0)
                 - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.1.0
+                Identifier                    : androidx.lifecycle:lifecycle-common:2.1.0
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:2.1.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata-core:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
@@ -474,7 +477,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata-core:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
@@ -486,7 +489,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:2.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.1.0
+                Identifier                    : androidx.lifecycle:lifecycle-runtime:2.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
@@ -498,7 +501,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:2.1.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:2.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.1.0
+                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
@@ -510,7 +513,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:2.1.0
             LintModelLibrary              : AndroidLibrary(androidx.loader:loader:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.loader:loader:1.0.0
+                Identifier                    : androidx.loader:loader:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
@@ -522,7 +525,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.loader:loader:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.savedstate:savedstate:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.savedstate:savedstate:1.0.0
+                Identifier                    : androidx.savedstate:savedstate:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
@@ -534,7 +537,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.savedstate:savedstate:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.test.espresso:espresso-core:3.2.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar
-                ArtifactAddress               : androidx.test.espresso:espresso-core:3.2.0
+                Identifier                    : androidx.test.espresso:espresso-core:3.2.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
@@ -546,7 +549,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test.espresso:espresso-core:3.2.0
             LintModelLibrary              : AndroidLibrary(androidx.test.espresso:espresso-idling-resource:3.2.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar
-                ArtifactAddress               : androidx.test.espresso:espresso-idling-resource:3.2.0
+                Identifier                    : androidx.test.espresso:espresso-idling-resource:3.2.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
@@ -558,7 +561,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test.espresso:espresso-idling-resource:3.2.0
             LintModelLibrary              : AndroidLibrary(androidx.test.ext:junit:1.1.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar
-                ArtifactAddress               : androidx.test.ext:junit:1.1.1
+                Identifier                    : androidx.test.ext:junit:1.1.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/res [-]
@@ -570,7 +573,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test.ext:junit:1.1.1
             LintModelLibrary              : AndroidLibrary(androidx.test:core:1.2.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar
-                ArtifactAddress               : androidx.test:core:1.2.0
+                Identifier                    : androidx.test:core:1.2.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/res [-]
@@ -582,7 +585,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test:core:1.2.0
             LintModelLibrary              : AndroidLibrary(androidx.test:monitor:1.2.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar
-                ArtifactAddress               : androidx.test:monitor:1.2.0
+                Identifier                    : androidx.test:monitor:1.2.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/res [-]
@@ -594,7 +597,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test:monitor:1.2.0
             LintModelLibrary              : AndroidLibrary(androidx.test:runner:1.2.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar
-                ArtifactAddress               : androidx.test:runner:1.2.0
+                Identifier                    : androidx.test:runner:1.2.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
@@ -606,7 +609,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.test:runner:1.2.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable-animated:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.1.0
+                Identifier                    : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
@@ -618,7 +621,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable-animated:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.1.0
+                Identifier                    : androidx.vectordrawable:vectordrawable:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
@@ -630,7 +633,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.versionedparcelable:versionedparcelable:1.1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar
-                ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.1.0
+                Identifier                    : androidx.versionedparcelable:versionedparcelable:1.1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res [-]
@@ -642,7 +645,7 @@ MODULE                        : MultiFlavor.app
                 ResolvedCoordinates           : androidx.versionedparcelable:versionedparcelable:1.1.0
             LintModelLibrary              : AndroidLibrary(androidx.viewpager:viewpager:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.viewpager:viewpager:1.0.0
+                Identifier                    : androidx.viewpager:viewpager:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
@@ -652,40 +655,37 @@ MODULE                        : MultiFlavor.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(:app)
-                ArtifactAddress               : artifacts::app:unspecified
-                ProjectPath                   : :app
             LintModelLibrary              : JavaLibrary(com.google.code.findbugs:jsr305:2.0.1)
                 - JarFiles                    : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-                ArtifactAddress               : com.google.code.findbugs:jsr305:2.0.1
+                Identifier                    : com.google.code.findbugs:jsr305:2.0.1
                 ResolvedCoordinates           : com.google.code.findbugs:jsr305:2.0.1
             LintModelLibrary              : JavaLibrary(com.squareup:javawriter:2.1.1)
                 - JarFiles                    : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                ArtifactAddress               : com.squareup:javawriter:2.1.1
+                Identifier                    : com.squareup:javawriter:2.1.1
                 ResolvedCoordinates           : com.squareup:javawriter:2.1.1
             LintModelLibrary              : JavaLibrary(javax.inject:javax.inject:1)
                 - JarFiles                    : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                ArtifactAddress               : javax.inject:javax.inject:1
+                Identifier                    : javax.inject:javax.inject:1
                 ResolvedCoordinates           : javax.inject:javax.inject:1
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
-                ArtifactAddress               : junit:junit:4.12
+                Identifier                    : junit:junit:4.12
                 ResolvedCoordinates           : junit:junit:4.12
             LintModelLibrary              : JavaLibrary(net.sf.kxml:kxml2:2.3.0)
                 - JarFiles                    : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                ArtifactAddress               : net.sf.kxml:kxml2:2.3.0
+                Identifier                    : net.sf.kxml:kxml2:2.3.0
                 ResolvedCoordinates           : net.sf.kxml:kxml2:2.3.0
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-core:1.3
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-integration:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-integration:1.3
+                Identifier                    : org.hamcrest:hamcrest-integration:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-integration:1.3
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-library:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-library:1.3
+                Identifier                    : org.hamcrest:hamcrest-library:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-library:1.3
 MODULE                        : MultiFlavor.app.androidTest
 MODULE                        : MultiFlavor.app.main

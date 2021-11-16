@@ -192,7 +192,7 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
 
       head("LibraryResolver")
       nest {
-        libraryResolver.getAllLibraries().sortedBy { it.artifactAddress }.forEach { dump(it) }
+        libraryResolver.getAllLibraries().sortedBy { it.identifier }.forEach { dump(it) }
       }
     }
   }
@@ -224,7 +224,7 @@ private fun ProjectDumper.dump(lintModelArtifact: LintModelArtifact) {
 private fun ProjectDumper.dump(lintModelDependencies: LintModelDependencies) {
   fun dump(dependency: LintModelDependency) {
     prop(dependency.artifactName.replaceKnownPaths()) {
-      "${dependency.requestedCoordinates?.replaceKnownPaths()} => ${dependency.artifactAddress.replaceKnownPaths()}"
+      "${dependency.requestedCoordinates?.replaceKnownPaths()} => ${dependency.identifier.replaceKnownPaths()}"
     }
     nest {
       dependency.dependencies.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
@@ -257,7 +257,7 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
     head("LintModelLibrary") { toString().replaceKnownPaths() }
     nest {
       (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
-      prop("ArtifactAddress") { artifactAddress.replaceKnownPaths() }
+      prop("Identifier") { identifier.replaceKnownPaths() }
       if (this@with is LintModelAndroidLibrary) {
         prop("Manifest") { manifest.path.toPrintablePath() }
         prop("Folder") { folder?.path?.toPrintablePath() }

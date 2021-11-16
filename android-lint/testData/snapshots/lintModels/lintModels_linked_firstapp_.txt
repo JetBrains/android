@@ -32,38 +32,38 @@ MODULE                        : My_First_App.app
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -71,38 +71,38 @@ MODULE                        : My_First_App.app
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -115,39 +115,39 @@ MODULE                        : My_First_App.app
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -157,39 +157,39 @@ MODULE                        : My_First_App.app
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                    androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                     androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app                : null => artifacts::app:unspecified
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app                : null => :app@main
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -210,47 +210,47 @@ MODULE                        : My_First_App.app
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                 androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                 androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3
+                androidx.constraintlayout:constraintlayout        : null => androidx.constraintlayout:constraintlayout:1.1.3@aar
                 androidx.constraintlayout:constraintlayout-solver : null => androidx.constraintlayout:constraintlayout-solver:1.1.3
-                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                androidx.core:core            : null => androidx.core:core:1.0.1
-                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                 androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                androidx.print:print          : null => androidx.print:print:1.0.0
-                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts::app                : null => artifacts::app:unspecified
-                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                artifacts::app                : null => :app@main
+                artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
-                artifacts::app                : null => artifacts::app:unspecified
-                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                artifacts::app                : null => :app@main
+                artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -290,13 +290,20 @@ MODULE                        : My_First_App.app
             - AssetsDirectories           : <ROOT>/firstapp/app/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
+            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
+                Identifier                    : :app:mysharedlibrary@main
+                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                ProjectPath                   : :app:mysharedlibrary
+            LintModelLibrary              : LocalLibrary(:app)
+                Identifier                    : :app@main
+                ProjectPath                   : :app
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                ArtifactAddress               : androidx.annotation:annotation:1.0.0
+                Identifier                    : androidx.annotation:annotation:1.0.0
                 ResolvedCoordinates           : androidx.annotation:annotation:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar
-                ArtifactAddress               : androidx.appcompat:appcompat:1.0.2
+                Identifier                    : androidx.appcompat:appcompat:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/res
@@ -308,11 +315,11 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.appcompat:appcompat:1.0.2
             LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:2.0.0)
                 - JarFiles                    : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                ArtifactAddress               : androidx.arch.core:core-common:2.0.0
+                Identifier                    : androidx.arch.core:core-common:2.0.0
                 ResolvedCoordinates           : androidx.arch.core:core-common:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.arch.core:core-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0
+                Identifier                    : androidx.arch.core:core-runtime:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
@@ -324,7 +331,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.arch.core:core-runtime:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.asynclayoutinflater:asynclayoutinflater:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                Identifier                    : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/res [-]
@@ -336,15 +343,15 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.0.0)
                 - JarFiles                    : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                ArtifactAddress               : androidx.collection:collection:1.0.0
+                Identifier                    : androidx.collection:collection:1.0.0
                 ResolvedCoordinates           : androidx.collection:collection:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.constraintlayout:constraintlayout-solver:1.1.3)
                 - JarFiles                    : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3
+                Identifier                    : androidx.constraintlayout:constraintlayout-solver:1.1.3
                 ResolvedCoordinates           : androidx.constraintlayout:constraintlayout-solver:1.1.3
             LintModelLibrary              : AndroidLibrary(androidx.constraintlayout:constraintlayout:1.1.3)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
-                ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3
+                Identifier                    : androidx.constraintlayout:constraintlayout:1.1.3@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/res
@@ -356,7 +363,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.constraintlayout:constraintlayout:1.1.3
             LintModelLibrary              : AndroidLibrary(androidx.coordinatorlayout:coordinatorlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0
+                Identifier                    : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/res
@@ -368,7 +375,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.coordinatorlayout:coordinatorlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.core:core:1.0.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar
-                ArtifactAddress               : androidx.core:core:1.0.1
+                Identifier                    : androidx.core:core:1.0.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/res
@@ -380,7 +387,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.core:core:1.0.1
             LintModelLibrary              : AndroidLibrary(androidx.cursoradapter:cursoradapter:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0
+                Identifier                    : androidx.cursoradapter:cursoradapter:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
@@ -392,7 +399,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.cursoradapter:cursoradapter:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.customview:customview:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.customview:customview:1.0.0
+                Identifier                    : androidx.customview:customview:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
@@ -404,7 +411,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.customview:customview:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.documentfile:documentfile:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.documentfile:documentfile:1.0.0
+                Identifier                    : androidx.documentfile:documentfile:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/res [-]
@@ -416,7 +423,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.documentfile:documentfile:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.drawerlayout:drawerlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0
+                Identifier                    : androidx.drawerlayout:drawerlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
@@ -428,7 +435,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.drawerlayout:drawerlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.fragment:fragment:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.fragment:fragment:1.0.0
+                Identifier                    : androidx.fragment:fragment:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/res [-]
@@ -440,7 +447,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.fragment:fragment:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.interpolator:interpolator:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.interpolator:interpolator:1.0.0
+                Identifier                    : androidx.interpolator:interpolator:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
@@ -452,7 +459,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.interpolator:interpolator:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.legacy:legacy-support-core-ui:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0
+                Identifier                    : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/res [-]
@@ -464,7 +471,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.legacy:legacy-support-core-ui:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.legacy:legacy-support-core-utils:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0
+                Identifier                    : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/res [-]
@@ -476,11 +483,11 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.legacy:legacy-support-core-utils:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:2.0.0)
                 - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-common:2.0.0
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata-core:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
@@ -492,7 +499,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata-core:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
@@ -504,7 +511,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/res [-]
@@ -516,7 +523,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/res [-]
@@ -528,7 +535,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.loader:loader:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.loader:loader:1.0.0
+                Identifier                    : androidx.loader:loader:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
@@ -540,7 +547,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.loader:loader:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.localbroadcastmanager:localbroadcastmanager:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
+                Identifier                    : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/res [-]
@@ -552,7 +559,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.print:print:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.print:print:1.0.0
+                Identifier                    : androidx.print:print:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/res [-]
@@ -564,7 +571,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.print:print:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.slidingpanelayout:slidingpanelayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0
+                Identifier                    : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/res [-]
@@ -576,7 +583,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.slidingpanelayout:slidingpanelayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.swiperefreshlayout:swiperefreshlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
+                Identifier                    : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/res [-]
@@ -588,7 +595,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable-animated:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0
+                Identifier                    : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/res [-]
@@ -600,7 +607,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable-animated:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable:1.0.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1
+                Identifier                    : androidx.vectordrawable:vectordrawable:1.0.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/res [-]
@@ -612,7 +619,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable:1.0.1
             LintModelLibrary              : AndroidLibrary(androidx.versionedparcelable:versionedparcelable:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0
+                Identifier                    : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/res [-]
@@ -624,7 +631,7 @@ MODULE                        : My_First_App.app
                 ResolvedCoordinates           : androidx.versionedparcelable:versionedparcelable:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.viewpager:viewpager:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.viewpager:viewpager:1.0.0
+                Identifier                    : androidx.viewpager:viewpager:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
@@ -634,40 +641,33 @@ MODULE                        : My_First_App.app
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
-                ArtifactAddress               : artifacts::app:mysharedlibrary:unspecified
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                ProjectPath                   : :app:mysharedlibrary
-            LintModelLibrary              : LocalLibrary(:app)
-                ArtifactAddress               : artifacts::app:unspecified
-                ProjectPath                   : :app
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
-                ArtifactAddress               : junit:junit:4.12
+                Identifier                    : junit:junit:4.12
                 ResolvedCoordinates           : junit:junit:4.12
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-core:1.3
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                ArtifactAddress               : org.jetbrains:annotations:13.0
+                Identifier                    : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : My_First_App.app.androidTest
 MODULE                        : My_First_App.app.main
@@ -704,35 +704,35 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -740,35 +740,35 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -781,36 +781,36 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -820,36 +820,36 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                    androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                     androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                    androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                    androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                     androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                    androidx.core:core            : null => androidx.core:core:1.0.1
-                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                    androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                    androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                    androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                    androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                    androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                    androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                    androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                    androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                    androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                    androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                    androidx.print:print          : null => androidx.print:print:1.0.0
-                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                    artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                    androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                    androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                    androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                    androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                    androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                    androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                    androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                    androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                    androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                    androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                    androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                    androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                    artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
@@ -870,36 +870,36 @@ MODULE                        : My_First_App.app.mysharedlibrary
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                 androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                 androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                androidx.core:core            : null => androidx.core:core:1.0.1
-                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                 androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                androidx.print:print          : null => androidx.print:print:1.0.0
-                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -907,36 +907,36 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
-                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2
+                androidx.appcompat:appcompat  : null => androidx.appcompat:appcompat:1.0.2@aar
                 androidx.arch.core:core-common          : null => androidx.arch.core:core-common:2.0.0
-                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0
-                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                androidx.arch.core:core-runtime         : null => androidx.arch.core:core-runtime:2.0.0@aar
+                androidx.asynclayoutinflater:asynclayoutinflater  : null => androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                 androidx.collection:collection          : null => androidx.collection:collection:1.0.0
-                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0
-                androidx.core:core            : null => androidx.core:core:1.0.1
-                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0
-                androidx.customview:customview          : null => androidx.customview:customview:1.0.0
-                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0
-                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0
-                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0
-                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0
-                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0
-                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0
+                androidx.coordinatorlayout:coordinatorlayout      : null => androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+                androidx.core:core            : null => androidx.core:core:1.0.1@aar
+                androidx.cursoradapter:cursoradapter    : null => androidx.cursoradapter:cursoradapter:1.0.0@aar
+                androidx.customview:customview          : null => androidx.customview:customview:1.0.0@aar
+                androidx.documentfile:documentfile      : null => androidx.documentfile:documentfile:1.0.0@aar
+                androidx.drawerlayout:drawerlayout      : null => androidx.drawerlayout:drawerlayout:1.0.0@aar
+                androidx.fragment:fragment    : null => androidx.fragment:fragment:1.0.0@aar
+                androidx.interpolator:interpolator      : null => androidx.interpolator:interpolator:1.0.0@aar
+                androidx.legacy:legacy-support-core-ui  : null => androidx.legacy:legacy-support-core-ui:1.0.0@aar
+                androidx.legacy:legacy-support-core-utils         : null => androidx.legacy:legacy-support-core-utils:1.0.0@aar
                 androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
-                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0
-                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0
-                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0
-                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0
-                androidx.loader:loader        : null => androidx.loader:loader:1.0.0
-                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
-                androidx.print:print          : null => androidx.print:print:1.0.0
-                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0
-                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
-                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1
-                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0
-                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0
-                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0
-                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
+                androidx.lifecycle:lifecycle-livedata   : null => androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                androidx.lifecycle:lifecycle-livedata-core        : null => androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+                androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+                androidx.lifecycle:lifecycle-viewmodel  : null => androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+                androidx.loader:loader        : null => androidx.loader:loader:1.0.0@aar
+                androidx.localbroadcastmanager:localbroadcastmanager        : null => androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+                androidx.print:print          : null => androidx.print:print:1.0.0@aar
+                androidx.slidingpanelayout:slidingpanelayout      : null => androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+                androidx.swiperefreshlayout:swiperefreshlayout    : null => androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+                androidx.vectordrawable:vectordrawable  : null => androidx.vectordrawable:vectordrawable:1.0.1@aar
+                androidx.vectordrawable:vectordrawable-animated   : null => androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+                androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
+                artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
@@ -982,13 +982,17 @@ MODULE                        : My_First_App.app.mysharedlibrary
             - AssetsDirectories           : <ROOT>/shared/mysharedlibrary/src/testDebug/assets [-]
         Debuggable                    : true
         LibraryResolver
+            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
+                Identifier                    : :app:mysharedlibrary@main
+                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                ArtifactAddress               : androidx.annotation:annotation:1.0.0
+                Identifier                    : androidx.annotation:annotation:1.0.0
                 ResolvedCoordinates           : androidx.annotation:annotation:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.appcompat:appcompat:1.0.2)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar
-                ArtifactAddress               : androidx.appcompat:appcompat:1.0.2
+                Identifier                    : androidx.appcompat:appcompat:1.0.2@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/res
@@ -1000,11 +1004,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.appcompat:appcompat:1.0.2
             LintModelLibrary              : JavaLibrary(androidx.arch.core:core-common:2.0.0)
                 - JarFiles                    : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                ArtifactAddress               : androidx.arch.core:core-common:2.0.0
+                Identifier                    : androidx.arch.core:core-common:2.0.0
                 ResolvedCoordinates           : androidx.arch.core:core-common:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.arch.core:core-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0
+                Identifier                    : androidx.arch.core:core-runtime:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
@@ -1016,7 +1020,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.arch.core:core-runtime:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.asynclayoutinflater:asynclayoutinflater:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
+                Identifier                    : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/res [-]
@@ -1028,11 +1032,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.collection:collection:1.0.0)
                 - JarFiles                    : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                ArtifactAddress               : androidx.collection:collection:1.0.0
+                Identifier                    : androidx.collection:collection:1.0.0
                 ResolvedCoordinates           : androidx.collection:collection:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.coordinatorlayout:coordinatorlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0
+                Identifier                    : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/res
@@ -1044,7 +1048,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.coordinatorlayout:coordinatorlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.core:core:1.0.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar
-                ArtifactAddress               : androidx.core:core:1.0.1
+                Identifier                    : androidx.core:core:1.0.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/res
@@ -1056,7 +1060,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.core:core:1.0.1
             LintModelLibrary              : AndroidLibrary(androidx.cursoradapter:cursoradapter:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0
+                Identifier                    : androidx.cursoradapter:cursoradapter:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
@@ -1068,7 +1072,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.cursoradapter:cursoradapter:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.customview:customview:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.customview:customview:1.0.0
+                Identifier                    : androidx.customview:customview:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
@@ -1080,7 +1084,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.customview:customview:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.documentfile:documentfile:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.documentfile:documentfile:1.0.0
+                Identifier                    : androidx.documentfile:documentfile:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/res [-]
@@ -1092,7 +1096,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.documentfile:documentfile:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.drawerlayout:drawerlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0
+                Identifier                    : androidx.drawerlayout:drawerlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
@@ -1104,7 +1108,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.drawerlayout:drawerlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.fragment:fragment:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.fragment:fragment:1.0.0
+                Identifier                    : androidx.fragment:fragment:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/res [-]
@@ -1116,7 +1120,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.fragment:fragment:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.interpolator:interpolator:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.interpolator:interpolator:1.0.0
+                Identifier                    : androidx.interpolator:interpolator:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
@@ -1128,7 +1132,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.interpolator:interpolator:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.legacy:legacy-support-core-ui:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0
+                Identifier                    : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/res [-]
@@ -1140,7 +1144,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.legacy:legacy-support-core-ui:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.legacy:legacy-support-core-utils:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0
+                Identifier                    : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/res [-]
@@ -1152,11 +1156,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.legacy:legacy-support-core-utils:1.0.0
             LintModelLibrary              : JavaLibrary(androidx.lifecycle:lifecycle-common:2.0.0)
                 - JarFiles                    : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-common:2.0.0
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-common:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata-core:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
@@ -1168,7 +1172,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata-core:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-livedata:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
@@ -1180,7 +1184,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-livedata:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-runtime:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/res [-]
@@ -1192,7 +1196,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-runtime:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.lifecycle:lifecycle-viewmodel:2.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0
+                Identifier                    : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/res [-]
@@ -1204,7 +1208,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.lifecycle:lifecycle-viewmodel:2.0.0
             LintModelLibrary              : AndroidLibrary(androidx.loader:loader:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.loader:loader:1.0.0
+                Identifier                    : androidx.loader:loader:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
@@ -1216,7 +1220,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.loader:loader:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.localbroadcastmanager:localbroadcastmanager:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
+                Identifier                    : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/res [-]
@@ -1228,7 +1232,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.print:print:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.print:print:1.0.0
+                Identifier                    : androidx.print:print:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/res [-]
@@ -1240,7 +1244,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.print:print:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.slidingpanelayout:slidingpanelayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0
+                Identifier                    : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/res [-]
@@ -1252,7 +1256,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.slidingpanelayout:slidingpanelayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.swiperefreshlayout:swiperefreshlayout:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
+                Identifier                    : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/res [-]
@@ -1264,7 +1268,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable-animated:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0
+                Identifier                    : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/res [-]
@@ -1276,7 +1280,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable-animated:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.vectordrawable:vectordrawable:1.0.1)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar
-                ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1
+                Identifier                    : androidx.vectordrawable:vectordrawable:1.0.1@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/res [-]
@@ -1288,7 +1292,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.vectordrawable:vectordrawable:1.0.1
             LintModelLibrary              : AndroidLibrary(androidx.versionedparcelable:versionedparcelable:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0
+                Identifier                    : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/res [-]
@@ -1300,7 +1304,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ResolvedCoordinates           : androidx.versionedparcelable:versionedparcelable:1.0.0
             LintModelLibrary              : AndroidLibrary(androidx.viewpager:viewpager:1.0.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-                ArtifactAddress               : androidx.viewpager:viewpager:1.0.0
+                Identifier                    : androidx.viewpager:viewpager:1.0.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
@@ -1310,37 +1314,33 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
                 ResolvedCoordinates           : androidx.viewpager:viewpager:1.0.0
-            LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
-                ArtifactAddress               : artifacts::app:mysharedlibrary:unspecified
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : JavaLibrary(junit:junit:4.12)
                 - JarFiles                    : <M2>/junit/junit/4.12/junit-4.12.jar
-                ArtifactAddress               : junit:junit:4.12
+                Identifier                    : junit:junit:4.12
                 ResolvedCoordinates           : junit:junit:4.12
             LintModelLibrary              : JavaLibrary(org.hamcrest:hamcrest-core:1.3)
                 - JarFiles                    : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                ArtifactAddress               : org.hamcrest:hamcrest-core:1.3
+                Identifier                    : org.hamcrest:hamcrest-core:1.3
                 ResolvedCoordinates           : org.hamcrest:hamcrest-core:1.3
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains:annotations:13.0)
                 - JarFiles                    : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                ArtifactAddress               : org.jetbrains:annotations:13.0
+                Identifier                    : org.jetbrains:annotations:13.0
                 ResolvedCoordinates           : org.jetbrains:annotations:13.0
 MODULE                        : My_First_App.app.mysharedlibrary.androidTest
 MODULE                        : My_First_App.app.mysharedlibrary.main
