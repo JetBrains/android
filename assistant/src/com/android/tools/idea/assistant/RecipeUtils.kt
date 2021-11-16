@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.model.findReferences
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.wizard.template.Recipe
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -34,7 +35,6 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
 import javax.xml.parsers.SAXParserFactory
-import com.android.tools.idea.wizard.template.Recipe
 
 private val log: Logger get() = logger<RecipeUtils>()
 
@@ -127,7 +127,7 @@ object RecipeUtils {
   }
 
   private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) = try {
-    val factory = SAXParserFactory.newInstance()
+    val factory = SAXParserFactory.newDefaultInstance()
     val saxParser = factory.newSAXParser()
     saxParser.parse(f, object : DefaultHandler() {
       override fun startElement(uri: String, localName: String, tagName: String, attributes: Attributes) {

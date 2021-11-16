@@ -20,7 +20,6 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.M
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -253,7 +252,7 @@ public class StringMTag implements MTag {
     HashSet<StringMTag> props = new HashSet<>();
     try {
       InputStream inputStream = new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
-      SAXParserFactory factory = SAXParserFactory.newInstance();
+      SAXParserFactory factory = SAXParserFactory.newDefaultInstance();
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(inputStream, new DefaultHandler() {
         StringMTag currentTag = null;

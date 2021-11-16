@@ -119,7 +119,7 @@ private class ImportAndroidTestMatrixRunProfileState(
     handler.detachProcess()
 
     ApplicationManager.getApplication().executeOnPooledThread {
-      val saxParser = SAXParserFactory.newInstance().newSAXParser()
+      val saxParser = SAXParserFactory.newDefaultInstance().newSAXParser()
       saxParser.parse(
         InputSource(InputStreamReader(FileInputStream(historyXmlFile), StandardCharsets.UTF_8)),
         object: DefaultHandler() {
