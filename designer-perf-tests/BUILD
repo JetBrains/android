@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/designer-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
+        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_resources = ["testData"],
