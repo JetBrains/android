@@ -24,6 +24,7 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
@@ -62,7 +63,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
   @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (file.getFileType() != JavaClassFileType.INSTANCE) {
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) {
       return null;
     }
 

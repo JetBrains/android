@@ -22,6 +22,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.CommonBundle;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -157,7 +158,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
         continue;
       }
 
-      if (resFile.getFileType() != XmlFileType.INSTANCE) {
+      if (!FileTypeRegistry.getInstance().isFileOfType(resFile, XmlFileType.INSTANCE)) {
         return new ValidationInfo("File " + FileUtil.toSystemDependentName(resFile.getPath()) + " is not XML file");
       }
 

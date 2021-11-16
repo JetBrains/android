@@ -23,6 +23,7 @@ import com.android.tools.mlkit.TfliteModelException;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.indexing.DataIndexer;
@@ -113,7 +114,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
     return file -> StudioFlags.ML_MODEL_BINDING.get() &&
-                   file.getFileType() == TfliteModelFileType.INSTANCE &&
+                   FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE) &&
                    file.getLength() > 0 &&
                    file.getLength() <= MlConstants.MAX_SUPPORTED_MODEL_FILE_SIZE_IN_BYTES;
   }

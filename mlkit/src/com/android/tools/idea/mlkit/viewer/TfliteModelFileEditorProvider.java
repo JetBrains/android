@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,7 +33,7 @@ public class TfliteModelFileEditorProvider implements FileEditorProvider, DumbAw
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return StudioFlags.ML_MODEL_BINDING.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
+    return StudioFlags.ML_MODEL_BINDING.get() && FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE);
   }
 
   @NotNull

@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.mlkit.MlNames;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -57,7 +58,7 @@ public class MlUtils {
   public static boolean isModelFileInMlModelsFolder(@NotNull Module module, @NotNull VirtualFile file) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     return androidFacet != null &&
-           file.getFileType() == TfliteModelFileType.INSTANCE &&
+           FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE) &&
            SourceProviders.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
              .flatMap(sourceProvider -> stream(sourceProvider.getMlModelsDirectories()))
              .anyMatch(mlDir -> VfsUtilCore.isAncestor(mlDir, file, true));
@@ -75,7 +76,7 @@ public class MlUtils {
   @Nullable
   private static String relativePathToMlModelsFolder(@NotNull Module module, @NotNull VirtualFile file) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null || file.getFileType() != TfliteModelFileType.INSTANCE) {
+    if (androidFacet == null || !FileTypeRegistry.getInstance().isFileOfType(file, TfliteModelFileType.INSTANCE)) {
       return null;
     }
 
