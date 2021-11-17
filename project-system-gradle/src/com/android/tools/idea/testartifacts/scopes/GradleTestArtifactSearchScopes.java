@@ -211,6 +211,11 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
     return !getUnitTestExcludeScope().accept(file);
   }
 
+  @Override
+  public boolean isAndroidTestAncestorFolder(@NotNull VirtualFile file) {
+    return getAndroidTestSourceScope().acceptAncestor(file);
+  }
+
   @NotNull
   private FileRootSearchScope getAndroidTestExcludeClasspathScope() {
     if (myAndroidTestDependencyExcludeScope == null) {

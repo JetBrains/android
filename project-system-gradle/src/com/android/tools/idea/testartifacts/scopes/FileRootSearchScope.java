@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +72,17 @@ public class FileRootSearchScope extends GlobalSearchScope {
       return accept(virtualFile);
     }
     return false;
+  }
+
+  public boolean acceptAncestor(@NotNull VirtualFile fileDirectory) {
+    AtomicBoolean found = new AtomicBoolean(false);
+    boolean result = myDirRootPaths.forEach(file -> {
+      if (FileUtil.isAncestor(fileDirectory.getPath(), file.getPath(), false)) {
+        found.set(true);
+      }
+      return true;
+    });
+    return found.get();
   }
 
   @Override

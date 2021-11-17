@@ -61,6 +61,8 @@ interface TestArtifactSearchScopes {
    */
   fun includeInUnitTestClasspath(file: File): Boolean
 
+  fun isAndroidTestAncestorFolder(file: VirtualFile): Boolean
+
   companion object {
     /** Returns a [TestArtifactSearchScopes] instance for a given [module] or null the module doesn't support separate test artifacts. */
     @JvmStatic

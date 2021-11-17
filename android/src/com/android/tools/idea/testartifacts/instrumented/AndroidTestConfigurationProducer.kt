@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
@@ -158,7 +159,8 @@ private class AndroidTestConfigurator(private val module: Module,
    */
   fun configure(configuration: AndroidTestRunConfiguration,
                 sourceElementRef: Ref<PsiElement>): Boolean {
-    if (!testScopes.isAndroidTestSource(virtualFile)) {
+    if (!(testScopes.isAndroidTestSource(virtualFile) ||
+        virtualFile.isDirectory && testScopes.isAndroidTestAncestorFolder(virtualFile))) {
       return false
     }
 
@@ -173,6 +175,7 @@ private class AndroidTestConfigurator(private val module: Module,
       tryMethodTestConfiguration(configuration, sourceElementRef) -> true
       trySingleClassTestConfiguration(configuration, sourceElementRef) -> true
       tryAllInPackageTestConfiguration(configuration, sourceElementRef) -> true
+      tryAllInDirectoryTestConfiguration(configuration, sourceElementRef) -> true
       else -> false
     }
   }
@@ -225,11 +228,25 @@ private class AndroidTestConfigurator(private val module: Module,
   }
 
   /**
+   * Tries to configure for a directory test scope. Returns true if success otherwise false.
+   * This means that we execute the tests in a ALL_IN_MODULE test scope.
+   */
+  private fun tryAllInDirectoryTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
+    if (location.psiElement !is PsiDirectory) return false
+    sourceElementRef.set(location.psiElement)
+    configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
+    configuration.setGeneratedName()
+
+    return true
+  }
+
+  /**
    * Tries to configure for a all-in-package test. Returns true if success otherwise false.
    * If package name is unknown, it fallbacks to all-in-module test.
    */
   private fun tryAllInPackageTestConfiguration(configuration: AndroidTestRunConfiguration, sourceElementRef: Ref<PsiElement>): Boolean {
     val psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(location.psiElement) ?: return false
+    if (psiPackage.qualifiedName.isEmpty()) return false
     sourceElementRef.set(psiPackage)
 
     val packageName = psiPackage.qualifiedName
