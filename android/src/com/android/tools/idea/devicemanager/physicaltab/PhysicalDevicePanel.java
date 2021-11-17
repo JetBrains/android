@@ -48,6 +48,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +64,8 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
-  private @Nullable PhysicalDeviceTable myTable;
-  private final @NotNull Component myScrollPane;
+  private PhysicalDeviceTable myTable;
+  private final @NotNull JComponent myScrollPane;
   private DetailsPanelPanel2 myDetailsPanelPanel;
   private @Nullable DetailsPanel myDetailsPanel;
 
@@ -189,7 +190,6 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   private void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
-    assert myTable != null;
     PhysicalDeviceTableModel model = myTable.getModel();
 
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
@@ -205,6 +205,11 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     }
   }
 
+  void viewDetails() {
+    PhysicalDevice device = myTable.getSelectedDevice().orElseThrow(AssertionError::new);
+    myDetailsPanelPanel.addSplitter(new PhysicalDeviceDetailsPanel(device, myProject));
+  }
+
   @Nullable Project getProject() {
     return myProject;
   }
@@ -215,17 +220,11 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   @NotNull PhysicalDeviceTable getTable() {
-    assert myTable != null;
     return myTable;
-  }
-
-  @NotNull DetailsPanelPanel2 getDetailsPanelPanel() {
-    return myDetailsPanelPanel;
   }
 
   @Override
   public @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
-    assert myTable != null;
     return myTable.getSelectedDevice();
   }
 
@@ -248,7 +247,6 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
     myDetailsPanel = new PhysicalDeviceDetailsPanel(device, myProject);
 
     myDetailsPanel.getCloseButton().addActionListener(event -> {
-      assert myTable != null;
       myTable.clearSelection();
 
       removeDetailsPanel();

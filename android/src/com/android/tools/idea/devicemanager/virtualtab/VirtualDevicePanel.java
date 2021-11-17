@@ -32,7 +32,6 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.Optional;
@@ -41,6 +40,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   private final @NotNull JSeparator mySeparator;
   private final @NotNull JButton myHelpButton;
   private VirtualDeviceTable myTable;
-  private final @NotNull Component myScrollPane;
+  private final @NotNull JComponent myScrollPane;
   private DetailsPanelPanel2 myDetailsPanelPanel;
   private @Nullable DetailsPanel myDetailsPanel;
 
@@ -108,6 +108,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
   }
 
+  void viewDetails() {
+    myDetailsPanelPanel.addSplitter(new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new)));
+  }
+
   @Nullable Project getProject() {
     return myProject;
   }
@@ -115,10 +119,6 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   @VisibleForTesting
   @NotNull JButton getCreateButton() {
     return myCreateButton;
-  }
-
-  @NotNull DetailsPanelPanel2 getDetailsPanelPanel() {
-    return myDetailsPanelPanel;
   }
 
   @Override

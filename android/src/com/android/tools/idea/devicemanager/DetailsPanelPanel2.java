@@ -15,19 +15,41 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.ui.Splitter;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import java.awt.BorderLayout;
-import java.awt.Component;
+import java.util.Optional;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> {
   public static final boolean ENABLED = false;
 
-  public DetailsPanelPanel2(@NotNull Component component) {
+  private final @NotNull JComponent myScrollPane;
+  private @Nullable Splitter mySplitter;
+
+  public DetailsPanelPanel2(@NotNull JComponent scrollPane) {
     super(new BorderLayout());
-    add(component);
+
+    myScrollPane = scrollPane;
+    add(scrollPane);
   }
 
-  public void viewDetails() {
+  public void addSplitter(@NotNull JComponent detailsPanel) {
+    remove(myScrollPane);
+
+    mySplitter = new JBSplitter(true);
+    mySplitter.setFirstComponent(myScrollPane);
+    mySplitter.setSecondComponent(detailsPanel);
+
+    add(mySplitter);
+  }
+
+  @VisibleForTesting
+  @NotNull Optional<@NotNull Splitter> getSplitter() {
+    return Optional.ofNullable(mySplitter);
   }
 }

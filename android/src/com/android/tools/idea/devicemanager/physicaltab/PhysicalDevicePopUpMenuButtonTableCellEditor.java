@@ -67,7 +67,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
 
   private @NotNull JComponent newViewDetailsItem() {
     AbstractButton item = new JBMenuItem("View details");
-    item.addActionListener(event -> myPanel.getDetailsPanelPanel().viewDetails());
+    item.addActionListener(event -> myPanel.viewDetails());
 
     return item;
   }

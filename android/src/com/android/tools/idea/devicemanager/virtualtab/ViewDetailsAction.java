@@ -32,6 +32,6 @@ public final class ViewDetailsAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    ((VirtualDeviceTable)myAvdInfoProvider.getAvdProviderComponent()).getPanel().getDetailsPanelPanel().viewDetails();
+    ((VirtualDeviceTable)myAvdInfoProvider.getAvdProviderComponent()).getPanel().viewDetails();
   }
 }
