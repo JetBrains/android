@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.util.xmlb
+package com.android.tools.idea.logcat.converters
 
 import com.intellij.util.xmlb.Converter
 import java.awt.Dimension
