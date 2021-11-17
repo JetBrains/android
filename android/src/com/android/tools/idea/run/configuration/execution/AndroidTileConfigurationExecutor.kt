@@ -18,6 +18,8 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.Tile
+import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -47,7 +49,9 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
+    val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
     devices.forEach { device ->
+      processHandler.addDevice(device)
       indicator?.checkCanceled()
       indicator?.text = "Installing app"
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
@@ -57,15 +61,15 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
       val command = SHOW_TILE_COMMAND + tileIndex
-      console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
+      console.printShellCommand(command)
       device.executeShellCommand(command, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
     }
     indicator?.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), processHandler, console)
     }
     else {
-      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }
+      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
     }
 
     return runContentDescriptor
@@ -80,5 +84,15 @@ private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,
   override fun processNewLines(lines: Array<String>) {
     super.processNewLines(lines)
     lines.forEach { line -> indexPattern.find(line)?.groupValues?.getOrNull(1)?.let { tileIndex = it.toInt() } }
+  }
+}
+
+class TileProcessHandler(private val tileName:String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
+  override fun destroyProcessOnDevice(device: IDevice) {
+    val receiver = AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+
+    val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
+    console.printShellCommand(removeTileCommand)
+    device.executeShellCommand(removeTileCommand, receiver, 5, TimeUnit.SECONDS)
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
+import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
@@ -29,6 +30,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
@@ -162,5 +164,32 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
                                       " --ecn component com.example.watchface/com.example.watchface.MyWatchFace")
     // Show watch face.
     assertThat(commands[5]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+  }
+
+  fun testComplicationProcessHandler() {
+    val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
+                                                    Mockito.mock(ConsoleView::class.java))
+    val device = getMockDevice()
+    processHandler.addDevice(device)
+
+    processHandler.startNotify()
+
+    processHandler.destroyProcess()
+
+    // Verify commands sent to device.
+    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    Mockito.verify(device, times(2)).executeShellCommand(
+      commandsCaptor.capture(),
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
+    )
+    val commands = commandsCaptor.allValues
+
+    // Unset complication
+    assertThat(commands[0]).isEqualTo(
+      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-complication --ecn component com.example.app/com.example.app.Component")
+    // Unset debug watchFace
+    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface")
   }
 }

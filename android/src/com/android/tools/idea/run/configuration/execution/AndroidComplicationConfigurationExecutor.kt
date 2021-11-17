@@ -19,7 +19,10 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
+import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -27,6 +30,7 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.showRunContent
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -48,13 +52,15 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val watchFaceInfo = "${(configuration as AndroidComplicationConfiguration).watchFaceInfo.appId} ${configuration.watchFaceInfo.watchFaceFQName}"
-    devices.forEach {
+    val processHandler = ComplicationProcessHandler(AppComponent.getFQEscapedName(appId, configuration.componentName!!), console)
+    devices.forEach { device ->
+      processHandler.addDevice(device)
       indicator?.checkCanceled()
-      val app = applicationInstaller.installAppOnDevice(it, appId, getApkPaths(it), configuration.installFlags) { info ->
+      val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) { info ->
         console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
       }
       indicator?.checkCanceled()
-      val appWatchFace = installWatchApp(it)
+      val appWatchFace = installWatchApp(device, console)
 
       val receiver = AndroidLaunchReceiver({ indicator?.isCanceled == true }, console)
       configuration.chosenSlots.forEach { slot ->
@@ -62,22 +68,41 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
                               receiver)
       }
       appWatchFace.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
-      console.print("$ adb shell ${AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND}", ConsoleViewContentType.NORMAL_OUTPUT)
-      it.executeShellCommand(AndroidWatchFaceConfigurationExecutor.SHOW_WATCH_FACE_COMMAND, receiver, 5, TimeUnit.SECONDS)
+      console.printShellCommand(SHOW_WATCH_FACE)
+      device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
     }
     indicator?.checkCanceled()
     val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), console)
+      getDebugSessionStarter().attachDebuggerToClient(devices.single(), processHandler, console)
     }
     else {
-      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, EmptyProcessHandler()), environment) }
+      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
     }
 
     return runContentDescriptor
   }
 
-  private fun installWatchApp(device: IDevice): App {
+  private fun installWatchApp(device: IDevice, console: ConsoleView): App {
     val watchFaceInfo = (configuration as AndroidComplicationConfiguration).watchFaceInfo
-    return getApplicationInstaller().installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "")
+    return getApplicationInstaller().installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "") { info ->
+      console.print(info, ConsoleViewContentType.NORMAL_OUTPUT)
+    }
+  }
+}
+
+/**
+ * [complicationComponentName] format: appId/complicationFQName. e.g androidx.wear.samples.app/androidx.wear.samples.MyComplication
+ */
+class ComplicationProcessHandler(private val complicationComponentName: String,
+                                 private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
+  override fun destroyProcessOnDevice(device: IDevice) {
+    val receiver = AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+
+    val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
+    console.printShellCommand(removeComplicationCommand)
+    device.executeShellCommand(removeComplicationCommand, receiver, 5, TimeUnit.SECONDS)
+
+    console.printShellCommand(UNSET_WATCH_FACE)
+    device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
   }
 }

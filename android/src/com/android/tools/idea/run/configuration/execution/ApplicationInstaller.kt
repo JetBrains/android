@@ -40,7 +40,7 @@ interface ApplicationInstaller {
                          appId: String,
                          apksPaths: List<String>,
                          installFlags: String,
-                         infoReceiver: (String) -> Unit = {}): App
+                         infoReceiver: (String) -> Unit): App
 }
 
 class ApplicationInstallerImpl(private val project: Project) : ApplicationInstaller {

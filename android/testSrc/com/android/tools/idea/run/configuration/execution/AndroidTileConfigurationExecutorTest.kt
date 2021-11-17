@@ -19,6 +19,7 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
 import com.android.testutils.MockitoKt
+import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
@@ -28,6 +29,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
@@ -136,5 +138,30 @@ class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBas
       "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
     // Showing Tile.
     assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 101")
+  }
+
+  fun testTileProcessHandler() {
+    val processHandler = TileProcessHandler(AppComponent.getFQEscapedName(appId, componentName),
+                                            Mockito.mock(ConsoleView::class.java))
+    val device = getMockDevice()
+    processHandler.addDevice(device)
+
+    processHandler.startNotify()
+
+    processHandler.destroyProcess()
+
+    // Verify commands sent to device.
+    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
+      commandsCaptor.capture(),
+      MockitoKt.any(IShellOutputReceiver::class.java),
+      MockitoKt.any(),
+      MockitoKt.any()
+    )
+    val commands = commandsCaptor.allValues
+
+    // Unset tile
+    assertThat(commands[0]).isEqualTo(
+      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation remove-tile --ecn component com.example.app/com.example.app.Component")
   }
 }

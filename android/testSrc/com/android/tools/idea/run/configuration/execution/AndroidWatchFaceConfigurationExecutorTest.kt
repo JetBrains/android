@@ -26,6 +26,7 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
@@ -101,8 +102,32 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecut
     // Set debug app.
     assertThat(commands[0]).isEqualTo("am set-debug-app -w 'com.example.app'")
     // Set WatchFace.
-    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
+    assertThat(commands[1]).isEqualTo(
+      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --ecn component com.example.app/com.example.app.Component")
     // Showing WatchFace.
     assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface")
+  }
+
+  fun testWatchFaceProcessHandler() {
+    val processHandler = WatchFaceProcessHandler(Mockito.mock(ConsoleView::class.java))
+    val device = getMockDevice()
+    processHandler.addDevice(device)
+
+    processHandler.startNotify()
+
+    processHandler.destroyProcess()
+
+    // Verify commands sent to device.
+    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
+      commandsCaptor.capture(),
+      MockitoKt.any(IShellOutputReceiver::class.java),
+      MockitoKt.any(),
+      MockitoKt.any()
+    )
+    val commands = commandsCaptor.allValues
+
+    // Unset watch face
+    assertThat(commands[0]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation unset-watchface")
   }
 }

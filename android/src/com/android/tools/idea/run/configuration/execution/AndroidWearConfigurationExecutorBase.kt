@@ -114,13 +114,6 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
     return apkProvider.getApks(device).single().files.map { it.apkFile.path }
   }
 
-  class EmptyProcessHandler : ProcessHandler() {
-    override fun destroyProcessImpl() = notifyProcessTerminated(0)
-    override fun detachProcessImpl() = notifyProcessDetached()
-    override fun detachIsDefault() = true
-    override fun getProcessInput() = null
-  }
-
   open class AndroidLaunchReceiver(private val isCancelledCheck: () -> Boolean,
                                    private val consoleView: ConsoleView) : MultiLineReceiver() {
     override fun isCancelled() = isCancelledCheck()
