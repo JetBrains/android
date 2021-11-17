@@ -226,22 +226,20 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
 
     val projectScope = GlobalSearchScope.projectScope(project)
-    if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
-          AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
-        }.filter {
-          // Filter out any facets that have a manifest override for package name, as that takes priority.
-          AndroidModuleModel.get(it)?.androidProject?.namespace == null
-        }
-        return facetsFromManifestIndex + facetsFromModuleSystem
+    try {
+      val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
+        AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
+      }.filter {
+        // Filter out any facets that have a manifest override for package name, as that takes priority.
+        AndroidModuleModel.get(it)?.androidProject?.namespace == null
       }
-      catch (e: IndexNotReadyException) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        logManifestIndexQueryError(e)
-      }
+      return facetsFromManifestIndex + facetsFromModuleSystem
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      logManifestIndexQueryError(e)
     }
     // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
     // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).

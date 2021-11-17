@@ -93,18 +93,16 @@ private val CUSTOM_PERMISSIONS = Key.create<CachedValue<Collection<String>?>>("m
  * corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
 fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
-  if (AndroidManifestIndex.indexEnabled()) {
-    try {
-      return DumbService.getInstance(facet.module.project)
-        .runReadActionInSmartMode(Computable { facet.queryCustomPermissionsFromManifestIndex() })
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      //  It falls back to the original method when index isn't ready.
-      logManifestIndexQueryError(e)
-    }
+  try {
+    return DumbService.getInstance(facet.module.project)
+      .runReadActionInSmartMode(Computable { facet.queryCustomPermissionsFromManifestIndex() })
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //  We need to refactor the callers of this to require a *smart*
+    //  read action, at which point we can remove this try-catch.
+    //  It falls back to the original method when index isn't ready.
+    logManifestIndexQueryError(e)
   }
 
   val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissions }
@@ -119,18 +117,16 @@ private val CUSTOM_PERMISSION_GROUPS = Key.create<CachedValue<Collection<String>
  * module corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
 fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
-  if (AndroidManifestIndex.indexEnabled()) {
-    try {
-      return DumbService.getInstance(facet.module.project)
-        .runReadActionInSmartMode(Computable { facet.queryCustomPermissionGroupsFromManifestIndex() })
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      //  It falls back to the original method when index isn't ready.
-      logManifestIndexQueryError(e)
-    }
+  try {
+    return DumbService.getInstance(facet.module.project)
+      .runReadActionInSmartMode(Computable { facet.queryCustomPermissionGroupsFromManifestIndex() })
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //  We need to refactor the callers of this to require a *smart*
+    //  read action, at which point we can remove this try-catch.
+    //  It falls back to the original method when index isn't ready.
+    logManifestIndexQueryError(e)
   }
 
   val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissionGroups }

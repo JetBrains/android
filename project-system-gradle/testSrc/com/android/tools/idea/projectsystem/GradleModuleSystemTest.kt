@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
@@ -58,7 +57,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   override fun tearDown() {
     try {
-      StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.clearOverride()
       _gradleDependencyManager = null
       _gradleModuleSystem = null
       androidProject = null
@@ -83,12 +81,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testGetPackageName_noOverrides() {
-    val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
-    assertThat(packageName).isEqualTo("p1.p2")
-  }
-
-  fun testGetPackageName_noOverrides_noIndex() {
-    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(false)
     val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
     assertThat(packageName).isEqualTo("p1.p2")
   }

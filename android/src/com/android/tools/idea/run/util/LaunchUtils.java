@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.run.util;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
@@ -56,7 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
 public class LaunchUtils {
@@ -116,15 +113,8 @@ public class LaunchUtils {
 
   /**
    * Returns whether the watch hardware feature is required for the given facet.
-   *
-   * First, we try to query from {@link AndroidManifestIndex}. And we fall back to {@link MergedManifestSnapshot}
-   * if necessary.
    */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    if (!AndroidManifestIndex.indexEnabled()) {
-      return isWatchFeatureRequiredFromSnapshot(facet);
-    }
-
     Project project = facet.getModule().getProject();
     Collection<UsedFeatureRawText> usedFeatures =
       DumbService.getInstance(project).runReadActionInSmartMode(() -> queryUsedFeaturesFromManifestIndex(facet));
@@ -132,22 +122,6 @@ public class LaunchUtils {
     return usedFeatures.stream()
       .anyMatch(feature -> UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName()) &&
                            (feature.getRequired() == null || VALUE_TRUE.equals(feature.getRequired())));
-  }
-
-  private static boolean isWatchFeatureRequiredFromSnapshot(@NotNull AndroidFacet facet) {
-    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
-    Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-
-    if (feature == null) {
-      return false;
-    }
-
-    Attr requiredNode = feature.getAttributeNodeNS(ANDROID_URI, "required");
-    if (requiredNode == null) { // unspecified => required
-      return true;
-    }
-
-    return VALUE_TRUE.equals(requiredNode.getValue());
   }
 
   public static void showNotification(@NotNull final Project project,

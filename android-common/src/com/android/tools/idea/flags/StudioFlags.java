@@ -1248,15 +1248,6 @@ public final class StudioFlags {
     false);
   //endregion
 
-  //region Manifests
-  private static final FlagGroup MANIFESTS = new FlagGroup(FLAGS, "manifests", "Android Manifests");
-  public static final Flag<Boolean> ANDROID_MANIFEST_INDEX_ENABLED = Flag.create(
-    MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
-    "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
-    true);
-
-  //endregion
-
   // region App Inspection
   private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(

@@ -149,7 +149,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     Project project = facet.getModule().getProject();
-    if (AndroidManifestIndex.indexEnabled() && !DumbService.isDumb(project)) {
+    if (!DumbService.isDumb(project)) {
       AndroidVersion minSdkVersion = DumbService.getInstance(project)
         .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
       return Futures.immediateFuture(minSdkVersion);
@@ -157,7 +157,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
 
     return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
   }
-
 
   @NotNull
   public AndroidVersion getMinSdkVersion() {
@@ -171,17 +170,15 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        return DumbService.getInstance(facet.getModule().getProject())
-          .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
-      }
-      catch (IndexNotReadyException e) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
-      }
+    try {
+      return DumbService.getInstance(facet.getModule().getProject())
+        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+    }
+    catch (IndexNotReadyException e) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
     }
 
     return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
@@ -200,17 +197,15 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        return DumbService.getInstance(facet.getModule().getProject())
-          .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
-      }
-      catch (IndexNotReadyException e) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
-      }
+    try {
+      return DumbService.getInstance(facet.getModule().getProject())
+        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
+    }
+    catch (IndexNotReadyException e) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
     }
 
     return MergedManifestManager.getSnapshot(facet).getTargetSdkVersion();
@@ -243,23 +238,21 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
     }
 
-    if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        return DumbService.getInstance(facet.getModule().getProject())
-          .runReadActionInSmartMode(() -> {
-            ThrowableComputable<Boolean, IndexNotReadyException> queryIndex = () -> queryApplicationDebuggableFromManifestIndex(facet);
-            // Here we temporarily allow slow operation as index query is considered as a fallback when the above
-            // android model is not available. More, b/203708907 is filed, as in the long run, it's worth we
-            // refactoring the callers.
-            return SlowOperations.allowSlowOperations(queryIndex);
-          });
-      }
-      catch (IndexNotReadyException e) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
-      }
+    try {
+      return DumbService.getInstance(facet.getModule().getProject())
+        .runReadActionInSmartMode(() -> {
+          ThrowableComputable<Boolean, IndexNotReadyException> queryIndex = () -> queryApplicationDebuggableFromManifestIndex(facet);
+          // Here we temporarily allow slow operation as index query is considered as a fallback when the above
+          // android model is not available. More, b/203708907 is filed, as in the long run, it's worth we
+          // refactoring the callers.
+          return SlowOperations.allowSlowOperations(queryIndex);
+        });
+    }
+    catch (IndexNotReadyException e) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
     }
 
     return MergedManifestManager.getSnapshot(facet).getApplicationDebuggable();

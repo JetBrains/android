@@ -144,53 +144,49 @@ private fun getFilteredNames(themes: List<ConfiguredThemeEditorStyle>, filter: T
     .map { it.qualifiedName }
 
 /**
- *  Try to get application theme from [AndroidManifestIndex] if index is enabled. And it falls back to the merged
+ *  Try to get application theme from [AndroidManifestIndex]. And it falls back to the merged
  *  manifest snapshot if necessary.
  */
 fun Module.getAppThemeName(): String? {
-  if (AndroidManifestIndex.indexEnabled()) {
-    try {
-      val facet = AndroidFacet.getInstance(this)
-      if (facet != null) {
-        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryApplicationThemeFromManifestIndex() })
-        })
-      }
+  try {
+    val facet = AndroidFacet.getInstance(this)
+    if (facet != null) {
+      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+        SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryApplicationThemeFromManifestIndex() })
+      })
     }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      logManifestIndexQueryError(e);
-    }
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //  We need to refactor the callers of this to require a *smart*
+    //  read action, at which point we can remove this try-catch.
+    logManifestIndexQueryError(e);
   }
 
   return MergedManifestManager.getFreshSnapshot(this).manifestTheme
 }
 
 /**
- *  Try to get activity themes from [AndroidManifestIndex] if index is enabled. And it falls back to the merged
+ *  Try to get activity themes from [AndroidManifestIndex]. And it falls back to the merged
  *  manifest snapshot if necessary.
  */
 fun Module.getAllActivityThemeNames(): Set<String> {
-  if (AndroidManifestIndex.indexEnabled()) {
-    try {
-      val facet = AndroidFacet.getInstance(this)
-      if (facet != null) {
-        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
-          activities.asSequence()
-            .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
-            .toSet()
-        })
-      }
+  try {
+    val facet = AndroidFacet.getInstance(this)
+    if (facet != null) {
+      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+        val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
+        activities.asSequence()
+          .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+          .toSet()
+      })
     }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      logManifestIndexQueryError(e);
-    }
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //  We need to refactor the callers of this to require a *smart*
+    //  read action, at which point we can remove this try-catch.
+    logManifestIndexQueryError(e);
   }
 
   val manifest = MergedManifestManager.getSnapshot(this)
@@ -200,30 +196,28 @@ fun Module.getAllActivityThemeNames(): Set<String> {
 }
 
 /**
- * Try to get value of theme corresponding to the given activity from {@link AndroidManifestIndex} if index is enabled.
+ * Try to get value of theme corresponding to the given activity from {@link AndroidManifestIndex}.
  * And it falls back to merged manifest snapshot if necessary.
  */
 fun Module.getThemeNameForActivity(activityFqcn: String): String? {
-  if (AndroidManifestIndex.indexEnabled()) {
-    try {
-      val facet = AndroidFacet.getInstance(this)
-      if (facet != null) {
-        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-          val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
-          activities.asSequence()
-            .filter { it.qualifiedName == activityFqcn }
-            .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
-            .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
-            .firstOrNull()
-        })
-      }
+  try {
+    val facet = AndroidFacet.getInstance(this)
+    if (facet != null) {
+      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+        val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
+        activities.asSequence()
+          .filter { it.qualifiedName == activityFqcn }
+          .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+          .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+          .firstOrNull()
+      })
     }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      logManifestIndexQueryError(e);
-    }
+  }
+  catch (e: IndexNotReadyException) {
+    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+    //  We need to refactor the callers of this to require a *smart*
+    //  read action, at which point we can remove this try-catch.
+    logManifestIndexQueryError(e);
   }
 
   val manifest = MergedManifestManager.getSnapshot(this)

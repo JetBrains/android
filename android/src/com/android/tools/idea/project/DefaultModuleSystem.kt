@@ -24,7 +24,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
-import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -280,14 +279,9 @@ private class UserData<T>(
 
 fun getPackageName(module: Module): String? {
   val facet = AndroidFacet.getInstance(module) ?: return null
-  var rawPackageName: String? = null
 
-  if (AndroidManifestIndex.indexEnabled()) {
-    rawPackageName = DumbService.getInstance(module.project)
-      .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-  }
-
-  return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+  return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+         ?: getPackageNameByParsingPrimaryManifest(facet)
 }
 
 private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
