@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
+import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.structure.model.PsChildModel
@@ -142,16 +144,16 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
     model.parent.parent.repositorySearchFactory
       .create(model.parent.getArtifactRepositories())
       .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
-    MoreExecutors.directExecutor())
+    { it!!.toVersionValueDescriptors() },
+    directExecutor())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
   Futures.transform(
     model.repositorySearchFactory
       .create(model.getPluginArtifactRepositories())
       .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
-    MoreExecutors.directExecutor())
+    { it!!.toVersionValueDescriptors(GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION)) },
+    directExecutor())
 
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
@@ -163,13 +165,13 @@ fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   }
 
 @VisibleForTesting
-fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
+fun SearchResult.toVersionValueDescriptors(minimumVersion: GradleVersion = GradleVersion(0, 0)): List<ValueDescriptor<String>> =
   artifacts
     .flatMap { it.versions }
     .distinct()
+    .filter { it >= minimumVersion }
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
-
 
 fun <T : PsChildModel> ListProperty<T, File>.withProFileSelector(module: T.() -> PsAndroidModule) =
   withFileSelectionRoot(
