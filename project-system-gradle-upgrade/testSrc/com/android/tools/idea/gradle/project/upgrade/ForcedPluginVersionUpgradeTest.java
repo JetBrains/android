@@ -24,31 +24,33 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link GradlePluginUpgrade#versionsShouldForcePluginUpgrade(GradleVersion, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
-public class ForcedPluginPreviewVersionUpgradeTest {
+public class ForcedPluginVersionUpgradeTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"2.0.0-alpha9", "2.0.0-alpha9", false},
-      {"2.0.0-alpha9", "2.0.0-alpha9-1", true},
-      {"2.0.0-alpha9", "2.0.0-alpha10", false},
-      {"2.0.0-alpha9", "2.0.0-beta1", true},
-      {"2.0.0-alpha9", "2.0.0", true},
-      {"2.0.0", "2.0.1", false},
-      {"2.0.0", "3.0.0", false},
-      {"1.5.0-beta1", "2.0.0-alpha10", true},
-      {"1.5.0", "2.0.0-alpha10", false},
-      {"2.3.0-alpha1", "2.3.0-dev", false},
-      {"2.4.0-alpha8", "2.4.0-alpha8", false},
-      {"2.4.0-alpha9", "2.4.0-alpha8", false},
-      {"2.5.0", "2.4.0-alpha8", false},
-      {"2.5.0-alpha1", "2.4.0-alpha8", false},
-      {"2.3.0-alpha1", "2.4.0-alpha8", true},
+      {"3.3.0-alpha9", "3.3.0-alpha9", false},
+      {"3.3.0-alpha9", "3.3.0-alpha9-1", true},
+      {"3.3.0-alpha9", "3.3.0-alpha10", false},
+      {"3.3.0-alpha9", "3.3.0-beta1", true},
+      {"3.3.0-alpha9", "3.3.0", true},
+      {"3.3.0", "3.3.1", false},
+      {"3.3.0", "4.0.0", false},
+      {"3.3.0-beta1", "3.4.0-alpha10", true},
+      {"3.3.0", "3.4.0-alpha10", false},
+      {"3.3.0-alpha1", "3.3.0-dev", false},
+      {"3.3.0-alpha8", "3.3.0-alpha8", false},
+      {"3.3.0-alpha9", "3.3.0-alpha8", false},
+      {"3.4.0", "3.3.0-alpha8", false},
+      {"3.4.0-alpha1", "3.3.0-alpha8", false},
+      {"3.3.0-alpha1", "3.4.0-alpha8", true},
 
       // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
       {"3.3.1-rc01", "3.5.0-dev", false},
@@ -76,15 +78,20 @@ public class ForcedPluginPreviewVersionUpgradeTest {
 
   private final boolean myForceUpgrade;
 
-  public ForcedPluginPreviewVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  private static final GradleVersion unsupportedVersion = GradleVersion.parse("3.1.0");
+
+  public ForcedPluginVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = GradleVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;
   }
 
   @Test
-  public void shouldPreviewBeForcedToUpgradePluginVersion() {
+  public void shouldBeForcedToUpgradePluginVersion() {
+    assertTrue("adjust test cases for new GRADLE_PLUGIN_MINIMUM_VERSION", myCurrent.compareTo(GRADLE_PLUGIN_MINIMUM_VERSION) >= 0);
     boolean forced = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(myCurrent, myRecommended);
     assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
+    boolean forcedFromOldVersion = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(unsupportedVersion, myRecommended);
+    assertTrue("should force upgrade from old version " + unsupportedVersion + " to " + myRecommended + "?", forcedFromOldVersion);
   }
 }

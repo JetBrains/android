@@ -17,6 +17,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.executeOnPooledThread
@@ -330,6 +331,12 @@ fun computeGradlePluginUpgradeState(
   published: Set<GradleVersion>
 ): GradlePluginUpgradeState {
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
+  GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION).let { minimum ->
+    if (current < minimum) {
+      val earliestStable = published.filter { !it.isPreview }.filter { it >= minimum }.minOrNull() ?: latestKnown
+      return GradlePluginUpgradeState(FORCE, earliestStable)
+    }
+  }
 
   if (!current.isPreview || current.previewType == "rc") {
     // If our latestKnown is stable, recommend it.
