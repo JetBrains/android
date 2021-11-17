@@ -112,6 +112,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -433,6 +435,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -648,6 +652,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.dyn_feature.main
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -769,6 +775,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.dyn_feature.main
         ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -855,6 +863,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.jav.main
         ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jav/src/test [-]
@@ -945,6 +955,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1158,6 +1170,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1331,6 +1345,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested1.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1458,6 +1474,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested1.deep.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1579,6 +1597,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested1.deep.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1685,6 +1705,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested1.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1801,6 +1823,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1946,6 +1970,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.deep.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2067,6 +2093,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.deep.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2282,6 +2310,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.trans.deep2.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2403,6 +2433,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.trans.deep2.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2449,6 +2481,8 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testModulePerSourceSet.nested2.main
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

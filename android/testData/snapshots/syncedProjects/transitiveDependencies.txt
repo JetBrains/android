@@ -104,6 +104,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -387,6 +389,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testTransitiveDependencies.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -579,6 +583,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/javalib1/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.javalib1.main
         ModuleFile                    : <PROJECT>/.idea/modules/javalib1/testTransitiveDependencies.javalib1.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib1/src/test [-]
@@ -649,6 +655,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/javalib2/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.javalib2.main
         ModuleFile                    : <PROJECT>/.idea/modules/javalib2/testTransitiveDependencies.javalib2.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib2/src/test [-]
@@ -739,6 +747,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.library1.main
         ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -977,6 +987,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.library1.main
         ModuleFile                    : <PROJECT>/.idea/modules/library1/testTransitiveDependencies.library1.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1155,6 +1167,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.library2.main
         ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1377,6 +1391,8 @@ PROJECT                       : testTransitiveDependencies
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTransitiveDependencies.library2.main
         ModuleFile                    : <PROJECT>/.idea/modules/library2/testTransitiveDependencies.library2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

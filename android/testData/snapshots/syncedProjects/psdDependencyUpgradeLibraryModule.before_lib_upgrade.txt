@@ -108,6 +108,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyUpgradeLibraryModule.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -357,6 +359,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyUpgradeLibraryModule.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -536,6 +540,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.jModuleK.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleK/src/test [-]
@@ -616,6 +622,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.jModuleL.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleL/src/test [-]
@@ -684,6 +692,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.jModuleM.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleM/src/test [-]
@@ -820,6 +830,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/nestedZ/src/test [-]
@@ -841,6 +853,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.jModuleZ.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/src/test [-]
@@ -960,6 +974,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.mainModule.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.mainModule.main
         ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyUpgradeLibraryModule.mainModule.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1235,6 +1251,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.mainModule.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.mainModule.main
         ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyUpgradeLibraryModule.mainModule.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1441,6 +1459,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleA.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleA.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyUpgradeLibraryModule.moduleA.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1658,6 +1678,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleA.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleA.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyUpgradeLibraryModule.moduleA.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1834,6 +1856,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleB.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleB.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyUpgradeLibraryModule.moduleB.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2050,6 +2074,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleB.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleB.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyUpgradeLibraryModule.moduleB.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2225,6 +2251,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleC.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleC.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyUpgradeLibraryModule.moduleC.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2436,6 +2464,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleC.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleC.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyUpgradeLibraryModule.moduleC.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2612,6 +2642,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleFlavor.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleFlavor.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyUpgradeLibraryModule.moduleFlavor.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2769,6 +2801,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.moduleFlavor.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.moduleFlavor.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyUpgradeLibraryModule.moduleFlavor.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2899,6 +2933,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.modulePlus.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.modulePlus.main
         ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyUpgradeLibraryModule.modulePlus.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -3140,6 +3176,8 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.modulePlus.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyUpgradeLibraryModule.modulePlus.main
         ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyUpgradeLibraryModule.modulePlus.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

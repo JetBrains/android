@@ -108,6 +108,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyAndroidToJavaModuleAndBack.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -357,6 +359,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyAndroidToJavaModuleAndBack.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -536,6 +540,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleK/src/test [-]
@@ -616,6 +622,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleL/src/test [-]
@@ -684,6 +692,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleM/src/test [-]
@@ -820,6 +830,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/nestedZ/src/test [-]
@@ -841,6 +853,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.main
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/src/test [-]
@@ -960,6 +974,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.mainModule.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
         ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyAndroidToJavaModuleAndBack.mainModule.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1235,6 +1251,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.mainModule.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.main
         ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyAndroidToJavaModuleAndBack.mainModule.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1441,6 +1459,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleA.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyAndroidToJavaModuleAndBack.moduleA.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1658,6 +1678,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleA.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleA.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyAndroidToJavaModuleAndBack.moduleA.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1834,6 +1856,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleB.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyAndroidToJavaModuleAndBack.moduleB.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2050,6 +2074,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleB.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleB.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyAndroidToJavaModuleAndBack.moduleB.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2225,6 +2251,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleC.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyAndroidToJavaModuleAndBack.moduleC.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2436,6 +2464,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleC.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleC.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyAndroidToJavaModuleAndBack.moduleC.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2612,6 +2642,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2769,6 +2801,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.main
         ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -2899,6 +2933,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
         ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -3140,6 +3176,8 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.main
         ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

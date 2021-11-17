@@ -52,6 +52,7 @@ import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.SourceFolder
+import com.intellij.openapi.roots.TestModuleProperties
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.util.text.nullize
@@ -104,6 +105,7 @@ private fun ProjectDumper.dump(module: Module) {
     if (compilerModuleExtension != null) {
       dump(compilerModuleExtension)
     }
+    dump(TestModuleProperties.getInstance(module))
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
@@ -443,6 +445,14 @@ private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension)
     prop("compilerTestOutputPath") { compilerModuleExtension.compilerOutputUrlForTests?.toPrintablePath() }
     prop("isCompilerPathInherited") { compilerModuleExtension.isCompilerOutputPathInherited.toString() }
     prop("isExcludeOutput") { compilerModuleExtension.isExcludeOutput.toString() }
+  }
+}
+
+private fun ProjectDumper.dump(testModuleProperties: TestModuleProperties?) {
+  if (testModuleProperties?.productionModuleName == null) return
+  head("TEST_MODULE_PROPERTIES") { null }
+  nest {
+    prop("productionModuleName") { testModuleProperties.productionModuleName }
   }
 }
 

@@ -104,6 +104,8 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestFixturesWithModulePerSourceSetEnabled.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTestFixturesWithModulePerSourceSetEnabled.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testTestFixturesWithModulePerSourceSetEnabled.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -348,6 +350,8 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestFixturesWithModulePerSourceSetEnabled.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTestFixturesWithModulePerSourceSetEnabled.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testTestFixturesWithModulePerSourceSetEnabled.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -564,6 +568,8 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestFixturesWithModulePerSourceSetEnabled.lib.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTestFixturesWithModulePerSourceSetEnabled.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testTestFixturesWithModulePerSourceSetEnabled.lib.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -737,6 +743,8 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestFixturesWithModulePerSourceSetEnabled.lib.testFixtures [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTestFixturesWithModulePerSourceSetEnabled.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testTestFixturesWithModulePerSourceSetEnabled.lib.testFixtures.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -802,6 +810,8 @@ PROJECT                       : testTestFixturesWithModulePerSourceSetEnabled
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTestFixturesWithModulePerSourceSetEnabled.lib.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testTestFixturesWithModulePerSourceSetEnabled.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/testTestFixturesWithModulePerSourceSetEnabled.lib.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

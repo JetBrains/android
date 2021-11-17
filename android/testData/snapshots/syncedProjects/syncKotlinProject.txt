@@ -116,6 +116,8 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testSyncKotlinProject.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -513,6 +515,8 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testSyncKotlinProject.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -777,6 +781,8 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testSyncKotlinProject.awesomeandroidlibrary.main
         ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1117,6 +1123,8 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testSyncKotlinProject.awesomeandroidlibrary.main
         ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1390,6 +1398,8 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/contentLib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testSyncKotlinProject.contentLib.main
         ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.test.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin

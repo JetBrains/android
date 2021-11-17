@@ -82,6 +82,8 @@ PROJECT                       : My Application
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : My_Application.main
         ModuleFile                    : <PROJECT>/.idea/modules/My_Application.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -198,6 +200,8 @@ PROJECT                       : My Application
             compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : My_Application.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib/My_Application.lib.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
@@ -295,6 +299,8 @@ PROJECT                       : My Application
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : My_Application.main
         ModuleFile                    : <PROJECT>/.idea/modules/My_Application.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

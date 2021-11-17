@@ -112,6 +112,8 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : MultiFlavor.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -413,6 +415,8 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : MultiFlavor.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android

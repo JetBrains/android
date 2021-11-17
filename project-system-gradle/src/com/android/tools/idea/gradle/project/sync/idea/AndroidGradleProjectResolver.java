@@ -452,18 +452,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
     if (isModulePerSourceSetEnabled() && androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
-      createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact());
+      GradleSourceSetData prodModule = createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact(), null);
       IdeBaseArtifact unitTest = variant.getUnitTestArtifact();
       if (unitTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest);
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, unitTest, prodModule);
       }
       IdeBaseArtifact androidTest = variant.getAndroidTestArtifact();
       if (androidTest != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest);
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest, prodModule);
       }
       IdeBaseArtifact testFixtures = variant.getTestFixturesArtifact();
       if (testFixtures != null) {
-        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testFixtures);
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testFixtures, prodModule);
       }
     }
 
@@ -576,9 +576,10 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     moduleDataNode.createChild(ProjectKeys.TEST, testData);
   }
 
-  private void createAndSetupGradleSourceSetDataNode(@NotNull DataNode<ModuleData> parentDataNode,
-                                                     @NotNull IdeaModule gradleModule,
-                                                     @NotNull IdeBaseArtifact artifact) {
+  private GradleSourceSetData createAndSetupGradleSourceSetDataNode(@NotNull DataNode<ModuleData> parentDataNode,
+                                                                    @NotNull IdeaModule gradleModule,
+                                                                    @NotNull IdeBaseArtifact artifact,
+                                                                    @Nullable GradleSourceSetData productionModule) {
     String moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, artifact);
     String readableArtifactName = ModuleUtil.getModuleName(artifact);
     String moduleExternalName = gradleModule.getName() + ":" + readableArtifactName;
@@ -589,7 +590,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       new GradleSourceSetData(moduleId, moduleExternalName, moduleInternalName, parentDataNode.getData().getModuleFileDirectoryPath(),
                               parentDataNode.getData().getLinkedExternalProjectPath());
 
+    if (productionModule != null) {
+      sourceSetData.setProductionModuleId(productionModule.getInternalName());
+    }
+
     parentDataNode.createChild(GradleSourceSetData.KEY, sourceSetData);
+    return sourceSetData;
   }
 
   private static String computeModuleIdForArtifact(@NotNull ProjectResolverContext resolverCtx,

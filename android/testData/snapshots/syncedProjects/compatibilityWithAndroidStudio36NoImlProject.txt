@@ -104,6 +104,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -351,6 +353,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/AS36_noiml.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -557,6 +561,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.features.dynamicfeature.main
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -680,6 +686,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.features.dynamicfeature.main
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36_noiml.features.dynamicfeature.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -793,6 +801,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.features.dynamicfeature2.main
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -916,6 +926,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features.dynamicfeature2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.features.dynamicfeature2.main
         ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36_noiml.features.dynamicfeature2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1054,6 +1066,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.libs.android_library.main
         ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1301,6 +1315,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.android_library.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.libs.android_library.main
         ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36_noiml.libs.android_library.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -1456,6 +1472,8 @@ PROJECT                       : AS36_noiml
             compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : AS36_noiml.libs.java_lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/test [-]

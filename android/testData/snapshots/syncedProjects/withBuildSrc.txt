@@ -104,6 +104,8 @@ PROJECT                       : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testWithBuildSrc.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testWithBuildSrc.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -348,6 +350,8 @@ PROJECT                       : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testWithBuildSrc.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/testWithBuildSrc.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         HIDDEN FACET                  : Android
@@ -530,6 +534,8 @@ PROJECT                       : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testWithBuildSrc.buildSrc.lib1.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib1/testWithBuildSrc.buildSrc.lib1.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/test [-]
@@ -595,6 +601,8 @@ PROJECT                       : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testWithBuildSrc.buildSrc.lib2.main
         ModuleFile                    : <PROJECT>/.idea/modules/lib2/testWithBuildSrc.buildSrc.lib2.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/test [-]
@@ -742,6 +750,8 @@ PROJECT                       : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : testWithBuildSrc.buildSrc.main
         ModuleFile                    : <PROJECT>/.idea/modules/testWithBuildSrc.buildSrc.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/test [-]
