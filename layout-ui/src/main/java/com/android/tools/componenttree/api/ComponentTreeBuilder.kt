@@ -21,6 +21,7 @@ import com.android.tools.componenttree.impl.TreeImpl
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.tree.ui.Control
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -140,7 +141,7 @@ class ComponentTreeBuilder {
   /**
    * Build the tree component and return it with the tree model.
    */
-  fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
+  fun build(): ComponentTreeBuildResult {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
     val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions)
@@ -160,6 +161,38 @@ class ComponentTreeBuilder {
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return Triple(scrollPane, model, selectionModel)
+    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel)
   }
 }
+
+/**
+ * The resulting component tree.
+ */
+class ComponentTreeBuildResult(
+  /**
+   * The top component which is JScrollPane.
+   */
+  val component: JComponent,
+
+  /**
+   * The component that has focus in the component tree.
+   *
+   * Note: This will be identical to [tree] in the current implementation.
+   */
+  val focusComponent: JComponent,
+
+  /**
+   * The Tree component of the component tree.
+   */
+  val tree: Tree,
+
+  /**
+   * The component tree model.
+   */
+  val model: ComponentTreeModel,
+
+  /**
+   * The component tree selection model.
+   */
+  val selectionModel: ComponentTreeSelectionModel
+)

@@ -50,7 +50,6 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JScrollPane
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
@@ -60,7 +59,9 @@ fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
-  private val componentTree: JComponent
+  @VisibleForTesting
+  val tree: Tree
+  private val componentTreePanel: JComponent
   private val componentTreeModel: ComponentTreeModel
   private val nodeType = InspectorViewNodeType()
   // synthetic node to hold the root of the tree.
@@ -100,21 +101,22 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
       .withKeyboardActions(::installKeyboardActions)
 
-    val (scrollPane, model, selectionModel) = builder.build()
-    componentTree = scrollPane
-    componentTreeModel = model
-    componentTreeSelectionModel = selectionModel
+    val result = builder.build()
+    componentTreePanel = result.component
+    tree = result.tree
+    componentTreeModel = result.model
+    componentTreeSelectionModel = result.selectionModel
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
-      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTree, parentDisposable) }
-    selectionModel.addSelectionListener {
+      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTreePanel, parentDisposable) }
+    componentTreeSelectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
         val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
         layoutInspector?.stats?.selectionMadeFromComponentTree(view)
       }
     }
-    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
-    tree?.addKeyListener(object : KeyAdapter() {
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
+    tree.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.toInt())) {
           toolWindowCallback?.startFiltering(event.keyChar.toString())
@@ -128,9 +130,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       commonActionManager.createCollapseAllHeaderAction(tree)
     )
   }
-
-  val tree: Tree?
-    get() = (component as? JScrollPane)?.viewport?.view as? Tree
 
   private fun installKeyboardActions(tree: JComponent) {
     if (downAction == null) {
@@ -169,7 +168,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   override fun getAdditionalActions() = additionalActions
 
-  override fun getComponent() = componentTree
+  override fun getComponent() = componentTreePanel
 
   override fun registerCallbacks(callback: ToolWindowCallback) {
     toolWindowCallback = callback
@@ -189,7 +188,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         return
       }
     }
-    tree?.repaint()
+    tree.repaint()
   }
 
   override fun isFilteringActive(): Boolean {
@@ -293,7 +292,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           event.consume()
         }
         KeyEvent.VK_ENTER -> {
-          tree?.requestFocusInWindow()
+          tree.requestFocusInWindow()
           toolWindowCallback?.stopFiltering()
           event.consume()
         }

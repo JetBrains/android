@@ -81,7 +81,6 @@ import org.mockito.Mockito.verify
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-import javax.swing.JTree
 
 private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
@@ -209,7 +208,7 @@ class LayoutInspectorTreePanelTest {
     val inspector = inspectorRule.inspector
     setToolContext(panel, inspector)
 
-    val tree = panel.tree!!
+    val tree = panel.tree
     tree.setUI(HeadlessTreeUI())
     tree.setBounds(0, 0, 500, 1000)
     val ui = FakeUi(tree)
@@ -228,54 +227,54 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testMultiWindowWithVisibleSystemNodes() {
     val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = false
-    setToolContext(tree, inspector)
-    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    setToolContext(panel, inspector)
+    val tree = panel.tree
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(tree.rowCount).isEqualTo(1)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
     assertThat(model[ROOT]!!.qualifiedName).isEqualTo(DECOR_VIEW)
 
     model.update(window(ROOT, ROOT) { view(VIEW4) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
-    assertThat(jtree.rowCount).isEqualTo(3)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
-    assertThat(jtree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.rowCount).isEqualTo(3)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
+    assertThat(tree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
-    assertThat(jtree.rowCount).isEqualTo(5)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
-    assertThat(jtree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
-    assertThat(jtree.getPathForRow(3).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
-    assertThat(jtree.getPathForRow(4).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
+    TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.rowCount).isEqualTo(5)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
+    assertThat(tree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(tree.getPathForRow(3).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
+    assertThat(tree.getPathForRow(4).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 5: the dimmer is drawn but isn't in the tree
-    assertThat(jtree.rowCount).isEqualTo(5)
+    assertThat(tree.rowCount).isEqualTo(5)
   }
 
   @Test
   fun testMultiWindowWithHiddenSystemNodes() {
     val android = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "simple_screen")
     val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = true
-    setToolContext(tree, inspector)
-    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    setToolContext(panel, inspector)
+    val tree = panel.tree
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(tree.rowCount).isEqualTo(1)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     // ROOT & VIEW4 are system views (no layout, android layout)
@@ -286,21 +285,21 @@ class LayoutInspectorTreePanelTest {
         }
       }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
-    assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.rowCount).isEqualTo(1)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
-    assertThat(jtree.rowCount).isEqualTo(2)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
+    TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.rowCount).isEqualTo(2)
+    assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
-    assertThat(jtree.rowCount).isEqualTo(2)
+    assertThat(tree.rowCount).isEqualTo(2)
   }
 
   @RunsInEdt
@@ -311,7 +310,7 @@ class LayoutInspectorTreePanelTest {
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
-    val jtree = tree.tree!!
+    val jtree = tree.tree
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jtree).blockingGet(10, TimeUnit.SECONDS)
 
@@ -343,8 +342,8 @@ class LayoutInspectorTreePanelTest {
     // We should be able to find views even if they are currently collapsed:
     tree.setFilter("View")
     UIUtil.dispatchAllInvocationEvents()
-    var selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    var selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
@@ -358,8 +357,8 @@ class LayoutInspectorTreePanelTest {
     val ui = FakeUi(searchField)
     ui.keyboard.setFocus(searchField)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
@@ -367,8 +366,8 @@ class LayoutInspectorTreePanelTest {
 
     // Simulate a down arrow keyboard event in the search field: the next match should be found (TextView(VIEW2))
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(2)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(2)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isEqualTo("title")
     assertThat(selection?.view?.drawId).isEqualTo(VIEW2)
@@ -376,8 +375,8 @@ class LayoutInspectorTreePanelTest {
 
     // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
@@ -385,8 +384,8 @@ class LayoutInspectorTreePanelTest {
 
     // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
@@ -398,8 +397,8 @@ class LayoutInspectorTreePanelTest {
     // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
     // Because TextView(VIEW2) is skipped when hidden
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
@@ -407,8 +406,8 @@ class LayoutInspectorTreePanelTest {
 
     // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
@@ -416,8 +415,8 @@ class LayoutInspectorTreePanelTest {
 
     // Simulate an up arrow keyboard event in the search field: the previous match should be found (TextView(VIEW4))
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
@@ -426,8 +425,8 @@ class LayoutInspectorTreePanelTest {
     // Simulate another up arrow keyboard event in the search field: the next match should be found (back to DecorView)
     // (skipping TextView(VIEW2))
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
@@ -437,8 +436,8 @@ class LayoutInspectorTreePanelTest {
     // Simulate an up arrow keyboard event in the search field: the first match should be found again (DecorView)
     model.setSelection(null, SelectionOrigin.COMPONENT_TREE)
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
-    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
@@ -455,7 +454,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun navigationAfterUpdateUI() {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
-    val jTree = tree.tree!!
+    val jTree = tree.tree
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
@@ -487,8 +486,8 @@ class LayoutInspectorTreePanelTest {
 
     val callbacks: ToolWindowCallback = mock()
     tree.registerCallbacks(callbacks)
-    val ui = FakeUi(tree.tree!!)
-    ui.keyboard.setFocus(tree.tree!!)
+    val ui = FakeUi(tree.tree)
+    ui.keyboard.setFocus(tree.tree)
     ui.keyboard.type('T'.toInt())
     verify(callbacks).startFiltering("T")
   }
@@ -501,20 +500,20 @@ class LayoutInspectorTreePanelTest {
     setToolContext(tree, inspector)
     UIUtil.dispatchAllInvocationEvents()
 
-    TreeUtil.promiseExpand(tree.tree!!, 2).blockingGet(1, TimeUnit.SECONDS)
-    assertThat(tree.tree!!.rowCount).isEqualTo(2)
-    tree.tree!!.addSelectionRow(0)
-    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
-    val ui = FakeUi(tree.tree!!)
-    ui.keyboard.setFocus(tree.tree!!)
+    TreeUtil.promiseExpand(tree.tree, 2).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(tree.tree.rowCount).isEqualTo(2)
+    tree.tree.addSelectionRow(0)
+    assertThat(tree.tree.selectionRows!!.asList()).containsExactly(0)
+    val ui = FakeUi(tree.tree)
+    ui.keyboard.setFocus(tree.tree)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(1)
+    assertThat(tree.tree.selectionRows!!.asList()).containsExactly(1)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
-    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(1)
+    assertThat(tree.tree.selectionRows!!.asList()).containsExactly(1)
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
-    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
+    assertThat(tree.tree.selectionRows!!.asList()).containsExactly(0)
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
-    assertThat(tree.tree!!.selectionRows!!.asList()).containsExactly(0)
+    assertThat(tree.tree.selectionRows!!.asList()).containsExactly(0)
   }
 
   @RunsInEdt
@@ -541,7 +540,7 @@ class LayoutInspectorTreePanelTest {
     model.update(window, listOf(ROOT), 1)
 
     // Verify that "Layout" is omitted from the component tree, and that "Column" has 3 children:
-    val root = treePanel.tree?.model?.root as TreeViewNode
+    val root = treePanel.tree.model?.root as TreeViewNode
     val expected =
       compose(2, "App", composePackageHash = USER_PKG) {
         compose(3, "Column", composePackageHash = USER_PKG) {
@@ -560,7 +559,7 @@ class LayoutInspectorTreePanelTest {
     val model = InspectorModel(projectRule.project)
     val inspector = LayoutInspector(launcher, model, mock(), FakeTreeSettings(), MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
-    val tree = treePanel.tree!!
+    val tree = treePanel.tree
     inspector.treeSettings.hideSystemNodes = false
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {

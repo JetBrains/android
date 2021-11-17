@@ -56,11 +56,11 @@ class TreePanel : ToolContent<DesignSurface> {
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withComponentName("navComponentTree")
 
-    val (tree, model, selectionModel) = builder.build()
-    componentTree = tree
-    componentTreeModel = model
-    componentTreeSelectionModel = selectionModel
-    selectionModel.addSelectionListener { updateSelection() }
+    val result = builder.build()
+    componentTree = result.component
+    componentTreeModel = result.model
+    componentTreeSelectionModel = result.selectionModel
+    componentTreeSelectionModel.addSelectionListener { updateSelection() }
   }
 
   @VisibleForTesting

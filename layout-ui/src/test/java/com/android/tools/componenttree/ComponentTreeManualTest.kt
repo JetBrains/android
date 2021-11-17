@@ -107,9 +107,9 @@ private class ComponentTreeTest {
       .withBadgeSupport(badge2)
       .withHorizontalScrollBar()
       .build()
-    tree = result.first
-    model = result.second
-    selectionModel = result.third
+    tree = result.component
+    model = result.model
+    selectionModel = result.selectionModel
 
     val rightPanel = JPanel()
     val splitter = Splitter(false, 0.8f)

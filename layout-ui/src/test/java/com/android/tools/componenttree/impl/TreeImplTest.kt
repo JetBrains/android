@@ -288,7 +288,7 @@ class TreeImplTest {
       .withDoubleClick(doubleClickHandler)
       .withoutTreeSearch()
       .withInvokeLaterOption { it.run() }
-      .build().first as JScrollPane
+      .build().component as JScrollPane
   }
 
   private fun setPeer(component: Component) {
