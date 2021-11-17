@@ -19,7 +19,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
@@ -48,7 +48,10 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
     targetModule.addBuildType(name = benchmarkBuildTypeName, debuggable = false)
   }
 
-  val targetPackageName = AndroidModuleInfo.getInstance(targetModule)?.`package` ?: ""
+  val targetApplicationId =
+    AndroidModel.get(targetModule)?.applicationId?.takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
+    ?: "com.example.application"
+
 
   addIncludeToSettings(moduleData.name)
 
@@ -72,14 +75,14 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addDependency("androidx.test.uiautomator:uiautomator:2.+", "implementation")
   addDependency("androidx.benchmark:benchmark-macro-junit4:+", configuration = "implementation", minRev = "1.1.0-alpha02")
 
-  save(androidManifestXml(packageName, targetPackageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
+  save(androidManifestXml(packageName, targetApplicationId), moduleOut.resolve("src/main/AndroidManifest.xml"))
 
   if (language == Language.Kotlin) {
-    save(exampleMacrobenchmarkKt(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.kt"))
+    save(exampleMacrobenchmarkKt(packageName, targetApplicationId), srcOut.resolve("ExampleStartupBenchmark.kt"))
     open(srcOut.resolve("ExampleStartupBenchmark.kt"))
   }
   else {
-    save(exampleMacrobenchmarkJava(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.java"))
+    save(exampleMacrobenchmarkJava(packageName, targetApplicationId), srcOut.resolve("ExampleStartupBenchmark.java"))
     open(srcOut.resolve("ExampleStartupBenchmark.java"))
   }
 
