@@ -78,6 +78,7 @@ class EntryDetailsView(
   // A configuration map to add extra paddings at the bottom of certain components.
   private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
   private val scrollPane = JBScrollPane()
+  private val entryIdProvider: EntryIdProvider
 
   @VisibleForTesting
   val stackTraceViews = listOf(
@@ -98,6 +99,11 @@ class EntryDetailsView(
     add(headingPanel, TabularLayout.Constraint(0, 0))
     scrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
     add(scrollPane, TabularLayout.Constraint(1, 0))
+
+    entryIdProvider = EntryIdProvider { entry ->
+      selectionModel.selectedEntry = entry
+      client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT)
+    }
 
     selectionModel.registerEntrySelectionListener { entry ->
       if (entry == null) {
@@ -205,17 +211,17 @@ class EntryDetailsView(
   private fun updateSelectedJob(detailsPanel: ScrollablePanel, jobEntry: JobEntry) {
     val job = jobEntry.jobInfo ?: return
 
-    val descriptions = mutableListOf(
+    detailsPanel.add(buildCategoryPanel("Description", listOf(
       buildKeyValuePair("Service", job.serviceName, ClassNameProvider(ideServices, client.scope, client.tracker))
-    )
-    jobEntry.targetWorkId?.let { uuid -> descriptions.add(buildKeyValuePair("UUID", uuid)) }
-    detailsPanel.add(buildCategoryPanel("Description", descriptions))
-
-    detailsPanel.add(buildCategoryPanel("Execution", listOf(
-      buildKeyValuePair("Constraints", job, JobConstraintProvider),
-      buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
-      buildKeyValuePair("State", jobEntry, StateProvider)
     )))
+
+    val executions = mutableListOf(buildKeyValuePair("Constraints", job, JobConstraintProvider),
+                                   buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
+                                   buildKeyValuePair("State", jobEntry, StateProvider))
+    jobEntry.targetWorkId?.let { id -> client.getEntry(id) }?.let { workEntry ->
+      executions.add(buildKeyValuePair("Related Worker", workEntry, entryIdProvider))
+    }
+    detailsPanel.add(buildCategoryPanel("Execution", executions))
 
     val results = mutableListOf(buildKeyValuePair("Time started", jobEntry.startTimeMs, TimeProvider))
     jobEntry.latestEvent?.let { latestEvent ->
@@ -251,12 +257,17 @@ class EntryDetailsView(
       buildKeyValuePair("UUID", work.id)
     )))
 
-    detailsPanel.add(buildCategoryPanel("Execution", listOf(
+    val executions = mutableListOf(
       buildKeyValuePair("Enqueued by", work.callStack, EnqueuedAtProvider(ideServices, client.scope, client.tracker)),
       buildKeyValuePair("Constraints", work.constraints, WorkConstraintProvider),
       buildKeyValuePair("Frequency", if (work.isPeriodic) "Periodic" else "OneTime"),
-      buildKeyValuePair("State", workEntry, StateProvider)
-    )))
+      buildKeyValuePair("State", workEntry, StateProvider))
+
+    entriesView.tableView.treeModel.getJobUnderWork(work.id)?.let { jobEntry ->
+      executions.add(buildKeyValuePair("Related Job", jobEntry, entryIdProvider))
+    }
+
+    detailsPanel.add(buildCategoryPanel("Execution", executions))
 
     val switchContentModeLabel = if (entriesView.contentMode == BackgroundTaskEntriesView.Mode.TABLE) {
       ActionLink("Show in graph") {

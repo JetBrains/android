@@ -143,10 +143,25 @@ object StringListProvider : ComponentProvider<List<String>> {
 }
 
 /**
+ * Provides a component that displays an BackgroundTaskEntry with navigation support.
+ *
+ * @param selectEntry A callback which can be triggered to select some target entry.
+ */
+class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) : ComponentProvider<BackgroundTaskEntry> {
+  override fun convert(data: BackgroundTaskEntry): JComponent {
+    return ActionLink(data.className) {
+      selectEntry(data)
+    }.apply {
+      icon = data.icon()
+    }
+  }
+}
+
+/**
  * Provides a component that displays a list of workers, each which, when clicked, select that
  * worker in a source table.
  *
- * @param A callback which can be triggered to select some target worker.
+ * @param selectWork A callback which can be triggered to select some target worker.
  */
 class IdListProvider(private val client: BackgroundTaskInspectorClient,
                      private val currentWork: WorkInfo,
