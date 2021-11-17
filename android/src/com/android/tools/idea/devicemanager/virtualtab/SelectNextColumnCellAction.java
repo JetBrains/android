@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
-import com.intellij.ui.table.JBTable;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.ListSelectionModel;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 final class SelectNextColumnCellAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    JBTable table = (JBTable)event.getSource();
+    VirtualDeviceTable table = (VirtualDeviceTable)event.getSource();
 
     if (table.isEmpty()) {
       return;
@@ -35,26 +34,28 @@ final class SelectNextColumnCellAction extends AbstractAction {
 
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
+    int actionsViewColumnIndex = table.actionsViewColumnIndex();
+    AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
 
-    switch (viewColumnIndex) {
+    switch (table.convertColumnIndexToModel(viewColumnIndex)) {
       case -1:
         table.setRowSelectionInterval(0, 0);
         table.setColumnSelectionInterval(0, 0);
 
         break;
-      case VirtualTableView.DEVICE_VIEW_COLUMN_INDEX:
-      case VirtualTableView.API_VIEW_COLUMN_INDEX:
+      case VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX:
+      case VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX:
         model.setLeadSelectionIndex(viewColumnIndex + 1);
         break;
-      case VirtualTableView.SIZE_ON_DISK_VIEW_COLUMN_INDEX:
-        model.setLeadSelectionIndex(VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
+      case VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+        model.setLeadSelectionIndex(actionsViewColumnIndex);
 
-        table.editCellAt(table.getSelectedRow(), VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX);
-        ((ActionRenderer)table.getCellEditor()).getComponent().setFocusedComponent(0);
+        table.editCellAt(table.getSelectedRow(), actionsViewColumnIndex);
+        ((ActionsTableCell)table.getCellEditor()).getComponent(device).setFocusedComponent(0);
 
         break;
-      case VirtualTableView.ACTIONS_VIEW_COLUMN_INDEX:
-        AvdActionPanel panel = ((ActionRenderer)table.getCellEditor()).getComponent();
+      case VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX:
+        AvdActionPanel panel = ((ActionsTableCell)table.getCellEditor()).getComponent(device);
         int i = panel.getFocusedComponent() + 1;
 
         if (i < panel.getVisibleComponentCount()) {
@@ -65,7 +66,7 @@ final class SelectNextColumnCellAction extends AbstractAction {
           table.removeEditor();
 
           Tables.selectNextOrFirstRow(table);
-          model.setLeadSelectionIndex(VirtualTableView.DEVICE_VIEW_COLUMN_INDEX);
+          model.setLeadSelectionIndex(table.deviceViewColumnIndex());
         }
 
         break;

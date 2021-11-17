@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo.ActionRenderer;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.jetbrains.annotations.NotNull;
@@ -24,17 +24,19 @@ import org.jetbrains.annotations.NotNull;
 final class SelectPreviousRowAction extends AbstractAction {
   @Override
   public void actionPerformed(@NotNull ActionEvent event) {
-    VirtualTableView table = (VirtualTableView)event.getSource();
+    VirtualDeviceTable table = (VirtualDeviceTable)event.getSource();
     int viewColumnIndex = table.getColumnModel().getSelectionModel().getLeadSelectionIndex();
 
     if (table.isActionsColumn(viewColumnIndex)) {
-      int focusedComponent = ((ActionRenderer)table.getCellEditor()).getComponent().getFocusedComponent();
+      AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+      int focusedComponent = ((ActionsTableCell)table.getCellEditor()).getComponent(device).getFocusedComponent();
       table.removeEditor();
 
       Tables.selectPreviousRow(table);
 
       table.editCellAt(table.getSelectedRow(), viewColumnIndex);
-      ((ActionRenderer)table.getCellEditor()).getComponent().setFocusedComponent(focusedComponent);
+      device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+      ((ActionsTableCell)table.getCellEditor()).getComponent(device).setFocusedComponent(focusedComponent);
     }
     else {
       Tables.selectPreviousRow(table);

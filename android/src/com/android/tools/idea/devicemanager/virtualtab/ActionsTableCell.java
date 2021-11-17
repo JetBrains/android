@@ -38,6 +38,10 @@ final class ActionsTableCell extends AbstractTableCellEditor implements TableCel
     myDeviceToComponentMap = new HashMap<>();
   }
 
+  @NotNull AvdActionPanel getComponent(@NotNull AvdInfo device) {
+    return myDeviceToComponentMap.get(device);
+  }
+
   @Override
   public @NotNull Component getTableCellEditorComponent(@NotNull JTable table,
                                                         @Nullable Object value,
