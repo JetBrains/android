@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.model.AndroidModuleInfo;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +34,25 @@ public class NonGradleApplicationIdProvider implements ApplicationIdProvider {
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
-    //noinspection deprecation
-    return ApkProviderUtil.computePackageName(myFacet);
+    return computePackageName(myFacet);
   }
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    //noinspection deprecation
-    return ApkProviderUtil.computePackageName(myFacet);
+    return computePackageName(myFacet);
+  }
+
+  @NotNull
+  public static String computePackageName(@NotNull final AndroidFacet facet) throws ApkProvisionException {
+    if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
+      return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
+    }
+    else {
+      String pkg = AndroidManifestUtils.getPackageName(facet);
+      if (pkg == null || pkg.isEmpty()) {
+        throw new ApkProvisionException("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.");
+      }
+      return pkg;
+    }
   }
 }

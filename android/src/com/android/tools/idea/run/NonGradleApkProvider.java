@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.run.NonGradleApplicationIdProvider.computePackageName;
+
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -94,8 +96,7 @@ public class NonGradleApkProvider implements ApkProvider {
           if (depFacet != null &&
               !module2PackageName.containsKey(depFacet) &&
               depFacet.getConfiguration().isAppProject()) {
-            //noinspection deprecation
-            String packageName = ApkProviderUtil.computePackageName(depFacet);
+            String packageName = computePackageName(depFacet);
             module2PackageName.put(depFacet, packageName);
             fillRuntimeAndTestDependencies(depModule, module2PackageName);
           }
