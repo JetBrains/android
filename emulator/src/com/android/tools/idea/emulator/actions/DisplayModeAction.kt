@@ -39,12 +39,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 internal sealed class DisplayModeAction(val mode: DisplayModeValue) : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val emulator = getEmulatorController(event) ?: return
-    emulator.setDisplayMode(mode)
+    if (getCurrentDisplayMode(event) != mode) {
+      val emulator = getEmulatorController(event) ?: return
+      emulator.setDisplayMode(mode)
+    }
   }
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isVisible = hasDisplayModes(event) && getCurrentDisplayMode(event) != mode
     event.presentation.isEnabled = hasDisplayModes(event) && isEmulatorConnected(event)
   }
 

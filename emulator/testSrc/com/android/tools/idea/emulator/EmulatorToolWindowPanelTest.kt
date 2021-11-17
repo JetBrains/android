@@ -227,9 +227,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 400 height: 571")
     assertAppearance(ui, "ChangeDisplayMode1", 0.08)
 
-    // The phone display mode action should be hidden because the current mode is already phone.
-    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.phone", emulatorView, project).isVisible).isFalse()
-
     // Set the tablet display mode.
     executeEmulatorAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -237,11 +234,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
     panel.waitForFrame(++frameNumber, 2, TimeUnit.SECONDS)
     assertAppearance(ui, "ChangeDisplayMode2", 0.08)
-
-    // The phone display mode action should be visible because the current mode is no longer phone.
-    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.phone", emulatorView, project).isVisible).isTrue()
-    // The tablet display mode action should be hidden because the current mode is now tablet.
-    assertThat(getEmulatorActionPresentation("android.emulator.display.mode.tablet", emulatorView, project).isVisible).isFalse()
 
     panel.size = Dimension(500, 600)
     ui.layoutAndDispatchEvents()

@@ -40,8 +40,10 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
+    val currentDisplayMode = getCurrentDisplayMode(event)
     val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true,
+        null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
+        { action -> action is DisplayModeAction && action.mode == currentDisplayMode },
         ActionPlaces.getPopupPlace(EMULATOR_MAIN_TOOLBAR_ID))
     val inputEvent = event.inputEvent
     if (inputEvent == null) {
