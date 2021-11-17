@@ -42,6 +42,7 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.SpeedSearchComparator
+import com.intellij.ui.TableActions
 import com.intellij.ui.TreeActions
 import com.intellij.ui.treeStructure.Tree
 import java.awt.event.ActionEvent
@@ -63,6 +64,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var layoutInspector: LayoutInspector? = null
   @VisibleForTesting
   val tree: Tree
+  @VisibleForTesting
+  val focusComponent: JComponent
   private val componentTreePanel: JComponent
   private val componentTreeModel: ComponentTreeModel
   private val nodeType = InspectorViewNodeType()
@@ -106,6 +109,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val result = builder.build()
     componentTreePanel = result.component
     tree = result.tree
+    focusComponent = result.focusComponent
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
@@ -118,7 +122,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
-    tree.addKeyListener(object : KeyAdapter() {
+    focusComponent.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.toInt())) {
           toolWindowCallback?.startFiltering(event.keyChar.toString())
@@ -139,14 +143,16 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     )
   }
 
-  private fun installKeyboardActions(tree: JComponent) {
+  private fun installKeyboardActions(focusedComponent: JComponent) {
+    val (down, up) =
+      if (focusedComponent is JTree) Pair(TreeActions.Down.ID, TreeActions.Up.ID) else Pair(TableActions.Down.ID, TableActions.Up.ID)
     if (downAction == null) {
       // Save the default up and down actions:
-      downAction = tree.actionMap.get(TreeActions.Down.ID)
-      upAction = tree.actionMap.get(TreeActions.Up.ID)
+      downAction = focusedComponent.actionMap.get(down)
+      upAction = focusedComponent.actionMap.get(up)
     }
-    tree.actionMap.put(TreeActions.Down.ID, TreeAction(::nextMatch))
-    tree.actionMap.put(TreeActions.Up.ID, TreeAction(::previousMatch))
+    focusedComponent.actionMap.put(down, TreeAction(::nextMatch))
+    focusedComponent.actionMap.put(up, TreeAction(::previousMatch))
   }
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
@@ -193,10 +199,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     for (i in 0 until nodeCount) {
       // Select the next matching node, wrapping at the last node, and starting with the current selection:
       if (matchAndSelectNode(nodes[Math.floorMod(startIndex + i, nodeCount)])) {
+        componentTreePanel.repaint()
         return
       }
     }
-    tree.repaint()
+    componentTreePanel.repaint()
   }
 
   override fun isFilteringActive(): Boolean {
@@ -300,7 +307,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           event.consume()
         }
         KeyEvent.VK_ENTER -> {
-          tree.requestFocusInWindow()
+          focusComponent.requestFocusInWindow()
           toolWindowCallback?.stopFiltering()
           event.consume()
         }

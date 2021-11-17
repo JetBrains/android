@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.impl
+package com.android.tools.componenttree.treetable
 
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.intellij.util.containers.ContainerUtil
-import javax.swing.event.TreeSelectionEvent
+import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreePath
 
 /**
  * A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree paths.
  */
-class ComponentTreeSelectionModelImpl(
-  private val model: ComponentTreeModelImpl,
-  selectionMode: Int
-): ComponentTreeSelectionModel, DefaultTreeSelectionModel() {
+class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentTreeSelectionModel {
   private val selectionListeners: MutableList<(List<Any>) -> Unit> = ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
 
   init {
-    this.selectionMode = selectionMode
+    table.selectionModel.addListSelectionListener {
+      if (!isUpdating) {
+        val newSelection = currentSelection
+        selectionListeners.forEach { it.invoke(newSelection) }
+      }
+    }
   }
 
   override var currentSelection: List<Any>
-    get() = selectionPaths.map { it.lastPathComponent }
+    get() = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }
     set(value) {
-      val oldValue = selectionPaths.map { it.lastPathComponent }
+      val oldValue = currentSelection
       if (value != oldValue) {
         isUpdating = true
         try {
-          selectionPaths = value.map { createTreePath(it) }.toTypedArray()
+          // First expand the selected nodes in the tree
+          val paths = value.map { createTreePath(it) }
+          val parentPaths = paths.mapNotNull { it.parentPath }
+          TreeUtil.restoreExpandedPaths(table.tree, parentPaths)
+
+          // Then set the selection in the table
+          table.selectionModel.clearSelection()
+          paths.map { table.tree.getRowForPath(it) }.forEach { table.selectionModel.addSelectionInterval(it, it) }
           fireAutoScroll()
         }
         finally {
@@ -51,6 +60,19 @@ class ComponentTreeSelectionModelImpl(
         }
       }
     }
+
+  fun keepSelectionDuring(operation: () -> Unit) {
+    val oldSelection = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }
+
+    isUpdating = true
+    try {
+      operation()
+    }
+    finally {
+      isUpdating = false
+    }
+    currentSelection = oldSelection
+  }
 
   override fun addSelectionListener(listener: (List<Any>) -> Unit) {
     selectionListeners.add(listener)
@@ -68,32 +90,12 @@ class ComponentTreeSelectionModelImpl(
     autoScrollListeners.remove(listener)
   }
 
-  fun keepSelectionDuring(operation: () -> Unit) {
-    val oldSelection: List<Any> = currentSelection
-    isUpdating = true
-    try {
-      operation()
-    }
-    finally {
-      isUpdating = false
-    }
-    currentSelection = oldSelection
-  }
-
-  override fun fireValueChanged(event: TreeSelectionEvent) {
-    super.fireValueChanged(event)
-    if (!isUpdating) {
-      val newSelection = event.paths.filter { event.isAddedPath(it) }.map { it.lastPathComponent }
-      selectionListeners.forEach { it.invoke(newSelection) }
-    }
-  }
-
   private fun fireAutoScroll() {
     autoScrollListeners.forEach { it.invoke() }
   }
 
   private fun createTreePath(node: Any): TreePath {
-    val path = generateSequence(node) { model.parent(it) }
+    val path = generateSequence(node) { table.tableModel.parent(it) }
     return TreePath(path.toList().asReversed().toTypedArray())
   }
 }

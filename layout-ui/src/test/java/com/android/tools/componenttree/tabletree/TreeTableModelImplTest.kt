@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.impl
+package com.android.tools.componenttree.tabletree
 
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FQCN_BUTTON
@@ -22,6 +22,9 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.componenttree.common.ViewTreeCellRenderer
+import com.android.tools.componenttree.treetable.TreeTableImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImplListener
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
@@ -38,10 +41,9 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
-import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
-class ComponentTreeModelImplTest {
+class TreeTableModelImplTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(ApplicationRule()).around(EdtRule())!!
@@ -52,9 +54,19 @@ class ComponentTreeModelImplTest {
   private val item2 = Item(FQCN_TEXT_VIEW)
   private val item3 = Item(FQCN_BUTTON)
   private val count = NotificationCount()
-  private val model = ComponentTreeModelImpl(mapOf(Pair(Item::class.java, ItemNodeType()),
-                                                   Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
-  private val selectionModel = ComponentTreeSelectionModelImpl(model, TreeSelectionModel.SINGLE_TREE_SELECTION)
+  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, ItemNodeType()),
+                                                         Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
+  private val table = TreeTableImpl(
+    model,
+    contextPopup = { _, _, _ -> },
+    doubleClick = {},
+    painter = null,
+    installKeyboardActions = {},
+    treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
+    installTreeSearch = false,
+    autoScroll = false
+  )
+  private val selectionModel = table.treeTableSelectionModel
 
   @Before
   fun setUp() {
@@ -137,44 +149,80 @@ class ComponentTreeModelImplTest {
   fun testNoSelectionNotificationFromModel() {
     // setup
     var selectionChangeCount = 0
+    var tableSelectionChangeCount = 0
     var treeSelectionChangeCount = 0
     var autoScrollCount = 0
     model.treeRoot = item1
     UIUtil.dispatchAllInvocationEvents()
     model.addTreeModelListener(count)
     selectionModel.addSelectionListener { selectionChangeCount++ }
-    selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
+    table.selectionModel.addListSelectionListener { tableSelectionChangeCount++ }
+    table.tree.selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
     selectionModel.addAutoScrollListener { autoScrollCount++ }
 
     // test
     selectionModel.currentSelection = listOf(item2)
     assertThat(selectionChangeCount).isEqualTo(0)
+    assertThat(tableSelectionChangeCount).isEqualTo(1)
     assertThat(treeSelectionChangeCount).isEqualTo(1)
     assertThat(autoScrollCount).isEqualTo(1)
     assertThat(count.anyChanges()).isFalse()
+    assertThat(table.rowCount).isEqualTo(3)
+    assertThat(table.selectedRow).isEqualTo(1)
     assertThat(selectionModel.currentSelection).containsExactly(item2)
   }
 
   @RunsInEdt
   @Test
-  fun testSelectionNotificationFromTree() {
+  fun testNoSelectionNotificationFromModelOfCollapsedNode() {
+    // setup
     var selectionChangeCount = 0
+    var tableSelectionChangeCount = 0
     var treeSelectionChangeCount = 0
     var autoScrollCount = 0
     model.treeRoot = item1
     UIUtil.dispatchAllInvocationEvents()
     model.addTreeModelListener(count)
     selectionModel.addSelectionListener { selectionChangeCount++ }
-    selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
+    table.selectionModel.addListSelectionListener { tableSelectionChangeCount++ }
+    table.tree.selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
     selectionModel.addAutoScrollListener { autoScrollCount++ }
 
     // test
-    selectionModel.selectionPath = TreePath(arrayOf(item1, item2, style1))
+    selectionModel.currentSelection = listOf(style2)
+    assertThat(selectionChangeCount).isEqualTo(0)
+    assertThat(tableSelectionChangeCount).isEqualTo(1)
+    assertThat(treeSelectionChangeCount).isEqualTo(1)
+    assertThat(autoScrollCount).isEqualTo(1)
+    assertThat(count.anyChanges()).isFalse()
+    assertThat(table.rowCount).isEqualTo(5)
+    assertThat(table.selectedRow).isEqualTo(3)
+    assertThat(selectionModel.currentSelection).containsExactly(style2)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSelectionNotificationFromTable() {
+    var selectionChangeCount = 0
+    var tableSelectionChangeCount = 0
+    var treeSelectionChangeCount = 0
+    var autoScrollCount = 0
+    model.treeRoot = item1
+    UIUtil.dispatchAllInvocationEvents()
+    model.addTreeModelListener(count)
+    selectionModel.addSelectionListener { selectionChangeCount++ }
+    table.selectionModel.addListSelectionListener { tableSelectionChangeCount++ }
+    table.tree.selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
+    selectionModel.addAutoScrollListener { autoScrollCount++ }
+
+    // test
+    table.selectionModel.setSelectionInterval(2, 2)
+    assertThat(tableSelectionChangeCount).isEqualTo(1)
     assertThat(selectionChangeCount).isEqualTo(1)
     assertThat(treeSelectionChangeCount).isEqualTo(1)
     assertThat(autoScrollCount).isEqualTo(0)
     assertThat(count.anyChanges()).isFalse()
-    assertThat(selectionModel.currentSelection).containsExactly(style1)
+    assertThat(selectionModel.currentSelection).containsExactly(item3)
   }
 
   @Test
@@ -186,7 +234,7 @@ class ComponentTreeModelImplTest {
     assertThat(model.computeDepth(style2)).isEqualTo(4)
   }
 
-  private class NotificationCount : ComponentTreeModelListener {
+  private class NotificationCount : TreeTableModelImplListener {
     var inserted = 0
     var structureChanges = 0
     var nodesChanged = 0

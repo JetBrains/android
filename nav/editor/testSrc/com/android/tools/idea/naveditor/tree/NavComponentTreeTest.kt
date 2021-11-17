@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
@@ -57,6 +58,7 @@ class NavComponentTreeTest : NavTestCase() {
 
     panel = TreePanel()
     panel.setToolContext(surface)
+    UIUtil.dispatchAllInvocationEvents()
 
     treeModel = panel.componentTreeModel
     selectionModel = panel.componentTreeSelectionModel
@@ -94,7 +96,7 @@ class NavComponentTreeTest : NavTestCase() {
     val component = id.map { model.find(it)!! }
     surface.selectionModel.setSelection(component.toList())
 
-    assertThat(component).containsExactlyElementsIn(selectionModel.currentSelection).inOrder()
+    assertThat(component).containsExactlyElementsIn(selectionModel.currentSelection)
 
     val expectedNavigation = model.find(expectedRoot)!!
     assertEquals(surface.currentNavigation, expectedNavigation)

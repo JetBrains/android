@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.impl
+package com.android.tools.componenttree.tabletree
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.componenttree.api.ContextPopupHandler
-import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.common.ViewTreeCellRenderer.ColoredViewRenderer
+import com.android.tools.componenttree.treetable.TreeTableImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -36,9 +35,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
-import java.awt.Component
-import java.awt.Point
-import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JTree
@@ -54,13 +50,11 @@ class ViewTreeCellRendererTest {
   val appRule = ApplicationRule()
 
   private val type = ItemNodeType()
-  private val contextPopupHandler: ContextPopupHandler = { _, _, _ -> }
-  private val doubleClickHandler: DoubleClickHandler = { }
   private val renderer = ViewTreeCellRenderer(type)
 
-  private val model = ComponentTreeModelImpl(mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
-  private val selectionModel = ComponentTreeSelectionModelImpl(model, TreeSelectionModel.SINGLE_TREE_SELECTION)
-  private var tree: TreeImpl? = null
+  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
+  private var table: TreeTableImpl? = null
+  private var tree: JTree? = null
 
   private val normal = SimpleTextAttributes.REGULAR_ATTRIBUTES
   private val bold = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
@@ -68,13 +62,22 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
-    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree", null, installKeyboardActions = {},
-                    selectionModel, autoScroll = false, installTreeSearch = false)
-    tree!!.expandableTreeItemsHandler = TestTreeExpansionHandler(tree!!)
+    table = TreeTableImpl(
+      model,
+      contextPopup = { _, _, _ -> },
+      doubleClick = {},
+      painter = null,
+      installKeyboardActions = {},
+      treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
+      installTreeSearch = false,
+      autoScroll = false
+    )
+    tree = table!!.tree
   }
 
   @After
   fun tearDown() {
+    table = null
     tree = null
   }
 
@@ -137,19 +140,6 @@ class ViewTreeCellRendererTest {
     val fragments = getFragments(component)
     checkFragment(fragments[0], Fragment("text", bold))
     assertThat(fragments[1].text).endsWith("...")
-  }
-
-  @Test
-  fun testFragmentsWithLessThanOptimalSpaceAndRowExpanded() {
-    (tree?.expandableItemsHandler as TestTreeExpansionHandler).expandedRow = TEST_ROW
-    tree?.overrideHasApplicationFocus = { true }
-    val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    val component = renderAndCheckFragments(item, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
-    val size = component.preferredSize
-    size.width -= 3
-    tree!!.size = size
-    component.adjustForPainting()
-    checkFragments(component, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
   }
 
   @Test
@@ -267,20 +257,4 @@ class ViewTreeCellRendererTest {
     val text: String,
     val attr: SimpleTextAttributes
   )
-
-  private class TestTreeExpansionHandler(tree: JTree) : AbstractExpandableItemsHandler<Int, JTree>(tree) {
-    var expandedRow = -1
-
-    override fun getCellRendererAndBounds(key: Int?): com.intellij.openapi.util.Pair<Component, Rectangle>? {
-      return null
-    }
-
-    override fun getCellKeyForPoint(point: Point?): Int {
-      return -1
-    }
-
-    override fun getExpandedItems(): Collection<Int> {
-      return listOf(expandedRow)
-    }
-  }
 }

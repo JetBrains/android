@@ -51,6 +51,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class TreeSettingsActionsTest {
@@ -92,10 +93,10 @@ class TreeSettingsActionsTest {
     assertThat(SupportLines.isSelected(event)).isEqualTo(defaultValue)
     SupportLines.setSelected(event, !defaultValue)
     assertThat(treeSettings.supportLines).isEqualTo(!defaultValue)
-    verify(event.tree())!!.repaint()
+    verify(event.treePanel()?.component)!!.repaint()
     SupportLines.setSelected(event, defaultValue)
     assertThat(treeSettings.supportLines).isEqualTo(defaultValue)
-    verify(event.tree(), times(2))!!.repaint()
+    verify(event.treePanel()?.component, times(2))!!.repaint()
   }
 
   @Test
@@ -164,6 +165,7 @@ class TreeSettingsActionsTest {
 
   private fun createEvent(): AnActionEvent {
     val tree: Tree = mock()
+    val component: JComponent = mock()
     val treePanel: LayoutInspectorTreePanel = mock()
     val panel = JPanel()
     panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
@@ -174,6 +176,7 @@ class TreeSettingsActionsTest {
     val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     `when`(inspector.treeSettings).thenReturn(treeSettings)
     `when`(treePanel.tree).thenReturn(tree)
+    `when`(treePanel.component).thenReturn(component)
 
     val model = model {
       view(ROOT) {

@@ -119,7 +119,7 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspector.get(event)?.treeSettings?.supportLines = state
-    event.tree()?.repaint()
+    event.treePanel()?.component?.repaint()
   }
 }
 

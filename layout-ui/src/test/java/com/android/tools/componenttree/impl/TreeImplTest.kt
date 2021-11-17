@@ -2,6 +2,7 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
+import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -14,6 +15,7 @@ import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
@@ -31,15 +33,11 @@ import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
-import sun.awt.AWTAccessor
 import java.awt.Component
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
-import java.awt.peer.ComponentPeer
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -52,6 +50,9 @@ class TreeImplTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val flagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, false)
 
   @get:Rule
   val portableUiFontRule = SetPortableUiFontRule()
@@ -223,9 +224,8 @@ class TreeImplTest {
   fun testHoverOnEmptyPartOfTree() {
     val tree = createTree()
     setScrollPaneSize(tree, 90, 700)
-    setPeer(tree)
     tree.overrideHasApplicationFocus = { true }
-    val ui = FakeUi(tree)
+    val ui = FakeUi(tree, createFakeWindow = true)
     ui.mouse.moveTo(10, 690)
     getAlarm(tree).drainRequestsInTest()
     assertThat(tree.expandableTreeItemsHandler.expandedItems).isEmpty()
@@ -289,13 +289,6 @@ class TreeImplTest {
       .withoutTreeSearch()
       .withInvokeLaterOption { it.run() }
       .build().component as JScrollPane
-  }
-
-  private fun setPeer(component: Component) {
-    val peer = mock(ComponentPeer::class.java)
-    `when`(peer.locationOnScreen).thenReturn(Point(0, 0))
-    AWTAccessor.getComponentAccessor().setPeer(component, peer)
-    component.parent?.let { setPeer(it) }
   }
 
   private fun getAlarm(tree: TreeImpl): Alarm =

@@ -18,8 +18,10 @@ package com.android.tools.componenttree.api
 import com.android.tools.componenttree.impl.ComponentTreeModelImpl
 import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
+import com.android.tools.componenttree.treetable.TreeTableImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImpl
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
@@ -28,7 +30,8 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
-import javax.swing.tree.TreeSelectionModel
+import javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
+import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 
 /**
  * A Handler which will display a context popup menu.
@@ -47,7 +50,7 @@ class ComponentTreeBuilder {
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
-  private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+  private var selectionMode = SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
   private var installTreeSearch = true
   private var isRootVisible = true
@@ -67,7 +70,7 @@ class ComponentTreeBuilder {
   /**
    * Allow multiple nodes to be selected in the tree (default is a single selection).
    */
-  fun withMultipleSelection() = apply { selectionMode = TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION }
+  fun withMultipleSelection() = apply { selectionMode = DISCONTIGUOUS_TREE_SELECTION }
 
   /**
    * Add a context popup menu on the tree node item.
@@ -141,27 +144,37 @@ class ComponentTreeBuilder {
   /**
    * Build the tree component and return it with the tree model.
    */
-  fun build(): ComponentTreeBuildResult {
+  fun build(): ComponentTreeBuildResult =
+    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) buildTreeTable() else buildTree()
+
+  private fun buildTree(): ComponentTreeBuildResult {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
-    val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions)
+    val selectionModel = ComponentTreeSelectionModelImpl(model, selectionMode)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions, selectionModel,
+                        autoScroll, installTreeSearch)
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
-    if (installTreeSearch) {
-      TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
-    }
-    selectionModel.selectionMode = selectionMode
-    if (autoScroll) {
-      selectionModel.addAutoScrollListener {
-        tree.selectionRows?.singleOrNull()?.let { tree.scrollRowToVisible(it) }
-      }
-    }
-    tree.selectionModel = selectionModel
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
     return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel)
+  }
+
+  private fun buildTreeTable(): ComponentTreeBuildResult {
+    val model = TreeTableModelImpl(badges, nodeTypeMap, invokeLater)
+    val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
+                              installTreeSearch)
+    table.name = componentName // For UI tests
+    val tree = table.tree
+    tree.toggleClickCount = toggleClickCount
+    tree.isRootVisible = isRootVisible
+    tree.showsRootHandles = !isRootVisible || showRootHandles
+
+    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
+    val scrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
+    scrollPane.border = JBUI.Borders.empty()
+    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel)
   }
 }
 
@@ -177,12 +190,16 @@ class ComponentTreeBuildResult(
   /**
    * The component that has focus in the component tree.
    *
-   * Note: This will be identical to [tree] in the current implementation.
+   * Note: This will be:
+   * - the [tree] component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is false
+   * - the TreeTable component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is true
    */
   val focusComponent: JComponent,
 
   /**
    * The Tree component of the component tree.
+   *
+   * Note: the Tree instance may be just be a renderer instance, and may not have a parent component.
    */
   val tree: Tree,
 

@@ -27,6 +27,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
@@ -81,6 +82,7 @@ import org.mockito.Mockito.verify
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import javax.swing.JTable
 
 private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
@@ -88,17 +90,23 @@ private const val USER_PKG = 123
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
-class LayoutInspectorTreePanelTest {
+class LayoutInspectorTreePanelTreeTest : LayoutInspectorTreePanelTest(useTreeTable = false)
+
+@RunsInEdt
+class LayoutInspectorTreePanelTreeTableTest : LayoutInspectorTreePanelTest(useTreeTable = true)
+
+abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
   private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { it.name == PROCESS.name }
-  private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+  private val semanticsRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+  private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, useTreeTable)
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(setFlagRule)
-    .around(EdtRule()).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(fileOpenCaptureRule).around(semanticsRule)
+    .around(treeRule).around(EdtRule()).around(disposableRule)!!
 
   @Before
   fun setUp() {
@@ -207,14 +215,16 @@ class LayoutInspectorTreePanelTest {
     val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     setToolContext(panel, inspector)
-
-    val tree = panel.tree
-    tree.setUI(HeadlessTreeUI())
-    tree.setBounds(0, 0, 500, 1000)
-    val ui = FakeUi(tree)
     UIUtil.dispatchAllInvocationEvents()
+
+    val focusComponent = panel.focusComponent
+    val tree = panel.tree
+    (focusComponent as? JTable)?.setUI(HeadlessTableUI())
+    tree.setUI(HeadlessTreeUI())
+    focusComponent.setBounds(0, 0, 500, 1000)
     TreeUtil.expandAll(tree)
     val bounds = tree.getRowBounds(1)
+    val ui = FakeUi(focusComponent)
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
@@ -305,14 +315,13 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testSelectFromComponentTree() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = false
-    setToolContext(tree, inspector)
-    val jtree = tree.tree
+    setToolContext(panel, inspector)
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.promiseExpandAll(jtree).blockingGet(10, TimeUnit.SECONDS)
+    TreeUtil.promiseExpandAll(panel.tree).blockingGet(10, TimeUnit.SECONDS)
 
     var selectedView: ViewNode? = null
     var selectionOrigin = SelectionOrigin.INTERNAL
@@ -321,7 +330,13 @@ class LayoutInspectorTreePanelTest {
       selectionOrigin = origin
     }
 
-    jtree.setSelectionRow(2)
+    val table = panel.focusComponent as? JTable
+    if (table != null) {
+      table.addRowSelectionInterval(2, 2)
+    }
+    else {
+      panel.tree.setSelectionRow(2)
+    }
     assertThat(selectionOrigin).isEqualTo(SelectionOrigin.COMPONENT_TREE)
     assertThat(selectedView?.drawId).isEqualTo(VIEW2)
     assertThat(selectedView?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
@@ -478,16 +493,16 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun keyTypedStartsFiltering() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.hideSystemNodes = false
-    setToolContext(tree, inspector)
+    setToolContext(panel, inspector)
     UIUtil.dispatchAllInvocationEvents()
 
     val callbacks: ToolWindowCallback = mock()
-    tree.registerCallbacks(callbacks)
-    val ui = FakeUi(tree.tree)
-    ui.keyboard.setFocus(tree.tree)
+    panel.registerCallbacks(callbacks)
+    val ui = FakeUi(panel.focusComponent)
+    ui.keyboard.setFocus(panel.focusComponent)
     ui.keyboard.type('T'.toInt())
     verify(callbacks).startFiltering("T")
   }
@@ -577,7 +592,9 @@ class LayoutInspectorTreePanelTest {
         }
       }
     }
+
     model.update(window, listOf(ROOT), 1)
+    UIUtil.dispatchAllInvocationEvents()
 
     // Turn on highlightSemantics
     inspector.treeSettings.highlightSemantics = true
@@ -602,8 +619,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(model.selection).isSameAs(selection?.view)
 
     // Simulate a down arrow keyboard event in the tree: the next node with semantic information should be selected
-    val ui = FakeUi(tree)
-    ui.keyboard.setFocus(tree)
+    val ui = FakeUi(treePanel.focusComponent)
+    ui.keyboard.setFocus(treePanel.focusComponent)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(selection?.view?.qualifiedName).isEqualTo("Column")

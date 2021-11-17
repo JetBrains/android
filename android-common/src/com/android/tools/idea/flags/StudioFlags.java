@@ -200,6 +200,9 @@ public final class StudioFlags {
     DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
     "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
     true);
+  public static final Flag<Boolean> USE_COMPONENT_TREE_TABLE = Flag.create(
+    DESIGN_TOOLS, "design.component.tree.table", "Enable TreeTable implementation of component tree",
+    "Use a TreeTable for displaying the component tree in the LayoutInspector and the Nav editor.", false);
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
@@ -802,7 +805,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
     "Enable saving and loading snapshots in the layout inspector.", true);
-
   //endregion
 
   //region Embedded Emulator

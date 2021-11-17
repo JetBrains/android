@@ -25,6 +25,7 @@ import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.ide.ui.laf.IntelliJLaf
@@ -32,12 +33,17 @@ import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.options.advanced.AdvancedSettingBean
+import com.intellij.openapi.options.advanced.AdvancedSettingType
+import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.WindowManagerImpl
+import com.intellij.testFramework.registerExtension
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -68,6 +74,7 @@ object ComponentTreeManualTest {
     startTestApplication()
     IconLoader.activate()
     invokeLater {
+      StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
       val test = ComponentTreeTest()
       test.start()
     }
@@ -79,6 +86,17 @@ object ComponentTreeManualTest {
     ApplicationManager.setApplication(app, disposable)
     app.registerService(DataManager::class.java, DataManagerImpl())
     app.registerService(WindowManager::class.java, WindowManagerImpl())
+    @Suppress("UnstableApiUsage")
+    app.extensionArea.registerExtensionPoint(AdvancedSettingBean.EP_NAME.name, AdvancedSettingBean::class.java.name,
+                                             ExtensionPoint.Kind.BEAN_CLASS, false)
+    app.registerExtension(AdvancedSettingBean.EP_NAME, AdvancedSettingBean(), disposable)
+    val settings = object : AdvancedSettings() {
+      override fun getSetting(id: String) = false
+      override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
+        TODO("Not yet implemented")
+      }
+    }
+    app.registerService(AdvancedSettings::class.java, settings)
     return app
   }
 }
@@ -100,7 +118,6 @@ private class ComponentTreeTest {
 
     val result = ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
-      .withMultipleSelection()
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
       .withBadgeSupport(badge1)

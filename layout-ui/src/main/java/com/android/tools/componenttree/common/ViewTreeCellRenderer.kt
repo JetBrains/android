@@ -20,10 +20,13 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.componenttree.impl.TreeImpl
+import com.android.tools.componenttree.treetable.TreeTableImpl
+import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
+import com.intellij.ui.treeStructure.treetable.TreeTableTree
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -274,9 +277,10 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
  * TODO: Remove when TreeImpl is removed
  */
 fun JTree.computeDepth(item: Any?): Int = when (this) {
-                                            is TreeImpl -> model?.computeDepth(item)
-                                            else -> null
-                                          } ?: 1
+  is TreeImpl -> model?.computeDepth(item)
+  is TreeTableTree -> (treeTable.tableModel as? TreeTableModelImpl)?.computeDepth(item)
+  else -> null
+} ?: 1
 
 /**
  * Utility for returning the max render width for a view tree renderer at a specified [depth].
@@ -285,6 +289,7 @@ fun JTree.computeDepth(item: Any?): Int = when (this) {
  */
 fun JTree.computeMaxRenderWidth(depth: Int): Int = when(this) {
   is TreeImpl -> computeMaxRenderWidth(depth)
+  is TreeTableTree -> (treeTable as TreeTableImpl).computeMaxRenderWidth(depth)
   else -> 0
 }
 
@@ -295,6 +300,6 @@ fun JTree.computeMaxRenderWidth(depth: Int): Int = when(this) {
  */
 fun JTree.isRowCurrentlyExpanded(row: Int): Boolean = when(this) {
   is TreeImpl -> isRowCurrentlyExpanded(row)
-  else -> false
+  else -> false  // Not needed for the TreeTable
 }
 

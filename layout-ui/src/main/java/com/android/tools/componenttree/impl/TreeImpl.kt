@@ -25,6 +25,7 @@ import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.EmptyIcon
@@ -59,7 +60,10 @@ class TreeImpl(
   private val badges: List<BadgeItem>,
   componentName: String,
   private val painter: (() -> Control.Painter?)?,
-  private val installKeyboardActions: (JComponent) -> Unit
+  private val installKeyboardActions: (JComponent) -> Unit,
+  treeSelectionModel: ComponentTreeSelectionModelImpl,
+  autoScroll: Boolean,
+  installTreeSearch: Boolean
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
@@ -90,6 +94,15 @@ class TreeImpl(
         updateTree(event)
       }
     })
+    selectionModel = treeSelectionModel
+    if (autoScroll) {
+      treeSelectionModel.addAutoScrollListener {
+        selectionRows?.singleOrNull()?.let { scrollRowToVisible(it) }
+      }
+    }
+    if (installTreeSearch) {
+      TreeSpeedSearch(this) { componentTreeModel.toSearchString(it.lastPathComponent) }
+    }
     initialized = true
 
     // JTree.updateUI() is called before setModel in JTree, which causes some model listeners not to be installed.

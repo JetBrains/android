@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.impl
+package com.android.tools.componenttree.treetable
 
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 
-interface ComponentTreeModelListener : TreeModelListener {
+interface TreeTableModelImplListener : TreeModelListener {
 
   /**
    * Invoked after the tree root has changed.
@@ -30,7 +30,7 @@ interface ComponentTreeModelListener : TreeModelListener {
   fun treeChanged(event: TreeModelEvent)
 }
 
-abstract class ComponentTreeModelAdapter : ComponentTreeModelListener {
+abstract class TreeTableModelImplAdapter : TreeTableModelImplListener {
   override fun treeChanged(event: TreeModelEvent) {}
 
   override fun treeNodesInserted(event: TreeModelEvent?) {}
