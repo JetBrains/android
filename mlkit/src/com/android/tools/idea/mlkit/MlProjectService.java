@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.android.tools.idea.mlkit.MlModuleService.getProjectDependencies;
+
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
@@ -59,7 +61,7 @@ public final class MlProjectService {
         }
       }
       return CachedValueProvider.Result.create(
-        lightClassMap, ProjectMlModelFileTracker.getInstance(myProject), ModuleManager.getInstance(project));
+        lightClassMap, getProjectDependencies(myProject));
     });
   }
 

@@ -16,12 +16,16 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.mlkit.MlNames;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -30,6 +34,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -90,7 +95,7 @@ public class MlModuleService {
           lightModelClassList.add(lightModelClass);
         }
       }
-      return CachedValueProvider.Result.create(lightModelClassList, ProjectMlModelFileTracker.getInstance(myModule.getProject()));
+      return CachedValueProvider.Result.create(lightModelClassList, getProjectDependencies(myModule.getProject()));
     });
   }
 
@@ -120,5 +125,12 @@ public class MlModuleService {
         new LightModelClassConfig(modelMetadata, packageName + MlNames.PACKAGE_SUFFIX, className);
       return new LightModelClass(myModule, modelFile, classConfig);
     });
+  }
+
+  static Collection<Object> getProjectDependencies(@NotNull Project project) {
+    return Lists.newArrayList(ProjectMlModelFileTracker.getInstance(project),
+                              DumbService.getInstance(project).getModificationTracker(),
+                              ModuleManager.getInstance(project),
+                              ProjectSyncModificationTracker.getInstance(project));
   }
 }
