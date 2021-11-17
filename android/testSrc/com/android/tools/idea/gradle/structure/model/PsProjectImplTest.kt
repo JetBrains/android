@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile
+import com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile
 import com.intellij.openapi.application.runWriteAction
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo

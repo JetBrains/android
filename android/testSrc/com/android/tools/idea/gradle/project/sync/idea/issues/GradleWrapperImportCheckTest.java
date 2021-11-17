@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 

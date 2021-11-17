@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.util.*;
 import org.jetbrains.annotations.SystemIndependent;
 
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;

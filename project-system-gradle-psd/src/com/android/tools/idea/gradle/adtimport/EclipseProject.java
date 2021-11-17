@@ -52,7 +52,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.util.PropertiesFiles;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;

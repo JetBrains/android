@@ -51,7 +51,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.testing.AndroidGradleTests;
-import com.android.tools.idea.util.PropertiesFiles;
+import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
