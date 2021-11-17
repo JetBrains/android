@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 @file:JvmName("FormFactorUtils")
 
-package com.android.tools.idea.util
+package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.adtui.device.FormFactor
 import java.awt.image.BufferedImage

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.util.FormFactorUtils;
 import com.intellij.ui.components.JBLabel;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URI;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 /**
  * If no AVDs are present on the system, the {@link com.android.tools.idea.avdmanager.AvdListDialog} will display
@@ -45,7 +46,8 @@ public class EmptyAvdListPanel extends JPanel {
       public void mouseClicked(MouseEvent e) {
         try {
           Desktop.getDesktop().browse(new URI("https://developer.android.com/about/dashboards/index.html"));
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
           // Pass;
         }
       }
