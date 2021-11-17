@@ -159,7 +159,8 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
-      override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
+      override val literals: List<ValueDescriptor<String>> =
+        it.sortedByDescending { GradleVersion.tryParse(it) }.map { ValueDescriptor(it) }
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }
