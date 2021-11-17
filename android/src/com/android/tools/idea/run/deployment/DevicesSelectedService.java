@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.util.xmlb.InstantConverter;
+import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
