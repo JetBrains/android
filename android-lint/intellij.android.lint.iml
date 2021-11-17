@@ -24,5 +24,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="android.sdktools.resource-repository" />
     <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
   </component>
 </module>
