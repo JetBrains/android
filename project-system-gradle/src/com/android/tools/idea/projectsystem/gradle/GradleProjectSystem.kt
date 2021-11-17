@@ -138,8 +138,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       androidFacet,
       isTestConfiguration,
       androidModel,
-      androidModel.selectedVariant,
-      PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) }
+      androidModel.selectedVariant
     )
   }
 
@@ -180,8 +179,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         androidFacet,
         forTests,
         androidModel,
-        androidModel.selectedVariant,
-        postBuildModelProvider
+        androidModel.selectedVariant
       ),
       postBuildModelProvider,
       forTests,

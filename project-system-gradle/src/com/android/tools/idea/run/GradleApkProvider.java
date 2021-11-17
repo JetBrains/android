@@ -474,7 +474,7 @@ public class GradleApkProvider implements ApkProvider {
 
       File targetApk = getApk(targetVariant.getName(), targetVariant.getMainArtifact(), deviceAbis, deviceVersion, targetFacet);
 
-      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant, myOutputModelProvider).getPackageName();
+      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant).getPackageName();
       targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 
