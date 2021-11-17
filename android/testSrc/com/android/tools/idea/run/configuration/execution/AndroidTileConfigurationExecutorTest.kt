@@ -18,101 +18,123 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.tools.deployer.model.App
-import com.android.tools.deployer.model.component.AppComponent
-import com.android.tools.deployer.model.component.ComponentType
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
+import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
-import org.mockito.Mockito.doReturn
 import org.mockito.invocation.InvocationOnMock
 
 class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
-  override fun setUp() {
-    super.setUp()
-    mockConsole()
-  }
 
-  fun test() {
+  private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidTileConfigurationType().configurationFactories.single())
+      "run Tile", AndroidTileConfigurationType().configurationFactories.single())
     val androidTileConfiguration = configSettings.configuration as AndroidTileConfiguration
     androidTileConfiguration.setModule(myModule)
-    androidTileConfiguration.componentName = "p1.p2.MyComponent"
-    // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
+    androidTileConfiguration.componentName = componentName
+    // Use debug executor
+    return ExecutionEnvironment(executorInstance, AndroidWearProgramRunner(), configSettings, project)
+  }
 
-    // Mock app component activation.
-    val app = Mockito.mock(App::class.java)
-    Mockito.doAnswer { invocation: InvocationOnMock ->
-      // get the 4th arg (the receiver to feed it the lines).
-      val receiver = invocation.getArgument<MultiLineReceiver>(3)
-      // Test TileIndexReceiver.
-      receiver.processNewLines(arrayOf("Index=[1]"))
-    }.`when`(app)
-      // Test that we call activateComponent with right params.
-      .activateComponent(eq(ComponentType.TILE), eq("p1.p2.MyComponent"), eq(AppComponent.Mode.RUN), any(IShellOutputReceiver::class.java))
+  fun testRun() {
+    // Use DefaultRunExecutor, equivalent of pressing run button.
+    val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
 
     val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
-    // Mock installation that returns app.
-    val appInstaller = TestApplicationInstaller(appId, app)
-    Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
 
     val device = getMockDevice()
+
+    Mockito.doAnswer { invocation: InvocationOnMock ->
+      // get the 4th arg (the receiver to feed it the lines).
+      val receiver = invocation.getArgument<MultiLineReceiver>(1)
+      // Test TileIndexReceiver.
+      receiver.processNewLines(arrayOf("Index=[1]"))
+    }.`when`(device)
+      // Test that we call activateComponent with right params.
+      .executeShellCommand(MockitoKt.eq(
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component"),
+                           MockitoKt.any(IShellOutputReceiver::class.java),
+                           MockitoKt.any(),
+                           MockitoKt.any())
+
+    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val appInstaller = TestApplicationInstaller(appId, app)
+    // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+
     executor.doOnDevices(listOf(device))
 
-    // Test final command of showing Tile after installation and activation.
-    Mockito.verify(device).executeShellCommand(
-      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1"),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
+    // Verify commands sent to device.
+    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    Mockito.verify(device, Mockito.times(2)).executeShellCommand(
+      commandsCaptor.capture(),
+      MockitoKt.any(IShellOutputReceiver::class.java),
+      MockitoKt.any(),
+      MockitoKt.any()
     )
+    val commands = commandsCaptor.allValues
+
+    // Set Tile.
+    assertThat(commands[0]).isEqualTo(
+      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
+    // Showing Tile.
+    assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1")
   }
 
   fun testDebug() {
-    val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run tile", AndroidTileConfigurationType().configurationFactories.single())
-    val androidTileConfiguration = configSettings.configuration as AndroidTileConfiguration
-    androidTileConfiguration.setModule(myModule)
-    androidTileConfiguration.componentName = "p1.p2.MyComponent"
-    // Use debug executor
-    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
+    // Use DefaultRunExecutor, equivalent of pressing debug button.
+    val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    // Mock app component activation.
-    val app = Mockito.mock(App::class.java)
-    Mockito.doAnswer { invocation: InvocationOnMock ->
-      // get the 4th arg (the receiver to feed it the lines).
-      val receiver = invocation.getArgument<MultiLineReceiver>(3)
-      // Test TileIndexReceiver.
-      receiver.processNewLines(arrayOf("Index=[1]"))
-    }.`when`(app)
-      // Test that we call activateComponent with right params.
-      .activateComponent(eq(ComponentType.TILE), eq("p1.p2.MyComponent"), eq(AppComponent.Mode.DEBUG),
-                         any(IShellOutputReceiver::class.java))
-
+    // Executor we test.
     val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
-    // Mock installation that returns app.
-    doReturn(TestApplicationInstaller(appId, app)).`when`(executor).getApplicationInstaller()
-    // Mock debugSessionStarter.
-    doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
     val device = getMockDevice()
+
+    Mockito.doAnswer { invocation: InvocationOnMock ->
+      // get the 4th arg (the receiver to feed it the lines).
+      val receiver = invocation.getArgument<MultiLineReceiver>(1)
+      // Test TileIndexReceiver.
+      receiver.processNewLines(arrayOf("Index=[101]"))
+    }.`when`(device)
+      // Test that we call activateComponent with right params.
+      .executeShellCommand(MockitoKt.eq(
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component"),
+                           MockitoKt.any(IShellOutputReceiver::class.java),
+                           MockitoKt.any(),
+                           MockitoKt.any())
+    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val appInstaller = TestApplicationInstaller(appId, app)
+    // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+    // Mock debugSessionStarter.
+    Mockito.doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
+
     executor.doOnDevices(listOf(device))
 
-    // Test final command of showing Tile after installation and activation.
-    Mockito.verify(device).executeShellCommand(
-      eq("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1"),
-      any(IShellOutputReceiver::class.java),
-      any(),
-      any()
+    // Verify commands sent to device.
+    val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
+    Mockito.verify(device, Mockito.times(3)).executeShellCommand(
+      commandsCaptor.capture(),
+      MockitoKt.any(IShellOutputReceiver::class.java),
+      MockitoKt.any(),
+      MockitoKt.any()
     )
+    val commands = commandsCaptor.allValues
+
+    // Set debug app.
+    assertThat(commands[0]).isEqualTo("am set-debug-app -w 'com.example.app'")
+    // Set Tile.
+    assertThat(commands[1]).isEqualTo(
+      "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component")
+    // Showing Tile.
+    assertThat(commands[2]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 101")
   }
 }

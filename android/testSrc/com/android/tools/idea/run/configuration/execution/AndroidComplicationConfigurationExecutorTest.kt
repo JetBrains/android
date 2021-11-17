@@ -18,15 +18,12 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.any
-import com.android.tools.deployer.model.Apk
-import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
-import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -39,10 +36,6 @@ import org.mockito.Mockito.times
 
 
 class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
-  override fun setUp() {
-    super.setUp()
-    mockConsole()
-  }
 
   private object TestWatchFaceInfo : ComplicationWatchFaceInfo {
     override val complicationSlots: List<ComplicationSlot> = emptyList()
@@ -66,14 +59,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
 
     val device = getMockDevice()
-
-    val apk = Apk.Builder().setServices(listOf(createManifestServiceInfo(componentName, appId))).build()
-    val app = App(appId, listOf(apk), device, NullLogger())
-
-    val watchFaceApk = Apk.Builder().setServices(
-      listOf(createManifestServiceInfo(TestWatchFaceInfo.watchFaceFQName, TestWatchFaceInfo.appId))).build()
-    val watchFaceApp = App(TestWatchFaceInfo.appId, listOf(watchFaceApk), device, NullLogger())
-
+    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName))
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
     // Mock installation that returns app.
@@ -83,7 +70,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    Mockito.`when`(executor.getApplicationInstaller()).thenReturn(appInstaller)
+    doReturn(appInstaller).`when`(executor).getApplicationInstaller()
 
     executor.doOnDevices(listOf(device))
 
@@ -125,18 +112,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExe
       AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
       AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
     )
-    // Use DefaulDebugExecutor executor.
+    // Use DefaultDebugExecutor executor.
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
 
     val device = getMockDevice()
-
-    val apk = Apk.Builder().setServices(listOf(createManifestServiceInfo(componentName, appId))).build()
-    val app = App(appId, listOf(apk), device, NullLogger())
-
-    val watchFaceApk = Apk.Builder().setServices(
-      listOf(createManifestServiceInfo(TestWatchFaceInfo.watchFaceFQName, TestWatchFaceInfo.appId))).build()
-    val watchFaceApp = App(TestWatchFaceInfo.appId, listOf(watchFaceApk), device, NullLogger())
-
+    val app = createApp(device, appId, servicesName = listOf(componentName))
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName))
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
     // Mock installation that returns app.

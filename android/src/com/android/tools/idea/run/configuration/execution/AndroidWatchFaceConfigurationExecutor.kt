@@ -28,6 +28,7 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 
@@ -45,6 +46,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       throw ExecutionException("Debugging is allowed only for single device")
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
+    Disposer.register(project, console)
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN

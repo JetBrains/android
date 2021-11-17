@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
-import com.android.tools.deployer.model.App
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.ApkInfo
@@ -27,15 +26,8 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.manifest.parser.XmlNode
-import com.android.tools.manifest.parser.components.ManifestServiceInfo
 import com.google.common.collect.ImmutableList
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.filters.TextConsoleBuilder
-import com.intellij.execution.filters.TextConsoleBuilderFactory
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
@@ -44,16 +36,14 @@ import java.io.File
 abstract class AndroidWearConfigurationExecutorBaseTest : AndroidTestCase() {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
-  protected lateinit var projectSystemMock: AndroidProjectSystem
 
   override fun setUp() {
     super.setUp()
-    projectSystemMock = createProjectSystemMock()
+    val projectSystemMock = createProjectSystemMock()
     Mockito.`when`(projectSystemMock.getApkProvider(MockitoKt.any(RunConfiguration::class.java))).thenReturn(TestApksProvider(appId))
     Mockito.`when`(projectSystemMock.getApplicationIdProvider(
       MockitoKt.any(RunConfiguration::class.java))).thenReturn(TestApplicationIdProvider(appId))
   }
-
 
   private fun createProjectSystemMock(): AndroidProjectSystem {
     val projectSystemMock = Mockito.mock(AndroidProjectSystem::class.java)
@@ -71,60 +61,20 @@ abstract class AndroidWearConfigurationExecutorBaseTest : AndroidTestCase() {
     return device
   }
 
-  protected fun mockConsole() {
-    val testConsoleBuilderFactory = Mockito.mock(TextConsoleBuilderFactory::class.java)
-    val textConsoleBuilder = Mockito.mock(TextConsoleBuilder::class.java)
-    val consoleView = Mockito.mock(ConsoleView::class.java)
-    Mockito.`when`(textConsoleBuilder.console).thenReturn(consoleView)
-    Mockito.`when`(testConsoleBuilderFactory.createBuilder(MockitoKt.any(Project::class.java))).thenReturn(textConsoleBuilder)
-    ApplicationManager.getApplication().replaceService(TextConsoleBuilderFactory::class.java, testConsoleBuilderFactory, testRootDisposable)
-  }
-
-  protected fun createManifestServiceInfo(serviceName: String,
-                                          appId: String,
-                                          attrs: Map<String, String> = emptyMap()): ManifestServiceInfo {
-    val node = XmlNode()
-    node.attributes()["name"] = serviceName
-    for ((attr, value) in attrs) {
-      node.attributes()[attr] = value
+  private class TestApksProvider(private val appId: String) : ApkProvider {
+    @Throws(ApkProvisionException::class)
+    override fun getApks(device: IDevice): Collection<ApkInfo> {
+      return listOf(ApkInfo(File("file"), appId))
     }
-    return ManifestServiceInfo(node, appId)
-  }
-}
 
-internal class TestApplicationInstaller : ApplicationInstaller {
-
-  private var appIdToApp: HashMap<String, App>
-
-  constructor(appId: String, app: App) : this(hashMapOf<String, App>(Pair(appId, app)))
-
-  constructor(appIdToApp: HashMap<String, App>) {
-    this.appIdToApp = appIdToApp
+    override fun validate(): List<ValidationError> {
+      return ArrayList()
+    }
   }
 
-  override fun installAppOnDevice(device: IDevice,
-                                  appId: String,
-                                  apksPaths: List<String>,
-                                  installFlags: String,
-                                  infoReceiver: (String) -> Unit): App {
-    return appIdToApp[appId]!!
+  private class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
+    override fun getPackageName() = appId
+
+    override fun getTestPackageName(): String? = null
   }
-
-}
-
-private class TestApksProvider(private val appId: String) : ApkProvider {
-  @Throws(ApkProvisionException::class)
-  override fun getApks(device: IDevice): Collection<ApkInfo> {
-    return listOf(ApkInfo(File("file"), appId))
-  }
-
-  override fun validate(): List<ValidationError> {
-    return ArrayList()
-  }
-}
-
-private class TestApplicationIdProvider(private val appId: String) : ApplicationIdProvider {
-  override fun getPackageName() = appId
-
-  override fun getTestPackageName(): String? = null
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -29,14 +30,11 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 
 class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
-
-  companion object {
-    private val SHOW_TILE_COMMAND = "am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index"
-  }
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
@@ -45,6 +43,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       throw ExecutionException("Debugging is allowed only for a single device")
     }
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
+    Disposer.register(project, console)
     val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
     val applicationInstaller = getApplicationInstaller()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
@@ -57,7 +56,7 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       val receiver = TileIndexReceiver({ indicator?.isCanceled == true }, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
       val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
-      val command = "$SHOW_TILE_COMMAND $tileIndex"
+      val command = SHOW_TILE_COMMAND + tileIndex
       console.print("$ adb shell $command", ConsoleViewContentType.NORMAL_OUTPUT)
       device.executeShellCommand(command, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
     }
