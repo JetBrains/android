@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.prefs.AndroidLocationsException;
 import com.android.prefs.AndroidLocationsSingleton;
+import com.android.prefs.AndroidLocationsSingletonRule;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOpUtils;
@@ -38,8 +39,6 @@ import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.utils.EnvironmentProvider;
-import com.android.prefs.AndroidLocationsSingletonRule;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -168,6 +167,27 @@ public final class AndroidVirtualDeviceTest {
 
     assertEquals("system-images;android-23;google_apis;x86", avd.getRequiredSysimgPath(false));
     assertEquals("system-images;android-23;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
+  }
+
+  @Test
+  public void testSysimgWithExtensionLevel() {
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-30-ext3");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+
+    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(30);
+    platformDetailsType.setBaseExtension(false);
+    platformDetailsType.setExtensionLevel(3);
+    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+
+    Map<String, RemotePackage> remotes = new HashMap<>();
+    remotes.put("platforms;android-30-ext3", remotePlatform);
+
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    avd.sdkHandler = sdkHandler;
+
+    assertEquals("system-images;android-30-ext3;google_apis;x86", avd.getRequiredSysimgPath(false));
+    assertEquals("system-images;android-30-ext3;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
   }
 
   @Test
