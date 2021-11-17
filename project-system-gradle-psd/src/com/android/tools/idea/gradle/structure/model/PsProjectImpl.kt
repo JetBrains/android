@@ -68,10 +68,17 @@ class PsProjectImpl(
     moduleCollection = PsModuleCollection(this)
   }
 
-  override fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository> =
+  override fun getPluginArtifactRepositories(): Collection<ArtifactRepository> =
     (parsedModel
        .projectBuildModel
        ?.buildscript()
+       ?.repositories()
+       ?.repositories()
+       .orEmpty()
+       .mapNotNull { it.toArtifactRepository() } +
+     parsedModel
+       .projectSettingsModel
+       ?.pluginManagement()
        ?.repositories()
        ?.repositories()
        .orEmpty()

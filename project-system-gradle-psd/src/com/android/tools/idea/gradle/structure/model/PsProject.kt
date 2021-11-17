@@ -35,7 +35,7 @@ interface PsProject : PsModel {
   var androidGradlePluginVersion: ParsedValue<String>
   var gradleVersion: ParsedValue<String>
 
-  fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository>
+  fun getPluginArtifactRepositories(): Collection<ArtifactRepository>
 
   fun findModuleByName(moduleName: String): PsModule?
   fun findModuleByGradlePath(gradlePath: String): PsModule?
