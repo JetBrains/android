@@ -67,7 +67,7 @@ internal class SingleFileCompileAction :
     val previewManager = findComposePreviewManagersForContext(e.dataContext).singleOrNull() ?: return
 
     FileDocumentManager.getInstance().saveAllDocuments()
-    compile(previewManager)
+    compile(previewManager, true)
   }
 
   override fun update(e: AnActionEvent) {
@@ -90,7 +90,11 @@ internal class SingleFileCompileAction :
   }
 
   companion object {
-    fun compile(previewManager: ComposePreviewManager) {
+    /**
+     * Starts a new fast compilation for the current file in the Preview. If [refreshAfterBuild] is set to true, after the compilation
+     * has finished, the preview will automatically refresh.
+     */
+    fun compile(previewManager: ComposePreviewManager, refreshAfterBuild: Boolean = false) {
       val file = previewManager.previewedFile ?: return
       val contextModule = file.module ?: return
       val project = file.project
@@ -113,7 +117,9 @@ internal class SingleFileCompileAction :
               .notify(project)
             if (isSuccess) {
               ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
-              (previewManager as ComposePreviewRepresentation).forceRefresh()
+              if (refreshAfterBuild) {
+                (previewManager as ComposePreviewRepresentation).forceRefresh()
+              }
             }
           }.asCompletableFuture().join()
         }
