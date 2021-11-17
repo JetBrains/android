@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log.LogLevel
+import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
@@ -49,69 +50,74 @@ private val DURATION_RE = "\\d+[smhd]".toRegex()
 /**
  * Parses a Logcat Filter expression into a [LogcatFilter]
  */
-internal class LogcatFilterParser(project: Project, private val clock: Clock = Clock.systemDefaultZone()) {
+internal class LogcatFilterParser(
+  project: Project,
+  private val packageNamesProvider: PackageNamesProvider,
+  private val clock: Clock = Clock.systemDefaultZone(),
+) {
   private val psiFileFactory = PsiFileFactory.getInstance(project)
 
-  fun parse(string: String): LogcatFilter {
+  fun parse(string: String): LogcatFilter? {
     return try {
       val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, string)
       if (PsiTreeUtil.hasErrorElements(psi)) {
         val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
         throw LogcatFilterParseException(errorElement)
       }
-      psi.toFilter(clock)
+      psi.toFilter()
     }
     catch (e: LogcatFilterParseException) {
       // Any error in parsing results in a filter that matches the raw string with the entire line.
       StringFilter(string, LINE)
     }
   }
-}
 
-private fun PsiFile.toFilter(clock: Clock): LogcatFilter {
-  val expressions = PsiTreeUtil.getChildrenOfType(this, LogcatFilterExpression::class.java)
+  private fun PsiFile.toFilter(): LogcatFilter? {
+    val expressions = PsiTreeUtil.getChildrenOfType(this, LogcatFilterExpression::class.java)
 
-  return when {
-    expressions == null -> EmptyFilter()
-    expressions.size == 1 -> expressions[0].toFilter(clock)
-    else -> {
-      // treat consecutive top level values as concatenations rather than an 'and'. This isn't really testing the parser code, rather it
-      // serves as a proof of concept that we can process the results in this fashion.
+    return when {
+      expressions == null -> null
+      expressions.size == 1 -> expressions[0].toFilter()
+      else -> {
+        // treat consecutive top level values as concatenations rather than an 'and'. This isn't really testing the parser code, rather it
+        // serves as a proof of concept that we can process the results in this fashion.
 
-      // First, group consecutive top level value expressions.
-      val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
-        if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
-          accumulator.last().add(expression)
+        // First, group consecutive top level value expressions.
+        val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
+          if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
+            accumulator.last().add(expression)
+          }
+          else {
+            accumulator.add(mutableListOf(expression))
+          }
+          accumulator
         }
-        else {
-          accumulator.add(mutableListOf(expression))
-        }
-        accumulator
+
+        // Then, combine in an AndFilter while creating a single top level filter for consecutive top-level expressions.
+        val filters = grouped.map { if (it.size == 1) it[0].toFilter() else topLevelFilter(it) }
+        if (filters.size == 1) filters[0] else AndLogcatFilter(filters)
       }
-
-      // Then, combine in an AndFilter while creating a single top level filter for consecutive top-level expressions.
-      val filters = grouped.map { if (it.size == 1) it[0].toFilter(clock) else topLevelFilter(it) }
-      if (filters.size == 1) filters[0] else AndLogcatFilter(filters)
     }
   }
-}
 
-private fun LogcatFilterExpression.toFilter(clock: Clock): LogcatFilter {
-  return when (this) {
-    is LogcatFilterLiteralExpression -> this.literalToFilter(clock)
-    is LogcatFilterParenExpression -> expression!!.toFilter(clock)
-    is LogcatFilterAndExpression -> AndLogcatFilter(flattenAndExpression(this).map { it.toFilter(clock) })
-    is LogcatFilterOrExpression -> OrLogcatFilter(flattenOrExpression(this).map { it.toFilter(clock) })
-    else -> throw ParseException("Unexpected element: ${this::class.simpleName}", -1) // Should not happen
+  private fun LogcatFilterExpression.toFilter(): LogcatFilter {
+    return when (this) {
+      is LogcatFilterLiteralExpression -> this.literalToFilter()
+      is LogcatFilterParenExpression -> expression!!.toFilter()
+      is LogcatFilterAndExpression -> AndLogcatFilter(flattenAndExpression(this).map { it.toFilter() })
+      is LogcatFilterOrExpression -> OrLogcatFilter(flattenOrExpression(this).map { it.toFilter() })
+      else -> throw ParseException("Unexpected element: ${this::class.simpleName}", -1) // Should not happen
+    }
   }
-}
 
-private fun LogcatFilterLiteralExpression.literalToFilter(clock: Clock) =
-  when (firstChild.elementType) {
-    LogcatFilterTypes.VALUE -> StringFilter(firstChild.toText(), LINE)
-    LogcatFilterTypes.KEY -> toKeyFilter(clock)
-    else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
-  }
+  private fun LogcatFilterLiteralExpression.literalToFilter() =
+    when (firstChild.elementType) {
+      LogcatFilterTypes.VALUE -> StringFilter(firstChild.toText(), LINE)
+      LogcatFilterTypes.KEY -> toKeyFilter(clock)
+      LogcatFilterTypes.PROJECT_APP -> ProjectAppFilter(packageNamesProvider)
+      else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
+    }
+}
 
 private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock): LogcatFilter {
   return when (val key = firstChild.text.trim(':', '-', '~')) {

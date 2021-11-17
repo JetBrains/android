@@ -17,35 +17,58 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.PackageNamesProvider
 import java.time.Clock
 import java.time.Duration
 import java.time.ZoneId
+import java.util.Objects
 import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
- * Filters a list of [LogCatMessage]s
+ * The top level filter that prepares and executes a [LogcatFilter]
+ */
+internal class LogcatMasterFilter(val logcatFilter: LogcatFilter?) {
+
+  fun filter(messages: List<LogCatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogCatMessage> {
+    if (logcatFilter == null) {
+      return messages
+    }
+    logcatFilter.prepare()
+    return messages.filter { logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) }
+  }
+}
+
+/**
+ * Matches a [LogCatMessage]
  */
 internal interface LogcatFilter {
-  fun filter(messages: List<LogCatMessage>, zoneId: ZoneId = ZoneId.systemDefault()) =
-    messages.filter { matches(LogcatMessageWrapper(it, zoneId)) }
+  /**
+   * Prepare the filter.
+   *
+   * Some filters need to perform some initial setup before running. To avoid doing the setup for each message, the [LogcatMasterFilter]
+   * wil call [#prepare] once for each batch of messages.
+   */
+  fun prepare() {}
 
   fun matches(message: LogcatMessageWrapper): Boolean
 }
 
-internal class EmptyFilter : LogcatFilter {
-  override fun filter(messages: List<LogCatMessage>, zoneId: ZoneId) = messages
-
-  override fun matches(message: LogcatMessageWrapper) = true
-}
-
 internal data class AndLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
   constructor(vararg filters: LogcatFilter) : this(filters.asList())
+
+  override fun prepare() {
+    filters.forEach(LogcatFilter::prepare)
+  }
 
   override fun matches(message: LogcatMessageWrapper) = filters.all { it.matches(message) }
 }
 
 internal data class OrLogcatFilter(val filters: List<LogcatFilter>) : LogcatFilter {
   constructor(vararg filters: LogcatFilter) : this(filters.asList())
+
+  override fun prepare() {
+    filters.forEach(LogcatFilter::prepare)
+  }
 
   override fun matches(message: LogcatMessageWrapper) = filters.any { it.matches(message) }
 }
@@ -107,7 +130,17 @@ internal data class AgeFilter(val age: Duration, private val clock: Clock) : Log
 /**
  * A special filter that matches the appName field in a [LogCatMessage] against a list of package names from the project.
  */
-internal data class AppFilter(val packageNames: Set<String>) : LogcatFilter {
+internal class ProjectAppFilter(private val packageNamesProvider: PackageNamesProvider) : LogcatFilter {
+  private var packageNames: Set<String> = emptySet()
+
+  override fun prepare() {
+    packageNames = packageNamesProvider.getPackageNames()
+  }
+
   override fun matches(message: LogcatMessageWrapper) =
     packageNames.isEmpty() || packageNames.contains(message.logCatMessage.header.appName)
+
+  override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
+
+  override fun hashCode() = packageNamesProvider.hashCode()
 }

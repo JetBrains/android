@@ -95,13 +95,14 @@ public class LogcatFilterParser implements PsiParser, LightPsiParser {
 
   // KEY KVALUE
   //   |   VALUE
+  //   |   PROJECT_APP
   public static boolean literalExpression(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literalExpression")) return false;
-    if (!nextTokenIsSmart(b, KEY, VALUE)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL_EXPRESSION, "<literal expression>");
     r = parseTokensSmart(b, 0, KEY, KVALUE);
     if (!r) r = consumeTokenSmart(b, VALUE);
+    if (!r) r = consumeTokenSmart(b, PROJECT_APP);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

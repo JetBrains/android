@@ -18,7 +18,8 @@ package com.android.tools.idea.logcat
 /**
  * Fake implementation of [PackageNamesProvider] for tests.
  */
-class FakePackageNamesProvider : PackageNamesProvider {
-  val names = mutableSetOf<String>()
-  override fun getPackageNames(): Set<String> = names
+class FakePackageNamesProvider(vararg packageNames: String) : PackageNamesProvider {
+  private val _packageNames = packageNames.toMutableSet()
+
+  override fun getPackageNames(): Set<String> = _packageNames
 }

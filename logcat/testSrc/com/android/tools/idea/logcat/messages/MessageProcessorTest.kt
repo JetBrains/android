@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PackageNamesProvider
-import com.android.tools.idea.logcat.filters.EmptyFilter
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.onIdle
@@ -50,7 +49,6 @@ class MessageProcessorTest {
   val rule = RuleChain(ApplicationRule(), AndroidExecutorsRule(Executors.newCachedThreadPool()))
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
-  private val fakePackageNamesProvider = FakePackageNamesProvider()
   private val messageFormatter = ::formatMessages
 
   @After
@@ -168,8 +166,7 @@ class MessageProcessorTest {
     val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag", timestamp), "message1")
     val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag", timestamp), "message2")
     val message3 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app3", "tag", timestamp), "message3")
-    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = fakePackageNamesProvider)
-    fakePackageNamesProvider.names.addAll(listOf("app1", "app3"))
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = FakePackageNamesProvider("app1", "app3"))
     val batch = listOf(message1, message2, message3)
     messageProcessor.showOnlyProjectApps = true
 
@@ -186,8 +183,7 @@ class MessageProcessorTest {
     val message1 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1")
     val message2 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app2", "tag1", timestamp), "message2")
     val message3 = LogCatMessage(LogCatHeader(WARN, 1, 2, "app3", "tag2", timestamp), "message3")
-    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = fakePackageNamesProvider)
-    fakePackageNamesProvider.names.addAll(listOf("app1", "app3"))
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, packageNamesProvider = FakePackageNamesProvider("app1", "app3"))
     val batch = listOf(message1, message2, message3)
     messageProcessor.showOnlyProjectApps = true
     messageProcessor.logcatFilter = StringFilter("tag1", LINE)
@@ -202,7 +198,7 @@ class MessageProcessorTest {
   private fun messageProcessor(
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
     formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit = messageFormatter,
-    packageNamesProvider: PackageNamesProvider = fakePackageNamesProvider,
+    packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
     clock: Clock = Clock.systemDefaultZone(),
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
     maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
@@ -210,7 +206,7 @@ class MessageProcessorTest {
     logcatPresenter,
     formatMessagesInto,
     packageNamesProvider,
-    EmptyFilter(),
+    logcatFilter = null,
     showOnlyProjectApps = false,
     clock,
     maxTimePerBatchMs,

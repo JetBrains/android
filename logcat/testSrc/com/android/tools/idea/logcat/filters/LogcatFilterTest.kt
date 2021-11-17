@@ -19,6 +19,7 @@ import com.android.ddmlib.Log.LogLevel
 import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
@@ -35,7 +36,6 @@ private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("UTC")
 private val MESSAGE1 = logCatMessage(WARN, pid = 1, tid = 1, "app1", "Tag1", TIMESTAMP, "message1")
 private val MESSAGE2 = logCatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIMESTAMP, "message2")
-private val MESSAGES = listOf(MESSAGE1, MESSAGE2)
 
 /**
  * Tests for [LogcatFilter] implementations.
@@ -43,21 +43,18 @@ private val MESSAGES = listOf(MESSAGE1, MESSAGE2)
 class LogcatFilterTest {
 
   @Test
-  fun logcatFilter_matches() {
+  fun logcatMasterFilter() {
     val filter = object : LogcatFilter {
       override fun matches(message: LogcatMessageWrapper) = message.logCatMessage == MESSAGE1
     }
-    assertThat(filter.filter(MESSAGES)).containsExactly(MESSAGE1)
+    assertThat(LogcatMasterFilter(filter).filter(listOf(MESSAGE1, MESSAGE2))).containsExactly(MESSAGE1)
   }
 
   @Test
-  fun emptyFilter_filter() {
-    assertThat(EmptyFilter().filter(MESSAGES)).isSameAs(MESSAGES)
-  }
+  fun logcatMasterFilter_nullFilter() {
+    val messages = listOf(MESSAGE1, MESSAGE2)
 
-  @Test
-  fun emptyFilter_matches() {
-    assertThat(EmptyFilter().matches(MESSAGE1)).isTrue()
+    assertThat(LogcatMasterFilter(null).filter(messages)).isEqualTo(messages)
   }
 
   @Test
@@ -180,7 +177,7 @@ class LogcatFilterTest {
     val message2 = logCatMessage(appName = "bar")
     val message3 = logCatMessage(appName = "foobar")
 
-    assertThat(AppFilter(setOf("foo", "bar")).filter(listOf(message1, message2, message3)))
+    assertThat(ProjectAppFilter(FakePackageNamesProvider("foo", "bar")).filter(listOf(message1, message2, message3)))
       .containsExactly(
         message1,
         message2
@@ -193,7 +190,7 @@ class LogcatFilterTest {
     val message2 = logCatMessage(appName = "bar")
     val message3 = logCatMessage(appName = "foobar")
 
-    assertThat(AppFilter(setOf()).filter(listOf(message1, message2, message3)))
+    assertThat(ProjectAppFilter(FakePackageNamesProvider()).filter(listOf(message1, message2, message3)))
       .containsExactly(
         message1,
         message2,
@@ -209,5 +206,7 @@ private class TrueFilter : LogcatFilter {
 private class FalseFilter : LogcatFilter {
   override fun matches(message: LogcatMessageWrapper) = false
 }
+
+private fun LogcatFilter.filter(messages: List<LogCatMessage>) = LogcatMasterFilter(this).filter(messages)
 
 private fun LogcatFilter.matches(logCatMessage: LogCatMessage) = matches(LogcatMessageWrapper(logCatMessage))

@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
@@ -60,6 +61,8 @@ private val INVALID_AGES = listOf(
   "broom",
   "99999999999999999999999999999999999999999999999s", // Triggers a NumberFormatException
 )
+
+private val fakePackageNamesProvider = FakePackageNamesProvider()
 
 /**
  * Tests for [LogcatFilterParser]
@@ -209,10 +212,17 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_appFilter() {
+    for (filter in listOf("app!", "package!")) {
+      assertThat(logcatFilterParser().parse(filter)).isEqualTo(ProjectAppFilter(fakePackageNamesProvider))
+    }
+  }
+
+  @Test
   fun parse_psiError() {
     val query = "key: 'foo"
     assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, LINE))
   }
 
-  private fun logcatFilterParser(clock: Clock = Clock.systemUTC()) = LogcatFilterParser(project, clock)
+  private fun logcatFilterParser(clock: Clock = Clock.systemUTC()) = LogcatFilterParser(project, fakePackageNamesProvider, clock)
 }

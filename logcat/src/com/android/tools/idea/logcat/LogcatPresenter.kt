@@ -35,7 +35,7 @@ internal interface LogcatPresenter : Disposable {
    * Applies a filter and reloads
    */
   @UiThread
-  fun applyFilter(logcatFilter: LogcatFilter)
+  fun applyFilter(logcatFilter: LogcatFilter?)
 
   /**
    * Enabled/disables the `My Apps` filter

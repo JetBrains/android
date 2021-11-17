@@ -169,17 +169,14 @@ class LogcatMainPanelTest {
 
   @Test
   fun applyFilter_appOnly() = runBlocking {
-    val packageNamesProvider = FakePackageNamesProvider()
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(packageNamesProvider = packageNamesProvider)
+      logcatMainPanel(packageNamesProvider = FakePackageNamesProvider("app1", "app3"))
     }
     logcatMainPanel.processMessages(listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag", Instant.ofEpochMilli(1000)), "message1"),
       LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag", Instant.ofEpochMilli(1000)), "message2"),
       LogCatMessage(LogCatHeader(INFO, 1, 2, "app3", "tag", Instant.ofEpochMilli(1000)), "message3"),
     ))
-    packageNamesProvider.names.add("app1")
-    packageNamesProvider.names.add("app3")
 
     logcatMainPanel.messageProcessor.onIdle {
       logcatMainPanel.setShowOnlyProjectApps(true)

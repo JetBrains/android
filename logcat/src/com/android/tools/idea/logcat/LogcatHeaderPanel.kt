@@ -58,7 +58,7 @@ internal class LogcatHeaderPanel(
     override fun getToolTipText(event: MouseEvent): String =
       packageNamesProvider.getPackageNames().joinToString("<br/>", "<html>", "</html>")
   }
-  private val filterParser = LogcatFilterParser(project)
+  private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
   init {
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we

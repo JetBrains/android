@@ -120,7 +120,7 @@ internal class LogcatMainPanel(
     this,
     messageFormatter::formatMessages,
     packageNamesProvider,
-    LogcatFilterParser(project).parse(headerPanel.getFilterText()),
+    LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()),
     headerPanel.isShowProjectApps())
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
@@ -238,7 +238,7 @@ internal class LogcatMainPanel(
   }
 
   @UiThread
-  override fun applyFilter(logcatFilter: LogcatFilter) {
+  override fun applyFilter(logcatFilter: LogcatFilter?) {
     messageProcessor.logcatFilter = logcatFilter
     reloadMessages()
   }

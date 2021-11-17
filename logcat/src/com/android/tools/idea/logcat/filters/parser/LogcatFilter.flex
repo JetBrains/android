@@ -96,6 +96,8 @@ KEY
   | "level"
   | "toLevel"
 
+PROJECT_APP = "app!" | "package!"u
+
 %state STRING_VALUE
 %state VALUE
 
@@ -104,6 +106,7 @@ KEY
 <YYINITIAL> {
   {MINUS}? {TEXT_KEY} {TILDE}? {COLON} { yybegin(STRING_VALUE); return LogcatFilterTypes.KEY; }
   {KEY} {COLON}                        { yybegin(VALUE); return LogcatFilterTypes.KEY; }
+  {PROJECT_APP}                                { return LogcatFilterTypes.PROJECT_APP; }
 
   {OR}                                 { return LogcatFilterTypes.OR; }
   {AND}                                { return LogcatFilterTypes.AND; }

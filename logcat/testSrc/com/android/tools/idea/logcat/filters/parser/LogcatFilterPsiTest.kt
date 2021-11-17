@@ -258,6 +258,13 @@ class LogcatFilterPsiTest {
     )
   }
 
+  @Test
+  fun parse_appFilter() {
+    for (filter in listOf("app!", "package!")) {
+      assertThat(parse(filter).toFilter()).isEqualTo(AppFilter)
+    }
+  }
+
   private fun parse(text: String): PsiFile {
     val psi = PsiFileFactory.getInstance(project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
     if (PsiTreeUtil.hasErrorElements(psi)) {
@@ -310,6 +317,7 @@ private fun LogcatFilterLiteralExpression.literalToFilter() =
   when (firstChild.elementType) {
     LogcatFilterTypes.VALUE -> TopLevelFilter(firstChild.toText())
     LogcatFilterTypes.KEY -> KeyFilter(this)
+    LogcatFilterTypes.PROJECT_APP -> AppFilter
     else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1)
   }
 
@@ -342,6 +350,8 @@ private data class KeyFilter(
     element.firstChild.text.endsWith("~:")
   )
 }
+
+private object AppFilter : Filter
 
 private data class AndFilter(val filters: List<Filter>) : Filter {
   constructor(vararg filters: Filter) : this(filters.asList())
