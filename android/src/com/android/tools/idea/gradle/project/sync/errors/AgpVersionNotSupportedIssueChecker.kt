@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
@@ -36,7 +37,8 @@ IssueChecker to handle the deprecation of AGP 3.1 in Android Studio BumbleBee an
  */
 class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
   private val AGP_VERSION_NOT_SUPPORTED_PATTERN = Pattern.compile(
-    "The project is using an incompatible version \\(AGP (.+)\\) of the Android Gradle plugin\\. Minimum supported version is AGP 3\\.2\\."
+    "The project is using an incompatible version \\(AGP (.+)\\) of the Android Gradle plugin\\. " +
+    "Minimum supported version is AGP ${Pattern.quote(GRADLE_PLUGIN_MINIMUM_VERSION)}\\."
   )
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
@@ -69,6 +71,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     messageConsumer: Consumer<in BuildEvent>
   ): Boolean {
     return failureCause.contains("The project is using an incompatible version") &&
-           failureCause.contains("Minimum supported version is AGP 3.2.")
+           failureCause.contains("Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION")
+
   }
 }
