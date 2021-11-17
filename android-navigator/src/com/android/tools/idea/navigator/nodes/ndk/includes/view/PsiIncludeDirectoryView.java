@@ -18,7 +18,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 import static com.android.tools.idea.navigator.nodes.android.AndroidPsiDirectoryNode.tempGetVirtualFile;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import com.android.tools.idea.util.VirtualFiles;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;

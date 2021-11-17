@@ -34,7 +34,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.android.tools.idea.util.VirtualFiles;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent;
 import com.intellij.icons.AllIcons;

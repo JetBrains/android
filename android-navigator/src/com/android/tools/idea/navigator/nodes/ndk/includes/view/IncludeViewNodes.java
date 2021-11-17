@@ -16,7 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import com.android.tools.idea.util.VirtualFiles;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;

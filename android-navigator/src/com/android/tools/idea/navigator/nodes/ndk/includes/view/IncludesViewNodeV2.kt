@@ -31,7 +31,7 @@ import com.android.tools.idea.ndk.NativeHeaderDir
 import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.util.VirtualFiles
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles
 import com.android.tools.idea.util.toIoFile
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent
