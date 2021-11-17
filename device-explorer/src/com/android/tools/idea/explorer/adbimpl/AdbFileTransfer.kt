@@ -13,284 +13,305 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.explorer.adbimpl
 
-import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+import com.android.tools.idea.adblib.ddmlibcompatibility.pullFile
+import com.android.tools.idea.adblib.ddmlibcompatibility.pushFile
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.explorer.adbimpl.AdbFileTransfer.SingleFileProgressMonitor
+import com.android.tools.idea.explorer.adbimpl.AdbFileTransfer
+import com.android.ddmlib.SyncService
+import com.android.ddmlib.SyncException
+import java.io.IOException
+import com.android.ddmlib.SyncService.ISyncProgressMonitor
+import com.android.tools.idea.explorer.fs.ThrottledProgress
+import com.google.common.util.concurrent.AsyncFunction
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.diagnostic.Logger
+import java.lang.Runnable
+import java.nio.file.Path
+import java.util.Locale
+import java.util.concurrent.Executor
 
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.SyncService;
-import com.android.tools.idea.adblib.ddmlibcompatibility.AdbLibMigrationUtils;
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.android.tools.idea.explorer.fs.ThrottledProgress;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Locale;
-import java.util.concurrent.Executor;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class AdbFileTransfer {
-  @NotNull private static final Logger LOGGER = Logger.getInstance(AdbFileTransfer.class);
-
-  @NotNull private final IDevice myDevice;
-  @NotNull private final AdbFileOperations myFileOperations;
-  @NotNull private final FutureCallbackExecutor myProgressExecutor;
-  @NotNull private final FutureCallbackExecutor myTaskExecutor;
-
-  public AdbFileTransfer(@NotNull IDevice device,
-                         @NotNull AdbFileOperations fileOperations,
-                         @NotNull Executor progressExecutor,
-                         @NotNull Executor taskExecutor) {
-    myDevice = device;
-    myFileOperations = fileOperations;
-    myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor);
-    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor);
+class AdbFileTransfer(
+  private val myDevice: IDevice,
+  private val myFileOperations: AdbFileOperations,
+  progressExecutor: Executor,
+  taskExecutor: Executor
+) {
+  private val myProgressExecutor: FutureCallbackExecutor
+  private val myTaskExecutor: FutureCallbackExecutor
+  fun downloadFile(
+    remoteFileEntry: AdbFileListingEntry,
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return downloadFileWorker(remoteFileEntry.fullPath, remoteFileEntry.size, localPath, progress)
   }
 
-  @NotNull
-  public ListenableFuture<Unit> downloadFile(@NotNull AdbFileListingEntry remoteFileEntry,
-                                             @NotNull Path localPath,
-                                             @NotNull FileTransferProgress progress) {
-    return downloadFileWorker(remoteFileEntry.getFullPath(), remoteFileEntry.getSize(), localPath, progress);
+  fun downloadFile(
+    remotePath: String,
+    remotePathSize: Long,
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return downloadFileWorker(remotePath, remotePathSize, localPath, progress)
   }
 
-  @NotNull
-  public ListenableFuture<Unit> downloadFile(@NotNull String remotePath,
-                                             long remotePathSize,
-                                             @NotNull Path localPath,
-                                             @NotNull FileTransferProgress progress) {
-    return downloadFileWorker(remotePath, remotePathSize, localPath, progress);
-  }
-
-  @NotNull
-  public ListenableFuture<Unit> downloadFileViaTempLocation(@NotNull String remotePath,
-                                                            long remotePathSize,
-                                                            @NotNull Path localPath,
-                                                            @NotNull FileTransferProgress progress,
-                                                            @Nullable String runAs) {
+  fun downloadFileViaTempLocation(
+    remotePath: String,
+    remotePathSize: Long,
+    localPath: Path,
+    progress: FileTransferProgress,
+    runAs: String?
+  ): ListenableFuture<Unit> {
     // Note: We should reach this code only if the device is not root, in which case
     // trying a "pullFile" would fail because of permission error (reading from the /data/data/
     // directory), so we copy the file to a temp. location, then pull from that temp location.
-    ListenableFuture<String> futureTempFile = myFileOperations.createTempFile(DEVICE_TEMP_DIRECTORY);
-    return myTaskExecutor.transformAsync(futureTempFile, tempFile -> {
-      assert tempFile != null;
+    val futureTempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    return myTaskExecutor.transformAsync(futureTempFile) { tempFile: String? ->
+      assert(tempFile != null)
 
       // Copy the remote file to the temporary remote location
-      ListenableFuture<Unit> futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs);
-      ListenableFuture<Unit> futureDownload = myTaskExecutor.transformAsync(futureCopy, aVoid -> {
-        // Download the temporary remote file to local disk
-        return downloadFile(tempFile, remotePathSize, localPath, progress);
-      });
-
-      // Ensure temporary remote file is deleted in all cases (after download success *or* error)
-      return myTaskExecutor.finallyAsync(futureDownload,
-                                         () -> myFileOperations.deleteFile(tempFile));
-    });
+      val futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile!!, runAs)
+      val futureDownload = myTaskExecutor.transformAsync(futureCopy, AsyncFunction { aVoid: Unit ->
+        downloadFile(
+          tempFile, remotePathSize, localPath, progress
+        )
+      })
+      myTaskExecutor.finallyAsync(
+        futureDownload
+      ) {
+        myFileOperations.deleteFile(
+          tempFile
+        )
+      }
+    }
   }
 
-
-  @NotNull
-  public ListenableFuture<Unit> uploadFile(@NotNull Path localPath,
-                                           @NotNull String remotePath,
-                                           @NotNull FileTransferProgress progress) {
-    return uploadFileWorker(localPath, remotePath, progress);
+  fun uploadFile(
+    localPath: Path,
+    remotePath: String,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    return uploadFileWorker(localPath, remotePath, progress)
   }
 
-  public ListenableFuture<Unit> uploadFileViaTempLocation(@NotNull Path localPath,
-                                                          @NotNull String remotePath,
-                                                          @NotNull FileTransferProgress progress,
-                                                          @Nullable String runAs) {
-    ListenableFuture<String> futureTempFile = myFileOperations.createTempFile(DEVICE_TEMP_DIRECTORY);
-    return myTaskExecutor.transformAsync(futureTempFile, tempFile -> {
-      assert tempFile != null;
+  fun uploadFileViaTempLocation(
+    localPath: Path,
+    remotePath: String,
+    progress: FileTransferProgress,
+    runAs: String?
+  ): ListenableFuture<Unit> {
+    val futureTempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    return myTaskExecutor.transformAsync(futureTempFile) { tempFile: String? ->
+      assert(tempFile != null)
 
       // Upload to temporary location
-      ListenableFuture<Unit> futureUpload = uploadFile(localPath, tempFile, progress);
-      ListenableFuture<Unit> futureCopy = myTaskExecutor.transformAsync(futureUpload, aVoid -> {
-        // Copy file from temporary location to package location (using "run-as")
-        return myFileOperations.copyFileRunAs(tempFile, remotePath, runAs);
-      });
-
-      // Ensure temporary remote file is deleted in all cases (after upload success *or* error)
-      return myTaskExecutor.finallyAsync(futureCopy,
-                                         () -> myFileOperations.deleteFile(tempFile));
-    });
+      val futureUpload = uploadFile(localPath, tempFile!!, progress)
+      val futureCopy = myTaskExecutor.transformAsync(futureUpload, AsyncFunction { aVoid: Unit ->
+        myFileOperations.copyFileRunAs(
+          tempFile, remotePath, runAs
+        )
+      })
+      myTaskExecutor.finallyAsync(
+        futureCopy
+      ) {
+        myFileOperations.deleteFile(
+          tempFile
+        )
+      }
+    }
   }
 
-  @NotNull
-  private ListenableFuture<Unit> downloadFileWorker(@NotNull String remotePath,
-                                                    long remotePathSize,
-                                                    @NotNull Path localPath,
-                                                    @NotNull FileTransferProgress progress) {
-
-    ListenableFuture<Unit> futurePull;
-    if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-      futurePull = myTaskExecutor.executeAsync(() -> {
-        long startTime = System.nanoTime();
-        AdbLibMigrationUtils.pullFile(myDevice,
-                                      remotePath,
-                                      localPath.toString(),
-                                      new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
-        long endTime = System.nanoTime();
-        LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
-                                  remotePath, localPath));
-        return Unit.INSTANCE;
-      });
-    }
-    else {
-      ListenableFuture<SyncService> futureSyncService = getSyncService();
-
-      futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
-        assert syncService != null;
-        try (SyncService ignored = syncService) {
-          long startTime = System.nanoTime();
-          syncService.pullFile(remotePath,
-                               localPath.toString(),
-                               new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
-          long endTime = System.nanoTime();
-          LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
-                                    remotePath, localPath));
-          return Unit.INSTANCE;
+  private fun downloadFileWorker(
+    remotePath: String,
+    remotePathSize: Long,
+    localPath: Path,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    val futurePull: ListenableFuture<Unit>
+    futurePull = if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+      myTaskExecutor.executeAsync {
+        val startTime = System.nanoTime()
+        pullFile(
+          myDevice,
+          remotePath,
+          localPath.toString(),
+          SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize)
+        )
+        val endTime = System.nanoTime()
+        LOGGER.info(
+          String.format(
+            Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+            remotePath, localPath
+          )
+        )
+        Unit
+      }
+    } else {
+      val futureSyncService = syncService
+      myTaskExecutor.transform(futureSyncService) { syncService: SyncService? ->
+        assert(syncService != null)
+        syncService.use { ignored ->
+          val startTime = System.nanoTime()
+          syncService!!.pullFile(
+            remotePath,
+            localPath.toString(),
+            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize)
+          )
+          val endTime = System.nanoTime()
+          LOGGER.info(
+            String.format(
+              Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+              remotePath, localPath
+            )
+          )
+          return@transform Unit
         }
-      });
-    }
-
-    return myTaskExecutor.catchingAsync(futurePull, SyncException.class, syncError -> {
-      assert syncError != null;
-      if (syncError.wasCanceled()) {
-        // Simply forward cancellation as the cancelled exception
-        return Futures.immediateCancelledFuture();
       }
-      LOGGER.info(String.format("Error pulling file from \"%s\" to \"%s\"", remotePath, localPath), syncError);
-      return Futures.immediateFailedFuture(syncError);
-    });
+    }
+    return myTaskExecutor.catchingAsync(futurePull, SyncException::class.java) { syncError: SyncException? ->
+      assert(syncError != null)
+      if (syncError!!.wasCanceled()) {
+        // Simply forward cancellation as the cancelled exception
+        return@catchingAsync Futures.immediateCancelledFuture<Unit>()
+      }
+      LOGGER.info(String.format("Error pulling file from \"%s\" to \"%s\"", remotePath, localPath), syncError)
+      Futures.immediateFailedFuture(syncError)
+    }
   }
 
-  @NotNull
-  private ListenableFuture<Unit> uploadFileWorker(@NotNull Path localPath,
-                                                  @NotNull String remotePath,
-                                                  @NotNull FileTransferProgress progress) {
-    ListenableFuture<Unit> futurePush;
-    if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
-      futurePush = myTaskExecutor.executeAsync(() -> {
-        long fileLength = localPath.toFile().length();
-        long startTime = System.nanoTime();
-        AdbLibMigrationUtils.pushFile(myDevice,
-                                      localPath.toString(),
-                                      remotePath,
-                                      new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
-        long endTime = System.nanoTime();
-        LOGGER.info(String
-                      .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
-                              localPath,
-                              remotePath));
-        return Unit.INSTANCE;
-      });
-    }
-    else {
-      ListenableFuture<SyncService> futureSyncService = getSyncService();
-
-      futurePush = myTaskExecutor.transform(futureSyncService, syncService -> {
-        assert syncService != null;
-        try (SyncService ignored = syncService) {
-          long fileLength = localPath.toFile().length();
-          long startTime = System.nanoTime();
-          syncService.pushFile(localPath.toString(),
-                               remotePath,
-                               new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
-          long endTime = System.nanoTime();
-          LOGGER.info(String
-                        .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
-                                localPath,
-                                remotePath));
-          return Unit.INSTANCE;
+  private fun uploadFileWorker(
+    localPath: Path,
+    remotePath: String,
+    progress: FileTransferProgress
+  ): ListenableFuture<Unit> {
+    val futurePush: ListenableFuture<Unit>
+    futurePush = if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+      myTaskExecutor.executeAsync {
+        val fileLength = localPath.toFile().length()
+        val startTime = System.nanoTime()
+        pushFile(
+          myDevice,
+          localPath.toString(),
+          remotePath,
+          SingleFileProgressMonitor(myProgressExecutor, progress, fileLength)
+        )
+        val endTime = System.nanoTime()
+        LOGGER.info(
+          String.format(
+            Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+            localPath,
+            remotePath
+          )
+        )
+        Unit
+      }
+    } else {
+      val futureSyncService = syncService
+      myTaskExecutor.transform(futureSyncService) { syncService: SyncService? ->
+        assert(syncService != null)
+        syncService.use { ignored ->
+          val fileLength = localPath.toFile().length()
+          val startTime = System.nanoTime()
+          syncService!!.pushFile(
+            localPath.toString(),
+            remotePath,
+            SingleFileProgressMonitor(myProgressExecutor, progress, fileLength)
+          )
+          val endTime = System.nanoTime()
+          LOGGER.info(
+            String.format(
+              Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
+              localPath,
+              remotePath
+            )
+          )
+          return@transform Unit
         }
-      });
+      }
     }
-
-    return myTaskExecutor.catchingAsync(futurePush, SyncException.class, syncError -> {
-      assert syncError != null;
-      if (syncError.wasCanceled()) {
+    return myTaskExecutor.catchingAsync(futurePush, SyncException::class.java) { syncError: SyncException? ->
+      assert(syncError != null)
+      if (syncError!!.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        return Futures.immediateCancelledFuture();
+        return@catchingAsync Futures.immediateCancelledFuture<Unit>()
       }
-      LOGGER.info(String.format("Error pushing file from \"%s\" to \"%s\"", localPath, remotePath), syncError);
-      return Futures.immediateFailedFuture(syncError);
-    });
+      LOGGER.info(String.format("Error pushing file from \"%s\" to \"%s\"", localPath, remotePath), syncError)
+      Futures.immediateFailedFuture(syncError)
+    }
   }
 
-  @NotNull
-  private ListenableFuture<SyncService> getSyncService() {
-    return myTaskExecutor.executeAsync(() -> {
-      SyncService sync = myDevice.getSyncService();
-      if (sync == null) {
-        throw new IOException("Unable to open synchronization service to device");
-      }
-      return sync;
-    });
-  }
+  private val syncService: ListenableFuture<SyncService>
+    private get() = myTaskExecutor.executeAsync {
+      val sync = myDevice.syncService ?: throw IOException("Unable to open synchronization service to device")
+      sync
+    }
 
   /**
-   * Forward callbacks from a {@link SyncService.ISyncProgressMonitor}, running on a pooled thread,
-   * to a {@link FileTransferProgress}, using the provided {@link Executor}, typically the
-   * {@link com.intellij.util.concurrency.EdtExecutorService}.
+   * Forward callbacks from a [SyncService.ISyncProgressMonitor], running on a pooled thread,
+   * to a [FileTransferProgress], using the provided [Executor], typically the
+   * [com.intellij.util.concurrency.EdtExecutorService].
    */
-  private static class SingleFileProgressMonitor implements SyncService.ISyncProgressMonitor {
-    private static final int PROGRESS_REPORT_INTERVAL_MILLIS = 50;
-    @NotNull private final Executor myCallbackExecutor;
-    @NotNull private final FileTransferProgress myProgress;
-    @NotNull private final ThrottledProgress myThrottledProgress;
-    private final long myTotalBytes;
-    private long myCurrentBytes;
-
-    public SingleFileProgressMonitor(@NotNull Executor callbackExecutor,
-                                     @NotNull FileTransferProgress progress,
-                                     long totalBytes) {
-      myCallbackExecutor = callbackExecutor;
-      myProgress = progress;
-      myTotalBytes = totalBytes;
-      myThrottledProgress = new ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS);
-    }
-
-    @Override
-    public void start(int totalWork) {
+  private class SingleFileProgressMonitor(
+    private val myCallbackExecutor: Executor,
+    private val myProgress: FileTransferProgress,
+    private val myTotalBytes: Long
+  ) : ISyncProgressMonitor {
+    private val myThrottledProgress: ThrottledProgress
+    private var myCurrentBytes: Long = 0
+    override fun start(totalWork: Int) {
       // Note: We ignore the value of "totalWork" because 1) during a "pull", it is
       //       always 0, and 2) during a "push", it is truncated to 2GB (int), which
       //       makes things confusing when push a very big file (>2GB).
       //       This is why we have our owm "myTotalBytes" field.
-      myCallbackExecutor.execute(() -> myProgress.progress(0, myTotalBytes));
+      myCallbackExecutor.execute { myProgress.progress(0, myTotalBytes) }
     }
 
-    @Override
-    public void stop() {
-      myCallbackExecutor.execute(() -> myProgress.progress(myTotalBytes, myTotalBytes));
+    override fun stop() {
+      myCallbackExecutor.execute { myProgress.progress(myTotalBytes, myTotalBytes) }
     }
 
-    @Override
-    public boolean isCanceled() {
-      return myProgress.isCancelled();
+    override fun isCanceled(): Boolean {
+      return myProgress.isCancelled
     }
 
-    @Override
-    public void startSubTask(String name) {
-      assert false : "A single file sync should not have multiple tasks";
+    override fun startSubTask(name: String) {
+      assert(false) { "A single file sync should not have multiple tasks" }
     }
 
-    @Override
-    public void advance(int work) {
-      myCurrentBytes += work;
+    override fun advance(work: Int) {
+      myCurrentBytes += work.toLong()
       if (myThrottledProgress.check()) {
         // Capture value for lambda (since lambda may be executed after some delay)
-        final long currentBytes = myCurrentBytes;
-        myCallbackExecutor.execute(() -> myProgress.progress(currentBytes, myTotalBytes));
+        val currentBytes = myCurrentBytes
+        myCallbackExecutor.execute { myProgress.progress(currentBytes, myTotalBytes) }
       }
     }
+
+    companion object {
+      private const val PROGRESS_REPORT_INTERVAL_MILLIS = 50
+    }
+
+    init {
+      myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
+    }
+  }
+
+  companion object {
+    private val LOGGER = Logger.getInstance(AdbFileTransfer::class.java)
+  }
+
+  init {
+    myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
+    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   }
 }
