@@ -2544,6 +2544,7 @@ android-studio/plugins/c-clangd/bin/clang/linux/clangd
 android-studio/plugins/c-clangd/bin/clang/linux/libc++.so.1
 android-studio/plugins/c-clangd/lib/LICENSE.txt
 android-studio/plugins/c-clangd/lib/c-clangd.jar
+android-studio/plugins/c-clangdBridge/lib/c-clangdBridge.jar
 android-studio/plugins/c-plugin/lib/LICENSE.txt
 android-studio/plugins/c-plugin/lib/c-plugin.jar
 android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt

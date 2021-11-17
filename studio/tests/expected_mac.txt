@@ -2543,6 +2543,7 @@ Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clang-tidy
 Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clangd
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/c-clangd.jar
+Android Studio Preview.app/Contents/plugins/c-clangdBridge/lib/c-clangdBridge.jar
 Android Studio Preview.app/Contents/plugins/c-plugin/lib/LICENSE.txt
 Android Studio Preview.app/Contents/plugins/c-plugin/lib/c-plugin.jar
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/LICENSE.txt

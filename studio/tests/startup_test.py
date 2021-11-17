@@ -121,6 +121,7 @@ class StartUpTest(unittest.TestCase):
       "CIDR Debugger",
       "ChangeReminder",
       "Clangd Support",
+      "Clangd-CLion Bridge",
       "Code Coverage for Java",
       "Compose",
       "Configuration Script",
