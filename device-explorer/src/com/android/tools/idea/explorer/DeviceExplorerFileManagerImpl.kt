@@ -13,263 +13,259 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer
 
-import static com.android.tools.idea.explorer.ExecutorUtil.executeInWriteSafeContextWithAnyModality;
-
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DownloadProgress;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings;
-import com.android.utils.FileUtils;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.application.TransactionGuardImpl;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.PathUtilRt;
-import com.intellij.util.concurrency.EdtExecutorService;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
-
+import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings.Companion.getInstance
+import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings.downloadLocation
+import com.android.tools.idea.explorer.fs.DeviceFileSystem.name
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.fileSystem
+import com.android.tools.idea.explorer.fs.DownloadProgress.onStarting
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.fullPath
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
+import com.android.tools.idea.explorer.fs.DownloadProgress.onCompleted
+import com.android.tools.idea.explorer.fs.DownloadProgress.onProgress
+import com.android.tools.idea.explorer.fs.DownloadProgress.isCancelled
+import com.android.tools.idea.explorer.fs.DeviceFileSystem.getEntry
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.parent
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.name
+import com.android.tools.idea.explorer.DeviceExplorerFileManager
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.intellij.util.concurrency.EdtExecutorService
+import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.ExecutorUtil
+import java.lang.Runnable
+import com.intellij.openapi.vfs.VfsUtil
+import kotlin.Throws
+import java.io.IOException
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.explorer.DeviceExplorerFilesUtils
+import com.android.tools.idea.explorer.fs.DownloadProgress
+import com.android.utils.FileUtils
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.AsyncFunction
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.TransactionGuardImpl
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.serviceContainer.NonInjectable
+import com.intellij.util.PathUtilRt
+import org.jetbrains.ide.PooledThreadExecutor
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.ArrayList
+import java.util.Collections
+import java.util.concurrent.Executor
+import java.util.function.Supplier
 
 /**
  * Abstraction over the application logic of the Device Explorer UI
  */
-public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager {
-  private static final Logger LOGGER = Logger.getInstance(DeviceExplorerFileManagerImpl.class);
+class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructor(
+  private val myProject: Project,
+  edtExecutor: Executor,
+  taskExecutor: Executor,
+  downloadPathSupplier: Supplier<Path>
+) : DeviceExplorerFileManager {
+  private val myEdtExecutor: FutureCallbackExecutor
+  private val myTaskExecutor: FutureCallbackExecutor
+  private val myDefaultDownloadPath: Supplier<Path>
 
-  @NotNull private final Project myProject;
-  @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @NotNull private final FutureCallbackExecutor myTaskExecutor;
-  @NotNull private Supplier<Path> myDefaultDownloadPath;
-
-  private DeviceExplorerFileManagerImpl(@NotNull Project project) {
-    this(
-      project,
-      new FutureCallbackExecutor(EdtExecutorService.getInstance()),
-      new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE),
-         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation())
-    );
+  private constructor(project: Project) : this(
+    project,
+    FutureCallbackExecutor(EdtExecutorService.getInstance()),
+    FutureCallbackExecutor(PooledThreadExecutor.INSTANCE),
+    Supplier<Path> { Paths.get(getInstance().downloadLocation) }
+  ) {
   }
 
-  @NonInjectable
-  @VisibleForTesting
-  public DeviceExplorerFileManagerImpl(@NotNull Project project,
-                                       @NotNull Executor edtExecutor,
-                                       @NotNull Executor taskExecutor,
-                                       @NotNull Supplier<Path> downloadPathSupplier) {
-    myProject = project;
-
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-      @Override
-      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        if (VfsUtilCore.isAncestor(getDefaultDownloadPath().toFile(), VfsUtilCore.virtualToIoFile(file), true)) {
-          Path localPath = Paths.get(file.getPath());
-          deleteTemporaryFile(localPath);
-        }
-      }
-    });
-
-    myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
-    myDefaultDownloadPath = downloadPathSupplier;
+  fun getDefaultLocalPathForDevice(device: DeviceFileSystem): Path {
+    val rootPath = defaultDownloadPath
+    return rootPath.resolve(mapName(device.name))
   }
 
-  @NotNull
-  public Path getDefaultLocalPathForDevice(@NotNull DeviceFileSystem device) {
-    Path rootPath = getDefaultDownloadPath();
-    return rootPath.resolve(mapName(device.getName()));
+  override fun getDefaultLocalPathForEntry(entry: DeviceFileEntry): Path {
+    val devicePath = getDefaultLocalPathForDevice(entry.fileSystem)
+    return getPathForEntry(entry, devicePath)
   }
 
-  @NotNull
-  @Override
-  public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
-    Path devicePath = getDefaultLocalPathForDevice(entry.getFileSystem());
-    return getPathForEntry(entry, devicePath);
-  }
+  override fun downloadFileEntry(
+    entry: DeviceFileEntry,
+    localPath: Path,
+    progress: DownloadProgress
+  ): ListenableFuture<VirtualFile?> {
+    val futureResult = SettableFuture.create<VirtualFile?>()
+    FileUtils.mkdirs(localPath.parent.toFile())
+    ExecutorUtil.executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor) {
 
-  @NotNull
-  @Override
-  public ListenableFuture<VirtualFile> downloadFileEntry(@NotNull DeviceFileEntry entry,
-                                                         @NotNull Path localPath,
-                                                         @NotNull DownloadProgress progress) {
-    SettableFuture<VirtualFile> futureResult = SettableFuture.create();
-    FileUtils.mkdirs(localPath.getParent().toFile());
-
-    executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor, () -> {
       // findFileByIoFile should be called from the write thread, in a write-safe context
-      VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
-      ApplicationManager.getApplication().runWriteAction(() -> {
+      val virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true)
+      ApplicationManager.getApplication().runWriteAction {
         if (virtualFile != null) {
           try {
             // must be called from a write action
-            deleteVirtualFile(virtualFile);
-          } catch (Throwable exception) {
-            futureResult.setException(exception);
-            return;
+            deleteVirtualFile(virtualFile)
+          } catch (exception: Throwable) {
+            futureResult.setException(exception)
+            return@runWriteAction
           }
         }
-
-        myTaskExecutor.addCallback(downloadFile(entry, localPath, progress), new FutureCallback<VirtualFile>() {
-          @Override
-          public void onSuccess(VirtualFile result) {
-            futureResult.set(result);
+        myTaskExecutor.addCallback(downloadFile(entry, localPath, progress), object : FutureCallback<VirtualFile?> {
+          override fun onSuccess(result: VirtualFile?) {
+            futureResult.set(result)
           }
 
-          @Override
-          public void onFailure(@NotNull Throwable throwable) {
-            futureResult.setException(throwable);
+          override fun onFailure(throwable: Throwable) {
+            futureResult.setException(throwable)
           }
-        });
-      });
-    });
-
-    return futureResult;
+        })
+      }
+    }
+    return futureResult
   }
 
-  @Override
-  public ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile) {
-    SettableFuture<Unit> futureResult = SettableFuture.create();
-
-    executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor, () -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
+  override fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit>? {
+    val futureResult = SettableFuture.create<Unit>()
+    ExecutorUtil.executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor) {
+      ApplicationManager.getApplication().runWriteAction {
         try {
           // must be called from a write action
-          deleteVirtualFile(virtualFile);
-          futureResult.set(Unit.INSTANCE);
-        } catch (Throwable exception) {
-          futureResult.setException(exception);
+          deleteVirtualFile(virtualFile)
+          futureResult.set(Unit)
+        } catch (exception: Throwable) {
+          futureResult.setException(exception)
         }
-      });
-    });
-
-    return futureResult;
+      }
+    }
+    return futureResult
   }
 
-  private void deleteVirtualFile(@NotNull VirtualFile virtualFile) throws IOException {
+  @Throws(IOException::class)
+  private fun deleteVirtualFile(virtualFile: VirtualFile) {
     // Using VFS to delete files has the advantage of throwing VFS events,
     // so listeners can react to actions on the files - for example by closing a file before it being deleted.
 
     // This assertions prevent regressions for b/141649841.
     // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-    ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-    virtualFile.delete(this);
+    (TransactionGuard.getInstance() as TransactionGuardImpl).assertWriteActionAllowed()
+    virtualFile.delete(this)
   }
 
   /**
-   * Downloads the file corresponding to the {@link DeviceFileEntry} passed as argument, to the local path specified.
+   * Downloads the file corresponding to the [DeviceFileEntry] passed as argument, to the local path specified.
    * @param entry The entry corresponding to the file to download.
    * @param localPath Where to download the file.
    * @param progress Progress indicator for the download operation.
    */
-  @NotNull
-  private ListenableFuture<VirtualFile> downloadFile(@NotNull DeviceFileEntry entry,
-                                                     @NotNull Path localPath,
-                                                     @NotNull DownloadProgress progress) {
-    FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
-    progress.onStarting(entry.getFullPath());
-    ListenableFuture<Unit> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
-    ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(
+  private fun downloadFile(
+    entry: DeviceFileEntry,
+    localPath: Path,
+    progress: DownloadProgress
+  ): ListenableFuture<VirtualFile> {
+    val fileTransferProgress = createFileTransferProgress(entry, progress)
+    progress.onStarting(entry.fullPath)
+    val downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress)
+    val getVirtualFile = myTaskExecutor.transformAsync(
       downloadFileFuture,
-      aVoid -> DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, localPath)
-    );
-    myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
-      @Override
-      public void onSuccess(VirtualFile virtualFile) {
-        progress.onCompleted(entry.getFullPath());
+      AsyncFunction { aVoid: Unit -> DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, localPath) }
+    )
+    myEdtExecutor.addCallback(getVirtualFile, object : FutureCallback<VirtualFile?> {
+      override fun onSuccess(virtualFile: VirtualFile?) {
+        progress.onCompleted(entry.fullPath)
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        progress.onCompleted(entry.getFullPath());
-        deleteTemporaryFile(localPath);
+      override fun onFailure(t: Throwable) {
+        progress.onCompleted(entry.fullPath)
+        deleteTemporaryFile(localPath)
       }
-    });
-
-    return getVirtualFile;
+    })
+    return getVirtualFile
   }
 
-  private FileTransferProgress createFileTransferProgress(@NotNull DeviceFileEntry entry, @NotNull DownloadProgress progress) {
-    return new FileTransferProgress() {
-      @Override
-      public void progress(long currentBytes, long totalBytes) {
-        progress.onProgress(entry.getFullPath(), currentBytes, totalBytes);
+  private fun createFileTransferProgress(entry: DeviceFileEntry, progress: DownloadProgress): FileTransferProgress {
+    return object : FileTransferProgress {
+      override fun progress(currentBytes: Long, totalBytes: Long) {
+        progress.onProgress(entry.fullPath, currentBytes, totalBytes)
       }
 
-      @Override
-      public boolean isCancelled() {
-        return progress.isCancelled();
+      override fun isCancelled(): Boolean {
+        return progress.isCancelled()
       }
-    };
-  }
-
-  @NotNull
-  private ListenableFuture<List<DeviceFileEntry>> mapPathsToEntries(@NotNull DeviceFileSystem fileSystem, @NotNull List<String> paths) {
-    List<DeviceFileEntry> entries = new ArrayList<>();
-    ListenableFuture<Unit> allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator(), path -> {
-      ListenableFuture<DeviceFileEntry> futureEntry = fileSystem.getEntry(path);
-      return myTaskExecutor.transform(futureEntry, entry -> { entries.add(entry); return Unit.INSTANCE; });
-    });
-
-    return myTaskExecutor.transform(allDone, aVoid -> entries);
-  }
-
-  @NotNull
-  private Path getDefaultDownloadPath() {
-    return myDefaultDownloadPath.get();
-  }
-
-  @NotNull
-  private static String mapName(String name) {
-    return PathUtilRt.suggestFileName(name, /*allowDots*/true, /*allowSpaces*/true);
-  }
-
-  @Override
-  @NotNull
-  public Path getPathForEntry(@NotNull DeviceFileEntry file, @NotNull Path destinationPath) {
-    List<String> entryPathComponents = new ArrayList<>();
-    for (DeviceFileEntry entry = file; entry != null; entry = entry.getParent()) {
-      entryPathComponents.add(mapName(entry.getName()));
     }
-    Collections.reverse(entryPathComponents);
-
-    Path entryDestinationPath = destinationPath;
-    for (String name : entryPathComponents) {
-      entryDestinationPath = entryDestinationPath.resolve(name);
-    }
-
-    return entryDestinationPath;
   }
 
-  private static void deleteTemporaryFile(@NotNull Path localPath) {
-    try {
-      Files.deleteIfExists(localPath);
+  private fun mapPathsToEntries(fileSystem: DeviceFileSystem, paths: List<String>): ListenableFuture<List<DeviceFileEntry>> {
+    val entries: MutableList<DeviceFileEntry> = ArrayList()
+    val allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator()) { path: String? ->
+      val futureEntry = fileSystem.getEntry(
+        path!!
+      )
+      myTaskExecutor.transform(futureEntry) { entry: DeviceFileEntry ->
+        entries.add(entry)
+        Unit
+      }
     }
-    catch (IOException e) {
-      LOGGER.warn(String.format("Error deleting device file from local file system \"%s\"", localPath), e);
+    return myTaskExecutor.transform(allDone) { aVoid: Unit -> entries }
+  }
+
+  private val defaultDownloadPath: Path
+    private get() = myDefaultDownloadPath.get()
+
+  override fun getPathForEntry(file: DeviceFileEntry, destinationPath: Path): Path {
+    val entryPathComponents: MutableList<String?> = ArrayList()
+    var entry: DeviceFileEntry? = file
+    while (entry != null) {
+      entryPathComponents.add(mapName(entry.name))
+      entry = entry.parent
     }
+    Collections.reverse(entryPathComponents)
+    var entryDestinationPath = destinationPath
+    for (name in entryPathComponents) {
+      entryDestinationPath = entryDestinationPath.resolve(name)
+    }
+    return entryDestinationPath
+  }
+
+  companion object {
+    private val LOGGER = Logger.getInstance(
+      DeviceExplorerFileManagerImpl::class.java
+    )
+
+    private fun mapName(name: String): String {
+      return PathUtilRt.suggestFileName(name,  /*allowDots*/true,  /*allowSpaces*/true)
+    }
+
+    private fun deleteTemporaryFile(localPath: Path) {
+      try {
+        Files.deleteIfExists(localPath)
+      } catch (e: IOException) {
+        LOGGER.warn(String.format("Error deleting device file from local file system \"%s\"", localPath), e)
+      }
+    }
+  }
+
+  init {
+    myProject.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+        if (VfsUtilCore.isAncestor(defaultDownloadPath.toFile(), VfsUtilCore.virtualToIoFile(file), true)) {
+          val localPath = Paths.get(file.path)
+          deleteTemporaryFile(localPath)
+        }
+      }
+    })
+    myEdtExecutor = FutureCallbackExecutor(edtExecutor)
+    myTaskExecutor = FutureCallbackExecutor(taskExecutor)
+    myDefaultDownloadPath = downloadPathSupplier
   }
 }

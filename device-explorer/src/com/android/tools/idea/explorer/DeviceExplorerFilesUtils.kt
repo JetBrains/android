@@ -13,42 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer
 
-import static com.android.tools.idea.explorer.ExecutorUtil.executeInWriteSafeContextWithAnyModality;
+import com.android.annotations.concurrency.AnyThread
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.ExecutorUtil
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.project.Project
+import java.lang.Runnable
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import java.lang.RuntimeException
+import java.nio.file.Path
 
-import com.android.annotations.concurrency.AnyThread;
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
-
-public class DeviceExplorerFilesUtils {
-
+object DeviceExplorerFilesUtils {
   /**
-   * Creates a {@link VirtualFile} corresponding to the {@link Path} passed as argument.
+   * Creates a [VirtualFile] corresponding to the [Path] passed as argument.
    */
   @AnyThread
-  @NotNull
-  public static ListenableFuture<VirtualFile> findFile(@NotNull Project project, @NotNull FutureCallbackExecutor edtExecutor, @NotNull Path localPath) {
+  fun findFile(project: Project, edtExecutor: FutureCallbackExecutor, localPath: Path): ListenableFuture<VirtualFile> {
     // We run this operation using invokeLater because we need to refresh a VirtualFile instance
     // this has to be done in a write-safe context.
     // See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
-    SettableFuture<VirtualFile> futureFile = SettableFuture.create();
-    executeInWriteSafeContextWithAnyModality(project, edtExecutor, () -> {
+    val futureFile = SettableFuture.create<VirtualFile>()
+    ExecutorUtil.executeInWriteSafeContextWithAnyModality(project, edtExecutor) {
+
       // findFileByIoFile should be called from the write thread, in a write-safe context
-      VirtualFile localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
+      val localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true)
       if (localFile == null) {
-        futureFile.setException(new RuntimeException(String.format("Unable to locate file \"%s\"", localPath)));
+        futureFile.setException(RuntimeException(String.format("Unable to locate file \"%s\"", localPath)))
+      } else {
+        futureFile.set(localFile)
       }
-      else {
-        futureFile.set(localFile);
-      }
-    });
-    return futureFile;
+    }
+    return futureFile
   }
 }
