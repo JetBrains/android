@@ -17,14 +17,11 @@ package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.ExecutorUtil
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
-import java.lang.Runnable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import java.lang.RuntimeException
 import java.nio.file.Path
 
 object DeviceExplorerFilesUtils {
@@ -42,7 +39,7 @@ object DeviceExplorerFilesUtils {
       // findFileByIoFile should be called from the write thread, in a write-safe context
       val localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true)
       if (localFile == null) {
-        futureFile.setException(RuntimeException(String.format("Unable to locate file \"%s\"", localPath)))
+        futureFile.setException(RuntimeException("Unable to locate file \"$localPath\""))
       } else {
         futureFile.set(localFile)
       }

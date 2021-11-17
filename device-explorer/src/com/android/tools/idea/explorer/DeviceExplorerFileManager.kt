@@ -44,13 +44,13 @@ interface DeviceExplorerFileManager {
     entry: DeviceFileEntry,
     localPath: Path,
     progress: DownloadProgress
-  ): ListenableFuture<VirtualFile?>
+  ): ListenableFuture<VirtualFile>
 
   /**
    * Delete the VirtualFile passed as argument using the VFS.
    * The returned future fails with IOException in case of problems during file deletion.
    */
-  fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit>?
+  fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit>
 
   /**
    * Returns the [Path] to use on the local file system when saving/downloading the entry from the device to the local file system

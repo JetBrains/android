@@ -58,7 +58,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     @NotNull Supplier<Path> defaultPath) {
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath);
+    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath::get);
   }
 
   @NotNull

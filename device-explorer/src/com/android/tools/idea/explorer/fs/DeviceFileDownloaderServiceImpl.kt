@@ -75,8 +75,8 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   override fun deleteFiles(virtualFiles: List<VirtualFile>): ListenableFuture<Unit> {
-    val futures = virtualFiles.map { fileManager.deleteFile(it).transformNullable(taskExecutor) { Unit } }
-    return Futures.whenAllSucceed(futures).call( { Unit }, taskExecutor)
+    val futures = virtualFiles.map { fileManager.deleteFile(it) }
+    return Futures.whenAllSucceed(futures).call({}, taskExecutor)
   }
 
   // TODO(b/170230430) downloading files seems to trigger indexing.
