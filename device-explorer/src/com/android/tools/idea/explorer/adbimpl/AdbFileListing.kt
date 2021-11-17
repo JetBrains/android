@@ -13,227 +13,200 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.explorer.adbimpl
 
-import static com.android.ddmlib.FileListingService.LS_LD_PATTERN;
-import static com.android.ddmlib.FileListingService.LS_L_PATTERN;
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
+import com.android.tools.idea.adb.AdbShellCommandsUtil
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.adb.AdbShellCommandResult
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing
+import com.android.ddmlib.FileListingService
+import kotlin.Throws
+import com.android.ddmlib.AdbCommandRejectedException
+import com.android.ddmlib.ShellCommandUnresponsiveException
+import com.android.ddmlib.TimeoutException
+import java.io.IOException
+import com.android.tools.idea.explorer.adbimpl.AdbShellCommandBuilder
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntryBuilder
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.diagnostic.Logger
+import java.util.Objects
+import java.util.concurrent.Executor
+import java.util.regex.MatchResult
+import java.util.regex.Pattern
+import java.util.stream.Collectors
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
-import com.android.tools.idea.adb.AdbShellCommandResult;
-import com.android.tools.idea.adb.AdbShellCommandsUtil;
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class AdbFileListing(private val myDevice: IDevice, private val myDeviceCapabilities: AdbDeviceCapabilities, taskExecutor: Executor) {
+  private val myExecutor: FutureCallbackExecutor
+  private val myRoot: AdbFileListingEntry
+  private val myShellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  val root: ListenableFuture<AdbFileListingEntry>
+    get() = Futures.immediateFuture(myRoot)
 
-public class AdbFileListing {
-  @NotNull public static final Logger LOGGER = Logger.getInstance(AdbFileListing.class);
-  @NotNull private static final Pattern BACKSLASH = Pattern.compile("\\", Pattern.LITERAL);
-
-  @NotNull private final IDevice myDevice;
-  @NotNull private AdbDeviceCapabilities myDeviceCapabilities;
-  @NotNull private final FutureCallbackExecutor myExecutor;
-  @NotNull private final AdbFileListingEntry myRoot;
-  @NotNull private final AdbShellCommandsUtil myShellCommandsUtil =
-    new AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get());
-
-  public AdbFileListing(@NotNull IDevice device, @NotNull AdbDeviceCapabilities deviceCapabilities, @NotNull Executor taskExecutor) {
-    myDevice = device;
-    myDeviceCapabilities = deviceCapabilities;
-    myExecutor = FutureCallbackExecutor.wrap(taskExecutor);
-    myRoot = new AdbFileListingEntryBuilder().setPath("/").setKind(AdbFileListingEntry.EntryKind.DIRECTORY).build();
+  fun getChildren(parentEntry: AdbFileListingEntry): ListenableFuture<List<AdbFileListingEntry?>> {
+    return getChildrenRunAs(parentEntry, null)
   }
 
-  @NotNull
-  public ListenableFuture<AdbFileListingEntry> getRoot() {
-    return Futures.immediateFuture(myRoot);
-  }
+  fun getChildrenRunAs(
+    parentEntry: AdbFileListingEntry,
+    runAs: String?
+  ): ListenableFuture<List<AdbFileListingEntry?>> {
+    return myExecutor.executeAsync {
 
-  @NotNull
-  public ListenableFuture<List<AdbFileListingEntry>> getChildren(@NotNull AdbFileListingEntry parentEntry) {
-    return getChildrenRunAs(parentEntry, null);
-  }
-
-  @NotNull
-  public ListenableFuture<List<AdbFileListingEntry>> getChildrenRunAs(@NotNull AdbFileListingEntry parentEntry,
-                                                                      @Nullable String runAs) {
-    return myExecutor.executeAsync(() -> {
       // Run "ls -al" command and process matching output lines
-      String command = getCommand(runAs, "ls -al ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
-
-      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
-      boolean escaping = myDeviceCapabilities.hasEscapingLs();
-
-      List<AdbFileListingEntry> entries = commandResult.getOutput()
+      val command = getCommand(runAs, "ls -al ").withDirectoryEscapedPath(parentEntry.fullPath).build() //$NON-NLS-1$
+      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
+      val escaping = myDeviceCapabilities.hasEscapingLs()
+      val entries = commandResult.output
         .stream()
-        .map(line -> processLsOutputLine(line, escaping, parentEntry))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-      if (entries.isEmpty() && commandResult.isError()) {
-        commandResult.throwIfError();
+        .map { line: String -> processLsOutputLine(line, escaping, parentEntry) }
+        .filter { obj: AdbFileListingEntry? -> Objects.nonNull(obj) }
+        .collect(Collectors.toList())
+      if (entries.isEmpty() && commandResult.isError) {
+        commandResult.throwIfError()
       }
-      return entries;
-    });
+      entries
+    }
   }
 
   /**
    * Determine if a symlink entry points to a directory. This is a best effort process,
    * as the target of the symlink might not be accessible, in which case the future value
-   * is {@code false}. The future may still complete with an exception in case of ADB
+   * is `false`. The future may still complete with an exception in case of ADB
    * specific errors, such as device disconnected, etc.
    */
-  @NotNull
-  public ListenableFuture<Boolean> isDirectoryLink(@NotNull AdbFileListingEntry entry) {
-    return isDirectoryLinkRunAs(entry, null);
+  fun isDirectoryLink(entry: AdbFileListingEntry): ListenableFuture<Boolean> {
+    return isDirectoryLinkRunAs(entry, null)
   }
 
-  @NotNull
-  public ListenableFuture<Boolean> isDirectoryLinkRunAs(@NotNull AdbFileListingEntry entry,
-                                                        @Nullable String runAs) {
-    if (!entry.isSymbolicLink()) {
-      return Futures.immediateFuture(false);
-    }
+  fun isDirectoryLinkRunAs(
+    entry: AdbFileListingEntry,
+    runAs: String?
+  ): ListenableFuture<Boolean> {
+    return if (!entry.isSymbolicLink) {
+      Futures.immediateFuture(false)
+    } else myExecutor.executeAsync {
 
-    return myExecutor.executeAsync(() -> {
       // We simply need to determine whether the referent is a directory or not.
       // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
       // directory, we'll see the normal directory listing.  Otherwise, we'll see an
       // error of some sort.
-      String command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.getFullPath()).build();
-      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
+      val command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.fullPath).build()
+      val commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command)
 
       // Look for at least one line matching the expected output
-      int lineCount = 0;
-      for (String line : commandResult.getOutput()) {
-        Matcher m = LS_LD_PATTERN.matcher(line);
+      var lineCount = 0
+      for (line in commandResult.output) {
+        val m = FileListingService.LS_LD_PATTERN.matcher(line)
         if (m.matches()) {
           if (lineCount > 0) {
             // It is odd to have more than one line matching "ls -l -d"
-            LOGGER.warn(String.format("Unexpected additional output line matching result of ld -l -d: %s", line));
+            LOGGER.warn(String.format("Unexpected additional output line matching result of ld -l -d: %s", line))
           }
-          lineCount++;
+          lineCount++
         }
       }
-
-      // All done
-      return lineCount > 0;
-    });
+      lineCount > 0
+    }
   }
 
-  @Nullable
-  private static AdbFileListingEntry processLsOutputLine(@NotNull String line, boolean escaping, @NotNull AdbFileListingEntry parentEntry) {
-    // no need to handle empty lines.
-    if (line.isEmpty()) {
-      return null;
+  @Throws(TimeoutException::class, AdbCommandRejectedException::class, ShellCommandUnresponsiveException::class, IOException::class)
+  private fun getCommand(runAs: String?, text: String): AdbShellCommandBuilder {
+    val command = AdbShellCommandBuilder()
+    if (runAs != null) {
+      command.withRunAs(runAs)
+    } else if (myDeviceCapabilities.supportsSuRootCommand()) {
+      command.withSuRootPrefix()
     }
+    return command.withText(text)
+  }
 
-    // run the line through the regexp
-    Matcher m = LS_L_PATTERN.matcher(line);
-    if (!m.matches()) {
-      return null;
-    }
-
-    String name = getName(m, escaping);
-    if (name.equals(".") || name.equals("..")) {
-      return null;
-    }
-
-    // get the rest of the groups
-    String permissions = m.group(1);
-    String owner = m.group(2);
-    String group = m.group(3);
-    String size = m.group(4);
-    String date = m.group(5);
-    String time = m.group(6);
-    String info = null;
-
-    // and the type
-    AdbFileListingEntry.EntryKind objectType = AdbFileListingEntry.EntryKind.OTHER;
-    switch (permissions.charAt(0)) {
-      case '-':
-        objectType = AdbFileListingEntry.EntryKind.FILE;
-        break;
-      case 'b':
-        objectType = AdbFileListingEntry.EntryKind.BLOCK;
-        break;
-      case 'c':
-        objectType = AdbFileListingEntry.EntryKind.CHARACTER;
-        break;
-      case 'd':
-        objectType = AdbFileListingEntry.EntryKind.DIRECTORY;
-        break;
-      case 'l':
-        objectType = AdbFileListingEntry.EntryKind.SYMBOLIC_LINK;
-        break;
-      case 's':
-        objectType = AdbFileListingEntry.EntryKind.SOCKET;
-        break;
-      case 'p':
-        objectType = AdbFileListingEntry.EntryKind.FIFO;
-        break;
-    }
-
-    // now check what we may be linking to
-    if (objectType == AdbFileListingEntry.EntryKind.SYMBOLIC_LINK) {
-      String[] segments = name.split("\\s->\\s"); //$NON-NLS-1$
-
-      // we should have 2 segments
-      if (segments.length == 2) {
-        // update the entry name to not contain the link
-        name = segments[0];
-
-        // and the link name
-        info = segments[1];
+  companion object {
+    val LOGGER = Logger.getInstance(AdbFileListing::class.java)
+    private val BACKSLASH = Pattern.compile("\\", Pattern.LITERAL)
+    private fun processLsOutputLine(line: String, escaping: Boolean, parentEntry: AdbFileListingEntry): AdbFileListingEntry? {
+      // no need to handle empty lines.
+      if (line.isEmpty()) {
+        return null
       }
 
-      // add an arrow in front to specify it's a link.
-      info = "-> " + info; //$NON-NLS-1$;
+      // run the line through the regexp
+      val m = FileListingService.LS_L_PATTERN.matcher(line)
+      if (!m.matches()) {
+        return null
+      }
+      var name = getName(m, escaping)
+      if (name == "." || name == "..") {
+        return null
+      }
+
+      // get the rest of the groups
+      val permissions = m.group(1)
+      val owner = m.group(2)
+      val group = m.group(3)
+      val size = m.group(4)
+      val date = m.group(5)
+      val time = m.group(6)
+      var info: String? = null
+
+      // and the type
+      var objectType = EntryKind.OTHER
+      when (permissions[0]) {
+        '-' -> objectType = EntryKind.FILE
+        'b' -> objectType = EntryKind.BLOCK
+        'c' -> objectType = EntryKind.CHARACTER
+        'd' -> objectType = EntryKind.DIRECTORY
+        'l' -> objectType = EntryKind.SYMBOLIC_LINK
+        's' -> objectType = EntryKind.SOCKET
+        'p' -> objectType = EntryKind.FIFO
+      }
+
+      // now check what we may be linking to
+      if (objectType == EntryKind.SYMBOLIC_LINK) {
+        val segments = name.split("\\s->\\s".toRegex()).toTypedArray() //$NON-NLS-1$
+
+        // we should have 2 segments
+        if (segments.size == 2) {
+          // update the entry name to not contain the link
+          name = segments[0]
+
+          // and the link name
+          info = segments[1]
+        }
+
+        // add an arrow in front to specify it's a link.
+        info = "-> $info" //$NON-NLS-1$;
+      }
+      val path = AdbPathUtil.resolve(parentEntry.fullPath, name)
+
+      // Create entry and add it to result
+      return AdbFileListingEntry(
+        path,
+        objectType,
+        permissions,
+        owner,
+        group,
+        date,
+        time,
+        size,
+        info
+      )
     }
 
-    String path = AdbPathUtil.resolve(parentEntry.getFullPath(), name);
-
-    // Create entry and add it to result
-    return new AdbFileListingEntry(path,
-                                   objectType,
-                                   permissions,
-                                   owner,
-                                   group,
-                                   date,
-                                   time,
-                                   size,
-                                   info);
+    private fun getName(result: MatchResult, escaping: Boolean): String {
+      val name = result.group(7)
+      return if (escaping) BACKSLASH.matcher(name).replaceAll("") else name
+    }
   }
 
-  @NotNull
-  private static String getName(@NotNull MatchResult result, boolean escaping) {
-    String name = result.group(7);
-    return escaping ? BACKSLASH.matcher(name).replaceAll("") : name;
-  }
-
-  @NotNull
-  private AdbShellCommandBuilder getCommand(@Nullable String runAs, @NotNull String text)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    AdbShellCommandBuilder command = new AdbShellCommandBuilder();
-    if (runAs != null) {
-      command.withRunAs(runAs);
-    }
-    else if (myDeviceCapabilities.supportsSuRootCommand()) {
-      command.withSuRootPrefix();
-    }
-    return command.withText(text);
+  init {
+    myExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+    myRoot = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
   }
 }
