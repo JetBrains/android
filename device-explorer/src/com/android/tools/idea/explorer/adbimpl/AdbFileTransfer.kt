@@ -28,12 +28,12 @@ import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.explorer.fs.FileTransferProgress
 import com.android.tools.idea.explorer.fs.ThrottledProgress
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.logger
 import java.io.IOException
 import java.nio.file.Path
-import java.util.Locale
 import java.util.concurrent.Executor
 
 private val LOGGER = logger<AdbFileTransfer>()
@@ -118,35 +118,23 @@ class AdbFileTransfer(
     val futurePull: ListenableFuture<Unit> =
       if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
         myTaskExecutor.executeAsync {
-          val startTime = System.nanoTime()
+          val stopwatch = Stopwatch.createStarted()
           pullFile(
             myDevice,
             remotePath,
             localPath.toString(),
             SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
-          val endTime = System.nanoTime()
-          LOGGER.info(
-            String.format(
-              Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-              remotePath, localPath
-            )
-          )
+          LOGGER.info( "Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
         }
       } else {
         syncService.transform(myTaskExecutor) { syncService ->
           syncService.use {
-            val startTime = System.nanoTime()
+            val stopwatch = Stopwatch.createStarted()
             syncService.pullFile(
               remotePath,
               localPath.toString(),
               SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
-            val endTime = System.nanoTime()
-            LOGGER.info(
-              String.format(
-                Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-                remotePath, localPath
-              )
-            )
+            LOGGER.info( "Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
           }
         }
       }
@@ -170,32 +158,23 @@ class AdbFileTransfer(
       if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
         myTaskExecutor.executeAsync {
           val fileLength = localPath.toFile().length()
-          val startTime = System.nanoTime()
+          val stopwatch = Stopwatch.createStarted()
           pushFile(myDevice,
                    localPath.toString(),
                    remotePath,
                    SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
-          val endTime = System.nanoTime()
-          LOGGER.info(String.format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000,
-                                localPath,
-                                remotePath))
+          LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
         }
       } else {
         syncService.transform(myTaskExecutor) { syncService ->
           syncService.use {
             val fileLength = localPath.toFile().length()
-            val startTime = System.nanoTime()
+            val stopwatch = Stopwatch.createStarted()
             syncService.pushFile(
               localPath.toString(),
               remotePath,
               SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
-            val endTime = System.nanoTime()
-            LOGGER.info(
-              String.format(
-                Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1000000, localPath,
-                remotePath
-              )
-            )
+            LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
           }
         }
       }
