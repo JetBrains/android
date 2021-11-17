@@ -74,7 +74,7 @@ class PropertyKnownValuesKtTest : AndroidGradleTestCase() {
       ).combine()
 
     assertThat(
-      searchResults.toVersionValueDescriptors(GradleVersion(1, 0)),
+      searchResults.toVersionValueDescriptors { it >= GradleVersion(1, 0) },
       IsEqual.equalTo(
         listOf(ValueDescriptor("1.1"), ValueDescriptor("1.0"))))
   }

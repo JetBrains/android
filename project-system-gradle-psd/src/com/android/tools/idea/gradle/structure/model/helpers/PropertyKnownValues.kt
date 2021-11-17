@@ -17,10 +17,12 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -40,16 +42,13 @@ import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
-import kotlin.streams.toList
 
 fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
@@ -152,9 +151,14 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
     model.repositorySearchFactory
       .create(model.getPluginArtifactRepositories())
       .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    { it!!.toVersionValueDescriptors(GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION)) },
+    { sr ->
+      val searchResult = sr!!
+      val versions = searchResult.artifacts.flatMap { it.versions }.distinct().toSet()
+      val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      // return only results that will not lead to forced upgrades
+      searchResult.toVersionValueDescriptors { computeGradlePluginUpgradeState(it, latestKnown, versions).importance != FORCE }
+    },
     directExecutor())
-
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
@@ -166,11 +170,11 @@ fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   }
 
 @VisibleForTesting
-fun SearchResult.toVersionValueDescriptors(minimumVersion: GradleVersion = GradleVersion(0, 0)): List<ValueDescriptor<String>> =
+fun SearchResult.toVersionValueDescriptors(filter: (GradleVersion) -> Boolean = { true }): List<ValueDescriptor<String>> =
   artifacts
     .flatMap { it.versions }
     .distinct()
-    .filter { it >= minimumVersion }
+    .filter(filter)
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
 
