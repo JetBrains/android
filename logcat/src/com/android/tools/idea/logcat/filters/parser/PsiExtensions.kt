@@ -20,6 +20,8 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 
+private val ESCAPED_CHAR_REGEX = """\\([ :])""".toRegex()
+
 /**
  * Extension functions for [PsiElement] classes.
  */
@@ -29,7 +31,7 @@ internal fun PsiElement.toText(): String {
       when {
         text.isSurroundedBy('\'') -> text.substring(1, textLength - 1).replace("\\'", "'")
         text.isSurroundedBy('"') -> text.substring(1, textLength - 1).replace("\\\"", "\"")
-        else -> text.replace("\\ ", " ")
+        else -> text.replace(ESCAPED_CHAR_REGEX) { it.groupValues[1]}
       }
     }
     else -> {

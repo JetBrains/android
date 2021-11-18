@@ -265,6 +265,24 @@ class LogcatFilterPsiTest {
     }
   }
 
+  @Test
+  fun parse_escapedColon() {
+    assertThat(parse("tag\\:foo tag:foo").toFilter())
+      .isEqualTo(
+        AndFilter(
+          TopLevelFilter("tag:foo"),
+          KeyFilter("tag", "foo")))
+  }
+
+  @Test
+  fun parse_quotedColon() {
+    assertThat(parse("'tag:foo' tag:foo").toFilter())
+      .isEqualTo(
+        AndFilter(
+          TopLevelFilter("tag:foo"),
+          KeyFilter("tag", "foo")))
+  }
+
   private fun parse(text: String): PsiFile {
     val psi = PsiFileFactory.getInstance(project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
     if (PsiTreeUtil.hasErrorElements(psi)) {
