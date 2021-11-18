@@ -260,7 +260,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
     // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
     if (phoneWearPair.pairingStatus == PairingState.CONNECTED) {
-      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
+      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
     }
     else {
       showPairing(phoneWearPair, phoneDevice, wearDevice)
@@ -281,7 +281,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           }
         }
         if (WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED) {
-          showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
+          showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
         }
         else {
           showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
@@ -311,15 +311,19 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) {
         WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED
       }) {
-      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
+      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName,
+                         // If 2.x companion older than 773393865 is used with manual pairing, we have to let the
+                         // user know how they can finish the pairing on the companion.
+                         !phoneDevice.hasPairingFeature(PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED,
+                                                       wearDevice.getCompanionAppIdForWatch()))
     }
     else {
       showUiPairingRetry(phoneWearPair, phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
     }
   }
 
-  private suspend fun showPairingSuccess(phoneName: String, watchName: String) {
-    showUiPairingSuccess(phoneName, watchName)
+  private suspend fun showPairingSuccess(phoneName: String, watchName: String, tapAndFinishWarning: Boolean) {
+    showUiPairingSuccess(phoneName, watchName, tapAndFinishWarning)
     canGoForward.set(true)
   }
 
@@ -646,13 +650,14 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     scanningLabel = scanningLabel,
   )
 
-  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String) {
+  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String, tapAndFinishWarning: Boolean) {
     // Load svg image offline
     check(!EventQueue.isDispatchThread())
     val svgUrl = (StudioIcons.Common.SUCCESS as IconLoader.CachedImageIcon).url!!
     val imgSize = JBUI.size(150, 150)
     val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), imgSize.getWidth(), imgSize.getHeight())
-    val successLabel = message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName)
+    val successLabel = message(if (tapAndFinishWarning) { "wear.assistant.device.connection.pairing.success.skipandfinish" }
+                               else { "wear.assistant.device.connection.pairing.success.subtitle" }, phoneName, watchName)
     val svgLabel = JBLabel(successLabel).apply {
       horizontalAlignment = SwingConstants.CENTER
       horizontalTextPosition = JLabel.CENTER
