@@ -17,10 +17,8 @@ package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.ContextMenuItem
@@ -52,8 +50,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito
-import java.awt.Graphics2D
 import java.awt.Point
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -111,44 +107,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   }
 
   @Test
-  fun sparklineVisibilityChangesOnMouseStates() {
-    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    cpuProfilerStageView.stage.timeline.apply {
-      tooltipRange.set(0.0, 0.0)
-      dataRange.set(0.0, 100.0)
-      viewRange.set(0.0, 100.0)
-      selectionRange.set(0.0, 10.0)
-    }
-    val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    // Grab the tooltip component and give it dimensions to be visible.
-    val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
-    tooltipComponent.setSize(100, 10)
-    // Grab the overlay component and move the mouse to update the last position in the tooltip component.
-    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
-    val overlayMouseUi = FakeUi(overlayComponent)
-    overlayComponent.setBounds(1, 1, 100, 10)
-    overlayMouseUi.mouse.moveTo(0, 0)
-    // Grab the selection component and move the mouse to set the mode to !MOVE.
-    val selectionComponent = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>()[0]
-    selectionComponent.setSize(100, 10)
-    FakeUi(selectionComponent).mouse.moveTo(0, 0)
-    val mockGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
-    // Paint without letting the overlay component think we are over it.
-    tooltipComponent.paint(mockGraphics)
-    Mockito.verify(mockGraphics, Mockito.never()).draw(Mockito.any())
-    // Enter the overlay component and paint again, this time we expect to draw the spark line.
-    overlayMouseUi.mouse.moveTo(50, 5)
-    tooltipComponent.paint(mockGraphics)
-    Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
-    // Exit the overlay component and paint a third time. We don't expect our draw count to increase because the spark line
-    // should not be drawn.
-    overlayMouseUi.mouse.moveTo(0, 0)
-    tooltipComponent.paint(mockGraphics)
-    Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
-  }
-
-  @Test
   fun recordButtonDisabledInDeadSessions() {
     assumeFalse(isTestingProfileable)
     // Create a valid capture and end the current session afterwards.
@@ -158,7 +116,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
       myCpuService,
       myTransportService,
       CpuProfilerTestUtils.traceFileToByteString(resolveWorkspacePath(TOOLTIP_TRACE_DATA_FILE).toFile()))
-    val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
@@ -250,22 +207,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewPos.x + usageView.width / 2, usageViewPos.y + usageView.height / 2)
     assertThat(stageView.shouldShowTooltipSeekComponent()).isTrue()
-
-    // Moving the cursor over one of the selection handles should hide the tooltip seek bar
-    val treeWalker = TreeWalker(stageView.component)
-    val selection = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>().first()
-    val selectionPos = ui.getPosition(selection)
-
-    val w = selection.width.toDouble()
-    stageView.stage.timeline.apply {
-      viewRange.set(0.0, w)
-      selectionRange.set(w / 2, w)
-    }
-
-    // One pixel to the left of the selection range targets the min handle
-    ui.mouse.moveTo(selectionPos.x + selection.width / 2 - 1, selectionPos.y)
-    assertThat(selection.mode).isEqualTo(RangeSelectionComponent.Mode.ADJUST_MIN)
-    assertThat(stageView.shouldShowTooltipSeekComponent()).isFalse()
   }
 
   @Test

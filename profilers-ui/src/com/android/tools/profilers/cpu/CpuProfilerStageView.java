@@ -121,9 +121,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     super(profilersView, stage);
     myStage = stage;
     myThreads = new CpuThreadsView(myStage);
-    myUsageView = new CpuUsageView.NormalModeView(myStage);
-
-
+    myUsageView = new CpuUsageView(myStage);
     myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
@@ -252,10 +250,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   /**
    * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
-   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   * See {@code RangeTooltipComponent#myShowSeekComponent}
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
+    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip;
   }
 }

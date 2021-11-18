@@ -35,10 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests [CpuUsageView.NormalModeView]
- */
-class CpuUsageNormalModeViewTest {
+class CpuUsageViewTest {
   private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
 
@@ -64,13 +61,13 @@ class CpuUsageNormalModeViewTest {
 
   @Test
   fun shouldNotShowInstructionsPanel() {
-    val usageView = CpuUsageView.NormalModeView(stage)
+    val usageView = CpuUsageView(stage)
     Truth.assertThat(TreeWalker(usageView).descendants().filterIsInstance(InstructionsPanel::class.java)).hasSize(0)
   }
 
   @Test
   fun showsUsageChart() {
-    val usageView = CpuUsageView.NormalModeView(stage)
+    val usageView = CpuUsageView(stage)
     Truth.assertThat(TreeWalker(usageView).descendants().filterIsInstance(LineChart::class.java)).hasSize(1)
   }
 }
