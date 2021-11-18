@@ -662,7 +662,9 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed() {
-    requestScreenshotFeed(screenshotShape.rotation)
+    if (connected) {
+      requestScreenshotFeed(screenshotShape.rotation)
+    }
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
