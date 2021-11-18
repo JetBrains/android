@@ -17,6 +17,7 @@ package com.android.tools.idea.debuggers.coroutine
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.deployer.Sites
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.LaunchOptions
@@ -62,7 +63,7 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
       return ""
     }
 
-    // TODO(b/182023182) make a public accessible method in Deployer to expose the sites values
-    return "--attach-agent /data/data/${applicationId}/code_cache/coroutine_debugger_agent.so"
+    val appCodeCache = Sites.appCodeCache(applicationId)
+    return "--attach-agent ${appCodeCache}coroutine_debugger_agent.so"
   }
 }

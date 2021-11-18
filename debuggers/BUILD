@@ -14,6 +14,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/debuggers:libjava_sites",
     ],
 )
 
@@ -35,4 +36,11 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "libjava_sites",
+    jars = ["//tools/base/deploy/sites:libjava_sites.jar"],
+    visibility = ["//visibility:public"],
 )
