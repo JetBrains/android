@@ -319,8 +319,12 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("ClassFolder") { ideBaseArtifact.classesFolder.path.toPrintablePath() }
       prop("IsTestArtifact") { ideBaseArtifact.isTestArtifact.toString() }
       ideBaseArtifact.ideSetupTaskNames.forEach { prop("IdeSetupTaskNames") { it } }
-      ideBaseArtifact.generatedSourceFolders.forEach { prop("GeneratedSourceFolders") { it.path.toPrintablePath() } }
-      ideBaseArtifact.additionalClassesFolders.sorted().forEach { prop("AdditionalClassesFolders") { it.path.toPrintablePath() } }
+      ideBaseArtifact.generatedSourceFolders.map { it.path.toPrintablePath() }.sorted().forEach {
+        prop("GeneratedSourceFolders") { it }
+      }
+      ideBaseArtifact.additionalClassesFolders.map { it.path.toPrintablePath() }.sorted().forEach {
+        prop("AdditionalClassesFolders") { it }
+      }
       ideBaseArtifact.variantSourceProvider?.let {
         head("VariantSourceProvider")
         nest { dump(it) }
