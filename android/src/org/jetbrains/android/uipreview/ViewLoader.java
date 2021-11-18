@@ -26,6 +26,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -35,12 +36,10 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -50,7 +49,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -102,20 +100,8 @@ public class ViewLoader {
 
   @Nullable
   private static String getRClassName(@NotNull final Module module) {
-    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return null;
-      }
-
-      final Manifest manifest = Manifest.getMainManifest(facet);
-      if (manifest == null) {
-        return null;
-      }
-
-      final String packageName = manifest.getPackage().getValue();
-      return packageName == null ? null : packageName + '.' + R_CLASS;
-    });
+    String packageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
+    return packageName == null ? null : packageName + '.' + R_CLASS;
   }
 
   /**

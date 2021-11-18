@@ -52,6 +52,8 @@ android {
           "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
         ]
     }
+
+    namespace "google.simpleapplication"
 }
 
 dependencies {
