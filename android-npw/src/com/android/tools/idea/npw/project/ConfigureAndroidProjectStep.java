@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.project;
 import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
@@ -31,6 +32,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -58,6 +60,7 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.template.Category;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
@@ -81,6 +84,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -159,7 +163,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     String basePackage = NewProjectModel.getSuggestedProjectPackage();
 
     Expression<String> computedPackageName = myProjectModel.getApplicationName()
-                                                           .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
+      .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(myProjectModel.getPackageName(), packageNameText);
@@ -199,6 +203,13 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
+
+    myValidatorPanel.registerValidator(
+      androidSdkInfo,
+      value -> !value.isPresent() || hasValidSdkComposeVersion(value.get(), getModel().newRenderTemplate.getValueOrNull()) ? OK :
+               new Validator.Result(WARNING, message("android.wizard.validate.select.compose.sdk")),
+      getModel().newRenderTemplate
+    );
 
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
@@ -313,6 +324,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     else {
       myAppCompatCheck.setEnabled(true);
     }
+  }
+
+  private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
+    return renderTemplate == null ||
+           renderTemplate.getCategory() != Category.Compose ||
+           skdItem.getTargetApiLevel() >= AndroidVersion.VersionCodes.S;
   }
 
   private void createUIComponents() {
