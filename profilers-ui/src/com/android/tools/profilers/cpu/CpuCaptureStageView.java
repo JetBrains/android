@@ -133,7 +133,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                        "Apply",
                        PathUtils::abbreviate)
   );
-  private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("Vsync guide", true);
+  private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("VSync guide", true);
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
