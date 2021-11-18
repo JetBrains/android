@@ -22,6 +22,7 @@ MODULE                        : My_First_App.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2304,6 +2305,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

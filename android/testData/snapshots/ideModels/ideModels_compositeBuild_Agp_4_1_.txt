@@ -20,6 +20,7 @@ MODULE                        : TestCompositeLib1.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2056,6 +2057,7 @@ MODULE                        : TestCompositeLib1.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -3983,6 +3985,7 @@ MODULE                        : TestCompositeLib3.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -5995,6 +5998,7 @@ MODULE                        : TestCompositeLib3.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -7847,6 +7851,7 @@ MODULE                        : project.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -10169,6 +10174,7 @@ MODULE                        : project.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

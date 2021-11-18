@@ -1082,6 +1082,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     isIgnoreWarnings = options.ignoreWarnings,
     isWarningsAsErrors = options.warningsAsErrors,
     isIgnoreTestSources = options.ignoreTestSources,
+    isIgnoreTestFixturesSources = copyNewProperty(options::ignoreTestFixturesSources) ?: true,
     isCheckGeneratedSources = options.checkGeneratedSources,
     isExplainIssues = options.explainIssues,
     isShowAll = options.showAll,

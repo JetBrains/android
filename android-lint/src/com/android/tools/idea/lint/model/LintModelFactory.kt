@@ -641,6 +641,7 @@ class LintModelFactory : LintModelModuleLoader {
           ignoreWarnings = options.isIgnoreWarnings,
           warningsAsErrors = options.isWarningsAsErrors,
           ignoreTestSources = options.isIgnoreTestSources,
+          ignoreTestFixturesSources = options.isIgnoreTestFixturesSources,
           checkGeneratedSources = options.isCheckGeneratedSources,
           explainIssues = options.isExplainIssues,
           showAll = options.isShowAll,
@@ -836,6 +837,7 @@ class LintModelFactory : LintModelModuleLoader {
     }
 
     companion object {
+
         /**
          * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values defined by
          * AndroidProjectTypes.PROJECT_TYPE_*.
@@ -879,50 +881,5 @@ class LintModelFactory : LintModelModuleLoader {
                 LintOptions.SEVERITY_DEFAULT_ENABLED -> LintModelSeverity.WARNING
                 else -> LintModelSeverity.IGNORE
             }
-
-        @Suppress("unused") // Used from the lint-gradle module in AGP
-        @JvmStatic
-        fun getLintOptions(options: LintOptions): DefaultLintModelLintOptions {
-            val severityOverrides = options.severityOverrides?.let { source ->
-                val map = LinkedHashMap<String, LintModelSeverity>()
-                for ((id, severityInt) in source.entries) {
-                    map[id] = getSeverity(severityInt)
-                }
-                map
-            }
-
-            return DefaultLintModelLintOptions(
-              // Not all DSL LintOptions; only some are actually accessed from outside
-              // the Gradle/CLI configuration currently
-              baselineFile = options.baselineFile,
-              lintConfig = options.lintConfig,
-              severityOverrides = severityOverrides,
-              checkTestSources = options.isCheckTestSources,
-              checkDependencies = options.isCheckDependencies,
-              disable = options.disable,
-              enable = options.enable,
-              check = options.check,
-              abortOnError = options.isAbortOnError,
-              absolutePaths = options.isAbsolutePaths,
-              noLines = options.isNoLines,
-              quiet = options.isQuiet,
-              checkAllWarnings = options.isCheckAllWarnings,
-              ignoreWarnings = options.isIgnoreWarnings,
-              warningsAsErrors = options.isWarningsAsErrors,
-              ignoreTestSources = options.isIgnoreTestSources,
-              checkGeneratedSources = options.isCheckGeneratedSources,
-              explainIssues = options.isExplainIssues,
-              showAll = options.isShowAll,
-              textReport = options.textReport,
-              textOutput = options.textOutput,
-              htmlReport = options.htmlReport,
-              htmlOutput = options.htmlOutput,
-              xmlReport = options.xmlReport,
-              xmlOutput = options.xmlOutput,
-              sarifReport = options.sarifReport,
-              sarifOutput = options.sarifOutput,
-              checkReleaseBuilds = options.isCheckReleaseBuilds
-            )
-        }
     }
 }

@@ -22,6 +22,7 @@ MODULE                        : project.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -395,6 +396,7 @@ MODULE                        : project.library
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

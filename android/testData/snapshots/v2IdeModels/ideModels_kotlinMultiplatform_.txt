@@ -22,6 +22,7 @@ MODULE                        : kotlinMultiPlatform.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -2294,6 +2295,7 @@ MODULE                        : kotlinMultiPlatform.module2
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

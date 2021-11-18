@@ -20,6 +20,7 @@ LintOptions
     IsIgnoreWarnings              : false
     IsWarningsAsErrors            : false
     IsIgnoreTestSources           : false
+    IsIgnoreTestFixturesSources   : false
     IsCheckGeneratedSources       : false
     IsCheckReleaseBuilds          : true
     IsExplainIssues               : true

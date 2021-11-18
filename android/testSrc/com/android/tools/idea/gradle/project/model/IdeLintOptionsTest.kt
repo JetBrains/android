@@ -44,6 +44,7 @@ class IdeLintOptionsTest {
       isIgnoreWarnings = false,
       isWarningsAsErrors = false,
       isIgnoreTestSources = false,
+      isIgnoreTestFixturesSources = false,
       isCheckGeneratedSources = false,
       isCheckReleaseBuilds = true,
       isExplainIssues = true,

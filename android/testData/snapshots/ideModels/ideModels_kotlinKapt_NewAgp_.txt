@@ -22,6 +22,7 @@ MODULE                        : MainActivity.app
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
@@ -1114,6 +1115,7 @@ MODULE                        : MainActivity.lib
         IsIgnoreWarnings              : false
         IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

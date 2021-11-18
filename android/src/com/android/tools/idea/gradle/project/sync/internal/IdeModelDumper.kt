@@ -543,6 +543,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("IsIgnoreWarnings") { lintOptions.isIgnoreWarnings.toString() }
         prop("IsWarningsAsErrors") { lintOptions.isWarningsAsErrors.toString() }
         prop("IsIgnoreTestSources") { lintOptions.isIgnoreTestSources.toString() }
+        prop("IsIgnoreTestFixturesSources") { lintOptions.isIgnoreTestFixturesSources.toString() }
         prop("IsCheckGeneratedSources") { lintOptions.isCheckGeneratedSources.toString() }
         prop("IsCheckReleaseBuilds") { lintOptions.isCheckReleaseBuilds.toString() }
         prop("IsExplainIssues") { lintOptions.isExplainIssues.toString() }

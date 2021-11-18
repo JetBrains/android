@@ -36,6 +36,7 @@ data class IdeLintOptionsImpl(
   override val isIgnoreWarnings: Boolean = false,
   override val isWarningsAsErrors: Boolean = false,
   override val isIgnoreTestSources: Boolean = false,
+  override val isIgnoreTestFixturesSources: Boolean = false,
   override val isCheckGeneratedSources: Boolean = false,
   override val isCheckReleaseBuilds: Boolean = true,
   override val isExplainIssues: Boolean = true,

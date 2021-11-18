@@ -34,6 +34,7 @@ interface IdeLintOptions {
     val isIgnoreWarnings: Boolean
     val isWarningsAsErrors: Boolean
     val isIgnoreTestSources: Boolean
+    val isIgnoreTestFixturesSources: Boolean
     val isCheckGeneratedSources: Boolean
     val isCheckReleaseBuilds: Boolean
     val isExplainIssues: Boolean

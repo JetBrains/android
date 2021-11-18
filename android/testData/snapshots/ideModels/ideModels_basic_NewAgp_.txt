@@ -22,6 +22,7 @@ MODULE                        : project
         IsIgnoreWarnings              : true
         IsWarningsAsErrors            : true
         IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true

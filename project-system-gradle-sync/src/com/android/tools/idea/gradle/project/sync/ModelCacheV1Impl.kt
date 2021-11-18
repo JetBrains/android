@@ -977,6 +977,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     isIgnoreWarnings = copyNewProperty({ options.isIgnoreWarnings }, false),
     isWarningsAsErrors = copyNewProperty({ options.isWarningsAsErrors }, false),
     isIgnoreTestSources = copyNewProperty({ options.isIgnoreTestSources }, false),
+    isIgnoreTestFixturesSources = false, // testFixtures are not supported in model v1
     isCheckGeneratedSources = copyNewProperty({ options.isCheckGeneratedSources }, false),
     isExplainIssues = copyNewProperty({ options.isExplainIssues }, true),
     isShowAll = copyNewProperty({ options.isShowAll }, false),
