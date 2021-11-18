@@ -31,6 +31,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.Orientation
 import com.android.tools.idea.compose.preview.pickers.properties.Shape
 import com.android.tools.idea.compose.preview.pickers.properties.toMutableConfig
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.sqrt
 
@@ -42,6 +43,9 @@ internal const val DEVICE_BY_NAME_PREFIX = "name:"
 
 /** Prefix used by device specs to create devices by hardware specs. */
 internal const val DEVICE_BY_SPEC_PREFIX = "spec:"
+
+/** id for the default device when no device is specified by the user. */
+private const val DEFAULT_DEVICE_ID = "pixel_5"
 
 internal fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
@@ -102,8 +106,16 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
 }
 
 /**
+ * Returns the [Device] used when there's no device specified by the user.
+ */
+internal fun ConfigurationManager.getDefaultPreviewDevice(): Device? =
+  devices.find { device -> device.id == DEFAULT_DEVICE_ID } ?: defaultDevice
+
+/**
  * Based on [deviceDefinition], returns a [Device] from the collection that matches the name or id, if it's a custom spec, returns a created
  * custom [Device].
+ *
+ * Note that if it's a custom spec, the dimensions will be converted to pixels to instantiate the custom [Device].
  *
  * @see createDeviceInstance
  */

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
+import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
 import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
@@ -31,6 +33,8 @@ import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -46,6 +50,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -82,6 +88,10 @@ internal class PsiCallPropertyModel internal constructor(
 ) : PsiPropertyModel(), DataProvider {
   private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
+  private val availableDevices = AndroidFacet.getInstance(module)?.let { facet ->
+    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
+  } ?: emptyList()
+
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
 
   val ktFile = resolvedCall.call.callElement.containingKtFile
@@ -94,8 +104,16 @@ internal class PsiCallPropertyModel internal constructor(
     })
 
   override fun getData(dataId: String): Any? =
-    when(dataId) {
-      // TODO: Implement to provide data required by some properties, eg: available devices
+    when (dataId) {
+      CurrentDeviceKey.name -> {
+        val currentDeviceValue = properties.getOrNull("", PARAMETER_HARDWARE_DEVICE)?.value
+        val deviceFromParameterValue = currentDeviceValue?.let(availableDevices::findOrParseFromDefinition)
+
+        deviceFromParameterValue ?: ConfigurationManager.findExistingInstance(module)?.getDefaultPreviewDevice()
+      }
+      AvailableDevicesKey.name -> {
+        availableDevices
+      }
       else -> null
     }
 
@@ -122,19 +140,19 @@ internal class PsiCallPropertyModel internal constructor(
        * actually represents on the preview.
        */
       val defaultValues = libraryDefaultValues.mapValues { entry ->
-          when (entry.key) {
-            PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
-            PARAMETER_WIDTH,
-            PARAMETER_WIDTH_DP,
-            PARAMETER_HEIGHT,
-            PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
-            PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
-            PARAMETER_UI_MODE -> UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
-            PARAMETER_DEVICE -> entry.value ?: "Default"
-            PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
-            else -> entry.value
-          }
+        when (entry.key) {
+          PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
+          PARAMETER_WIDTH,
+          PARAMETER_WIDTH_DP,
+          PARAMETER_HEIGHT,
+          PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
+          PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
+          PARAMETER_UI_MODE -> UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
+          PARAMETER_DEVICE -> entry.value ?: "Default"
+          PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+          else -> entry.value
         }
+      }
 
       return PsiCallPropertyModel(project, module, resolvedCall, defaultValues, tracker)
     }

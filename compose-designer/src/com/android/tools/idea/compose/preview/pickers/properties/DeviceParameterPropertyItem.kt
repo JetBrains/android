@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
-import com.android.sdklib.devices.DeviceManager
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
@@ -27,6 +26,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findByIdOrName
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.preview.pickers.properties.utils.toDeviceConfig
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackerHelper
@@ -34,8 +34,6 @@ import com.android.tools.idea.compose.preview.util.enumValueOfOrNull
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -60,15 +58,8 @@ internal class DeviceParameterPropertyItem(
   defaultValue) {
   private val log = Logger.getInstance(this.javaClass)
 
-  //TODO: Do this elsewhere, this is not the only place where it's done
-  private val availableDevices = run {
-    AndroidFacet.getInstance(model.module)?.let { facet ->
-      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
-    } ?: emptyList()
-  }
-
   private val defaultDeviceValues: DeviceConfig =
-    ConfigurationManager.findExistingInstance(model.module)?.defaultDevice?.toDeviceConfig() ?: DeviceConfig(
+    ConfigurationManager.findExistingInstance(model.module)?.getDefaultPreviewDevice()?.toDeviceConfig() ?: DeviceConfig(
       shape = DEFAULT_SHAPE,
       width = DEFAULT_WIDTH,
       height = DEFAULT_HEIGHT,
@@ -133,7 +124,9 @@ internal class DeviceParameterPropertyItem(
   )
 
   private fun getCurrentDeviceConfig(): MutableDeviceConfig {
+    val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
     return value?.let { currentValue ->
+      // Translate the current value, the value could either be a DeviceConfig string or a Device ID
       DeviceConfig.toDeviceConfigOrNull(currentValue) ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
     }?.toMutableConfig() ?: defaultDeviceValues.toMutableConfig()
   }

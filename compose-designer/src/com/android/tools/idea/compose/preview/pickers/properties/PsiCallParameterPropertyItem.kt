@@ -68,7 +68,7 @@ internal open class PsiCallParameterPropertyItem(
    * the options matches the meaning of the value, or [PickerTrackableValue.UNKNOWN] if the assigned value is unexpected.
    */
   fun writeNewValue(newValue: String?, writeAsIs: Boolean, trackableValue: PickerTrackableValue) {
-    model.tracker.registerModification(name, trackableValue)
+    model.tracker.registerModification(name, trackableValue, CurrentDeviceKey.getData(model))
     if (newValue == null) {
       deleteParameter()
     }

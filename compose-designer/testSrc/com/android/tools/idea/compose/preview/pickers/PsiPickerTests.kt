@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers
 
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.namespaceVariations
@@ -24,6 +25,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyMode
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
 import com.android.tools.idea.compose.preview.pickers.tracking.PreviewPickerTracker
@@ -208,10 +210,10 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     // Hardware properties
     assertEquals("1080", model.properties["", "Width"].defaultValue)
-    assertEquals("1920", model.properties["", "Height"].defaultValue)
+    assertEquals("2340", model.properties["", "Height"].defaultValue)
     assertEquals("px", model.properties["", "DimensionUnit"].defaultValue)
     assertEquals("portrait", model.properties["", "Orientation"].defaultValue)
-    assertEquals("420", model.properties["", "Density"].defaultValue)
+    assertEquals("440", model.properties["", "Density"].defaultValue)
 
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)
@@ -437,6 +439,32 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[2])
   }
 
+  @RunsInEdt
+  @Test
+  fun testDeviceTrackedPerModification() {
+    // We need the sdk to be able to figure out devices set by ID, including the initial/default device
+    Sdks.addLatestAndroidSdk(projectRule.fixture.projectDisposable, module)
+    val (testTracker, model) = simpleTrackingTestSetup()
+
+    // Modifications under default device
+    model.properties["", "name"].value = "my name 1"
+    model.properties["", "Device"].value = "id:pixel"
+
+    // Modifications under pixel device
+    model.properties["", "name"].value = "my name 2"
+    model.properties["", "Device"].value = ReferencePhoneConfig.deviceSpec()
+
+    //Modifications under Reference Phone device
+    model.properties["", "name"].value = "my name 3"
+
+    assertEquals(5, testTracker.devicesRegistered.size)
+    assertEquals("pixel_5", testTracker.devicesRegistered[0]!!.id) // Default device
+    assertEquals("pixel_5", testTracker.devicesRegistered[1]!!.id)
+    assertEquals("pixel", testTracker.devicesRegistered[2]!!.id) // Pixel
+    assertEquals("pixel", testTracker.devicesRegistered[3]!!.id)
+    assertEquals("Custom", testTracker.devicesRegistered[4]!!.displayName) // Reference Phone Device
+  }
+
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
@@ -541,9 +569,11 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
 private class TestTracker : PreviewPickerTracker {
   val valuesRegistered = mutableListOf<PickerTrackableValue>()
+  val devicesRegistered = mutableListOf<Device?>()
 
-  override fun registerModification(name: String, value: PickerTrackableValue) {
+  override fun registerModification(name: String, value: PickerTrackableValue, device: Device?) {
     valuesRegistered.add(value)
+    devicesRegistered.add(device)
   }
 
   override fun pickerShown() {} // Not tested

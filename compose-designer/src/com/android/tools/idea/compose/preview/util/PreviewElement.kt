@@ -31,6 +31,7 @@ import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
+import com.android.tools.idea.compose.preview.pickers.properties.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.projectsystem.isTestFile
@@ -277,10 +278,7 @@ fun PreviewElement.applyTo(renderConfiguration: Configuration) {
   configuration.applyTo(renderConfiguration,
                         { it.configurationManager.highestApiTarget },
                         { it.configurationManager.devices },
-                        {
-                          it.configurationManager.devices.find { device -> device.id == DEFAULT_DEVICE_ID }
-                          ?: it.configurationManager.defaultDevice
-                        },
+                        { it.configurationManager.getDefaultPreviewDevice() },
                         getCustomDeviceSize(),
                         this.displaySettings.showDecoration)
 }
@@ -301,9 +299,6 @@ fun PreviewElement.applyConfigurationForTest(renderConfiguration: Configuration,
                                              defaultDeviceProvider: (Configuration) -> Device?) {
   configuration.applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, getCustomDeviceSize())
 }
-
-/** id for the default device when no device is specified by the user. */
-private const val DEFAULT_DEVICE_ID = "pixel_5"
 
 /**
  * Contains settings for rendering.

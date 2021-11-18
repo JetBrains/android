@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.tracking
 
 import com.android.annotations.concurrency.Slow
+import com.android.sdklib.devices.Device
 
 /**
  * Interface used to log usage data of the @Preview picker.
@@ -28,8 +29,10 @@ internal interface PreviewPickerTracker {
    * Register a modification to the [name] parameter of the Preview annotation.
    *
    * [value] is one of the tracking relevant options that best represents the value assigned to the parameter.
+   *
+   * [device] should be the currently active [Device] in the preview when the change was made (right before the change is applied).
    */
-  fun registerModification(name: String, value: PickerTrackableValue)
+  fun registerModification(name: String, value: PickerTrackableValue, device: Device?)
 
   /**
    * Potentially slow, since some modification data will have to be converted to Studio Event objects (eg: the name of the modified field)
@@ -46,7 +49,7 @@ internal object NoOpTracker : PreviewPickerTracker { // TODO(b/205184728): Updat
 
   override fun pickerClosed() {} // Do nothing
 
-  override fun registerModification(name: String, value: PickerTrackableValue) {} // Do nothing
+  override fun registerModification(name: String, value: PickerTrackableValue, device: Device?) {} // Do nothing
 
   override fun logUsageData() {} // Do nothing
 }
