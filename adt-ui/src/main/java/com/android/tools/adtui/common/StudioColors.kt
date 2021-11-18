@@ -191,3 +191,8 @@ val neutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent",
  * Neutral color of lifecycle event when not selected
  */
 val fadedNeutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.LIGHT_GRAY, Color.DARK_GRAY))
+
+/**
+ * Background color for non-jank portion of frames
+ */
+val nonJankBackground = JBColor.namedColor("Profiler.nonJankBackground", JBColor(0xffffff, 0x323232))

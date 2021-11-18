@@ -23,6 +23,7 @@ import com.android.tools.adtui.common.fadedMissedDeadlineJank
 import com.android.tools.adtui.common.fadedOtherJank
 import com.android.tools.adtui.common.goodFrame
 import com.android.tools.adtui.common.missedDeadlineJank
+import com.android.tools.adtui.common.nonJankBackground
 import com.android.tools.adtui.common.otherJank
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.formatter.TimeFormatter
@@ -71,7 +72,7 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
         g.fill(rect)
 
         // draw non-jank portion
-        g.color = ProfilerColors.CPU_STATECHART_DEFAULT_STATE
+        g.color = nonJankBackground
         g.fill(Rectangle2D.Float(rect.x + borderX, rect.y + borderY,
                                  blankRectWidth - 2 * borderX, rect.height - 2 * borderY - 1))
 
