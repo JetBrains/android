@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
-final class CountDownLatchAssert {
+public final class CountDownLatchAssert {
   private CountDownLatchAssert() {
   }
 
-  static void await(@NotNull CountDownLatch latch, @NotNull Duration duration) throws InterruptedException {
-    if (!latch.await(duration.toMillis(), TimeUnit.MILLISECONDS)) {
+  public static void await(@NotNull CountDownLatch latch) throws InterruptedException {
+    if (!latch.await(60, TimeUnit.SECONDS)) {
       Assert.fail();
     }
   }

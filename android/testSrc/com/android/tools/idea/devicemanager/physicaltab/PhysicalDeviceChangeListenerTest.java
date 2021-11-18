@@ -17,10 +17,10 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceChangeListener.AddOrSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public final class PhysicalDeviceChangeListenerTest {
     listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
 
     // Assert
-    CountDownLatchAssert.await(latch, Duration.ofMillis(512));
+    CountDownLatchAssert.await(latch);
     Mockito.verify(myModel).addOrSet(TestPhysicalDevices.GOOGLE_PIXEL_3);
   }
 }

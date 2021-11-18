@@ -20,17 +20,15 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,9 +86,7 @@ public final class VirtualDisplayListTest {
     // Refresh the AVDs
     myVirtualDisplayList.refreshAvds();
 
-    if (!latch.await(1000, TimeUnit.MILLISECONDS)) {
-      Assert.fail();
-    }
+    CountDownLatchAssert.await(latch);
 
     // There is one AVD
     assertEquals(1, myVirtualDisplayList.getTableItems().size());

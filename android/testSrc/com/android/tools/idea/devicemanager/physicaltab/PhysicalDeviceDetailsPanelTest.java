@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.DeviceSection;
@@ -27,7 +28,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.awt.Container;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.JLabel;
@@ -79,7 +79,7 @@ public final class PhysicalDeviceDetailsPanelTest {
                                                                       DeviceSectionCallback::new);
 
     // Assert
-    CountDownLatchAssert.await(latch, Duration.ofMillis(4));
+    CountDownLatchAssert.await(latch);
 
     SummarySection section = panel.getSummarySection();
 
@@ -108,7 +108,7 @@ public final class PhysicalDeviceDetailsPanelTest {
                                                                       section -> newDeviceSectionCallback(section, latch));
 
     // Assert
-    CountDownLatchAssert.await(latch, Duration.ofMillis(4));
+    CountDownLatchAssert.await(latch);
     assertEquals("Google Pixel 3", panel.getDeviceSection().myNameLabel.getText());
   }
 
