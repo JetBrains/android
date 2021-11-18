@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -57,7 +58,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,7 +151,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
 
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
+    for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
       modulesSet.add(depFacet.getModule());
     }
 
@@ -237,7 +237,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     for (int c = 0; c < model.getSize(); c++) {
       Module otherModule = (Module)model.getElementAt(c);
       // getAllAndroidDependencies returns all transitive dependencies
-      int otherModuleDependencyCount = AndroidUtils.getAllAndroidDependencies(otherModule, true).size();
+      int otherModuleDependencyCount = AndroidDependenciesCache.getAllAndroidDependencies(otherModule, true).size();
       if (otherModuleDependencyCount > moduleDependencyCount) {
         moduleDependencyCount = otherModuleDependencyCount;
         root = otherModule;

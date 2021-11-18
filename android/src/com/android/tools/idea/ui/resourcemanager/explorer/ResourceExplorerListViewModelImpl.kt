@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -168,7 +169,7 @@ class ResourceExplorerListViewModelImpl(
   override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
     val displayedModuleNames = mutableSetOf(facet.module.name)
     if (filterOptions.isShowModuleDependencies) {
-      displayedModuleNames.addAll(AndroidUtils.getAndroidResourceDependencies(facet.module).map { it.module.name })
+      displayedModuleNames.addAll(AndroidDependenciesCache.getAndroidResourceDependencies(facet.module).map { it.module.name })
     }
 
     ModuleManager.getInstance(facet.module.project).modules.filter { module ->

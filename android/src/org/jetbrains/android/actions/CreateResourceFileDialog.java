@@ -3,6 +3,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
@@ -26,7 +27,6 @@ import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,7 +129,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
 
     final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
-    for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
+    for (AndroidFacet depFacet : AndroidDependenciesCache.getAllAndroidDependencies(module, true)) {
       modulesSet.add(depFacet.getModule());
     }
 

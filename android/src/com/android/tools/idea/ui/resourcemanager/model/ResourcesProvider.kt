@@ -29,6 +29,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.editors.theme.ResolutionUtils
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.intellij.openapi.application.runReadAction
@@ -36,7 +37,6 @@ import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 
 /**
@@ -63,7 +63,7 @@ fun getModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: 
 fun getDependentModuleResources(forFacet: AndroidFacet,
                                 type: ResourceType,
                                 typeFilters: List<TypeFilter>): List<ResourceSection> {
-  return AndroidUtils.getAndroidResourceDependencies(forFacet.module).asSequence()
+  return AndroidDependenciesCache.getAndroidResourceDependencies(forFacet.module).asSequence()
     .flatMap { dependentFacet ->
       val moduleRepository = ResourceRepositoryManager.getModuleResources(dependentFacet)
       moduleRepository.namespaces.asSequence()

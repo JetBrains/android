@@ -29,6 +29,7 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
 import com.android.tools.lint.detector.api.LintModelModuleProject;
@@ -238,7 +239,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (project == null) {
       // It's possible for the module to *depend* on Android code, e.g. in a Gradle
       // project there will be a top-level non-Android module
-      List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, false);
+      List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
       for (AndroidFacet dependentFacet : dependentFacets) {
         addProjects(client, dependentFacet.getModule(), files, moduleMap, libraryMap, projectMap, projects, true);
       }
@@ -259,7 +260,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     List<Project> dependencies = Lists.newArrayList();
     // No, this shouldn't use getAllAndroidDependencies; we may have non-Android dependencies that this won't include
     // (e.g. Java-only modules)
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(module, true);
+    List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(module, true);
     for (AndroidFacet dependentFacet : dependentFacets) {
       Project p = moduleMap.get(dependentFacet.getModule());
       if (p != null) {

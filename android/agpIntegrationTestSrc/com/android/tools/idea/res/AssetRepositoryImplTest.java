@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 
 /**
  * Tests for {@link AssetRepositoryImpl}.
@@ -49,7 +48,7 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     myAppRepo = new AssetRepositoryImpl(facet);
 
 
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), false);
+    List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), false);
     if (dependentFacets.isEmpty()) {
       myLibRepo = null;
       return;

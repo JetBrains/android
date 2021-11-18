@@ -54,7 +54,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
 
 private data class ResourceClasses(
@@ -156,7 +155,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     result.add(getModuleRClasses(androidFacet))
 
-    for (dependency in AndroidUtils.getAllAndroidDependencies(module, false)) {
+    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
       result.add(getModuleRClasses(dependency))
     }
 

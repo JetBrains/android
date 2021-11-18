@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -27,7 +28,6 @@ import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderUtils {
@@ -50,7 +50,7 @@ public class RenderUtils {
 
           // Reset resources for the current module and all the dependencies
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
+          Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
             .filter(Objects::nonNull)
             .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
         }

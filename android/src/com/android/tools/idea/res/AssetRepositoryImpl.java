@@ -48,7 +48,6 @@ import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -188,7 +187,7 @@ public class AssetRepositoryImpl extends AssetRepository {
                                                     @NotNull Function<IdeaSourceProvider, Iterable<VirtualFile>> sourceMapper,
                                                     @NotNull Function<ExternalAndroidLibrary, PathString> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
-      Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
+      Stream.concat(Stream.of(facet), AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), true).stream())
         .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())
         .distinct()
         .map(sourceMapper)
@@ -252,7 +251,7 @@ public class AssetRepositoryImpl extends AssetRepository {
     List<ExternalAndroidLibrary> libraries = new ArrayList<>();
     if (AndroidModel.isRequired(facet)) {
       AndroidModuleSystem androidModuleSystem = getModuleSystem(facet);
-      List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+      List<AndroidFacet> dependentFacets = AndroidDependenciesCache.getAllAndroidDependencies(facet.getModule(), true);
       addLibraries(libraries, androidModuleSystem);
       for (AndroidFacet dependentFacet : dependentFacets) {
         AndroidModuleSystem dependentModuleSystem = getModuleSystem(dependentFacet);

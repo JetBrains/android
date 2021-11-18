@@ -1,8 +1,24 @@
-package org.jetbrains.android.util;
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.res;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 
-import com.android.tools.idea.res.AndroidProjectRootListener;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
@@ -26,8 +42,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,6 +121,42 @@ public class AndroidDependenciesCache implements Disposable {
   @NotNull
   public synchronized List<AndroidFacet> getAllAndroidDependencies(boolean androidLibrariesOnly) {
     return getAllAndroidDependencies(myModule, androidLibrariesOnly, getListRef(androidLibrariesOnly));
+  }
+
+  /**
+   * Returns the AndroidFacets corresponding to all the Android modules that the given module
+   * transitively depends on.
+   * <p/>
+   * Callers who need to know a module's dependencies <b>in the context of resolving resources</b>
+   * should consider using {@link AndroidDependenciesCache#getAndroidResourceDependencies(Module)} instead,
+   * as that method may exclude irrelevant modules depending on the build system.
+   */
+  @NotNull
+  public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
+    return AndroidDependenciesCache.getInstance(module).getAllAndroidDependencies(androidLibrariesOnly);
+  }
+
+  /**
+   * Returns the AndroidFacets corresponding to the Android modules that the given module transitively
+   * depends on for resources.
+   * <p/>
+   * Note that this method should only be used to find dependencies in the context of resolving Android
+   * resources. This is a special case where, depending on the build system, we may be able to ignore
+   * certain modules to improve performance. If you want to find <b>all</b> the modules that a given module
+   * depends on according to its order entries, use {@link AndroidDependenciesCache#getAllAndroidDependencies}.
+   * <p/>
+   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
+   * be determined from order entries for all supported build systems.
+   *
+   * @see AndroidModuleSystem#getResourceModuleDependencies()
+   */
+  public static List<AndroidFacet> getAndroidResourceDependencies(@NotNull Module module) {
+    return ProjectSystemUtil.getModuleSystem(module)
+      .getResourceModuleDependencies()
+      .stream()
+      .map(AndroidFacet::getInstance)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
   }
 
   @NotNull

@@ -33,7 +33,6 @@ import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * [PsiElementFinder] that provides light Manifest classes.
@@ -98,7 +97,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
 
     val result = mutableListOf<PsiClass>()
     getManifestClassForFacet(androidFacet)?.let(result::add)
-    for (dependency in AndroidUtils.getAllAndroidDependencies(module, false)) {
+    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
       getManifestClassForFacet(dependency)?.let(result::add)
     }
 

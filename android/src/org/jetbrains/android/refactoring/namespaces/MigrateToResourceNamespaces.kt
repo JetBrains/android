@@ -23,6 +23,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.ide.highlighter.XmlFileType
@@ -71,7 +72,6 @@ import org.jetbrains.android.refactoring.module
 import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Action to perform the refactoring.
@@ -160,7 +160,7 @@ class MigrateToResourceNamespacesProcessor(
 
   public override fun getCommandName() = AndroidBundle.message("android.refactoring.migrateto.namespaces.title")
 
-  private val allFacets = AndroidUtils.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
+  private val allFacets = AndroidDependenciesCache.getAllAndroidDependencies(invokingFacet.module, true) + invokingFacet
 
   private val elementFactory = XmlElementFactory.getInstance(myProject)
 

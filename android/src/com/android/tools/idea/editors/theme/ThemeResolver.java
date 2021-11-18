@@ -36,6 +36,7 @@ import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -49,7 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -175,7 +175,7 @@ public class ThemeResolver {
 
     fillModuleResources(module, ResourceRepositoryManager.getModuleResources(module), result);
 
-    List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
+    List<AndroidFacet> allAndroidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
       fillModuleResources(facet.getModule(), ResourceRepositoryManager.getModuleResources(facet), result);
     }
