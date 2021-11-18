@@ -75,6 +75,6 @@ internal enum class PickerTrackableValue {
   DENSITY_X_HIGH,
   DENSITY_XX_HIGH,
   DENSITY_XXX_HIGH,
-  UI_MODE_NOT_NIGHT, // TODO(b/205184728): Support values selected from UiMode dropdown
+  UI_MODE_NOT_NIGHT,
   UI_MODE_NIGHT,
 }

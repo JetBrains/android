@@ -52,6 +52,8 @@ internal class ClassPsiCallParameter(
    * [fqValue] is a fallback for [newValue] if the importing of [fqClass] fails. It's recommended for that string to include fully qualified
    * references of the desired imported class.
    *
+   * [trackableValue] is the value reflected in usage tracking.
+   *
    * E.g:
    *
    * fqClass -> android.content.res.Configuration
@@ -60,14 +62,14 @@ internal class ClassPsiCallParameter(
    *
    * fqValue -> android.content.res.Configuration.UI_MODE_TYPE_NORMAL
    */
-  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String) {
+  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String, trackableValue: PickerTrackableValue) {
     val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
-      writeNewValue(newValue, true, PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED)
+      writeNewValue(newValue, true, trackableValue)
     }
     else {
-      writeNewValue(fqValue, true, PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED)
+      writeNewValue(fqValue, true, trackableValue)
     }
   }
 

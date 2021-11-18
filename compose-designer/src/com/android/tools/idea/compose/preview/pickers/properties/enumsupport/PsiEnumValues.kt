@@ -42,7 +42,7 @@ internal interface PsiEnumValue : EnumValue {
       DescriptionEnumValue(value, display, trackingValue, description)
 
     fun indented(value: String, display: String, trackingValue: PickerTrackableValue) =
-      object: PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
+      object : PsiEnumValueImpl(value = value, display = display, trackableValue = trackingValue) {
         override val indented: Boolean = true
       }
   }
@@ -55,7 +55,7 @@ internal open class PsiEnumValueImpl(
   override val value: String?,
   override val display: String,
   override val trackableValue: PickerTrackableValue
-): PsiEnumValue
+) : PsiEnumValue
 
 /**
  * Base interface that makes use of [ClassPsiCallParameter] functionality.
@@ -83,12 +83,19 @@ internal interface BaseClassEnumValue : EnumValue {
    */
   val resolvedValue: String
 
+  /**
+   * One of the supported tracking options that best represents the value assigned by this instance, use
+   * [PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED] if there's no suitable option.
+   */
+  val trackableValue: PickerTrackableValue
+
+
   override val value: String?
     get() = resolvedValue
 
   override fun select(property: PropertyItem): Boolean {
     if (property is ClassPsiCallParameter) {
-      property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue)
+      property.importAndSetValue(fqClass, valueToWrite, fqFallbackValue, trackableValue)
     }
     else {
       property.value = fqFallbackValue
@@ -161,6 +168,9 @@ internal class UiModeWithNightMaskEnumValue(
     val nightModeValue = if (isNight) 0x20 else 0x10
     return@run ((uiModeTypeResolvedValue.toIntOrNull() ?: 0) or nightModeValue).toString()
   }
+
+  override val trackableValue: PickerTrackableValue =
+    if (isNight) PickerTrackableValue.UI_MODE_NIGHT else PickerTrackableValue.UI_MODE_NOT_NIGHT
 
   override val indented: Boolean = true
 
@@ -237,25 +247,7 @@ internal enum class UiMode(
   VR("UI_MODE_TYPE_VR_HEADSET", "Vr", "7");
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
-}
-
-/**
- * Default implementation for the `device` parameter. When selected, sets the property value as a reference of the selected Device.
- *
- * `device = Devices.PIXEL`
- *
- * @param classConstant The simple value name that references a `device` field in the Devices class
- * @param display Display name seen in the dropdown menu
- * @param resolvedValue The value the constant resolves to, will usually be in the form of "id:..." or "name:..."
- * @param fqClass The fully qualified Class name, used to property import the class into the file
- */
-internal class DeviceEnumValueImpl(
-  override val classConstant: String,
-  override val display: String,
-  override val resolvedValue: String,
-  override val fqClass: String
-) : ClassConstantEnumValue {
-  override val indented: Boolean = true
+  override val trackableValue: PickerTrackableValue = PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**
@@ -278,6 +270,7 @@ internal enum class Device(
   PIXEL_5("PIXEL_5", "Pixel 5", "id:pixel_5");
 
   override val fqClass: String = "androidx.compose.ui.tooling.preview.Devices" // We assume this class for pre-defined Devices
+  override val trackableValue: PickerTrackableValue = PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED
 }
 
 /**

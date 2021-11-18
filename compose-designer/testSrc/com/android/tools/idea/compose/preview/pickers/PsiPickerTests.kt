@@ -21,6 +21,8 @@ import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiModeWithNightMaskEnumValue
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.compose.preview.pickers.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.pickers.tracking.PickerTrackableValue
@@ -410,6 +412,29 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index++])
     assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index++])
     assertEquals(PickerTrackableValue.DEVICE_NOT_REF, testTracker.valuesRegistered[index])
+  }
+
+  @RunsInEdt
+  @Test
+  fun testTrackedValuesOfUiModeOptions() {
+    val (testTracker, model) = simpleTrackingTestSetup()
+
+    val uiModeProperty = model.properties["", "uiMode"]
+
+    val nightModeOption = UiModeWithNightMaskEnumValue.NormalNightEnumValue
+    val notNightOption = UiModeWithNightMaskEnumValue.NormalNotNightEnumValue
+
+    // The Night/NotNight is not explicitly set
+    val nightModeUndefined = UiMode.NORMAL
+
+    nightModeOption.select(uiModeProperty)
+    notNightOption.select(uiModeProperty)
+    nightModeUndefined.select(uiModeProperty)
+
+    assertEquals(3, testTracker.valuesRegistered.size)
+    assertEquals(PickerTrackableValue.UI_MODE_NIGHT, testTracker.valuesRegistered[0])
+    assertEquals(PickerTrackableValue.UI_MODE_NOT_NIGHT, testTracker.valuesRegistered[1])
+    assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[2])
   }
 
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
