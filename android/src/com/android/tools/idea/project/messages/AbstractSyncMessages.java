@@ -213,19 +213,7 @@ public abstract class AbstractSyncMessages implements Disposable {
       issueEvent = new AndroidSyncIssueEvent(taskId, notification, title, quickFixes);
     }
 
-    // Only include errors in the summary text output
-    // This has the side effect of not opening the right hand bar if there are no failures
-    if (issueEvent.getKind() == MessageEvent.Kind.ERROR) {
-      synchronized (myLock) {
-        myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
-          .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
-      }
-    }
-    else {
-      // Only emit the event if it's not an error. Errors are saved in myShownFailures and will be emitted at the end of sync as part of FinishBuildEvent.
-      // FinishBuildEvent is better to emit errors since the failures in FinishBuildEvent has better format of simplified node titles and clickable hyperlinks.
-      myProject.getService(SyncViewManager.class).onEvent(taskId, issueEvent);
-    }
+    myProject.getService(SyncViewManager.class).onEvent(taskId, issueEvent);
   }
 
   @NotNull

@@ -20,10 +20,13 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,9 +53,18 @@ public class IdeaSyncPopulateProjectTask {
       if (myProject.isDisposed()) return;
       GradleSyncMessages.getInstance(myProject).removeAllMessages();
     });
-    myDataManager.importData(projectInfo, myProject, true /* synchronous */);
+    try {
+      myDataManager.importData(projectInfo, myProject, true /* synchronous */);
+    }
+    catch (ProcessCanceledException ex) {
+      throw ex;
+    }
+    catch (Exception ex) {
+      GradleSyncMessages.getInstance(myProject).report(new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, ex.getMessage()));
+      throw ex;
+    }
     if (syncListener != null) {
-        syncListener.syncSucceeded(myProject);
+      syncListener.syncSucceeded(myProject);
     }
   }
 }
