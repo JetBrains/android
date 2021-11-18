@@ -36,15 +36,10 @@ import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
@@ -61,7 +56,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
@@ -73,7 +67,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -304,53 +297,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       JBPopup popup = NavigationUtil.getPsiElementPopup(targets, renderer, null);
       popup.show(pointToShowPopup);
     }
-  }
-
-  @NotNull
-  public static ExecutionStatus executeCommand(@NotNull GeneralCommandLine commandLine,
-                                               @Nullable OutputProcessor processor,
-                                               @Nullable WaitingStrategies.Strategy strategy) throws ExecutionException {
-    LOG.info(commandLine.getCommandLineString());
-    OSProcessHandler handler = new OSProcessHandler(commandLine);
-
-    ProcessAdapter listener = new ProcessAdapter() {
-      @Override
-      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
-        if (processor != null) {
-          String message = event.getText();
-          processor.onTextAvailable(message);
-        }
-      }
-    };
-
-    if (!(strategy instanceof WaitingStrategies.DoNotWait)) {
-      handler.addProcessListener(listener);
-    }
-
-    handler.startNotify();
-    try {
-      if (!(strategy instanceof WaitingStrategies.WaitForever)) {
-        if (strategy instanceof WaitingStrategies.WaitForTime) {
-          handler.waitFor(((WaitingStrategies.WaitForTime)strategy).getTimeMs());
-        }
-      }
-      else {
-        handler.waitFor();
-      }
-    }
-    catch (ProcessCanceledException e) {
-      return ExecutionStatus.ERROR;
-    }
-
-    if (!handler.isProcessTerminated()) {
-      return ExecutionStatus.TIMEOUT;
-    }
-
-    if (!(strategy instanceof WaitingStrategies.DoNotWait)) {
-      handler.removeProcessListener(listener);
-    }
-    int exitCode = handler.getProcess().exitValue();
-    return exitCode == 0 ? ExecutionStatus.SUCCESS : ExecutionStatus.ERROR;
   }
 
   @NotNull
