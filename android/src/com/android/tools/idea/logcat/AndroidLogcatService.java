@@ -30,7 +30,6 @@ import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;

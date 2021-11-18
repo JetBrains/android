@@ -53,7 +53,6 @@ import javax.swing.JTextField;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUiUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,7 +131,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       myExportKeyPathField.setText(desktopDir.getPath());
     }
 
-    AndroidUiUtil.initSigningSettingsForm(project, this);
+    ExportSignedPackageUtil.initSigningSettingsForm(project, this);
   }
 
   @Override
