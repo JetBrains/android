@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.util.concurrent.Futures;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +47,7 @@ public final class AsyncPhysicalDeviceBuilderTest {
     Future<PhysicalDevice> future = builder.buildAsync();
 
     // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(1, TimeUnit.MINUTES));
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, DeviceManagerFutures.get(future));
   }
 
   @Test
@@ -61,7 +60,7 @@ public final class AsyncPhysicalDeviceBuilderTest {
     Future<PhysicalDevice> future = builder.buildAsync();
 
     // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(1, TimeUnit.MINUTES));
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, DeviceManagerFutures.get(future));
   }
 
   @Test
@@ -74,6 +73,6 @@ public final class AsyncPhysicalDeviceBuilderTest {
     Future<PhysicalDevice> future = builder.buildAsync();
 
     // Assert
-    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, future.get(1, TimeUnit.MINUTES));
+    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, DeviceManagerFutures.get(future));
   }
 }

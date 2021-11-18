@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.google.common.util.concurrent.Futures;
 import java.util.EnumSet;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +54,7 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, future.get(256, TimeUnit.MILLISECONDS));
+    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, DeviceManagerFutures.get(future));
   }
 
   @Test
@@ -67,7 +66,7 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(256, TimeUnit.MILLISECONDS));
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, DeviceManagerFutures.get(future));
   }
 
   @Test
@@ -80,6 +79,6 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    assertEquals(EnumSet.of(ConnectionType.WI_FI), future.get(256, TimeUnit.MILLISECONDS).getConnectionTypes());
+    assertEquals(EnumSet.of(ConnectionType.WI_FI), DeviceManagerFutures.get(future).getConnectionTypes());
   }
 }
