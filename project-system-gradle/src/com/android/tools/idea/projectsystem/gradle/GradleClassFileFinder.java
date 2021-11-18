@@ -50,13 +50,8 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   @Override
   @Nullable
   protected VirtualFile findClassFileInModule(@NotNull Module module, @NotNull String className) {
-    VirtualFile file = super.findClassFileInModule(module, className);
-    if (file != null) {
-      return file;
-    }
-
     for (VirtualFile outputDir : getModuleCompileOutputs(module)) {
-      file = ClassFileFinderUtil.findClassFileInOutputRoot(outputDir, className);
+      VirtualFile file = ClassFileFinderUtil.findClassFileInOutputRoot(outputDir, className);
       if (file != null) {
         return file;
       }
