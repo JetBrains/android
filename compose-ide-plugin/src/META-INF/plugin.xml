@@ -88,6 +88,10 @@
     <completion.contributor language="kotlin"
                             implementationClass="com.android.tools.compose.code.completion.ComposeModifierCompletionContributor"
                             order="first, before ComposeCompletionContributor"/>
+    <completion.contributor language="JSON"
+                            id="MotionSceneCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.constraintlayout.ConstraintLayoutJsonCompletionContributor"
+                            order="first, before JsonCompletionContributor"/>
 
     <weigher key="completion"
              implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"
