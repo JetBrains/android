@@ -15,40 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Calendar;
-
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static java.util.Calendar.MONTH;
 
-public class ExpiredPreviewBuildSetupStep extends ProjectSetupStep {
+import com.android.tools.idea.AndroidStartupActivity;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.project.AndroidNotification;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.project.Project;
+import java.util.Calendar;
+import org.jetbrains.annotations.NotNull;
+
+public class ExpiredPreviewBuildCheck implements AndroidStartupActivity {
   @NotNull private final ApplicationInfo myApplicationInfo;
 
-  private volatile boolean myExpirationChecked;
-
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public ExpiredPreviewBuildSetupStep() {
+  public ExpiredPreviewBuildCheck() {
     this(ApplicationInfo.getInstance());
   }
 
-  public ExpiredPreviewBuildSetupStep(@NotNull ApplicationInfo applicationInfo) {
+  public ExpiredPreviewBuildCheck(@NotNull ApplicationInfo applicationInfo) {
     myApplicationInfo = applicationInfo;
   }
 
   @Override
-  public void setUpProject(@NotNull Project project) {
-    if (myExpirationChecked) {
-      return;
-    }
+  public void runActivity(@NotNull Project project, @NotNull Disposable disposable) {
+
     String ideVersion = myApplicationInfo.getFullVersion();
     if (isPreview(ideVersion)) {
       // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
@@ -62,24 +55,11 @@ public class ExpiredPreviewBuildSetupStep extends ProjectSetupStep {
                                        ideVersion);
         OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("https://developer.android.com/r/studio-ui/download-canary.html", "Get the Latest Version");
         AndroidNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
-
-        // If we show an expiration message, don't also show a second balloon.
-        myExpirationChecked = true;
       }
     }
   }
 
   private static boolean isPreview(@NotNull String ideVersion) {
-    return ideVersion.contains("Preview") || ideVersion.contains("Beta") || ideVersion.contains("RC");
-  }
-
-  @Override
-  public boolean invokeOnFailedSync() {
-    return true;
-  }
-
-  @VisibleForTesting
-  boolean isExpirationChecked() {
-    return myExpirationChecked;
+    return ideVersion.contains("Canary") || ideVersion.contains("Beta") || ideVersion.contains("RC");
   }
 }
