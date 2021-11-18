@@ -28,8 +28,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
 import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputListingFile
+import com.android.tools.idea.gradle.util.getOutputListingFileOrLogError
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
@@ -87,11 +88,8 @@ class GradleApplicationIdProvider(
 
     if (androidModel.features.isBuildOutputFileSupported) {
       val artifactForAndroidTest = getArtifactForAndroidTest() ?: return null
-      // TODO(b/190357145): This is wrong. We can't read just OutputType.Apk since the last successful build might as well require
-      //                    OutputType.ApkFromBundle.
-      artifactForAndroidTest.buildInformation.getOutputListingFile(OutputType.Apk).nullize()
-        ?.let { outputListingFile -> androidModel.getGenericBuiltArtifactsUsingCache(outputListingFile).genericBuiltArtifacts }
-        ?.applicationId
+      androidModel.getApplicationIdUsingCache(artifactForAndroidTest.buildInformation)
+        .takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
         ?.let { return it }
     }
 

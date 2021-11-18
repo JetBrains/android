@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModelUtilKt.classFieldsToDynamicResourceValues;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getBuildOutputListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.loadBuildOutputListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.variantOutputInformation;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeApiVersion;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation;
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions;
@@ -47,6 +49,7 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
+import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.model.Namespacing;
@@ -625,12 +628,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   private String getApplicationIdUsingCache(@NotNull String variantName) {
-    String buildOutputListingFile = getBuildOutputListingFile(this, variantName);
-    if (buildOutputListingFile == null) {
-      return UNINITIALIZED_APPLICATION_ID;
-    }
+    IdeBuildTasksAndOutputInformation variantOutputInformation =
+      variantOutputInformation(myAndroidProject.getVariantsBuildInformation(), variantName);
+    if (variantOutputInformation == null) return UNINITIALIZED_APPLICATION_ID;
+    return getApplicationIdUsingCache(variantOutputInformation);
+  }
 
-    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(buildOutputListingFile);
+  @NotNull
+  public String getApplicationIdUsingCache(IdeBuildTasksAndOutputInformation variantOutputInformation) {
+    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp =
+      // We do not know which of outputs was built more recently, and thus we need to read (hopefully from the cache) both and compare.
+      GenericBuiltArtifactsWithTimestamp.mostRecentNotNull(
+        getGenericBuiltArtifactsWithTimestamp(variantOutputInformation, OutputType.Apk),
+        getGenericBuiltArtifactsWithTimestamp(variantOutputInformation, OutputType.ApkFromBundle)
+      );
+    if (artifactsWithTimestamp == null) return UNINITIALIZED_APPLICATION_ID;
     GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
     if (artifacts == null) {
       return UNINITIALIZED_APPLICATION_ID;
@@ -639,8 +651,22 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return artifacts.getApplicationId();
   }
 
+  @Nullable
+  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsWithTimestamp(@NotNull IdeBuildTasksAndOutputInformation variantOutputInformation,
+                                                                                   @NotNull OutputType outputType) {
+    String buildOutputListingFile = getOutputListingFile(variantOutputInformation, outputType);
+    if (buildOutputListingFile == null) {
+      return null;
+    }
+    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(buildOutputListingFile);
+    if (artifactsWithTimestamp.getGenericBuiltArtifacts() == null) {
+      return null;
+    }
+    return artifactsWithTimestamp;
+  }
+
   @NotNull
-  public GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String buildOutputListingFile) {
+  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String buildOutputListingFile) {
     GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp;
     synchronized (myGenericBuiltArtifactsMap) {
       artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(buildOutputListingFile);

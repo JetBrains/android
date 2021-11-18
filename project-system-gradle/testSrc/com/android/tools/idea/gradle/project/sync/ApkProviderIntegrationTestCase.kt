@@ -150,10 +150,9 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
       ),
-      // TODO(b/190357145): Fix ApplicationId when fixed in AGP or decided how to handle this.
       expectApks = mapOf(
         AGP_CURRENT to """
-              ApplicationId: one.name
+              ApplicationId: one.name.defaultConfig.debug
               File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk

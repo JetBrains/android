@@ -83,15 +83,8 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
       ),
-      // TODO(b/190357145): Fix ApplicationId when fixed in AGP or decided how to handle this.
-      expectPackageName = mapOf(
-        AGP_CURRENT to "one.name",
-        AGP_35 to "one.name.defaultConfig.debug",
-        AGP_40 to "one.name.defaultConfig.debug",
-      ),
-      expectTestPackageName = mapOf(
-        AGP_CURRENT to "(null)"
-      )
+      expectPackageName = "one.name.defaultConfig.debug",
+      expectTestPackageName = "(null)"
     ),
     def(
       stackMarker = { it() },
@@ -128,8 +121,7 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Variant API is not supported by this AGP version.") },
-      // TODO(b/190357145): Fix ApplicationId when fixed in AGP or decided how to handle this.
-      expectPackageName = "one.name",
+      expectPackageName = "one.dynamic.name.debug",
       expectTestPackageName = "(null)"
     ),
     def(

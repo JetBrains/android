@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -118,22 +117,25 @@ private fun getOutputType(module: Module, configuration: AndroidRunConfiguration
   }
 }
 
-private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
+fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
   return firstOrNull { it.variantName == variantName }?.buildInformation
 }
 
-fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
-  return when (outputType) {
-    OutputType.Apk -> assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
-    else -> bundleTaskOutputListingFile
-  }
+fun IdeBuildTasksAndOutputInformation.getOutputListingFileOrLogError(outputType: OutputType): String? {
+  return getOutputListingFile(outputType)
     .also {
       if (it == null) {
         LOG.error(Throwable("Output listing build file is not available for output type $outputType in $this"))
       }
     }
 }
+
+fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType) =
+  when (outputType) {
+    OutputType.Apk -> assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
+    else -> bundleTaskOutputListingFile
+  }
 
 fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
@@ -146,11 +148,10 @@ fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
 }
 
 fun getBuildOutputListingFile(
-  androidModel: AndroidModuleModel,
-  variantName: String
+  outputType: OutputType,
+  variantBuildInformation: IdeBuildTasksAndOutputInformation?
 ): String? {
-  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-  return variantBuildInformation?.getOutputListingFile(OutputType.Apk)
+  return variantBuildInformation?.getOutputListingFile(outputType)
 }
 
 class LastBuildOrSyncService {
@@ -193,4 +194,10 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
   LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
 
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long)
+data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long) {
+  companion object {
+    @JvmStatic
+    fun mostRecentNotNull(vararg items: GenericBuiltArtifactsWithTimestamp?): GenericBuiltArtifactsWithTimestamp? =
+      items.filterNotNull().maxByOrNull { it.timeStamp }
+  }
+}
