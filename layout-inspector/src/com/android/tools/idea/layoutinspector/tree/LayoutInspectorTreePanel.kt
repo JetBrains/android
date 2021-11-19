@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAcces
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -50,6 +51,7 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JTree
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
@@ -123,11 +125,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         }
       }
     })
+
+    val treeExpander = object : DefaultTreeExpander({ tree }) {
+      override fun isEnabled(tree: JTree): Boolean {
+        return componentTreePanel.isShowing && tree.rowCount > 0
+      }
+    }
     val commonActionManager = CommonActionsManager.getInstance()
     additionalActions = listOf(
       FilterGroupAction,
-      commonActionManager.createExpandAllHeaderAction(tree),
-      commonActionManager.createCollapseAllHeaderAction(tree)
+      commonActionManager.createExpandAllAction(treeExpander, tree),
+      commonActionManager.createCollapseAllAction(treeExpander, tree)
     )
   }
 
