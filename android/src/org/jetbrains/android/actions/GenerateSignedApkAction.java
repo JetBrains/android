@@ -10,7 +10,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import java.util.List;
-import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
+import org.jetbrains.android.signedapk.ExportSignedPackageWizard;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;

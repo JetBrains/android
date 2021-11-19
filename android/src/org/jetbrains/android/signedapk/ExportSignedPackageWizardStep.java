@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.exportSignedPackage;
+package org.jetbrains.android.signedapk;
 
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.StepAdapter;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 

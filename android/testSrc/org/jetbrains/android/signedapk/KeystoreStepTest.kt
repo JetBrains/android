@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.exportSignedPackage
+package org.jetbrains.android.signedapk
 
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.concurrency.waitForCondition
@@ -28,9 +28,9 @@ import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
-import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
-import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
+import org.jetbrains.android.signedapk.KeystoreStep.KEY_PASSWORD_KEY
+import org.jetbrains.android.signedapk.KeystoreStep.KEY_STORE_PASSWORD_KEY
+import org.jetbrains.android.signedapk.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle

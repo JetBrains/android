@@ -1,4 +1,4 @@
-package org.jetbrains.android.exportSignedPackage;
+package org.jetbrains.android.signedapk;
 
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;

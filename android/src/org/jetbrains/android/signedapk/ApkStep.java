@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.exportSignedPackage;
+package org.jetbrains.android.signedapk;
 
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.ide.util.PropertiesComponent;

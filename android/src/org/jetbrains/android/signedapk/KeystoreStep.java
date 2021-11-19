@@ -1,6 +1,6 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
-package org.jetbrains.android.exportSignedPackage;
+package org.jetbrains.android.signedapk;
 
 import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
 import static icons.StudioIcons.Common.WARNING_INLINE;
@@ -302,7 +302,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * (changes for b/192344567, b/64995008).
    */
   @Slow
-  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe, @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
+  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe,
+                                                                          @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
     return credentialAttributesToTry.stream()
       .map(attributes -> Optional.ofNullable(passwordSafe.get(attributes)))
       .filter(Optional::isPresent)
@@ -311,7 +312,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   }
 
   @VisibleForTesting
-  static void trySavePasswords(@NotNull String keyStoreLocation, char[] keyStorePassword, @NotNull String keyAlias, char[] keyPassword, boolean rememberPasswords) {
+  static void trySavePasswords(@NotNull String keyStoreLocation,
+                               char[] keyStorePassword,
+                               @NotNull String keyAlias,
+                               char[] keyPassword,
+                               boolean rememberPasswords) {
     String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
@@ -366,7 +371,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * Left for migrating passwords from Studio before that version.
    */
   private static @NotNull CredentialAttributes createKeystoreDeprecatedAttributesPre_2021_1_1_3(@NotNull String key) {
-    return new CredentialAttributes("org.jetbrains.android.exportSignedPackage.KeystoreStep$KeyStorePasswordRequestor", key);
+    return new CredentialAttributes(KeystoreStep.class.getName() + "$KeyStorePasswordRequestor", key);
   }
 
   /**
@@ -374,7 +379,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * Left for migrating passwords from Studio before that version.
    */
   private static @NotNull CredentialAttributes createKeyDeprecatedAttributesPre_2021_1_1_3(@NotNull String key) {
-    return new CredentialAttributes("org.jetbrains.android.exportSignedPackage.KeystoreStep$KeyPasswordRequestor", key);
+    return new CredentialAttributes(KeystoreStep.class.getName() + "$KeyPasswordRequestor", key);
   }
 
   @VisibleForTesting

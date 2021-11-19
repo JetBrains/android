@@ -8,7 +8,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.exportSignedPackage.NewKeyForm;
+import org.jetbrains.android.signedapk.NewKeyForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
