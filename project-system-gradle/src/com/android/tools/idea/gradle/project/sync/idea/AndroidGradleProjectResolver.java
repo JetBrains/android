@@ -95,9 +95,7 @@ import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
-import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
-import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -352,13 +350,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
       String msg = getUnsupportedModelVersionErrorMsg(modelVersion);
       throw new IllegalStateException(msg);
-    }
-
-    // Before anything, check to see if what we have is compatible with this version of studio.
-    GradleVersion currentAgpVersion = GradleVersion.tryParse(modelVersionString);
-    GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
-    if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
-      throw new AgpUpgradeRequiredException(project, currentAgpVersion);
     }
   }
 
