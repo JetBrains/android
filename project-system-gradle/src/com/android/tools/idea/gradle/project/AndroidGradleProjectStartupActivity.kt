@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.shouldDisableForceUpgrades
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -33,8 +34,10 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
@@ -266,9 +269,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val attachModelActions = holderModuleToDataNodePairs.flatMap { (module, moduleDataNode) ->
 
     fun AndroidModuleModel.validate() =
-    // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
-      // depend on the state of the project information.
-      !shouldForcePluginUpgrade(project, agpVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+      shouldDisableForceUpgrades() ||
+      GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
+        computeGradlePluginUpgradeState(agpVersion, latestKnown, setOf()).importance != FORCE
+      }
 
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(

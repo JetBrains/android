@@ -220,33 +220,6 @@ fun expireProjectUpgradeNotifications(project: Project?) {
 // **************************************************************************
 
 /**
- * Returns whether or not the given [current] version requires that the user be force to
- * upgrade their Android Gradle Plugin.
- *
- * If a [project] is given warnings for disabled upgrades are emitted.
- *
- * [recommended] should only be overwritten to inject information for tests.
- */
-fun shouldForcePluginUpgrade(
-  project: Project?,
-  current: GradleVersion?,
-  recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-) : Boolean {
-  // We don't care about forcing upgrades when running unit tests.
-  if (ApplicationManager.getApplication().isUnitTestMode) return false
-  // Or when the skip upgrades property is set.
-  if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
-  // Or when the StudioFlag is set (only available internally).
-  if (DISABLE_FORCED_UPGRADES.get()) {
-    return false
-  }
-  if (current == null) return false
-
-  // Now we can check the actual version information.
-  return versionsShouldForcePluginUpgrade(current, recommended)
-}
-
-/**
  * Returns whether, given the [current] version of AGP and the [latestKnown] version to upgrade to (which should be the
  * version returned by [LatestKnownPluginVersionProvider] except for tests), we should force a plugin upgrade to that
  * recommended version.
