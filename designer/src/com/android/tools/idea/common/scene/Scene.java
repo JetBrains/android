@@ -137,7 +137,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -163,7 +163,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
 
-    myIsLiveRenderingEnabled = useLiveRendering;
+    myIsLiveRenderingEnabled = false;
 
     Disposer.register(sceneManager, this);
   }

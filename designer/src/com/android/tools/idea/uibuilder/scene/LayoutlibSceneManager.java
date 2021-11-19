@@ -302,7 +302,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useTransparentRendering = false;
 
   /**
-   * If true, the renders will use {@link SessionParams.RenderingMode.SHRINK}
+   * If true, the renders will use {@link SessionParams.RenderingMode#SHRINK}
    */
   private boolean useShrinkRendering = false;
 
@@ -441,7 +441,7 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @Nullable SceneManager.SceneUpdateListener sceneUpdateListener,
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
                                   @NotNull Supplier<SessionClock> sessionClockFactory) {
-    super(model, designSurface, false, sceneComponentProvider, sceneUpdateListener);
+    super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
     myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);

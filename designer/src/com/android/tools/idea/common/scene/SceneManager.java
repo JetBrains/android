@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -101,8 +100,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * Creates a new {@link SceneManager}.
    * @param model the {@NlMode} linked to this {@link SceneManager}.
    * @param surface the {@DesignSurface} that will render this {@link SceneManager}.
-   * @param useLiveRendering if true, the {@link SceneManager} will re-render on every component update. When false, only when a explicit
-   *                         {@link SceneManager#requestRenderAsync} happens.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
    *                               given {@link NlComponent}.
    * @param sceneUpdateListener a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
@@ -110,7 +107,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   public SceneManager(
     @NotNull NlModel model,
     @NotNull DesignSurface surface,
-    boolean useLiveRendering,
     @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
     @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
     myModel = model;
@@ -119,7 +115,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
     mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
     mySceneUpdateListener = sceneUpdateListener == null ? new DefaultSceneUpdateListener() : sceneUpdateListener;
-    myScene = new Scene(this, myDesignSurface, useLiveRendering);
+    myScene = new Scene(this, myDesignSurface);
   }
 
   /**

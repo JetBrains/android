@@ -49,7 +49,7 @@ import java.util.concurrent.CompletableFuture
 class TestSceneManager(model: NlModel,
                        surface: DesignSurface,
                        sceneComponentProvider: SceneComponentHierarchyProvider? = null)
-  : SceneManager(model, surface, false, sceneComponentProvider, null) {
+  : SceneManager(model, surface, sceneComponentProvider, null) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)
 
   override fun getSceneScalingFactor(): Float = 1f
