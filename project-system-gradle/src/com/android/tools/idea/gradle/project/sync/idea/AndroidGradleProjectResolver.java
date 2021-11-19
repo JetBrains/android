@@ -141,6 +141,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
+import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -1068,7 +1069,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradleSyncStudioFlags studioFlags = new GradleSyncStudioFlags(
       parallelSync,
       parallelSyncPrefetchVariants,
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get()
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
+      shouldDisableForceUpgrades()
     );
 
     if (projectResolutionMode == ProjectResolutionMode.SyncProjectMode.INSTANCE) {
@@ -1109,6 +1111,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       throw new IllegalStateException("Unknown FetchModelsMode class: " + projectResolutionMode.getClass().getName());
     }
     return new AndroidExtraModelProvider(syncOptions);
+  }
+
+  private static boolean shouldDisableForceUpgrades() {
+    if (ApplicationManager.getApplication().isUnitTestMode()) return true;
+    if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return true;
+    if (StudioFlags.DISABLE_FORCED_UPGRADES.get()) return true;
+    return false;
   }
 
   @NotNull

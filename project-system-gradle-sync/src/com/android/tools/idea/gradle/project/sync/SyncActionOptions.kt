@@ -53,6 +53,7 @@ class AdditionalClassifierArtifactsActionOptions(
 data class GradleSyncStudioFlags(
   val studioFlagParallelSyncEnabled: Boolean,
   val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
-  val studioFlagUseV2BuilderModels: Boolean
+  val studioFlagUseV2BuilderModels: Boolean,
+  val studioFlagDisableForcedUpgrades: Boolean,
 ) : Serializable
 

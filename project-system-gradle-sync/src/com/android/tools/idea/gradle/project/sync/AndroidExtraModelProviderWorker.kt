@@ -172,7 +172,7 @@ internal class AndroidExtraModelProviderWorker(
             val modelVersion = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
 
             if (modelVersion != null &&
-                verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp) &&
+                verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp, syncOptions) &&
                 canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
               val basicAndroidProject = controller.findNonParameterizedV2Model(gradleProject, BasicAndroidProject::class.java)
               val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
@@ -213,7 +213,7 @@ internal class AndroidExtraModelProviderWorker(
               AndroidProject::class.java,
               shouldBuildVariant = false
             )
-            if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion)) {
+            if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion, syncOptions)) {
               if (canFetchV2Models == null) {
                 canFetchV2Models = false
               } else if (canFetchV2Models == true) {
@@ -280,7 +280,8 @@ internal class AndroidExtraModelProviderWorker(
     return modules
   }
 
-  private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?): Boolean {
+  private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?, syncOptions: SyncActionOptions): Boolean {
+    if (syncOptions.flags.studioFlagDisableForcedUpgrades) return true
     val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
     if (gradleVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
       throw AndroidSyncException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
