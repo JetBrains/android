@@ -170,7 +170,7 @@ interface ConstantEvaluator {
   /**
    * Returns the current [TextRange] for the given [PsiElement].
    */
-  fun range(expression: PsiElement): TextRange = expression.textRange
+  fun range(expression: PsiElement): TextRange = expression.textRange ?: TextRange.EMPTY_RANGE
 }
 
 /**
@@ -265,17 +265,18 @@ private fun findUsages(constantElement: PsiElement,
 /**
  * [LiteralReference] implementation that keeps track of modifications.
  */
-private open class LiteralReferenceImpl(originalElement: PsiElement,
-                                        uniqueIdProvider: PsiElementUniqueIdProvider,
-                                        usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
-                                        final override val initialConstantValue: Any,
-                                        private val constantEvaluator: ConstantEvaluator,
-                                        onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
+private class LiteralReferenceImpl(originalElement: PsiElement,
+                                   uniqueIdProvider: PsiElementUniqueIdProvider,
+                                   usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
+                                   override val initialConstantValue: Any,
+                                   private val constantEvaluator: ConstantEvaluator,
+                                   onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
   init {
     onElementAttached(originalElement, this)
   }
 
   private val elementPointer = ReattachableSmartPsiElementPointer(originalElement) { onElementAttached(it, this) }
+
   // The originalElement.containingFile not being nullable is enforced during the visit the PsiElements
   override val containingFile = originalElement.containingFile!!
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
