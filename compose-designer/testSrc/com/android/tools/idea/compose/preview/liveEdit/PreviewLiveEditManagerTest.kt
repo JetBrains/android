@@ -17,20 +17,13 @@ package com.android.tools.idea.compose.preview.liveEdit
 
 import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -40,30 +33,9 @@ import java.util.concurrent.TimeUnit
 
 private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
 
-private object NopCompilerDaemonClient : CompilerDaemonClient {
+private object NopCompilerDaemonClient: CompilerDaemonClient {
   override val isRunning: Boolean = true
   override suspend fun compileRequest(args: List<String>): CompilationResult = CompilationResult.Success
-  override fun dispose() {}
-}
-
-/*
- * A CompilerDaemonClient that blocks until [complete] is called.
- */
-private class BlockingDaemonClient : CompilerDaemonClient {
-  override val isRunning: Boolean = true
-  private val compilationRequestFuture = CompletableDeferred<Unit>()
-  var requestReceived = 0
-
-  override suspend fun compileRequest(args: List<String>): CompilationResult {
-    requestReceived++
-    compilationRequestFuture.await()
-    return CompilationResult.Success
-  }
-
-  fun complete() {
-    compilationRequestFuture.complete(Unit)
-  }
-
   override fun dispose() {}
 }
 
@@ -122,105 +94,13 @@ internal class PreviewLiveEditManagerTest {
   }
 
   @Test
-  fun `identical requests only trigger 1 build`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
-      fun empty() {}
-    """.trimIndent())
-    val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
-    val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
-
-    // Check that the same requests does not trigger more than one compilation
-    val latch = CountDownLatch(10)
-    repeat(10) {
-      scope.launch {
-        manager.compileRequest(file, projectRule.module)
-        latch.countDown()
-      }
-    }
-    blockingDaemon.complete()
-
-    latch.await() // Wait for the 10 requests to complete
-    assertEquals("Only one compilation was expected for the 10 identical requests", 1, blockingDaemon.requestReceived)
-  }
-
-  @Test
-  fun `disabled request cache creates new compilations for every request`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
-      fun empty() {}
-    """.trimIndent())
-    val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
-    val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION },
-                                                         maxCachedRequests = 0).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
-
-    // Check that the same requests does not trigger more than one compilation
-    val latch = CountDownLatch(10)
-    repeat(10) {
-      scope.launch {
-        manager.compileRequest(file, projectRule.module)
-        latch.countDown()
-      }
-    }
-    blockingDaemon.complete()
-
-    latch.await() // Wait for the 10 requests to complete
-    assertEquals("10 requests should have triggered 10 compilations", 10, blockingDaemon.requestReceived)
-  }
-
-  @Test
-  fun `request caches does not trigger repeated builds`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
-      fun empty() {}
-    """.trimIndent())
-    val blockingDaemon = BlockingDaemonClient()
-    val manager = PreviewLiveEditManager.getTestInstance(project,
-                                                         daemonFactory = { blockingDaemon },
-                                                         moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
-    val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
-
-    val latch = CountDownLatch(10)
-    scope.launch {
-      repeat(10) {
-        if (it % 2 == 0) { // Only change the file 5 times
-          runWriteActionAndWait {
-            file.virtualFile.setBinaryContent(
-              """
-              fun empty${it}() {}
-            """.trimIndent().toByteArray(Charsets.UTF_8)
-            )
-            file.clearCaches()
-          }
-        }
-        manager.compileRequest(file, projectRule.module)
-
-        latch.countDown()
-      }
-    }
-    blockingDaemon.complete()
-
-    latch.await() // Wait for the 10 requests to complete
-    assertEquals("Only 5 requests were expected to be different", 5, blockingDaemon.requestReceived)
-  }
-
-  @Test
   fun `verify compiler request`() = runBlocking {
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
     val compilationRequests = mutableListOf<List<String>>()
     val manager = PreviewLiveEditManager.getTestInstance(project, {
-      object : CompilerDaemonClient by NopCompilerDaemonClient {
+      object: CompilerDaemonClient by NopCompilerDaemonClient {
         override suspend fun compileRequest(args: List<String>): CompilationResult {
           compilationRequests.add(args)
           return CompilationResult.Success
