@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.PaginatedTableView
 import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.ProfilerColors
@@ -75,10 +76,14 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
                                            model.sequence.mainEvent.descendants() to "Main")))
 
     addSection(CpuThreadStateTable(profilersView.studioProfilers,
-                                   listOf(LazyDataSeries{model.getThreadState(model.capture.mainThreadId)},
-                                          LazyDataSeries{model.getThreadState(model.capture.renderThreadId)},
-                                          LazyDataSeries{model.getThreadState(model.capture.gpuThreadId)}),
-                                   model.eventRange)
+                                   listOf(LazyDataSeries { model.getThreadState(model.capture.mainThreadId)}),
+                                   threadEventAt(model.capture.mainThreadEventForSurfaceflingerToken).range(),
+                                   "Main thread states")
+                 .component)
+    addSection(CpuThreadStateTable(profilersView.studioProfilers,
+                                   listOf(LazyDataSeries{model.getThreadState(model.capture.renderThreadId)}),
+                                   threadEventAt(model.capture.renderThreadEventForSurfaceflingerToken).range(),
+                                   "RenderThread states")
                  .component)
   }
 }
@@ -125,3 +130,4 @@ private object EventTable {
 
 private fun CpuCapture.offset(us: Long) = us - range.min.toLong()
 private fun CaptureNode?.descendants() = this?.descendantsStream?.toList() ?: listOf()
+private fun CaptureNode?.range() = this?.let { Range(it.startGlobal.toDouble(), it.endGlobal.toDouble())} ?: Range()
