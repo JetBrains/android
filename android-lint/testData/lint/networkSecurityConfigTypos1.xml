@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <<error descr="Misspelled tag `<doamin-config>`: Did you mean `domain-config` ?">doamin<caret>-config</error>>
+    <<error descr="Misspelled tag `<doamin-config>`: Did you mean `domain-config`?">doamin<caret>-config</error>>
         <domain includeSubdomains="true">www.example.com</domain>
         <trust-anchors>
             <certificates src="system"/>
