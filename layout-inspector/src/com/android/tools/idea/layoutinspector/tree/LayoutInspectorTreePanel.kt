@@ -46,7 +46,6 @@ import com.intellij.ui.treeStructure.Tree
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.util.Collections
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
@@ -180,7 +179,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   override fun setFilter(newFilter: String) {
     filter = newFilter
-    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val selection = layoutInspector?.layoutInspectorModel?.selection?.treeNode
     val nodes = getNodes()
     val nodeCount = nodes.size
     val startIndex = max(0, nodes.indexOf(selection))
@@ -206,7 +205,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       downAction?.actionPerformed(event)
       return
     }
-    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val selection = layoutInspector?.layoutInspectorModel?.selection?.treeNode
     val nodes = getNodes()
     val nodeCount = nodes.size
     val startIndex = max(0, nodes.indexOf(selection))
@@ -223,7 +222,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       upAction?.actionPerformed(event)
       return
     }
-    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val selection = layoutInspector?.layoutInspectorModel?.selection?.treeNode
     val nodes = getNodes()
     val nodeCount = nodes.size
     val startIndex = max(0, nodes.indexOf(selection))
@@ -266,9 +265,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun selectNode(node: TreeViewNode) {
-    if (node !== tree?.selectionModel?.selectionPath?.lastPathComponent) {
-      componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
-      layoutInspector?.layoutInspectorModel?.apply {
+    layoutInspector?.layoutInspectorModel?.apply {
+      if (node.view !== selection) {
         setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
         layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
       }
