@@ -54,7 +54,7 @@ class AndroidFrameTimelineTooltipViewTest {
       assertThat(tooltipView.typeLabel.text).isEqualTo("Deadline missed")
       assertThat(tooltipView.startLabel.text).isEqualTo("Start: 00:00.000")
       assertThat(tooltipView.expectedLabel.text).isEqualTo("Expected end: 00:00.001")
-      assertThat(tooltipView.actualLabel.text).isEqualTo("Actual end: 00:00.003")
+      assertThat(tooltipView.actualLabel.text).isEqualTo("Actual end: 00:00.002")
     }
 
     run {
@@ -70,7 +70,7 @@ class AndroidFrameTimelineTooltipViewTest {
       assertThat(tooltipView.typeLabel.text).isEqualTo("Buffer stuffing")
       assertThat(tooltipView.startLabel.text).isEqualTo("Start: 00:00.000")
       assertThat(tooltipView.expectedLabel.text).isEqualTo("Expected end: 00:00.002")
-      assertThat(tooltipView.actualLabel.text).isEqualTo("Actual end: 00:00.003")
+      assertThat(tooltipView.actualLabel.text).isEqualTo("Actual end: 00:00.002")
     }
   }
 }

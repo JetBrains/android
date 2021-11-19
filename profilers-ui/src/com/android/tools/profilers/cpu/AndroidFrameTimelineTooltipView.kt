@@ -63,7 +63,7 @@ class AndroidFrameTimelineTooltipView(parent: JComponent, val tooltip: AndroidFr
       frameLabel.text = "Frame: ${event.surfaceFrameToken}"
       startLabel.text = "Start: ${TimeFormatter.getSemiSimplifiedClockString(offset(event.expectedStartUs))}"
       expectedLabel.text = "Expected end: ${TimeFormatter.getSemiSimplifiedClockString(offset(event.expectedEndUs))}"
-      actualLabel.text = "Actual end: ${TimeFormatter.getSemiSimplifiedClockString(event.actualEndUs)}"
+      actualLabel.text = "Actual end: ${TimeFormatter.getSemiSimplifiedClockString(offset(event.actualEndUs))}"
     }
   }
 }
