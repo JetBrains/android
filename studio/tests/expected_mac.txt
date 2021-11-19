@@ -1021,7 +1021,9 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_pyio.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_sitebuiltins.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_strptime.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__darwin_.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__darwin_darwin.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__linux_.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_threading_local.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/_weakrefset.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/abc.py
@@ -1538,6 +1540,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/network/utils.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/network/xmlrpc.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/__init__.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/__init__.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/metadata.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/metadata_legacy.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/wheel.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/wheel_legacy.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/check.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/freeze.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/install/__init__.py
@@ -2090,11 +2097,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/lib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++abi.1.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libedit.0.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libform.6.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.12.0.7git.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.14.0.0git.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libncurses.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpanel.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpython3.9.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.9.10.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.9.12.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/diagnose_nsstring.py
@@ -2114,6 +2121,8 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/pyt
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/Makefile
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/heap_find.cpp
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/__init__.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_process.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/symbolication.py

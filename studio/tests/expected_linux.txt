@@ -1026,6 +1026,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp/libcxx.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/metrics.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/synth.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_process.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/symbolication.py
@@ -1046,6 +1048,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_pydecimal.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_pyio.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_sitebuiltins.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_strptime.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__darwin_.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__linux_.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_sysconfigdata__linux_x86_64-linux-gnu.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_threading_local.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/_weakrefset.py
@@ -1360,11 +1364,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_cty
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_curses.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_curses_panel.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_datetime.cpython-39-x86_64-linux-gnu.so
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_dbm.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_decimal.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_elementtree.cpython-39-x86_64-linux-gnu.so
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_gdbm.cpython-39-x86_64-linux-gnu.so
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_hashlib.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_json.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_lsprof.cpython-39-x86_64-linux-gnu.so
@@ -1383,7 +1384,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sha
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sha512.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_socket.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_sqlite3.cpython-39-x86_64-linux-gnu.so
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_ssl.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_statistics.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_struct.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/_testbuffer.cpython-39-x86_64-linux-gnu.so
@@ -1406,7 +1406,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/nis.
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/ossaudiodev.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/parser.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/pyexpat.cpython-39-x86_64-linux-gnu.so
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/readline.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/resource.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/select.cpython-39-x86_64-linux-gnu.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/lib-dynload/spwd.cpython-39-x86_64-linux-gnu.so
@@ -1566,6 +1565,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pi
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/network/utils.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/network/xmlrpc.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/metadata.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/metadata_legacy.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/wheel.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/build/wheel_legacy.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/check.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/freeze.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.9/site-packages/pip/_internal/operations/install/__init__.py
@@ -2118,11 +2122,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib64/libc++.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libc++abi.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libedit.so.0
 android-studio/plugins/android-ndk/resources/lldb/lib64/libform.so.6
-android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.12git
+android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.14git
 android-studio/plugins/android-ndk/resources/lldb/lib64/libncurses.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpanel.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpython3.9.so.1.0
-android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2.9.10
+android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2.9.12
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
 android-studio/plugins/android/lib/adt-ui.jar

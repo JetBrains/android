@@ -1070,6 +1070,8 @@ android-studio/plugins/android-ndk/resources/lldb/lib/_pydecimal.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_pyio.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_sitebuiltins.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_strptime.py
+android-studio/plugins/android-ndk/resources/lldb/lib/_sysconfigdata__darwin_.py
+android-studio/plugins/android-ndk/resources/lldb/lib/_sysconfigdata__linux_.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_threading_local.py
 android-studio/plugins/android-ndk/resources/lldb/lib/_weakrefset.py
 android-studio/plugins/android-ndk/resources/lldb/lib/abc.py
