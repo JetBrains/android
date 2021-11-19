@@ -129,6 +129,8 @@ class AndroidRemoteDebugProcessHandler(
     const val CLEAR_DEBUG_APP_COMMAND = "am clear-debug-app"
   }
 
+  override fun detachIsDefault() = false
+
   override fun destroyProcess() {
     super.destroyProcess()
     processHandler.destroyProcess()
