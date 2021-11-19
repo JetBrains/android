@@ -178,23 +178,31 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
       implementation 'com.android.support:collections:28.0.0'
     """.trimIndent(),
       expectedProjectStatus = JetifierRequiredForLibraries(
-        CheckJetifierResult(LinkedHashMap<String, FullDependencyPath>().apply {
-          put("example:A:1.0", FullDependencyPath(
+        CheckJetifierResult(sortedMapOf(
+          "example:A:1.0" to listOf(FullDependencyPath(
             projectPath = ":app",
             configuration = "debugAndroidTestCompileClasspath",
             dependencyPath = DependencyPath(listOf("example:A:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
-          ))
-          put("com.android.support:collections:28.0.0", FullDependencyPath(
-            projectPath = ":app",
-            configuration = "debugAndroidTestCompileClasspath",
-            dependencyPath = DependencyPath(listOf("com.android.support:collections:28.0.0"))
-          ))
-          put("example:B:1.0", FullDependencyPath(
+          )),
+          "com.android.support:collections:28.0.0" to listOf(
+            FullDependencyPath(
+              projectPath = ":app",
+              configuration = "debugAndroidTestCompileClasspath",
+              dependencyPath = DependencyPath(listOf("com.android.support:collections:28.0.0"))
+            ),
+            FullDependencyPath(
+              projectPath = ":lib",
+              configuration = "debugAndroidTestCompileClasspath",
+              dependencyPath = DependencyPath(listOf("com.android.support:collections:28.0.0"))
+            )
+          ),
+          "example:B:1.0" to listOf(FullDependencyPath(
             projectPath = ":lib",
             configuration = "debugAndroidTestCompileClasspath",
             dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0"))
           ))
-        }))
+        ))
+      )
     )
   }
 

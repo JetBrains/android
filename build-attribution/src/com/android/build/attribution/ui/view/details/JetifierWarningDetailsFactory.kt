@@ -190,7 +190,7 @@ class JetifierWarningDetailsFactory(
           background = getListBackground(selected, hasFocus)
           mySelectionForeground = getListForeground(selected, hasFocus)
           if (projectStatus is JetifierRequiredForLibraries) {
-            val supportLibrary = projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.dependencyPath?.elements?.size == 1
+            val supportLibrary = projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.first()?.dependencyPath?.elements?.size == 1
             toolTipText = treeToolTip(supportLibrary = supportLibrary, declaredDependency = true)
           }
           append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
@@ -250,7 +250,8 @@ class JetifierWarningDetailsFactory(
         val selectedDependency = declaredDependenciesList.selectedValue
         if (selectedDependency != null) {
           projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[selectedDependency]?.let {
-            val descriptors = it.dependencyPath.elements.map { DependencyDescriptor(it) }
+            // TODO include nodes from all paths. And projects as leaves.
+            val descriptors = it.first().dependencyPath.elements.map { DependencyDescriptor(it) }
             descriptors.last().supportLibrary = true
             descriptors.first().declaredDependency = true
             descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->

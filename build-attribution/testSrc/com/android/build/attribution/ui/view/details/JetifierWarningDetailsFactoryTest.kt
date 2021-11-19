@@ -121,24 +121,23 @@ class JetifierWarningDetailsFactoryTest {
 
   @Test
   fun testJetifierRequiredForLibsPageCreation() {
-    val checkJetifierResult = CheckJetifierResult(LinkedHashMap<String, FullDependencyPath>().apply {
-      put("example:A:1.0", FullDependencyPath(
+    val checkJetifierResult = CheckJetifierResult(sortedMapOf(
+      "example:A:1.0" to listOf(FullDependencyPath(
         projectPath = ":app",
         configuration = "debugAndroidTestCompileClasspath",
-        dependencyPath = DependencyPath(
-          listOf("example:A:1.0", "example:C:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
-      ))
-      put("com.android.support:collections:28.0.0", FullDependencyPath(
+        dependencyPath = DependencyPath(listOf("example:A:1.0", "example:C:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
+      )),
+      "com.android.support:collections:28.0.0" to listOf(FullDependencyPath(
         projectPath = ":app",
         configuration = "debugAndroidTestCompileClasspath",
         dependencyPath = DependencyPath(listOf("com.android.support:collections:28.0.0"))
-      ))
-      put("example:B:1.0", FullDependencyPath(
+      )),
+      "example:B:1.0" to listOf(FullDependencyPath(
         projectPath = ":lib",
         configuration = "debugAndroidTestCompileClasspath",
         dependencyPath = DependencyPath(listOf("example:B:1.0", "com.android.support:support-annotations:28.0.0"))
       ))
-    })
+    ))
 
     val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
       JetifierRequiredForLibraries(checkJetifierResult),
@@ -207,14 +206,13 @@ class JetifierWarningDetailsFactoryTest {
 
   @Test
   fun testJetifierRequiredForSingleDeclaredLibPageCreation() {
-    val checkJetifierResult = CheckJetifierResult(LinkedHashMap<String, FullDependencyPath>().apply {
-      put("example:A:1.0", FullDependencyPath(
+    val checkJetifierResult = CheckJetifierResult(sortedMapOf(
+      "example:A:1.0" to listOf(FullDependencyPath(
         projectPath = ":app",
         configuration = "debugAndroidTestCompileClasspath",
-        dependencyPath = DependencyPath(
-          listOf("example:A:1.0", "example:C:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
+        dependencyPath = DependencyPath(listOf("example:A:1.0", "example:C:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
       ))
-    })
+    ))
 
     val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
       JetifierRequiredForLibraries(checkJetifierResult),
