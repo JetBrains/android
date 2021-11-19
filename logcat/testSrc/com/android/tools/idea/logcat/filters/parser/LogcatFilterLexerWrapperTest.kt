@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.KVALUE_STATE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.STRING_KVALUE_STATE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.YYINITIAL
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
@@ -42,10 +45,20 @@ private val NON_STRING_KEYS = listOf(
 class LogcatFilterLexerWrapperTest {
 
   @Test
-  fun allKeys() {
-    for (key in STRING_KEYS + NON_STRING_KEYS) {
+  fun stringKeys() {
+    for (key in STRING_KEYS) {
       assertThat(TestLexer.parse("$key:foo")).named(key).containsExactly(
-        TokenInfo(KEY, "$key:"),
+        TokenInfo(KEY, "$key:", STRING_KVALUE_STATE),
+        TokenInfo(KVALUE, "foo"),
+      ).inOrder()
+    }
+  }
+
+  @Test
+  fun keys() {
+    for (key in NON_STRING_KEYS) {
+      assertThat(TestLexer.parse("$key:foo")).named(key).containsExactly(
+        TokenInfo(KEY, "$key:", KVALUE_STATE),
         TokenInfo(KVALUE, "foo"),
       ).inOrder()
     }
@@ -55,7 +68,7 @@ class LogcatFilterLexerWrapperTest {
   fun stringKeys_negated() {
     for (key in STRING_KEYS) {
       assertThat(TestLexer.parse("-$key:foo")).named(key).containsExactly(
-        TokenInfo(KEY, "-$key:"),
+        TokenInfo(KEY, "-$key:", STRING_KVALUE_STATE),
         TokenInfo(KVALUE, "foo"),
       ).inOrder()
     }
@@ -65,7 +78,7 @@ class LogcatFilterLexerWrapperTest {
   fun stringKeys_regex() {
     for (key in STRING_KEYS) {
       assertThat(TestLexer.parse("$key~:foo")).named(key).containsExactly(
-        TokenInfo(KEY, "$key~:"),
+        TokenInfo(KEY, "$key~:", STRING_KVALUE_STATE),
         TokenInfo(KVALUE, "foo"),
       ).inOrder()
     }
@@ -75,7 +88,7 @@ class LogcatFilterLexerWrapperTest {
   fun stringKeys_negatedRegex() {
     for (key in STRING_KEYS) {
       assertThat(TestLexer.parse("-$key~:foo")).named(key).containsExactly(
-        TokenInfo(KEY, "-$key~:"),
+        TokenInfo(KEY, "-$key~:", STRING_KVALUE_STATE),
         TokenInfo(KVALUE, "foo"),
       ).inOrder()
     }
@@ -111,9 +124,33 @@ class LogcatFilterLexerWrapperTest {
   }
 
   @Test
+  fun hiddenKeyValuePairStates_stringKValue() {
+    val text = "tag:bar"
+    val lexer = LogcatFilterLexerWrapper()
+    lexer.reset(text, 0, text.length, YYINITIAL)
+
+    assertThat(lexer.advance()).isEqualTo(KEY)
+    assertThat(lexer.yystate()).isEqualTo(STRING_KVALUE_STATE)
+    assertThat(lexer.advance()).isEqualTo(KVALUE)
+    assertThat(lexer.yystate()).isEqualTo(YYINITIAL)
+  }
+
+  @Test
+  fun hiddenKeyValuePairStates_kValue() {
+    val text = "level:bar"
+    val lexer = LogcatFilterLexerWrapper()
+    lexer.reset(text, 0, text.length, YYINITIAL)
+
+    assertThat(lexer.advance()).isEqualTo(KEY)
+    assertThat(lexer.yystate()).isEqualTo(KVALUE_STATE)
+    assertThat(lexer.advance()).isEqualTo(KVALUE)
+    assertThat(lexer.yystate()).isEqualTo(YYINITIAL)
+  }
+
+  @Test
   fun validKeyInValue() {
     assertThat(TestLexer.parse("tag:tag:bar")).containsExactly(
-      TokenInfo(KEY, "tag:"),
+      TokenInfo(KEY, "tag:", STRING_KVALUE_STATE),
       TokenInfo(KVALUE, "tag:bar"),
     )
   }

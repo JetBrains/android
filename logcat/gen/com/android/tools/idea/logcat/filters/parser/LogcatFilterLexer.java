@@ -75,8 +75,8 @@ class LogcatFilterLexer implements FlexLexer {
 
   /** lexical states */
   public static final int YYINITIAL = 0;
-  public static final int STRING_VALUE = 2;
-  public static final int VALUE = 4;
+  public static final int STRING_KVALUE_STATE = 2;
+  public static final int KVALUE_STATE = 4;
 
   /**
    * ZZ_LEXSTATE[l] is the state in the DFA for the lexical state l
@@ -635,7 +635,7 @@ class LogcatFilterLexer implements FlexLexer {
             // fall through
           case 19: break;
           case 9: 
-            { yybegin(STRING_VALUE); return LogcatFilterTypes.KEY;
+            { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.KEY;
             } 
             // fall through
           case 20: break;
@@ -645,7 +645,7 @@ class LogcatFilterLexer implements FlexLexer {
             // fall through
           case 21: break;
           case 11: 
-            { yybegin(VALUE); return LogcatFilterTypes.KEY;
+            { yybegin(KVALUE_STATE); return LogcatFilterTypes.KEY;
             } 
             // fall through
           case 22: break;

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.KVALUE_STATE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.STRING_KVALUE_STATE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.YYINITIAL
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
@@ -22,7 +25,7 @@ import com.intellij.lexer.FlexLexer
 import com.intellij.psi.tree.IElementType
 import java.util.Stack
 
-private val STRING_KEYS = listOf(
+private val STRING_KEYS_REGEX = listOf(
   "app",
   "line",
   "message",
@@ -30,13 +33,14 @@ private val STRING_KEYS = listOf(
   "package",
   "tag",
 ).joinToString("|")
-private val KEYS = listOf(
+val KEYS = listOf(
   "age",
   "fromLevel",
   "level",
   "toLevel",
-).joinToString("|")
-private val KEY_VALUE_REGEX = "((-?($STRING_KEYS)~?)|($KEYS)):.*".toRegex()
+)
+private val KEYS_REGEX = KEYS.joinToString("|")
+private val KEY_VALUE_REGEX = "((-?($STRING_KEYS_REGEX)~?)|($KEYS_REGEX)):.*".toRegex()
 
 /**
  * A wrapper around [LogcatFilterLexer] that allows to tweak its behavior.
@@ -45,6 +49,7 @@ private val KEY_VALUE_REGEX = "((-?($STRING_KEYS)~?)|($KEYS)):.*".toRegex()
  * to let the flex code treat it as a top level value and then post process it and split into a KEY-VALUE pair if it has a valid key.
  */
 internal class LogcatFilterLexerWrapper : FlexLexer {
+  private var buf: CharSequence? = null
   private val delegate = LogcatFilterLexer(null)
 
   // When we find a top-level value that is actually a key-value pair, we split it into key & value [Token]s and push them on this
@@ -55,8 +60,7 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
     delegate.yybegin(state)
   }
 
-  // yystate is only used internally by the Lexer, so we don't need to have it on the stack.
-  override fun yystate(): Int = delegate.yystate()
+  override fun yystate(): Int = if (tokenStack.isEmpty()) delegate.yystate() else tokenStack.peek().state
 
   override fun getTokenStart(): Int = if (tokenStack.isEmpty()) delegate.tokenStart else tokenStack.peek().start
 
@@ -77,13 +81,15 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
 
   private fun pushKeyValueTokens(text: CharSequence): IElementType {
     val start = delegate.tokenStart
-    val pos = start + text.indexOf(':') + 1
-    tokenStack.push(Token(KVALUE, pos, tokenEnd))
-    tokenStack.push(Token(KEY, start, pos))
+    val colon = text.indexOf(':')
+    val pos = start + colon + 1
+    tokenStack.push(Token(KVALUE, pos, tokenEnd, YYINITIAL))
+    tokenStack.push(Token(KEY, start, pos, if (KEYS.contains(text.substring(0, colon))) KVALUE_STATE else STRING_KVALUE_STATE))
     return KEY
   }
 
   override fun reset(buf: CharSequence?, start: Int, end: Int, initialState: Int) {
+    this.buf = buf
     delegate.reset(buf, start, end, initialState)
   }
 }
@@ -91,4 +97,4 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
 private fun isHiddenKeyValuePair(elementType: IElementType?, text: CharSequence) =
   elementType == VALUE && KEY_VALUE_REGEX.matches(text)
 
-private data class Token(val elementType: IElementType, val start: Int, val end: Int)
+private data class Token(val elementType: IElementType, val start: Int, val end: Int, val state: Int)
