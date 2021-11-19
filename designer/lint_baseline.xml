@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.1.0-dev">
+<issues format="5" by="lint 7.2.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -325,30 +325,6 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/idea/uibuilder/layout3d/LayerDisplay.java"
-            line="312"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/layout3d/LayerDisplay.java"
-            line="317"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/layout3d/LayerDisplay.java"
-            line="321"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
             file="src/com/android/tools/idea/uibuilder/scout/RectangleGenerator.java"
             line="131"/>
     </issue>
@@ -486,7 +462,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/BorderLayer.java"
-            line="51"/>
+            line="62"/>
     </issue>
 
     <issue
@@ -582,7 +558,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="97"/>
+            line="98"/>
     </issue>
 
     <issue
@@ -590,7 +566,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="98"/>
+            line="99"/>
     </issue>
 
     <issue
