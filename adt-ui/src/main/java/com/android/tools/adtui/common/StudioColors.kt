@@ -193,6 +193,6 @@ val neutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent",
 val fadedNeutralLifecycleEvent = JBColor.namedColor("Profiler.neutralLifecycleEvent", JBColor(Color.LIGHT_GRAY, Color.DARK_GRAY))
 
 /**
- * Background color for non-jank portion of frames
+ * Default track background color
  */
-val nonJankBackground = JBColor.namedColor("Profiler.nonJankBackground", JBColor(0xffffff, 0x323232))
+val trackBackground = JBColor.namedColor("Profiler.trackBackground", JBColor(0xffffff, 0x323232))
