@@ -20,6 +20,9 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.annotations.concurrency.Slow;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -32,8 +35,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.Processor;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,22 +118,43 @@ public class AndroidPluginInfo {
 
   @Slow
   @NotNull
-  private static BuildFileSearchResult searchInBuildFiles(@NotNull Project project,
-                                                          boolean searchForAppModule) {
+  private static BuildFileSearchResult searchInBuildFiles(@NotNull Project project, boolean searchForAppModule) {
     BuildFileSearchResult result = new BuildFileSearchResult();
 
-    BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
-      boolean keepSearchingForAppModule = searchForAppModule && result.appVirtualFile == null;
-      if (keepSearchingForAppModule) {
-        List<String> pluginIds = PluginModel.extractNames(buildModel.plugins());
+    final boolean[] keepSearchingForAppModule = {searchForAppModule};
+    final boolean[] keepSearchingForPluginVersion = {true};
+
+    BiConsumer<List<PluginModel>,VirtualFile> searchForPluginVersion = (pluginModels, virtualFile) -> {
+      for (PluginModel pluginModel : pluginModels) {
+        if (isAndroidPluginId(pluginModel.name().forceString())) {
+          String version = pluginModel.version().toString();
+          if (isNotEmpty(version)) {
+            result.pluginVirtualFile = virtualFile;
+            result.pluginVersion = version;
+            keepSearchingForPluginVersion[0] = false;
+            break;
+          }
+        }
+      }
+    };
+
+    Processor<? super GradleSettingsModel> settingsModelProcessor = settingsModel -> {
+      if (keepSearchingForPluginVersion[0]) {
+        searchForPluginVersion.accept(settingsModel.pluginManagement().plugins().plugins(), settingsModel.getVirtualFile());
+      }
+      return keepSearchingForAppModule[0] || keepSearchingForPluginVersion[0];
+    };
+
+    Processor<? super GradleBuildModel> buildModelProcessor = buildModel -> {
+      if (keepSearchingForAppModule[0]) {
+        List<String> pluginIds = PluginModel.extractNames(buildModel.appliedPlugins());
         if (pluginIds.contains(APPLICATION_PLUGIN_ID)) {
           result.appVirtualFile = buildModel.getVirtualFile();
-          keepSearchingForAppModule = false;
+          keepSearchingForAppModule[0] = false;
         }
       }
 
-      boolean keepSearchingForPluginVersion = result.pluginVersion == null;
-      if (keepSearchingForPluginVersion) {
+      if (keepSearchingForPluginVersion[0]) {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
           if (isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
@@ -134,14 +162,22 @@ public class AndroidPluginInfo {
             if (isNotEmpty(version)) {
               result.pluginVirtualFile = buildModel.getVirtualFile();
               result.pluginVersion = version;
+              keepSearchingForPluginVersion[0] = false;
+              break;
             }
-            keepSearchingForPluginVersion = false;
-            break;
           }
         }
       }
-      return keepSearchingForAppModule || keepSearchingForPluginVersion;
-    });
+
+      if(keepSearchingForPluginVersion[0]) {
+        searchForPluginVersion.accept(buildModel.plugins(), buildModel.getVirtualFile());
+      }
+
+      return keepSearchingForAppModule[0] || keepSearchingForPluginVersion[0];
+    };
+
+
+    BuildFileProcessor.getInstance().processRecursively(project, settingsModelProcessor, buildModelProcessor);
 
     return result;
   }
@@ -199,8 +235,12 @@ public class AndroidPluginInfo {
     return Objects.hash(myModule, myPluginVersion, myPluginBuildFile);
   }
 
-  public static boolean isAndroidPlugin(@NotNull String artifactId, @com.android.annotations.Nullable String groupId) {
+  public static boolean isAndroidPlugin(@NotNull String artifactId, @Nullable String groupId) {
     return ARTIFACT_ID.equals(artifactId) && GROUP_ID.equals(groupId);
+  }
+
+  public static boolean isAndroidPluginId(@NotNull String pluginId) {
+    return pluginId.startsWith("com.android.");
   }
 
   public static boolean isAndroidPluginOrApi(@NotNull String artifactId, @Nullable String groupId) {

@@ -43,41 +43,37 @@ public class BuildFileProcessor {
   }
 
   /**
-   * Attempts to find and process (using the supplied processor) all build files in the given project.
+   * Attempts to find and process (using the supplied processors) all build files in the given project.
    *
-   * The supplied processor will never be given null by this method.
+   * The supplied processors will never be given null by this method.
    *
-   * This method parses the build files and as such is not guaranteed to catch every file. If this is required look at getting the build
-   * files from the model, see {@link GradleModuleModel#getBuildFile()}.
+   * This method parses the settings file, processes it, then parses build files; as such it is not guaranteed to catch every file.
+   * If finding every file is required look at getting the build files from the model, see {@link GradleModuleModel#getBuildFile()}.
    */
   public void processRecursively(@NotNull Project project,
-                                 @NotNull Processor<? super GradleBuildModel> processor) {
+                                 @NotNull Processor<? super GradleSettingsModel> settingsProcessor,
+                                 @NotNull Processor<? super GradleBuildModel> buildProcessor) {
     ApplicationManager.getApplication().runReadAction(() -> {
       VirtualFile projectRootFolder = ProjectUtil.guessProjectDir(project);
-      if (projectRootFolder == null) {
-        // Unlikely to happen: this is default project.
-        return;
-      }
+      // Unlikely to happen; if it does, most likely this is the default project.
+      if (projectRootFolder == null) return;
 
       ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
-      if (projectBuildModel == null) {
-        return;
-      }
+      // Something went wrong.
+      if (projectBuildModel == null) return;
 
       GradleSettingsModel settings = GradleBuildModel.tryOrLog(() -> projectBuildModel.getProjectSettingsModel());
-      if (settings == null) {
-        return;
-      }
+      // without a GradleSettingsModel we assume nothing about the project.
+      if (settings == null) return;
+
+      boolean continueProcessing = settingsProcessor.process(settings);
+      if (!continueProcessing) return;
 
       for (String path : settings.modulePaths()) {
         GradleBuildModel buildModel = GradleBuildModel.tryOrLog(() -> settings.moduleModel(path));
-        if (buildModel == null) {
-          continue;
-        }
-        boolean continueProcessing = processor.process(buildModel);
-        if (!continueProcessing) {
-          return;
-        }
+        if (buildModel == null) continue;
+        continueProcessing = buildProcessor.process(buildModel);
+        if (!continueProcessing) return;
       }
     });
   }
