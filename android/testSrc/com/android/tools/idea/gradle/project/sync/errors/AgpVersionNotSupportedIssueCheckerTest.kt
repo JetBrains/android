@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
+import com.android.Version
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -43,13 +44,14 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   @Test
-  fun testCheckIssuePreview() {
+  fun testCheckIssueOldPreview() {
     val expectedNotificationMessage = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin."
     val error = "The project is using an incompatible version (AGP 3.1.0-alpha01) of the Android Gradle plugin. " +
                 "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
@@ -58,9 +60,27 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+  }
+
+  @Test
+  fun testCheckIssueIncompatiblePreview() {
+    val expectedNotificationMessage =
+      "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin."
+    val error = "The project is using an incompatible preview version (AGP 7.1.0-beta01) of the Android Gradle plugin. " +
+                "Current compatible preview version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}."
+
+    val issueData = GradleIssueData(":", Throwable(error), null, null)
+    val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue.description).contains(expectedNotificationMessage)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   @Test

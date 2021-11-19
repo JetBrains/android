@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
+import com.android.Version
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
@@ -35,14 +36,16 @@ import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
 import com.android.builder.model.v2.ide.Variant as V2Variant
+import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.ide.common.repository.GradleVersion
-import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
+import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -280,8 +283,16 @@ internal class AndroidExtraModelProviderWorker(
   private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?): Boolean {
     val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
     if (gradleVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
-      throw UnsupportedVersionException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
-                                        "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.")
+      throw AndroidSyncException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
+                                 "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.")
+    }
+    // We don't have access to LatestKnownPluginVersionProvider: just use the build version
+    val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+    val upgradeState = computeGradlePluginUpgradeState(gradleVersion, latestKnown, setOf())
+    if (upgradeState.importance == FORCE) {
+      throw AndroidSyncException(
+        "The project is using an incompatible preview version (AGP $gradleVersion) of the Android Gradle plugin. " +
+        "Current compatible ${if (latestKnown.isPreview) "preview" else ""} version is AGP $latestKnown.")
     }
     return true
   }
