@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.TransactionGuard
@@ -51,7 +52,7 @@ class MorphComponentAction(component: NlComponent)
   private fun applyTagEdit(newTagName: String) {
     val dependencyManager = NlDependencyManager.getInstance()
     val component = NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>"))
-    NlComponentHelper.registerComponent(component)
+    NlComponentRegistrar.accept(component)
     dependencyManager.addDependencies(listOf(component), myFacet, true) { editTagNameAndAttributes(newTagName) }
   }
 

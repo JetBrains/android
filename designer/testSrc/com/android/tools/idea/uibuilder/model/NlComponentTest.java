@@ -118,7 +118,7 @@ public final class NlComponentTest extends LayoutTestCase {
   @NotNull
   private NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent result = new NlComponent(myModel, tag);
-    NlComponentHelper.INSTANCE.registerComponent(result);
+    NlComponentRegistrar.INSTANCE.accept(result);
     return result;
   }
 
@@ -336,9 +336,8 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
     DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
-    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
-    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
-    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
+    ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
 
     NlComponent component = myModel.find("button");
@@ -408,9 +407,8 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
     DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
-    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
-    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
-    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
+    ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getComponents().get(0).getChild(0);
 
@@ -471,9 +469,8 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
     DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
-    Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
-    when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
-    myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,null, null, myFacet, xmlFile.getVirtualFile());
+    ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getComponents().get(0);
 

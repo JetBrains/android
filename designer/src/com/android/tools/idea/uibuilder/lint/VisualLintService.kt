@@ -25,7 +25,7 @@ import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.uibuilder.model.NlComponentHelper.registerComponent
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
@@ -87,7 +87,7 @@ class VisualLintService {
         val inflatedModel = NlModel.builder(param.facet, param.file.virtualFile, param.config)
           .withModelDisplayName("${param.config.device?.displayName}")
           .withModelUpdater(DefaultModelUpdater())
-          .withComponentRegistrar { component: NlComponent? -> registerComponent(component!!) }
+          .withComponentRegistrar(NlComponentRegistrar)
           .build()
 
         updateHierarchy(result, inflatedModel)

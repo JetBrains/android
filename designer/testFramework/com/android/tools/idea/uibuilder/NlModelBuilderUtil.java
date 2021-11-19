@@ -25,7 +25,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -73,7 +73,7 @@ public class NlModelBuilderUtil {
       resourceFolder,
       NlDesignSurface.class,
       NlInteractionHandler::new,
-      (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component));
+      (@NotNull NlComponent component) -> NlComponentRegistrar.INSTANCE.accept(component));
   }
 
   @NotNull

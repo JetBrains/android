@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -107,7 +108,9 @@ public class SceneCreationTest extends SceneTest {
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
-    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile.getVirtualFile());
+    SyncNlModel model = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,
+                                           null, null, myFacet, xmlFile.getVirtualFile());
+    model.setDesignSurface(surface);
 
     // Setting the model on the surface registers the listener
     surface.setModel(model);

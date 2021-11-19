@@ -768,12 +768,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     super.notifyComponentActivate(component, x, y);
   }
 
-  @NotNull
-  @Override
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return component -> NlComponentHelper.INSTANCE.registerComponent(component);
-  }
-
   public void setMockupVisible(boolean mockupVisible) {
     myMockupVisible = mockupVisible;
     repaint();

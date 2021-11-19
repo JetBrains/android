@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.NavTestCase;
+import com.android.tools.idea.naveditor.model.NavComponentRegistrar;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -72,7 +73,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     BufferedImage image = imageFuture.getTerminalImage();
@@ -109,7 +110,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
@@ -173,7 +174,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
@@ -197,7 +198,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile virtualFile = psiFile.getVirtualFile();
     NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
       .withParentDisposable(getMyRootDisposable())
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
 

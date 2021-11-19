@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
@@ -67,6 +68,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
                               .build()
                           }
                         },
+                        NlComponentRegistrar,
                         { toolWindowDefinitions(it) },
                         AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
 

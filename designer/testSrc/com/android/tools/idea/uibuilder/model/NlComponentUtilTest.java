@@ -49,7 +49,7 @@ public class NlComponentUtilTest extends AndroidTestCase {
   @NotNull
   private NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
-    NlComponentHelper.INSTANCE.registerComponent(result);
+    NlComponentRegistrar.INSTANCE.accept(result);
     return result;
   }
 

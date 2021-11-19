@@ -21,6 +21,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
@@ -51,7 +52,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Default (100%)")
                  .withModelTooltip(defaultConfig.toHtmlTooltip())
-                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .withComponentRegistrar(NlComponentRegistrar)
                  .build())
 
     val smallerFontConfig = Configuration.create(defaultConfig, virtualFile)
@@ -65,21 +66,21 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Small (85%)")
                  .withModelTooltip(smallerFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .withComponentRegistrar(NlComponentRegistrar)
                  .build())
 
     models.add(NlModel.builder(facet, virtualFile, largerFontConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Large (115%)")
                  .withModelTooltip(largerFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .withComponentRegistrar(NlComponentRegistrar)
                  .build())
 
     models.add(NlModel.builder(facet, virtualFile, largestFontConfig)
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Largest (130%)")
                  .withModelTooltip(largestFontConfig.toHtmlTooltip())
-                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .withComponentRegistrar(NlComponentRegistrar)
                  .build())
     return models
   }

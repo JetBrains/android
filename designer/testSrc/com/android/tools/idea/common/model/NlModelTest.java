@@ -60,6 +60,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
@@ -890,8 +891,10 @@ public class NlModelTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModel(XmlFile modelXml) {
     DesignSurface surface = createSurface(NlDesignSurface.class);
-    when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
-    return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    SyncNlModel model = SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE,
+                                           null, null, myFacet, modelXml.getVirtualFile());
+    model.setDesignSurface(surface);
+    return model;
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {

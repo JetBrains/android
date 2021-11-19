@@ -310,8 +310,6 @@ class TestDesignSurface(project: Project, disposible: Disposable)
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  override fun getComponentRegistrar() = Consumer<NlComponent> {}
-
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}

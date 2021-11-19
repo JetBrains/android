@@ -658,6 +658,14 @@ public class NlModel implements Disposable, ModificationTracker {
   }
 
   /**
+   * TODO: Needs remove after refactor.
+   */
+  @NotNull
+  public Consumer<NlComponent> getComponentRegistrar() {
+    return myComponentRegistrar;
+  }
+
+  /**
    * Simply create a component. In most cases you probably want
    * {@link #createComponent(DesignSurface, XmlTag, NlComponent, NlComponent, InsertType)}.
    */

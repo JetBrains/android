@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
@@ -51,7 +52,7 @@ fun createNlModelFromTagName(androidFacet: AndroidFacet,
   val file = LightLayoutFile(xmlContent)
   val model = NlModel.builder(androidFacet, file, configurationManager.getConfiguration(file))
     .withParentDisposable(androidFacet.module)
-    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+    .withComponentRegistrar { NlComponentRegistrar }
     .build()
 
   val rootComponent = createComponent(file.content.toString(), model)

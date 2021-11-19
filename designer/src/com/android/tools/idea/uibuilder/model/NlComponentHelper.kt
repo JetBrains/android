@@ -62,6 +62,7 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
+import java.util.function.Consumer
 import javax.swing.Icon
 
 /*
@@ -582,16 +583,18 @@ class NlComponentMixin(component: NlComponent)
   }
 }
 
-object NlComponentHelper {
-
-  /**
-   * Enhance the given [NlComponent] with layout-specific properties and methods.
-   *
-   * Note: For mocked components, you probably want LayoutTestUtilities.registerNlComponent.
-   */
-  fun registerComponent(component: NlComponent) {
+/**
+ * Enhance the given [NlComponent] with layout-specific properties and methods.
+ *
+ * Note: For mocked components, you probably want LayoutTestUtilities.registerNlComponent.
+ */
+object NlComponentRegistrar : Consumer<NlComponent> {
+  override fun accept(component: NlComponent) {
     component.setMixin(NlComponentMixin(component))
   }
+}
+
+object NlComponentHelper {
 
   // TODO Add a needsId method to the handler classes
   val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> = ImmutableSet.Builder<String>()

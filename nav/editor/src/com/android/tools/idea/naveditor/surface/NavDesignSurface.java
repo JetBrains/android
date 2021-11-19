@@ -55,7 +55,6 @@ import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
-import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
@@ -610,12 +609,6 @@ public class NavDesignSurface extends DesignSurface {
       }
     }
     super.notifyComponentActivate(component);
-  }
-
-  @NotNull
-  @Override
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
   @UiThread

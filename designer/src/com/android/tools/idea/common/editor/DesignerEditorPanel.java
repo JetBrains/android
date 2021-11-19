@@ -95,6 +95,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface mySurface;
+  @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
@@ -136,6 +137,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    * @param file the file being open by the editor.
    * @param workBench workbench containing a design surface and a number of tool window definitions (also passed in the constructor).
    * @param surface a function that produces a design surface given a design editor panel. Ideally, this panel is passed to the function.
+   * @param componentConsumer The registrar to enhance the given {@link NlComponent} with layout information.
    * @param modelProvider a model provider to provide a {@link NlModel} for this editor.
    * @param toolWindowDefinitions list of tool windows to be added to the workbench.
    * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
@@ -145,6 +147,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull Consumer<NlComponent> componentConsumer,
                              @NotNull ModelProvider modelProvider,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
@@ -158,6 +161,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
+    myComponentRegistrar = componentConsumer;
     myModelProvider = modelProvider;
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
@@ -233,9 +237,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull Consumer<NlComponent> componentRegistrar,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
-    this(editor, project, file, workBench, surface, ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
+    this(editor, project, file, workBench, surface, componentRegistrar,
+         ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
   }
 
   /**
@@ -328,7 +334,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
         throw new WaitingForGradleSyncException("Waiting for next gradle sync to set AndroidFacet.");
       }
     }
-    NlModel model = myModelProvider.createModel(myEditor, myProject, facet, mySurface.getComponentRegistrar(), myFile);
+    NlModel model = myModelProvider.createModel(myEditor, myProject, facet, myComponentRegistrar, myFile);
 
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.

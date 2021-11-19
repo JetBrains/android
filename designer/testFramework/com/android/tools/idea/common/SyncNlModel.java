@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -23,6 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,18 +38,8 @@ public class SyncNlModel extends NlModel {
   private DesignSurface mySurface; // for testing purposes
 
   @NotNull
-  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
-  public static SyncNlModel create(@NotNull DesignSurface surface,
-                                   @Nullable Disposable parent,
-                                   @NotNull AndroidFacet facet,
-                                   @NotNull VirtualFile file) {
-    return create(surface, parent, null, null, facet, file);
-  }
-
-  @NotNull
-  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
-  public static SyncNlModel create(@NotNull DesignSurface surface,
-                                   @Nullable Disposable parent,
+  public static SyncNlModel create(@Nullable Disposable parent,
+                                   @NotNull Consumer<NlComponent> componentRegistrar,
                                    @Nullable String displayName,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
@@ -55,11 +47,19 @@ public class SyncNlModel extends NlModel {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(surface, parent, displayName, tooltip, facet, file, configuration);
+    return new SyncNlModel(parent, componentRegistrar, displayName, tooltip, facet, file, configuration);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @Nullable String displayName, @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    super(parent, displayName, tooltip, facet, file, configuration, surface.getComponentRegistrar(), DataContext.EMPTY_CONTEXT);
+  private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar, @Nullable String displayName,
+                      @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
+                      @NotNull Configuration configuration) {
+    super(parent, displayName, tooltip, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
+  }
+
+  /**
+   * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
+   */
+  public void setDesignSurface(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 

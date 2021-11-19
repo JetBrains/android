@@ -1346,12 +1346,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     activatePreferredEditor(component);
   }
 
-  /**
-   * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
-   */
-  @NotNull
-  public abstract Consumer<NlComponent> getComponentRegistrar();
-
   protected void activatePreferredEditor(@NotNull NlComponent component) {
     for (DesignSurfaceListener listener : getListeners()) {
       if (listener.activatePreferredEditor(this, component)) {

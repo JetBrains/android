@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -76,7 +77,7 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
                    .withParentDisposable(parentDisposable)
                    .withModelDisplayName(device.displayName)
                    .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
+                   .withComponentRegistrar(NlComponentRegistrar)
                    .build())
     }
     return models

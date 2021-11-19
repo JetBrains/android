@@ -43,6 +43,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -365,7 +366,7 @@ class CustomViewPreviewRepresentation(
         .withParentDisposable(this@CustomViewPreviewRepresentation)
         .withModelDisplayName(className)
         .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
-        .withComponentRegistrar(surface.componentRegistrar)
+        .withComponentRegistrar(NlComponentRegistrar)
         .build()
     } else {
       // We want to deactivate the surface so that configuration changes do not trigger scene repaint.

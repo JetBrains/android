@@ -40,6 +40,7 @@ import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegate
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
@@ -82,6 +83,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
+import java.util.function.Consumer
 import javax.swing.Icon
 import kotlin.streams.toList
 
@@ -594,14 +596,13 @@ class NavComponentMixin(component: NlComponent)
   }
 }
 
-object NavComponentHelper {
-
-  /**
-   * Enhance the given [NlComponent] with nav-specific properties and methods.
-   *
-   * Note: For mocked components, you probably want LayoutTestUtilities.registerNlComponent.
-   */
-  fun registerComponent(component: NlComponent) {
+/**
+ * Enhance the given [NlComponent] with nav-specific properties and methods.
+ *
+ * Note: For mocked components, you probably want LayoutTestUtilities.registerNlComponent.
+ */
+object NavComponentRegistrar : Consumer<NlComponent> {
+  override fun accept(component: NlComponent) {
     component.setMixin(NavComponentMixin(component))
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.Disposable
@@ -46,7 +47,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
                    .withParentDisposable(parent)
                    .withModelDisplayName(mode.displayName)
                    .withModelTooltip(defaultConfig.toHtmlTooltip())
-                   .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                   .withComponentRegistrar(NlComponentRegistrar)
                    .build())
     }
     return models

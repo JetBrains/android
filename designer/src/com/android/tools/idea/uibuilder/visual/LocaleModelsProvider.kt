@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
@@ -64,7 +65,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
                  .withParentDisposable(parentDisposable)
                  .withModelDisplayName("Default (no locale)")
                  .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
-                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .withComponentRegistrar(NlComponentRegistrar)
                  .build())
 
     val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
@@ -78,7 +79,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
                    .withParentDisposable(parentDisposable)
                    .withModelDisplayName(label)
                    .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                   .withComponentRegistrar(NlComponentRegistrar)
                    .build())
     }
     return models

@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.rendering.Locale
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -124,8 +124,8 @@ class CustomModelsProvider(val customId: String,
     models.add(NlModel.builder(facet, currentFile, currentFileConfig)
       .withParentDisposable(parentDisposable)
       .withModelDisplayName("Default (Current File)")
-      .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
-                 .build())
+      .withComponentRegistrar(NlComponentRegistrar)
+      .build())
 
     // Custom Configurations
     for (attributes in customConfigSet.customConfigAttributes) {
@@ -142,7 +142,7 @@ class CustomModelsProvider(val customId: String,
         .withParentDisposable(parentDisposable)
         .withModelDisplayName(customConfig.name)
         .withModelTooltip(config.toHtmlTooltip())
-        .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
+        .withComponentRegistrar(NlComponentRegistrar)
         .withDataContext(CustomModelDataContext)
         .build()
       models.add(model)

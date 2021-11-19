@@ -32,6 +32,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.DrawableScreenViewProvider
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -108,7 +109,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         MyAnimatedSelectorModelProvider()
       else DesignerEditorPanel.ModelProvider.defaultModelProvider
 
-    return DesignerEditorPanel(this, myProject, myFile, workBench, surface, modelProvider, { emptyList() },
+    return DesignerEditorPanel(this, myProject, myFile, workBench, surface, NlComponentRegistrar, modelProvider, { emptyList() },
                                { designSurface, model -> addAnimationToolbar(designSurface, model) },
                                AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
   }

@@ -44,6 +44,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -253,7 +254,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
             .withParentDisposable(parentDisposable)
             .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
-            .withComponentRegistrar(componentRegistrar)
+            .withComponentRegistrar(NlComponentRegistrar)
             .withDataContext(dataContextProvider(previewElement))
             .withXmlProvider { project, virtualFile ->
               NlModelBuilder.getDefaultFile(project, virtualFile).also {
