@@ -20,6 +20,7 @@ package com.android.tools.idea.projectsystem
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
@@ -237,19 +238,24 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getTestPackageName(): String? = null
 
   /**
-   * DO NOT USE!
-   * Returns the best effort [ApplicationIdProvider] for the given module.
+   * Returns the [ApplicationIdProvider] for the given module.
    *
-   * Some project systems may be unable to retrieve the package name if no run configuration is provided or before
-   * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
-   * or return a name derived from incomplete configuration in this case.
+   * Some project systems may be unable to retrieve the package name before the project has been successfully built.
+   * The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s or return a name derived from incomplete configuration
+   * in this case.
+   *
+   * Some project system may allow multiple applications in one IDE module. The behavior in this case is defined by the specific project
+   * system.
    */
-  // TODO(b/153975895): Delete when even logging usage is resolved.
   @JvmDefault
-  @Deprecated("Use the version with runtimeConfiguration parameter (b/153975895)")
-  fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider = object : ApplicationIdProvider {
-    override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
-    override fun getTestPackageName(): String? = null
+  fun getApplicationIdProvider(): ApplicationIdProvider = object : ApplicationIdProvider {
+    val androidModel = AndroidModel.get(module)
+    override fun getPackageName(): String =
+      androidModel?.applicationId?.takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
+      ?: throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
+
+    override fun getTestPackageName(): String =
+      throw ApkProvisionException("This (${this::class.java.simpleName}) project system cannot obtain the test package name.")
   }
 
   /**

@@ -213,7 +213,7 @@ class DefaultModuleSystem(override val module: Module) :
     return getPackageName(module)
   }
 
-  override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+  override fun getApplicationIdProvider(): ApplicationIdProvider {
     return NonGradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
   }
