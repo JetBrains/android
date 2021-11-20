@@ -28,9 +28,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData
+import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleJava.configuration.configureFacetByCachedCompilerArguments
 import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataNodeOrNull
-import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinIdeaProjectDataOrNull
 import org.jetbrains.kotlin.idea.gradleJava.configuration.sourceSetName
 import org.jetbrains.plugins.gradle.util.GradleUtil
 
@@ -51,9 +51,8 @@ private fun setupKotlinOptionsOnFacet(module: Module) {
   val sourceSetName = androidModel.selectedVariant.name
   if (module.sourceSetName == sourceSetName) return
   val moduleDataNode = GradleUtil.findGradleModuleData(module) ?: return
-  val kotlinIdeaProjectData = moduleDataNode.kotlinIdeaProjectDataOrNull ?: return
   val kotlinGradleProjectDataNode = moduleDataNode.kotlinGradleProjectDataNodeOrNull ?: return
-  val cacheHolder = kotlinIdeaProjectData.compilerArgumentsCacheHolder
+  val cacheHolder = CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder
   val kotlinGradleSourceSetData = ExternalSystemApiUtil.findAll(kotlinGradleProjectDataNode, KotlinGradleSourceSetData.KEY)
                                     .map { it.data }
                                     .find { it.sourceSetName == sourceSetName } ?: return
