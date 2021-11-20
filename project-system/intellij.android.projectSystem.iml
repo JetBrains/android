@@ -12,6 +12,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
