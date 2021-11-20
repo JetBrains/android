@@ -16,6 +16,9 @@
 package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.FrameEvent
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Layer
+import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.Phase
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
@@ -234,14 +237,14 @@ class TraceProcessorModelTest {
 
   @Test
   fun addAndroidFrameLayers() {
-    val layer = TraceProcessor.AndroidFrameEventsResult.Layer.newBuilder()
+    val layer = Layer.newBuilder()
       .setLayerName("foobar")
-      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+      .addPhase(Phase.newBuilder()
                   .setPhaseName("Display")
-                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(1)))
-      .addPhase(TraceProcessor.AndroidFrameEventsResult.Phase.newBuilder()
+                  .addFrameEvent(FrameEvent.newBuilder().setId(1)))
+      .addPhase(Phase.newBuilder()
                   .setPhaseName("GPU")
-                  .addFrameEvent(TraceProcessor.AndroidFrameEventsResult.FrameEvent.newBuilder().setId(2)))
+                  .addFrameEvent(FrameEvent.newBuilder().setId(2)))
       .build()
     val frameEventResult = TraceProcessor.AndroidFrameEventsResult.newBuilder()
       .addLayer(layer)
@@ -337,6 +340,56 @@ class TraceProcessorModelTest {
                                 PerfettoTrace.FrameTimelineEvent.JankType.JANK_UNKNOWN,
                                 onTimeFinish = true, gpuComposition = false, layoutDepth = 0),
     ).inOrder()
+  }
+
+  @Test
+  fun `grouping layers by phase adjusts depths`() {
+    fun<O,B> constructorOf(builder: () -> B, build: B.() -> O): (B.() -> Unit) -> O = { builder().apply(it).build() }
+    val layer = constructorOf(Layer::newBuilder, Layer.Builder::build)
+    val phase = constructorOf(Phase::newBuilder, Phase.Builder::build)
+    val frame = constructorOf(FrameEvent::newBuilder, FrameEvent.Builder::build)
+    val displayPhase = phase {
+      phaseName = "Display"
+      addFrameEvent(frame { frameNumber = 1; depth = 0 })
+      addFrameEvent(frame { frameNumber = 2; depth = 1 })
+    }
+    val layer1 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 1; depth = 0 })
+        addFrameEvent(frame { frameNumber = 2; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+    val layer2 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 3; depth = 0 })
+        addFrameEvent(frame { frameNumber = 4; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+    val layer3 = layer {
+      addPhase(phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 5; depth = 0 })
+        addFrameEvent(frame { frameNumber = 6; depth = 1 })
+      })
+      addPhase(displayPhase)
+    }
+
+    assertThat(listOf(layer1, layer2, layer3).groupedByPhase()).isEqualTo(listOf(
+      phase {
+        phaseName = "Application"
+        addFrameEvent(frame { frameNumber = 1; depth = 0 })
+        addFrameEvent(frame { frameNumber = 2; depth = 1 })
+        addFrameEvent(frame { frameNumber = 3; depth = 2 })
+        addFrameEvent(frame { frameNumber = 4; depth = 3 })
+        addFrameEvent(frame { frameNumber = 5; depth = 4 })
+        addFrameEvent(frame { frameNumber = 6; depth = 5 })
+      },
+      displayPhase
+    ))
   }
 
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)

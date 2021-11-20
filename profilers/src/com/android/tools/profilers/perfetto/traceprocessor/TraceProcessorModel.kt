@@ -380,6 +380,19 @@ private fun List<Layer>.renumbered(timelineEvents: List<AndroidFrameTimelineEven
     map(::transformLayer)
   }
 
+fun List<Layer>.groupedByPhase(): List<Phase> = asSequence()
+  .flatMap(Layer::getPhaseList)
+  .groupingBy(Phase::getPhaseName)
+  // for each phase, accumulate event list and max depth
+  .fold({ _, _ -> mutableListOf<FrameEvent>() to 0}) { phaseName, (eventsAcc, depthAcc), phase -> when (phaseName) {
+    "Display" -> phase.frameEventList to 0 // "Display" track is special, so no accumulation
+    else -> {
+      eventsAcc.addAll(phase.frameEventList.map { e -> e.toBuilder().setDepth(depthAcc + e.depth).build() })
+      eventsAcc to (depthAcc + (phase.frameEventList.maxOfOrNull(FrameEvent::getDepth)?.let(Int::inc) ?: 0))
+    }
+  } }
+  .map { (name, result) -> Phase.newBuilder().setPhaseName(name).addAllFrameEvent(result.first).build() }
+
 /**
  * Map lifecycle's frame numbers to timeline's frame numbers by:
  * - identifying the surfaceflinger event sharing the same display-token as the app event

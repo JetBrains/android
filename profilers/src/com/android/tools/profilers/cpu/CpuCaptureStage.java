@@ -74,6 +74,7 @@ import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -632,23 +633,18 @@ public class CpuCaptureStage extends Stage<Timeline> {
     Map<Long, AndroidFrameTimelineEvent> timelineEventIndex =
       CollectionsKt.associateBy(systemTraceData.getAndroidFrameTimelineEvents(), AndroidFrameTimelineEvent::getSurfaceFrameToken);
     BiConsumer<Function1<TraceProcessor.AndroidFrameEventsResult.FrameEvent, Boolean>,
-               Function1<Set<String>, Boolean>> adder = (frameFilter, displayingCondition) -> {
-      for (int i = 0; i < systemTraceData.getAndroidFrameLayers().size(); ++i) {
-        TraceProcessor.AndroidFrameEventsResult.Layer layer = systemTraceData.getAndroidFrameLayers().get(i);
-
-        layer.getPhaseList().stream()
-          .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues(),
-                                                        multiSelectionModel, frameFilter, timelineEventIndex))
-          .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
-          .forEach(model -> {
-            AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, model);
-            display.addTrackModel(TrackModel.newBuilder(model, ProfilerTrackRendererType.ANDROID_FRAME_EVENT,
-                                                        model.getAndroidFramePhase().getDisplayName())
-                                    .setDefaultTooltipModel(tooltip),
-                                  displayingCondition);
-          });
-      }
-    };
+                         Function1<Set<String>, Boolean>> adder = (frameFilter, displayingCondition) ->
+      TraceProcessorModelKt.groupedByPhase(systemTraceData.getAndroidFrameLayers()).stream()
+        .map(phase -> new AndroidFrameEventTrackModel(phase, timeline.getViewRange(), systemTraceData.getVsyncCounterValues(),
+                                                      multiSelectionModel, frameFilter, timelineEventIndex))
+        .sorted(Comparator.comparingInt(model -> model.getAndroidFramePhase().ordinal()))
+        .forEach(model -> {
+          AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, model);
+          display.addTrackModel(TrackModel.newBuilder(model, ProfilerTrackRendererType.ANDROID_FRAME_EVENT,
+                                                      model.getAndroidFramePhase().getDisplayName())
+                                  .setDefaultTooltipModel(tooltip),
+                                displayingCondition);
+        });
     // lifecycle data for all frames
     adder.accept(frame -> true,
                  toggles -> toggles.contains(toggleLifeCycle) && toggles.contains(toggleAllFrames));
