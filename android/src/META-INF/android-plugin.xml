@@ -201,7 +201,7 @@
             description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidEnableInstantAppsSupport" class="com.android.tools.idea.gradle.actions.EnableInstantAppsSupportAction" text="Enable Instant Apps Support..."
+    <action id="AndroidEnableInstantAppsSupport" class="com.android.tools.idea.actions.EnableInstantAppsSupportAction" text="Enable Instant Apps Support..."
             description="Enables Instant Apps Support for a Module">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
