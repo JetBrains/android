@@ -20,7 +20,6 @@ import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -38,6 +37,9 @@ import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
@@ -215,9 +217,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (p != null) {
       val latest = SdkMavenRepository.getCoordinateFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
-        // Update version dependency in the module. Note that this will trigger a sync too.
-        val manager = GradleDependencyManager.getInstance(module.project)
-        manager.updateLibrariesToVersion(module, listOf(latest), null)
+        module.getModuleSystem().updateLibrariesToVersion(listOf(latest))
+        module.project.getProjectSystem().getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
       }
     }
   }

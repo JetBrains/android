@@ -30,6 +30,8 @@ import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.annotations.NotNull
+import java.lang.UnsupportedOperationException
 import java.nio.file.Path
 
 /**
@@ -150,6 +152,15 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    */
   @Throws(DependencyManagementException::class)
   fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
+
+  /**
+   * Updates any coordinates to the versions specified in the [toVersions] list.
+   * For example, if you pass it [com.android.support.constraint:constraint-layout:1.0.0-alpha2],
+   * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
+   */
+  @Throws(DependencyManagementException::class)
+  @JvmDefault
+  fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) : Unit = throw UnsupportedOperationException()
 
   /**
    * Returns the resolved libraries that this module depends on.

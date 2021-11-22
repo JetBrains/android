@@ -198,6 +198,11 @@ class GradleModuleSystem(
     }
   }
 
+  override fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) {
+    val manager = GradleDependencyManager.getInstance(module.project)
+    manager.updateLibrariesToVersion(module, toVersions)
+  }
+
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.dependencies;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
-import static com.intellij.openapi.util.text.StringUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -32,20 +29,19 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
@@ -144,10 +140,13 @@ public class GradleDependencyManager {
    * @param callback     an optional callback to signal to completion of the added dependencies
    * @return true if the dependencies were successfully added or were already present in the module
    */
+  @TestOnly
   public boolean addDependenciesAndSync(@NotNull Module module,
                                         @NotNull Iterable<GradleCoordinate> dependencies,
                                         @Nullable Runnable callback) {
-    return addDependenciesInTransaction(module, dependencies, true, callback, null);
+    boolean result = addDependenciesInTransaction(module, dependencies, null);
+    requestProjectSync(module.getProject(), callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
+    return result;
   }
 
   /**
@@ -159,7 +158,7 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    return addDependenciesInTransaction(module, dependencies, false, null, null);
+    return addDependenciesInTransaction(module, dependencies, null);
   }
 
   /**
@@ -175,7 +174,7 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<GradleCoordinate> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    return addDependenciesInTransaction(module, dependencies, false, null, nameMapper);
+    return addDependenciesInTransaction(module, dependencies, nameMapper);
   }
 
   /**
@@ -184,34 +183,18 @@ public class GradleDependencyManager {
    * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
    */
   public boolean updateLibrariesToVersion(@NotNull Module module,
-                                          @NotNull List<GradleCoordinate> dependencies,
-                                          @Nullable Runnable callback) {
+                                          @NotNull List<GradleCoordinate> dependencies) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel == null) {
       return false;
     }
-    updateDependenciesInTransaction(buildModel, module, dependencies, callback);
+    updateDependenciesInTransaction(buildModel, module, dependencies);
     return true;
-  }
-
-  public boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
-    String libraryNames = join(missing, GradleCoordinate::getArtifactId, ", ");
-    String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
-                                   pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
-    Project project = module.getProject();
-    return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<GradleCoordinate> coordinates,
-                                               boolean performSync,
-                                               @Nullable Runnable callback,
                                                @Nullable ConfigurationNameMapper nameMapper) {
-    // callback method should never be provided when a sync is not requested.
-    if (!performSync && callback != null) {
-      throw new IllegalArgumentException("Callback must be null if sync is not requested.");
-    }
-
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel == null) {
       return false;
@@ -225,10 +208,6 @@ public class GradleDependencyManager {
       }
 
       addDependencies(buildModel, module, missing, nameMapper);
-
-      if (performSync) {
-        requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
-      }
     });
     return true;
   }
@@ -253,14 +232,12 @@ public class GradleDependencyManager {
 
   private static void updateDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
                                                       @NotNull Module module,
-                                                      @NotNull List<GradleCoordinate> coordinates,
-                                                      @Nullable Runnable callback) {
+                                                      @NotNull List<GradleCoordinate> coordinates) {
     assert !coordinates.isEmpty();
 
     Project project = module.getProject();
     WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
       updateDependencies(buildModel, module, coordinates);
-      requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_UPDATED);
     });
   }
 
