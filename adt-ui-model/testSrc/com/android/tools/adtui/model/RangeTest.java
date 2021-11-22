@@ -17,7 +17,9 @@ package com.android.tools.adtui.model;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.util.Arrays;
 import java.util.List;
+import kotlin.Pair;
 import org.junit.Test;
 
 public class RangeTest {
@@ -342,5 +344,25 @@ public class RangeTest {
     rangeToClear.clear();
     assertThat(rangeToClear.isSameAs(empty1)).isTrue();
     assertThat(empty2.isSameAs(empty1)).isTrue();
+  }
+
+
+  @Test
+  public void rangeAdjustmentCoversDesiredBounds() {
+    List<Pair<Double, Double>>
+      ranges = Arrays.asList(new Pair<>(0.0, 1.0),
+                             new Pair<>(8.0, 9.0),
+                             new Pair<>(0.0, 4.7),
+                             new Pair<>(4.7, 9.0)),
+      selections = Arrays.asList(new Pair<>(2.0, 5.0),
+                                 new Pair<>(4.0, 5.0),
+                                 new Pair<>(4.5, 5.0));
+    ranges.forEach(range ->
+      selections.forEach(selection -> {
+          Range r = new Range(range.getFirst(), range.getSecond());
+          r.adjustToContain(selection.getFirst(), selection.getSecond());
+          assertThat(r.contains(selection.getFirst())).isTrue();
+          assertThat(r.contains(selection.getSecond())).isTrue();
+      }));
   }
 }

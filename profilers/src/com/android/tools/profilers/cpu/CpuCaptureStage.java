@@ -220,6 +220,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
       profilers.getIdeServices(), captureFile, traceId, configuration, captureProcessNameHint, captureProcessIdHint);
+
+    getMultiSelectionModel().addDependency(this)
+      .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::onActiveSelectionChanged);
   }
 
   public State getState() {
@@ -462,6 +465,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
         featureTracker.trackExpandTrackGroup(title);
       }
     }));
+  }
+
+  private void onActiveSelectionChanged() {
+    Object activeSelection = getMultiSelectionModel().getActiveSelectionKey();
+    // If the range doesn't already cover a selection frame, switch to it
+    if (activeSelection instanceof AndroidFrameTimelineEvent) {
+      AndroidFrameTimelineEvent event = (AndroidFrameTimelineEvent)activeSelection;
+      getTimeline().getViewRange().adjustToContain(event.getExpectedStartUs(),
+                                                   Math.max(event.getExpectedEndUs(), event.getActualEndUs()));
+    }
   }
 
   private static TrackGroupModel createInteractionTrackGroup(@NotNull StudioProfilers studioProfilers, @NotNull Timeline timeline) {

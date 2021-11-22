@@ -205,6 +205,17 @@ public final class Range extends AspectModel<Range.Aspect> {
     set(Math.min(min, myMin), Math.max(max, myMax));
   }
 
+  /**
+   * Shifts the range to contain the bounds, only expanding if necessary
+   */
+  public void adjustToContain(double min, double max) {
+    if (min < myMin) {
+      set(min, Math.max(max, min + getLength()));
+    } else if (max > myMax) {
+      set(Math.min(min, max - getLength()), max);
+    }
+  }
+
   @Override
   public String toString() {
     return !isEmpty() ? String.format("[%s..%s]", myMin, myMax) : "[]";
