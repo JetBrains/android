@@ -165,9 +165,15 @@ object AndroidStudioUsageTracker {
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
-
     subscribeToEvents()
     setupFeatureSurveys()
+
+    // Studio ping is called immediately without scheduler to make sure
+    // ping is not delayed based on scheduler logic, then it is scheduled
+    // daily moving forward.
+    studioPing()
+    scheduler.scheduleWithFixedDelay({ studioPing() }, 1, 1, TimeUnit.DAYS)
+
   }
 
   private fun subscribeToEvents() {
@@ -213,6 +219,10 @@ object AndroidStudioUsageTracker {
   }
 
   private fun runDailyReports() {
+    processUserSentiment()
+  }
+
+  private fun studioPing() {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PING)
@@ -220,8 +230,6 @@ object AndroidStudioUsageTracker {
         .setProductDetails(productDetails)
         .setMachineDetails(getMachineDetails(File(PathManager.getHomePath())))
         .setJvmDetails(CommonMetricsData.jvmDetails))
-
-    processUserSentiment()
   }
 
   private fun processUserSentiment() {
