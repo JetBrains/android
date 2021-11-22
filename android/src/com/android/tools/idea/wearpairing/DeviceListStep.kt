@@ -184,7 +184,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
     return DeviceListPanel(title, list, createEmptyListPanel(list, emptyTextTitle))
   }
 
-  private fun createList(listName: String): JBList<PairingDevice> {
+  private fun createList(listName: String): TooltipList<PairingDevice> {
     return TooltipList<PairingDevice>().apply {
       name = listName
       setCellRenderer { _, value, _, isSelected, _ ->
@@ -268,7 +268,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
       }
     }
 
-    deviceListPanel.showList(showEmpty = uiList.isEmpty)
+    deviceListPanel.showList()
     updateGoForward()
   }
 
@@ -309,6 +309,15 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
                 }
                 GlobalScope.launch(ioThread) {
                   WearPairingManager.removePairedDevices(listDevice.deviceID)
+                  // Update pairing icon
+                  ApplicationManager.getApplication().invokeLater(
+                    {
+                      phoneListPanel.list.cleanCache()
+                      wearListPanel.list.cleanCache()
+                      phoneListPanel.showList()
+                      wearListPanel.showList()
+                    }, ModalityState.any()
+                  )
                 }
               }
               val progressTitle = message("wear.assistant.device.list.forget.connection", peerDevice.displayName)
@@ -401,9 +410,13 @@ private class TooltipList<E> : JBList<E>() {
   }
 
   override fun getToolTipText(event: MouseEvent?): String? = null
+
+  fun cleanCache() {
+    cellRendererCache.clear()
+  }
 }
 
-private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, val emptyListPanel: JPanel) : JPanel(BorderLayout()) {
+private class DeviceListPanel(title: String, val list: TooltipList<PairingDevice>, val emptyListPanel: JPanel) : JPanel(BorderLayout()) {
   val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
     border = IdeBorderFactory.createBorder(SideBorder.TOP)
   }
@@ -418,8 +431,8 @@ private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, va
     add(scrollPane, BorderLayout.CENTER)
   }
 
-  fun showList(showEmpty: Boolean) {
-    val view = if (showEmpty) emptyListPanel else list
+  fun showList() {
+    val view = if (list.isEmpty) emptyListPanel else list
     scrollPane.setViewportView(view)
   }
 }
