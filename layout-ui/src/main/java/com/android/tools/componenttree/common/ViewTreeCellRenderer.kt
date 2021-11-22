@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.impl
+package com.android.tools.componenttree.common
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.componenttree.impl.TreeImpl
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -62,12 +63,11 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.reset()
     val node = type.clazz.cast(value) ?: return renderer
 
-    renderer.currentTree = tree as? TreeImpl
+    renderer.currentTree = tree
     renderer.currentRow = row
-    renderer.currentDepth = renderer.currentTree?.model?.computeDepth(value) ?: 1
+    renderer.currentDepth = tree.computeDepth(value)
     renderer.selectedValue = selected
-    // the "hasFocus" parameter is wrong when there are multiple selected nodes so check the tree instead:
-    renderer.focusedValue = tree.hasFocus() && selected
+    renderer.focusedValue = hasFocus && selected
 
     renderer.id = stripId(type.idOf(node))
     renderer.tagName = type.tagNameOf(node).substringAfterLast('.')
@@ -87,7 +87,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
    */
   @VisibleForTesting
   class ColoredViewRenderer : SimpleColoredRenderer() {
-    var currentTree: TreeImpl? = null
+    var currentTree: JTree? = null
     var currentDepth: Int = 1
     var currentRow = -1
     var selectedValue = false
@@ -267,3 +267,34 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     }
   }
 }
+
+/**
+ * Utility for returning the model depth of a specific [item].
+ *
+ * TODO: Remove when TreeImpl is removed
+ */
+fun JTree.computeDepth(item: Any?): Int = when (this) {
+                                            is TreeImpl -> model?.computeDepth(item)
+                                            else -> null
+                                          } ?: 1
+
+/**
+ * Utility for returning the max render width for a view tree renderer at a specified [depth].
+ *
+ * TODO: Remove when TreeImpl is removed
+ */
+fun JTree.computeMaxRenderWidth(depth: Int): Int = when(this) {
+  is TreeImpl -> computeMaxRenderWidth(depth)
+  else -> 0
+}
+
+/**
+ * Utility for returning true if a given [row] is expanded.
+ *
+ * TODO: Remove when TreeImpl is removed
+ */
+fun JTree.isRowCurrentlyExpanded(row: Int): Boolean = when(this) {
+  is TreeImpl -> isRowCurrentlyExpanded(row)
+  else -> false
+}
+

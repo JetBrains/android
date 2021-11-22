@@ -16,11 +16,12 @@
 package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
-import com.android.tools.componenttree.impl.ViewTreeCellRenderer.ColoredViewRenderer
+import com.android.tools.componenttree.common.ViewTreeCellRenderer
+import com.android.tools.componenttree.common.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.property.testing.ApplicationRule
@@ -34,11 +35,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Component
-import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
@@ -60,27 +58,20 @@ class ViewTreeCellRendererTest {
   private val renderer = ViewTreeCellRenderer(type)
 
   private val model = ComponentTreeModelImpl(mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
+  private var tree: TreeImpl? = null
 
   private val normal = SimpleTextAttributes.REGULAR_ATTRIBUTES
   private val bold = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
   private val grey = SimpleTextAttributes.GRAYED_ATTRIBUTES
 
-  private var focusManager: KeyboardFocusManager? = mock(KeyboardFocusManager::class.java)
-  private var focusOwner: Any? = null
-  private var tree: TreeImpl? = null
-
   @Before
   fun setUp() {
-    doAnswer { focusOwner }.`when`(focusManager!!).focusOwner
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree", null, installKeyboardActions = {})
     tree!!.expandableTreeItemsHandler = TestTreeExpansionHandler(tree!!)
   }
 
   @After
   fun tearDown() {
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
-    focusManager = null
     tree = null
   }
 
@@ -159,53 +150,31 @@ class ViewTreeCellRendererTest {
   }
 
   @Test
-  fun testBackgroundColorWhenTreeHasFocus() {
-    focusOwner = tree
-    val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    assertThat(getBackgroundColor(item, selected = false, hasFocus = false)).isEqualTo(UIUtil.getTreeBackground())
-    assertThat(getBackgroundColor(item, selected = false, hasFocus = true)).isEqualTo(UIUtil.getTreeBackground())
-    assertThat(getBackgroundColor(item, selected = true, hasFocus = false)).isEqualTo(UIUtil.getTreeBackground(true, true))
-    assertThat(getBackgroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeBackground(true, true))
-  }
-
-  @Test
-  fun testBackgroundColorWhenTreeDoesNotHaveFocus() {
+  fun testBackgroundColor() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getBackgroundColor(item, selected = false, hasFocus = false)).isEqualTo(UIUtil.getTreeBackground())
     assertThat(getBackgroundColor(item, selected = false, hasFocus = true)).isEqualTo(UIUtil.getTreeBackground())
     assertThat(getBackgroundColor(item, selected = true, hasFocus = false)).isEqualTo(UIUtil.getTreeBackground(true, false))
-    assertThat(getBackgroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeBackground(true, false))
+    assertThat(getBackgroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeBackground(true, true))
   }
 
   @Test
-  fun testForegroundColorWhenTreeHasFocus() {
-    focusOwner = tree
-    val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = false)).isEqualTo(UIUtil.getTreeForeground())
-    assertThat(getForegroundColor(item, selected = false, hasFocus = true)).isEqualTo(UIUtil.getTreeForeground())
-    assertThat(getForegroundColor(item, selected = true, hasFocus = false)).isEqualTo(UIUtil.getTreeForeground(true, true))
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeForeground(true, true))
-  }
-
-  @Test
-  fun testForegroundColorWhenTreeDoesNotHaveFocus() {
+  fun testForegroundColor() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getForegroundColor(item, selected = false, hasFocus = false)).isEqualTo(UIUtil.getTreeForeground())
     assertThat(getForegroundColor(item, selected = false, hasFocus = true)).isEqualTo(UIUtil.getTreeForeground())
     assertThat(getForegroundColor(item, selected = true, hasFocus = false)).isEqualTo(UIUtil.getTreeForeground(true, false))
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeForeground(true, false))
+    assertThat(getForegroundColor(item, selected = true, hasFocus = true)).isEqualTo(UIUtil.getTreeForeground(true, true))
   }
 
   @Test
-  fun testIconWhenTreeHasFocus() {
+  fun testIcon() {
     IconLoader.activate()
-    focusOwner = tree
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = false)).isEqualTo(Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = true)).isEqualTo(Palette.TEXT_VIEW)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = false)!!, ColoredIconGenerator.generateWhiteIcon(Palette.TEXT_VIEW))
+    assertThat(getIcon(item, selected = true, hasFocus = false)).isEqualTo(Palette.TEXT_VIEW)
     assertIconsEqual(getIcon(item, selected = true, hasFocus = true)!!, ColoredIconGenerator.generateWhiteIcon(Palette.TEXT_VIEW))
-    assertThat(hasNonWhiteColors(getIcon(item, selected = true, hasFocus = false)!!)).isFalse()
     assertThat(hasNonWhiteColors(getIcon(item, selected = true, hasFocus = true)!!)).isFalse()
   }
 
@@ -216,16 +185,6 @@ class ViewTreeCellRendererTest {
     val actualImage = BufferedImage(actual.iconWidth, actual.iconHeight, BufferedImage.TYPE_INT_ARGB)
     actual.paintIcon(null, actualImage.createGraphics(), 0, 0)
     ImageDiffUtil.assertImageSimilar("icon", expectedImage, actualImage, 0.0)
-  }
-
-  @Test
-  fun testIconWhenTreeDoesNotHaveFocus() {
-    IconLoader.activate()
-    val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = false, hasFocus = false)).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = false, hasFocus = true)).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = true, hasFocus = false)).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = true, hasFocus = true)).isEqualTo(Palette.TEXT_VIEW)
   }
 
   private fun getBackgroundColor(item: Item, selected: Boolean, hasFocus: Boolean): Color {
@@ -248,7 +207,7 @@ class ViewTreeCellRendererTest {
 
   private fun hasNonWhiteColors(icon: Icon): Boolean {
     var combined = 0xffffff
-    val image = toImage(icon) ?: return false
+    val image = toImage(icon)
     for (x in 0 until image.width) {
       for (y in 0 until image.height) {
         val rgb = Color(image.getRGB(x, y), true)
@@ -260,7 +219,7 @@ class ViewTreeCellRendererTest {
     return combined.and(0xffffff) != 0xffffff
   }
 
-  private fun toImage(icon: Icon): BufferedImage? {
+  private fun toImage(icon: Icon): BufferedImage {
     @Suppress("UndesirableClassUsage")
     val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
     val g = image.createGraphics()
