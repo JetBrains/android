@@ -52,7 +52,6 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -60,13 +59,13 @@ import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -92,9 +91,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                                  modelsByModuleName: Map<String, DataNode<AndroidModuleModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
-    // Any modules left in this set need to be purged of all Android and AndroidArtifact facets.
-    val nonAndroidModules = modelsProvider.modules.toMutableSet()
-
     for (nodeToImport in toImport) {
       val mainModuleDataNode = ExternalSystemApiUtil.findParent(
         nodeToImport,
@@ -102,7 +98,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       ) ?: continue
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
-      nonAndroidModules.remove<Module>(mainIdeModule)
 
       val androidModel = nodeToImport.data
       androidModel.setModule(mainIdeModule)
@@ -120,7 +115,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       */
 
       modules.forEach { module ->
-        nonAndroidModules.remove<Module>(module)
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
         // If we only have one module then module per source set must be disabled as no GradleSourceSetData was found.
@@ -129,21 +123,25 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
                              ?: createAndroidFacet(module, facetModel)
           // Configure that Android facet from the information in the AndroidModuleModel.
           configureFacet(androidFacet, androidModel)
-        } else {
-          removeAllFacets(facetModel, AndroidFacet.ID)
         }
 
         moduleValidator.validate(module, androidModel)
       }
     }
 
-    nonAndroidModules.forEach { module ->
-      removeAllFacets(modelsProvider.getModifiableFacetModel(module), AndroidFacet.ID)
-      // We don't need to clean up the sdk or language level as that should be set by whatever is handling the new module type.
-    }
-
     if (modelsByModuleName.isNotEmpty()) {
       moduleValidator.fixAndReportFoundIssues()
+    }
+  }
+
+  override fun removeData(toRemoveComputable: Computable<out MutableCollection<out Module>>?,
+                          toIgnore: MutableCollection<out DataNode<AndroidModuleModel>>,
+                          projectData: ProjectData,
+                          project: Project,
+                          modelsProvider: IdeModifiableModelsProvider) {
+    toRemoveComputable?.get()?.forEach {module ->
+      val facetModel = modelsProvider.getModifiableFacetModel(module)
+      removeAllFacets(facetModel, AndroidFacet.ID)
     }
   }
 
