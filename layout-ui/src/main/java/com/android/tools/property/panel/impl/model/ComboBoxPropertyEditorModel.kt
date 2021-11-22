@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumSupport
@@ -136,7 +137,9 @@ class ComboBoxPropertyEditorModel(
 
   override fun focusLost() {
     super.focusLost()
-    commitChange()
+    if (canCommitChange()) {
+      commitChange()
+    }
   }
 
   override val editingSupport: EditingSupport
@@ -159,6 +162,9 @@ class ComboBoxPropertyEditorModel(
   }
 
   fun enterKeyPressed() {
+    if (!canCommitChange()) {
+      return
+    }
     blockUpdates = true
     try {
       isPopupVisible = false
@@ -174,21 +180,30 @@ class ComboBoxPropertyEditorModel(
   }
 
   /**
-   * Commit the current changed text.
+   * Indicates whether the current changed text should be committed.
    *
-   * Return true if the change was successfully updated,
-   * false if the value is same as before or a pending update is expected.
+   * Returns false if there are errors in the text, there's a pending update expected or the text is the same as the value.
    */
-  private fun commitChange(): Boolean {
+  private fun canCommitChange(): Boolean {
+    val (code, _) = editingSupport.validation(text)
+    if (code == EditingErrorCategory.ERROR) {
+      return false
+    }
     if (pendingValueChange && text == pendingValue) {
       return false
     }
-    resetPendingValue()
     if (value == text) {
       return false
     }
-    value = text
     return true
+  }
+
+  /**
+   * Commit the current changed text.
+   */
+  private fun commitChange() {
+    resetPendingValue()
+    value = text
   }
 
   override fun cancelEditing(): Boolean {
