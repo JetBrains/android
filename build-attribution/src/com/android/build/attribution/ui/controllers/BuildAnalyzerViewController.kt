@@ -32,6 +32,7 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsFactory
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -225,7 +226,7 @@ class BuildAnalyzerViewController(
     analytics.turnJetifierOffClicked(duration)
   }
 
-  override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<String?>): AnAction {
+  override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsFactory.DirectDependencyDescriptor?>): AnAction {
     return FindSelectedLibVersionDeclarationAction(selectionSupplier, project, analytics)
   }
 

@@ -71,7 +71,7 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
       Truth.assertThat(it.isVisible).isFalse()
     }
-    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<JetifierWarningDetailsFactory.DirectDependencyDescriptor>>().single()
     Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
 
     val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
@@ -97,7 +97,7 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(html).contains("<b>Jetifier flag can be removed</b>")
       Truth.assertThat(html).contains("The last check did not find any dependencies that require Jetifier in your project.")
 
-      val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+      val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<JetifierWarningDetailsFactory.DirectDependencyDescriptor>>().single()
       Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
 
       val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
@@ -163,7 +163,7 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(it.isVisible).isFalse()
     }
 
-    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<String>>().single()
+    val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<JetifierWarningDetailsFactory.DirectDependencyDescriptor>>().single()
     val declaredDependenciesListModel = declaredDependenciesList.model
     Truth.assertThat(declaredDependenciesListModel.size).isEqualTo(3)
 
@@ -178,7 +178,7 @@ class JetifierWarningDetailsFactoryTest {
     val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
       .single { it.name == "declared-dependencies-header" }
     Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
-    Truth.assertThat(declaredDependenciesListModel.getElementAt(1)).isEqualTo("example:A:1.0")
+    Truth.assertThat(declaredDependenciesListModel.getElementAt(1).fullName).isEqualTo("example:A:1.0")
     declaredDependenciesList.selectedIndex = 1
     Truth.assertThat(dependenciesTree.isEmpty).isFalse()
 
@@ -197,7 +197,7 @@ class JetifierWarningDetailsFactoryTest {
       |      []example:A:1.0
     """.trimMargin())
 
-    Truth.assertThat(declaredDependenciesListModel.getElementAt(0)).isEqualTo("com.android.support:collections:28.0.0")
+    Truth.assertThat(declaredDependenciesListModel.getElementAt(0).fullName).isEqualTo("com.android.support:collections:28.0.0")
     declaredDependenciesList.selectedIndex = 0
     Truth.assertThat(treePresentation(dependenciesTree)).isEqualTo("""
       |[]com.android.support:collections:28.0.0

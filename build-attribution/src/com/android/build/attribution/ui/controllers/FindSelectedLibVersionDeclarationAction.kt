@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsFactory
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
@@ -38,7 +39,7 @@ import com.intellij.util.Processor
 import java.util.function.Supplier
 
 class FindSelectedLibVersionDeclarationAction(
-  private val selectionSupplier: Supplier<String?>,
+  private val selectionSupplier: Supplier<JetifierWarningDetailsFactory.DirectDependencyDescriptor?>,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics,
 ) : AnAction(
@@ -59,7 +60,7 @@ class FindSelectedLibVersionDeclarationAction(
     usageViewPresentation.tabText = "Dependency Version Declaration"
     usageViewPresentation.codeUsagesString = "Version declarations of $selectedDependency"
     usageViewPresentation.scopeText = "project build files"
-    usageViewPresentation.searchString = selectedDependency
+    usageViewPresentation.searchString = selectedDependency.fullName
     usageViewPresentation.isOpenInNewTab = false
     val processPresentation = FindUsagesProcessPresentation(usageViewPresentation)
     processPresentation.isShowNotFoundMessage = true
@@ -85,17 +86,19 @@ class FindSelectedLibVersionDeclarationAction(
 
 }
 
-fun findVersionDeclarations(project: Project, selectedDependency: String): Array<UsageInfo> {
-  val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency) ?: return emptyArray()
-  val artifactsMatchingGroupAndName = ProjectBuildModel.get(project).allIncludedBuildModels
+fun findVersionDeclarations(project: Project, selectedDependency: JetifierWarningDetailsFactory.DirectDependencyDescriptor): Array<UsageInfo> {
+  val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency.fullName) ?: return emptyArray()
+  val rootBuildModel = ProjectBuildModel.get(project).projectBuildModel ?: return emptyArray()
+  val modelsForSearch = ProjectBuildModel.get(project).projectSettingsModel?.let {
+    selectedDependency.projects.mapNotNull { gradleProjectPath -> it.moduleModel(gradleProjectPath) }
+  } ?: listOf(rootBuildModel)
+  return modelsForSearch.asSequence()
     .flatMap { model -> model.dependencies().artifacts() }
     .filter { dependency ->
       dependency.spec.let {
         it.group == selectedParsed.group && it.name == selectedParsed.name
       }
     }
-  val artifactsMatchingVersion = artifactsMatchingGroupAndName.filter { dependency -> dependency.spec.version == selectedParsed.version }
-  return artifactsMatchingVersion.ifEmpty { artifactsMatchingGroupAndName }.asSequence()
     .mapNotNull { dependency ->
       val versionElement = dependency.version().resultModel.rawElement
       fun extractDependencyPsi() = when (val dependencyElement = dependency.completeModel().resultModel.rawElement) {

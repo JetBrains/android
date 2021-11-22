@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.ide.common.attribution.FullDependencyPath
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.actionSystem.ActionManager
@@ -177,23 +178,24 @@ class JetifierWarningDetailsFactory(
     val declaredDependenciesListValues = (projectStatus as? JetifierRequiredForLibraries)
                                            ?.checkJetifierResult
                                            ?.dependenciesDependingOnSupportLibs
-                                           ?.keys
-                                           ?.sorted()
+                                           ?.entries
+                                           ?.map { DirectDependencyDescriptor(it) }
+                                           ?.sortedBy { it.fullName }
                                          ?: emptyList()
     val declaredDependenciesList = JBList(declaredDependenciesListValues).apply {
       name = "declared-dependencies-list"
-      cellRenderer = object : ColoredListCellRenderer<String>() {
-        override fun customizeCellRenderer(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
+      cellRenderer = object : ColoredListCellRenderer<DirectDependencyDescriptor>() {
+        override fun customizeCellRenderer(list: JList<out DirectDependencyDescriptor>, value: DirectDependencyDescriptor?, index: Int, selected: Boolean, hasFocus: Boolean) {
+          if (value == null) return
           icon = LIBRARY_ICON
           isIconOpaque = true
           setFocusBorderAroundIcon(true)
           background = getListBackground(selected, hasFocus)
           mySelectionForeground = getListForeground(selected, hasFocus)
           if (projectStatus is JetifierRequiredForLibraries) {
-            val supportLibrary = projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[value]?.first()?.dependencyPath?.elements?.size == 1
-            toolTipText = treeToolTip(supportLibrary = supportLibrary, declaredDependency = true)
+            toolTipText = treeToolTip(supportLibrary = value.isSupportLibrary, declaredDependency = true)
           }
-          append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+          append(value.fullName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
         }
       }
       border = JBUI.Borders.empty()
@@ -249,14 +251,11 @@ class JetifierWarningDetailsFactory(
         val newRoot = DefaultMutableTreeNode()
         val selectedDependency = declaredDependenciesList.selectedValue
         if (selectedDependency != null) {
-          projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs[selectedDependency]?.let {
-            // TODO include nodes from all paths. And projects as leaves.
-            val descriptors = it.first().dependencyPath.elements.map { DependencyDescriptor(it) }
-            descriptors.last().supportLibrary = true
-            descriptors.first().declaredDependency = true
-            descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->
-              DependencyTreeNode(descriptor).also { parentNode.add(it) }
-            }
+          val descriptors = selectedDependency.pathToSupportLibrary.map { DependencyDescriptor(it) }
+          descriptors.last().supportLibrary = true
+          descriptors.first().declaredDependency = true
+          descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->
+            DependencyTreeNode(descriptor).also { parentNode.add(it) }
           }
         }
         dependencyTreeModel.setRoot(newRoot)
@@ -282,7 +281,7 @@ class JetifierWarningDetailsFactory(
     ListSpeedSearch(declaredDependenciesList)
   }
 
-  private fun installResultsTableActions(resultsTable: JBList<String>) {
+  private fun installResultsTableActions(resultsTable: JBList<DirectDependencyDescriptor>) {
     val findSelectedLibVersionDeclarationAction = actionHandlers.createFindSelectedLibVersionDeclarationAction { resultsTable.selectedValue }
     DefaultActionGroup().let { group ->
       group.add(findSelectedLibVersionDeclarationAction)
@@ -328,6 +327,20 @@ class JetifierWarningDetailsFactory(
       }
     val tooltip: String?
       get() = treeToolTip(supportLibrary, declaredDependency)
+  }
+
+  data class DirectDependencyDescriptor(
+    val fullName: String,
+    val projects: List<String>,
+    val pathToSupportLibrary: List<String>
+  ) {
+    val isSupportLibrary: Boolean get() = pathToSupportLibrary.size == 1
+
+    constructor(resultEntry: Map.Entry<String, List<FullDependencyPath>>): this(
+      resultEntry.key,
+      resultEntry.value.map { it.projectPath },
+      resultEntry.value.first().dependencyPath.elements
+    )
   }
 
   private class DependenciesStructureTreeRenderer : NodeRenderer() {
