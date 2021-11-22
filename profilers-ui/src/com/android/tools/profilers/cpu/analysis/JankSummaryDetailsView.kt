@@ -52,12 +52,6 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
       foreground = event.getActiveColor()
     })
     addRowToCommonSection("Display timing", JBLabel(event.presentType.getTitle()))
-    addRowToCommonSection("Deadline",
-                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.expectedEndUs))))
-    addRowToCommonSection("Actual end",
-                          JBLabel(TimeFormatter.getSemiSimplifiedClockString(capture.offset(event.actualEndUs))).apply {
-                            foreground = event.getActiveColor()
-                          })
 
     val (expectedPercent, actualPercent) = when {
       event.expectedDurationUs < event.actualDurationUs -> (event.expectedDurationUs * 100 / event.actualDurationUs).toInt() to 100
