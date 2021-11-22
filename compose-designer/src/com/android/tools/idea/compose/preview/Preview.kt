@@ -64,6 +64,7 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -72,9 +73,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -96,12 +99,15 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -584,6 +590,33 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   // region Lifecycle handling
   /**
+   * Lock used when processing events that affect the need of refreshing previews.
+   * These events are the invocations of [invalidateSavedBuildStatus] and the
+   * events captured by the ResourceChangeListener and the BuildListener.
+   */
+  private val previewFreshnessLock = ReentrantLock()
+
+  @GuardedBy("previewFreshnessLock")
+  private var needsRefreshOnSuccessfulBuild = true
+  @GuardedBy("previewFreshnessLock")
+  private var kotlinJavaModificationCount = -1L
+  private val kotlinJavaModificationTracker = PsiModificationTracker.SERVICE.getInstance(project).forLanguages { lang ->
+    lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
+  }
+
+  @TestOnly
+  internal fun needsRefreshOnSuccessfulBuild() = needsRefreshOnSuccessfulBuild
+
+  @TestOnly
+  internal fun buildWillTriggerRefresh() = needsRefreshOnSuccessfulBuild || kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
+
+  override fun invalidateSavedBuildStatus() {
+    previewFreshnessLock.withLock {
+      needsRefreshOnSuccessfulBuild = true
+    }
+  }
+
+  /**
    * Completes the initialization of the preview. This method is only called once after the first [onActivate]
    * happens.
    */
@@ -594,9 +627,48 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
+
+    // Set a ResourceChangeListener to update the need of refreshing the previews when corresponds
+    module?.androidFacet?.let {
+      ResourceNotificationManager
+        .getInstance(project)
+        .addListener({ reasons ->
+                       // If this listener was triggered by any reason but a project build,
+                       // then we need to refresh the previews on the next successful build
+                       reasons.remove(ResourceNotificationManager.Reason.PROJECT_BUILD)
+                       if (reasons.isNotEmpty()) invalidateSavedBuildStatus()
+                     }, it, null, null)
+    } ?: LOG.error("Couldn't set the ResourceChangeListener, some previews might not be refreshed correctly after successful builds")
+
     setupBuildListener(project, object : BuildListener {
+      @GuardedBy("previewFreshnessLock")
+      private var pendingBuildsCount = 0
+      @GuardedBy("previewFreshnessLock")
+      private var someConcurrentBuildFailed = false
+
       override fun buildSucceeded() {
         LOG.debug("buildSucceeded")
+
+        var needsRefresh = false
+        previewFreshnessLock.withLock {
+          // This build listener could be set in the middle of a build process, what could lead to unintended behaviors.
+          // Make sure to avoid problems related to this by keeping pendingBuildsCount non-negative.
+          if (pendingBuildsCount > 0) pendingBuildsCount = pendingBuildsCount.dec()
+          else LOG.warn("pendingBuildsCount was $pendingBuildsCount when buildSucceeded")
+
+          if (needsRefreshOnSuccessfulBuild) needsRefresh = true
+
+          if (pendingBuildsCount == 0) {
+            // Only reset the need of refreshing the previews when every concurrent build succeeded
+            // As it might happen that the need of refresh was set by a build that failed.
+            if (!someConcurrentBuildFailed) {
+              needsRefreshOnSuccessfulBuild = false
+            }
+            // As there are no more pending builds, reset the failures flag
+            someConcurrentBuildFailed = false
+          }
+        }
+
         val file = psiFilePointer.element
         if (file == null) {
           LOG.debug("invalid PsiFile")
@@ -614,13 +686,26 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
-        forceRefresh()
+        if (needsRefresh) {
+          forceRefresh()
+        }
         // Force updating toolbar icons when build starts
         ActivityTracker.getInstance().inc()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
+
+        previewFreshnessLock.withLock {
+          // This build listener could be set in the middle of a build process, what could lead to unintended behaviors.
+          // Make sure to avoid problems related to this by keeping pendingBuildsCount non-negative.
+          if (pendingBuildsCount > 0) pendingBuildsCount = pendingBuildsCount.dec()
+          else LOG.warn("pendingBuildsCount was $pendingBuildsCount when buildFailed")
+          // If there are some other concurrent builds happening, set the failures flag to true.
+          // Otherwise, reset it.
+          someConcurrentBuildFailed = pendingBuildsCount != 0
+        }
+
         composeWorkBench.updateVisibilityAndNotifications()
         // Force updating toolbar icons after build
         ActivityTracker.getInstance().inc()
@@ -628,6 +713,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildCleaned() {
         LOG.debug("buildCleaned")
+        invalidateSavedBuildStatus()
+
         // After a clean build, we can not re-load the classes so we need to invalidate the Live Literals.
         LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
         buildFailed()
@@ -635,6 +722,18 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildStarted() {
         LOG.debug("buildStarted")
+
+        previewFreshnessLock.withLock {
+          pendingBuildsCount = pendingBuildsCount.inc()
+          // The modification count is updated here and not in 'buildSucceeded' so that the changes
+          // made during the build process are not considered to be included in such build
+          val newKotlinJavaModificationCount = kotlinJavaModificationTracker.modificationCount
+          if (newKotlinJavaModificationCount != kotlinJavaModificationCount) {
+            needsRefreshOnSuccessfulBuild = true
+            kotlinJavaModificationCount = newKotlinJavaModificationCount
+          }
+        }
+
         // Stop live literals monitoring for this preview. If the new build has live literals, they will
         // be re-enabled later automatically via the HasLiveLiterals check.
         LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)

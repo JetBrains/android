@@ -94,6 +94,11 @@ interface ComposePreviewManager: Disposable {
   fun status(): Status
 
   /**
+   * Mark the preview as stale, so that a refresh is enforced when the next successful build happens
+   */
+  fun invalidateSavedBuildStatus()
+
+  /**
    * When true, a build will automatically be triggered when the user makes a source code change.
    */
   val isBuildOnSaveEnabled: Boolean

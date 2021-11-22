@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
@@ -47,6 +48,11 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
                                                                                            message("action.build.and.refresh.description"),
                                                                                            GREEN_REFRESH_BUTTON), CustomComponentAction {
   override fun actionPerformed(e: AnActionEvent) {
+    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed
+    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
+      composePreviewManager.invalidateSavedBuildStatus()
+    }
     if (!requestBuildForSurface(surface, true)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the virtual file for the editor and trigger that.

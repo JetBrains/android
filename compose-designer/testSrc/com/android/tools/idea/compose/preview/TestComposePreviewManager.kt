@@ -27,6 +27,10 @@ class TestComposePreviewManager(var interactiveMode: ComposePreviewManager.Inter
                                  isRefreshing = false,
                                  interactiveMode = interactiveMode)
 
+  override fun invalidateSavedBuildStatus() {
+    // do nothing
+  }
+
   override var isBuildOnSaveEnabled: Boolean = false
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP

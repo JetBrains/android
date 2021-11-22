@@ -20,14 +20,12 @@ import com.android.tools.idea.compose.preview.COMPOSITE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.compose.preview.runAndWaitForBuildToComplete
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.compose.preview.util.hasExistingClassFile
 import com.android.tools.idea.compose.preview.util.requestBuild
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.defaultPatchPreparedProject
 import com.intellij.openapi.application.ApplicationManager
@@ -36,18 +34,14 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -55,7 +49,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(Parameterized::class)
 class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
@@ -75,35 +68,6 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
   @get:Rule
   val edtRule = EdtRule()
 
-  /**
-   * Runs the [action] and waits for a build to happen. It returns the number of builds triggered by [action].
-   */
-  private fun runAndWaitForBuildToComplete(action: () -> Unit) = runBlocking(AndroidDispatchers.workerThread) {
-    val buildComplete = CompletableDeferred<Unit>()
-    val buildsStarted = AtomicInteger(0)
-    val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
-    try {
-      setupBuildListener(projectRule.project, object : BuildListener {
-        override fun buildStarted() {
-          buildsStarted.incrementAndGet()
-        }
-
-        override fun buildFailed() {
-          buildComplete.complete(Unit)
-        }
-
-        override fun buildSucceeded() {
-          buildComplete.complete(Unit)
-        }
-      }, disposable)
-      action()
-      buildComplete.await()
-    } finally {
-      Disposer.dispose(disposable)
-    }
-    return@runBlocking buildsStarted.get()
-  }
-
   private fun doTestHasBeenBuiltSuccessfully(project: Project, filePaths: List<String>, expectedBuildsTriggered: Int) {
     val activityFiles = filePaths.map { VfsUtil.findRelativeFile(it, ProjectRootManager.getInstance(project).contentRoots[0])!! }
     val psiFiles = activityFiles.map { runReadAction { PsiUtil.getPsiFile(project, it) } }
@@ -111,7 +75,7 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
 
     assertTrue(psiFilePointers.none { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.none { hasExistingClassFile(it) })
-    val buildsTriggered = runAndWaitForBuildToComplete {
+    val buildsTriggered = runAndWaitForBuildToComplete(projectRule) {
       // Regression test for http://b/192223556
       val files = activityFiles + activityFiles + activityFiles
       requestBuild(project, files, false)
@@ -120,7 +84,7 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
     assertTrue(psiFilePointers.all { hasBeenBuiltSuccessfully(it) })
     assertTrue(psiFiles.all { hasExistingClassFile(it) })
 
-    runAndWaitForBuildToComplete {
+    runAndWaitForBuildToComplete(projectRule) {
       GradleBuildInvoker.getInstance(project).cleanProject()
     }
     // Ensure that the VFS is up to date, so the .class file is not cached when removed.
@@ -170,7 +134,7 @@ class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
     val psiFilePointer = ReadAction.compute<SmartPsiElementPointer<PsiFile>, Throwable> {
       SmartPointerManager.createPointer(PsiUtil.getPsiFile(project, activityFile))
     }
-    runAndWaitForBuildToComplete { requestBuild(project, listOf(activityFile), false) }
+    runAndWaitForBuildToComplete(projectRule) { requestBuild(project, listOf(activityFile), false) }
     assertTrue(hasBeenBuiltSuccessfully(psiFilePointer))
   }
 }
