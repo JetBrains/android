@@ -208,7 +208,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val selection = layoutInspector?.layoutInspectorModel?.selection?.treeNode
     val nodes = getNodes()
     val nodeCount = nodes.size
-    val startIndex = max(0, nodes.indexOf(selection))
+    val startIndex = nodes.indexOf(selection) // if selection is null start from index -1
     for (i in 1..nodeCount) {
       // Select the next matching node, wrapping at the last node, and starting with the node just after the current selection:
       if (matchAndSelectNode(nodes[Math.floorMod(startIndex + i, nodeCount)])) {
@@ -225,7 +225,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val selection = layoutInspector?.layoutInspectorModel?.selection?.treeNode
     val nodes = getNodes()
     val nodeCount = nodes.size
-    val startIndex = max(0, nodes.indexOf(selection))
+    val startIndex = max(0, nodes.indexOf(selection)) // if selection is null start from index 0
     for (i in 1..nodeCount) {
       // Select the previous matching node, wrapping at the first node, and starting with the node just prior to the current selection:
       if (matchAndSelectNode(nodes[Math.floorMod(startIndex - i, nodeCount)])) {
