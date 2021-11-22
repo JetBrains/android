@@ -173,6 +173,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   private void initDetailsPanelPanel() {
     if (DetailsPanelPanel2.ENABLED) {
       myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+      Disposer.register(this, myDetailsPanelPanel);
     }
   }
 
@@ -206,8 +207,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   }
 
   void viewDetails() {
-    PhysicalDevice device = myTable.getSelectedDevice().orElseThrow(AssertionError::new);
-    myDetailsPanelPanel.addSplitter(new PhysicalDeviceDetailsPanel(device, myProject));
+    DetailsPanel panel = new PhysicalDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    panel.getCloseButton().addActionListener(event -> myDetailsPanelPanel.removeSplitter());
+
+    myDetailsPanelPanel.addSplitter(panel);
   }
 
   @Nullable Project getProject() {

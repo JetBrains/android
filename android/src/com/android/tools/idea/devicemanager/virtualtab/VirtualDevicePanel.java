@@ -98,6 +98,7 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   private void initDetailsPanelPanel() {
     if (DetailsPanelPanel2.ENABLED) {
       myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+      Disposer.register(this, myDetailsPanelPanel);
     }
   }
 
@@ -109,7 +110,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
   }
 
   void viewDetails() {
-    myDetailsPanelPanel.addSplitter(new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new)));
+    DetailsPanel panel = new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new));
+    panel.getCloseButton().addActionListener(event -> myDetailsPanelPanel.removeSplitter());
+
+    myDetailsPanelPanel.addSplitter(panel);
   }
 
   @Nullable Project getProject() {

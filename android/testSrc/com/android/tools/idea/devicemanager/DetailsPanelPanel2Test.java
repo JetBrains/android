@@ -19,8 +19,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import java.util.Optional;
 import javax.swing.JComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +40,7 @@ public final class DetailsPanelPanel2Test {
   @Test
   public void addSplitter() {
     // Arrange
-    JComponent detailsPanel = new JBPanel<>();
+    DetailsPanel detailsPanel = new DetailsPanel("Device");
 
     // Act
     myDetailsPanelPanel.addSplitter(detailsPanel);
@@ -52,5 +52,20 @@ public final class DetailsPanelPanel2Test {
     assertEquals(detailsPanel, splitter.getSecondComponent());
 
     assertArrayEquals(new Object[]{splitter}, myDetailsPanelPanel.getComponents());
+  }
+
+  @Test
+  public void removeSplitter() {
+    // Arrange
+    myDetailsPanelPanel.addSplitter(new DetailsPanel("Device"));
+
+    // Act
+    myDetailsPanelPanel.removeSplitter();
+
+    // Assert
+    assertEquals(Optional.empty(), myDetailsPanelPanel.getDetailsPanel());
+    assertEquals(Optional.empty(), myDetailsPanelPanel.getSplitter());
+
+    assertArrayEquals(new Object[]{myScrollPane}, myDetailsPanelPanel.getComponents());
   }
 }

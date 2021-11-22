@@ -16,7 +16,9 @@
 package com.android.tools.idea.devicemanager;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import java.awt.BorderLayout;
@@ -25,10 +27,11 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> {
+public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> implements Disposable {
   public static final boolean ENABLED = false;
 
   private final @NotNull JComponent myScrollPane;
+  private @Nullable Disposable myDetailsPanel;
   private @Nullable Splitter mySplitter;
 
   public DetailsPanelPanel2(@NotNull JComponent scrollPane) {
@@ -38,7 +41,15 @@ public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> {
     add(scrollPane);
   }
 
-  public void addSplitter(@NotNull JComponent detailsPanel) {
+  @Override
+  public void dispose() {
+    if (myDetailsPanel != null) {
+      Disposer.dispose(myDetailsPanel);
+    }
+  }
+
+  public void addSplitter(@NotNull DetailsPanel detailsPanel) {
+    myDetailsPanel = detailsPanel;
     remove(myScrollPane);
 
     mySplitter = new JBSplitter(true);
@@ -46,6 +57,22 @@ public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> {
     mySplitter.setSecondComponent(detailsPanel);
 
     add(mySplitter);
+  }
+
+  public void removeSplitter() {
+    remove(mySplitter);
+    mySplitter = null;
+
+    assert myDetailsPanel != null;
+    Disposer.dispose(myDetailsPanel);
+    myDetailsPanel = null;
+
+    add(myScrollPane);
+  }
+
+  @VisibleForTesting
+  @NotNull Optional<@NotNull Object> getDetailsPanel() {
+    return Optional.ofNullable(myDetailsPanel);
   }
 
   @VisibleForTesting
