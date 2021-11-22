@@ -62,6 +62,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
@@ -215,18 +216,17 @@ class AppInspectionInspectorClient(
     return future
   }
 
-  override fun startFetching() {
+  override fun startFetching() =
     scope.launch(bannerExceptionHandler) {
       startFetchingInternal()
-    }
-  }
+    }.asCompletableFuture()
 
   private suspend fun startFetchingInternal() {
     stats.live.toggledToLive()
     viewInspector?.startFetching(continuous = true)
   }
 
-  override fun stopFetching() {
+  override fun stopFetching() =
     scope.launch(loggingExceptionHandler) {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
@@ -237,8 +237,7 @@ class AppInspectionInspectorClient(
       }
       stats.live.toggledToRefresh()
       viewInspector?.stopFetching()
-    }
-  }
+    }.asCompletableFuture()
 
   override fun refresh() {
     scope.launch(loggingExceptionHandler) {

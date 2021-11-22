@@ -21,11 +21,11 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
 import java.nio.file.Path
 import java.util.EnumSet
+import java.util.concurrent.CompletableFuture
 
 /**
  * Client for communicating with the agent.
@@ -122,7 +122,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun startFetching()
+  fun startFetching(): CompletableFuture<Unit>
 
   /**
    * Stop fetching information off the device.
@@ -132,7 +132,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun stopFetching()
+  fun stopFetching(): CompletableFuture<Unit>
 
   /**
    * Refresh the content of the inspector.
@@ -208,8 +208,8 @@ object DisconnectedClient : InspectorClient {
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
   override fun registerErrorCallback(callback: (String) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
-  override fun startFetching() = Unit
-  override fun stopFetching() = Unit
+  override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
+  override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
   override fun refresh() {}
   override fun saveSnapshot(path: Path) {}
 

@@ -153,13 +153,9 @@ class LegacyClient(
 
   class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
 
-  override fun startFetching() {
-    throw LegacyFetchingUnsupportedOperationException()
-  }
+  override fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
 
-  override fun stopFetching() {
-    throw LegacyFetchingUnsupportedOperationException()
-  }
+  override fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
 }
 
 data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)

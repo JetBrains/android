@@ -44,7 +44,6 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.DisposableRule
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -54,7 +53,6 @@ import kotlin.concurrent.thread
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-@Ignore("b/206444803")
 class AppInspectionSnapshotSupportTest {
   private val disposableRule = DisposableRule()
 
@@ -183,7 +181,7 @@ class AppInspectionSnapshotSupportTest {
 
     // Now switch to non-live
     InspectorClientSettings.isCapturingModeOn = false
-    inspectorRule.inspectorClient.stopFetching()
+    inspectorRule.inspectorClient.stopFetching().get()
 
     val startedLatch = CountDownLatch(1)
     // Try to save the snapshot right away, before we've gotten any events
