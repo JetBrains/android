@@ -3,8 +3,6 @@ package com.android.tools.idea.compose.preview.pickers.properties
 import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.FloatValidator
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
@@ -30,7 +28,7 @@ internal class FloatPsiCallParameter(
   FloatValidator
 ) {
   override var value: String?
-    get() = argumentExpression?.constantValueOrNull(argumentExpression?.analyze())?.value?.toString() ?: super.value
+    get() = super.value
     set(newValue) {
       super.value = newValue?.toFloatOrNull()?.let { "${it}f" } ?: newValue
     }
