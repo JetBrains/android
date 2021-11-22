@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.signedapk;
+package org.jetbrains.android.exportSignedPackage;
 
 import static com.android.builder.model.InjectedProperties.PROPERTY_APK_LOCATION;
 import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_KEY_ALIAS;
@@ -24,13 +24,13 @@ import static com.android.builder.model.InjectedProperties.PROPERTY_SIGNING_STOR
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardClosed;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigning;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigningFailed;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigning;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigningFailed;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardOkAction;
-import static org.jetbrains.android.signedapk.SigningWizardUsageTrackerUtilsKt.trackWizardOpen;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardClosed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigning;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigningFailed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigning;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigningFailed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOkAction;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOpen;
 
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;

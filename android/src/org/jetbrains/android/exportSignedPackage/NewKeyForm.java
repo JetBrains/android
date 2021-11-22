@@ -1,4 +1,4 @@
-package org.jetbrains.android.signedapk;
+package org.jetbrains.android.exportSignedPackage;
 
 import com.android.jarutils.DebugKeyProvider;
 import com.android.jarutils.KeystoreHelper;
