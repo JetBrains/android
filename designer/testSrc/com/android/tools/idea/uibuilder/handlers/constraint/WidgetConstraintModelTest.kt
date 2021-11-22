@@ -206,6 +206,20 @@ class WidgetConstraintModelTest: SceneTest() {
     assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
   }
 
+  fun testSetVerticalMargin() {
+    val widgetModel = WidgetConstraintModel {}
+    val component = myModel.find("textView2")!!
+    widgetModel.component = component
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_TOP, "8dp")
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_BOTTOM, "16dp")
+    widgetModel.timer.stop()
+    widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP)).isEqualTo("8dp")
+    assertThat(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)).isEqualTo("16dp")
+  }
+
   // To speed up the tests ignore all render requests
   private fun ignoreRendering() {
     val manager = myModel.surface.sceneManager as? SyncLayoutlibSceneManager ?: return

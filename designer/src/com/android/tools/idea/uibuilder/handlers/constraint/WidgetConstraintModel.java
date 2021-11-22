@@ -394,15 +394,21 @@ public class WidgetConstraintModel implements SelectionListener {
       }
     }
 
-    for (int i = 0; i < marginsAttr[type].length; i++) {
-      String attr = marginsAttr[type][i];
-      if ((minSdkVersion < RtlSupportProcessor.RTL_TARGET_SDK_START || hasLeftRightAttribute)
-          && ArrayUtil.contains(attr, ourMarginStringPriorToMinApi17)) {
-        // It is possible that using left and right margin even when min sdk is higher than or equal to 17.
-        setDimension(attr, margin);
-      }
-      if (targetSdkVersion >= RtlSupportProcessor.RTL_TARGET_SDK_START && ArrayUtil.contains(attr, ourMarginStringFromApi17)) {
-        setDimension(attr, margin);
+    if (marginsAttr[type].length == 1) {
+      // Vertical attributes, do not require choosing between different alternatives.
+      setDimension(marginsAttr[type][0], margin);
+    }
+    else {
+      for (int i = 0; i < marginsAttr[type].length; i++) {
+        String attr = marginsAttr[type][i];
+        if ((minSdkVersion < RtlSupportProcessor.RTL_TARGET_SDK_START || hasLeftRightAttribute)
+            && ArrayUtil.contains(attr, ourMarginStringPriorToMinApi17)) {
+          // It is possible that using left and right margin even when min sdk is higher than or equal to 17.
+          setDimension(attr, margin);
+        }
+        if (targetSdkVersion >= RtlSupportProcessor.RTL_TARGET_SDK_START && ArrayUtil.contains(attr, ourMarginStringFromApi17)) {
+          setDimension(attr, margin);
+        }
       }
     }
   }
