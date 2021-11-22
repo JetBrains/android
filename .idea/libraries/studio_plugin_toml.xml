@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-platform-images">
+  <library name="studio-plugin-toml">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/platform-images/lib/platform-images.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/toml/lib/toml.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

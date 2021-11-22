@@ -1,12 +1,11 @@
 <component name="libraryTable">
   <library name="studio-plugin-vcs-changeReminder">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/vcs-changeReminder/lib/randomForestRegressor-0.0.11.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/$SDK_PLATFORM$/plugins/vcs-changeReminder/lib/vcs-changeReminder.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/vcs-changeReminder/lib/vcs-changeReminder.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-212/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

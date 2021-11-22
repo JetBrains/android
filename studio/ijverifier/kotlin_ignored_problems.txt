@@ -27,3 +27,14 @@ Abstract method org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass.getContain
 
 // Referenced by org.jetbrains.kotlin.idea.vcs.BunchFileCheckInHandlerFactory (unused in Studio)
 Illegal invocation of private method kotlin.io.path.PathsKt__PathUtilsKt.getPathString.*
+
+// IDEA 213.3714.440
+Abstract method org.jetbrains.uast.generate.UastElementFactory.*
+Access to unresolved class com.intellij.ide.LabelAndComponent
+Access to unresolved class com.intellij.ide.NewProjectWizard
+Access to unresolved class com.intellij.ide.NewProjectWizard.DefaultImpls
+Access to unresolved class com.intellij.ide.wizard.BuildSystemType
+Access to unresolved class com.intellij.ide.wizard.BuildSystemWithSettings
+Access to unresolved class com.intellij.util.DeprecatedMethodException
+Access to unresolved field com.intellij.openapi.ui.TextComponentAccessor.*
+Invocation of unresolved method com.intellij.ide.util.projectWizard.WizardContext.getWizard.*

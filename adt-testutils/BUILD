@@ -16,6 +16,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-intellij-toml[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml[test]",
     ],
 )

@@ -56,7 +56,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-intellij-toml",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
     ],
     # do not sort: must match IML order
     deps = [
