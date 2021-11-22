@@ -35,17 +35,19 @@ import java.awt.Graphics
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableCellRenderer
 import kotlin.math.min
+import com.android.tools.adtui.common.border as BorderColor
 
 class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnalysisModel.Summary)
       : SummaryDetailsViewBase<JankAnalysisModel.Summary>(profilersView, model) {
   init {
     val capture = model.capture
     fun hideablePanel(title: String, content: JComponent) =
-      HideablePanel(HideablePanel.Builder(title, content)
-                      .setPanelBorder(JBUI.Borders.empty())
-                      .setContentBorder(JBUI.Borders.empty(8, 0, 0, 0)).apply {
+      HideablePanel.Builder(title, content)
+        .setPanelBorder(JBUI.Borders.empty())
+        .setContentBorder(JBUI.Borders.merge(JBUI.Borders.customLine(BorderColor, 1), JBUI.Borders.empty(8, 0, 0, 0), true))
+        .build().apply {
           background = primaryContentBackground
-        })
+        }
     val event = model.event
 
     addRowToCommonSection("Jank type", JBLabel(event.appJankType.getTitle()).apply {
@@ -107,6 +109,7 @@ private object EventTable {
           }
           component.apply {
             minimumSize = Dimension(preferredSize.width, 300)
+            isOpaque = false
           }
         }
       }
