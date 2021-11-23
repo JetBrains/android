@@ -48,8 +48,4 @@ public class AndroidModelFeatures {
   public boolean isBuildOutputFileSupported() {
     return myBuildOutputFileSupported;
   }
-
-  public boolean shouldExportDependencies() {
-    return false;
-  }
 }

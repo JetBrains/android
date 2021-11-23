@@ -124,7 +124,6 @@ import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
 import com.intellij.openapi.externalSystem.model.project.LibraryLevel;
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.project.TestData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
@@ -211,7 +210,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
-  private boolean myShouldExportDependencies;
 
   private @Nullable Project myProject;
   private boolean myIsModulePerSourceSetMode;
@@ -401,10 +399,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       issueData = androidModels.getSyncIssues();
       String ndkModuleName = moduleName + ((isModulePerSourceSetEnabled()) ? "." + ModuleUtil.getModuleName(androidModel.getMainArtifact()) : "");
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
-
-      // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
-      // Then we require all Java modules to export their dependencies.
-      myShouldExportDependencies |= androidModel.getFeatures().shouldExportDependencies();
     }
 
     Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
@@ -759,18 +753,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
-    // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
-    // to remedy this we need to go through all data nodes added by other resolvers and set this flag.
-    if (myShouldExportDependencies) {
-      Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, LIBRARY_DEPENDENCY);
-      for (DataNode<LibraryDependencyData> libraryDataNode : libraryDataNodes) {
-        libraryDataNode.getData().setExported(true);
-      }
-      Collection<DataNode<ModuleDependencyData>> moduleDataNodes = findAll(ideModule, ProjectKeys.MODULE_DEPENDENCY);
-      for (DataNode<ModuleDependencyData> moduleDataNode : moduleDataNodes) {
-        moduleDataNode.getData().setExported(true);
-      }
-    }
 
     AdditionalClassifierArtifactsModel additionalArtifacts =
       resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel.class);

@@ -120,7 +120,6 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
 
   val dependenciesSetupContext = AndroidDependenciesSetupContext(
     this,
-    androidModel.features.shouldExportDependencies(),
     projectDataNode,
     gradleProjectPathToModuleData,
     additionalArtifactsMapper,
@@ -205,7 +204,6 @@ fun computeModuleIdForLibraryTarget(
 
 private class AndroidDependenciesSetupContext(
   private val moduleDataNode: DataNode<out ModuleData>,
-  private val shouldExportDependencies: Boolean,
   private val projectDataNode: DataNode<ProjectData>,
   private val gradleProjectPathToModuleData: (GradleProjectPath) -> ModuleData?,
   private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
@@ -235,7 +233,7 @@ private class AndroidDependenciesSetupContext(
       // Finally create the LibraryDependencyData
       val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, libraryData, workOutLibraryLevel())
       libraryDependencyData.scope = scope
-      libraryDependencyData.isExported = shouldExportDependencies
+      libraryDependencyData.isExported = false
       processedLibraries[libraryName] = libraryDependencyData
     }
 
@@ -289,7 +287,7 @@ private class AndroidDependenciesSetupContext(
       if (targetData == moduleDataNode.data) return
       val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, targetData)
       moduleDependencyData.scope = scope
-      moduleDependencyData.isExported = shouldExportDependencies
+      moduleDependencyData.isExported = false
       processedModuleDependencies[targetModuleGradlePath] = moduleDependencyData
     }
   }
@@ -435,7 +433,6 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
     // This allows us to just skip the dependency if it is already present.
     AndroidDependenciesSetupContext(
       gradleSourceSetData,
-      androidModel.features.shouldExportDependencies(),
       projectDataNode,
       gradleProjectPathToModuleData,
       additionalArtifactsMapper,
