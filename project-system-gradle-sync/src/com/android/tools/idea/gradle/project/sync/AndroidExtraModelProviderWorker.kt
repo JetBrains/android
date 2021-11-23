@@ -169,11 +169,10 @@ internal class AndroidExtraModelProviderWorker(
           // Request V2 models if flag is enabled.
           if (syncOptions.flags.studioFlagUseV2BuilderModels) {
             // First request the Versions model to make sure we can fetch V2 models.
-            val modelVersion = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
+            val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
 
-            if (modelVersion != null &&
-                verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(modelVersion.agp, syncOptions) &&
-                canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
+            if (versions?.also { checkAgpVersionCompatibility(versions.agp, syncOptions) } != null &&
+                canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(versions.agp))) {
               val basicAndroidProject = controller.findNonParameterizedV2Model(gradleProject, BasicAndroidProject::class.java)
               val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
               val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
@@ -186,7 +185,7 @@ internal class AndroidExtraModelProviderWorker(
                 }
 
                 androidProjectResult =
-                  AndroidProjectResult.V2Project(basicAndroidProject, androidProject, modelVersion, androidDsl)
+                  AndroidProjectResult.V2Project(basicAndroidProject, androidProject, versions, androidDsl)
 
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                 val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = false)
@@ -213,7 +212,7 @@ internal class AndroidExtraModelProviderWorker(
               AndroidProject::class.java,
               shouldBuildVariant = false
             )
-            if (androidProject != null && verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(androidProject.modelVersion, syncOptions)) {
+            if (androidProject?.also { checkAgpVersionCompatibility(androidProject.modelVersion, syncOptions) } != null) {
               if (canFetchV2Models == null) {
                 canFetchV2Models = false
               } else if (canFetchV2Models == true) {
@@ -280,19 +279,18 @@ internal class AndroidExtraModelProviderWorker(
     return modules
   }
 
-  private fun verifyAgpVersionCompatibleWithIdeAndThrowOtherwise(gradleProjectVersion: String?, syncOptions: SyncActionOptions): Boolean {
-    if (syncOptions.flags.studioFlagDisableForcedUpgrades) return true
-    val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
-    if (gradleVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
-      throw AgpVersionTooOld(gradleVersion)
+  private fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
+    if (syncOptions.flags.studioFlagDisableForcedUpgrades) return
+    val agpVersion = if (agpVersionString != null) GradleVersion.parse(agpVersionString) else return
+    if (agpVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
+      throw AgpVersionTooOld(agpVersion)
     }
     // We don't have access to LatestKnownPluginVersionProvider: just use the build version
     val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
-    val upgradeState = computeGradlePluginUpgradeState(gradleVersion, latestKnown, setOf())
+    val upgradeState = computeGradlePluginUpgradeState(agpVersion, latestKnown, setOf())
     if (upgradeState.importance == FORCE) {
-      throw AgpVersionIncompatible(gradleVersion)
+      throw AgpVersionIncompatible(agpVersion)
     }
-    return true
   }
 
   private fun fetchNativeVariantsAndroidModels(
