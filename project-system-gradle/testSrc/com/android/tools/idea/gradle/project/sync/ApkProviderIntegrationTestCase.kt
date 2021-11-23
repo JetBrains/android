@@ -666,10 +666,10 @@ private data class ApkProviderTest(
 
       fun Collection<ApkInfo>.toTestString() = joinToString("\n\n") { it.toTestString() }
 
-      assertThat(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
+      expect.that(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
       val apks = runCatching { apkProvider.getApks(device) }
-      assertThat(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())
+      expect.that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())
     }
   }
 }
