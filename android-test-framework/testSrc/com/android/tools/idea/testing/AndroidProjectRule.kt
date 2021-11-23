@@ -133,7 +133,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that uses a fixture which create the
      * project in an in memory TempFileSystem
      *
-     * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
+     * @see IdeaTestFixtureFactory.createLightFixtureBuilder
      */
     @JvmStatic
     fun inMemory() = AndroidProjectRule()
@@ -245,7 +245,7 @@ class AndroidProjectRule private constructor(
   private fun doBeforeActions(description: Description) {
     mockitoCleaner.setup()
     fixture = if (lightFixture) {
-      createLightFixture()
+      createLightFixture(description.displayName)
     }
     else {
       createJavaCodeInsightTestFixture(description)
@@ -284,10 +284,10 @@ class AndroidProjectRule private constructor(
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(settings)
   }
 
-  private fun createLightFixture(): CodeInsightTestFixture {
+  private fun createLightFixture(projectName: String): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor())
+    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor(), projectName)
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 
