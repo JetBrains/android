@@ -154,6 +154,7 @@ class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
       throw AdbCommandException("Empty output from \"adb pair\" command", -1, result.stderr)
     }
 
+    // See https://cs.android.com/android/platform/superproject/+/3a52886262ae22477a7d8ffb12adba64daf6aafa:packages/modules/adb/client/adb_wifi.cpp;l=249
     // Output example:
     //  Enter pairing code: Successfully paired to 192.168.1.86:41915 [guid=adb-939AX05XBZ-vWgJpq]
     // Regular expression

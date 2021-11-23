@@ -22,7 +22,7 @@ import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.intellij.execution.process.ProcessOutput
-import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.time.delay
@@ -39,12 +39,11 @@ class AdbServiceWrapperImpl(
   private val nanoTimeProvider: TimeoutRemainder.SystemNanoTimeProvider
 ) : AdbServiceWrapper {
   private val ADB_TIMEOUT_MILLIS = 30_000L
-  private val ADB_DEVICE_CONNECT_MILLIS = 120_000L
-  private val LOG = logger<AdbServiceWrapperImpl>()
+  private val LOG = thisLogger()
 
   override suspend fun executeCommand(args: List<String>, stdin: String): AdbCommandResult {
     val adbFile = getAdbLocation()
-      // Execute ADB command, capturing output and exit value
+    // Execute ADB command, capturing output and exit value
     val stdinStream = stdin.byteInputStream()
     val stdoutStream = ByteArrayOutputStream()
     val stderrStream = ByteArrayOutputStream()
@@ -67,7 +66,7 @@ class AdbServiceWrapperImpl(
     }
 
 
-  suspend fun getAdbLocation(): File =
+  private suspend fun getAdbLocation(): File =
     // Use the I/O thread just in case we do I/O in the future (although currently there is none)
     withContext(ioThread) {
       val adbProvider = AdbFileProvider.fromProject(project)

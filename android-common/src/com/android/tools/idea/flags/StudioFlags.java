@@ -625,6 +625,13 @@ public final class StudioFlags {
     "Use adblib instead of ddmlib for Device Explorer",
     false);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_WIFI_PAIRING = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.wifi.pairing",
+    "Use adblib in Pair Device over Wi-Fi",
+    "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
+    true);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

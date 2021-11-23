@@ -36,7 +36,11 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   private val randomProvider by lazy { RandomProvider() }
 
   private val adbService: AdbServiceWrapper by lazy {
-    AdbServiceWrapperImpl(project, timeProvider)
+    if (StudioFlags.ADBLIB_MIGRATION_WIFI_PAIRING.get()) {
+      AdbServiceWrapperAdbLibImpl(project)
+    } else {
+      AdbServiceWrapperImpl(project, timeProvider)
+    }
   }
 
   private val devicePairingService : WiFiPairingService by lazy {
