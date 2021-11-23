@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.jetbrains.android.util.firstNotNullResult
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
@@ -45,7 +44,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
   }
 
   private fun AgpUpgradeRefactoringProcessor.getCompileRuntimeProcessor() =
-    componentRefactoringProcessors.firstNotNullResult { it as? CompileRuntimeConfigurationRefactoringProcessor }!!
+    componentRefactoringProcessors.firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }!!
 
   private fun AgpUpgradeRefactoringProcessor.setCompileRuntimeIsAlwaysNoOpForProject(value: Boolean) {
     this.getCompileRuntimeProcessor().isAlwaysNoOpForProject = value

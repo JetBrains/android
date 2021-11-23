@@ -34,7 +34,6 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.firstNotNullResult
 import java.util.function.Supplier
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
@@ -69,13 +68,13 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         .firstOrNull { it.startsWith("java") || it.startsWith("org.gradle.java") || it == "application" || it == "org.gradle.application" }
         ?.let { _ ->
           model.java().sourceCompatibility().let {
-            val psiElement = listOf(it, model.java(), model).firstNotNullResult { model -> model.psiElement }!!
+            val psiElement = listOf(it, model.java(), model).firstNotNullOfOrNull { model -> model.psiElement }!!
             val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
             val existing = it.psiElement != null
             usages.add(JavaLanguageLevelUsageInfo(wrappedElement, it, existing, noLanguageLevelAction, "sourceCompatibility"))
           }
           model.java().targetCompatibility().let {
-            val psiElement = listOf(it, model.java(), model).firstNotNullResult { model -> model.psiElement }!!
+            val psiElement = listOf(it, model.java(), model).firstNotNullOfOrNull { model -> model.psiElement }!!
             val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
             val existing = it.psiElement != null
             usages.add(JavaLanguageLevelUsageInfo(wrappedElement, it, existing, noLanguageLevelAction, "targetCompatibility"))
@@ -85,14 +84,14 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       pluginNames.firstOrNull { it.startsWith("com.android") }?.let { _ ->
         model.android().compileOptions().sourceCompatibility().let {
           val psiElement = listOf(it, model.android().compileOptions(), model.android(), model)
-            .firstNotNullResult { model -> model.psiElement }!!
+            .firstNotNullOfOrNull { model -> model.psiElement }!!
           val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
           val existing = it.psiElement != null
           usages.add(JavaLanguageLevelUsageInfo(wrappedElement, it, existing, noLanguageLevelAction, "sourceCompatibility"))
         }
         model.android().compileOptions().targetCompatibility().let {
           val psiElement = listOf(it, model.android().compileOptions(), model.android(), model)
-            .firstNotNullResult { model -> model.psiElement }!!
+            .firstNotNullOfOrNull { model -> model.psiElement }!!
           val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
           val existing = it.psiElement != null
           usages.add(JavaLanguageLevelUsageInfo(wrappedElement, it, existing, noLanguageLevelAction, "targetCompatibility"))
@@ -100,7 +99,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
         pluginNames.firstOrNull { it.startsWith("org.jetbrains.kotlin") || it.startsWith("kotlin") }?.let { _ ->
           model.android().kotlinOptions().jvmTarget().let {
             val psiElement = listOf(it, model.android().kotlinOptions(), model.android(), model)
-              .firstNotNullResult { model -> model.psiElement }!!
+              .firstNotNullOfOrNull { model -> model.psiElement }!!
             val wrappedElement = WrappedPsiElement(psiElement, this, usageType(it))
             val existing = it.psiElement != null
             usages.add(KotlinLanguageLevelUsageInfo(wrappedElement, it, existing, noLanguageLevelAction, "jvmTarget"))

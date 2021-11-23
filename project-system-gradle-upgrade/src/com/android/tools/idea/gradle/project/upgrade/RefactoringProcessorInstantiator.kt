@@ -22,7 +22,6 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.firstNotNullResult
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
@@ -36,11 +35,11 @@ class RefactoringProcessorInstantiator {
    */
   @Slow
   fun showAndGetAgpUpgradeDialog(processor: AgpUpgradeRefactoringProcessor, preserveProcessorConfigurations: Boolean = false): Boolean {
-    val java8Processor = processor.componentRefactoringProcessors.firstNotNullResult { it as? Java8DefaultRefactoringProcessor }
+    val java8Processor = processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? Java8DefaultRefactoringProcessor }
     if (java8Processor == null) {
       LOG.error("no Java8Default processor found in AGP Upgrade Processor")
     }
-    val r8FullModeProcessor = processor.componentRefactoringProcessors.firstNotNullResult { it as? R8FullModeDefaultRefactoringProcessor }
+    val r8FullModeProcessor = processor.componentRefactoringProcessors.firstNotNullOfOrNull { it as? R8FullModeDefaultRefactoringProcessor }
     if (r8FullModeProcessor == null) {
       LOG.error("no R8FullModeDefault processor found in AGP Upgrade Processor")
     }

@@ -168,7 +168,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
@@ -957,7 +956,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
         val buildType = it.buildType
         val flavorNames = flavors.map { it.name }
         val variant = (flavorNames + buildType.name).combineAsCamelCase()
-        val testApplicationId = flavors.firstNotNullResult { it.testApplicationId } ?: defaultConfig.productFlavor.testApplicationId
+        val testApplicationId = flavors.firstNotNullOfOrNull { it.testApplicationId } ?: defaultConfig.productFlavor.testApplicationId
         IdeVariantCoreImpl(
           variant,
           variant,
@@ -967,20 +966,20 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
           testFixturesArtifact(variant),
           buildType.name,
           flavorNames,
-          minSdkVersion = flavors.firstNotNullResult { it.minSdkVersion }
+          minSdkVersion = flavors.firstNotNullOfOrNull { it.minSdkVersion }
                           ?: defaultConfig.productFlavor.minSdkVersion
                           ?: IdeApiVersionImpl(1, null, "1"),
-          targetSdkVersion = flavors.firstNotNullResult { it.targetSdkVersion }
+          targetSdkVersion = flavors.firstNotNullOfOrNull { it.targetSdkVersion }
                              ?: defaultConfig.productFlavor.targetSdkVersion,
-          maxSdkVersion = flavors.firstNotNullResult { it.maxSdkVersion }
+          maxSdkVersion = flavors.firstNotNullOfOrNull { it.maxSdkVersion }
                           ?: defaultConfig.productFlavor.maxSdkVersion,
-          versionCode = flavors.firstNotNullResult { it.versionCode }
+          versionCode = flavors.firstNotNullOfOrNull { it.versionCode }
                         ?: defaultConfig.productFlavor.versionCode,
-          versionNameWithSuffix = (flavors.firstNotNullResult { it.versionName } ?: defaultConfig.productFlavor.versionName) +
+          versionNameWithSuffix = (flavors.firstNotNullOfOrNull { it.versionName } ?: defaultConfig.productFlavor.versionName) +
                                   defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
           versionNameSuffix = buildType.versionNameSuffix,
           instantAppCompatible = false,
-          vectorDrawablesUseSupportLibrary = flavors.firstNotNullResult { it.vectorDrawables?.useSupportLibrary }
+          vectorDrawablesUseSupportLibrary = flavors.firstNotNullOfOrNull { it.vectorDrawables?.useSupportLibrary }
                                              ?: defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
           resourceConfigurations = (defaultConfig.productFlavor.resourceConfigurations + flavors.flatMap { it.resourceConfigurations })
             .distinct(),
@@ -996,14 +995,14 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
                                  )
             .associate { it.key to it.value },
           deprecatedPreMergedTestApplicationId = testApplicationId,
-          testInstrumentationRunner = flavors.firstNotNullResult { it.testInstrumentationRunner }
+          testInstrumentationRunner = flavors.firstNotNullOfOrNull { it.testInstrumentationRunner }
                                       ?: defaultConfig.productFlavor.testInstrumentationRunner,
           testInstrumentationRunnerArguments = (defaultConfig.productFlavor.testInstrumentationRunnerArguments.entries +
                                                 flavors.flatMap { it.testInstrumentationRunnerArguments.entries }
                                                )
             .associate { it.key to it.value },
           testedTargetVariants = listOf(),
-          deprecatedPreMergedApplicationId = (flavors.firstNotNullResult { it.applicationId }
+          deprecatedPreMergedApplicationId = (flavors.firstNotNullOfOrNull { it.applicationId }
                                               ?: defaultConfig.productFlavor.applicationId
                                              ) +
                                              defaultConfig.productFlavor.applicationIdSuffix.orEmpty() +

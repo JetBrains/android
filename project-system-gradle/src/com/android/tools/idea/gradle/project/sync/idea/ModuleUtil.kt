@@ -28,7 +28,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.util.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 object ModuleUtil {
@@ -96,7 +95,7 @@ fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceS
 
 fun String.removeSourceSetSuffixFromModuleName() : String = removeSourceSetSuffix(".")
 
-private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
+private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullOfOrNull { artifactName ->
   val moduleName = getModuleName(artifactName)
   val suffix = "$delimiter$moduleName"
   if (this.endsWith(suffix)) {

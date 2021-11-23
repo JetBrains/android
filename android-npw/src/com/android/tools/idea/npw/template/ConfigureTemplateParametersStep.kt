@@ -85,7 +85,6 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.android.util.firstNotNullResult
 import java.awt.FlowLayout
 import java.util.EnumSet
 import java.util.Optional
@@ -335,8 +334,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     return parameters
       .filterIsInstance<StringParameter>()
       .filter { it.isVisibleAndEnabled }
-      .firstNotNullResult { parameter ->
-        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullResult null
+      .firstNotNullOfOrNull { parameter ->
+        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullOfOrNull null
         parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
       }
   }

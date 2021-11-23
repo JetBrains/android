@@ -29,7 +29,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.util.firstNotNullResult
 import org.junit.Test
 import java.lang.reflect.Field
 import javax.swing.Action
@@ -50,14 +49,14 @@ class AgpUpgradeRefactoringProcessorDialogTest : HeavyPlatformTestCase() {
   }
 
   private fun AgpUpgradeRefactoringProcessor.getJava8DefaultRefactoringProcessor() =
-    componentRefactoringProcessors.firstNotNullResult { it as? Java8DefaultRefactoringProcessor }!!
+    componentRefactoringProcessors.firstNotNullOfOrNull { it as? Java8DefaultRefactoringProcessor }!!
 
   private fun AgpUpgradeRefactoringProcessor.setJava8DefaultIsAlwaysNoOpForProject(value: Boolean) {
     this.getJava8DefaultRefactoringProcessor().isAlwaysNoOpForProject = value
   }
 
   private fun AgpUpgradeRefactoringProcessor.getR8FullModeDefaultRefactoringProcessor() =
-    componentRefactoringProcessors.firstNotNullResult { it as? R8FullModeDefaultRefactoringProcessor }!!
+    componentRefactoringProcessors.firstNotNullOfOrNull { it as? R8FullModeDefaultRefactoringProcessor }!!
 
   private fun AgpUpgradeRefactoringProcessor.setR8FullModeDefaultIsAlwaysNoOpForProject(value: Boolean) {
     this.getR8FullModeDefaultRefactoringProcessor().isAlwaysNoOpForProject = value

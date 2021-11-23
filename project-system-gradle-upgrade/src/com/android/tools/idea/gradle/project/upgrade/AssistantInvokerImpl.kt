@@ -30,7 +30,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.util.firstNotNullResult
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
@@ -41,7 +40,7 @@ class AssistantInvokerImpl : AssistantInvoker {
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
     val compileRuntimeProcessor = processor.componentRefactoringProcessors
-      .firstNotNullResult { it as? CompileRuntimeConfigurationRefactoringProcessor }
+      .firstNotNullOfOrNull { it as? CompileRuntimeConfigurationRefactoringProcessor }
     if (compileRuntimeProcessor == null) {
       LOG.error("no CompileRuntimeConfiguration processor found in AGP Upgrade Processor")
     }

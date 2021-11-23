@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import org.jetbrains.android.util.firstNotNullResult
 import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -107,7 +106,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       // Try the repo embedded in AS.
       return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
         .filter { it?.isDirectory == true }
-        .firstNotNullResult {
+        .firstNotNullOfOrNull {
           MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileSystem.getPath(it.path), filter, includePreviews)
         }?.version
     }

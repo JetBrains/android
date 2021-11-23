@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
-import org.jetbrains.kotlin.util.firstNotNullResult
 import java.awt.Dimension
 import java.io.EOFException
 import java.io.IOException
@@ -155,7 +154,7 @@ internal class DeviceClient(
       if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
         // Use the agent built by running "Build > Make Project" in Studio.
-        val facet = project.allModules().firstNotNullResult { AndroidFacet.getInstance(it) }
+        val facet = project.allModules().firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
         soFile = projectDir.resolve(
             "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
