@@ -64,7 +64,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       this is IconLoader.CachedImageIcon -> originalPath
       //this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)" // FIXME-ank5: sun.swing is not exported from java.desktop
       this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
-      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}]}"
+      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}]"
       this.javaClass.simpleName == "DummyIcon" -> this.toString()
       else -> "$this (${javaClass.simpleName})"
     }
