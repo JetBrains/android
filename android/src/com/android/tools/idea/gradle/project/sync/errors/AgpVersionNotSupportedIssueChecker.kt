@@ -19,6 +19,8 @@ import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
+import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
@@ -47,22 +49,13 @@ import java.util.regex.Pattern
  * IssueChecker to handle projects with incompatible (too old or mismatched preview) AGP versions.
  */
 class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
-  private val AGP_VERSION_TOO_OLD_PATTERN = Pattern.compile(
-    "The project is using an incompatible version \\(AGP (.+)\\) of the Android Gradle plugin\\. " +
-    "Minimum supported version is AGP ${Pattern.quote(GRADLE_PLUGIN_MINIMUM_VERSION)}\\."
-  )
-  private val AGP_VERSION_INCOMPATIBLE_PREVIEW_PATTERN = Pattern.compile(
-    "The project is using an incompatible preview version \\(AGP (.+)\\) of the Android Gradle plugin\\. " +
-    "Current compatible (preview )?version is AGP ${Version.ANDROID_GRADLE_PLUGIN_VERSION}\\."
-  )
-
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
     if (message.isBlank()) return null
 
-    val tooOldMatcher = AGP_VERSION_TOO_OLD_PATTERN.matcher(message)
-    val incompatiblePreviewMatcher = AGP_VERSION_INCOMPATIBLE_PREVIEW_PATTERN.matcher(message)
+    val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
+    val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
     val (matcher, userMessage) = when {
       tooOldMatcher.find() -> tooOldMatcher to tooOldMatcher.group(0)
       incompatiblePreviewMatcher.find() -> incompatiblePreviewMatcher to incompatiblePreviewMatcher.group(0)
@@ -99,10 +92,8 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     parentEventId: Any,
     messageConsumer: Consumer<in BuildEvent>
   ): Boolean {
-    return (failureCause.contains("The project is using an incompatible version") &&
-            failureCause.contains("Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION")) ||
-           (failureCause.contains("The project is using an incompatible preview version") &&
-            failureCause.contains("Current compatible"))
+    return AgpVersionTooOld.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) } ||
+           AgpVersionIncompatible.ALWAYS_PRESENT_STRINGS.all { failureCause.contains(it) }
   }
 }
 

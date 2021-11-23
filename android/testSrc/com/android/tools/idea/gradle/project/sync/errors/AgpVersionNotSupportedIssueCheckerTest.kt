@@ -88,7 +88,7 @@ class AgpVersionNotSupportedIssueCheckerTest {
     assertThat(
       agpVersionNotSupportedIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
-        "The project is using an incompatible version of the Android Gradle plugin. " +
+        "The project is using an incompatible version (AGP 3.1.0) of the Android Gradle plugin. " +
         "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.",
         null,
         null,
@@ -102,7 +102,7 @@ class AgpVersionNotSupportedIssueCheckerTest {
     assertThat(
       agpVersionNotSupportedIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
-        "The project is using an incompatible version of the Android Gradle Plugin. " +
+        "The project is using an incompatible version (AGP 0.9.0) of the Android Gradle Plugin. " +
         "Minimum supported version is AGP 1.0.0.",
         null,
         null,

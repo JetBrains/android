@@ -284,16 +284,13 @@ internal class AndroidExtraModelProviderWorker(
     if (syncOptions.flags.studioFlagDisableForcedUpgrades) return true
     val gradleVersion = if (gradleProjectVersion != null) GradleVersion.parse(gradleProjectVersion) else return true
     if (gradleVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
-      throw AndroidSyncException("The project is using an incompatible version (AGP $gradleVersion) of the Android Gradle plugin. " +
-                                 "Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION.")
+      throw AgpVersionTooOld(gradleVersion)
     }
     // We don't have access to LatestKnownPluginVersionProvider: just use the build version
     val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
     val upgradeState = computeGradlePluginUpgradeState(gradleVersion, latestKnown, setOf())
     if (upgradeState.importance == FORCE) {
-      throw AndroidSyncException(
-        "The project is using an incompatible preview version (AGP $gradleVersion) of the Android Gradle plugin. " +
-        "Current compatible ${if (latestKnown.isPreview) "preview" else ""} version is AGP $latestKnown.")
+      throw AgpVersionIncompatible(gradleVersion)
     }
     return true
   }
