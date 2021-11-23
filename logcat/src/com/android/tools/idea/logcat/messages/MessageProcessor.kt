@@ -43,21 +43,41 @@ private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 /**
  * Prints formatted [LogCatMessage]s to a [Document] with coloring provided by a [LogcatColors].
  */
-internal class MessageProcessor(
+internal class MessageProcessor @TestOnly constructor(
   private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
   packageNamesProvider: PackageNamesProvider,
   var logcatFilter: LogcatFilter?,
   var showOnlyProjectApps: Boolean,
-  private val clock: Clock = Clock.systemDefaultZone(),
-  private val maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
-  private val maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
+  private val clock: Clock,
+  private val maxTimePerBatchMs: Int,
+  private val maxMessagesPerBatch: Int,
+  autoStart: Boolean,
 ) {
+  constructor(
+    logcatPresenter: LogcatPresenter,
+    formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
+    packageNamesProvider: PackageNamesProvider,
+    logcatFilter: LogcatFilter?,
+    showOnlyProjectApps: Boolean,
+  ) : this(
+    logcatPresenter,
+    formatMessagesInto,
+    packageNamesProvider,
+    logcatFilter,
+    showOnlyProjectApps,
+    Clock.systemDefaultZone(),
+    MAX_TIME_PER_BATCH_MS,
+    MAX_MESSAGES_PER_BATCH,
+    autoStart = true)
+
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
   private val projectAppFilter = ProjectAppFilter(packageNamesProvider)
 
   init {
-    processMessageChannel()
+    if (autoStart) {
+      start()
+    }
   }
 
   internal suspend fun appendMessages(messages: List<LogCatMessage>) {
@@ -74,7 +94,8 @@ internal class MessageProcessor(
   @TestOnly
   internal fun isChannelEmpty() = messageChannel.isEmpty
 
-  private fun processMessageChannel() {
+  @TestOnly
+  internal fun start() {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
       thisLogger().error("Error processing logcat message", e)
     }
@@ -97,10 +118,10 @@ internal class MessageProcessor(
         formatMessagesInto(textAccumulator, messages)
 
         // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
+        val now = clock.millis()
         @Suppress("EXPERIMENTAL_API_USAGE")
-        if (messageChannel.isEmpty || clock.millis() - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
+        if (messageChannel.isEmpty || now - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
           logcatPresenter.appendMessages(textAccumulator)
-          val now = clock.millis()
           logger.debug {
             val timeSinceStart = now - startTime
             val timeSinceLastFlush = now - lastFlushTime

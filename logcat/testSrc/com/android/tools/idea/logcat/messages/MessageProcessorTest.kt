@@ -59,7 +59,10 @@ class MessageProcessorTest {
 
   @Test
   fun appendMessages_batchesJoined(): Unit = runBlocking {
-    val messageProcessor = messageProcessor(fakeLogcatPresenter)
+    val mockClock = mock<Clock>()
+    // First call initializes lastFlushTime, then each call represents a batch.
+    `when`(mockClock.millis()).thenReturn(1000, 1000, 1010)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 100, clock = mockClock, autoStart = false)
     val batch1 = listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
@@ -71,6 +74,7 @@ class MessageProcessorTest {
 
     messageProcessor.appendMessages(batch1)
     messageProcessor.appendMessages(batch2)
+    messageProcessor.start()
 
     messageProcessor.onIdle {
       assertThat(fakeLogcatPresenter.messageBatches).containsExactly((batch1 + batch2).mapMessages())
@@ -79,7 +83,7 @@ class MessageProcessorTest {
 
   @Test
   fun appendMessages_batchesSplitOnMaxMessagesPerBatch() = runBlocking {
-    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxMessagesPerBatch = 1)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxMessagesPerBatch = 1, autoStart = false)
     val batch1 = listOf(
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", timestamp), "message1"),
       LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag2", timestamp), "message2"),
@@ -91,6 +95,7 @@ class MessageProcessorTest {
 
     messageProcessor.appendMessages(batch1)
     messageProcessor.appendMessages(batch2)
+    messageProcessor.start()
 
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
@@ -108,7 +113,7 @@ class MessageProcessorTest {
     val mockClock = mock<Clock>()
     // First call initializes lastFlushTime, then each call represents a batch.
     `when`(mockClock.millis()).thenReturn(1000, 1000, 2000, 3000)
-    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 500, clock = mockClock)
+    val messageProcessor = messageProcessor(fakeLogcatPresenter, maxTimePerBatchMs = 500, clock = mockClock, autoStart = false)
     // We need 3 batches here because the first batch will never be flushed on its own unless the channel is empty. We can fake it by
     // setting up the mock with (1000, 2000, 3000) but that's not an accurate representation of what actually happens where the first 2
     // calls to clock.millis() happen almost at the same time.
@@ -119,6 +124,7 @@ class MessageProcessorTest {
     messageProcessor.appendMessages(batch1)
     messageProcessor.appendMessages(batch2)
     messageProcessor.appendMessages(batch3)
+    messageProcessor.start()
 
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
@@ -203,6 +209,7 @@ class MessageProcessorTest {
     clock: Clock = Clock.systemDefaultZone(),
     maxTimePerBatchMs: Int = MAX_TIME_PER_BATCH_MS,
     maxMessagesPerBatch: Int = MAX_MESSAGES_PER_BATCH,
+    autoStart: Boolean = true,
   ) = MessageProcessor(
     logcatPresenter,
     formatMessagesInto,
@@ -211,7 +218,8 @@ class MessageProcessorTest {
     showOnlyProjectApps = false,
     clock,
     maxTimePerBatchMs,
-    maxMessagesPerBatch)
+    maxMessagesPerBatch,
+    autoStart)
 }
 
 private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogCatMessage>) {
