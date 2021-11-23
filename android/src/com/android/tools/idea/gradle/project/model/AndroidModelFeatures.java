@@ -41,10 +41,6 @@ public class AndroidModelFeatures {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
-  public boolean isIssueReportingSupported() {
-    return true;
-  }
-
   public boolean isPostBuildSyncSupported() {
     return myPostBuildSyncSupported;
   }
