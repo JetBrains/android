@@ -684,11 +684,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   }
 
   public int getSelectedThread() {
-    return myCaptureModel.getThread();
+    return myThreadsStates.getThread();
   }
 
   public void setSelectedThread(int id) {
-    myCaptureModel.setThread(id);
+    myThreadsStates.setThread(id);
     Range range = getTimeline().getSelectionRange();
     if (range.isEmpty()) {
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);

@@ -32,7 +32,6 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.capturedetails.CaptureModel
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -80,7 +79,7 @@ class CpuThreadsViewTest {
     val threadsList = getThreadsList(threadsView)
     val tracker = ideServices.featureTracker as FakeFeatureTracker
     assertThat(threadsList.selectedValue).isNull()
-    assertThat(stage.selectedThread).isEqualTo(CaptureModel.NO_THREAD)
+    assertThat(stage.selectedThread).isEqualTo(CpuThreadsModel.NO_THREAD)
     assertThat(tracker.isTrackSelectThreadCalled).isFalse()
 
     threadsList.selectedIndex = 0

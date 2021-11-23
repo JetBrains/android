@@ -24,7 +24,6 @@ import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
-import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.intellij.util.ui.JBUI;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
@@ -156,7 +155,7 @@ final class CpuThreadsView {
         }
       }
       else {
-        myStage.setSelectedThread(CaptureModel.NO_THREAD);
+        myStage.setSelectedThread(CpuThreadsModel.NO_THREAD);
       }
     });
 
@@ -219,7 +218,7 @@ final class CpuThreadsView {
    * Selects a thread in the list whose ID matches the one set in the model.
    */
   private void updateThreadSelection() {
-    if (myStage.getSelectedThread() == CaptureModel.NO_THREAD) {
+    if (myStage.getSelectedThread() == CpuThreadsModel.NO_THREAD) {
       myThreads.clearSelection();
       return;
     }

@@ -43,6 +43,12 @@ import org.jetbrains.annotations.Nullable;
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
 public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.RangedCpuThread> {
+  /**
+   * Negative number used when no thread is selected.
+   */
+  public static final int NO_THREAD = -1;
+
+  private int myThread = NO_THREAD;
 
   @NotNull private final StudioProfilers myProfilers;
 
@@ -71,6 +77,17 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     // Initialize first set of elements.
     nonImportRangeChanged();
     sortElements();
+  }
+
+  public void setThread(int thread) {
+    if (myThread == thread) {
+      return;
+    }
+    myThread = thread;
+  }
+
+  public int getThread() {
+    return myThread;
   }
 
   private void nonImportRangeChanged() {
