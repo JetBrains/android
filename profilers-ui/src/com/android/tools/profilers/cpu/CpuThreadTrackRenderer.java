@@ -36,16 +36,22 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.capturedetails.CodeNavigationHandler;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
+import com.android.tools.profilers.cpu.systemtrace.RenderSequence;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,11 +154,27 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
            ? panel
            : VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(
                              panel, viewRange, multiSelectionModel,
-                             info.isRenderingRelatedThread() ? GrayOutMode.UNSELECTED : GrayOutMode.ALL,
+                             grayOutModeForThread(info, data),
                              true),
                            viewRange,
                            data.getVsyncCounterValues(),
                            myVsyncEnabler);
+  }
+
+  private static GrayOutMode grayOutModeForThread(CpuThreadInfo thread, CpuSystemTraceData data) {
+    Function1<AndroidFrameTimelineEvent, RenderSequence> renderSequenceGetter =
+      data instanceof SystemTraceCpuCapture ? ((SystemTraceCpuCapture)data).getFrameRenderSequence() : null;
+    return renderSequenceGetter == null ? GrayOutMode.None.INSTANCE :
+           thread.isMainThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getMainEvent())) :
+           thread.isRenderThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getRenderEvent())) :
+           thread.isGpuThread() ? new GrayOutMode.Outside(e -> eventRange(renderSequenceGetter.invoke(e).getGpuEvent())) :
+           GrayOutMode.All.INSTANCE;
+  }
+
+  private static Range eventRange(@Nullable CaptureNode threadEvent) {
+    return threadEvent == null
+           ? new Range() // if we can't find the event, don't highlight anything
+           : new Range(threadEvent.getStartGlobal(), threadEvent.getEndGlobal());
   }
 
   @Nullable

@@ -16,10 +16,8 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.cpu.CaptureNode
-import com.android.tools.profilers.cpu.CpuCapture
-import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
+import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 
 data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture): CpuAnalyzable<JankAnalysisModel> {
@@ -39,30 +37,13 @@ data class JankAnalysisModel(val event: AndroidFrameTimelineEvent, val capture: 
       model.addTabModel(chart(CpuAnalysisTabModel.Type.BOTTOM_UP))
     }
 
-  class Summary(val event: AndroidFrameTimelineEvent, val capture: CpuCapture)
+  class Summary(val event: AndroidFrameTimelineEvent, val capture: SystemTraceCpuCapture, val sequence: RenderSequence)
         : CpuAnalysisSummaryTabModel<JankAnalysisModel>(capture.range) {
-    val mainThreadId = firstThreadId { it.isMainThread }
-    val gpuThreadId = firstThreadId { it.isGpuThread }
-    val renderThreadId = firstThreadId { it.isRenderThread }
+    constructor(event: AndroidFrameTimelineEvent, capture: SystemTraceCpuCapture):
+      this(event, capture, capture.frameRenderSequence(event))
     val eventRange = Range(event.expectedStartUs.toDouble(), event.actualEndUs.toDouble())
     override fun getLabel() = "Janky Frame"
     override fun getSelectionRange() = eventRange
-
-    fun getThreadChildren(threadId: Int): List<CaptureNode> =
-      capture.getCaptureNode(threadId)?.let(::getRelevantChildren) ?: listOf()
-
-    fun getThreadState(threadId: Int) = capture.systemTraceData!!.getThreadStatesForThread(threadId)
-
-    private fun firstThreadId(isWanted: (CpuThreadInfo) -> Boolean) = capture.threads.first(isWanted).id
-
-    private fun getRelevantChildren(threadNode: CaptureNode) = mutableListOf<CaptureNode>().also { res ->
-      fun visit(node: CaptureNode): Unit = node.children.forEach {
-        if (Range.intersects(event.expectedStartUs, event.actualEndUs, it.startGlobal, it.endGlobal)) {
-          res.add(it)
-          visit(it)
-        }
-      }
-      visit(threadNode)
-    }
+    fun getThreadState(threadId: Int) = capture.getThreadStatesForThread(threadId)
   }
 }

@@ -20,10 +20,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuCapture
+import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
-import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
+import com.android.tools.profilers.cpu.systemtrace.RenderSequence
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
@@ -64,13 +65,13 @@ private val PROFILERS = Mockito.mock(StudioProfilers::class.java)
 private val PROFILERS_VIEW = Mockito.mock(StudioProfilersView::class.java).apply {
   Mockito.`when`(studioProfilers).thenReturn(PROFILERS)
 }
-private val SYSTEM_TRACE_DATA = Mockito.mock(CpuSystemTraceData::class.java).apply {
-  Mockito.`when`(getThreadStatesForThread(anyInt())).thenReturn(listOf())
-}
-private val CAPTURE = Mockito.mock(CpuCapture::class.java).apply {
+private val EVENT_NODE = Mockito.mock(CaptureNode::class.java)
+private val CAPTURE = Mockito.mock(SystemTraceCpuCapture::class.java).apply {
   Mockito.`when`(range).thenReturn(CAPTURE_RANGE)
-  Mockito.`when`(systemTraceData).thenReturn(SYSTEM_TRACE_DATA)
+  Mockito.`when`(systemTraceData).thenReturn(this)
   Mockito.`when`(getThreads()).thenReturn(setOf(FAKE_MAIN_THREAD, FAKE_GPU_THREAD, FAKE_RENDER_THREAD))
+  Mockito.`when`(getThreadStatesForThread(anyInt())).thenReturn(listOf())
+  Mockito.`when`(frameRenderSequence).thenReturn { RenderSequence(EVENT_NODE, EVENT_NODE, EVENT_NODE) }
 }
 private val MODEL = JankAnalysisModel.Summary(
   AndroidFrameTimelineEvent(42, 42,

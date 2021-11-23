@@ -34,7 +34,6 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEvent
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel
 import com.android.tools.profilers.cpu.systemtrace.AndroidFramePhase
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -59,7 +58,7 @@ class AndroidFrameEventTrackRenderer(private val vsyncEnabler: BooleanSupplier) 
     stateChart.addRowIndexChangeListener { model.activeSeriesIndex = it }
     val content = when {
       isSharedTimeline -> FrameTimelineSelectionOverlayPanel.of(stateChart, model.viewRange, model.multiSelectionModel,
-                                                                GrayOutMode.NONE, true)
+                                                                GrayOutMode.None, true)
       else -> stateChart
     }
     return VsyncPanel.of(content, model.vsyncSeries, vsyncEnabler)

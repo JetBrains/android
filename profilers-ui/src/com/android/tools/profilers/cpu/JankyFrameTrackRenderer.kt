@@ -54,7 +54,7 @@ class JankyFrameTrackRenderer(private val vsyncEnabler: BooleanSupplier): TrackR
       }
     }.let { VsyncPanel.of(FrameTimelineSelectionOverlayPanel.of(it, trackModel.dataModel.viewRange,
                                                                 trackModel.dataModel.multiSelectionModel,
-                                                                GrayOutMode.NONE, true),
+                                                                GrayOutMode.None, true),
                           trackModel.dataModel.vsyncSeries, vsyncEnabler)}
 
   private fun renderJankyFrame(multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>): Renderer<AndroidFrameTimelineEvent?> =

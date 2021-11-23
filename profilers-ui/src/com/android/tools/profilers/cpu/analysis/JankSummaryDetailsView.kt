@@ -36,6 +36,7 @@ import javax.swing.JComponent
 import javax.swing.table.DefaultTableCellRenderer
 import kotlin.math.min
 import com.android.tools.adtui.common.border as BorderColor
+import kotlin.streams.toList
 
 class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnalysisModel.Summary)
       : SummaryDetailsViewBase<JankAnalysisModel.Summary>(profilersView, model) {
@@ -69,14 +70,14 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
                                       event.getActiveColor(), actualPercent, maxDurationBarWidth))
     addSection(hideablePanel("Events associated with frame",
                              EventTable.of(capture,
-                                           model.getThreadChildren(model.renderThreadId) to "Render",
-                                           model.getThreadChildren(model.gpuThreadId) to "GPU",
-                                           model.getThreadChildren(model.mainThreadId) to "Main")))
+                                           model.sequence.renderEvent.descendants() to "Render",
+                                           model.sequence.gpuEvent.descendants() to "GPU",
+                                           model.sequence.mainEvent.descendants() to "Main")))
 
     addSection(CpuThreadStateTable(profilersView.studioProfilers,
-                                   listOf(LazyDataSeries{model.getThreadState(model.mainThreadId)},
-                                          LazyDataSeries{model.getThreadState(model.renderThreadId)},
-                                          LazyDataSeries{model.getThreadState(model.gpuThreadId)}),
+                                   listOf(LazyDataSeries{model.getThreadState(model.capture.mainThreadId)},
+                                          LazyDataSeries{model.getThreadState(model.capture.renderThreadId)},
+                                          LazyDataSeries{model.getThreadState(model.capture.gpuThreadId)}),
                                    model.eventRange)
                  .component)
   }
@@ -123,3 +124,4 @@ private object EventTable {
 }
 
 private fun CpuCapture.offset(us: Long) = us - range.min.toLong()
+private fun CaptureNode?.descendants() = this?.descendantsStream?.toList() ?: listOf()

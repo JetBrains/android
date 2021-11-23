@@ -73,16 +73,17 @@ object FrameTimelineSelectionOverlayPanel {
       super.paintComponent(g)
       (selection.activeSelectionKey as? AndroidFrameTimelineEvent)?.let { event ->
         when (grayOutMode) {
-          GrayOutMode.ALL -> g.grayOutPixels(0, width)
-          GrayOutMode.UNSELECTED -> {
-            val start = event.expectedStartUs
-            val end = event.actualEndUs
+          GrayOutMode.All -> g.grayOutPixels(0, width)
+          is GrayOutMode.Outside -> {
+            val highlightedRange = grayOutMode.getRangeForActiveEvent(event)
+            val start = highlightedRange.min
+            val end = highlightedRange.max
             if (start > captureRange.min || end < captureRange.max) {
-              g.grayOut(captureRange.min, max(captureRange.min, start.toDouble()))
-              g.grayOut(min(captureRange.max, end.toDouble()), captureRange.max)
+              g.grayOut(captureRange.min, max(captureRange.min, start))
+              g.grayOut(min(captureRange.max, end), captureRange.max)
             }
           }
-          GrayOutMode.NONE -> { }
+          GrayOutMode.None -> { }
         }
         if (deadLineBar) {
           val expectedEnd = event.expectedEndUs
@@ -117,7 +118,12 @@ object FrameTimelineSelectionOverlayPanel {
     private fun valueToPixelCoord(value: Double) = ((value - captureRange.min) / captureRange.length * width).toInt()
   }
 
-  enum class GrayOutMode { ALL, UNSELECTED, NONE }
+  sealed class GrayOutMode {
+    object All: GrayOutMode()
+    // Only gray out outside the given range for the active frame
+    class Outside(val getRangeForActiveEvent: (AndroidFrameTimelineEvent) -> Range): GrayOutMode()
+    object None: GrayOutMode()
+  }
 }
 
 private val TRANSLUCENT_GRAY = JBColor(Color(.5f, .5f, .5f, .5f), Color(.5f, .5f, .5f, .5f))
