@@ -23,7 +23,6 @@ import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.kotlin.util.firstNotNullResult
 
 /**
  * Reference that points to an attribute in a layout XML file.
@@ -33,7 +32,7 @@ internal class XmlAttributeReference(element: PsiElement,
   override val resolvedType: PsiModelClass?
     get() {
       val tag = (resolve() as XmlAttribute).parentOfType<XmlTag>() ?: return null
-      val viewClass = tag.references.firstNotNullResult { it.resolve() as? PsiClass } ?: return null
+      val viewClass = tag.references.firstNotNullOfOrNull { it.resolve() as? PsiClass } ?: return null
       return PsiModelClass(PsiTypesUtil.getClassType(viewClass), DataBindingMode.fromPsiElement(element))
     }
 

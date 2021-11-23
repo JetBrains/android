@@ -54,7 +54,6 @@ import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private const val intDefAnnotationName = "androidx.annotation.IntDef"
@@ -172,11 +171,11 @@ private fun getIntDefValues(calleeElement: PsiElement?, argumentIndex: Int, argu
     is PsiClass -> {
       val funcName = argumentName ?: "value"
       val function = calleeElement.findMethodsByName(funcName, false).firstOrNull()
-      return function?.annotations?.firstNotNullResult { it.intDefValues }
+      return function?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is PsiMethod -> {
       val parameter = calleeElement.parameters.getOrNull(argumentIndex).safeAs<PsiParameter>()?.takeIf { it.type == PsiType.INT }
-      return parameter?.annotations?.firstNotNullResult { it.intDefValues }
+      return parameter?.annotations?.firstNotNullOfOrNull { it.intDefValues }
     }
     is KtFunction -> {
       val parameter = if (argumentName != null) {
@@ -185,7 +184,7 @@ private fun getIntDefValues(calleeElement: PsiElement?, argumentIndex: Int, argu
       else {
         calleeElement.valueParameters.getOrNull(argumentIndex)
       }
-      return parameter?.annotationEntries?.firstNotNullResult { it.intDefValues }
+      return parameter?.annotationEntries?.firstNotNullOfOrNull { it.intDefValues }
     }
   }
   return null
