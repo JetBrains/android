@@ -3,6 +3,7 @@ package com.android.tools.idea.compose.preview.pickers.properties
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.ColorValidation
 import com.android.tools.idea.res.colorToStringWithAlpha
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
@@ -35,7 +36,9 @@ internal class ColorPsiCallParameter(
   resolvedCall,
   descriptor,
   argumentExpression,
-  initialValue) {
+  initialValue,
+  ColorValidation
+) {
 
   override val colorButton = object : ActionIconButton {
     override val actionButtonFocusable: Boolean = true
