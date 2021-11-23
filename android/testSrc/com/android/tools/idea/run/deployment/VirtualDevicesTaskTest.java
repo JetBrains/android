@@ -20,11 +20,13 @@ import static org.junit.Assert.assertNull;
 
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.emulator.snapshot.SnapshotOuterClass.Image;
+import com.android.prefs.AndroidLocationsException;
+import com.android.prefs.AndroidLocationsProvider;
+import com.android.prefs.FakeAndroidLocationsProvider;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.Device.Type;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -40,17 +42,18 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDevicesTaskTest {
-  private final FileSystem myFileSystem = Jimfs.newFileSystem(Configuration.unix());
+  private final FileSystem myFileSystem = InMemoryFileSystems.createInMemoryFileSystem();
+
+  private final AndroidLocationsProvider myProvider = new FakeAndroidLocationsProvider(myFileSystem);
   private final AndroidDevice myAndroidDevice = Mockito.mock(AndroidDevice.class);
 
   @Test
   public void getSnapshotIsntNull() throws Exception {
     // Arrange
-    Collection<AvdInfo> avds = Collections.singletonList(mockAvd("Pixel 4 API 30",
-                                                                 "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                                 "Pixel_4_API_30"));
+    Path path = myProvider.getAvdLocation().resolve("Pixel_4_API_30.avd");
+    Collection<AvdInfo> avds = Collections.singletonList(mockAvd("Pixel 4 API 30", path, "Pixel_4_API_30"));
 
-    Files.createDirectories(myFileSystem.getPath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd/snapshots/default_boot"));
+    Files.createDirectories(path.resolve(myFileSystem.getPath("snapshots", "default_boot")));
 
     AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
@@ -65,7 +68,7 @@ public final class VirtualDevicesTaskTest {
     Object device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(new VirtualDevicePath(path.toString()))
       .setAndroidDevice(myAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
       .build();
@@ -74,19 +77,20 @@ public final class VirtualDevicesTaskTest {
   }
 
   private @NotNull AvdInfo mockAvd(@NotNull @SuppressWarnings("SameParameterValue") String displayName,
-                                   @NotNull @SuppressWarnings("SameParameterValue") String path,
+                                   @NotNull @SuppressWarnings("SameParameterValue") Path path,
                                    @NotNull @SuppressWarnings("SameParameterValue") String name) {
     AvdInfo avd = Mockito.mock(AvdInfo.class);
 
     Mockito.when(avd.getDisplayName()).thenReturn(displayName);
-    Mockito.when(avd.getDataFolderPath()).thenReturn(myFileSystem.getPath(path));
+    Mockito.when(avd.getDataFolderPath()).thenReturn(path);
     Mockito.when(avd.getName()).thenReturn(name);
 
     return avd;
   }
 
   @Test
-  public void getSnapshotSnapshotProtocolBufferDoesntExist() {
+  @SuppressWarnings("RedundantThrows")
+  public void getSnapshotSnapshotProtocolBufferDoesntExist() throws AndroidLocationsException {
     // Arrange
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
@@ -94,7 +98,7 @@ public final class VirtualDevicesTaskTest {
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
       .build();
 
-    Path directory = myFileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
+    Path directory = myProvider.getAvdLocation().resolve(myFileSystem.getPath("Pixel_2_XL_API_28.avd", "snapshots", "default_boot"));
 
     // Act
     Object snapshot = task.getSnapshot(directory);
@@ -123,7 +127,8 @@ public final class VirtualDevicesTaskTest {
   }
 
   @Test
-  public void getSnapshotLogicalNameIsEmpty() {
+  @SuppressWarnings("RedundantThrows")
+  public void getSnapshotLogicalNameIsEmpty() throws AndroidLocationsException {
     // Arrange
     VirtualDevicesTask task = new VirtualDevicesTask.Builder()
       .setExecutorService(MoreExecutors.newDirectExecutorService())
@@ -135,7 +140,7 @@ public final class VirtualDevicesTaskTest {
       .addImages(Image.getDefaultInstance())
       .build();
 
-    Path directory = myFileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
+    Path directory = myProvider.getAvdLocation().resolve(myFileSystem.getPath("Pixel_2_XL_API_28.avd", "snapshots", "default_boot"));
 
     // Act
     Object snapshot = task.getSnapshot(protocolBufferSnapshot, directory);
