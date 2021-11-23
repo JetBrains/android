@@ -107,7 +107,7 @@ public interface AndroidModel {
    * "preview" platforms the {@code minSdkVersion}, {@code targetSdkVersion} and {@code compileSdkVersion} are all coerced to the same
    * "preview" platform value. This method should be used by launch code for example or packaging code.
    */
-  @Nullable
+  @NotNull
   AndroidVersion getRuntimeMinSdkVersion();
 
   /**

@@ -141,11 +141,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     AndroidFacet facet = getFacet();
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
-      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
-      if (minSdkVersion != null) {
-        return Futures.immediateFuture(minSdkVersion);
-      }
-      // Else: not specified in gradle files; fall back to manifest
+      return Futures.immediateFuture(androidModel.getRuntimeMinSdkVersion());
     }
 
     Project project = facet.getModule().getProject();

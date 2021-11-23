@@ -51,7 +51,7 @@ open class TestAndroidModel @JvmOverloads constructor(
   override fun overridesManifestPackage(): Boolean = overridesManifestPackage
   override fun isDebuggable(): Boolean = debuggable
   override fun getMinSdkVersion(): AndroidVersion = minSdkVersion ?: AndroidVersion(1)
-  override fun getRuntimeMinSdkVersion(): AndroidVersion? = runtimeMinSdkVersion
+  override fun getRuntimeMinSdkVersion(): AndroidVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
   override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
   override fun getClassJarProvider(): ClassJarProvider = classJarProvider ?: error("classJarProvider not set")
   override fun getNamespacing(): Namespacing = namespacing

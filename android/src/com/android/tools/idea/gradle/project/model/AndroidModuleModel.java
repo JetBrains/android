@@ -359,7 +359,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
     IdeApiVersion minSdkVersion = getSelectedVariant().getMinSdkVersion();
     return convertVersion(minSdkVersion, null);
