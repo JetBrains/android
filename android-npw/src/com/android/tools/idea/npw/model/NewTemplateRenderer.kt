@@ -200,6 +200,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
   "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
   "Google Pay Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+  "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS

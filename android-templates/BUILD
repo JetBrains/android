@@ -125,6 +125,7 @@ maven_repository(
         "@maven//:androidx.recyclerview.recyclerview_1.2.1",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.slice.slice-builders_1.0.0",
+        "@maven//:androidx.wear.compose.compose-material_1.0.0-alpha11",
         "@maven//:androidx.wear.wear_1.1.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
         "@maven//:com.google.android.gms.play-services-ads_20.2.0",
