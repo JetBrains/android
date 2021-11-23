@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -369,12 +371,14 @@ object InspectorPainter {
 
   /**
    * UI Component to display comboBoxes for transition.
+   * @params surface [DesignSurface] of the component
    * @params logger usage tracker for animation tooling
    * @params callback when state has changed
    */
   class StartEndComboBox
-  (private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
-   private val callback: (stateComboBox: StateComboBox) -> Unit) :
+  ( private val surface : DesignSurface,
+    private val logger: (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit,
+    private val callback: (stateComboBox: StateComboBox) -> Unit) :
     StateComboBox, JPanel(TabularLayout("Fit,Fit,Fit,Fit")) {
     //  StartEndComboBox component displays:
     //
@@ -408,6 +412,9 @@ object InspectorPainter {
         // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default. Set the preferred size of the
         // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a margin
         override fun getPreferredSize() = JBUI.size(30, 30)
+      }.apply {
+        targetComponent = surface
+        ActionToolbarUtil.makeToolbarNavigable(this)
       }
       add(swapStatesActionToolbar, TabularLayout.Constraint(0, 0))
       add(startStateComboBox, TabularLayout.Constraint(0, 1))

@@ -41,6 +41,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.uipreview.createUrlClassLoader
@@ -58,6 +59,7 @@ import org.mockito.Mockito
 import java.io.IOException
 import java.util.stream.Collectors
 import javax.swing.JSlider
+import kotlin.test.assertNotEquals
 
 class ComposePreviewAnimationManagerTest {
 
@@ -124,32 +126,35 @@ class ComposePreviewAnimationManagerTest {
 
     // When first opening the inspector, we show the panel informing there are no supported animations to be displayed
     assertNotNull(inspector.noAnimationsPanel())
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(0, inspector.tabbedPane.tabCount)
 
     // After subscribing an animation, we should display the tabbedPane
     val animation = createComposeAnimation()
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
     assertNull(inspector.noAnimationsPanel())
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertEquals(1, inspector.tabbedPane.tabCount)
 
     // After unsubscribing all animations, we should hide the tabbed panel and again display the no animations panel
     ComposePreviewAnimationManager.onAnimationUnsubscribed(animation)
     UIUtil.pump() // Wait for the tab to be removed on the UI thread
     assertNotNull(inspector.noAnimationsPanel())
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(0, inspector.tabbedPane.tabCount)
   }
 
   @Test
   fun oneTabPerSubscribedAnimation() {
     val inspector = createAndOpenInspector()
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(0, inspector.tabbedPane.tabCount)
 
     val animation1 = createComposeAnimation()
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation1)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
     assertEquals(1, inspector.tabCount())
 
     val animation2 = createComposeAnimation()
@@ -165,12 +170,13 @@ class ComposePreviewAnimationManagerTest {
   @Test
   fun subscriptionNewClockClearsPreviousClockAnimations() {
     val inspector = createAndOpenInspector()
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(0, inspector.tabbedPane.tabCount)
 
     val clock = TestClock()
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI thread
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
     assertEquals(1, inspector.tabCount())
 
     val anotherClock = TestClock()
@@ -420,13 +426,15 @@ class ComposePreviewAnimationManagerTest {
     val inspector = createAndOpenInspector()
     ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), createComposeAnimation())
     UIUtil.pump() // Wait for the tab to be added on the UI
-    assertFalse(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(1, inspector.tabbedPane.tabCount)
     assertNull(inspector.noAnimationsPanel())
 
     ComposePreviewAnimationManager.invalidate()
     UIUtil.pump() // Wait for the tab to be added on the UI
     assertNotNull(inspector.noAnimationsPanel())
-    assertTrue(inspector.tabbedPane.isEmptyVisible)
+    assertTrue(inspector.tabbedPane.isVisible)
+    assertEquals(0, inspector.tabbedPane.tabCount)
   }
 
   @Test
@@ -506,7 +514,7 @@ class ComposePreviewAnimationManagerTest {
 
   private fun AnimationInspectorPanel.tabCount() = invokeAndWaitIfNeeded { tabbedPane.tabCount }
 
-  private fun AnimationInspectorPanel.getTabTitleAt(index: Int) = invokeAndWaitIfNeeded { tabbedPane.getTabAt(index).text }
+  private fun AnimationInspectorPanel.getTabTitleAt(index: Int) = invokeAndWaitIfNeeded { tabbedPane.getTitleAt(index) }
 
   private fun AnimationInspectorPanel.noAnimationsPanel() =
     TreeWalker(this).descendantStream().filter { it.name == "Loading Animations Panel" }.getIfSingle()

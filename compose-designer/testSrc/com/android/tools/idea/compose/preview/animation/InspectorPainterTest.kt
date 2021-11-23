@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +81,7 @@ class InspectorPainterTest {
   @Test
   fun createStartEndComboBox() {
     val comboBox: InspectorPainter.StateComboBox =
-      InspectorPainter.StartEndComboBox(logger = {}, callback = {})
+      InspectorPainter.StartEndComboBox(mock(DesignSurface::class.java), logger = {}, callback = {})
     assertNotNull(comboBox.stateHashCode())
     assertNotNull(comboBox.component)
     comboBox.updateStates(setOf("One", "Two", "Three"))

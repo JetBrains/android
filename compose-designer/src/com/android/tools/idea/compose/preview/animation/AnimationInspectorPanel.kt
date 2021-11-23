@@ -21,10 +21,12 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
+import com.android.tools.idea.compose.preview.animation.AnimationInspectorPanel.TransitionDurationTimeline
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_CURVES
@@ -38,20 +40,16 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.tabs.TabInfo
-import com.intellij.ui.tabs.TabsListener
-import com.intellij.ui.tabs.impl.JBEditorTabsBorder
-import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -63,10 +61,13 @@ import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
 import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSlider
+import javax.swing.JTabbedPane
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -132,28 +133,30 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   @VisibleForTesting
-  val tabbedPane = object : JBTabsImpl(surface.project, IdeFocusManager.getInstance(surface.project), this) {
-    // By default, JBTabsImpl uses JBDefaultTabsBorder, which doesn't add a border if there is only one tab.
-    override fun createTabBorder() = JBEditorTabsBorder(this)
-  }.apply {
-    addListener(object : TabsListener {
-      override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
-        super.selectionChanged(oldSelection, newSelection)
-        val tab = newSelection?.component as? AnimationTab ?: return
-        // Load animation when first tab was just created or transition has changed.
-        tab.loadTransitionFromCacheOrLib()
-        tab.updateProperties()
-        // The following callbacks only need to be called when old selection is not null, which excludes the addition/selection of the first
-        // tab. In that case, the logic will be handled by updateTransitionStates.
-        if (oldSelection != null) {
-          // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
-          tab.addTimeline()
-          timeline.selectedTab = tab
-          // Set the clock time when changing tabs to update the current tab's transition properties panel.
-          timeline.setClockTime(timeline.cachedVal)
-        }
+  val tabbedPane = JTabbedPane().apply {
+    addChangeListener(TabChangeListener())
+    tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+  }
+
+  private inner class TabChangeListener : ChangeListener {
+    private var oldSelection: AnimationTab? = null
+    override fun stateChanged(e: ChangeEvent) {
+      val tab = tabbedPane.selectedComponent as? AnimationTab ?: return
+      if (tab == oldSelection) return
+      // Load animation when first tab was just created or transition has changed.
+      tab.loadTransitionFromCacheOrLib()
+      tab.updateProperties()
+      // The following callbacks only need to be called when old selection is not null, which excludes the addition/selection of the first
+      // tab. In that case, the logic will be handled by updateTransitionStates.
+      if (oldSelection != null) {
+        // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
+        tab.addTimeline()
+        timeline.selectedTab = tab
+        // Set the clock time when changing tabs to update the current tab's transition properties panel.
+        timeline.setClockTime(timeline.cachedVal)
       }
-    })
+      oldSelection = tab
+    }
   }
 
   /**
@@ -202,7 +205,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
   init {
     name = "Animation Preview"
-    border = MatteBorder(0, 0, 1, 0, JBColor.border())
 
     noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
@@ -300,7 +302,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   internal fun invalidatePanel() {
     tabbedPane.removeAll()
-    tabbedPane.removeAllTabs()
     animationTabs.clear()
     showNoAnimationsPanel()
   }
@@ -309,7 +310,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Replaces the [tabbedPane] with [noAnimationsPanel].
    */
   private fun showNoAnimationsPanel() {
-    remove(tabbedPane.component)
+    remove(tabbedPane)
     noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
@@ -329,12 +330,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val animationTab = animationTabs[animation] ?: return
 
     val isAddingFirstTab = tabbedPane.tabCount == 0
-    tabbedPane.addTab(TabInfo(animationTab).setText(animationTab.tabTitle), tabbedPane.tabCount)
+    tabbedPane.addTab(animationTab.tabTitle, animationTab)
     if (isAddingFirstTab) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
       noAnimationsPanel.stopLoading()
       remove(noAnimationsPanel)
-      add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
+      add(tabbedPane, TabularLayout.Constraint(1, 0, 2))
     }
   }
 
@@ -365,7 +366,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Removes the [AnimationTab] corresponding to the given [animation] from [tabbedPane].
    */
   internal fun removeTab(animation: ComposeAnimation) {
-    tabbedPane.tabs.find { (it.component as? AnimationTab)?.animation === animation }?.let { tabbedPane.removeTab(it) }
+    tabbedPane.components.find { (it as? AnimationTab)?.animation === animation }?.let { tabbedPane.remove(it) }
     animationTabs.remove(animation)
 
     if (tabbedPane.tabCount == 0) {
@@ -392,14 +393,19 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
     val stateComboBox: InspectorPainter.StateComboBox
 
-    private val timelinePanelWithCurves = JBScrollPane()
+    private val timelinePanelWithCurves = JBScrollPane().apply {
+      border = MatteBorder(1,1,0,0, JBColor.border())
+    }
     private val timelinePanelNoCurves = JPanel(BorderLayout())
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
+    private val playbackControls = createPlaybackControllers()
+    private val playPauseComponent: Component?
+      get() = playbackControls.component?.components?.elementAtOrNull(2)
 
     init {
-      add(createPlaybackControllers(), TabularLayout.Constraint(0, 0))
+      add(playbackControls.component, TabularLayout.Constraint(0, 0))
       stateComboBox = when (animation.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION -> InspectorPainter.StartEndComboBox(logger) {
+        ComposeAnimationType.TRANSITION_ANIMATION -> InspectorPainter.StartEndComboBox(surface, logger) {
           updateAnimationStartAndEndStates()
           loadTransitionFromCacheOrLib()
           updateProperties()
@@ -412,14 +418,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         ComposeAnimationType.ANIMATED_VALUE -> InspectorPainter.EmptyComboBox()
       }
       add(stateComboBox.component, TabularLayout.Constraint(0, 2))
-      val splitterWrapper = JPanel(BorderLayout()).apply {
-        border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
-      }
+      val splitterWrapper = JPanel(BorderLayout())
       if (COMPOSE_INTERACTIVE_ANIMATION_CURVES.get())
         splitterWrapper.add(timelinePanelWithCurves)
       else
         splitterWrapper.add(timelinePanelNoCurves, BorderLayout.CENTER)
       add(splitterWrapper, TabularLayout.Constraint(1, 0, 3))
+      isFocusable = false
+      focusTraversalPolicy = LayoutFocusTraversalPolicy()
     }
 
     /**
@@ -534,7 +540,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * TODO(b/157895086): Update action icons when we have the final Compose Animation tooling icons
      * TODO(b/157895086): Disable toolbar actions while build is in progress
      */
-    private fun createPlaybackControllers(): JComponent = ActionManager.getInstance().createActionToolbar(
+    private fun createPlaybackControllers() = ActionManager.getInstance().createActionToolbar(
       "Animation Preview",
       DefaultActionGroup(listOf(
         timelineLoopAction,
@@ -543,7 +549,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         GoToEndAction(),
         timelineSpeedAction
       )),
-      true).component
+      true).apply {
+      setTargetComponent(surface)
+      ActionToolbarUtil.makeToolbarNavigable(this)
+    }
 
     /**
      * Adds [timeline] to this tab's [timelinePanel]. The timeline is shared across all tabs, and a Swing component can't be added as a
@@ -577,6 +586,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToStart()
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_START_ACTION)
+        // Switch focus to Play button if animation is not playing at the moment.
+        // If animation is playing - no need to switch focus as GoToStart button will be enabled again.
+        if (!playPauseAction.isPlaying)
+          playPauseComponent?.requestFocus()
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -593,6 +606,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       override fun actionPerformed(e: AnActionEvent) {
         timeline.jumpToEnd()
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
+        // Switch focus to Play button if animation is not playing in the loop at the moment.
+        // If animation is playing in the loop - no need to switch focus as GoToEnd button will be enabled again.
+        if (!playPauseAction.isPlaying || !timeline.playInLoop)
+          playPauseComponent?.requestFocus()
       }
 
       override fun updateButton(e: AnActionEvent) {
@@ -626,7 +643,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
                            }
                          }, tickPeriod)
 
-    private var isPlaying = false
+    var isPlaying = false
+      private set
 
     override fun actionPerformed(e: AnActionEvent) = if (isPlaying) {
       pause()

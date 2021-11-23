@@ -73,6 +73,7 @@ import java.awt.event.AdjustmentEvent
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.OverlayLayout
 
 private const val SURFACE_SPLITTER_DIVIDER_WIDTH_PX = 5
@@ -388,6 +389,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
                     else -> message("panel.initializing")
                   })
     }
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    isFocusCycleRoot = true
   }
 
   override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
