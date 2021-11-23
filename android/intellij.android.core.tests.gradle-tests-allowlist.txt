@@ -59,7 +59,6 @@ com.android.tools.idea.gradle.project.sync.errors.SetLanguageLevel8QuickFixTest
 com.android.tools.idea.gradle.project.sync.errors.UnexpectedIssueCheckerTest
 com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueCheckerTest
 com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueCheckerTest
-com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerTest
 com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlinkTest
 com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlinkTest
 com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlinkTest
