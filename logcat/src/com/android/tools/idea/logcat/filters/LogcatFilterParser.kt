@@ -173,9 +173,6 @@ private fun PsiElement.asDuration(): Duration {
   return Duration.ofSeconds(l)
 }
 
-// TODO: Add more context that could allow us to highlight the error
-internal class LogcatFilterParseException(psiErrorElement: PsiErrorElement) : Exception(psiErrorElement.errorDescription)
-
 private fun flattenOrExpression(expression: LogcatFilterExpression): List<LogcatFilterExpression> =
   if (expression is LogcatFilterOrExpression) {
     flattenOrExpression(expression.expressionList[0]) + flattenOrExpression(expression.expressionList[1])

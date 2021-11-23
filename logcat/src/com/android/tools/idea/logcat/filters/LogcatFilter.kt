@@ -18,10 +18,11 @@ package com.android.tools.idea.logcat.filters
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.PackageNamesProvider
+import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import java.time.Clock
 import java.time.Duration
 import java.time.ZoneId
-import java.util.Objects
+import java.util.regex.PatternSyntaxException
 import kotlin.text.RegexOption.IGNORE_CASE
 
 /**
@@ -99,13 +100,23 @@ internal data class NegatedStringFilter(val string: String, val field: LogcatFil
 }
 
 internal data class RegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
-  private val regex = string.toRegex(IGNORE_CASE)
+  private val regex = try {
+    string.toRegex(IGNORE_CASE)
+  }
+  catch (e: PatternSyntaxException) {
+    throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
+  }
 
   override fun matches(message: LogcatMessageWrapper) = regex.containsMatchIn(field.getValue(message))
 }
 
 internal data class NegatedRegexFilter(val string: String, val field: LogcatFilterField) : LogcatFilter {
-  private val regex = string.toRegex(IGNORE_CASE)
+  private val regex = try {
+    string.toRegex(IGNORE_CASE)
+  }
+  catch (e: PatternSyntaxException) {
+    throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
+  }
 
   override fun matches(message: LogcatMessageWrapper) = !regex.containsMatchIn(field.getValue(message))
 }

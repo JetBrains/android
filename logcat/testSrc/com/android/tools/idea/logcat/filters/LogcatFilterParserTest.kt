@@ -108,6 +108,16 @@ class LogcatFilterParserTest {
   }
 
   @Test
+  fun parse_invalidRegex() {
+    assertThat(logcatFilterParser().parse("""tag~:\""")).isEqualTo(StringFilter("""tag~:\""", LINE))
+  }
+
+  @Test
+  fun parse_invalidNegatedRegex() {
+    assertThat(logcatFilterParser().parse("""-tag~:\""")).isEqualTo(StringFilter("""-tag~:\""", LINE))
+  }
+
+  @Test
   fun parse_levelKeys() {
     for ((key, expectedFilter) in LEVEL_KEYS) {
       for (logLevel in Log.LogLevel.values()) {

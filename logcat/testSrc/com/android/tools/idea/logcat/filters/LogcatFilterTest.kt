@@ -26,6 +26,7 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.logCatMessage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
 import java.time.Clock
 import java.time.Duration
@@ -133,9 +134,19 @@ class LogcatFilterTest {
   }
 
   @Test
+  fun regexFilter_invalidRegex() {
+    assertThrows(LogcatFilterParseException::class.java) { RegexFilter("""\""", LINE) }
+  }
+
+  @Test
   fun negatedRegexFilter() {
     assertThat(NegatedRegexFilter("tag1.*message", LINE).matches(MESSAGE1)).isFalse()
     assertThat(NegatedRegexFilter("tag2.*message", LINE).matches(MESSAGE1)).isTrue()
+  }
+
+  @Test
+  fun negatedRegexFilter_invalidRegex() {
+    assertThrows(LogcatFilterParseException::class.java) { NegatedRegexFilter("""\""", LINE) }
   }
 
   @Test
