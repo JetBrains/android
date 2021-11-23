@@ -110,7 +110,7 @@ public class CpuAnalysisPanel extends AspectObserver {
    */
   private void updateComponents() {
     myTabs.clearTabs();
-    List<CpuAnalysisModel> pinnedModels = myStage.getPinnedAnalysisModels();
+    List<CpuAnalysisModel<?>> pinnedModels = myStage.getPinnedAnalysisModels();
     List<MultiSelectionModel.Entry<CpuAnalyzable<?>>> selections = myStage.getMultiSelectionModel().getSelections();
 
     for (CpuAnalysisModel<?> model : pinnedModels) {

@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.BoxSelectionListener;
 import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
@@ -164,7 +163,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
-  private final List<CpuAnalysisModel> myPinnedAnalysisModels = new ArrayList<>();
+  private final List<CpuAnalysisModel<?>> myPinnedAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
   private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel = new MultiSelectionModel<>();
 
@@ -254,7 +253,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   @NotNull
-  public List<CpuAnalysisModel> getPinnedAnalysisModels() {
+  public List<CpuAnalysisModel<?>> getPinnedAnalysisModels() {
     return myPinnedAnalysisModels;
   }
 
@@ -330,7 +329,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE;
   }
 
-  private void addPinnedCpuAnalysisModel(@NotNull CpuAnalysisModel model) {
+  private void addPinnedCpuAnalysisModel(@NotNull CpuAnalysisModel<?> model) {
     myPinnedAnalysisModels.add(model);
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
@@ -425,8 +424,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
         !capture.getSystemTraceData().getAndroidFrameTimelineEvents().isEmpty() &&
         getStudioProfilers().getIdeServices().getFeatureConfig().isJankDetectionUiEnabled()) {
       // Thread states and trace events.
-      myTrackGroupModels.add(
-        createThreadsTrackGroup(getStudioProfilers(), capture, getTimeline(), getMultiSelectionModel(), featureTracker));
+      myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // RSS memory counters.
@@ -439,8 +437,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
         myTrackGroupModels.add(createRssMemoryTrackGroup(capture.getSystemTraceData(), getTimeline()));
       }
       // Thread states and trace events.
-      myTrackGroupModels.add(
-        createThreadsTrackGroup(getStudioProfilers(), capture, getTimeline(), getMultiSelectionModel(), featureTracker));
+      myTrackGroupModels.add(createThreadsTrackGroup(capture, getTimeline(), getMultiSelectionModel(), featureTracker));
     }
 
     // Add action listener for tracking all track group actions.
@@ -490,29 +487,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
          @NotNull Timeline timeline,
          @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
     CpuSystemTraceData data = capture.getSystemTraceData();
-    assert(data != null);
-    int mainThreadId = capture.getMainThreadId();
     final boolean isJankDetectionOn =
       profilers.getIdeServices().getFeatureConfig().isJankDetectionUiEnabled() &&
       !data.getAndroidFrameTimelineEvents().isEmpty();
 
     return isJankDetectionOn
-           ? Stream.of(createJankDetectionTrackGroup(mainThreadId, capture, data, timeline, multiSelectionModel))
+           ? Stream.of(createJankDetectionTrackGroup(capture, data, timeline, multiSelectionModel))
            : Stream.concat(
              // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
-               Stream.of(createDisplayTrackGroup(mainThreadId, data, timeline)),
-               // Android frame lifecycle. Systrace only.
-               IntStream.range(0, data.getAndroidFrameLayers().size())
-                 .mapToObj(layerIndex ->
-                             createFrameLifecycleTrackGroup(data.getAndroidFrameLayers().get(layerIndex), timeline,
-                                                            // Collapse all but the first layer.
-                                                            layerIndex > 0,
-                                                            data,
-                                                            multiSelectionModel)));
+             Stream.of(createDisplayTrackGroup(data, timeline)),
+             // Android frame lifecycle. Systrace only.
+             IntStream.range(0, data.getAndroidFrameLayers().size())
+               .mapToObj(layerIndex ->
+                           createFrameLifecycleTrackGroup(data.getAndroidFrameLayers().get(layerIndex), timeline,
+                                                          // Collapse all but the first layer.
+                                                          layerIndex > 0,
+                                                          data,
+                                                          multiSelectionModel)));
   }
 
   private static TrackGroupModel createDisplayTrackGroup(
-    int mainThreadId, @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
+    @NotNull CpuSystemTraceData systemTraceData, @NotNull Timeline timeline) {
 
     TrackGroupModel display = TrackGroupModel.newBuilder()
       .setTitle("Display")
@@ -586,8 +581,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return frameLayer;
   }
 
-  private static TrackGroupModel createJankDetectionTrackGroup(int mainThreadId,
-                                                               @NotNull SystemTraceCpuCapture capture,
+  private static TrackGroupModel createJankDetectionTrackGroup(@NotNull SystemTraceCpuCapture capture,
                                                                @NotNull CpuSystemTraceData systemTraceData,
                                                                @NotNull Timeline timeline,
                                                                @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel) {
@@ -663,8 +657,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return display;
   }
 
-  private static TrackGroupModel createThreadsTrackGroup(@NotNull StudioProfilers profilers,
-                                                         @NotNull CpuCapture capture,
+  private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,
                                                          @NotNull Timeline timeline,
                                                          @NotNull MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel,
                                                          @NotNull FeatureTracker featureTracker) {
@@ -674,12 +667,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       capture.getThreads().stream().sorted(CpuThreadComparator.withCaptureInfo(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     BoxSelectionModel boxSelectionModel = new BoxSelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
-    boxSelectionModel.addBoxSelectionListener(new BoxSelectionListener() {
-      @Override
-      public void boxSelectionCreated(long durationUs, int trackCount) {
-        featureTracker.trackSelectBox(durationUs, trackCount);
-      }
-    });
+    boxSelectionModel.addBoxSelectionListener(featureTracker::trackSelectBox);
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
       .setTitleHelpText("This section contains thread info. Double-click on the thread name to expand/collapse. " +
