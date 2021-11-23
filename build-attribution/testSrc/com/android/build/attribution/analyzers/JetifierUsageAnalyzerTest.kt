@@ -17,16 +17,22 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
+import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.MockitoKt
+import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BUILD_ANALYZER_CHECK_JETIFIER
 import com.android.utils.FileUtils
@@ -34,7 +40,9 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.io.File
 
 class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
@@ -213,5 +221,51 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
       libBuildAdditionalDependencies = "",
       expectedProjectStatus = JetifierCanBeRemoved
     )
+  }
+}
+
+class JetifierUsageAnalyzerUnitTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+
+  @Test
+  fun testResultForAGPPre_7_1_beta() {
+    //This is a more of a unit test for the sake of efficiency.
+    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
+    val studioProvidedInfo = StudioProvidedInfo(
+      agpVersion = GradleVersion.parse("7.1.0-alpha11"),
+      configurationCachingGradlePropertyState = null,
+      isInConfigurationCacheTestFlow = false,
+      enableJetifierPropertyState = true,
+      useAndroidXPropertyState = true,
+      buildRequestHolder = MockitoKt.mock()
+    )
+    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+
+    val analyzer = JetifierUsageAnalyzer()
+    analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
+
+    Truth.assertThat(analyzer.result).isEqualTo(JetifierUsageAnalyzerResult(AnalyzerNotRun))
+  }
+
+  @Test
+  fun testResultForAGP_7_1() {
+    //This is a more of a unit test for the sake of efficiency.
+    StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.override(true)
+    val studioProvidedInfo = StudioProvidedInfo(
+      agpVersion = GradleVersion.parse("7.1.0"),
+      configurationCachingGradlePropertyState = null,
+      isInConfigurationCacheTestFlow = false,
+      enableJetifierPropertyState = true,
+      useAndroidXPropertyState = true,
+      buildRequestHolder = BuildRequestHolder(builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build())
+    )
+    val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
+
+    val analyzer = JetifierUsageAnalyzer()
+    analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
+
+    Truth.assertThat(analyzer.result).isEqualTo(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired))
   }
 }

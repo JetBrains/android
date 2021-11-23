@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.SdkConstants
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.ide.common.attribution.CheckJetifierResult
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -30,16 +31,21 @@ fun checkJetifierResultFile(buildRequest: GradleBuildInvoker.Request): File = Fi
   "checkJetifierResult.json"
 )
 
+/** Minimal AGP version that supports running checkJetifier task. */
+private val minAGPVersion = GradleVersion.parse("7.1.0-beta01")
+
 class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostBuildProcessAnalyzer {
   private var enableJetifierFlagState: Boolean? = null
   private var useAndroidXFlagState: Boolean? = null
+  private var shouldAnalyzerRun: Boolean = false
   private var checkJetifierResult: CheckJetifierResult? = null
   private var isCheckJetifierBuild: Boolean = false
   private var lastCheckJetifierBuildTimestamp: Long? = null
 
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
-    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return
+    shouldAnalyzerRun = shouldAnalyzerRun(studioProvidedInfo.agpVersion)
+    if (!shouldAnalyzerRun) return
     enableJetifierFlagState = studioProvidedInfo.enableJetifierPropertyState
     useAndroidXFlagState = studioProvidedInfo.useAndroidXPropertyState
 
@@ -53,7 +59,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {
-    if (!StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get()) return JetifierUsageAnalyzerResult(AnalyzerNotRun, lastCheckJetifierBuildTimestamp, false)
+    if (!shouldAnalyzerRun) return JetifierUsageAnalyzerResult(AnalyzerNotRun, lastCheckJetifierBuildTimestamp, false)
     if (enableJetifierFlagState == true && useAndroidXFlagState == true) {
       return checkJetifierResult?.let {
         if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
@@ -67,8 +73,14 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
     // Leave checkJetifierResult and lastCheckJetifierBuildTimestamp for future reports to not load it on every build.
     enableJetifierFlagState = null
     useAndroidXFlagState = null
+    shouldAnalyzerRun = false
     isCheckJetifierBuild = false
   }
+
+}
+
+private fun shouldAnalyzerRun(currentAgpVersion: GradleVersion?): Boolean {
+  return StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get() && currentAgpVersion != null && currentAgpVersion >= minAGPVersion
 }
 
 data class JetifierUsageAnalyzerResult(
