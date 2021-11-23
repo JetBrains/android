@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -33,7 +34,7 @@ class LogcatFilterSyntaxHighlighterTest {
 
   @Test
   fun getTokenHighlights() {
-    for (token in listOf(KEY, KVALUE, PROJECT_APP)) {
+    for (token in listOf(KEY, KVALUE, PROJECT_APP, VALUE)) {
       assertThat(LogcatFilterSyntaxHighlighter().getTokenHighlights(token)).isNotEmpty()
     }
   }

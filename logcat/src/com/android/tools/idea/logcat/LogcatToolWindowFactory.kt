@@ -36,4 +36,3 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
     LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState))
 }
-

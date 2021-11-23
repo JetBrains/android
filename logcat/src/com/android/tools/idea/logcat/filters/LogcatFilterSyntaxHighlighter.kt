@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexerAdapter
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
@@ -32,8 +33,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 
-private enum class LogcatFilterTextAttributes(fallback: TextAttributesKey) {
-  TERM(DefaultLanguageHighlighterColors.KEYWORD),
+internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey) {
+  KEY(DefaultLanguageHighlighterColors.KEYWORD),
+  KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
+  VALUE(HighlighterColors.TEXT),
+  PROJECT_APP(DefaultLanguageHighlighterColors.KEYWORD),
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   ;
 
@@ -48,7 +52,10 @@ internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = LogcatFilterLexerAdapter()
 
   override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> = when (tokenType) {
-    KEY, KVALUE, PROJECT_APP -> LogcatFilterTextAttributes.TERM.keys
+    KEY -> LogcatFilterTextAttributes.KEY.keys
+    KVALUE -> LogcatFilterTextAttributes.KVALUE.keys
+    PROJECT_APP -> LogcatFilterTextAttributes.PROJECT_APP.keys
+    VALUE -> LogcatFilterTextAttributes.VALUE.keys
     TokenType.BAD_CHARACTER -> LogcatFilterTextAttributes.BAD_CHARACTER.keys
     else -> EMPTY_ARRAY
   }
