@@ -50,7 +50,6 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
         isCheckJetifierBuild = true
       }
     }
-    // TODO (b/194299215): need to copy to IJ data folder, load from there if  missing here, delete from data folder if jetifier is off.
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {

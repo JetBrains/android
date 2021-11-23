@@ -214,7 +214,4 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
       expectedProjectStatus = JetifierCanBeRemoved
     )
   }
-
-  //TODO (b/194299215): Test result is preserved in data folder and loaded from data folder after restart
-
 }
