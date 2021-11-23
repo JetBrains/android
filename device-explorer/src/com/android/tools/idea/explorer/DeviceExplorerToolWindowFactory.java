@@ -64,30 +64,8 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     DeviceExplorerModel model = new DeviceExplorerModel();
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
-    DeviceExplorerController.FileOpener fileOpener = new DeviceExplorerController.FileOpener() {
-      @Override
-      public void openFile(@NotNull Path localPath) {
-        // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
-        ApplicationManager.getApplication().invokeLater(() -> {
-          // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
-          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-          OpenFileAction.openFile(localPath.toString(), project);
-        }, project.getDisposed());
-      }
-
-      @Override
-      public void openFile(@NotNull VirtualFile virtualFile) {
-        // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
-        ApplicationManager.getApplication().invokeLater(() -> {
-          // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
-          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-          OpenFileAction.openFile(virtualFile, project);
-        }, project.getDisposed());
-      }
-    };
-
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, adbService, fileManager, fileOpener, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, fileManager::openFile, edtExecutor, taskExecutor);
 
     controller.setup();
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.DeviceExplorerFileManager
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DownloadProgress
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
@@ -58,6 +58,17 @@ interface DeviceExplorerFileManager {
    * The relative path of the entry is resolved against `destinationPath`.
    */
   fun getPathForEntry(entry: DeviceFileEntry, destinationPath: Path): Path
+
+  /**
+   * Opens a previously downloaded file and gives focus to the open component.
+   * If the file contents is not recognized, the implementation may open a dialog box asking the user to pick the best editor type.
+   *
+   *  * Completes with a [RuntimeException] if the file can not be opened.
+   *  * Completes with a [java.util.concurrent.CancellationException] if the user cancels
+   * the 'choose editor type' dialog.
+   *
+   */
+  fun openFile(localPath: Path): ListenableFuture<Void>
 
   companion object {
     fun getInstance(project: Project): DeviceExplorerFileManager {

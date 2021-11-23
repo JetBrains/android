@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transformAsync
+import com.android.tools.idea.explorer.DeviceExplorerFilesUtils.findFile
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DownloadProgress
@@ -28,15 +29,16 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.TransactionGuardImpl
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileTypes.ex.FileTypeChooser
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.PathUtilRt
@@ -46,7 +48,9 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Executor
+
 
 /**
  * Abstraction over the application logic of the Device Explorer UI
@@ -59,18 +63,12 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
 ) : DeviceExplorerFileManager {
   private val LOGGER = thisLogger()
 
+  private val myTemporaryEditorFiles = mutableListOf<VirtualFile>()
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
   private val myTaskExecutor = FutureCallbackExecutor(taskExecutor)
 
   init {
-    myProject.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-        if (VfsUtilCore.isAncestor(defaultDownloadPathSupplier().toFile(), VfsUtilCore.virtualToIoFile(file), true)) {
-          val localPath = Paths.get(file.path)
-          deleteTemporaryFile(localPath)
-        }
-      }
-    })
+    myProject.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorManagerAdapter())
   }
 
   /** Service constructor */
@@ -209,6 +207,30 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
       Files.deleteIfExists(localPath)
     } catch (e: IOException) {
       LOGGER.warn("Error deleting device file from local file system \"$localPath\"", e)
+    }
+  }
+
+  override fun openFile(localPath: Path): ListenableFuture<Void> {
+    return openFileInEditorWorker(localPath)
+  }
+
+  private fun openFileInEditorWorker(localPath: Path): ListenableFuture<Void> {
+    val futureFile = findFile(myProject, myEdtExecutor, localPath)
+    return myEdtExecutor.transform(futureFile) { file: VirtualFile ->
+      FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject) ?: throw CancellationException("Operation cancelled by user")
+      OpenFileAction.openFile(file, myProject)
+      myTemporaryEditorFiles.add(file)
+      null
+    }
+  }
+
+  private inner class MyFileEditorManagerAdapter : FileEditorManagerListener {
+    override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+      if (myTemporaryEditorFiles.contains(file)) {
+        myTemporaryEditorFiles.remove(file)
+        val localPath = Paths.get(file.path)
+        deleteTemporaryFile(localPath)
+      }
     }
   }
 }
