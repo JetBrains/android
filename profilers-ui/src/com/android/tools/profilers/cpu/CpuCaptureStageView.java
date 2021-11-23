@@ -431,12 +431,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     updateTrackGroupList();
 
     // Update selection range
-    CaptureNodeAnalysisModel firstActiveNode = getStage().getMultiSelectionModel().getFirstActiveSelectionItem(CaptureNodeAnalysisModel.class);
-    if (firstActiveNode == null) {
+    Object selection = getStage().getMultiSelectionModel().getActiveSelectionKey();
+    if (selection == null) {
       getStage().getTimeline().getSelectionRange().clear();
-    }
-    else {
-      getStage().getTimeline().getSelectionRange().set(firstActiveNode.getNodeRange());
+    } else if (selection instanceof CaptureNode) {
+      getStage().getTimeline().getSelectionRange().set(((CaptureNode)selection).getStart(), ((CaptureNode)selection).getEnd());
     }
 
     // Show/hide "Deselect All" label.

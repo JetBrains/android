@@ -102,7 +102,7 @@ class CpuThreadTrackRendererTest {
     // Verify trace event chart selection is updated.
     val traceEventChart = component.components[1] as HTreeChart<CaptureNode>
     assertThat(traceEventChart.selectedNode).isNull()
-    multiSelectionModel.setSelection(Unit, setOf(CaptureNodeAnalysisModel(captureNode, mockCapture)))
+    multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, mockCapture)))
     assertThat(traceEventChart.selectedNode).isSameAs(captureNode)
     multiSelectionModel.clearSelection()
     assertThat(traceEventChart.selectedNode).isNull()

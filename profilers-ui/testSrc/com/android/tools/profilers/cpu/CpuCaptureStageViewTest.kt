@@ -236,7 +236,7 @@ class CpuCaptureStageViewTest {
     captureNode.endGlobal = 10
 
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
-    stage.multiSelectionModel.setSelection(Unit, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
 
@@ -255,7 +255,7 @@ class CpuCaptureStageViewTest {
 
     // Label should be visible when selection changes.
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
-    stage.multiSelectionModel.setSelection(Unit, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.

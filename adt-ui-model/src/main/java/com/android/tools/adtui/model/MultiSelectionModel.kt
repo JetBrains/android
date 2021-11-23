@@ -26,8 +26,6 @@ class MultiSelectionModel<S> : AspectModel<MultiSelectionModel.Aspect>() {
   val activeSelectionIndex get() = currentSelections.keys.indexOf(activeSelectionKey)
   val selections: List<Entry<S>> get() = currentSelections.values.toList()
 
-  fun<T: S> getFirstActiveSelectionItem(c: Class<T>): T? = currentSelections[activeSelectionKey]?.value?.firstOrNull(c::isInstance) as T?
-
   fun setSelection(key: Any, selections: Set<S>) = when {
     selections.isEmpty() -> removeSelection(key)
     selections != currentSelections[key]?.value -> {

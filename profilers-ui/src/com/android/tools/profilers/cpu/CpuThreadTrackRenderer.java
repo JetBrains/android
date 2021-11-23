@@ -79,11 +79,15 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       myProfilersView.getStudioProfilers().getIdeServices().getFeatureConfig().isPerformanceMonitoringEnabled());
     MultiSelectionModel<CpuAnalyzable<?>> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, () -> {
-      CaptureNodeAnalysisModel firstActiveNode = multiSelectionModel.getFirstActiveSelectionItem(CaptureNodeAnalysisModel.class);
-      // If a trace event is selected, possibly in another thread track,
-      // update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
-      // If no trace event is selected, reset all tracks' selection so they render the trace events in their default state.
-      traceEventChart.setSelectedNode(firstActiveNode != null ? firstActiveNode.getNode() : null);
+      Object selection = multiSelectionModel.getActiveSelectionKey();
+      if (selection == null) {
+        // If no trace event is selected, reset all tracks' selection so they render the trace events in their default state.
+        traceEventChart.setSelectedNode(null);
+      } else if (selection instanceof CaptureNode) {
+        // If a trace event is selected, possibly in another thread track,
+        // update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
+        traceEventChart.setSelectedNode((CaptureNode)selection);
+      }
     });
 
     StateChart<ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
@@ -136,7 +140,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             // Trace events only support single-selection.
             if (node != null) {
               multiSelectionModel.setSelection(
-                node.getData(),
+                node,
                 Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
             } else {
               multiSelectionModel.deselect();
