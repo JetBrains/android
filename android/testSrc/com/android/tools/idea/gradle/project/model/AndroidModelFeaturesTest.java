@@ -31,7 +31,6 @@ public class AndroidModelFeaturesTest {
   public void withoutPluginVersion() {
     AndroidModelFeatures features = new AndroidModelFeatures(null);
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
   }
 
@@ -41,7 +40,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
   }
 
@@ -51,7 +49,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
   }
 
@@ -61,7 +58,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
   }
 
@@ -71,7 +67,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
   }
 
@@ -81,7 +76,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertFalse(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
-    assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertTrue(features.isBuildOutputFileSupported());
   }
 

@@ -52,8 +52,4 @@ public class AndroidModelFeatures {
   public boolean shouldExportDependencies() {
     return false;
   }
-
-  public boolean isVfsRefreshAfterBuildRequired() {
-    return false;
-  }
 }
