@@ -670,6 +670,7 @@ private data class ApkProviderTest(
 
       val apks = runCatching { apkProvider.getApks(device) }
       expect.that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())
+      apks.getOrNull()?.flatMap { it.files }?.forEach { expect.that(it.apkFile.exists()).named("${it.apkFile} exists").isTrue() }
     }
   }
 }
