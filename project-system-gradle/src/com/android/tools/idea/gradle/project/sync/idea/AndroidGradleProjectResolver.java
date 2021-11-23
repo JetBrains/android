@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt.ideA
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueCheckerKt.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
-import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionIssueCheckerKt.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.preserveKotlinUserDataInDataNodes;
 import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
@@ -39,10 +38,8 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_H
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
@@ -72,7 +69,6 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
@@ -248,11 +244,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
-    if (androidModels != null) {
-      String modelVersionString = androidModels.getAndroidProject().getAgpVersion();
-      validateModelVersion(modelVersionString);
-    }
-
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
     if (moduleDataNode == null) {
       return null;
@@ -326,28 +317,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
           moduleData.setTargetBytecodeVersion(externalSourceSet.getTargetCompatibility());
         }
       }
-    }
-  }
-
-  private void validateModelVersion(@NotNull String modelVersionString) {
-    GradleVersion modelVersion = !isNullOrEmpty(modelVersionString)
-                                 ? GradleVersion.tryParseAndroidGradlePluginVersion(modelVersionString)
-                                 : null;
-    boolean result = modelVersion != null && modelVersion.compareTo(MINIMUM_SUPPORTED_VERSION) >= 0;
-    Project project = getProject();
-    if (!result) {
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
-      // @formatter:off
-      event.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
-           .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
-           .setGradleVersion(modelVersionString);
-      // @formatter:on
-      UsageTrackerUtils.withProjectId(event, project);
-      UsageTracker.log(event);
-
-      String msg = getUnsupportedModelVersionErrorMsg(modelVersion);
-      throw new IllegalStateException(msg);
     }
   }
 
@@ -1008,27 +977,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private static boolean isUsingUnsupportedGradleVersion(@Nullable String errorMessage) {
     return "org.gradle.api.artifacts.result.ResolvedComponentResult".equals(errorMessage) ||
            "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(errorMessage);
-  }
-
-  @NotNull
-  private static String getUnsupportedModelVersionErrorMsg(@Nullable GradleVersion modelVersion) {
-    StringBuilder builder = new StringBuilder();
-    builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
-    String recommendedVersion = String.format("The recommended version is %1$s.", LatestKnownPluginVersionProvider.INSTANCE.get());
-    if (modelVersion != null) {
-      builder.append(String.format(" (%1$s).", modelVersion.toString())).append(" ").append(recommendedVersion);
-      if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
-        // @formatter:off
-        builder.append("\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
-               .append(READ_MIGRATION_GUIDE_MSG)
-               .append(" to learn how to update your project.");
-        // @formatter:on
-      }
-    }
-    else {
-      builder.append(". ").append(recommendedVersion);
-    }
-    return builder.toString();
   }
 
   @NotNull
