@@ -252,7 +252,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     IdeAndroidModels androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels.class);
     if (androidModels != null) {
-      String modelVersionString = androidModels.getAndroidProject().getModelVersion();
+      String modelVersionString = androidModels.getAndroidProject().getAgpVersion();
       validateModelVersion(modelVersionString);
     }
 
@@ -423,7 +423,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       gradleModel =
         createGradleModuleModel(moduleName,
                                 gradleModule,
-                                androidModels == null ? null : androidModels.getAndroidProject().getModelVersion(),
+                                androidModels == null ? null : androidModels.getAndroidProject().getAgpVersion(),
                                 kaptGradleModel,
                                 buildScriptClasspathModel,
                                 gradlePluginList);
@@ -529,7 +529,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                 rootModulePath,
                                 ideModels.getSelectedVariantName(),
                                 selectedAbiName,
-                                new V2NdkModel(ideModels.getAndroidProject().getModelVersion(), ideModels.getV2NativeModule()));
+                                new V2NdkModel(ideModels.getAndroidProject().getAgpVersion(), ideModels.getV2NativeModule()));
     }
     // V2 model not available, fallback to V1 model.
     if (ideModels.getV1NativeProject() != null) {

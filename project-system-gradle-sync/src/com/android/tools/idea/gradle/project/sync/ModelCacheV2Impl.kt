@@ -1201,7 +1201,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     val agpFlags: IdeAndroidGradlePluginProjectFlags = androidGradlePluginProjectFlagsFrom(project.flags)
 
     return IdeAndroidProjectImpl(
-      modelVersion = modelsVersions.agp,
+      agpVersion = modelsVersions.agp,
       name = basicProject.path,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,

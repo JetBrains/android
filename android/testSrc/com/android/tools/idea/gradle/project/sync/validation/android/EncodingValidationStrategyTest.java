@@ -58,7 +58,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
     String modelEncoding = "UTF-8";
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    when(androidModel.getModelVersion()).thenReturn(GradleVersion.parse("1.2.0"));
+    when(androidModel.getAgpVersion()).thenReturn(GradleVersion.parse("1.2.0"));
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);

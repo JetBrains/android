@@ -81,7 +81,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val model = AndroidModuleModel.get(module) ?: return null
-    val version = model.modelVersion ?: return null
+    val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {
@@ -104,7 +104,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun getSeverityOverrides(module: Module): Map<String, Int>? {
     val model = AndroidModuleModel.get(module) ?: return null
-    val version = model.modelVersion ?: return null
+    val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
       try {

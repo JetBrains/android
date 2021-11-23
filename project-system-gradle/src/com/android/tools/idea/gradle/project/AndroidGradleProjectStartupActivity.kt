@@ -268,7 +268,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     fun AndroidModuleModel.validate() =
     // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
       // depend on the state of the project information.
-      !shouldForcePluginUpgrade(project, modelVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+      !shouldForcePluginUpgrade(project, agpVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
 
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(

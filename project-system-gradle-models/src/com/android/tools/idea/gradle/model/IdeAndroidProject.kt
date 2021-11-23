@@ -24,7 +24,7 @@ interface IdeAndroidProject : Serializable {
    *
    * @return a string containing the model version.
    */
-  val modelVersion: String
+  val agpVersion: String
 
   /**
    * Returns the name of the module.

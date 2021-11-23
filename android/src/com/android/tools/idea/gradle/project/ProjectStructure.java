@@ -188,7 +188,7 @@ public class ProjectStructure {
     }
 
     void add(@NotNull String gradlePath, @NotNull AndroidModuleModel androidModel) {
-      GradleVersion modelVersion = androidModel.getModelVersion();
+      GradleVersion modelVersion = androidModel.getAgpVersion();
       if (modelVersion != null) {
         add(gradlePath, modelVersion);
       }

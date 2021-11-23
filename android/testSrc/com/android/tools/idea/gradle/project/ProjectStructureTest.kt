@@ -37,8 +37,8 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder(":"),
-      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
-      androidModule(":instantApp", "3.1", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":app", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
+      androidModule(":instantApp", "3.1.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
       androidModule(":androidLib", "2.3.1", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":javaLib")
     )
@@ -61,10 +61,10 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
-      androidModule(":instantApp", "3.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
-      androidModule(":androidLib", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
-      androidModule(":leaf1", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+      androidModule(":app", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
+      androidModule(":instantApp", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+      androidModule(":leaf1", "3.0.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":leaf2"),
       javaModule(":leaf3", buildable = false)
     )
@@ -81,9 +81,9 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.2", IdeAndroidProjectType.PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
-      androidModule(":feature1", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
-      androidModule(":feature2", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
+      androidModule(":app", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
+      androidModule(":feature1", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
+      androidModule(":feature2", "3.2.0", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
 
     val projectStructure = ProjectStructure.getInstance(project)

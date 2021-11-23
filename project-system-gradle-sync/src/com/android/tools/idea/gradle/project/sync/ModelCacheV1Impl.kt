@@ -56,7 +56,6 @@ import com.android.builder.model.Variant
 import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
-import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
@@ -1136,7 +1135,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         createIdeAndroidGradlePluginProjectFlagsImpl()
       }
     return IdeAndroidProjectImpl(
-      modelVersion = project.modelVersion,
+      agpVersion = project.modelVersion,
       name = project.name,
       defaultConfig = defaultConfigCopy,
       buildTypes = buildTypesCopy,

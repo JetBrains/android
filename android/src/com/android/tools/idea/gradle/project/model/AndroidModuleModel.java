@@ -28,6 +28,10 @@ import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.build.GenericBuiltArtifacts;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.projectmodel.DynamicResourceValue;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.model.IdeAaptOptions;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
@@ -42,10 +46,6 @@ import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.projectmodel.DynamicResourceValue;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.util.GenericBuiltArtifactsWithTimestamp;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
@@ -98,7 +98,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private final Map<String, IdeVariant> myCachedVariantsByName;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
-  @Nullable private transient GradleVersion myModelVersion;
+  @NotNull private transient GradleVersion myAgpVersion;
   @NotNull private String mySelectedVariantName;
 
   @Nullable private Boolean myOverridesManifestPackage;
@@ -173,8 +173,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myCachedVariantsByName = cachedVariantsByName;
     mySelectedVariantName = findVariantToSelect(variantName);
 
-    parseAndSetModelVersion();
-    myFeatures = new AndroidModelFeatures(myModelVersion);
+    myAgpVersion = GradleVersion.parseAndroidGradlePluginVersion(myAndroidProject.getAgpVersion()); // Fail sync if the reported version cannot be parsed.
+    myFeatures = new AndroidModelFeatures(myAgpVersion);
     myBuildTypesByName = myAndroidProject.getBuildTypes().stream().collect(toMap(it -> it.getBuildType().getName(), it -> it));
     myProductFlavorsByName = myAndroidProject.getProductFlavors().stream().collect(toMap(it -> it.getProductFlavor().getName(), it -> it));
 
@@ -216,9 +216,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return myFeatures;
   }
 
-  @Nullable
-  public GradleVersion getModelVersion() {
-    return myModelVersion;
+  @NotNull
+  public GradleVersion getAgpVersion() {
+    return myAgpVersion;
   }
 
   @NotNull
@@ -579,11 +579,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
-  private void parseAndSetModelVersion() {
-    // Old plugin versions do not return model version.
-    myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
-  }
-
   @Override
   @NotNull
   public ClassJarProvider getClassJarProvider() {
@@ -612,7 +607,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   @Override
   public Set<Desugaring> getDesugaring() {
-    GradleVersion version = getModelVersion();
+    GradleVersion version = getAgpVersion();
     if (version == null) {
       return Desugaring.NONE;
     }

@@ -589,7 +589,7 @@ class LintModelFactory : LintModelModuleLoader {
     }
 
     private fun getGradleVersion(project: IdeAndroidProject): GradleVersion? {
-        return GradleVersion.tryParse(project.modelVersion)
+        return GradleVersion.tryParse(project.agpVersion)
     }
 
     private fun getNamespacingMode(project: IdeAndroidProject): LintModelNamespacingMode {

@@ -122,7 +122,7 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Andr
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   object {
     fun dump(ideAndroidModel: IdeAndroidProject) {
-      prop("ModelVersion") { ideAndroidModel.modelVersion.replaceKnownPatterns() }
+      prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
       prop("CompileTarget") { ideAndroidModel.compileTarget.replaceCurrentSdkVersion() }
       prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }

@@ -28,7 +28,7 @@ val MIN_PNG_GENERATION_VERSION = GradleVersion(1, 4, 0)
  * Returns the gradle plugin version for the given module or null if the model is unknown
  */
 fun Module.getGradleVersion(): GradleVersion? {
-  return AndroidModuleModel.get(this)?.let { GradleVersion.parse(it.androidProject.modelVersion) }
+  return AndroidModuleModel.get(this)?.let { GradleVersion.parse(it.androidProject.agpVersion) }
 }
 
 fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean, ignoreQualifier: Boolean = true): Boolean {

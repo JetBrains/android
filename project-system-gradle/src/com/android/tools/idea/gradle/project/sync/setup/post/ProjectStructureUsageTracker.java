@@ -166,7 +166,7 @@ public class ProjectStructureUsageTracker {
       }
       GradleBuildDetails.Builder gradleBuild = GradleBuildDetails.newBuilder();
       // @formatter:off
-      gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.getModelVersion())
+      gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.getAgpVersion())
                                  .setGradleVersion(gradleVersion.toString())
                                  .addAllLibraries(gradleLibraries)
                                  .addModules(gradleModule)

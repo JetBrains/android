@@ -66,7 +66,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.utils.BuildScriptUtil;
@@ -90,7 +89,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.StudioIcons;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -476,7 +474,7 @@ public final class GradleUtil {
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        String modelVersion = androidProject.getModelVersion();
+        String modelVersion = androidProject.getAgpVersion();
         if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
@@ -504,7 +502,7 @@ public final class GradleUtil {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       IdeAndroidProject androidProject = androidModel.getAndroidProject();
-      return GradleVersion.tryParse(androidProject.getModelVersion());
+      return GradleVersion.tryParse(androidProject.getAgpVersion());
     }
 
     return null;

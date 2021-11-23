@@ -53,7 +53,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
 
   @Override
   void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    GradleVersion modelVersion = (androidModel.getModelVersion());
+    GradleVersion modelVersion = (androidModel.getAgpVersion());
     if (modelVersion != null) {
       boolean isOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(myOneDotTwoPluginVersion) >= 0;
 

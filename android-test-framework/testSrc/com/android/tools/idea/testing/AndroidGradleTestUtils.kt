@@ -851,7 +851,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
   val buildTypes = listOfNotNull(debugBuildType, releaseBuildType)
   return IdeAndroidProjectImpl(
-    modelVersion = agpVersion,
+    agpVersion = agpVersion,
     name = projectName,
     projectType = projectType,
     defaultConfig = defaultConfig,
