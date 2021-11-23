@@ -59,10 +59,15 @@ public class SyncNlModel extends NlModel {
   /**
    * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
    */
+  @Deprecated
   public void setDesignSurface(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
+  /**
+   * FIXME(b/194482298): Needs to be removed after refactor. {@link NlModel} shouldn't have any information about {@link DesignSurface}.
+   */
+  @Deprecated
   @NotNull
   public DesignSurface getSurface() {
     return mySurface;

@@ -40,7 +40,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
   public void testCommit() {
     SyncNlModel model = buildModel();
     ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model.getSurface(), model);
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 

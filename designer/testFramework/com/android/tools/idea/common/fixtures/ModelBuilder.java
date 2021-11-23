@@ -20,38 +20,23 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.DesignSurfaceTestUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.InteractionManager;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -61,15 +46,13 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import java.awt.Dimension;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -83,11 +66,11 @@ public class ModelBuilder {
   private final AndroidFacet myFacet;
   private final CodeInsightTestFixture myFixture;
   private String myName;
-  private final Function<? super SyncNlModel, ? extends SceneManager> myManagerFactory;
+  private final Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> myManagerFactory;
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
-  private final Function<DesignSurface, InteractionHandler> myInteractionProviderCreator;
+  private final Function1<DesignSurface, InteractionHandler> myInteractionHandlerCreator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
   private String myModelDisplayName;
@@ -96,11 +79,11 @@ public class ModelBuilder {
                       @NotNull CodeInsightTestFixture fixture,
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
-                      @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
+                      @NotNull Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
                       @NotNull Class<? extends DesignSurface> surfaceClass,
-                      @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
+                      @NotNull Function1<DesignSurface, InteractionHandler> interactionHandlerCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
@@ -111,7 +94,7 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
-    myInteractionProviderCreator = interactionProviderCreator;
+    myInteractionHandlerCreator = interactionHandlerCreator;
     myComponentRegistrar = componentRegistrar;
   }
 
@@ -164,6 +147,23 @@ public class ModelBuilder {
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
+    final SyncNlModel model = buildWithoutSurface();
+    return WriteAction.compute(() -> {
+      // TODO(b/194482298): Refactor below functions, to create DesignSurface first then add the NlModel.
+      DesignSurface surface = DesignSurfaceTestUtil.createMockSurfaceWithModel(project, project, myManagerFactory,
+                                                                               mySurfaceClass, myInteractionHandlerCreator, model);
+      model.setDesignSurface(surface);
+      return model;
+    });
+  }
+
+  /**
+   * FIXME(b/194482298): Do not create DesignSurface when building the SyncNlModel. This is a temp function for refactoring purpose.
+   */
+  @Deprecated
+  public SyncNlModel buildWithoutSurface() {
+    // Creates a design-time version of a model
+    final Project project = myFacet.getModule().getProject();
     return WriteAction.compute(() -> {
       String xml = toXml();
       try {
@@ -191,37 +191,11 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(project, mySurfaceClass, myInteractionProviderCreator);
       SyncNlModel model =
         SyncNlModel.create(myFixture.getProject(), myComponentRegistrar, myModelDisplayName, null, myFacet, xmlFile.getVirtualFile());
-      model.setDesignSurface(surface);
-      when(surface.getModel()).thenReturn(model);
-      when(surface.getModels()).thenReturn(ImmutableList.of(model));
-      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
-      when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
-
-      // TODO: NlDesignSurface should not be referenced from here.
-      // TODO: Do we need a special version of ModelBuilder for Nele?
-      if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
-        when(surface.getActionHandlerProvider()).thenReturn(NlDesignSurface::defaultActionHandlerProvider);
-      }
-
-      SceneManager sceneManager = myManagerFactory.apply(model);
-      when(surface.getSceneManager()).thenReturn(sceneManager);
-      when(surface.getSceneManagers()).thenReturn(ImmutableList.of(sceneManager));
-      when(surface.getSceneViewAtOrPrimary(anyInt(), anyInt())).thenCallRealMethod();
-      when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
-      Scene scene = sceneManager.getScene();
-      sceneManager.update();
-      when(surface.getScene()).thenReturn(scene);
-      when(surface.getProject()).thenReturn(project);
-      when(surface.getLayoutType()).thenCallRealMethod();
-      when(surface.canZoomToFit()).thenReturn(true);
-
       return model;
     });
   }
@@ -234,31 +208,6 @@ public class ModelBuilder {
       return root.findFileByRelativePath(relativePath);
     }
     return null;
-  }
-
-  public static DesignSurface createSurface(Disposable disposableParent,
-                                            Class<? extends DesignSurface> surfaceClass,
-                                            Function<DesignSurface, InteractionHandler> interactionProviderCreator) {
-    DesignSurface surface = mock(surfaceClass);
-    Disposer.register(disposableParent, surface);
-    List<DesignSurfaceListener> listeners = new ArrayList<>();
-    when(surface.getData(any())).thenCallRealMethod();
-    when(surface.getLayeredPane()).thenReturn(new JPanel());
-    when(surface.getInteractionPane()).thenReturn(new JPanel());
-    SelectionModel selectionModel = new DefaultSelectionModel();
-    when(surface.getSelectionModel()).thenReturn(selectionModel);
-    when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
-    when(surface.getScale()).thenReturn(0.5);
-    when(surface.getSelectionAsTransferable()).thenCallRealMethod();
-    when(surface.getActionManager()).thenReturn(new TestActionManager(surface));
-    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface, interactionProviderCreator.apply(surface)));
-    if (surface instanceof NlDesignSurface) {
-      when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));
-    }
-    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
-    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
-    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
-    return surface;
   }
 
   /**

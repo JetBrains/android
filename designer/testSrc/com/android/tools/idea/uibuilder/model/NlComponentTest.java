@@ -29,10 +29,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.DesignSurfaceTestUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -330,7 +330,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
+    DesignSurface surface = DesignSurfaceTestUtil.createMockSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
     myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
     ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
@@ -401,7 +401,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n" +
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
+    DesignSurface surface = DesignSurfaceTestUtil.createMockSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
     myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
     ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
@@ -463,7 +463,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
+    DesignSurface surface = DesignSurfaceTestUtil.createMockSurface(getProject(), NlDesignSurface.class, NlInteractionHandler::new);
     myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,null, null, myFacet, xmlFile.getVirtualFile());
     ((SyncNlModel)myModel).setDesignSurface(surface);
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());

@@ -19,8 +19,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
-import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
@@ -41,10 +42,10 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private boolean myIgnoreRenderRequests;
 
-  public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
+  public SyncLayoutlibSceneManager(@NotNull DesignSurface surface, @NotNull NlModel model) {
     super(
       model,
-      model.getSurface(),
+      surface,
       EdtExecutorService.getInstance(),
       d -> Runnable::run,
       new LayoutlibSceneManagerHierarchyProvider(),

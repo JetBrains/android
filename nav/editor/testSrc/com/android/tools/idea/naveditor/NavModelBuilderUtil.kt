@@ -57,8 +57,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.Point
-import java.util.function.BiConsumer
-import java.util.function.Function
 
 @DslMarker
 annotation class NavTestDsl
@@ -76,9 +74,8 @@ object NavModelBuilderUtil {
             f: () -> ComponentDescriptor,
             path: String = "navigation",
             extentSize: Dimension = Dimension(500, 500)): ModelBuilder {
-    val managerFactory = Function<SyncNlModel, SceneManager> { model ->
-      val surface = model.surface as NavDesignSurface
-
+    val managerFactory: (DesignSurface, SyncNlModel) -> SceneManager = { designSurface, model ->
+      val surface = designSurface as NavDesignSurface
       try {
         createIfNecessary(facet.module)
       }
@@ -102,10 +99,8 @@ object NavModelBuilderUtil {
       NavSceneManager(model, surface)
     }
 
-    return ModelBuilder(facet, fixture, name, f(), managerFactory,
-                        BiConsumer<NlModel, NlModel> { model, newModel -> updateHierarchy(model, newModel) }, path,
-                        NavDesignSurface::class.java, Function { NavInteractionHandler(it) },
-                        NavComponentRegistrar )
+    return ModelBuilder(facet, fixture, name, f(), managerFactory, { model, newModel -> updateHierarchy(model, newModel) }, path,
+                        NavDesignSurface::class.java, { NavInteractionHandler(it) }, NavComponentRegistrar )
   }
 
   fun navigation(id: String? = null, label: String? = null, startDestination: String? = null,

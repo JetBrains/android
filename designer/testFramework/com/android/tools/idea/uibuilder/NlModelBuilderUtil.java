@@ -24,6 +24,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
@@ -64,9 +65,9 @@ public class NlModelBuilderUtil {
       fixture,
       name,
       root,
-      (@NotNull SyncNlModel model) -> {
+      (@NotNull DesignSurface surface, @NotNull SyncNlModel model) -> {
         NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model);
-        return new SyncLayoutlibSceneManager(model);
+        return new SyncLayoutlibSceneManager(surface, model);
       },
       (@NotNull NlModel model, @NotNull NlModel newModel) -> NlModelHierarchyUpdater.updateHierarchy(
         AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root), model),

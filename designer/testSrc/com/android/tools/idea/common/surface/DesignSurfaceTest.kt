@@ -17,22 +17,19 @@ package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.RELATIVE_LAYOUT
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import junit.framework.TestCase
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -41,8 +38,6 @@ import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import javax.swing.JComponent
 
 class DesignSurfaceTest : LayoutTestCase() {
 
@@ -60,8 +55,8 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testAddAndRemoveModel() {
-    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
-    val model2 = model("model2.xml", component(CONSTRAINT_LAYOUT.oldName())).build()
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val model2 = model("model2.xml", component(CONSTRAINT_LAYOUT.oldName())).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -82,7 +77,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testAddDuplicatedModel() {
-    val model = model("model.xml", component(RELATIVE_LAYOUT)).build()
+    val model = model("model.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -96,8 +91,8 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testRemoveIllegalModel() {
-    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
-    val model2 = model("model2.xml", component(RELATIVE_LAYOUT)).build()
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val model2 = model("model2.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
     val surface = TestDesignSurface(myModule.project, myModule.project)
 
     assertEquals(0, surface.models.size)
@@ -133,8 +128,8 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
     surface.addModelWithoutRender(model1)
@@ -158,8 +153,8 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
     surface.addModelWithoutRender(model1)
@@ -181,9 +176,9 @@ class DesignSurfaceTest : LayoutTestCase() {
                           .withBounds(0, 0, 1000, 1000)
                           .matchParentWidth()
                           .matchParentHeight())
-    val model1 = builder.build()
-    val model2 = builder.build()
-    val model3 = builder.build()
+    val model1 = builder.buildWithoutSurface()
+    val model2 = builder.buildWithoutSurface()
+    val model3 = builder.buildWithoutSurface()
 
 
     val surface = TestDesignSurface(project, testRootDisposable)
@@ -309,7 +304,7 @@ class TestDesignSurface(project: Project, disposible: Disposable)
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
-  override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
+  override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 

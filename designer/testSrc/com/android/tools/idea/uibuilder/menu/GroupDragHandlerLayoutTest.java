@@ -143,7 +143,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
   private static DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
     SyncNlModel model = (SyncNlModel)menu.getModel();
 
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model.getSurface(), model);
     Scene scene = builder.getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 

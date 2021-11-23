@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.command.WriteCommandAction;
 
@@ -69,7 +70,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .build();
     // @formatter:on
 
-    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<NlComponent> components = Collections.emptyList();

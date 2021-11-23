@@ -62,7 +62,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -129,7 +129,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model.getSurface(), model);
     Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -163,7 +163,7 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
+    Scene scene = new SyncLayoutlibSceneManager(model.getSurface(), model).getScene();
     scene.setAnimated(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT.defaultName());
