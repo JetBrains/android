@@ -78,9 +78,9 @@ class GradleApplicationIdProvider(
     return getApplicationIdFromModelOrManifest(baseAppFacet)
   }
 
-  private fun tryToGetInstantAppApplicationId(): String? {
+  private fun tryToGetInstantAppApplicationId(): String {
     if (androidModel.androidProject.projectType !== PROJECT_TYPE_INSTANTAPP) error("PROJECT_TYPE_INSTANTAPP expected")
-    return InstantApps.findBaseFeature(androidFacet)?.let { AndroidModuleInfo.getInstance(androidFacet).getPackage().nullize() }
+    return getApplicationIdFromModelOrManifest(androidFacet)
   }
 
   override fun getTestPackageName(): String? {
