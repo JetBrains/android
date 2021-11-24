@@ -23,7 +23,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.intellij.debugger.DebuggerManagerEx
-import com.intellij.debugger.DefaultDebugUIEnvironment
+import com.intellij.debugger.DefaultDebugEnvironment
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.debugger.engine.RemoteDebugProcessHandler
 import com.intellij.execution.DefaultExecutionResult
@@ -71,8 +71,8 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
         override fun getRemoteConnection() = remoteConnection
       }
 
-      val debugEnvironment = DefaultDebugUIEnvironment(environment, debugState, remoteConnection, false)
-      val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment.environment)
+      val debugEnvironment = DefaultDebugEnvironment(environment, debugState, remoteConnection, false)
+      val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
                             ?: throw ExecutionException("Could not attach the virtual machine")
 
       val debugSession = XDebuggerManager.getInstance(project).startSession(environment, object : XDebugProcessStarter() {
@@ -119,11 +119,15 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
   }
 }
 
+/**
+ * [processHandler] is handler responsible for monitoring app process on devices. For example [WatchFaceProcessHandler].
+ * [AndroidRemoteDebugProcessHandler] is responsible for monitoring debugger process.
+ */
 class AndroidRemoteDebugProcessHandler(
   project : Project,
   private val console: ConsoleView,
   private val processHandler: AndroidProcessHandlerForDevices
-  ) : RemoteDebugProcessHandler(project, false) {
+) : RemoteDebugProcessHandler(project, false) {
 
   companion object {
     const val CLEAR_DEBUG_APP_COMMAND = "am clear-debug-app"
@@ -136,7 +140,8 @@ class AndroidRemoteDebugProcessHandler(
     processHandler.destroyProcess()
     processHandler.devices.forEach {
       console.printShellCommand(CLEAR_DEBUG_APP_COMMAND)
-      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({false}, console), 5, TimeUnit.SECONDS)
+      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console), 5,
+                             TimeUnit.SECONDS)
     }
   }
 }

@@ -21,18 +21,20 @@ import com.android.ddmlib.MultiLineReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.wearpairing.await
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
-import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
@@ -103,6 +105,7 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
     return ApplicationInstallerImpl(project)
   }
 
+  @VisibleForTesting
   fun getDebugSessionStarter(): DebugSessionStarter {
     return DebugSessionStarter(environment)
   }
@@ -112,6 +115,24 @@ abstract class AndroidWearConfigurationExecutorBase(protected val environment: E
       AndroidBundle.message("android.run.configuration.not.supported",
                             configuration.name)) // There is no test ApkInfo for AndroidWatchFaceConfiguration, thus it should be always single ApkInfo. Only App.
     return apkProvider.getApks(device).single().files.map { it.apkFile.path }
+  }
+
+  private fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView): RunContentDescriptor {
+    return getDebugSessionStarter().attachDebuggerToClient(device, processHandler, console)
+  }
+
+  protected fun createRunContentDescriptor(
+    devices: List<IDevice>,
+    processHandler: AndroidProcessHandlerForDevices,
+    console: ConsoleView
+  ): RunContentDescriptor? {
+    return if (environment.executor.isDebug) {
+      processHandler.startNotify()
+      startDebugger(devices.single(), processHandler, console)
+    }
+    else {
+      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
+    }
   }
 
   open class AndroidLaunchReceiver(private val isCancelledCheck: () -> Boolean,

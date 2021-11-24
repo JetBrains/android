@@ -19,19 +19,16 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Tile
-import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
-import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
@@ -64,16 +61,10 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       console.printShellCommand(command)
       device.executeShellCommand(command, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
     }
-    indicator?.checkCanceled()
-    val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), processHandler, console)
-    }
-    else {
-      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
-    }
-
-    return runContentDescriptor
+    ProgressManager.checkCanceled()
+    return createRunContentDescriptor(devices, processHandler, console)
   }
+
 }
 
 private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,

@@ -24,17 +24,15 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.SHOW_WATCH_FACE
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
-import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
@@ -71,15 +69,8 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       console.printShellCommand(SHOW_WATCH_FACE)
       device.executeShellCommand(SHOW_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)
     }
-    indicator?.checkCanceled()
-    val runContentDescriptor = if (isDebug) {
-      getDebugSessionStarter().attachDebuggerToClient(devices.single(), processHandler, console)
-    }
-    else {
-      invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
-    }
-
-    return runContentDescriptor
+    ProgressManager.checkCanceled()
+    return createRunContentDescriptor(devices, processHandler, console)
   }
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {
