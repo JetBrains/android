@@ -17,5 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
   </component>
 </module>

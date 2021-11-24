@@ -20,6 +20,7 @@ import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWai
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutures;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -40,6 +41,7 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService;
+import com.android.tools.idea.explorer.ui.TreeUtil;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.ClipboardSynchronizer;
@@ -1333,7 +1335,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         return (toSelect, callback) -> {
           List<VirtualFile> files = Stream.of(tempFile)
             .map(x -> new VirtualFileWrapper(x).getVirtualFile())
-            .collect(Collectors.toList());
+            .collect(toList());
           callback.consume(files);
         };
       }
@@ -1352,6 +1354,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
     pumpEventsAndWaitForFuture(futureTreeChanged);
     pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getReportMessageRelatedToNodeTracker().consume());
 
     // Assert
     // One node has been added
@@ -1417,6 +1420,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
     pumpEventsAndWaitForFuture(futureTreeChanged);
     pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getReportMessageRelatedToNodeTracker().consume());
 
     // Assert
     // One node has been added
@@ -1468,7 +1472,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         return (toSelect, callback) -> {
           List<VirtualFile> files = Stream.of(tempFile, tempDirectory)
             .map(x -> new VirtualFileWrapper(x).getVirtualFile())
-            .collect(Collectors.toList());
+            .collect(toList());
           callback.consume(files);
         };
       }
@@ -1487,6 +1491,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
     pumpEventsAndWaitForFuture(futureTreeChanged);
     pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getReportMessageRelatedToNodeTracker().consume());
 
     // Assert
     // Two nodes have been added
@@ -1525,7 +1530,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         }
       })
       .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+      .collect(toList());
 
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
@@ -1538,7 +1543,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         return (toSelect, callback) -> {
           List<VirtualFile> files = tempFiles.stream()
             .map(x -> new VirtualFileWrapper(x).getVirtualFile())
-            .collect(Collectors.toList());
+            .collect(toList());
           callback.consume(files);
         };
       }
@@ -1851,7 +1856,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Check the file system tree is showing the first level of entries of the file system
     pumpEventsAndWaitForFuture(myMockView.getTreeModelChangedTracker().consume());
     pumpEventsAndWaitForFuture(myMockView.getTreeStructureChangedTacker().consume());
-    assertEquals("mock: " + activeDevice.getRoot().getMockEntries() + " rootEntry: " + rootEntry.getChildEntryNodes(),
+    assertEquals("mock: " + activeDevice.getRoot().getMockEntries() + " rootEntry: " + TreeUtil.getChildren(rootEntry).collect(toList()),
                  activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
   }
 
@@ -1891,6 +1896,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Wait for tree node to be expanded
     pumpEventsAndWaitForFuture(futureNodeExpanded);
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
   }
 
   private DeviceExplorerController createController() {
