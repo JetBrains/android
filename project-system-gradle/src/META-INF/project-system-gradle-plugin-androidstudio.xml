@@ -18,4 +18,9 @@
     <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
   </extensions>
+  <actions>
+    <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
+    </action>
+  </actions>
 </idea-plugin>

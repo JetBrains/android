@@ -65,5 +65,11 @@
       </action>
       <add-to-group group-id="Internal.Android" anchor="last"/>
     </group>
+    <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
+    </action>
+    <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.BuildApk" anchor="after"/>
+    </action>
   </actions>
 </idea-plugin>
