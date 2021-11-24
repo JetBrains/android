@@ -98,7 +98,6 @@ class DependencyManagerTest {
 
   @After
   fun tearDown() {
-    //      AndroidModuleInfo.setInstanceForTest(myFacet, null)
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)
     // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
     // tests through IJ)
