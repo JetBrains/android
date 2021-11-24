@@ -370,16 +370,6 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
-  fun testGoogleMapsWearActivity() {
-    checkCreateTemplate("Google Maps Activity", formFactor = FormFactor.Wear)
-  }
-
-  @TemplateCheck
-  fun testGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear, avoidModifiedModuleName = true)
-  }
-
-  @TemplateCheck
   fun testNewTvActivity() {
     checkCreateTemplate("Android TV Blank Activity")
   }

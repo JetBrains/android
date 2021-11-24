@@ -190,8 +190,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" ->
-    if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
