@@ -85,6 +85,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -205,7 +206,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
     JEditorPane details = new JEditorPane();
     details.setMargin(JBUI.insets(5));
-    details.setEditorKit(UIUtil.getHTMLEditorKit());
+    details.setEditorKit(HTMLEditorKitBuilder.simple());
     details.setEditable(false);
     details.setFont(myDefaultFont);
     details.setBackground(myBackgroundColor);

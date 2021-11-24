@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -29,6 +29,7 @@ import javax.swing.JEditorPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +60,7 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
 
   public NavigationComponent() {
     setEditable(false);
-    setEditorKit(UIUtil.getHTMLEditorKit());
+    setEditorKit(HTMLEditorKitBuilder.simple());
     putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
 
     // Disable links decoration.

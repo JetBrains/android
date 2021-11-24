@@ -55,6 +55,7 @@ import com.intellij.ui.tabs.TabsListener
 import com.intellij.ui.tabs.impl.JBEditorTabsBorder
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -524,7 +525,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
 
       init {
         margin = JBUI.insets(5)
-        editorKit = UIUtil.getHTMLEditorKit()
+        editorKit = HTMLEditorKitBuilder().build()
         isEditable = false
         text = createNoPropertiesPanel()
         // If the caret updates, every time we change the animated properties panel content, the panel will be scrolled to the end.

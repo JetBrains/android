@@ -22,6 +22,7 @@ import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -40,7 +41,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
 
   init {
     val text = JEditorPane()
-    text.editorKit = UIUtil.getHTMLEditorKit()
+    text.editorKit = HTMLEditorKitBuilder().build()
     text.isEditable = false
     text.isFocusable = false
     text.text = createText()

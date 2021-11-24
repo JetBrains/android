@@ -22,7 +22,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
@@ -30,6 +29,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +65,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     myKeySdkInstallLocation = keySdkInstallLocation;
     myKeyJdkLocation = keyJdkLocation;
     myPackagesProvider = packagesProvider;
-    mySummaryText.setEditorKit(UIUtil.getHTMLEditorKit());
+    mySummaryText.setEditorKit(HTMLEditorKitBuilder.simple());
     // There is no need to add whitespace on the top
     mySummaryText.setBorder(JBUI.Borders.empty(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                WizardConstants.STUDIO_WIZARD_INSET_SIZE));
