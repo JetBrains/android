@@ -48,7 +48,17 @@ public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> implem
     }
   }
 
-  public void addSplitter(@NotNull DetailsPanel detailsPanel) {
+  void viewDetails(@NotNull DetailsPanel detailsPanel) {
+    if (mySplitter != null) {
+      assert myDetailsPanel != null;
+      Disposer.dispose(myDetailsPanel);
+
+      myDetailsPanel = detailsPanel;
+      mySplitter.setSecondComponent(detailsPanel);
+
+      return;
+    }
+
     myDetailsPanel = detailsPanel;
     remove(myScrollPane);
 

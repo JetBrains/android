@@ -40,7 +40,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
     DetailsPanel panel = newDetailsPanel();
     panel.getCloseButton().addActionListener(event -> myDetailsPanelPanel.removeSplitter());
 
-    myDetailsPanelPanel.addSplitter(panel);
+    myDetailsPanelPanel.viewDetails(panel);
   }
 
   protected abstract @NotNull DetailsPanel newDetailsPanel();

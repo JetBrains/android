@@ -38,12 +38,30 @@ public final class DetailsPanelPanel2Test {
   }
 
   @Test
-  public void addSplitter() {
+  public void viewDetailsSplitterIsntNull() {
+    // Arrange
+    myDetailsPanelPanel.viewDetails(new DetailsPanel("Device 1"));
+    DetailsPanel detailsPanel = new DetailsPanel("Device 2");
+
+    // Act
+    myDetailsPanelPanel.viewDetails(detailsPanel);
+
+    // Assert
+    Splitter splitter = myDetailsPanelPanel.getSplitter().orElseThrow(AssertionError::new);
+
+    assertEquals(myScrollPane, splitter.getFirstComponent());
+    assertEquals(detailsPanel, splitter.getSecondComponent());
+
+    assertArrayEquals(new Object[]{splitter}, myDetailsPanelPanel.getComponents());
+  }
+
+  @Test
+  public void viewDetails() {
     // Arrange
     DetailsPanel detailsPanel = new DetailsPanel("Device");
 
     // Act
-    myDetailsPanelPanel.addSplitter(detailsPanel);
+    myDetailsPanelPanel.viewDetails(detailsPanel);
 
     // Assert
     Splitter splitter = myDetailsPanelPanel.getSplitter().orElseThrow(AssertionError::new);
@@ -57,7 +75,7 @@ public final class DetailsPanelPanel2Test {
   @Test
   public void removeSplitter() {
     // Arrange
-    myDetailsPanelPanel.addSplitter(new DetailsPanel("Device"));
+    myDetailsPanelPanel.viewDetails(new DetailsPanel("Device"));
 
     // Act
     myDetailsPanelPanel.removeSplitter();
