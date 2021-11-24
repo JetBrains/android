@@ -93,7 +93,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
-    boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
+    boolean showLayoutInspectorSettings = false; // b/207568525
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
     myBuildOnSaveCheckBox.setVisible(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get());
