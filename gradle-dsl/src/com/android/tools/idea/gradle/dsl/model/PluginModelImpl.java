@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.InexpressiblePropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginNameTransform;
@@ -108,6 +109,7 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
+      .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }
 
@@ -117,6 +119,7 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new LiteralToInfixTransform(APPLY))
       .addTransform(new InfixPropertyTransform(APPLY))
+      .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }
 
