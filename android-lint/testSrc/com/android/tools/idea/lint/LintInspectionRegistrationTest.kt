@@ -292,7 +292,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
           "INFO"
         desc.append(severityString)
         val packagePrefix = if (androidSpecific)
-          "com.android.tools.idea.lint.inspections"
+          "com.android.tools.idea.lint.inspections."
         else
           "com.android.tools.idea.lint.common."
         desc.append("\" implementationClass=\"")
