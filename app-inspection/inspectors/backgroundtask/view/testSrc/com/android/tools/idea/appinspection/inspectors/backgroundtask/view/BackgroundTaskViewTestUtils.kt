@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 import java.awt.Component
 import java.awt.Container
+import java.util.stream.Stream
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
@@ -65,9 +66,10 @@ object BackgroundTaskViewTestUtils {
     return getTreeRoot().getWakeLocksCategoryNode()
   }
 
-  fun JComponent.getValueComponent(key: String): Component? =
-    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent.getComponent(1)
+  fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)
 
-  fun JComponent.getCategoryPanel(key: String): Container =
-    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == key }.findFirst().get().parent.parent
+  fun JComponent.getCategoryPanel(key: String): Container = findLabels(key).findFirst().get().parent.parent
+
+  fun JComponent.findLabels(text: String): Stream<Component> =
+    TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }
 }

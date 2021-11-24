@@ -26,7 +26,9 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendBackgroundTaskEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkAddedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.sendWorkRemovedEvent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.findLabels
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueComponent
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,6 +38,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -159,6 +162,12 @@ class EntryDetailsViewTest {
       val keyLabel = TreeWalker(dataComponent).descendantStream().filter { (it as? JLabel)?.text == "k = " }.findFirst().get()
       val valueLabel = (keyLabel.parent as JPanel).getComponent(1) as JLabel
       assertThat(valueLabel.text).isEqualTo("\"v\"")
+    }
+
+    // Remove work from client.
+    client.sendWorkRemovedEvent(workInfo.id)
+    withContext(uiDispatcher) {
+      assertThat(detailsView.findLabels("WorkContinuation").isEmpty()).isTrue()
     }
   }
 

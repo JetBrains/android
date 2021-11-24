@@ -115,7 +115,7 @@ class EntryDetailsView(
     }
     client.addEntryUpdateEventListener { type, _ ->
       scope.launch(uiDispatcher) {
-        if (type == EntryUpdateEventType.UPDATE) {
+        if (type == EntryUpdateEventType.UPDATE || type == EntryUpdateEventType.REMOVE) {
           updateSelectedTask(false)
         }
       }
@@ -269,25 +269,26 @@ class EntryDetailsView(
 
     detailsPanel.add(buildCategoryPanel("Execution", executions))
 
-    val switchContentModeLabel = if (entriesView.contentMode == BackgroundTaskEntriesView.Mode.TABLE) {
-      ActionLink("Show in graph") {
-        entriesView.contentMode = BackgroundTaskEntriesView.Mode.GRAPH
+    if (workEntry.isValid) {
+      val switchContentModeLabel = if (entriesView.contentMode == BackgroundTaskEntriesView.Mode.TABLE) {
+        ActionLink("Show in graph") {
+          entriesView.contentMode = BackgroundTaskEntriesView.Mode.GRAPH
+        }
       }
-    }
-    else {
-      ActionLink("Show in table") {
-        entriesView.contentMode = BackgroundTaskEntriesView.Mode.TABLE
+      else {
+        ActionLink("Show in table") {
+          entriesView.contentMode = BackgroundTaskEntriesView.Mode.TABLE
+        }
       }
+      detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
+        // Visually separate switchContentModeLabel and work chain labels.
+        switchContentModeLabel.apply { extraBottomPaddingMap[this] = 10 },
+        buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
+        // Visually separate work chain or else UUIDs run together.
+        buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },
+        buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
+      )))
     }
-
-    detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
-      // Visually separate switchContentModeLabel and work chain labels.
-      switchContentModeLabel.apply { extraBottomPaddingMap[this] = 10 },
-      buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
-      // Visually separate work chain or else UUIDs run together.
-      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },
-      buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
-    )))
 
     detailsPanel.add(buildCategoryPanel("Results", listOf(
       buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
