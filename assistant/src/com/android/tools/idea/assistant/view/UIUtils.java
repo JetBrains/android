@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.UIUtil;
 import java.net.URL;
 import org.jetbrains.annotations.NotNull;
@@ -174,7 +175,7 @@ public class UIUtils {
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
   public static void setHtml(JEditorPane pane, String content, String css, String headContent) {
-    pane.setEditorKit(UIUtil.getHTMLEditorKit());
+    pane.setEditorKit(HTMLEditorKitBuilder.simple());
     // It's assumed that markup is for display purposes in our context.
     pane.setEditable(false);
     // Margins should be handled by the css in this case.

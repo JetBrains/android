@@ -34,6 +34,7 @@ import javax.swing.JComponent
 import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.HTMLEditorKitBuilder
 
 /**
  * Provides an explanation of changes the wizard will perform.
@@ -44,7 +45,7 @@ class InstallSummaryStep(
 ) : ModelWizardStep<FirstRunModel>(model, "Verify Settings") {
   private val summaryText = JTextPane().apply {
     isEditable = false
-    editorKit = UIUtil.getHTMLEditorKit()
+    editorKit = HTMLEditorKitBuilder.simple()
 
     // There is no need to add whitespace on the top
     addHyperlinkListener {
