@@ -124,7 +124,7 @@ public class TrackGroup extends AspectObserver {
             });
             return Track.create(value, renderer);
           })
-          .updateSelected(groupModel.isTrackSelectable() && isSelected)
+          .updateUiStates(groupModel.isTrackSelectable() && isSelected)
           .getComponent();
       }
     });

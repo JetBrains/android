@@ -141,15 +141,18 @@ public class Track {
   }
 
   /**
-   * Update UI to reflect selection state.
+   * Update UI states to reflect selection and theme changes.
    *
    * @return current instance
    */
   @NotNull
-  public Track updateSelected(boolean selected) {
+  public Track updateUiStates(boolean selected) {
     myTitleFrontPanel.setBackground(selected ? StudioColorsKt.getSelectionOverlayBackground() : null);
     myTitleBackPanel.setBorder(selected ? TITLE_BORDER_SELECTED : TITLE_BORDER_DEFAULT);
     myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
+    // Manually call updateUI to reflect potential theme changes.
+    myTitleLabel.updateUI();
+    myTrackContent.updateUI();
     return this;
   }
 

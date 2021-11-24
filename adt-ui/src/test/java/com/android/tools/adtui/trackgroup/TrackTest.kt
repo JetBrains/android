@@ -48,7 +48,7 @@ class TrackTest {
     val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setCollapsible(false).build()
     val track = Track.create(trackModel, BooleanTrackRenderer())
     assertThat(track.component.background).isEqualTo(UIManager.getColor("Panel.background"))
-    track.updateSelected(true)
+    track.updateUiStates(true)
     assertThat(track.titleFrontPanel.background).isEqualTo(selectionOverlayBackground)
     assertThat(track.titleLabel.icon).isNull()
   }
