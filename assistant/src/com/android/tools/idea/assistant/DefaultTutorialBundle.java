@@ -390,10 +390,15 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
     private Icon myIcon;
 
-    private Class myResourceClass;
+    private Class<?> myResourceClass;
 
-    public void setResourceClass(@NotNull Class clazz) {
+    public void setResourceClass(@NotNull Class<?> clazz) {
       myResourceClass = clazz;
+    }
+
+    @NotNull
+    public Class<?> getResourceClass() {
+      return myResourceClass;
     }
 
     @Override

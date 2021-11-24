@@ -83,4 +83,10 @@ public interface TutorialData {
    * Returns true if the tutorial does not need to be loaded initially.
    */
   boolean shouldLoadLazily();
+
+  /**
+   * The class to use when loading resources referenced by the tutorial.
+   */
+  @NotNull
+  Class<?> getResourceClass();
 }

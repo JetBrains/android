@@ -239,14 +239,16 @@ public class UIUtils {
   /**
    * Filter the given html content and replace local relative paths for images
    * by absolute paths, to work around a limitation of JEditorPane HTML's parser.
-   * @param html
+   *
+   * @param resourceClass class to use for getting resources.
+   * @param html The html to search for resource references, residing in the same jar as {@code resourceClass}
    * @return processed html content if local images are used.
    */
-  public static @Nullable String addLocalHTMLPaths(@NotNull ClassLoader classLoader, @Nullable String html) {
+  public static @Nullable String addLocalHTMLPaths(@NotNull Class<?> resourceClass, @Nullable String html) {
     if (html != null) {
       String localImage = findLocalImage(html);
       if (localImage != null) {
-        URL url = classLoader.getResource("/" + localImage);
+        URL url = resourceClass.getResource("/" + localImage);
         if (url != null) {
           return addLocalHTMLPaths(html, url, localImage);
         }

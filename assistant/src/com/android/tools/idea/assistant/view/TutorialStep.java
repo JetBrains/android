@@ -100,6 +100,7 @@ public class TutorialStep extends JPanel {
   @NotNull private final StepData myStep;
   @NotNull private final JPanel myContents;
   @NotNull private final Project myProject;
+  @NotNull private final Class<?> myResourceClass;
 
   private final boolean myUseLocalHTMLPaths;
 
@@ -107,13 +108,15 @@ public class TutorialStep extends JPanel {
     return Logger.getInstance(TutorialStep.class);
   }
 
-  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex, boolean useLocalHTMLPaths) {
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex,
+               boolean useLocalHTMLPaths, @NotNull Class<?> resourceClass) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
     myProject = project;
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
     myUseLocalHTMLPaths = useLocalHTMLPaths;
+    myResourceClass = resourceClass;
     setOpaque(false);
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
@@ -159,7 +162,7 @@ public class TutorialStep extends JPanel {
           section.setDragEnabled(false);
           String content = element.getSection();
           if (myUseLocalHTMLPaths) {
-            content = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), content);
+            content = UIUtils.addLocalHTMLPaths(myResourceClass, content);
           }
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
           UIUtils.setHtml(section, content, ".as-shim { margin-top: 1px; }");
@@ -217,7 +220,7 @@ public class TutorialStep extends JPanel {
           myContents.add(panelFactory.create(myProject));
           break;
         default:
-          getLog().error("Found a StepElement of unknown type. " + element.toString());
+          getLog().error("Found a StepElement of unknown type. " + element);
       }
 
       // Add 5px spacing between elements.
@@ -263,7 +266,7 @@ public class TutorialStep extends JPanel {
       }
     }
     else {
-      getLog().warn("Found action element with no action definition: " + element.toString());
+      getLog().warn("Found action element with no action definition: " + element);
     }
 
     return addedNewComponent;
