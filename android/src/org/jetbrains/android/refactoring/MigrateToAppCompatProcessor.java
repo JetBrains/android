@@ -16,16 +16,14 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersion.AndroidVersionException;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -42,7 +40,6 @@ import com.intellij.openapi.roots.ExternalLibraryDescriptor;
 import com.intellij.openapi.roots.JavaProjectModelModificationService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -483,12 +480,15 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       // as a dummy class by PsiMigration. This can lead to cases where the same class seems to be
       // fully qualified in java files that are generated instead of an import.
       for (Module module : computeModulesNeedingAppCompat()) {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
-        if (buildModel == null) {
+        AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+        if (moduleInfo == null) {
           continue;
         }
-        AndroidModel base = buildModel.android();
-        String version = base.compileSdkVersion().toString();
+        AndroidVersion androidVersion = moduleInfo.getBuildSdkVersion();
+        // This is a string which is used to filer artifact versions by matching their full versions with this prefix ("android-nn" strings
+        // are also recognised by dropping the 'android-' prefix if present). This way the most recent version with a given major version is
+        // found.
+        String version = androidVersion != null ? Integer.toString(androidVersion.getApiLevel()) : null;
         JavaProjectModelModificationService.getInstance(myProject)
           .addDependency(module, new AppCompatLibraryDescriptor(version));
       }
@@ -577,7 +577,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     Set<Module> modulesWithTransitiveAppCompat = new SmartHashSet<>();
     Set<Module> modulesNeedingAppCompat = new SmartHashSet<>();
     for (Module module : sortedModules) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
+      AndroidModel model = AndroidModel.get(module);
       if (model == null) {
         continue;
       }
@@ -644,18 +644,12 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     AndroidVersion highest = new AndroidVersion(21); // atleast 21
     for (Module module : modules) {
       dependsOnAndroidX |= DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
-      GradleBuildModel build = GradleBuildModel.get(module);
-      if (build != null) {
-        //noinspection ConstantConditions
-        String version = build.android().compileSdkVersion().toString();
-        if (version != null) {
-          try {
-            AndroidVersion current = new AndroidVersion(StringUtil.trimStart(version, "android-"));
-            if (current.compareTo(highest) > 0) {
-              highest = current;
-            }
-          }
-          catch (AndroidVersionException ignore) {
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+      if (moduleInfo != null) {
+        AndroidVersion current = moduleInfo.getBuildSdkVersion();
+        if (current != null) {
+          if (current.compareTo(highest) > 0) {
+            highest = current;
           }
         }
       }
