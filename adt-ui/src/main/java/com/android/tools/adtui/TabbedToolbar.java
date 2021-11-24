@@ -56,11 +56,6 @@ public class TabbedToolbar extends JPanel {
   @Nullable private TabLabel myActiveTab;
   @Nullable private TabLabel myMouseOverTab;
   private final HorizontalScrollView myTabScrollView = new HorizontalScrollView(myTabsPanel);
-  // Caching value as it can change each time we add a new child.
-  // Note: We cannot reference preferred height from TabLabel as it causes a circular dependency.
-  // Note: If we do not set the preferred height of the child the label is not framed properly.
-  // Note: If we do not use the updated preferred height when more than 1 item is added we end up with a pixel space on the first item.
-  private int myPreferredHeight;
   private List<Runnable> mySelectionActions = new ArrayList<Runnable>();
 
   /**
@@ -152,7 +147,6 @@ public class TabbedToolbar extends JPanel {
     myTabsPanel.add(tab);
     mySelectionActions.add(selectTabAction);
     // Cache preferred height of control so we can properly adjust child elements sizes.
-    myPreferredHeight = getPreferredSize().height;
     selectTab(tab, selectedListener);
     myTabScrollView.scrollTo(myTabsPanel.getWidth());
   }
@@ -163,7 +157,6 @@ public class TabbedToolbar extends JPanel {
   public void clearTabs() {
     myTabsPanel.removeAll();
     mySelectionActions.clear();
-    myPreferredHeight = 0; // Clear preferred height to prevent growing forever.
   }
 
   public int countTabs() {
@@ -219,11 +212,6 @@ public class TabbedToolbar extends JPanel {
           }
         });
       }
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-      return new Dimension(super.getPreferredSize().width, myPreferredHeight);
     }
 
     @Override
