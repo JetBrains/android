@@ -30,8 +30,6 @@ import com.intellij.openapi.project.ProjectManager
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
     var isAnimationPreviewEnabled by property(true)
-    var isDeployToDeviceEnabled by property(true)
-    var isInteractiveEnabled by property(true)
     var isPreviewPickerEnabled by property(true)
   }
 
@@ -43,31 +41,6 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     set(value) {
       state.isAnimationPreviewEnabled = value
       // Force update of the actions to hide/show start animation preview icons
-      ActivityTracker.getInstance().inc()
-    }
-
-  /**
-   * True if deploy to device is enabled.
-   */
-  var isDeployToDeviceEnabled
-    get() = state.isDeployToDeviceEnabled
-    set(value) {
-      if (value != state.isDeployToDeviceEnabled) {
-        state.isDeployToDeviceEnabled = value
-        // Force update of the actions to hide/show deploy to device icons
-        ActivityTracker.getInstance().inc()
-        updateGutterIcons()
-      }
-    }
-
-  /**
-   * True if the interactive preview is enabled.
-   */
-  var isInteractiveEnabled
-    get() = state.isInteractiveEnabled
-    set(value) {
-      state.isInteractiveEnabled = value
-      // Force update of the actions to hide/show start interactive icons
       ActivityTracker.getInstance().inc()
     }
 

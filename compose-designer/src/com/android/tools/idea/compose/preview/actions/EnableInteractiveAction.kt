@@ -42,7 +42,6 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled
     // Disable the action while refreshing.
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
   }

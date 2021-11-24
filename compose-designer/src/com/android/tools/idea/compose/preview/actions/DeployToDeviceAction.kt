@@ -62,8 +62,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled &&
-                               isNoLibraryAndroidModule
+    e.presentation.isVisible = isNoLibraryAndroidModule
     e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
   }
 

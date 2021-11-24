@@ -1189,16 +1189,6 @@
     <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="a" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="allows" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="deploying" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="device" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="elements" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="emulator" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="individual" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="or" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="preview" hit="Allows deploying individual @Preview elements to a device or emulator" />
-    <option name="to" hit="Allows deploying individual @Preview elements to a device or emulator" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
@@ -1209,11 +1199,6 @@
     <option name="not" hit="Do not build Gradle task list during Gradle sync" />
     <option name="sync" hit="Do not build Gradle task list during Gradle sync" />
     <option name="task" hit="Do not build Gradle task list during Gradle sync" />
-    <option name="deploy" hit="Enable @Preview deploy to device" />
-    <option name="device" hit="Enable @Preview deploy to device" />
-    <option name="enable" hit="Enable @Preview deploy to device" />
-    <option name="preview" hit="Enable @Preview deploy to device" />
-    <option name="to" hit="Enable @Preview deploy to device" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
@@ -1224,9 +1209,6 @@
     <option name="animation" hit="Enable animation preview" />
     <option name="enable" hit="Enable animation preview" />
     <option name="preview" hit="Enable animation preview" />
-    <option name="enable" hit="Enable interactive preview" />
-    <option name="interactive" hit="Enable interactive preview" />
-    <option name="preview" hit="Enable interactive preview" />
     <option name="experimental" hit="Experimental" />
     <option name="animation" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
     <option name="animations" hit="Frame-by-frame inspection of animations defined using the Compose animation framework" />
@@ -1246,11 +1228,6 @@
     <option name="layout" hit="Layout Editor" />
     <option name="inspector" hit="Layout Inspector" />
     <option name="layout" hit="Layout Inspector" />
-    <option name="gestures" hit="Live preview to test gestures" />
-    <option name="live" hit="Live preview to test gestures" />
-    <option name="preview" hit="Live preview to test gestures" />
-    <option name="test" hit="Live preview to test gestures" />
-    <option name="to" hit="Live preview to test gestures" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
