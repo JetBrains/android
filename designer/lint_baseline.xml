@@ -390,7 +390,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintModel.java"
-            line="683"/>
+            line="689"/>
     </issue>
 
     <issue
@@ -735,6 +735,54 @@
         <location
             file="src/com/android/tools/idea/uibuilder/mockup/colorextractor/DoublesColorExtractor.java"
             line="145"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
+            line="109"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
+            line="127"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
+            line="127"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
+            line="128"/>
     </issue>
 
     <issue

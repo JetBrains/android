@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.1.0-dev">
+<issues format="5" by="lint 7.2.0-dev">
 
     <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
-            line="105"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
-            line="106"/>
+            line="116"/>
     </issue>
 
     <issue
@@ -22,30 +14,6 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
-            line="107"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
-            line="108"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/main/java/com/android/tools/property/panel/impl/table/EditorBasedTableCellRenderer.kt"
-            line="54"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/main/java/com/android/tools/property/panel/impl/ui/EnumValueListCellRenderer.kt"
             line="117"/>
     </issue>
 
@@ -53,8 +21,40 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/main/java/com/android/tools/property/panel/impl/ui/EnumValueListCellRenderer.kt"
+            file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
             line="118"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/property/panel/impl/table/DefaultNameComponent.kt"
+            line="119"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/property/panel/impl/table/EditorBasedTableCellRenderer.kt"
+            line="53"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/property/panel/impl/ui/EnumValueListCellRenderer.kt"
+            line="122"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/property/panel/impl/ui/EnumValueListCellRenderer.kt"
+            line="123"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/property/ptable2/impl/PTableImpl.kt"
-            line="97"/>
+            line="99"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/property/ptable2/impl/PTableImpl.kt"
-            line="232"/>
+            line="243"/>
     </issue>
 
     <issue
@@ -86,7 +86,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/main/java/com/android/tools/property/ptable2/impl/PTableImpl.kt"
-            line="740"/>
+            line="770"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/main/java/com/android/tools/property/panel/impl/ui/PropertiesPage.kt"
+            line="69"/>
     </issue>
 
 </issues>

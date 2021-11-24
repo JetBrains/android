@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 7.2.0-dev">
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="98"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="248"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="249"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="253"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="268"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="305"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="307"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewPanelActionsToolbarProvider.kt"
+            line="103"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewPanelActionsToolbarProvider.kt"
+            line="104"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/pipeline/legacy/PropertyMapper.kt"
+            line="222"/>
+    </issue>
+
+</issues>
