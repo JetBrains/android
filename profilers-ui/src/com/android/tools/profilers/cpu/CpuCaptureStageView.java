@@ -40,11 +40,11 @@ import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
@@ -413,6 +413,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
+    onActiveSelectionChange();
   }
 
   private void loadTrackGroupModels() {
@@ -430,16 +431,24 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     // Update track groups.
     updateTrackGroupList();
 
-    // Update selection range
-    Object selection = getStage().getMultiSelectionModel().getActiveSelectionKey();
-    if (selection == null) {
-      getStage().getTimeline().getSelectionRange().clear();
-    } else if (selection instanceof CaptureNode) {
-      getStage().getTimeline().getSelectionRange().set(((CaptureNode)selection).getStart(), ((CaptureNode)selection).getEnd());
-    }
+    onActiveSelectionChange();
 
     // Show/hide "Deselect All" label.
     myDeselectAllToolbar.setVisible(!getStage().getMultiSelectionModel().getSelections().isEmpty());
+  }
+
+  private void onActiveSelectionChange() {
+    // Update selection range
+    Object selection = getStage().getMultiSelectionModel().getActiveSelectionKey();
+    Range selectionRange = getStage().getTimeline().getSelectionRange();
+    if (selection == null) {
+      selectionRange.clear();
+    } else if (selection instanceof CaptureNode) {
+      selectionRange.set(((CaptureNode)selection).getStart(), ((CaptureNode)selection).getEnd());
+    } else if (selection instanceof AndroidFrameTimelineEvent) {
+      selectionRange.set(((AndroidFrameTimelineEvent)selection).getExpectedStartUs(),
+                         ((AndroidFrameTimelineEvent)selection).getActualEndUs());
+    }
   }
 
   @VisibleForTesting
