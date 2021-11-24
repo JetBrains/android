@@ -76,9 +76,6 @@ class CpuProfilerContextMenuInstallerTest {
       "Record CPU trace",
       ContextMenuItem.SEPARATOR.text,
       "Export trace...",
-      ContextMenuItem.SEPARATOR.text,
-      "Next capture",
-      "Previous capture",
       ContextMenuItem.SEPARATOR.text
     ).inOrder()
   }

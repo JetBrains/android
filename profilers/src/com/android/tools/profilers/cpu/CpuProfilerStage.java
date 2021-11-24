@@ -166,14 +166,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private final CpuCaptureParser myCaptureParser;
 
   /**
-   * Used to navigate across {@link CpuCapture}. The iterator navigates through trace IDs of captures generated in the current session.
-   * It's responsibility of the stage to notify to populate the iterator initially with the trace IDs already created before the stage
-   * creation, and notifying the iterator about newly parsed captures.
-   */
-  @NotNull
-  private final TraceIdsIterator myTraceIdsIterator;
-
-  /**
    * Keep track of the {@link Common.Session} that contains this stage, otherwise tasks that happen in background (e.g. parsing a trace) can
    * refer to a different session later if the user changes the session selection in the UI.
    */
@@ -233,8 +225,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
                                           getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
-    // Populate the iterator with all TraceInfo existing in the current session.
-    myTraceIdsIterator = new TraceIdsIterator(this, existingCompletedTraceInfoList);
     myInProgressTraceHandler = new InProgressTraceHandler();
   }
 
@@ -480,34 +470,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
   public long getCaptureStopTimeNs() {
     return myCaptureStopTimeNs;
-  }
-
-  @NotNull
-  public TraceIdsIterator getTraceIdsIterator() {
-    return myTraceIdsIterator;
-  }
-
-  /**
-   * Sets and selects the next capture. No-op if there is none.
-   */
-  void navigateNext() {
-    handleCaptureNavigation(myTraceIdsIterator.next());
-  }
-
-  /**
-   * Sets and selects the previous capture. No-op if there is none.
-   */
-  void navigatePrevious() {
-    handleCaptureNavigation(myTraceIdsIterator.previous());
-  }
-
-  private void handleCaptureNavigation(long traceId) {
-    // Sanity check to see if myTraceIdsIterator returned a valid trace. Return early otherwise.
-    if (traceId == TraceIdsIterator.INVALID_TRACE_ID) {
-      return;
-    }
-    // Select the next capture if a valid trace was returned.
-    setAndSelectCapture(traceId);
   }
 
   private void stopCapturingCallback(@NotNull Cpu.TraceStopStatus status) {
@@ -905,8 +867,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
           break;
         }
 
-        if (!myTraceIdsIterator.contains(trace.getTraceId())) {
-          myTraceIdsIterator.addTrace(trace.getTraceId());
+        if (!myCompletedTraceIdToInfoMap.containsKey(trace.getTraceId())) {
           myCompletedTraceIdToInfoMap.put(trace.getTraceId(), new CpuTraceInfo(trace));
           // queried trace info list should be sorted by time so we can always assume the latest one should be selected.
           finishedTraceToSelect = trace;

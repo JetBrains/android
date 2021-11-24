@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
-
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.ContextMenuItem;
@@ -61,33 +59,6 @@ class CpuProfilerContextMenuInstaller {
 
     // Add the item to export a trace file.
     installExportTraceMenuItem();
-
-    installCaptureNavigationMenuItems();
-  }
-
-  /**
-   * Installs both {@link ContextMenuItem} corresponding to the CPU capture navigation feature on {@link #myComponent}.
-   */
-  private void installCaptureNavigationMenuItems() {
-    int shortcutModifier = AdtUiUtils.getActionMask() | SHIFT_DOWN_MASK;
-
-    DefaultContextMenuItem navigateNext =
-      new DefaultContextMenuItem.Builder("Next capture")
-        .setContainerComponent(myContainerComponent)
-        .setActionRunnable(() -> myStage.navigateNext())
-        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasNext())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
-
-    DefaultContextMenuItem navigatePrevious =
-      new DefaultContextMenuItem.Builder("Previous capture")
-        .setContainerComponent(myContainerComponent)
-        .setActionRunnable(() -> myStage.navigatePrevious())
-        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasPrevious())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
-
-    myInstaller.installGenericContextMenu(myComponent, navigateNext);
-    myInstaller.installGenericContextMenu(myComponent, navigatePrevious);
-    myInstaller.installGenericContextMenu(myComponent, ContextMenuItem.SEPARATOR);
   }
 
   /**
@@ -124,7 +95,7 @@ class CpuProfilerContextMenuInstaller {
                                         && (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
                                             || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, AdtUiUtils.getActionMask()))
-        .setActionRunnable(() -> myStage.toggleCapturing())
+        .setActionRunnable(myStage::toggleCapturing)
         .build();
 
     myInstaller.installGenericContextMenu(myComponent, record);
