@@ -18,6 +18,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.support.AndroidxName
+import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 
@@ -32,10 +33,10 @@ fun Project.setAndroidxProperties(value: String = "true") {
   }
 }
 
-fun Project.disableJetifier() {
-  getProjectProperties(true)?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY)?.let {
-    it.navigate(true)
-    it.psiElement.delete()
+fun Project.disableJetifier(runAfterDisabling: (IProperty?) -> Unit) {
+  getProjectProperties(true)?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY).let {
+    it?.setValue("false")
+    runAfterDisabling(it)
   }
 }
 

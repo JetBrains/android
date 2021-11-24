@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.attribution.CheckJetifierResult
 import com.android.ide.common.attribution.DependencyPath
 import com.android.ide.common.attribution.FullDependencyPath
+import com.android.testutils.MockitoKt
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth
@@ -115,7 +116,7 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
       Truth.assertThat(it.isVisible).isTrue()
       it.doClick()
-      Mockito.verify(mockHandlers).turnJetifierOffInProperties()
+      Mockito.verify(mockHandlers).turnJetifierOffInProperties(MockitoKt.any())
     }
   }
 

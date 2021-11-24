@@ -40,6 +40,7 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBList
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
@@ -123,7 +124,7 @@ class JetifierWarningDetailsFactory(
     val removeJetifierButton = JButton("Disable Jetifier").apply {
       name = "disable-jetifier-button"
       toolTipText = "Remove the 'android.enableJetifier' flag from gradle.properties"
-      addActionListener { actionHandlers.turnJetifierOffInProperties() }
+      addActionListener { actionHandlers.turnJetifierOffInProperties { RelativePoint.getSouthOf(this) } }
       putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus is JetifierCanBeRemoved)
       isVisible = data.projectStatus is JetifierCanBeRemoved
       // Making this button same size as a bigger "Run Check" button so that they look better when stacked.
@@ -200,23 +201,20 @@ class JetifierWarningDetailsFactory(
       }
       border = JBUI.Borders.empty()
       selectionMode = ListSelectionModel.SINGLE_SELECTION
-      emptyText.apply {
-        when (projectStatus) {
-          is JetifierUsedCheckRequired -> {
-            clear()
-            appendText("Run check", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              actionHandlers.runCheckJetifierTask()
-            }
-            appendText(" to see if you need Jetifier in your project.")
+      emptyText.clear()
+      when (projectStatus) {
+        is JetifierUsedCheckRequired -> {
+          emptyText.appendText("Run check", SimpleTextAttributes.LINK_ATTRIBUTES) {
+            actionHandlers.runCheckJetifierTask()
           }
-          is JetifierCanBeRemoved -> {
-            clear()
-            appendText("No dependencies require jetifier, ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-            appendText("remove 'android.enableJetifier' flag.", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              actionHandlers.turnJetifierOffInProperties()
-            }
+          emptyText.appendText(" to see if you need Jetifier in your project.")
+        }
+        is JetifierCanBeRemoved -> {
+          emptyText.appendText("No dependencies require jetifier, ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          emptyText.appendText("remove 'android.enableJetifier' flag.", SimpleTextAttributes.LINK_ATTRIBUTES) {
+            val pointBelowCenter = emptyText.pointBelow.apply { translate(emptyText.preferredSize.width / 2, 0) }
+            actionHandlers.turnJetifierOffInProperties { RelativePoint(this, pointBelowCenter) }
           }
-          else -> clear()
         }
       }
       installResultsTableActions(this)
