@@ -23,12 +23,12 @@ import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
+import com.android.tools.idea.devicemanager.DevicePanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
@@ -40,22 +40,19 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implements Disposable, DetailsPanelPanel<AvdInfo> {
+public final class VirtualDevicePanel extends DevicePanel implements DetailsPanelPanel<AvdInfo> {
   private final @Nullable Project myProject;
 
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private final @NotNull JButton myHelpButton;
   private VirtualDeviceTable myTable;
-  private final @NotNull JComponent myScrollPane;
-  private DetailsPanelPanel2 myDetailsPanelPanel;
   private @Nullable DetailsPanel myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
@@ -95,13 +92,6 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
   }
 
-  private void initDetailsPanelPanel() {
-    if (DetailsPanelPanel2.ENABLED) {
-      myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
-      Disposer.register(this, myDetailsPanelPanel);
-    }
-  }
-
   @Override
   public void dispose() {
     if (myDetailsPanel != null) {
@@ -109,11 +99,9 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> implem
     }
   }
 
-  void viewDetails() {
-    DetailsPanel panel = new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new));
-    panel.getCloseButton().addActionListener(event -> myDetailsPanelPanel.removeSplitter());
-
-    myDetailsPanelPanel.addSplitter(panel);
+  @Override
+  protected @NotNull DetailsPanel newDetailsPanel() {
+    return new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new));
   }
 
   @Nullable Project getProject() {
