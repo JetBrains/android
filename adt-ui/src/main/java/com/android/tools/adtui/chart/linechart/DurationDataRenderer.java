@@ -424,7 +424,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     if (myHoverHandler != null) {
       myHoverHandler.accept(pickData);
     }
-    myClick = event.getClickCount() > 0;
+    myClick = event.getClickCount() > 0 && event.getButton() == MouseEvent.BUTTON1;
     if (myClickHandler != null && myClick) {
       // If we didn't click an item see if we clicked a clickable background.
       if (pickData == null && myBackgroundClickable) {
@@ -594,7 +594,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     /**
      * If set, the handler will get triggered when the user clicked on the icon+label region of the DurationData.
      */
-    public Builder<E> setClickHander(@NotNull Consumer<E> handler) {
+    public Builder<E> setClickHandler(@NotNull Consumer<E> handler) {
       myClickHandler = handler;
       return this;
     }

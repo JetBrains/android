@@ -134,7 +134,7 @@ public class LineChartVisualTest extends VisualTest {
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
-      .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
+      .setClickHandler(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
@@ -153,7 +153,7 @@ public class LineChartVisualTest extends VisualTest {
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
       .setStroke(new BasicStroke(1))
-      .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
+      .setClickHandler(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
     myOverlayComponent.addDurationDataRenderer(mDurationRendererBlocking);

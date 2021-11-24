@@ -120,7 +120,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
         .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setBackgroundClickable(true)
-        .setClickHander(traceInfo -> {
+        .setClickHandler(traceInfo -> {
           if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
             myStage.setAndSelectCapture(traceInfo.getTraceId());
           }
