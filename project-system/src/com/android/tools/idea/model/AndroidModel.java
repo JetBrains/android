@@ -163,4 +163,31 @@ public interface AndroidModel {
 
   @Nullable
   default TestExecutionOption getTestExecutionOption() { return null; }
+
+  /**
+   * Returns the resource prefix to use, if any. This is an optional prefix which can be set and
+   * which is used by the defaults to automatically choose new resources with a certain prefix,
+   * warn if resources are not using the given prefix, etc. This helps work with resources in the
+   * app namespace where there could otherwise be unintentional duplicated resource names between
+   * unrelated libraries.
+   *
+   * @return the optional resource prefix, or null if not set
+   */
+  @Nullable
+  default String getResourcePrefix() { return null; }
+
+  /**
+   * Returns true if this is the base feature split.
+   */
+  default boolean isBaseSplit() { return false; }
+
+  /**
+   * Returns true if this variant is instant app compatible, intended to be possibly built and
+   * served in an instant app context. This is populated during sync from the project's manifest.
+   * Only application modules and dynamic feature modules will set this property.
+   *
+   * @return true if this variant is instant app compatible
+   * @since 3.3
+   */
+  default boolean isInstantAppCompatible() { return false; }
 }

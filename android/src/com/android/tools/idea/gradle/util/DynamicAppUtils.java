@@ -155,7 +155,7 @@ public class DynamicAppUtils {
   public static boolean baseIsInstantEnabled(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
-      if (model != null && model.getAndroidProject().isBaseSplit()) {
+      if (model != null && model.isBaseSplit()) {
         if (model.getSelectedVariant().getInstantAppCompatible()) {
           return true;
         }

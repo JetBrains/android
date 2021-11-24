@@ -76,7 +76,7 @@ public class AIAProjectStructureAssertions {
     assertThat(module).isNotNull();
     IdeAndroidProjectType projectType = model.getAndroidProject().getProjectType();
     assertThat(projectType).named("Module type").isEqualTo(moduleType);
-    assertThat(model.getAndroidProject().isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
+    assertThat(model.isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 
     IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
     List<String> libraries =

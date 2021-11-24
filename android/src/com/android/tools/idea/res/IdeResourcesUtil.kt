@@ -68,8 +68,8 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -869,8 +869,8 @@ fun prependResourcePrefix(module: Module?, name: String?, folderType: ResourceFo
     return name
   }
   val facet = AndroidFacet.getInstance(module) ?: return name
-  val androidModel = AndroidModuleModel.get(facet) ?: return name
-  val resourcePrefix = androidModel.androidProject.resourcePrefix ?: return name
+  val androidModel = AndroidModel.get(facet) ?: return name
+  val resourcePrefix = androidModel.resourcePrefix ?: return name
   return if (name != null) {
     if (name.startsWith(resourcePrefix)) name else computeResourceName(resourcePrefix, name, folderType)
   }

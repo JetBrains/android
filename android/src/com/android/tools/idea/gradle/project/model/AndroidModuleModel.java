@@ -700,4 +700,19 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       default: throw new IllegalStateException("Unknown option: " + execution);
     }
   }
+
+  @Override
+  public @Nullable String getResourcePrefix() {
+    return myAndroidProject.getResourcePrefix();
+  }
+
+  @Override
+  public boolean isBaseSplit() {
+    return myAndroidProject.isBaseSplit();
+  }
+
+  @Override
+  public boolean isInstantAppCompatible() {
+    return getSelectedVariant().getInstantAppCompatible();
+  }
 }
