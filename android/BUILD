@@ -414,6 +414,8 @@ filegroup(
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/data-binding:compilerCommon.antlr.shaded",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [

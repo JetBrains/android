@@ -2158,7 +2158,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
-Android Studio Preview.app/Contents/plugins/android/lib/antlr4-runtime-4.5.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/artwork.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-7.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-analysis-7.0.jar
@@ -2168,6 +2167,8 @@ Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector
 Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.2.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
+Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
+Android Studio Preview.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-3.4.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-proto-0.0.8-alpha07.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar

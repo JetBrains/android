@@ -13,7 +13,6 @@ studio_plugin(
         "//prebuilts/tools/common/m2:moshi",
         "//prebuilts/tools/common/m2:utp-core-proto",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
-        "//prebuilts/tools/common/m2:antlr4-runtime",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
         "//prebuilts/tools/common/m2:javapoet",
@@ -66,6 +65,8 @@ studio_plugin(
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/data-binding:compilerCommon.antlr.shaded",
     ],
     licenses = [
         "//tools/adt/idea/android/lib:licenses",
