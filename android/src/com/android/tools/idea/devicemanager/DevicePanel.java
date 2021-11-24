@@ -19,9 +19,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class DevicePanel extends JBPanel<DevicePanel> implements Disposable {
+public abstract class DevicePanel<D> extends JBPanel<DevicePanel<D>> implements Disposable, DetailsPanelPanel<D> {
+  protected JTable myTable;
   protected JComponent myScrollPane;
   protected DetailsPanelPanel2 myDetailsPanelPanel;
 
@@ -29,11 +31,28 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
     super(null);
   }
 
+  protected final void initTable() {
+    myTable = newTable();
+
+    if (DetailsPanelPanel2.ENABLED) {
+      myTable.getSelectionModel().addListSelectionListener(new ViewDetailsListSelectionListener(this));
+    }
+    else {
+      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
+    }
+  }
+
+  protected abstract @NotNull JTable newTable();
+
   protected final void initDetailsPanelPanel() {
     if (DetailsPanelPanel2.ENABLED) {
       myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
       Disposer.register(this, myDetailsPanelPanel);
     }
+  }
+
+  final boolean hasDetails() {
+    return myDetailsPanelPanel.getSplitter().isPresent();
   }
 
   public final void viewDetails() {

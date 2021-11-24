@@ -20,9 +20,7 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
-import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -41,18 +39,18 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public final class VirtualDevicePanel extends DevicePanel implements DetailsPanelPanel<AvdInfo> {
+public final class VirtualDevicePanel extends DevicePanel<AvdInfo> {
   private final @Nullable Project myProject;
 
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private final @NotNull JButton myHelpButton;
-  private VirtualDeviceTable myTable;
   private @Nullable DetailsPanel myDetailsPanel;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
@@ -68,7 +66,7 @@ public final class VirtualDevicePanel extends DevicePanel implements DetailsPane
     myScrollPane = new JBScrollPane(myTable);
 
     myCreateButton = new JButton("Create device");
-    myCreateButton.addActionListener(createAvdActionProvider.apply(myTable));
+    myCreateButton.addActionListener(createAvdActionProvider.apply((AvdInfoProvider)myTable));
 
     Dimension separatorSize = new JBDimension(3, 20);
     mySeparator = new JSeparator(SwingConstants.VERTICAL);
@@ -84,12 +82,9 @@ public final class VirtualDevicePanel extends DevicePanel implements DetailsPane
     Disposer.register(parent, this);
   }
 
-  private void initTable() {
-    myTable = new VirtualDeviceTable(this);
-
-    if (!DetailsPanelPanel2.ENABLED) {
-      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
-    }
+  @Override
+  protected @NotNull JTable newTable() {
+    return new VirtualDeviceTable(this);
   }
 
   @Override
@@ -101,7 +96,7 @@ public final class VirtualDevicePanel extends DevicePanel implements DetailsPane
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new VirtualDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new));
+    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new));
   }
 
   @Nullable Project getProject() {
@@ -115,7 +110,7 @@ public final class VirtualDevicePanel extends DevicePanel implements DetailsPane
 
   @Override
   public @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
-    return myTable.getSelectedDevice();
+    return ((VirtualDeviceTable)myTable).getSelectedDevice();
   }
 
   @Override

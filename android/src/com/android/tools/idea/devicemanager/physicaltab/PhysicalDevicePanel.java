@@ -19,9 +19,7 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanel;
 import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
-import com.android.tools.idea.devicemanager.DetailsPanelPanelListSelectionListener;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -49,21 +47,22 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevicePanel extends DevicePanel implements DetailsPanelPanel<PhysicalDevice> {
+public final class PhysicalDevicePanel extends DevicePanel<PhysicalDevice> {
   private final @Nullable Project myProject;
   private final @NotNull Disposable myParent;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
+  private final @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> myNewPhysicalDeviceTable;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
-  private PhysicalDeviceTable myTable;
   private @Nullable DetailsPanel myDetailsPanel;
 
   @VisibleForTesting
@@ -91,9 +90,9 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
     this(project,
          parent,
          PairDevicesUsingWiFiService::getInstance,
+         PhysicalDeviceTable::new,
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
-         PhysicalDeviceTable::new,
          new PhysicalDeviceAsyncSupplier(project),
          SetDevices::new);
   }
@@ -102,21 +101,22 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
   PhysicalDevicePanel(@Nullable Project project,
                       @NotNull Disposable parent,
                       @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
                       @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices) {
     myProject = project;
     myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
+    myNewPhysicalDeviceTable = newPhysicalDeviceTable;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
 
     initPairUsingWiFiButton();
     initSeparator();
     initHelpButton();
-    initTable(newPhysicalDeviceTable);
+    initTable();
     myScrollPane = new JBScrollPane(myTable);
     initDetailsPanelPanel();
     layOut();
@@ -157,12 +157,9 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
     myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/physical"));
   }
 
-  private void initTable(@NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable) {
-    myTable = newPhysicalDeviceTable.apply(this);
-
-    if (!DetailsPanelPanel2.ENABLED) {
-      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
-    }
+  @Override
+  protected @NotNull JTable newTable() {
+    return myNewPhysicalDeviceTable.apply(this);
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
@@ -179,7 +176,7 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
   }
 
   private void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
-    PhysicalDeviceTableModel model = myTable.getModel();
+    PhysicalDeviceTableModel model = getTable().getModel();
 
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
     model.setDevices(devices);
@@ -196,7 +193,7 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new PhysicalDeviceDetailsPanel(myTable.getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    return new PhysicalDeviceDetailsPanel(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
 
   @Nullable Project getProject() {
@@ -209,12 +206,12 @@ public final class PhysicalDevicePanel extends DevicePanel implements DetailsPan
   }
 
   @NotNull PhysicalDeviceTable getTable() {
-    return myTable;
+    return (PhysicalDeviceTable)myTable;
   }
 
   @Override
   public @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
-    return myTable.getSelectedDevice();
+    return getTable().getSelectedDevice();
   }
 
   @Override

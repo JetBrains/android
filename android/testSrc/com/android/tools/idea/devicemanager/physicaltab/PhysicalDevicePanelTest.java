@@ -105,9 +105,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
+                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       () -> myComponent,
                                       model -> myListener,
-                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       mySupplier,
                                       this::newSetDevices);
 
@@ -133,9 +133,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
+                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       () -> myComponent,
                                       model -> myListener,
-                                      panel -> new PhysicalDeviceTable(panel, new PhysicalDeviceTableModel()),
                                       mySupplier,
                                       this::newSetDevices);
 
@@ -168,9 +168,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
+                                      PhysicalDeviceTable::new,
                                       () -> myComponent,
                                       model -> myListener,
-                                      PhysicalDeviceTable::new,
                                       mySupplier,
                                       SetDevices::new);
 
@@ -190,9 +190,9 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myProject,
                                       myParent,
                                       project -> myService,
+                                      PhysicalDeviceTable::new,
                                       () -> myComponent,
                                       model -> myListener,
-                                      PhysicalDeviceTable::new,
                                       mySupplier,
                                       SetDevices::new);
 

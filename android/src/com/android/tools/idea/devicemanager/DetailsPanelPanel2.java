@@ -85,7 +85,6 @@ public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> implem
     return Optional.ofNullable(myDetailsPanel);
   }
 
-  @VisibleForTesting
   @NotNull Optional<@NotNull Splitter> getSplitter() {
     return Optional.ofNullable(mySplitter);
   }
