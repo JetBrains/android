@@ -319,7 +319,15 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
-    set(value) { scrollPane.viewport.viewPosition = value }
+    set(value) {
+      val extentSize = scrollPane.viewport.extentSize
+      val viewSize = scrollPane.viewport.viewSize
+      val maxAvailableWidth = viewSize.width - extentSize.width
+      val maxAvailableHeight = viewSize.height - extentSize.height
+
+      value.setLocation(value.x.coerceIn(0, maxAvailableWidth), value.y.coerceIn(0, maxAvailableHeight))
+      scrollPane.viewport.viewPosition = value
+    }
 
   /**
    * True if the pinned surface is visible in the preview.
