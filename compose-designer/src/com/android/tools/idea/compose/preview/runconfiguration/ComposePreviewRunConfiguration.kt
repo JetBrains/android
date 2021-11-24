@@ -58,7 +58,7 @@ open class ComposePreviewRunConfiguration(
   override val testCompileMode: TestCompileType get() = TestCompileType.ANDROID_TESTS
 
   override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
-    return checkDeployConfiguration(facet)
+    return emptyList()
   }
 
   /**

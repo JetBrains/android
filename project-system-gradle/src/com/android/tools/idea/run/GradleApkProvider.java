@@ -70,6 +70,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -485,6 +486,7 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   public List<ValidationError> validate() {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
+
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     if (androidModuleModel == null) {
       Runnable requestProjectSync =
@@ -492,6 +494,13 @@ public class GradleApkProvider implements ApkProvider {
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
+    }
+
+    if (myAlwaysDeployApkFromBundle) {
+      if (StringUtil.isEmpty(androidModuleModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName())) {
+        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + myFacet.getModule().getName() + "'");
+        result.add(error);
+      }
     }
 
     if (isTest()) {

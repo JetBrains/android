@@ -18,14 +18,13 @@ package com.android.tools.idea.run;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
 import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
+import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
+import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
@@ -133,19 +132,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     ActivityLaunchOptionState activityLaunchOptionState = getLaunchOptionState(MODE);
     if (activityLaunchOptionState != null) {
       errors.addAll(activityLaunchOptionState.checkConfiguration(facet));
-    }
-    errors.addAll(checkDeployConfiguration(facet));
-    return errors;
-  }
-
-  @NotNull
-  protected List<ValidationError> checkDeployConfiguration(@NotNull AndroidFacet facet) {
-    List<ValidationError> errors = new ArrayList<>();
-    if (DEPLOY && DEPLOY_APK_FROM_BUNDLE) {
-      if (!DynamicAppUtils.supportsBundleTask(facet.getModule())) {
-        ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + facet.getModule().getName() + "'");
-        errors.add(error);
-      }
     }
     return errors;
   }

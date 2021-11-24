@@ -82,8 +82,6 @@ import org.xmlpull.v1.XmlPullParserException;
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
   implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
-  private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
-
   /**
    * Element name used to group the {@link ProfilerState} settings
    */
@@ -143,11 +141,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (module == null) {
       // Can't proceed, and fatal error has been caught in ConfigurationModule#checkForWarnings
       return errors;
-    }
-
-    Project project = module.getProject();
-    if (AndroidProjectInfo.getInstance(project).requiredAndroidModelMissing()) {
-      errors.add(ValidationError.fatal(GRADLE_SYNC_FAILED_ERR_MSG));
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
