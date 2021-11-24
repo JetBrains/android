@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
@@ -37,7 +40,9 @@ import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
@@ -76,6 +81,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -113,6 +119,28 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
     return new ArrayList<>(PluginModelImpl.deduplicatePlugins(plugins).values());
   }
+
+  @Override
+  public @NotNull List<PluginModel> appliedPlugins() {
+    Predicate<PluginModel> appliedPredicate = (plugin) -> {
+      ResolvedPropertyModel apply = plugin.apply();
+      ValueType valueType = apply.getValueType();
+      if (valueType == NONE) {
+        // Plugin declarations in build files default to `apply true`, which is also the correct meaning for syntactic forms
+        // which cannot express an apply property, such as `apply plugin: 'foo'`.
+        return true;
+      }
+      else if (valueType == BOOLEAN) {
+        return apply.getValue(BOOLEAN_TYPE);
+      }
+      else {
+        // not understood: default to not applied.
+        return false;
+      }
+    };
+    return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
+  }
+
 
   @NotNull
   @Override

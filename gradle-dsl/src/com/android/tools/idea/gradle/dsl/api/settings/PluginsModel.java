@@ -16,16 +16,20 @@
 package com.android.tools.idea.gradle.dsl.api.settings;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface PluginsModel {
   /**
-   * @return a list of plugins applied in this model
+   * @return a list of plugins declared (and also possibly applied) in this model
    */
   List<PluginModel> plugins();
+
+  /**
+   * @return a list of plugins applied in this model
+   */
+  List<PluginModel> appliedPlugins();
 
   /**
    * Modify the underlying object, if necessary, such that the given plugin is applied, and return the model corresponding to the
