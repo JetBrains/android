@@ -74,6 +74,7 @@ import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.event.DocumentEvent
 import kotlin.properties.Delegates
 
+private const val CELL_WIDTH = 300
 private const val PANEL_WIDTH = 300
 private const val PANEL_HEIGHT = 400
 
@@ -173,10 +174,13 @@ class CompactResourcePicker(
     border = componentPadding
     emptyText.text = "" // No need to show any text right away (before loading is even started)
     background = PICKER_BACKGROUND_COLOR
-    cellRenderer = CompactResourceListCellRenderer(
-      AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
-      scaledCellHeight)
-    fixedCellHeight = JBUIScale.scale(scaledCellHeight)
+    fixedCellHeight = scaledCellHeight
+    fixedCellWidth = JBUIScale.scale(CELL_WIDTH)
+    cellRenderer =
+      CompactResourceListCellRenderer(
+        AssetPreviewManagerImpl(facet, ImageCache.createImageCache(parentDisposable), resourceResolver),
+        scaledCellHeight
+      )
     addListSelectionListener { event ->
       if (!event.valueIsAdjusting) {
         selectedValue?.getHighestDensityAsset()?.resourceUrl?.toString()?.let { resourceName ->
