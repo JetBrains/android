@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
@@ -787,8 +788,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     animationInspectionPreviewElementInstance = null
   }
 
-  override var isBuildOnSaveEnabled: Boolean = false
-    get() = COMPOSE_LIVE_EDIT_PREVIEW.get() && field
+  override val isBuildOnSaveEnabled: Boolean
+    get() = COMPOSE_LIVE_EDIT_PREVIEW.get() && ComposeExperimentalConfiguration.getInstance().isBuildOnSaveEnabled
 
   private var lastPinsModificationCount = -1L
 
@@ -1083,13 +1084,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }?.displayName ?: ""
     return mapOf(
       SELECTED_GROUP_KEY to selectedGroupName,
-      BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString(),
       LAYOUT_KEY to selectedLayoutName)
   }
 
   override fun setState(state: PreviewRepresentationState) {
     val selectedGroupName = state[SELECTED_GROUP_KEY]
-    val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
     val previewLayoutName = state[LAYOUT_KEY]
     onRestoreState = {
       if (!selectedGroupName.isNullOrEmpty()) {
@@ -1097,8 +1096,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           groupFilter = it
         }
       }
-
-      buildOnSave?.let { isBuildOnSaveEnabled = it }
 
       PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }?.let {
         (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(it.layoutManager)

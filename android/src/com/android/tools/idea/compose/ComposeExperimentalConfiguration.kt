@@ -31,6 +31,7 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
   class State: BaseState() {
     var isAnimationPreviewEnabled by property(true)
     var isPreviewPickerEnabled by property(true)
+    var isBuildOnSaveEnabled by property(true)
   }
 
   /**
@@ -52,6 +53,15 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     set(value) {
       state.isPreviewPickerEnabled = value
       updateGutterIcons()
+    }
+
+  /**
+   * True if the @Preview build on save is enabled. This settings only applies when Live Edit is enabled.
+   */
+  var isBuildOnSaveEnabled
+    get() = state.isBuildOnSaveEnabled
+    set(value) {
+      state.isBuildOnSaveEnabled = value
     }
 
   companion object {

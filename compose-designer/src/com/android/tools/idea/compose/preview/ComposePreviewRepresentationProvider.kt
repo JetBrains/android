@@ -31,7 +31,6 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildOnSave
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
@@ -92,7 +91,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
-    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.ifEnabled { ToggleAutoBuildOnSave() },
     ComposeIssueNotificationAction.getInstance()
   ))
 

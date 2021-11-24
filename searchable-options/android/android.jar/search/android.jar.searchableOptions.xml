@@ -1189,6 +1189,20 @@
     <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
+    <option name="build" hit="Build preview on save" />
+    <option name="on" hit="Build preview on save" />
+    <option name="preview" hit="Build preview on save" />
+    <option name="save" hit="Build preview on save" />
+    <option name="allow" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="builds" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="faster" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="for" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="on" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="preview" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="refresh" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="save" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="the" hit="Builds the preview on save to allow for faster preview refresh" />
+    <option name="to" hit="Builds the preview on save to allow for faster preview refresh" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
