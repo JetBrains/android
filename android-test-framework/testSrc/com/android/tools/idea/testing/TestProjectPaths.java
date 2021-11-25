@@ -90,7 +90,6 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_WITH_DUPLICATES = "projects/simpleApplicationWithDuplicates";
   public static final String SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY = "projects/simpleApplicationUnresolvedDependency";
-  public static final String SIMPLE_APPLICATION_PRE30 = "projects/simpleApplication_pre30";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
