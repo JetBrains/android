@@ -74,5 +74,19 @@
     <action id="Android.BuildBundle" class="com.android.tools.idea.gradle.actions.BuildBundleAction">
       <add-to-group group-id="BuildMenu" relative-to-action="Android.BuildApk" anchor="after"/>
     </action>
+
+    <action internal="true" id="Android.DumpProject"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+    <action internal="true" id="Android.DumpProjectIdeModels"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectIdeModelAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+    <action internal="true" id="Android.DumpProjectData"
+            class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+
   </actions>
 </idea-plugin>

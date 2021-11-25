@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,17 +283,3 @@ private val androidLibraryPattern =
  * Replaces artifact version in string containing artifact ids like com.android.group.artifact.artifact-28.3.4.jar with <VERSION>.
  */
 private val androidPathPattern = Regex("(?:com/android/.*/)([0-9.]+)(?:/.*-)(\\1)(?:\\.jar)")
-
-class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project!!
-    val dumper = ProjectDumper()
-    dumper.dumpProject(project)
-    val dump = dumper.toString().trimIndent()
-    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
-    outputFile.writeText(dump)
-    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
-    VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
-    println("Dumped to: file://$outputFile")
-  }
-}
