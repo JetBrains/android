@@ -2,10 +2,13 @@
 
 package com.android.tools.idea.run.editor;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
@@ -51,6 +54,7 @@ import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
@@ -371,17 +375,18 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
 
     // Lock and hide subset of UI when attached to an instantApp
-    AndroidModuleModel model = AndroidModuleModel.get(currentModule);
-    boolean isInstantApp = model != null && model.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP;
+    AndroidFacet facet = AndroidFacet.getInstance(currentModule);
+    AndroidModel model = AndroidModel.get(currentModule);
+    boolean isInstantApp = facet != null && facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
     if (isInstantApp) {
       myLaunchOptionCombo.setSelectedItem(DeepLinkLaunch.INSTANCE);
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
     }
     else {
       // Enable instant app deploy checkbox if module is instant enabled
-      myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().getInstantAppCompatible());
+      myInstantAppDeployCheckBox.setEnabled(model != null && model.isInstantAppCompatible());
       // If the module is not instant-eligible, uncheck the checkbox.
-      if (model == null || !model.getSelectedVariant().getInstantAppCompatible()) {
+      if (model == null || !model.isInstantAppCompatible()) {
         myInstantAppDeployCheckBox.setSelected(false);
       }
 
@@ -393,7 +398,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     myLaunchOptionCombo.setEnabled(!isInstantApp);
     myDynamicFeaturesParameters.setActiveModule(currentModule,
-                                                (model != null && model.getSelectedVariant().getInstantAppCompatible()
+                                                (model != null && model.isInstantAppCompatible()
                                                  && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
                                                 ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
                                                 : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
