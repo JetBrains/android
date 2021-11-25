@@ -167,7 +167,6 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     surface = NlDesignSurface.builder(myProject, this@VisualizationForm)
       .showModelNames()
       .setIsPreview(false)
-      .setEditable(true)
       .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
         val sceneManager = LayoutlibSceneManager(model, surface, config)
         sceneManager.setListenResourceChange(false)

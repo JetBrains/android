@@ -258,11 +258,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private LintIssueProvider myLintIssueProvider;
-  /**
-   * Indicate if the content is editable. Note that this only works for editable content (e.g. xml layout file). The non-editable
-   * content (e.g. the image drawable file) can't be edited as well.
-   */
-  private final boolean myIsEditable;
 
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
@@ -299,11 +294,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable,
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
   }
 
@@ -312,7 +306,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
-    boolean isEditable,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
@@ -321,7 +314,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     Disposer.register(parentDisposable, this);
     myProject = project;
-    myIsEditable = isEditable;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
 
@@ -1548,7 +1540,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
    */
   public boolean isEditable() {
-    return getLayoutType().isEditable() && myIsEditable;
+    return getLayoutType().isEditable();
   }
 
   /**

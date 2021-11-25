@@ -114,7 +114,6 @@ internal fun createPreviewDesignSurface(
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider(sceneManagerProvider)
-    .setEditable(true)
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
     .setZoomControlsPolicy(zoomControlsPolicy)

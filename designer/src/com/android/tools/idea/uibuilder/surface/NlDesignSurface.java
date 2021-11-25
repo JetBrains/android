@@ -119,7 +119,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private boolean myShowModelName = false;
-    private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
@@ -201,19 +200,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @NotNull
     public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
       myActionManagerProvider = actionManagerProvider;
-      return this;
-    }
-
-    /**
-     * Specify if {@link NlDesignSurface} can edit editable content. For example, a xml layout file is a editable content. But
-     * an image drawable file is not editable, so {@link NlDesignSurface} cannot edit the image drawable file even we set
-     * editable for {@link NlDesignSurface}.
-     * <p>
-     * The default value is true (editable)
-     */
-    @NotNull
-    public Builder setEditable(boolean editable) {
-      myIsEditable = editable;
       return this;
     }
 
@@ -341,7 +327,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
-                                 myIsEditable,
                                  myShowModelName,
                                  mySceneManagerProvider,
                                  layoutManager,
@@ -430,7 +415,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
-                          boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
@@ -445,7 +429,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           ZoomControlsPolicy zoomControlsPolicy,
                           boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable,
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
           selectionModel,
