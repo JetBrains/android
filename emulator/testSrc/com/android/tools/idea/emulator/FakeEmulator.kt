@@ -1376,9 +1376,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
-    fun getSkinFolder(skinName: String): Path {
-      return getWorkspaceRoot().resolve("tools/adt/idea/artwork/resources/device-art-resources/${skinName}")
-    }
+    fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
+
+    @JvmStatic
+    fun getRootSkinFolder(): Path = getWorkspaceRoot().resolve(DEVICE_ART_RESOURCES_DIR)
 
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
@@ -1396,3 +1397,5 @@ private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 2
                                    ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
                                    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
                                    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
+
+private const val DEVICE_ART_RESOURCES_DIR = "tools/adt/idea/artwork/resources/device-art-resources"
