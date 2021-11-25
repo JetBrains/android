@@ -33,7 +33,7 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
+class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
@@ -68,7 +68,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
 class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
 
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
 
     console.printShellCommand(UNSET_WATCH_FACE)
     device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)

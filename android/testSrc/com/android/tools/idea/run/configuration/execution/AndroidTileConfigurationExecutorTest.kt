@@ -34,7 +34,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 
-class AndroidTileConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
+class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(

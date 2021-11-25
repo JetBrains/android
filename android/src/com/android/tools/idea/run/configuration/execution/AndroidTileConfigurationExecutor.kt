@@ -33,7 +33,7 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 
-class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
+class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
@@ -68,8 +68,8 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
 }
 
 private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,
-                                consoleView: ConsoleView) : AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver(isCancelledCheck,
-                                                                                                                       consoleView) {
+                                consoleView: ConsoleView) : AndroidConfigurationExecutorBase.AndroidLaunchReceiver(isCancelledCheck,
+                                                                                                                   consoleView) {
   var tileIndex: Int? = null
   val indexPattern = "Index=\\[(\\d+)]".toRegex()
   override fun processNewLines(lines: Array<String>) {
@@ -80,7 +80,7 @@ private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,
 
 class TileProcessHandler(private val tileName:String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
 
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
     console.printShellCommand(removeTileCommand)

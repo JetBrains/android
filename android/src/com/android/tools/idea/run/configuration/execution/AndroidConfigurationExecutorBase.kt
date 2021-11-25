@@ -45,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-abstract class AndroidWearConfigurationExecutorBase(protected val environment: ExecutionEnvironment) : RunProfileState {
+abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment) : RunProfileState {
 
   val configuration = environment.runProfile as AndroidWearConfiguration
   protected val project = configuration.project

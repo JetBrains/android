@@ -36,7 +36,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
-class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidWearConfigurationExecutorBase(environment) {
+class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
@@ -87,7 +87,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 class ComplicationProcessHandler(private val complicationComponentName: String,
                                  private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidWearConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
 
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     console.printShellCommand(removeComplicationCommand)

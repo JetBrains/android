@@ -37,7 +37,7 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
 
 
-class AndroidComplicationConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
+class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
   private object TestWatchFaceInfo : ComplicationWatchFaceInfo {
     override val complicationSlots: List<ComplicationSlot> = emptyList()

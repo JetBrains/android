@@ -30,7 +30,7 @@ import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
-class AndroidWatchFaceConfigurationExecutorTest : AndroidWearConfigurationExecutorBaseTest() {
+class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings = RunManager.getInstance(project).createConfiguration(

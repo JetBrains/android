@@ -33,7 +33,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.io.File
 
-abstract class AndroidWearConfigurationExecutorBaseTest : AndroidTestCase() {
+abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
 
