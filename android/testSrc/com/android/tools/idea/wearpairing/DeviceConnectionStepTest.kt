@@ -200,6 +200,21 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     }
   }
 
+  @Test
+  fun shouldShowErrorIfAgpConnectionFails() {
+    val iDevice = createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
+    Mockito.`when`(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt())).thenThrow(RuntimeException("Test"))
+    phoneDevice.launch = { Futures.immediateFuture(iDevice) }
+    wearDevice.launch = phoneDevice.launch
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(15, TimeUnit.SECONDS) {
+      invokeStrategy.updateAllSteps()
+      fakeUi.findComponent<JBLabel> { it.text == "Error occurred connecting devices" } != null
+    }
+  }
+
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()

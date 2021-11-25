@@ -56,6 +56,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.TestOnly
+import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 
@@ -252,11 +253,17 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     saveSettings()
 
     if (connect) {
-      LOG.warn("Creating adb bridge")
-      phoneDevice.runCatching { createForward(hostPort, 5601) }
-      wearDevice.runCatching { createReverse(5601, hostPort) }
-      wearDevice.refreshEmulatorConnection()
-      updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice)
+      @Suppress("BlockingMethodInNonBlockingContext")
+      try {
+        LOG.warn("Creating adb bridge")
+        phoneDevice.createForward(hostPort, 5601)
+        wearDevice.createReverse(5601, hostPort)
+        wearDevice.refreshEmulatorConnection()
+        updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice)
+      }
+      catch (ex: Throwable) {
+        throw IOException(ex)
+      }
     }
 
     return phoneWearPair

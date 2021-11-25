@@ -70,6 +70,7 @@ import java.awt.GridBagConstraints.REMAINDER
 import java.awt.GridBagConstraints.VERTICAL
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
+import java.io.IOException
 import java.time.Duration
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
@@ -257,13 +258,21 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private suspend fun showSecondPhase(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
-    val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
-    // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
-    if (phoneWearPair.pairingStatus == PairingState.CONNECTED) {
-      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
-    }
-    else {
-      showPairing(phoneWearPair, phoneDevice, wearDevice)
+    try {
+      val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
+      // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
+      if (phoneWearPair.pairingStatus == PairingState.CONNECTED) {
+        showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
+      }
+      else {
+        showPairing(phoneWearPair, phoneDevice, wearDevice)
+      }
+    } catch (ex: IOException) {
+      LOG.warn(ex)
+      showDeviceError(
+        header = message("wear.assistant.connection.alert.cant.bridge.title"), description = " ",
+        errorMessage = message("wear.assistant.connection.alert.cant.bridge.subtitle")
+      )
     }
   }
 
