@@ -40,6 +40,7 @@ import org.mockito.Mockito
 import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JEditorPane
+import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 
 @RunsInEdt
@@ -72,6 +73,9 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
       Truth.assertThat(it.isVisible).isFalse()
     }
+    TreeWalker(page).descendants().filterIsInstance<JPanel>().single { it.name == "outdated-results-banner" }.let {
+      Truth.assertThat(it.isVisible).isFalse()
+    }
     val declaredDependenciesList = TreeWalker(page).descendants().filterIsInstance<JBList<JetifierWarningDetailsFactory.DirectDependencyDescriptor>>().single()
     Truth.assertThat(declaredDependenciesList.isEmpty).isTrue()
 
@@ -87,7 +91,8 @@ class JetifierWarningDetailsFactoryTest {
   fun testJetifierCanBeRemovedPageCreation() {
     val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
       JetifierCanBeRemoved,
-      lastCheckJetifierBuildTimestamp = 0
+      lastCheckJetifierBuildTimestamp = 0,
+      checkJetifierBuild = true
     ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
@@ -111,6 +116,9 @@ class JetifierWarningDetailsFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
       Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
       Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JPanel>().single { it.name == "outdated-results-banner" }.let {
+      Truth.assertThat(it.isVisible).isFalse()
     }
     TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
@@ -142,7 +150,8 @@ class JetifierWarningDetailsFactoryTest {
 
     val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
       JetifierRequiredForLibraries(checkJetifierResult),
-      lastCheckJetifierBuildTimestamp = 0
+      lastCheckJetifierBuildTimestamp = 0,
+      checkJetifierBuild = true
     ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
@@ -161,6 +170,9 @@ class JetifierWarningDetailsFactoryTest {
     }
     TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isFalse()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JPanel>().single { it.name == "outdated-results-banner" }.let {
       Truth.assertThat(it.isVisible).isFalse()
     }
 
@@ -217,7 +229,8 @@ class JetifierWarningDetailsFactoryTest {
 
     val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
       JetifierRequiredForLibraries(checkJetifierResult),
-      lastCheckJetifierBuildTimestamp = 0
+      lastCheckJetifierBuildTimestamp = 0,
+      checkJetifierBuild = true
     ))
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
@@ -229,6 +242,63 @@ class JetifierWarningDetailsFactoryTest {
       Truth.assertThat(html).contains("found a declared dependency that requires")
       Truth.assertThat(html).contains(
         "To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.")
+    }
+  }
+
+  @Test
+  fun testResultsOutdatedWhenJetifierRequired() {
+    val checkJetifierResult = CheckJetifierResult(sortedMapOf(
+      "example:A:1.0" to listOf(FullDependencyPath(
+        projectPath = ":app",
+        configuration = "debugAndroidTestCompileClasspath",
+        dependencyPath = DependencyPath(listOf("example:A:1.0", "example:C:1.0", "example:B:1.0", "com.android.support:support-annotations:28.0.0"))
+      ))
+    ))
+
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
+      JetifierRequiredForLibraries(checkJetifierResult),
+      lastCheckJetifierBuildTimestamp = 0,
+      checkJetifierBuild = false
+    ))
+    page.size = Dimension(600, 400)
+    val ui = FakeUi(page)
+    ui.layoutAndDispatchEvents()
+
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JPanel>().single { it.name == "outdated-results-banner" }.let {
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isFalse()
+    }
+  }
+
+
+  @Test
+  fun testResultsOutdatedWhenJetifierCanBeRemoved() {
+    val page = JetifierWarningDetailsFactory(mockHandlers).createPage(JetifierUsageAnalyzerResult(
+      JetifierCanBeRemoved,
+      lastCheckJetifierBuildTimestamp = 0,
+      checkJetifierBuild = false
+    ))
+    page.size = Dimension(600, 400)
+    val ui = FakeUi(page)
+    ui.layoutAndDispatchEvents()
+
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "run-check-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Run Jetifier check")
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JPanel>().single { it.name == "outdated-results-banner" }.let {
+      Truth.assertThat(it.isVisible).isTrue()
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single { it.name == "disable-jetifier-button" }.let {
+      Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
+      Truth.assertThat(it.isVisible).isTrue()
     }
   }
 

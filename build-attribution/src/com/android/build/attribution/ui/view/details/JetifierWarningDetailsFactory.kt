@@ -41,7 +41,9 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBList
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import com.intellij.util.text.DateFormatUtil
@@ -49,6 +51,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.getListBackground
 import com.intellij.util.ui.UIUtil.getListForeground
+import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.Component
@@ -61,6 +64,7 @@ import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTree
@@ -186,7 +190,11 @@ class JetifierWarningDetailsFactory(
     val declaredDependenciesList = JBList(declaredDependenciesListValues).apply {
       name = "declared-dependencies-list"
       cellRenderer = object : ColoredListCellRenderer<DirectDependencyDescriptor>() {
-        override fun customizeCellRenderer(list: JList<out DirectDependencyDescriptor>, value: DirectDependencyDescriptor?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        override fun customizeCellRenderer(list: JList<out DirectDependencyDescriptor>,
+                                           value: DirectDependencyDescriptor?,
+                                           index: Int,
+                                           selected: Boolean,
+                                           hasFocus: Boolean) {
           if (value == null) return
           icon = LIBRARY_ICON
           isIconOpaque = true
@@ -231,6 +239,16 @@ class JetifierWarningDetailsFactory(
       border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
       background = UIUtil.getTreeBackground()
     }
+    val outdatedResultsBanner = JPanel().apply {
+      name = "outdated-results-banner"
+      isVisible = data.isPreviouslySavedResultReused()
+      layout = HorizontalLayout(10)
+      border = JBUI.Borders.empty(4, 8)
+      add(JLabel("Showing previously saved results."), HorizontalLayout.LEFT)
+      add(ActionLink("Re-run check.") { actionHandlers.runCheckJetifierTask() }, HorizontalLayout.RIGHT)
+      background = JBUI.CurrentTheme.NotificationWarning.backgroundColor()
+      foreground = JBUI.CurrentTheme.NotificationWarning.foregroundColor()
+    }
     val treeHeader = SimpleColoredComponent().apply {
       name = "dependency-structure-header"
       ipad = JBUI.insetsLeft(8)
@@ -263,7 +281,8 @@ class JetifierWarningDetailsFactory(
 
     val declaredDependenciesListPanel = ScrollPaneFactory.createScrollPane().apply {
       setColumnHeaderView(tableHeader)
-      setViewportView(declaredDependenciesList)
+      val listWithBanner = BorderLayoutPanel()
+      setViewportView(listWithBanner.addToTop(outdatedResultsBanner).addToCenter(declaredDependenciesList))
     }
     val librariesStructurePanel = ScrollPaneFactory.createScrollPane().apply {
       setColumnHeaderView(treeHeader)
@@ -304,6 +323,9 @@ class JetifierWarningDetailsFactory(
     }
   }
 
+  private fun JetifierUsageAnalyzerResult.isPreviouslySavedResultReused(): Boolean =
+    !checkJetifierBuild && (projectStatus is JetifierCanBeRemoved || projectStatus is JetifierRequiredForLibraries)
+
 
   private class DependencyTreeNode(val descriptor: DependencyDescriptor) : DefaultMutableTreeNode(descriptor) {
     override fun toString(): String {
@@ -334,7 +356,7 @@ class JetifierWarningDetailsFactory(
   ) {
     val isSupportLibrary: Boolean get() = pathToSupportLibrary.size == 1
 
-    constructor(resultEntry: Map.Entry<String, List<FullDependencyPath>>): this(
+    constructor(resultEntry: Map.Entry<String, List<FullDependencyPath>>) : this(
       resultEntry.key,
       resultEntry.value.map { it.projectPath },
       resultEntry.value.first().dependencyPath.elements
