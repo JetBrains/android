@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
@@ -27,6 +26,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Element
@@ -35,16 +35,15 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake {
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, ComponentSpecificConfiguration {
   var componentName: String? = null
   var installFlags = ""
 
-  abstract val componentType: ComponentType
   abstract val userVisibleComponentTypeName: String
   abstract val componentBaseClassesFqNames: Array<String>
   val androidDebuggerContext: AndroidDebuggerContext = AndroidDebuggerContext(AndroidJavaDebugger.ID)
 
-  override fun getConfigurationEditor():AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
+  override fun getConfigurationEditor(): AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
   override fun checkConfiguration() {
     configurationModule.checkForWarning()
     // If module is null `configurationModule.checkForWarning()` will throw an error
@@ -54,14 +53,17 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   override fun writeExternal(element: Element) {
-    super.writeExternal(element)
+    super<ModuleBasedConfiguration>.writeExternal(element)
     XmlSerializer.serializeInto(this, element)
   }
 
   override fun readExternal(element: Element) {
-    super.readExternal(element)
+    super<ModuleBasedConfiguration>.readExternal(element)
     XmlSerializer.deserializeInto(this, element)
   }
 
   override fun getValidModules() = project.getAndroidModulesForDisplay()
+
+  override val module: Module?
+    get() = configurationModule.module
 }
