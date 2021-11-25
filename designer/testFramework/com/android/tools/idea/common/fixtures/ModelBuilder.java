@@ -48,7 +48,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.io.File;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javax.swing.JComponent;
 import kotlin.jvm.functions.Function1;
@@ -67,7 +66,7 @@ public class ModelBuilder {
   private final CodeInsightTestFixture myFixture;
   private String myName;
   private final Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> myManagerFactory;
-  private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
+  private final Consumer<NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
   private final Function1<DesignSurface, InteractionHandler> myInteractionHandlerCreator;
@@ -80,7 +79,7 @@ public class ModelBuilder {
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
                       @NotNull Function2<? super DesignSurface, SyncNlModel, ? extends SceneManager> managerFactory,
-                      @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
+                      @NotNull Consumer<NlModel> modelUpdater,
                       @NotNull String path,
                       @NotNull Class<? extends DesignSurface> surfaceClass,
                       @NotNull Function1<DesignSurface, InteractionHandler> interactionHandlerCreator,
@@ -91,7 +90,11 @@ public class ModelBuilder {
     myRoot = root;
     myName = name;
     myManagerFactory = managerFactory;
-    myModelUpdater = modelUpdater;
+    myModelUpdater = model -> {
+      // Reload the change from ComponentDescriptor
+      updateXmlToNlModel(model);
+      modelUpdater.accept(model);
+    };
     myPath = path;
     mySurfaceClass = surfaceClass;
     myInteractionHandlerCreator = interactionHandlerCreator;
@@ -211,12 +214,35 @@ public class ModelBuilder {
   }
 
   /**
+   * Reload the content of the used {@link ComponentDescriptor} for the given {@link NlModel}
+   */
+  private void updateXmlToNlModel(@NotNull NlModel model) {
+    final Project project = model.getProject();
+    WriteAction.runAndWait(() -> {
+      String xml = toXml();
+      // This creates the content from the current ModelRegistrar.
+      try {
+        assertNotNull(xml, XmlUtils.parseDocument(xml, true));
+      }
+      catch (Exception e) {
+        fail("Invalid XML created for the model (" + xml + ")");
+      }
+      VirtualFile virtualFile = model.getVirtualFile();
+      XmlFile xmlFile = (XmlFile)PsiManager.getInstance(project).findFile(virtualFile);
+      assertThat(xmlFile).isNotNull();
+      Document document = PsiDocumentManager.getInstance(project).getDocument(xmlFile);
+      assertThat(document).isNotNull();
+      document.setText(xml);
+      PsiDocumentManager.getInstance(project).commitAllDocuments();
+    });
+  }
+
+  /**
    * Update the given model to reflect the componentHierarchy in the given builder
    */
-  public void updateModel(NlModel model) {
+  public void updateModel(@NotNull NlModel model) {
     assertThat(model).isNotNull();
-    NlModel newModel = build();
-    myModelUpdater.accept(model, newModel);
+    myModelUpdater.accept(model);
     for (NlComponent component : model.getComponents()) {
       checkStructure(component);
     }

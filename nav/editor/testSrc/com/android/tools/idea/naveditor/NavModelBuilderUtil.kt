@@ -99,7 +99,7 @@ object NavModelBuilderUtil {
       NavSceneManager(model, surface)
     }
 
-    return ModelBuilder(facet, fixture, name, f(), managerFactory, { model, newModel -> updateHierarchy(model, newModel) }, path,
+    return ModelBuilder(facet, fixture, name, f(), managerFactory, { model -> updateHierarchy(model, model) }, path,
                         NavDesignSurface::class.java, { NavInteractionHandler(it) }, NavComponentRegistrar )
   }
 

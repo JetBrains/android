@@ -69,8 +69,7 @@ public class NlModelBuilderUtil {
         NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model);
         return new SyncLayoutlibSceneManager(surface, model);
       },
-      (@NotNull NlModel model, @NotNull NlModel newModel) -> NlModelHierarchyUpdater.updateHierarchy(
-        AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root), model),
+      (@NotNull NlModel model) -> NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model),
       resourceFolder,
       NlDesignSurface.class,
       NlInteractionHandler::new,
