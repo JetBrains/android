@@ -1816,8 +1816,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
     else if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-      if (getFocusedSceneView() != null) {
-        SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
         NlComponent primary = selectionModel.getPrimary();
         if (primary != null) {
           return primary.getTagDeprecated();
@@ -1825,8 +1826,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
     else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-      if (getFocusedSceneView() != null) {
-        SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
         List<NlComponent> selection = selectionModel.getSelection();
         List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
         for (NlComponent component : selection) {
