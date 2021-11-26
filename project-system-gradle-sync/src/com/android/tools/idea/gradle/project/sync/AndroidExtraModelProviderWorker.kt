@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
@@ -44,8 +43,10 @@ import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
-import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
+import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.MINIMUM
+import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.NO_FORCE
+import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.PREVIEW
+import com.android.tools.idea.gradle.project.upgrade.computeForcePluginUpgradeReason
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -282,14 +283,11 @@ internal class AndroidExtraModelProviderWorker(
   private fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
     if (syncOptions.flags.studioFlagDisableForcedUpgrades) return
     val agpVersion = if (agpVersionString != null) GradleVersion.parse(agpVersionString) else return
-    if (agpVersion.compareIgnoringQualifiers(GRADLE_PLUGIN_MINIMUM_VERSION) < 0) {
-      throw AgpVersionTooOld(agpVersion)
-    }
-    // We don't have access to LatestKnownPluginVersionProvider: just use the build version
     val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
-    val upgradeState = computeGradlePluginUpgradeState(agpVersion, latestKnown, setOf())
-    if (upgradeState.importance == FORCE) {
-      throw AgpVersionIncompatible(agpVersion)
+    when (computeForcePluginUpgradeReason(agpVersion, latestKnown)) {
+      MINIMUM -> throw AgpVersionTooOld(agpVersion)
+      PREVIEW -> throw AgpVersionIncompatible(agpVersion)
+      NO_FORCE -> Unit
     }
   }
 
