@@ -50,18 +50,8 @@ public class HtmlBuilderHelper {
   }
 
   @Nullable
-  public static String getCloseIconPath() {
-    return getIconPath("actions/closeNew.png");
-  }
-
-  @Nullable
   public static String getTipIconPath() {
-    return getIconPath("actions/createFromUsage.png");
-  }
-
-  @Nullable
-  public static String getWarningIconPath() {
-    return getIconPath("general/warningDialog.png");
+    return getIconPath("general/informationDialog.png");
   }
 
   @Nullable
@@ -78,30 +68,5 @@ public class HtmlBuilderHelper {
     // See com.intellij.codeInspection.HtmlComposer.appendHeading
     // (which operates on StringBuffers)
     return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
-  }
-
-  /**
-   * Adjust the font styles of the given text component, provided it's
-   * an HTML styled document, to use fonts from the current IDE scheme.
-   * <p>
-   * Note: Calling setText() on a component will reset the document styles
-   * so you will need to call this method repeatedly after each document
-   * replace.
-   *
-   * @param component the component
-   */
-  public static void fixFontStyles(@NotNull JTextComponent component) {
-    Document document = component.getDocument();
-    if (!(document instanceof StyledDocument)) {
-      return;
-    }
-
-    StyledDocument styledDocument = (StyledDocument)document;
-    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
-    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
-    Style style = styledDocument.addStyle("active", null);
-    StyleConstants.setFontFamily(style, scheme.getEditorFontName());
-    StyleConstants.setFontSize(style, scheme.getEditorFontSize());
-    styledDocument.setCharacterAttributes(0, document.getLength(), style, false);
   }
 }
