@@ -1059,7 +1059,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
         UIUtil.invokeLaterIfNeeded {
-          if (!(composeWorkBench as ComposePreviewViewImpl).isMessageVisible) {
+          if (!composeWorkBench.isMessageBeingDisplayed) {
             // Only notify the preview refresh time if there are previews to show.
             val durationString = Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()
             val notification = Notification(

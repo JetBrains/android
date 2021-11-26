@@ -120,6 +120,11 @@ interface ComposePreviewView {
   var hasContent: Boolean
 
   /**
+   * True if the view is displaying an overlay with a message.
+   */
+  val isMessageBeingDisplayed: Boolean
+
+  /**
    * If true, the contents have been at least rendered once.
    */
   var hasRendered: Boolean
@@ -534,6 +539,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
   override var isAnimationPreview: Boolean = false
 
   override var hasContent: Boolean = true
+
+  override val isMessageBeingDisplayed: Boolean
+    get() = this.isMessageVisible
 
   @get:Synchronized
   override var hasRendered: Boolean = false
