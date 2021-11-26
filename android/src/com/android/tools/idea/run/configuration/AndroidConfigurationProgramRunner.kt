@@ -37,8 +37,8 @@ import org.jetbrains.concurrency.Promise
  *
  * Actual execution for configuration, after build, happens in [AndroidConfigurationExecutorBase]
  */
-class AndroidWearProgramRunner : AsyncProgramRunner<RunnerSettings>() {
-  override fun getRunnerId(): String = "AndroidWearProgramRunner"
+class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
+  override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
     return (DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId) && profile is AndroidWearConfiguration

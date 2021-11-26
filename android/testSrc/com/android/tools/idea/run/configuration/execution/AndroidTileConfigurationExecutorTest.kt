@@ -20,9 +20,9 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
 import com.android.testutils.MockitoKt
 import com.android.tools.deployer.model.component.AppComponent
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
@@ -42,7 +42,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val androidTileConfiguration = configSettings.configuration as AndroidTileConfiguration
     androidTileConfiguration.setModule(myModule)
     androidTileConfiguration.componentName = componentName
-    return ExecutionEnvironment(executorInstance, AndroidWearProgramRunner(), configSettings, project)
+    return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
   fun testRun() {

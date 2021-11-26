@@ -22,7 +22,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.google.common.truth.Truth.assertThat
@@ -58,7 +58,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
     )
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+                                   project)
 
     val device = getMockDevice()
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
@@ -116,7 +117,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       AndroidComplicationConfiguration.ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE)
     )
     // Use DefaultDebugExecutor executor.
-    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidWearProgramRunner(), configSettings, project)
+    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+                                   project)
 
     val device = getMockDevice()
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())

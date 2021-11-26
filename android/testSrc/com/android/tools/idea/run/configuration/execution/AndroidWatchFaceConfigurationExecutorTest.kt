@@ -17,9 +17,9 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
-import com.android.tools.idea.run.configuration.AndroidWearProgramRunner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
@@ -39,7 +39,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     androidWatchFaceConfiguration.setModule(myModule)
     androidWatchFaceConfiguration.componentName = componentName
     // Use debug executor
-    return ExecutionEnvironment(executorInstance, AndroidWearProgramRunner(), configSettings, project)
+    return ExecutionEnvironment(executorInstance, AndroidConfigurationProgramRunner(), configSettings, project)
   }
 
   fun testRun() {
