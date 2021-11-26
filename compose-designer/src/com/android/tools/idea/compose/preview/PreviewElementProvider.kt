@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.util.ModificationTracker
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -86,8 +87,9 @@ class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
     val newModificationStamp = modificationTracker.modificationCount
 
     if (newModificationStamp != savedModificationStamp) {
+      val elements = delegate.previewElements().toList()
       cachedPreviewElementLock.write {
-        cachedPreviewElements = delegate.previewElements().toList()
+          cachedPreviewElements = elements
       }
       savedModificationStamp = newModificationStamp
     }
