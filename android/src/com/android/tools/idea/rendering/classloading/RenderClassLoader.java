@@ -195,7 +195,6 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
       .files(files)
       .useCache(ourLoaderCachePool, url -> true)
       .allowLock(myAllowExternalJarFileLocking)
-      .setLogErrorOnMissingJar(false)
       .get();
   }
 
