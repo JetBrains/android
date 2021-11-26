@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND;
-import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeStateKt.computeGradlePluginUpgradeState;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.computeGradlePluginUpgradeState;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ide.common.repository.GradleVersion;
