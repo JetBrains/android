@@ -20,6 +20,10 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <xdebugger.configurableProvider implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerConfigurableProvider" />
+
+    <projectService
+        serviceInterface="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTracker"
+        serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
   </extensions>
 
   <projectListeners>

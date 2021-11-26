@@ -22,5 +22,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
   </component>
 </module>
