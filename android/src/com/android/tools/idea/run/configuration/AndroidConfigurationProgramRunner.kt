@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorBase
 import com.android.tools.idea.stats.RunStatsService
 import com.intellij.execution.configurations.RunProfile
@@ -41,7 +42,9 @@ class AndroidConfigurationProgramRunner : AsyncProgramRunner<RunnerSettings>() {
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
-    return (DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId) && profile is AndroidWearConfiguration
+    return (DefaultRunExecutor.EXECUTOR_ID == executorId || DefaultDebugExecutor.EXECUTOR_ID == executorId) &&
+           (profile is AndroidWearConfiguration ||
+            (profile is AndroidRunConfiguration && profile.useNewExecution))
   }
 
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
