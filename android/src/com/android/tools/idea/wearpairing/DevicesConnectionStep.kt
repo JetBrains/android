@@ -99,6 +99,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
                             val wizardAction: WizardAction,
                             private val isFirstStage: Boolean = true) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private var runningJob: Job? = null
+  private var backgroundJob: Job? = null // Independent of the UI state, monitors the devices for pairing
   private var currentUiHeader = ""
   private var currentUiDescription = ""
   private val secondStageStep = if (isFirstStage) DevicesConnectionStep(model, project, wizardAction, false) else null
@@ -132,6 +133,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   override fun dispose() {
     runningJob?.cancel(null)
+    backgroundJob?.cancel(null)
     deviceStateListener.releaseAll()
     bindings.releaseAll()
   }
@@ -257,22 +259,18 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   private suspend fun showSecondPhase(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice) {
+    // Note: createPairedDeviceBridge() may restart GmsCore, so it may take a bit of time until pairing. Show some UI placeholder.
     showUiBridgingDevices()
     try {
       val phoneWearPair = WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
-      // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
-      if (phoneWearPair.pairingStatus == PairingState.CONNECTED) {
-        showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
-      }
-      else {
+      if (phoneWearPair.pairingStatus != PairingState.CONNECTED) {
         showPairing(phoneWearPair, phoneDevice, wearDevice)
       }
-    } catch (ex: IOException) {
-      LOG.warn(ex)
-      showDeviceError(
-        header = message("wear.assistant.connection.alert.cant.bridge.title"), description = " ",
-        errorMessage = message("wear.assistant.connection.alert.cant.bridge.subtitle")
-      )
+
+      waitForPairingSuccessOnBackground(phoneWearPair, phoneDevice, wearDevice)
+    }
+    catch (ex: IOException) {
+      showGenericError(ex)
     }
   }
 
@@ -289,14 +287,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
             }
           }
         }
-        if (WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED) {
-          showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName, false)
-        }
-        else {
+        if (WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
           showUiPairingNonInteractive(phoneWearPair, phoneDevice, wearDevice,
                                       message("wear.assistant.device.connection.pairing.auto.failed"),
                                       "Retry", "Skip to manual instructions", false)
-        }
+        } // else waitForPairingSuccessOnBackground() will take care of success case
       }
     }
     else {
@@ -317,17 +312,30 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
                             scanningLabel = message("wear.assistant.device.connection.wait.pairing.lnk"))
     }
 
-    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) {
-        WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) == PairingState.CONNECTED
-      }) {
-      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName,
-                         // If 2.x companion older than 773393865 is used with manual pairing, we have to let the
-                         // user know how they can finish the pairing on the companion.
-                         !phoneDevice.hasPairingFeature(PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED,
-                                                       wearDevice.getCompanionAppIdForWatch()))
-    }
-    else {
-      showUiPairingRetry(phoneWearPair, phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+    // After some time we give up and show the manual retry ui. waitForPairingSuccessOnBackground() will take care of success case
+    delay(TIME_TO_SHOW_MANUAL_RETRY)
+    showUiPairingRetry(phoneWearPair, phoneDevice, wearDevice)
+  }
+
+  private fun waitForPairingSuccessOnBackground(phoneWearPair: PhoneWearPair, phoneDevice: IDevice, wearDevice: IDevice) {
+    check(backgroundJob?.isActive != true) // There can only be a single background job at any time
+    backgroundJob = GlobalScope.launch(ioThread) {
+      try {
+        while (phoneWearPair.pairingStatus != PairingState.CONNECTED &&
+               WearPairingManager.updateDeviceStatus(phoneWearPair, phoneDevice, wearDevice) != PairingState.CONNECTED) {
+          delay(2_000)
+        }
+
+        // If 2.x companion older than 773393865 is used with manual pairing, we have to let the
+        // user know how they can finish the pairing on the companion.
+        val showTapAndFinishWarning =
+          !phoneDevice.hasPairingFeature(PairingFeature.COMPANION_SKIP_AND_FINISH_FIXED, wearDevice.getCompanionAppIdForWatch())
+        showPairingSuccess(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName,
+                           showTapAndFinishWarning)
+      }
+      catch (ex: IOException) {
+        showGenericError(ex)
+      }
     }
   }
 
@@ -774,6 +782,14 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
+  private fun showGenericError(ex: Throwable) {
+    LOG.warn(ex)
+    showDeviceError(
+      header = message("wear.assistant.connection.alert.cant.bridge.title"), description = " ",
+      errorMessage = message("wear.assistant.connection.alert.cant.bridge.subtitle")
+    )
+  }
+
   private suspend fun goToNextStep(phoneDevice: IDevice, wearDevice: IDevice) {
     // The "Next" button changes asynchronously. Create a temporary property that will change state at the same time.
     val doGoForward = BoolValueProperty()
@@ -799,7 +815,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 }
 
-private fun createWarningPanel(errorMessage: String, icon : Icon = StudioIcons.Common.WARNING): JPanel = JPanel(GridBagLayout()).apply {
+private fun createWarningPanel(errorMessage: String, icon: Icon = StudioIcons.Common.WARNING): JPanel = JPanel(GridBagLayout()).apply {
   add(JBLabel(IconUtil.scale(icon, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 0))
   add(HtmlLabel().apply {
     name = "errorMessage"
