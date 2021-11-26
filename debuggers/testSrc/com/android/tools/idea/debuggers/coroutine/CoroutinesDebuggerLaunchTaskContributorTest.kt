@@ -18,22 +18,25 @@ package com.android.tools.idea.debuggers.coroutine
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.LaunchOptions
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
-import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito
+import com.intellij.testFramework.registerServiceInstance
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
-  private val configuration = mock( AndroidRunConfigurationBase
-  ::class.java)
+  private val configuration = mock<AndroidRunConfigurationBase>()
+
+  override fun setUp() {
+    super.setUp()
+    `when`(configuration.project).thenReturn(project)
+  }
+
   fun testContributorHasNoTask() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
@@ -67,10 +70,9 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
     val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
-
 
     runWithFlagState(true) {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
@@ -82,7 +84,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testNoAmOptionsOnAPI28AndLower() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
 
@@ -119,7 +121,7 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testAmOptionsIsCorrect() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = Mockito.spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
 
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
@@ -128,6 +130,34 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
       val amStartOptions = contributor.getAmStartOptions("com.test.application", configuration, device,
                                                          DefaultDebugExecutor.getDebugExecutorInstance())
       assertEquals("--attach-agent /data/data/com.test.application/code_cache/coroutine_debugger_agent.so", amStartOptions)
+    }
+  }
+
+  fun testLaunchEventIsTracked() {
+    val fakeTracker = FakeCoroutineDebuggerAnalyticsTracker()
+    project.registerServiceInstance(CoroutineDebuggerAnalyticsTracker::class.java, fakeTracker)
+
+    val contributor = CoroutineDebuggerLaunchTaskContributor()
+    val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
+
+    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(true)
+
+    runWithFlagState(true) {
+      contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+
+      assertTrue(fakeTracker.trackLaunchEventCalled)
+      assertFalse(fakeTracker.launchEventIsDisabledInSettings)
+    }
+
+    fakeTracker.reset()
+    CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
+    runWithFlagState(true) {
+      contributor.getAmStartOptions("com.test.application", configuration, device, DefaultDebugExecutor.getDebugExecutorInstance())
+
+      assertTrue(fakeTracker.trackLaunchEventCalled)
+      assertTrue(fakeTracker.launchEventIsDisabledInSettings)
     }
   }
 }

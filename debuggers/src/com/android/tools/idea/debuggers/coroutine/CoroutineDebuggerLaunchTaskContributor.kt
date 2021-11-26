@@ -20,11 +20,9 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Sites
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.openapi.module.Module
 
 /**
  * Responsible for setting the am start options to start the coroutine debugger agent.
@@ -45,11 +43,6 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
       return ""
     }
 
-    // coroutine debugger can be disabled from studio settings
-    if (!CoroutineDebuggerSettings.isCoroutineDebuggerEnabled()) {
-      return ""
-    }
-
     if (DefaultDebugExecutor.EXECUTOR_ID != executor.id) {
       return ""
     }
@@ -60,6 +53,15 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
     // for now we're disabling it, but we could investigate this further and re-enable it later on.
     // Since this check doesn't prevent the coroutine debugger panel from showing up, we should consider moving it into the agent.
     if (!device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)) {
+      return ""
+    }
+
+    val isCoroutineDebuggerEnabledInSettings = CoroutineDebuggerSettings.isCoroutineDebuggerEnabled()
+
+    CoroutineDebuggerAnalyticsTracker.getInstance(configuration.project).trackLaunchEvent(!isCoroutineDebuggerEnabledInSettings)
+
+    // coroutine debugger can be disabled from studio settings
+    if (!isCoroutineDebuggerEnabledInSettings) {
       return ""
     }
 
