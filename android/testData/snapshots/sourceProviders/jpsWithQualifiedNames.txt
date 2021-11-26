@@ -65,6 +65,18 @@ MODULE: MyApplication
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+        GeneratedUnitTestSources:
+            GeneratedUnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+        GeneratedAndroidTestSources:
+            GeneratedAndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
              (IDEA)
                 ScopeType: MAIN

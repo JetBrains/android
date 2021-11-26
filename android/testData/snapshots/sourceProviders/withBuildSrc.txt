@@ -403,6 +403,36 @@ MODULE: testWithBuildSrc.app
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+                JavaDirectoryUrls:
+                    file://./app/build/generated/source/buildConfig/debug
+                    file://./app/build/generated/aidl_source_output_dir/debug/out
+                    file://./app/build/generated/renderscript_source_output_dir/debug/out
+                    file://./app/build/generated/ap_generated_sources/debug/out
+                ResDirectoryUrls:
+                    file://./app/build/generated/res/rs/debug
+                    file://./app/build/generated/res/resValues/debug
+        GeneratedUnitTestSources:
+            GeneratedUnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+                JavaDirectoryUrls:
+                    file://./app/build/generated/ap_generated_sources/debugUnitTest/out
+        GeneratedAndroidTestSources:
+            GeneratedAndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+                JavaDirectoryUrls:
+                    file://./app/build/generated/source/buildConfig/androidTest/debug
+                    file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
+                    file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
+                    file://./app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+                ResDirectoryUrls:
+                    file://./app/build/generated/res/rs/androidTest/debug
+                    file://./app/build/generated/res/resValues/androidTest/debug
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

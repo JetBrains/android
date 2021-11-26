@@ -1,4 +1,4 @@
-MODULE: testTestFixtures.app
+MODULE: MainActivity.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -19,8 +19,8 @@ MODULE: testTestFixtures.app
             JavaDirectories:
                 file://./app/src/main/java
             KotlinDirectoryUrls:
-                file://./app/src/main/java
                 file://./app/src/main/kotlin
+                file://./app/src/main/java
             KotlinDirectories:
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
@@ -46,8 +46,8 @@ MODULE: testTestFixtures.app
             JavaDirectories:
                 ./app/src/main/java
             KotlinDirectories:
-                ./app/src/main/java
                 ./app/src/main/kotlin
+                ./app/src/main/java
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -69,8 +69,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/main/java
                 KotlinDirectories:
-                    ./app/src/main/java
                     ./app/src/main/kotlin
+                    ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -91,8 +91,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/debug/java
                 KotlinDirectories:
-                    ./app/src/debug/java
                     ./app/src/debug/kotlin
+                    ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -114,8 +114,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/main/java
                 KotlinDirectories:
-                    ./app/src/main/java
                     ./app/src/main/kotlin
+                    ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -136,8 +136,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/debug/java
                 KotlinDirectories:
-                    ./app/src/debug/java
                     ./app/src/debug/kotlin
+                    ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -158,8 +158,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/release/java
                 KotlinDirectories:
-                    ./app/src/release/java
                     ./app/src/release/kotlin
+                    ./app/src/release/java
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 RenderscriptDirectories:
@@ -181,8 +181,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/test/java
                 KotlinDirectories:
-                    ./app/src/test/java
                     ./app/src/test/kotlin
+                    ./app/src/test/java
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -203,8 +203,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/testDebug/java
                 KotlinDirectories:
-                    ./app/src/testDebug/java
                     ./app/src/testDebug/kotlin
+                    ./app/src/testDebug/java
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -226,8 +226,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/androidTest/java
                 KotlinDirectories:
-                    ./app/src/androidTest/java
                     ./app/src/androidTest/kotlin
+                    ./app/src/androidTest/java
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -248,8 +248,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
                 KotlinDirectories:
-                    ./app/src/androidTestDebug/java
                     ./app/src/androidTestDebug/kotlin
+                    ./app/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -289,10 +289,10 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/java
                     file://./app/src/main/kotlin
-                    file://./app/src/debug/java
+                    file://./app/src/main/java
                     file://./app/src/debug/kotlin
+                    file://./app/src/debug/java
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -335,10 +335,10 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./app/src/test/java
                     file://./app/src/test/kotlin
-                    file://./app/src/testDebug/java
+                    file://./app/src/test/java
                     file://./app/src/testDebug/kotlin
+                    file://./app/src/testDebug/java
                 KotlinDirectories:
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
@@ -379,10 +379,10 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTest/java
                     file://./app/src/androidTest/kotlin
-                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTest/java
                     file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTestDebug/java
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -410,7 +410,9 @@ MODULE: testTestFixtures.app
                     file://./app/build/generated/source/buildConfig/debug
                     file://./app/build/generated/aidl_source_output_dir/debug/out
                     file://./app/build/generated/renderscript_source_output_dir/debug/out
+                    file://./app/build/generated/source/kapt/debug
                     file://./app/build/generated/ap_generated_sources/debug/out
+                    file://./app/build/generated/source/kaptKotlin/debug
                 ResDirectoryUrls:
                     file://./app/build/generated/res/rs/debug
                     file://./app/build/generated/res/resValues/debug
@@ -418,15 +420,19 @@ MODULE: testTestFixtures.app
             GeneratedUnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
+                    file://./app/build/generated/source/kapt/debugUnitTest
                     file://./app/build/generated/ap_generated_sources/debugUnitTest/out
+                    file://./app/build/generated/source/kaptKotlin/debugUnitTest
         GeneratedAndroidTestSources:
             GeneratedAndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/source/buildConfig/androidTest/debug
                     file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
+                    file://./app/build/generated/source/kapt/debugAndroidTest
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
                     file://./app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+                    file://./app/build/generated/source/kaptKotlin/debugAndroidTest
                 ResDirectoryUrls:
                     file://./app/build/generated/res/rs/androidTest/debug
                     file://./app/build/generated/res/resValues/androidTest/debug
@@ -453,8 +459,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/java
                     file://./app/src/main/kotlin
+                    file://./app/src/main/java
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -482,8 +488,8 @@ MODULE: testTestFixtures.app
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/debug/java
                     file://./app/src/debug/kotlin
+                    file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -507,8 +513,8 @@ MODULE: testTestFixtures.app
                 JavaDirectoryUrls:
                     file://./app/src/release/java
                 KotlinDirectoryUrls:
-                    file://./app/src/release/java
                     file://./app/src/release/kotlin
+                    file://./app/src/release/java
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -539,8 +545,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
-                    file://./app/src/main/java
                     file://./app/src/main/kotlin
+                    file://./app/src/main/java
                 KotlinDirectories:
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
@@ -568,8 +574,8 @@ MODULE: testTestFixtures.app
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/debug/java
                     file://./app/src/debug/kotlin
+                    file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -598,8 +604,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
-                    file://./app/src/test/java
                     file://./app/src/test/kotlin
+                    file://./app/src/test/java
                 KotlinDirectories:
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
@@ -625,8 +631,8 @@ MODULE: testTestFixtures.app
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/testDebug/java
                     file://./app/src/testDebug/kotlin
+                    file://./app/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -655,8 +661,8 @@ MODULE: testTestFixtures.app
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTest/java
                     file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTest/java
                 KotlinDirectories:
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
@@ -682,8 +688,8 @@ MODULE: testTestFixtures.app
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./app/src/androidTestDebug/java
                     file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -695,7 +701,7 @@ MODULE: testTestFixtures.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-MODULE: testTestFixtures.lib
+MODULE: MainActivity.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -713,20 +719,14 @@ MODULE: testTestFixtures.lib
                 file://./lib/src/main/assets
             JavaDirectoryUrls:
                 file://./lib/src/main/java
-            JavaDirectories:
-                file://./lib/src/main/java
             KotlinDirectoryUrls:
-                file://./lib/src/main/java
                 file://./lib/src/main/kotlin
-            KotlinDirectories:
                 file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
             RenderscriptDirectoryUrls:
                 file://./lib/src/main/rs
             ResDirectoryUrls:
-                file://./lib/src/main/res
-            ResDirectories:
                 file://./lib/src/main/res
             ResourcesDirectoryUrls:
                 file://./lib/src/main/resources
@@ -743,8 +743,8 @@ MODULE: testTestFixtures.lib
             JavaDirectories:
                 ./lib/src/main/java
             KotlinDirectories:
-                ./lib/src/main/java
                 ./lib/src/main/kotlin
+                ./lib/src/main/java
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
             RenderscriptDirectories:
@@ -766,8 +766,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/main/java
                 KotlinDirectories:
-                    ./lib/src/main/java
                     ./lib/src/main/kotlin
+                    ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -788,8 +788,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/debug/java
                 KotlinDirectories:
-                    ./lib/src/debug/java
                     ./lib/src/debug/kotlin
+                    ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -811,8 +811,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/main/java
                 KotlinDirectories:
-                    ./lib/src/main/java
                     ./lib/src/main/kotlin
+                    ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -833,8 +833,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/debug/java
                 KotlinDirectories:
-                    ./lib/src/debug/java
                     ./lib/src/debug/kotlin
+                    ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -855,8 +855,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/release/java
                 KotlinDirectories:
-                    ./lib/src/release/java
                     ./lib/src/release/kotlin
+                    ./lib/src/release/java
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
                 RenderscriptDirectories:
@@ -878,8 +878,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/test/java
                 KotlinDirectories:
-                    ./lib/src/test/java
                     ./lib/src/test/kotlin
+                    ./lib/src/test/java
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
                 RenderscriptDirectories:
@@ -900,8 +900,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/testDebug/java
                 KotlinDirectories:
-                    ./lib/src/testDebug/java
                     ./lib/src/testDebug/kotlin
+                    ./lib/src/testDebug/java
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -923,8 +923,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/androidTest/java
                 KotlinDirectories:
-                    ./lib/src/androidTest/java
                     ./lib/src/androidTest/kotlin
+                    ./lib/src/androidTest/java
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -945,8 +945,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectories:
                     ./lib/src/androidTestDebug/java
                 KotlinDirectories:
-                    ./lib/src/androidTestDebug/java
                     ./lib/src/androidTestDebug/kotlin
+                    ./lib/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -958,50 +958,6 @@ MODULE: testTestFixtures.lib
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
         TestFixtures:
-            testFixtures
-                Manifest:
-                    ./lib/src/testFixtures/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testFixtures/aidl
-                AssetsDirectories:
-                    ./lib/src/testFixtures/assets
-                JavaDirectories:
-                    ./lib/src/testFixtures/java
-                KotlinDirectories:
-                    ./lib/src/testFixtures/java
-                    ./lib/src/testFixtures/kotlin
-                JniLibsDirectories:
-                    ./lib/src/testFixtures/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixtures/rs
-                ResDirectories:
-                    ./lib/src/testFixtures/res
-                ResourcesDirectories:
-                    ./lib/src/testFixtures/resources
-                ShadersDirectories:
-                    ./lib/src/testFixtures/shaders
-            testFixturesDebug
-                Manifest:
-                    ./lib/src/testFixturesDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testFixturesDebug/aidl
-                AssetsDirectories:
-                    ./lib/src/testFixturesDebug/assets
-                JavaDirectories:
-                    ./lib/src/testFixturesDebug/java
-                KotlinDirectories:
-                    ./lib/src/testFixturesDebug/java
-                    ./lib/src/testFixturesDebug/kotlin
-                JniLibsDirectories:
-                    ./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixturesDebug/rs
-                ResDirectories:
-                    ./lib/src/testFixturesDebug/res
-                ResourcesDirectories:
-                    ./lib/src/testFixturesDebug/resources
-                ShadersDirectories:
-                    ./lib/src/testFixturesDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -1027,15 +983,11 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/main/java
                     file://./lib/src/debug/java
-                JavaDirectories:
-                    file://./lib/src/main/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/main/java
                     file://./lib/src/main/kotlin
-                    file://./lib/src/debug/java
-                    file://./lib/src/debug/kotlin
-                KotlinDirectories:
                     file://./lib/src/main/java
+                    file://./lib/src/debug/kotlin
+                    file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
@@ -1045,8 +997,6 @@ MODULE: testTestFixtures.lib
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                     file://./lib/src/debug/res
-                ResDirectories:
-                    file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
                     file://./lib/src/debug/resources
@@ -1062,8 +1012,6 @@ MODULE: testTestFixtures.lib
                 ManifestDirectoryUrls:
                     file://./lib/src/test
                     file://./lib/src/testDebug
-                ManifestDirectories:
-                    file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
                     file://./lib/src/testDebug/aidl
@@ -1073,15 +1021,11 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/test/java
                     file://./lib/src/testDebug/java
-                JavaDirectories:
-                    file://./lib/src/test/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/test/java
                     file://./lib/src/test/kotlin
-                    file://./lib/src/testDebug/java
-                    file://./lib/src/testDebug/kotlin
-                KotlinDirectories:
                     file://./lib/src/test/java
+                    file://./lib/src/testDebug/kotlin
+                    file://./lib/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
@@ -1116,10 +1060,10 @@ MODULE: testTestFixtures.lib
                     file://./lib/src/androidTest/java
                     file://./lib/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/androidTest/java
                     file://./lib/src/androidTest/kotlin
-                    file://./lib/src/androidTestDebug/java
+                    file://./lib/src/androidTest/java
                     file://./lib/src/androidTestDebug/kotlin
+                    file://./lib/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
@@ -1138,49 +1082,6 @@ MODULE: testTestFixtures.lib
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
-                ManifestFileUrls:
-                    file://./lib/src/testFixtures/AndroidManifest.xml
-                    file://./lib/src/testFixturesDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testFixtures
-                    file://./lib/src/testFixturesDebug
-                ManifestDirectories:
-                    file://./lib/src/testFixtures
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixtures/aidl
-                    file://./lib/src/testFixturesDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./lib/src/testFixtures/assets
-                    file://./lib/src/testFixturesDebug/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testFixtures/java
-                    file://./lib/src/testFixturesDebug/java
-                JavaDirectories:
-                    file://./lib/src/testFixtures/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testFixtures/java
-                    file://./lib/src/testFixtures/kotlin
-                    file://./lib/src/testFixturesDebug/java
-                    file://./lib/src/testFixturesDebug/kotlin
-                KotlinDirectories:
-                    file://./lib/src/testFixtures/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testFixtures/jniLibs
-                    file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
-                    file://./lib/src/testFixturesDebug/rs
-                ResDirectoryUrls:
-                    file://./lib/src/testFixtures/res
-                    file://./lib/src/testFixturesDebug/res
-                ResDirectories:
-                    file://./lib/src/testFixtures/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testFixtures/resources
-                    file://./lib/src/testFixturesDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testFixtures/shaders
-                    file://./lib/src/testFixturesDebug/shaders
         GeneratedSources:
             GeneratedSources (IDEA)
                 ScopeType: MAIN
@@ -1211,10 +1112,6 @@ MODULE: testTestFixtures.lib
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
-                JavaDirectoryUrls:
-                    file://./lib/build/generated/ap_generated_sources/debugTestFixtures/out
-                ResDirectoryUrls:
-                    file://./lib/build/generated/res/resValues/testFixtures/debug
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1232,20 +1129,14 @@ MODULE: testTestFixtures.lib
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
                     file://./lib/src/main/java
-                JavaDirectories:
-                    file://./lib/src/main/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/main/java
                     file://./lib/src/main/kotlin
-                KotlinDirectories:
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
                     file://./lib/src/main/rs
                 ResDirectoryUrls:
-                    file://./lib/src/main/res
-                ResDirectories:
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
@@ -1264,8 +1155,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/debug/java
                     file://./lib/src/debug/kotlin
+                    file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1289,8 +1180,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/release/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/release/java
                     file://./lib/src/release/kotlin
+                    file://./lib/src/release/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1318,20 +1209,14 @@ MODULE: testTestFixtures.lib
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
                     file://./lib/src/main/java
-                JavaDirectories:
-                    file://./lib/src/main/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/main/java
                     file://./lib/src/main/kotlin
-                KotlinDirectories:
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
                     file://./lib/src/main/rs
                 ResDirectoryUrls:
-                    file://./lib/src/main/res
-                ResDirectories:
                     file://./lib/src/main/res
                 ResourcesDirectoryUrls:
                     file://./lib/src/main/resources
@@ -1350,8 +1235,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/debug/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/debug/java
                     file://./lib/src/debug/kotlin
+                    file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1369,20 +1254,14 @@ MODULE: testTestFixtures.lib
                     file://./lib/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/test
-                ManifestDirectories:
-                    file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/test/assets
                 JavaDirectoryUrls:
                     file://./lib/src/test/java
-                JavaDirectories:
-                    file://./lib/src/test/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/test/java
                     file://./lib/src/test/kotlin
-                KotlinDirectories:
                     file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
@@ -1407,8 +1286,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/testDebug/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/testDebug/java
                     file://./lib/src/testDebug/kotlin
+                    file://./lib/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1433,8 +1312,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/androidTest/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/androidTest/java
                     file://./lib/src/androidTest/kotlin
+                    file://./lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1458,8 +1337,8 @@ MODULE: testTestFixtures.lib
                 JavaDirectoryUrls:
                     file://./lib/src/androidTestDebug/java
                 KotlinDirectoryUrls:
-                    file://./lib/src/androidTestDebug/java
                     file://./lib/src/androidTestDebug/kotlin
+                    file://./lib/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1471,61 +1350,3 @@ MODULE: testTestFixtures.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
-            testFixtures (IDEA)
-                ScopeType: TEST_FIXTURES
-                ManifestFileUrls:
-                    file://./lib/src/testFixtures/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testFixtures
-                ManifestDirectories:
-                    file://./lib/src/testFixtures
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixtures/aidl
-                AssetsDirectoryUrls:
-                    file://./lib/src/testFixtures/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testFixtures/java
-                JavaDirectories:
-                    file://./lib/src/testFixtures/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testFixtures/java
-                    file://./lib/src/testFixtures/kotlin
-                KotlinDirectories:
-                    file://./lib/src/testFixtures/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testFixtures/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
-                ResDirectoryUrls:
-                    file://./lib/src/testFixtures/res
-                ResDirectories:
-                    file://./lib/src/testFixtures/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testFixtures/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testFixtures/shaders
-            testFixturesDebug (IDEA)
-                ScopeType: TEST_FIXTURES
-                ManifestFileUrls:
-                    file://./lib/src/testFixturesDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./lib/src/testFixturesDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/java
-                KotlinDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/java
-                    file://./lib/src/testFixturesDebug/kotlin
-                JniLibsDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/rs
-                ResDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/shaders

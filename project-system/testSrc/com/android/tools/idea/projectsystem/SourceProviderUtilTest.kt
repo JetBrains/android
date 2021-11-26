@@ -121,7 +121,11 @@ class SourceProviderUtilTest {
       currentAndroidTestSourceProviders = listOf(androidTest, androidTestDebug),
       currentTestFixturesSourceProviders = listOf(),
       currentAndSomeFrequentlyUsedInactiveSourceProviders = listOf(main, debug, release),
-      mainAndFlavorSourceProviders = listOf(main)
+      mainAndFlavorSourceProviders = listOf(main),
+      generatedSources = emptySourceProvider(ScopeType.MAIN),
+      generatedUnitTestSources = emptySourceProvider(ScopeType.UNIT_TEST),
+      generatedAndroidTestSources = emptySourceProvider(ScopeType.ANDROID_TEST),
+      generatedTestFixturesSources = emptySourceProvider(ScopeType.TEST_FIXTURES)
     )
 
   private fun createSourceProviderAt(

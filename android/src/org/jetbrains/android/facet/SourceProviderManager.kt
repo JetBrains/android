@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.createMergedSourceProvider
+import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
@@ -66,5 +67,10 @@ class SourceProvidersImpl(
   override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(ScopeType.UNIT_TEST, currentUnitTestSourceProviders)
   override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(ScopeType.ANDROID_TEST, currentAndroidTestSourceProviders)
   override val testFixturesSources: IdeaSourceProvider = createMergedSourceProvider(ScopeType.TEST_FIXTURES, currentTestFixturesSourceProviders)
+
+  override val generatedSources: IdeaSourceProvider = emptySourceProvider(ScopeType.MAIN)
+  override val generatedUnitTestSources: IdeaSourceProvider = emptySourceProvider(ScopeType.UNIT_TEST)
+  override val generatedAndroidTestSources: IdeaSourceProvider = emptySourceProvider(ScopeType.ANDROID_TEST)
+  override val generatedTestFixturesSources: IdeaSourceProvider = emptySourceProvider(ScopeType.TEST_FIXTURES)
 }
 

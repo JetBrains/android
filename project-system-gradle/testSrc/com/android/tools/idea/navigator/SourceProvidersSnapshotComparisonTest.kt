@@ -107,6 +107,16 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  fun testKotlinKapt() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.KOTLIN_KAPT)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testKotlinMpp() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null

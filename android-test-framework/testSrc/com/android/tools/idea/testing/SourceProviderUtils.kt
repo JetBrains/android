@@ -155,6 +155,10 @@ fun Project.dumpSourceProviders(): String {
             nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
             nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
             nest("TestFixturesSources:") { sourceProviderManager.testFixturesSources.dump("TestFixturesSources") }
+            nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
+            nest("GeneratedUnitTestSources:") { sourceProviderManager.generatedUnitTestSources.dump("GeneratedUnitTestSources") }
+            nest("GeneratedAndroidTestSources:") { sourceProviderManager.generatedAndroidTestSources.dump("GeneratedAndroidTestSources") }
+            nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
             nest(
               "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") { sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
             nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }

@@ -17,7 +17,10 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -25,6 +28,7 @@ import com.android.tools.idea.gradle.run.OutputBuildAction
 import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFoldersToUse
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
@@ -33,6 +37,8 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -41,6 +47,7 @@ import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
+import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -66,6 +73,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolder
+import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
@@ -245,6 +253,14 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 }
 
+private val IdeAndroidArtifact.scopeType: ScopeType
+  get() = when (this.name) {
+    IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
+    IdeArtifactName.MAIN -> ScopeType.MAIN
+    IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
+    IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
+  }
+
 fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
   val all =
     @Suppress("DEPRECATION")
@@ -262,6 +278,51 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     return all.getValue(this)
   }
 
+  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
+    return IdeaSourceProviderImpl(
+      scopeType,
+      object: IdeaSourceProviderImpl.Core {
+        override val manifestFileUrls: Sequence<String> = emptySequence()
+        override val manifestDirectoryUrls: Sequence<String> = emptySequence()
+        override val javaDirectoryUrls: Sequence<String> =
+          sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
+        override val kotlinDirectoryUrls: Sequence<String> = emptySequence()
+        override val resourcesDirectoryUrls: Sequence<String> = emptySequence()
+        override val aidlDirectoryUrls: Sequence<String> = emptySequence()
+        override val renderscriptDirectoryUrls: Sequence<String> = emptySequence()
+        override val jniLibsDirectoryUrls: Sequence<String> = emptySequence()
+        override val resDirectoryUrls: Sequence<String> =
+          this@toGeneratedIdeaSourceProvider.generatedResourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
+        override val assetsDirectoryUrls: Sequence<String> = emptySequence()
+        override val shadersDirectoryUrls: Sequence<String> = emptySequence()
+        override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
+      }
+    )
+  }
+
+  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model)
+    return IdeaSourceProviderImpl(
+      ScopeType.UNIT_TEST,
+      object: IdeaSourceProviderImpl.Core {
+        override val manifestFileUrls: Sequence<String> = emptySequence()
+        override val manifestDirectoryUrls: Sequence<String> = emptySequence()
+        override val javaDirectoryUrls: Sequence<String> =
+          sourceFolders.map { VfsUtil.fileToUrl(it) }.asSequence()
+        override val kotlinDirectoryUrls: Sequence<String> = emptySequence()
+        override val resourcesDirectoryUrls: Sequence<String> = emptySequence()
+        override val aidlDirectoryUrls: Sequence<String> = emptySequence()
+        override val renderscriptDirectoryUrls: Sequence<String> = emptySequence()
+        override val jniLibsDirectoryUrls: Sequence<String> = emptySequence()
+        override val resDirectoryUrls: Sequence<String> = emptySequence()
+        override val assetsDirectoryUrls: Sequence<String> = emptySequence()
+        override val shadersDirectoryUrls: Sequence<String> = emptySequence()
+        override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
+      }
+    )
+  }
+
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
     currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
@@ -277,7 +338,11 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
       model.androidProject.productFlavors
         .filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
-    }
+    },
+    generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
+    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.UNIT_TEST),
+    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.ANDROID_TEST),
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
   )
 }
 
