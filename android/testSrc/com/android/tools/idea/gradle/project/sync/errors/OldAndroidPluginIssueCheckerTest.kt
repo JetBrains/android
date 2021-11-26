@@ -33,23 +33,6 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
   private val oldAndroidPluginIssueChecker = OldAndroidPluginIssueChecker()
 
-  fun testCheckIssuePlugin() {
-    val errMsg = "The android gradle plugin version 2.3.0-alpha1 is too old, please update to the latest version."
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg), null, null)
-    val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
-    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-
-    val buildIssue = oldAndroidPluginIssueChecker.check(issueData)
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(errMsg)
-    assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(UpgradeGradleVersionsQuickFix::class.java)
-    val upgradeQuickFix = buildIssue.quickFixes[0] as UpgradeGradleVersionsQuickFix
-    assertThat(upgradeQuickFix.agpVersion).isEqualTo(latestAgpVersion)
-    assertThat(upgradeQuickFix.gradleVersion).isEqualTo(latestGradleVersion)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
-  }
-
   fun testCheckIssueGradle() {
     verifyGradleIssue(MINIMUM_AGP_VERSION_JDK_11)
   }
@@ -91,26 +74,6 @@ class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
   }
 
   fun testCheckIssueHandled() {
-    assertThat(
-      oldAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "Plugin is too old, please update to a more recent version",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
-
-    assertThat(
-      oldAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
-        "Build failed with Exception",
-        "The android gradle plugin version 2.2.0 is too old, please update to the latest version.",
-        null,
-        null,
-        "",
-        TestMessageEventConsumer()
-      )).isEqualTo(true)
-
     assertThat(
       oldAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
         "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version 2.2. You should upgrade your Gradle build to use Gradle 2.6 or later.",
