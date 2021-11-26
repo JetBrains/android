@@ -45,7 +45,7 @@ internal object UnpinAllPreviewElementsAction
 
     val project = e.project ?: return
     val pinnedElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
-    val singleFileName = pinnedElementProvider.previewElements.mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+    val singleFileName = pinnedElementProvider.previewElements().mapNotNull { it.previewBodyPsi?.virtualFile?.name }
                            .distinct()
                            .singleOrNull() ?: "Pinned"
     e.presentation.text = "  -  $singleFileName"
@@ -64,10 +64,10 @@ internal class PinAllPreviewElementsAction(
     if (state) {
       // Unpin any previous pins
       pinManager.unpinAll()
-      pinManager.pin(previewElementProvider.previewElements.toList())
+      pinManager.pin(previewElementProvider.previewElements().toList())
     }
     else {
-      pinManager.unpin(previewElementProvider.previewElements.toList())
+      pinManager.unpin(previewElementProvider.previewElements().toList())
     }
   }
 

@@ -223,9 +223,9 @@ interface PinnedPreviewElementManager: ModificationTracker {
     @JvmStatic
     fun getPreviewElementProvider(project: Project): PreviewElementProvider<PreviewElementInstance> = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
       object : PreviewElementProvider<PreviewElementInstance> {
-        @get:Slow
-        override val previewElements: Sequence<PreviewElementInstance>
-          get() = project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
+        @Slow
+        override fun previewElements(): Sequence<PreviewElementInstance> =
+          project.getService(PinnedPreviewElementManagerImpl::class.java).previewElements
       }
     }
     else {

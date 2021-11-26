@@ -35,20 +35,20 @@ class FilteringTest {
     )))
 
     // No filtering at all
-    assertEquals(4, groupPreviewProvider.previewElements.count())
-    assertThat(groupPreviewProvider.allAvailableGroups, `is`(setOf("GroupA", "GroupB")))
+    assertEquals(4, groupPreviewProvider.previewElements().count())
+    assertThat(groupPreviewProvider.allAvailableGroups(), `is`(setOf("GroupA", "GroupB")))
 
     // An invalid group should return all the items
     groupPreviewProvider.groupName = "InvalidGroup"
-    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name }.toList(),
+    assertThat(groupPreviewProvider.previewElements().map { it.displaySettings.name }.toList(),
                `is`(listOf("PreviewMethod1", "PreviewMethod2", "PreviewMethod3", "PreviewMethod4")))
 
     groupPreviewProvider.groupName = "GroupA"
-    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name }.toList(),
+    assertThat(groupPreviewProvider.previewElements().map { it.displaySettings.name }.toList(),
                `is`(listOf("PreviewMethod1", "PreviewMethod2")))
 
     groupPreviewProvider.groupName = "GroupB"
-    assertEquals("PreviewMethod3", groupPreviewProvider.previewElements.map { it.displaySettings.name }.single())
+    assertEquals("PreviewMethod3", groupPreviewProvider.previewElements().map { it.displaySettings.name }.single())
 
     groupPreviewProvider.groupName = null
   }
@@ -64,17 +64,17 @@ class FilteringTest {
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(staticPreviewProvider)
 
     // No filtering at all
-    assertEquals(4, singleElementProvider.previewElements.count())
+    assertEquals(4, singleElementProvider.previewElements().count())
 
     // An invalid group should return all the items
     singleElementProvider.instance = SinglePreviewElementInstance.forTesting("com.notvalid.NotValid", "blank", "GroupX")
-    assertEquals(4, singleElementProvider.previewElements.count())
+    assertEquals(4, singleElementProvider.previewElements().count())
 
     singleElementProvider.instance =
-      staticPreviewProvider.previewElements.first { it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod3" } as SinglePreviewElementInstance
-    assertEquals("PreviewMethod3", singleElementProvider.previewElements.single().displaySettings.name)
-    singleElementProvider.instance = staticPreviewProvider.previewElements.first() as SinglePreviewElementInstance
-    assertEquals("PreviewMethod1", singleElementProvider.previewElements.single().displaySettings.name)
+      staticPreviewProvider.previewElements().first { it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod3" } as SinglePreviewElementInstance
+    assertEquals("PreviewMethod3", singleElementProvider.previewElements().single().displaySettings.name)
+    singleElementProvider.instance = staticPreviewProvider.previewElements().first() as SinglePreviewElementInstance
+    assertEquals("PreviewMethod1", singleElementProvider.previewElements().single().displaySettings.name)
   }
 
   @Test
@@ -87,13 +87,13 @@ class FilteringTest {
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(staticPreviewProvider)
 
     singleElementProvider.instance =
-      staticPreviewProvider.previewElements.first {
+      staticPreviewProvider.previewElements().first {
         it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod1" && it.displaySettings.name == "Name1"
       } as SinglePreviewElementInstance
 
-    assertEquals(1, singleElementProvider.previewElements.count())
-    assertEquals("com.sample.preview.TestClass.PreviewMethod1", singleElementProvider.previewElements.single().composableMethodFqn)
-    assertEquals("Name1", singleElementProvider.previewElements.single().displaySettings.name)
+    assertEquals(1, singleElementProvider.previewElements().count())
+    assertEquals("com.sample.preview.TestClass.PreviewMethod1", singleElementProvider.previewElements().single().composableMethodFqn)
+    assertEquals("Name1", singleElementProvider.previewElements().single().displaySettings.name)
   }
 
   private class TestPreviewElementTemplateInstance(private val basePreviewElement: PreviewElement,
@@ -120,9 +120,9 @@ class FilteringTest {
     val singleElementProvider = SinglePreviewElementInstanceFilteredPreviewProvider(StaticPreviewProvider(instances))
 
     // No filtering at all
-    assertEquals(10, singleElementProvider.previewElements.count())
+    assertEquals(10, singleElementProvider.previewElements().count())
 
     singleElementProvider.instance = instances[5]
-    assertEquals(1, singleElementProvider.previewElements.count())
+    assertEquals(1, singleElementProvider.previewElements().count())
   }
 }

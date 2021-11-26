@@ -201,7 +201,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
-  val previewElementsList = previewElementProvider.previewElements.toList().sortByDisplayAndSourcePosition()
+  val previewElementsList = previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
   val modelIndices = matchElementsToModels(existingModels, previewElementsList)
   // Now we generate all the models (or reuse) for the PreviewElements.
   val models = previewElementsList

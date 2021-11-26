@@ -511,8 +511,8 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
  */
 class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<PreviewElement>)
   : PreviewElementProvider<PreviewElementInstance> {
-  override val previewElements: Sequence<PreviewElementInstance>
-    get() = delegate.previewElements.flatMap {
+  override fun previewElements(): Sequence<PreviewElementInstance> =
+    delegate.previewElements().flatMap {
       when (it) {
         is PreviewElementTemplate -> it.instances()
         is PreviewElementInstance -> sequenceOf(it)

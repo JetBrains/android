@@ -335,7 +335,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
           interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
           val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
-          val peerPreviews = previewElementProvider.previewElements.count()
+          val peerPreviews = previewElementProvider.previewElements().count()
           previewElementProvider.instanceFilter = value
           composeWorkBench.hasComponentsOverlay = false
           val startUpStart = System.currentTimeMillis()
@@ -763,7 +763,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     launch(uiThread) {
       val filePreviewElements = withContext(workerThread) {
-        memoizedElementsProvider.previewElements
+        memoizedElementsProvider.previewElements()
       }
 
       filePreviewElements.find { element ->
@@ -893,7 +893,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     // Cache available groups
-    availableGroups = previewElementProvider.allAvailableGroups
+    availableGroups = previewElementProvider.allAvailableGroups()
 
     // Restore
     onRestoreState?.invoke()
@@ -901,7 +901,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     val arePinsEnabled = StudioFlags.COMPOSE_PIN_PREVIEW.get() && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()
     val hasPinnedElements = if (arePinsEnabled) {
-      memoizedPinnedPreviewProvider.previewElements.any()
+      memoizedPinnedPreviewProvider.previewElements().any()
     } else false
 
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
@@ -1007,7 +1007,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       try {
         if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.finding.previews")) return@launch
         val filePreviewElements = withContext(workerThread) {
-          memoizedElementsProvider.previewElements
+          memoizedElementsProvider.previewElements()
             .toList()
             .sortByDisplayAndSourcePosition()
         }
@@ -1016,7 +1016,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.finding.pinned.previews")) return@launch
 
           withContext(workerThread) {
-            memoizedPinnedPreviewProvider.previewElements
+            memoizedPinnedPreviewProvider.previewElements()
               .toList()
               .sortByDisplayAndSourcePosition()
           }
@@ -1123,5 +1123,5 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * When live literals is enabled, we want to try to preserve the same class loader as much as possible.
    */
   private fun shouldQuickRefresh() =
-    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements.count() == 1
+    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElementProvider.previewElements().count() == 1
 }

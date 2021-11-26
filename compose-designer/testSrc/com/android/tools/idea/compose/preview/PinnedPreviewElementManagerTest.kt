@@ -16,7 +16,7 @@ import org.junit.Rule
 import org.junit.Test
 
 private fun <P: PreviewElement> PreviewElementProvider<P>.toDebugString(): String =
-  previewElements.map { it.composableMethodFqn }.sorted().joinToString("\n")
+  previewElements().map { it.composableMethodFqn }.sorted().joinToString("\n")
 
 private const val COMPOSABLE_ANNOTATION_PACKAGE =  "androidx.compose.runtime"
 private const val COMPOSABLE_ANNOTATION_FQN =  "$COMPOSABLE_ANNOTATION_PACKAGE.Composable"
@@ -95,11 +95,11 @@ internal class PinnedPreviewElementManagerTest {
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
     var modifications = 0
     pinnedPreviewManager.addListener { modifications++ }
-    assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
     assertEquals(startModificationCount, pinnedPreviewManager.modificationCount)
     // Pin Preview1
     pinnedPreviewManager.pin(elementsInFile1[0] as PreviewElementInstance)
-    assertEquals(1, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(1, pinnedPreviewElementProvider.previewElements().count())
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
 
     // Pin Preview2
@@ -174,14 +174,14 @@ internal class PinnedPreviewElementManagerTest {
     assertFalse(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
     assertFalse(pinnedPreviewManager.isPinned(file1))
     assertEquals("There were no pinned elements, no modifications expected", startModificationCount, pinnedPreviewManager.modificationCount)
-    assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
     assertTrue(pinnedPreviewManager.pin(elementsInFile[0] as PreviewElementInstance))
     assertTrue(pinnedPreviewManager.isPinned(elementsInFile[0] as PreviewElementInstance))
     assertTrue(pinnedPreviewManager.isPinned(file1))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
     assertFalse(pinnedPreviewManager.unpin(elementsInFile[1] as PreviewElementInstance))
     assertEquals(startModificationCount + 1, pinnedPreviewManager.modificationCount)
-    assertEquals(1, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(1, pinnedPreviewElementProvider.previewElements().count())
   }
 
   @Test
@@ -198,13 +198,13 @@ internal class PinnedPreviewElementManagerTest {
       elementsInFile[0] as PreviewElementInstance,
       elementsInFile[1] as PreviewElementInstance)))
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
-    assertEquals(2, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(2, pinnedPreviewElementProvider.previewElements().count())
     modifications = 0
     assertTrue(pinnedPreviewManager.unpin(listOf(
       elementsInFile[0] as PreviewElementInstance,
       elementsInFile[1] as PreviewElementInstance)))
     assertEquals("Only one modification expected for multiple pins", 1, modifications)
-    assertEquals(0, pinnedPreviewElementProvider.previewElements.count())
+    assertEquals(0, pinnedPreviewElementProvider.previewElements().count())
   }
 
   @Test

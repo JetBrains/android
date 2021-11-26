@@ -181,16 +181,15 @@ class ComposePreviewRepresentationProvider(
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override val previewElements: Sequence<PreviewElement>
-        get() = if (DumbService.isDumb(psiFile.project))
+      override fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
+        emptySequence()
+      else
+        try {
+          filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
+        }
+        catch (_: IndexNotReadyException) {
           emptySequence()
-        else
-          try {
-            filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
-          }
-          catch (_: IndexNotReadyException) {
-            emptySequence()
-          }
+        }
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     if (LOG.isDebugEnabled) {
