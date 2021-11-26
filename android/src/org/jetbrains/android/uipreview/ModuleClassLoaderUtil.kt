@@ -65,7 +65,6 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
     .files(paths)
     .useCache(ourLoaderCachePool) { true }
     .allowLock(allowLock)
-    .setLogErrorOnMissingJar(false)
     .get()
 }
 
