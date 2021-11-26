@@ -20,7 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.LaunchableAndroidDevice
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.util.LaunchUtils
@@ -46,12 +46,11 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment) : RunProfileState {
-
-  val configuration = environment.runProfile as AndroidWearConfiguration
-  protected val project = configuration.project
-  protected val facet = AndroidFacet.getInstance(configuration.configurationModule.module!!)!!
-  protected val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
-                        ?: throw RuntimeException("Cannot get ApplicationIdProvider")
+  abstract val configuration: ComponentSpecificConfiguration
+  protected val project = environment.project
+  protected val appId
+    get() = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
+            ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
   override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
     throw RuntimeException("Unexpected code path")
@@ -59,6 +58,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
 
   @WorkerThread
   fun execute(stats: RunStats): RunContentDescriptor? {
+    val facet = AndroidFacet.getInstance(configuration.module!!)!!
     stats.setDebuggable(LaunchUtils.canDebugApp(facet))
     stats.setExecutor(environment.executor.id)
     stats.setPackage(appId)
@@ -78,6 +78,7 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
   abstract fun doOnDevices(devices: List<IDevice>): RunContentDescriptor?
 
   private fun getDevices(stats: RunStats): List<IDevice> {
+    val facet = AndroidFacet.getInstance(configuration.module!!)!!
     val devices = runBlocking {
       val provider = DeviceAndSnapshotComboBoxTargetProvider()
       val deployTarget = if (provider.requiresRuntimePrompt(project)) invokeAndWaitIfNeeded {

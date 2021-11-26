@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
+import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit
 
 
 class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+  override val configuration = environment.runProfile as AndroidTileConfiguration
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {

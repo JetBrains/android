@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Disposer
 import java.util.concurrent.TimeUnit
 
 class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment) : AndroidConfigurationExecutorBase(environment) {
+  override val configuration = environment.runProfile as AndroidComplicationConfiguration
 
   @WorkerThread
   override fun doOnDevices(devices: List<IDevice>): RunContentDescriptor? {
