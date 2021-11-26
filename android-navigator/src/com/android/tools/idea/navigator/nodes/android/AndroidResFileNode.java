@@ -18,8 +18,7 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -140,7 +139,7 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
 
   @Nullable
   private NamedIdeaSourceProvider findSourceProviderForResFolder(@NotNull PsiDirectory resFolder) {
-    for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(myFacet)) {
+    for (NamedIdeaSourceProvider provider : AndroidViewNodes.getSourceProviders(myFacet)) {
       if (Iterables.contains(provider.getResDirectories(), resFolder.getVirtualFile())) {
         return provider;
       }

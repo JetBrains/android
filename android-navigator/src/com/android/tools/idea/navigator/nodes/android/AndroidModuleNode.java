@@ -30,10 +30,12 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.PresentationData;
@@ -55,6 +57,7 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,14 +86,14 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
     }
-    return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
+    return getChildren(facet, getSettings(), myProjectViewPane, SourceProviderManager.getInstance(facet));
   }
 
   @NotNull
   static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                      @NotNull ViewSettings settings,
                                                      @NotNull AndroidProjectViewPane projectViewPane,
-                                                     @NotNull Iterable<NamedIdeaSourceProvider> providers) {
+                                                     @NotNull SourceProviders providers) {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
@@ -139,7 +142,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<NamedIdeaSourceProvider> providers,
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull SourceProviders providers,
                                                                                      @Nullable AndroidModuleModel androidModel) {
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 
@@ -186,10 +189,10 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<NamedIdeaSourceProvider> providers) {
+  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull SourceProviders providers) {
     Set<VirtualFile> sources = new HashSet<>();
 
-    for (NamedIdeaSourceProvider provider : providers) {
+    for (NamedIdeaSourceProvider provider : AndroidViewNodes.getSourceProviders(providers)) {
       sources.addAll(sourceType.getSources(provider));
     }
 

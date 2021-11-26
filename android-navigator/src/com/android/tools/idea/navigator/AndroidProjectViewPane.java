@@ -31,10 +31,6 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.android.tools.idea.projectsystem.SourceProviders;
-import com.google.common.collect.Iterables;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -75,14 +71,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -162,16 +156,6 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @Override
   public boolean isInitiallyVisible() {
     return AndroidUtils.hasAndroidFacets(myProject);
-  }
-
-  @NotNull
-  public static Iterable<NamedIdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
-    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
-    return Iterables.concat(
-      sourceProviderManager.getCurrentSourceProviders(),
-      sourceProviderManager.getCurrentUnitTestSourceProviders(),
-      sourceProviderManager.getCurrentAndroidTestSourceProviders(),
-      sourceProviderManager.getCurrentTestFixturesSourceProviders());
   }
 
   @NotNull

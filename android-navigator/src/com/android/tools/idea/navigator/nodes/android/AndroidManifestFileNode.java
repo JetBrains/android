@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -71,7 +70,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Nullable
   static NamedIdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-    return findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
+    return findByFile(AndroidViewNodes.getSourceProviders(facet), file.getVirtualFile());
   }
 
   @Override

@@ -21,6 +21,7 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
@@ -119,7 +120,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   private Pair<String, VirtualFile> findSourceProvider(@NotNull VirtualFile virtualFile) {
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
-    for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
+    for (NamedIdeaSourceProvider provider : AndroidViewNodes.getSourceProviders(androidFacet)) {
       VirtualFile root = findSourceRoot(provider, virtualFile);
       if (root != null) {
         return new Pair<>(provider.getName(), root);
