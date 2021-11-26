@@ -17,6 +17,7 @@ package com.android.tools.idea.customview.preview
 
 import com.android.tools.adtui.workbench.DetachedToolWindowManager
 import com.android.tools.adtui.workbench.WorkBenchManager
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -74,6 +75,7 @@ class CustomViewPreviewRepresentationTest : LightJavaCodeInsightFixtureTestCase(
     ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, AndroidExecutors())
     // For setupBuildListener
     project.registerServiceInstance(ProjectSystemService::class.java, projectSystemService)
+    project.registerServiceInstance(IssuePanelService::class.java, IssuePanelService(project))
     Mockito.`when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
     Mockito.`when`(androidProjectSystem.getSyncManager()).thenReturn(syncManager)
     Mockito.`when`(syncManager.getLastSyncResult()).thenReturn(ProjectSystemSyncManager.SyncResult.FAILURE)

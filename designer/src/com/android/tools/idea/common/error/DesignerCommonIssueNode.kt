@@ -66,7 +66,7 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
 /**
  * The root of common issue panel. This is an invisible root node for simulating the multi-root tree.
  */
-class DesignerCommonIssueRoot(project: Project, var issueProvider: DesignerCommonIssueProvider)
+class DesignerCommonIssueRoot(project: Project, var issueProvider: DesignerCommonIssueProvider<out Any?>? = null)
   : DesignerCommonIssueNode(project, null) {
 
   override fun update(project: Project, presentation: PresentationData) {
@@ -78,6 +78,6 @@ class DesignerCommonIssueRoot(project: Project, var issueProvider: DesignerCommo
   override fun getLeafState(): LeafState = LeafState.NEVER
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> {
-    return issueProvider.getIssuedFileDataList().map { LayoutFileIssuedFileNode(it, this@DesignerCommonIssueRoot) }
+    return issueProvider?.getIssuedFileDataList()?.map { LayoutFileIssuedFileNode(it, this@DesignerCommonIssueRoot) } ?: emptySet()
   }
 }

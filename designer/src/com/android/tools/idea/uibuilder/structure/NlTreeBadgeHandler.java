@@ -24,9 +24,8 @@ import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.utils.SparseIntArray;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.LightweightHint;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -61,8 +60,7 @@ public class NlTreeBadgeHandler {
   @Nullable private NlModel myNlModel;
   private int myBadgeX;
   private int myLockIconX;
-  @Nullable private IssuePanel myIssuePanel;
-  @Nullable private IssueModel myIssueModel;
+  @Nullable private DesignSurface mySurface;
 
   /**
    * Save the width occupied by the badges at a given row.
@@ -74,12 +72,8 @@ public class NlTreeBadgeHandler {
     myNlModel = nlModel;
   }
 
-  public void setIssuePanel(@Nullable IssuePanel issuePanel) {
-    myIssuePanel = issuePanel;
-  }
-
-  public void setIssueModel(@Nullable IssueModel issueModel) {
-    myIssueModel = issueModel;
+  public void setSurface(@Nullable DesignSurface surface) {
+    mySurface = surface;
   }
 
   public void paintBadges(@NotNull Graphics2D g, @NotNull NlComponentTree tree) {
@@ -98,8 +92,8 @@ public class NlTreeBadgeHandler {
       NlComponent component = (NlComponent)last;
       Rectangle pathBounds = tree.getPathBounds(path);
       Issue issue = null;
-      if (myIssueModel != null) {
-        issue = myIssueModel.getHighestSeverityIssue(component);
+      if (mySurface != null) {
+        issue = mySurface.getIssueModel().getHighestSeverityIssue(component);
       }
       if (pathBounds != null) {
         int y = pathBounds.y + pathBounds.height / 2;
@@ -155,8 +149,9 @@ public class NlTreeBadgeHandler {
     }
     NlComponent component = (NlComponent)last;
     Issue max = null;
-    if (myIssueModel != null) {
-      max = myIssueModel.getHighestSeverityIssue(component);
+    IssueModel issueModel = mySurface != null ? mySurface.getIssueModel() : null;
+    if (issueModel != null) {
+      max = issueModel.getHighestSeverityIssue(component);
     }
     if (max != null) {
       return "<html>" + max.getSummary() + "<br>Click the badge for detail.</html>";
@@ -203,7 +198,8 @@ public class NlTreeBadgeHandler {
       if (SUPPORTS_LOCKING) {
         limit = myLockIconX;
       }
-      if (event.getX() < limit || myIssuePanel == null) {
+      IssueModel issueModel = mySurface != null ? mySurface.getIssueModel() : null;
+      if (event.getX() < limit || issueModel == null) {
         // We only show the tooltip if the mouse id hovering the badge
         return;
       }
@@ -222,22 +218,14 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       if (event.getX() > myBadgeX) {
-        if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-          IssuePanelService service = IssuePanelService.getInstance(component.getModel().getProject());
-          if (service == null) {
-            Logger.getInstance(NlTreeBadgeHandler.class).warn("Cannot find issue panel service");
-            return;
-          }
-          service.showCurrentFileAndQualifierTab();
-          service.attachIssueModel(myIssueModel, myNlModel.getVirtualFile());
-        }
-        myIssuePanel.showIssueForComponent(component, true);
+        IssuePanelService.getInstance(component.getModel().getProject()).showIssueForComponent(mySurface, true, component, true);
       }
       else {
         if (SUPPORTS_LOCKING) {
           toggleLocking(component);
         }
       }
+
     }
 
     private void toggleLocking(@NotNull NlComponent component) {

@@ -28,41 +28,11 @@ private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 class IssuePanelToggleAction(val surface: NlDesignSurface) : ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      val service = IssuePanelService.getInstance(surface.project)
-      if (service == null) {
-        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
-        return false
-      }
-      if (service.isLayoutAndQualifierPanelVisible()) {
-        return service.isIssueModelAttached(surface.issueModel)
-      }
-      return false
-    }
-    else {
-      return !surface.issuePanel.isMinimized
-    }
+    return IssuePanelService.getInstance(surface.project).isShowingIssuePanel(surface)
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      val service = IssuePanelService.getInstance(surface.project)
-      if (service == null) {
-        Logger.getInstance(IssuePanelToggleAction::class.java).warn("Cannot find Issue Panel Service")
-        return
-      }
-      if (state) {
-        service.showCurrentFileAndQualifierTab()
-        service.attachIssueModel(surface.issueModel, surface.model!!.virtualFile)
-      }
-      else {
-        service.detachIssueModel(surface.issueModel)
-        service.hideIssuePanel()
-      }
-    }
-    else {
-      surface.setShowIssuePanel(state, false)
-    }
+    IssuePanelService.getInstance(surface.project).setShowIssuePanel(state, surface, false)
   }
 
   override fun update(e: AnActionEvent) {

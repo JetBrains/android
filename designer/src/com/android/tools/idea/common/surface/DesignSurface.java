@@ -114,7 +114,6 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -1878,28 +1877,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public IssuePanel getIssuePanel() {
     return myIssuePanel;
-  }
-
-  /**
-   * Sets the status of the issue panel.
-   * @param show wether to show or hide the issue panel.
-   * @param userInvoked if true, this was the direct consequence of a user action.
-   */
-  public void setShowIssuePanel(boolean show, boolean userInvoked) {
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      Logger.getInstance(DesignSurface.class)
-        .error("DesignSurface.setShowIssuePanel() should not be called when showing issue panel in IJ's problems panel");
-    }
-    else {
-      UIUtil.invokeLaterIfNeeded(() -> {
-        myIssuePanel.setMinimized(!show);
-        if (userInvoked) {
-          myIssuePanel.disableAutoSize();
-        }
-        revalidate();
-        repaint();
-      });
-    }
   }
 
   @NotNull

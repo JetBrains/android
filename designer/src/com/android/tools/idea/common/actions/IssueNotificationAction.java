@@ -102,21 +102,10 @@ public class IssueNotificationAction extends ToggleAction {
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      if (surface == null) {
-        return false;
-      }
-      IssuePanelService service = IssuePanelService.getInstance(surface.getProject());
-      if (service == null) {
-        Logger.getInstance(IssueNotificationAction.class).warn("Cannot find issue panel service");
-        return false;
-      }
-      if (service.isLayoutAndQualifierPanelVisible()) {
-        return service.isIssueModelAttached(surface.getIssueModel());
-      }
+    if (surface == null) {
       return false;
     }
-    return surface != null && !surface.getIssuePanel().isMinimized();
+    return IssuePanelService.getInstance(surface.getProject()).isIssuePanelVisible(surface);
   }
 
   @Override
@@ -126,24 +115,7 @@ public class IssueNotificationAction extends ToggleAction {
       return;
     }
     surface.getAnalyticsManager().trackShowIssuePanel();
-    if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) {
-      IssuePanelService issuePanelService = IssuePanelService.getInstance(surface.getProject());
-      if (issuePanelService == null) {
-        Logger.getInstance(IssueNotificationAction.class).warn("Cannot find the issue panel service when set its visibility");
-        return;
-      }
-      if (state) {
-        issuePanelService.showCurrentFileAndQualifierTab();
-        issuePanelService.attachIssueModel(surface.getIssueModel(), surface.getModel().getVirtualFile());
-      }
-      else {
-        issuePanelService.detachIssueModel(surface.getIssueModel());
-        issuePanelService.hideIssuePanel();
-      }
-    }
-    else {
-      surface.setShowIssuePanel(state, true);
-    }
+    IssuePanelService.getInstance(surface.getProject()).setShowIssuePanel(state, surface, true);
   }
 
   @NotNull

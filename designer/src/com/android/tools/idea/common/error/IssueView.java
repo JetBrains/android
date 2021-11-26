@@ -52,6 +52,7 @@ public class IssueView extends JPanel {
   private static final int BORDER_THICKNESS = 1;
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
 
+  @NotNull private final Issue myIssue;
   private final IssuePanel myContainerIssuePanel;
   private RoundedLineBorder mySelectedBorder = IdeBorderFactory.createRoundedBorder(JBUI.scale(BORDER_THICKNESS));
   private Border myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
@@ -79,6 +80,7 @@ public class IssueView extends JPanel {
    */
   IssueView(@NotNull Issue issue, @NotNull IssuePanel container) {
     addMouseListener(createMouseListener());
+    myIssue = issue;
     myContainerIssuePanel = container;
     myDisplayPriority = getDisplayPriority(issue);
     mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
@@ -159,6 +161,11 @@ public class IssueView extends JPanel {
   public void updateDescription(@NotNull Issue issue) {
     myErrorDescriptionContent = updateImageSize(new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml(),
                                                 (int)UIUtil.getFontSize(UIUtil.FontSize.NORMAL));
+  }
+
+  @NotNull
+  public Issue getIssue() {
+    return myIssue;
   }
 
   /**

@@ -28,11 +28,11 @@ class IssuePanelSplitter(
     content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
 
   init {
-    val issuePanel = surface.issuePanel
-    issuePanel.addEventListener(createIssueEventListener(issuePanel))
+    val issuePanel = IssuePanelService.getInstance(surface.project).getIssuePanel(surface)
+    issuePanel?.addEventListener(createIssueEventListener(issuePanel))
     setHonorComponentsMinimumSize(true)
     firstComponent = content
-    secondComponent = if (StudioFlags.NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS.get()) null else issuePanel
+    secondComponent = issuePanel
   }
 
   private fun updateSplitter(isExpanded: Boolean, height: Int) {

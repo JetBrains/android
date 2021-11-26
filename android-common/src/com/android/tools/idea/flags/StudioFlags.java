@@ -385,6 +385,11 @@ public final class StudioFlags {
     "If the xml layout contains atf results, it will be shown in the common error panel as well as issue panel.",
     false);
 
+  public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
+    NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
+    "Use a shared issue panel to display the issue for all design tools",
+    false);
+
   public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
     NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
     "If the xml layout contains any visual lint issues, it will be shown in the common error panel as well as in laytout validation issue panel.",
@@ -395,9 +400,9 @@ public final class StudioFlags {
     "Enable so that visual lint always runs for select configurations.",
     false);
 
-  public static final Flag<Boolean> NELE_SHOW_ISSUE_PANEL_IN_PROBLEMS = Flag.create(
-    NELE, "show.issue.panel.in.problems", "Show the Issue Panel in IJ's Problem Panel",
-    "Move the Issue Panel from Design Tools into the Problems Panel as an additional tab.",
+  public static final Flag<Boolean> NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL = Flag.create(
+    NELE, "use.layout.and.qualifier.issue.panel", "Show the Layout and Qualifier panel",
+    "Show the issues of Layout Editor and Validation Tool in an issue tab of IJ's Issue Panel.",
     false
   );
 

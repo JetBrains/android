@@ -63,7 +63,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, project: Project): 
     Disposer.register(parentDisposable, this)
 
     treeModel = DesignerCommonIssueModel(this)
-    treeModel.root = DesignerCommonIssueRoot(project, EmptyIssueProvider)
+    treeModel.root = DesignerCommonIssueRoot(project)
     tree = Tree(AsyncTreeModel(treeModel, this))
     tree.isRootVisible = false
 
@@ -77,7 +77,12 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, project: Project): 
 
   fun getComponent(): JComponent = rootPanel
 
-  fun setIssueProvider(issueProvider: DesignerCommonIssueProvider) {
+  fun getIssueProvider(): DesignerCommonIssueProvider<out Any?>? {
+    val root = treeModel.root as? DesignerCommonIssueRoot ?: return null
+    return root.issueProvider
+  }
+
+  fun setIssueProvider(issueProvider: DesignerCommonIssueProvider<out Any?>) {
     val root = treeModel.root as? DesignerCommonIssueRoot ?: return
     root.issueProvider = issueProvider
     treeModel.structureChanged(null)

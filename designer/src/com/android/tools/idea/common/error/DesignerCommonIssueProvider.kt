@@ -17,14 +17,16 @@ package com.android.tools.idea.common.error
 
 import com.intellij.openapi.vfs.VirtualFile
 
-interface DesignerCommonIssueProvider {
+interface DesignerCommonIssueProvider<T> {
+  val source: T
   fun getIssues(file: IssuedFileData): List<Issue>
   fun getIssuedFileDataList(): List<IssuedFileData>
 }
 
 data class IssuedFileData(val file: VirtualFile, val source: Any?)
 
-object EmptyIssueProvider : DesignerCommonIssueProvider {
+object EmptyIssueProvider : DesignerCommonIssueProvider<Any?> {
+  override val source: Any? = null
   override fun getIssues(file: IssuedFileData): List<Issue> = emptyList()
   override fun getIssuedFileDataList(): List<IssuedFileData> = emptyList()
 }
@@ -32,7 +34,8 @@ object EmptyIssueProvider : DesignerCommonIssueProvider {
 /**
  * An adapter of [DesignerCommonIssueProvider] to wrap the data from [IssueModel].
  */
-class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile): DesignerCommonIssueProvider {
+class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile): DesignerCommonIssueProvider<IssueModel> {
+  override val source: IssueModel = issueModel
   override fun getIssues(file: IssuedFileData): List<Issue> {
     return if (file.source == issueModel) issueModel.issues else emptyList()
   }
@@ -40,8 +43,10 @@ class IssueModelProvider(private val issueModel: IssueModel, private val file: V
   override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))
 }
 
-class LayoutIssueProviderGroup : DesignerCommonIssueProvider {
-  val providers = mutableMapOf<IssueModel, DesignerCommonIssueProvider>()
+class LayoutIssueProviderGroup : DesignerCommonIssueProvider<List<DesignerCommonIssueProvider<IssueModel>>> {
+  val providers = mutableMapOf<IssueModel, DesignerCommonIssueProvider<IssueModel>>()
+
+  override val source = providers.values.toList()
 
   fun addProvider(issueModel: IssueModel, file: VirtualFile) {
     if (providers[issueModel] == null) {
