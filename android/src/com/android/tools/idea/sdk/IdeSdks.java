@@ -498,49 +498,6 @@ public class IdeSdks {
     myAndroidSdks.setSdkData(oldSdkData);
   }
 
-  /**
-   * Updates ProjectJdkTable based on what is currently available on Android SDK path and what SDK Manager says
-   *
-   * @param currentProject used to get Android SDK path. If {@code null} or if it does not have Android SDK path setup this function will
-   *                       use the result from {@link IdeSdks#getAndroidSdkPath()()}
-   */
-  public void updateFromAndroidSdkPath(@Nullable Project currentProject) {
-    File sdkDir = null;
-    if (currentProject != null && !currentProject.isDisposed()) {
-      String sdkPath = PropertiesComponent.getInstance(currentProject).getValue(ANDROID_SDK_PATH_KEY);
-      if (sdkPath != null) {
-        sdkDir = new File(sdkPath);
-      }
-    }
-    // Current project is null or it does not have ANDROID_SDK_PATH_KEY set
-    if (sdkDir == null) {
-      sdkDir = getAndroidSdkPath();
-    }
-    assert sdkDir != null;
-    assert isValidAndroidSdkPath(sdkDir);
-    updateSdkData(sdkDir);
-    // See what Android Sdk's no longer exist and remove them
-    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    for (Sdk sdk : getEligibleAndroidSdks()) {
-      VirtualFile homeDir = sdk.getHomeDirectory();
-      if (homeDir == null || !homeDir.exists()) {
-        jdkTable.removeJdk(sdk);
-      }
-      else {
-        IAndroidTarget target = getTarget(sdk);
-        File targetFile = new File(target.getLocation());
-        if (!targetFile.exists()) {
-          // Home folder exists but does not contain target
-          jdkTable.removeJdk(sdk);
-        }
-      }
-    }
-
-    // Add new SDK's from SDK manager
-    Path resolved = resolvePath(sdkDir.toPath());
-    createAndroidSdkPerAndroidTarget(resolved.toFile());
-  }
-
   private static void afterAndroidSdkPathUpdate(@NotNull File androidSdkPath) {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     if (openProjects.length == 0) {
