@@ -16,7 +16,6 @@
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest

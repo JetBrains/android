@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -41,11 +43,20 @@ public class AndroidViewNodes {
   }
 
   @NotNull
-  public static Iterable<NamedIdeaSourceProvider> getSourceProviders(@NotNull SourceProviders sourceProviderManager) {
+  public static Iterable<NamedIdeaSourceProvider> getSourceProviders(@NotNull SourceProviders sourceProviders) {
     return Iterables.concat(
-      sourceProviderManager.getCurrentSourceProviders(),
-      sourceProviderManager.getCurrentUnitTestSourceProviders(),
-      sourceProviderManager.getCurrentAndroidTestSourceProviders(),
-      sourceProviderManager.getCurrentTestFixturesSourceProviders());
+      sourceProviders.getCurrentSourceProviders(),
+      sourceProviders.getCurrentUnitTestSourceProviders(),
+      sourceProviders.getCurrentAndroidTestSourceProviders(),
+      sourceProviders.getCurrentTestFixturesSourceProviders());
+  }
+
+  @NotNull
+  public static Iterable<IdeaSourceProvider> getGeneratedSourceProviders(@NotNull SourceProviders sourceProviders) {
+    return ImmutableList.of(
+      sourceProviders.getGeneratedSources(),
+      sourceProviders.getGeneratedUnitTestSources(),
+      sourceProviders.getGeneratedAndroidTestSources(),
+      sourceProviders.getGeneratedTestFixturesSources());
   }
 }

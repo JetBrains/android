@@ -17,8 +17,9 @@ package org.jetbrains.android.facet;
 
 import static java.util.Collections.emptyList;
 
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
@@ -41,7 +42,10 @@ public enum AndroidSourceType {
     it -> ImmutableList.copyOf(it.getKotlinDirectories()), AllIcons.Modules.SourceRoot),
 
   /** Generated java source folders, e.g. R, BuildConfig, and etc. */
-  GENERATED_JAVA(JAVA.getName(), null, AllIcons.Modules.GeneratedSourceRoot, true),
+  GENERATED_JAVA(JAVA.getName(),
+                 it -> ImmutableList.copyOf(Iterables.concat(it.getJavaDirectories(), it.getKotlinDirectories())),
+                 AllIcons.Modules.GeneratedSourceRoot,
+                 true),
 
   /** C++ sources */
   CPP("cpp", it -> ImmutableList.of(), AllIcons.Modules.SourceRoot),
@@ -66,18 +70,18 @@ public enum AndroidSourceType {
   ;
 
   private final String myName;
-  private final Function<NamedIdeaSourceProvider, List<VirtualFile>> mySourceExtractor;
+  private final Function<IdeaSourceProvider, List<VirtualFile>> mySourceExtractor;
   private final Icon myIcon;
   private final boolean myGenerated;
 
   AndroidSourceType(@NotNull String name,
-                    @Nullable Function<NamedIdeaSourceProvider, List<VirtualFile>> sourceExtractor,
+                    @Nullable Function<IdeaSourceProvider, List<VirtualFile>> sourceExtractor,
                     @NotNull Icon icon) {
     this(name, sourceExtractor, icon, false);
   }
 
   AndroidSourceType(@NotNull String name,
-                    @Nullable Function<NamedIdeaSourceProvider, List<VirtualFile>> sourceExtractor,
+                    @Nullable Function<IdeaSourceProvider, List<VirtualFile>> sourceExtractor,
                     @NotNull Icon icon,
                     boolean generated) {
     myName = name;
@@ -91,7 +95,7 @@ public enum AndroidSourceType {
   }
 
   @NotNull
-  public List<VirtualFile> getSources(NamedIdeaSourceProvider provider) {
+  public List<VirtualFile> getSources(IdeaSourceProvider provider) {
     if (mySourceExtractor == null) {
       return emptyList();
     }
