@@ -37,8 +37,6 @@ import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,9 +104,7 @@ public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
       (AndroidRunConfiguration)AndroidRunConfigurationType.getInstance().getFactory().createTemplateConfiguration(getProject());
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
-    ConsoleViewImpl console = new ConsoleViewImpl(getProject(), false);
-    Disposer.register(getTestRootDisposable(), console);
-    state.launch(device, app, config, false, "", console);
+    state.launch(device, app, config, false, "", new EmptyTestConsoleView());
     Mockito.verify(device).executeShellCommand(
       eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
       any(IShellOutputReceiver.class),

@@ -24,8 +24,6 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.execution.createApp
-import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -47,9 +45,7 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     Mockito.doReturn(TestApksProvider(apk, "com.example.myapplication")).`when`(config).apkProvider
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
-    val console = ConsoleViewImpl(project, false)
-    Disposer.register(testRootDisposable, console)
-    state.launch(device, app, config, false, "", console)
+    state.launch(device, app, config, false, "", EmptyTestConsoleView())
     Mockito.verify(device).executeShellCommand(
       ArgumentMatchers.eq(
         "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
