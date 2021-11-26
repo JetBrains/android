@@ -50,11 +50,19 @@ private class TestComposePreviewManager(var interactiveMode: ComposePreviewManag
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
   override var interactivePreviewElementInstance: PreviewElementInstance? = null
+    private set
   override var animationInspectionPreviewElementInstance: PreviewElementInstance? = null
   override val hasLiveLiterals: Boolean = false
   override val isLiveLiteralsEnabled: Boolean = false
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
+  override suspend fun startInteractivePreview(instance: PreviewElementInstance) {
+    interactivePreviewElementInstance = instance
+  }
+
+  override fun stopInteractivePreview() {
+    interactivePreviewElementInstance = null
+  }
 
   override fun dispose() {}
 }

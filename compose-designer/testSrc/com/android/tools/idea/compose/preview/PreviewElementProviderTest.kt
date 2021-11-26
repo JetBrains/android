@@ -18,12 +18,13 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.intellij.openapi.util.SimpleModificationTracker
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PreviewElementProviderTest {
   @Test
-  fun testFilteredProvider() {
+  fun testFilteredProvider() = runBlocking {
     val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
@@ -46,7 +47,7 @@ class PreviewElementProviderTest {
   }
 
   @Test
-  fun testMemoized() {
+  fun testMemoized() = runBlocking {
     var staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
       SinglePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
@@ -55,7 +56,7 @@ class PreviewElementProviderTest {
 
     val modificationTracker = SimpleModificationTracker()
     val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<PreviewElementInstance> {
-      override fun previewElements(): Sequence<PreviewElementInstance> = staticPreviewProvider.previewElements()
+      override suspend fun previewElements(): Sequence<PreviewElementInstance> = staticPreviewProvider.previewElements()
     }, modificationTracker)
 
     // Before the first refresh, the list is empty

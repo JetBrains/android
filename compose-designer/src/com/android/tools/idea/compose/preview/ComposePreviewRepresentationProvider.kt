@@ -181,7 +181,7 @@ class ComposePreviewRepresentationProvider(
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
+      override suspend fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
         emptySequence()
       else
         try {

@@ -56,7 +56,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
    * Returns a [Set] of all the available [PreviewGroup]s in this preview.
    */
   @Slow
-  fun allAvailableGroups(): Set<PreviewGroup> =
+  suspend fun allAvailableGroups(): Set<PreviewGroup> =
     groupNameFilteredProvider.allAvailableGroups().map {
       PreviewGroup.namedGroup(it)
     }.toSet()
@@ -79,7 +79,7 @@ class PreviewFilters(previewProvider: PreviewElementProvider<PreviewElement>) : 
   }
 
   @Slow
-  override fun previewElements(): Sequence<PreviewElementInstance> =
+  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
     singleElementFilteredProvider.previewElements()
 
 }

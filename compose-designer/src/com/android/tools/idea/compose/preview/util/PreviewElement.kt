@@ -511,7 +511,7 @@ class ParametrizedPreviewElementTemplate(private val basePreviewElement: Preview
  */
 class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElementProvider<PreviewElement>)
   : PreviewElementProvider<PreviewElementInstance> {
-  override fun previewElements(): Sequence<PreviewElementInstance> =
+  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
     delegate.previewElements().flatMap {
       when (it) {
         is PreviewElementTemplate -> it.instances()

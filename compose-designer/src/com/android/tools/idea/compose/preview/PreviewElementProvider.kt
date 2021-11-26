@@ -31,7 +31,7 @@ interface PreviewElementProvider<P: PreviewElement> {
   /**
    * Returns a [Sequence] of [PreviewElement]s.
    */
-  fun previewElements(): Sequence<P>
+  suspend fun previewElements(): Sequence<P>
 }
 
 /**
@@ -41,14 +41,14 @@ interface PreviewElementInstanceProvider: PreviewElementProvider<PreviewElementI
   /**
    * Returns a [Sequence] of [PreviewElementInstance]s.
    */
-  override fun previewElements(): Sequence<PreviewElementInstance>
+  override suspend fun previewElements(): Sequence<PreviewElementInstance>
 }
 
 /**
  * [PreviewElementProvider] that does not contain [PreviewElement]s.
  */
 object EmptyPreviewElementInstanceProvider : PreviewElementInstanceProvider {
-  override fun previewElements(): Sequence<PreviewElementInstance> = emptySequence()
+  override suspend fun previewElements(): Sequence<PreviewElementInstance> = emptySequence()
 }
 
 /**
@@ -65,7 +65,7 @@ fun Sequence<PreviewElement>.groupNames(): Set<String> =
  */
 class FilteredPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
                                      private val filter: (P) -> Boolean) : PreviewElementProvider<P> {
-  override fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
+  override suspend fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
 }
 
 /**
@@ -82,9 +82,7 @@ class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
   /**
    * Refreshes the [previewElements]. Do not call on the UI thread.
    */
-  @Synchronized
-  @Slow
-  private fun refreshIfNeeded() {
+  private suspend fun refreshIfNeeded() {
     val newModificationStamp = modificationTracker.modificationCount
 
     if (newModificationStamp != savedModificationStamp) {
@@ -101,8 +99,7 @@ class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: Pr
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */
-  @Slow
-  override fun previewElements(): Sequence<P> {
+  override suspend fun previewElements(): Sequence<P> {
     refreshIfNeeded()
     cachedPreviewElementLock.read {
       return cachedPreviewElements.asSequence()

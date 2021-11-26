@@ -114,7 +114,7 @@ class ComposePreviewRepresentationTest {
     val composeView = TestComposePreviewView(pinnedSurface, mainSurface)
     val preview = ReadAction.compute<ComposePreviewRepresentation, Throwable> {
       ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
-        override fun previewElements(): Sequence<PreviewElement> =
+        override suspend fun previewElements(): Sequence<PreviewElement> =
           ReadAction.compute<Sequence<PreviewElement>, Throwable> {
             AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
           }

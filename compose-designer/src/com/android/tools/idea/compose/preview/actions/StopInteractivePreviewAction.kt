@@ -44,7 +44,7 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
 
   override fun actionPerformed(e: AnActionEvent) {
     findComposePreviewManagersForContext(e.dataContext).forEach {
-      it.interactivePreviewElementInstance = null
+      it.stopInteractivePreview()
       it.animationInspectionPreviewElementInstance = null
     }
   }

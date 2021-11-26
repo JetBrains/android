@@ -7,6 +7,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -15,7 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private fun <P: PreviewElement> PreviewElementProvider<P>.toDebugString(): String =
+private suspend fun <P: PreviewElement> PreviewElementProvider<P>.toDebugString(): String =
   previewElements().map { it.composableMethodFqn }.sorted().joinToString("\n")
 
 private const val COMPOSABLE_ANNOTATION_PACKAGE =  "androidx.compose.runtime"
@@ -83,7 +84,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `pin unpin preview successfully with notification`() {
+  fun `pin unpin preview successfully with notification`() = runBlocking {
     val elementsInFile1 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val elementsInFile2 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file2.virtualFile).toList()
 
@@ -135,7 +136,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `can not pin not existent preview`() {
+  fun `can not pin not existent preview`() = runBlocking {
     val elementsInFile1 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val elementsInFile2 = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file2.virtualFile).toList()
 
@@ -165,7 +166,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `can not unpin preview that has not been pinned before`() {
+  fun `can not unpin preview that has not been pinned before`() = runBlocking {
     val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
@@ -185,7 +186,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `multiple pin with notification`() {
+  fun `multiple pin with notification`() = runBlocking {
     val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     val pinnedPreviewElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
@@ -208,7 +209,7 @@ internal class PinnedPreviewElementManagerTest {
   }
 
   @Test
-  fun `unpinAll removes all elements`() {
+  fun `unpinAll removes all elements`() = runBlocking {
     val elementsInFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, file1.virtualFile).toList()
     val pinnedPreviewManager = PinnedPreviewElementManager.getInstance(project)
     var modifications = 0

@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.AnActionButton
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 
 internal class CloseAnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(message("action.stop.animation.inspector.title"), "", StudioIcons.Common.CLOSE), CustomComponentAction {
@@ -38,7 +40,13 @@ internal class CloseAnimationInspectorAction(private val dataContextProvider: ()
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
 
-    manager.interactivePreviewElementInstance = manager.animationInspectionPreviewElementInstance
+    val instance = manager.animationInspectionPreviewElementInstance
+    AndroidCoroutineScope(manager).launch {
+      if (instance != null)
+        manager.startInteractivePreview(instance)
+      else
+        manager.stopInteractivePreview()
+    }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

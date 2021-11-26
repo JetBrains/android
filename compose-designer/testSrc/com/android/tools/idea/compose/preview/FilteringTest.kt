@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
@@ -26,7 +27,7 @@ import org.junit.Test
 
 class FilteringTest {
   @Test
-  fun testGroupFiltering() {
+  fun testGroupFiltering() = runBlocking {
     val groupPreviewProvider = GroupNameFilteredPreviewProvider(StaticPreviewProvider(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
@@ -54,7 +55,7 @@ class FilteringTest {
   }
 
   @Test
-  fun testSingleElementFiltering() {
+  fun testSingleElementFiltering() = runBlocking {
     val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
@@ -78,7 +79,7 @@ class FilteringTest {
   }
 
   @Test
-  fun `multiple @Preview for the same MethodFqn`() {
+  fun `multiple @Preview for the same MethodFqn`() = runBlocking {
     val staticPreviewProvider = StaticPreviewProvider<PreviewElementInstance>(listOf(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name1"),
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod1", "Name2"),
@@ -112,7 +113,7 @@ class FilteringTest {
   }
 
   @Test
-  fun testParametrizedElementFiltering() {
+  fun testParametrizedElementFiltering() = runBlocking {
     val template = TestPreviewElementTemplate(
       SinglePreviewElementInstance.forTesting("com.sample.preview.TestClass.PreviewMethod", "PreviewMethod"), 10)
 

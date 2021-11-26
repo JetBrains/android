@@ -22,10 +22,14 @@ import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.refactoring.project
 
 fun DataContext.getPreviewElementInstance(): PreviewElementInstance? = getData(COMPOSE_PREVIEW_ELEMENT) as? PreviewElementInstance
@@ -45,7 +49,7 @@ internal object UnpinAllPreviewElementsAction
 
     val project = e.project ?: return
     val pinnedElementProvider = PinnedPreviewElementManager.getPreviewElementProvider(project)
-    val singleFileName = pinnedElementProvider.previewElements().mapNotNull { it.previewBodyPsi?.virtualFile?.name }
+    val singleFileName = runBlocking {  pinnedElementProvider.previewElements() }.mapNotNull { it.previewBodyPsi?.virtualFile?.name }
                            .distinct()
                            .singleOrNull() ?: "Pinned"
     e.presentation.text = "  -  $singleFileName"
@@ -61,13 +65,15 @@ internal class PinAllPreviewElementsAction(
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val pinManager = PinnedPreviewElementManager.getInstance(e.project ?: return)
 
-    if (state) {
-      // Unpin any previous pins
-      pinManager.unpinAll()
-      pinManager.pin(previewElementProvider.previewElements().toList())
-    }
-    else {
-      pinManager.unpin(previewElementProvider.previewElements().toList())
+    CoroutineScope(AndroidDispatchers.uiThread).launch {
+      if (state) {
+        // Unpin any previous pins
+        pinManager.unpinAll()
+        pinManager.pin(previewElementProvider.previewElements().toList())
+      }
+      else {
+        pinManager.unpin(previewElementProvider.previewElements().toList())
+      }
     }
   }
 

@@ -33,12 +33,15 @@ class GroupNameFilteredPreviewProvider<P: PreviewElement>(private val delegate: 
     groupName == null || groupName == it.displaySettings.group
   }
 
-  override fun previewElements(): Sequence<P> = filteredPreviewElementProvider.previewElements().ifEmpty { delegate.previewElements() }
+  override suspend fun previewElements(): Sequence<P> =
+    filteredPreviewElementProvider.previewElements().let {
+      if (it.iterator().hasNext()) it else delegate.previewElements()
+    }
 
   /**
    * Returns a [Set] with all the available groups in the source [delegate] before filtering. Only groups returned can be set on [groupName].
    */
-  fun allAvailableGroups(): Set<String> = delegate.previewElements().groupNames()
+  suspend fun allAvailableGroups(): Set<String> = delegate.previewElements().groupNames()
 }
 
 /**
@@ -59,6 +62,8 @@ class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: 
     (it as? PreviewElementInstance) == instance
   }
 
-  override fun previewElements(): Sequence<PreviewElementInstance> =
-    filteredPreviewElementProvider.previewElements().ifEmpty { delegate.previewElements() }
+  override suspend fun previewElements(): Sequence<PreviewElementInstance> =
+    filteredPreviewElementProvider.previewElements().let {
+      if (it.iterator().hasNext()) it else delegate.previewElements()
+    }
 }
