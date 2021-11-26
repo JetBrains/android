@@ -43,7 +43,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -358,7 +358,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       }
       taskNames = getTaskNamesFromSelectedVariant(buildVariants, selectedVariant.getName(), selectedTaskName);
     }
-    return ContainerUtil.map(taskNames, name -> GradleUtil.createFullTaskName(gradleProjectPath, name));
+    return ContainerUtil.map(taskNames, name -> GradleProjectSystemUtil.createFullTaskName(gradleProjectPath, name));
   }
 
   @NotNull

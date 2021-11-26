@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.project.build.invoker.TestCompileTyp
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.createFullTaskName;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -36,9 +37,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
@@ -50,7 +50,6 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -262,10 +261,10 @@ public class GradleTaskFinder {
       if (javaFacet != null && javaFacet.getConfiguration().BUILDABLE) {
         String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
         if (gradleTaskName != null) {
-          tasks.add(GradleUtil.createFullTaskName(gradlePath, gradleTaskName));
+          tasks.add(createFullTaskName(gradlePath, gradleTaskName));
         }
         if (TestCompileType.UNIT_TESTS.equals(testCompileType) || TestCompileType.ALL.equals(testCompileType)) {
-          tasks.add(GradleUtil.createFullTaskName(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
+          tasks.add(createFullTaskName(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
         }
       }
     }
@@ -332,7 +331,7 @@ public class GradleTaskFinder {
 
   private static void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
-      String buildTask = GradleUtil.createFullTaskName(gradlePath, gradleTaskName);
+      String buildTask = createFullTaskName(gradlePath, gradleTaskName);
       tasks.add(buildTask);
     }
   }

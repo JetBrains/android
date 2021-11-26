@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -127,7 +127,7 @@ private fun IdeVariant.processGeneratedSources(
   processor: (String, ExternalSystemSourceType) -> Unit
 ) {
 
-  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
+  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = getGeneratedSourceFoldersToUse(this, androidModel)
   fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { processor(it.absolutePath, type) }
 
   // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
@@ -222,7 +222,7 @@ private fun collectContentRootDataForArtifact(
     sourceProvider.processAll(artifact.isTestArtifact, ::addSourceFolder)
   }
 
-  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
+  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = getGeneratedSourceFoldersToUse(this, androidModel)
   fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
 
   artifact.applicableGeneratedSourceFolders().processAs(if (artifact.isTestArtifact) TEST_GENERATED else SOURCE_GENERATED)

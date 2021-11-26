@@ -48,16 +48,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void getGradleInvocationJvmArgWithNullBuildMode() {
-    assertNull(GradleUtil.getGradleInvocationJvmArg(null));
-  }
-
-  @Test
-  public void getGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
-    assertEquals("-DenableTranslation=true", GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
-  }
-
-  @Test
   public void getPathSegments() {
     List<String> pathSegments = GradleUtil.getPathSegments("foo:bar:baz");
     assertEquals(Lists.newArrayList("foo", "bar", "baz"), pathSegments);
@@ -176,7 +166,7 @@ public class GradleUtilTest {
 
   private void checkIfRecognizedAsAapt(@NotNull String path) {
     File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
-    assertTrue(dir + " not recognized as R classes directory.", GradleUtil.isAaptGeneratedSourcesFolder(dir, myTempDir));
+    assertTrue(dir + " not recognized as R classes directory.", GradleProjectSystemUtil.isAaptGeneratedSourcesFolder(dir, myTempDir));
   }
 
   @Test
@@ -193,7 +183,7 @@ public class GradleUtilTest {
 
   private boolean isRecognizedAsDataBindingBaseClass(@NotNull String path) {
     File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
-    return GradleUtil.isDataBindingGeneratedBaseClassesFolder(dir, myTempDir);
+    return GradleProjectSystemUtil.isDataBindingGeneratedBaseClassesFolder(dir, myTempDir);
   }
 
   @Test
@@ -211,7 +201,7 @@ public class GradleUtilTest {
 
   private boolean isRecognizedAsSafeArgClass(@NotNull String path) {
     File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
-    return GradleUtil.isSafeArgGeneratedSourcesFolder(dir, myTempDir);
+    return GradleProjectSystemUtil.isSafeArgGeneratedSourcesFolder(dir, myTempDir);
   }
 
   @Test
@@ -247,7 +237,7 @@ public class GradleUtilTest {
 
   @Test
   public void testCreateFullTaskWithTopLevelModule() {
-    assertEquals(":assemble", GradleUtil.createFullTaskName(":", "assemble"));
+    assertEquals(":assemble", GradleProjectSystemUtil.createFullTaskName(":", "assemble"));
   }
 
   @Test
