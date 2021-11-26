@@ -8,6 +8,8 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.facet.ProjectFacetManager;
 import java.io.File;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
@@ -21,7 +23,8 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject1);
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject2);
 
-    GradleImportingTestUtil.waitForProjectReload(
+    List<Path> projectsToReload = Arrays.asList(linkedProject1.toPath(), linkedProject2.toPath());
+    GradleImportingTestUtil.waitForMultipleProjectsReload(projectsToReload,
       () -> {
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
