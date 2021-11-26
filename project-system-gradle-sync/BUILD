@@ -31,7 +31,6 @@ iml_module(
     test_class = "com.android.tools.idea.projectsystem.gradle.sync.GradleProjectSystemSyncTestSuite",
     test_data = [
         ":test_deps",
-        "//tools/base/build-system/previous-versions:2.2.0",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

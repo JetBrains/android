@@ -35,7 +35,6 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     // Avoid depending on the execution order and initializing icons with dummies.

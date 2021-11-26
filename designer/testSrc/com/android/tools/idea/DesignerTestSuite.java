@@ -36,7 +36,6 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/designer/test_deps.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
   }

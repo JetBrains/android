@@ -33,7 +33,6 @@ public class GradleProjectSystemSyncTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle-sync/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
   }
