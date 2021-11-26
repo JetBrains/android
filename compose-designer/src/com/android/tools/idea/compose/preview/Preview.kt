@@ -79,7 +79,7 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
@@ -251,7 +251,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val module = psiFile.module
-  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
   private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile, LiveLiteralsPsiFileSnapshotFilter(this, psiFile))
 
@@ -279,7 +279,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * [PreviewElementProvider] containing the pinned previews.
    */
-  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider(PinnedPreviewElementManager.getPreviewElementProvider(project)) {
+  private val memoizedPinnedPreviewProvider = FilteredPreviewElementProvider(
+    PinnedPreviewElementManager.getPreviewElementProvider(project)) {
     !(it.previewBodyPsi?.containingFile?.isEquivalentTo(psiFilePointer.containingFile) ?: false)
   }
 
@@ -288,7 +289,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
    */
   private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider) {
-    ReadAction.compute<Long, Throwable> {
+    runReadAction {
       psiFilePointer.element?.modificationStamp ?: -1
     }
   }
@@ -328,11 +329,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // but we want to stop the loop first and then change the composable when disabled
     if (isFromAnimationInspection) {
       onAnimationInspectionStop()
-    } else {
+    }
+    else {
       EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
     }
     interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
-    val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection// We should call this before assigning newValue to instanceIdFilter
+    val quickRefresh = shouldQuickRefresh() && !isFromAnimationInspection // We should call this before assigning newValue to instanceIdFilter
     val peerPreviews = previewElementProvider.previewElements().count()
     previewElementProvider.instanceFilter = element
     composeWorkBench.hasComponentsOverlay = false
@@ -463,7 +465,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var hasLiveLiterals: Boolean = false
     private set(value) {
       field = value
-      if (value) LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+      if (value) LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId,
+                                                                                     LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
 
   override val isLiveLiteralsEnabled: Boolean
@@ -481,25 +484,27 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override val previewedFile: PsiFile?
     get() = psiFilePointer.element
 
-  private val composeWorkBench: ComposePreviewView = composePreviewViewProvider.invoke(
-    project,
-    psiFilePointer,
-    projectBuildStatusManager,
-    navigationHandler, {
-      return@invoke when (it) {
-        COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
-        // The Compose preview NlModels do not point to the actual file but to a synthetic file
-        // generated for Layoutlib. This ensures we return the right file.
-        CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
-        CommonDataKeys.PROJECT.name -> project
-        else -> null
-      }
-    }, this,
-    PinAllPreviewElementsAction(
-      {
-        PinnedPreviewElementManager.getInstance(project).isPinned(psiFile)
-      }, previewElementProvider),
-    UnpinAllPreviewElementsAction)
+  private val composeWorkBench: ComposePreviewView = invokeAndWaitIfNeeded {
+    composePreviewViewProvider.invoke(
+      project,
+      psiFilePointer,
+      projectBuildStatusManager,
+      navigationHandler, {
+        return@invoke when (it) {
+          COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
+          // The Compose preview NlModels do not point to the actual file but to a synthetic file
+          // generated for Layoutlib. This ensures we return the right file.
+          CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
+          CommonDataKeys.PROJECT.name -> project
+          else -> null
+        }
+      }, this,
+      PinAllPreviewElementsAction(
+        {
+          PinnedPreviewElementManager.getInstance(project).isPinned(psiFile)
+        }, previewElementProvider),
+      UnpinAllPreviewElementsAction)
+  }
 
   private val pinnedSurface: NlDesignSurface
     get() = composeWorkBench.pinnedSurface
@@ -572,7 +577,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     Disposer.register(this, ticker)
   }
 
-  override val component: JComponent = composeWorkBench.component
+  override val component: JComponent
+    get() = composeWorkBench.component
 
   // region Lifecycle handling
   /**

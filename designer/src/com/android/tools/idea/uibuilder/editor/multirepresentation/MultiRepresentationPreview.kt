@@ -235,7 +235,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     val newRepresentations = mutableMapOf<RepresentationName, PreviewRepresentation>()
     // Calculated new representations
     for (provider in providers.filter { it.displayName !in currentRepresentationsNames }) {
-      val representation = runReadAction { provider.createRepresentation (file) }
+      val representation = provider.createRepresentation (file)
       Disposer.register(this@MultiRepresentationPreview, representation)
       shortcutsApplicableComponent?.let {
         invokeLater {

@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
@@ -197,7 +198,7 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider =
 
 private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile): EnumValuesProvider =
   {
-    AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile).mapNotNull { previewElement ->
+    runBlocking { AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile) }.mapNotNull { previewElement ->
       previewElement.displaySettings.group
     }.distinct().map { group ->
       EnumValue.Companion.item(group)

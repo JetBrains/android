@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
@@ -26,7 +25,6 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
@@ -39,6 +37,7 @@ import com.android.tools.idea.compose.preview.util.modelAffinity
 import com.android.tools.idea.compose.preview.util.requestComposeRender
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.run.util.StopWatch
@@ -48,6 +47,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
@@ -55,7 +55,7 @@ import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
@@ -269,12 +269,12 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
       }
       if (progressIndicator.isCanceled) return@updatePreviewsAndRefresh previewElementsList // Return early if user cancels the refresh
 
-      val offset = ReadAction.compute<Int, Throwable> {
+      val offset = runReadAction {
         previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
       }
 
       val defaultFile = previewElement.previewElementDefinitionPsi?.virtualFile?.let {
-        AndroidPsiUtils.getPsiFileSafely(project, it)
+        getPsiFileSafely(project, it)
       } ?: psiFile
 
       (navigationHandler as PreviewNavigationHandler).setDefaultLocation(model, defaultFile, offset)

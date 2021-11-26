@@ -59,8 +59,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
@@ -181,15 +179,8 @@ class ComposePreviewRepresentationProvider(
    */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val previewProvider = object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements(): Sequence<PreviewElement> = if (DumbService.isDumb(psiFile.project))
-        emptySequence()
-      else
-        try {
-          filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
-        }
-        catch (_: IndexNotReadyException) {
-          emptySequence()
-        }
+      override suspend fun previewElements(): Sequence<PreviewElement> =
+        filePreviewElementProvider().findPreviewMethods(psiFile.project, psiFile.virtualFile).asSequence()
     }
     val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     if (LOG.isDebugEnabled) {

@@ -25,7 +25,6 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -41,14 +40,14 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -64,14 +63,12 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.util.function.BiFunction
-import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
@@ -115,7 +112,7 @@ class CustomViewPreviewRepresentation(
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
   private val project = psiFile.project
-  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  private val psiFilePointer = com.intellij.openapi.application.runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
 

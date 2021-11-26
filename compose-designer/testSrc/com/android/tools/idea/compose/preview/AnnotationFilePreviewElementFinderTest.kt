@@ -30,6 +30,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElementOfType
 import org.junit.Assert.assertArrayEquals
@@ -38,6 +43,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,7 +87,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   private val fixture get() = projectRule.fixture
 
   @Test
-  fun testFindPreviewAnnotations() {
+  fun testFindPreviewAnnotations() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -165,7 +171,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, otherFile.virtualFile))
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
-    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList() }
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     assertEquals(8, elements.size)
     elements[0].let {
       assertEquals("Preview1", it.displaySettings.name)
@@ -269,7 +275,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   }
 
   @Test
-  fun testFindPreviewAnnotationsWithoutImport() {
+  fun testFindPreviewAnnotationsWithoutImport() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -301,7 +307,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   }
 
   @Test
-  fun testNoDuplicatePreviewElements() {
+  fun testNoDuplicatePreviewElements() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -322,7 +328,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   }
 
   @Test
-  fun testFindPreviewPackage() {
+  fun testFindPreviewPackage() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
       "com/android/notpreview/Preview.kt",
       // language=kotlin
@@ -367,7 +373,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
    *
    */
   @Test
-  fun testDumbMode() {
+  fun testDumbMode() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -388,19 +394,25 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
     runInEdtAndWait {
       DumbServiceImpl.getInstance(project).isDumb = true
-      try {
-        val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-        assertEquals(0, elements.count())
-        assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
-      }
-      finally {
-        DumbServiceImpl.getInstance(project).isDumb = false
-      }
+      assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
     }
+    val result = GlobalScope.async {
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+    }
+    try {
+      withTimeout(2500) {
+        result.await()
+      }
+      fail("The result should not have been returned in non-smart mode")
+    } catch (_: TimeoutCancellationException) {}
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(project).isDumb = false
+    }
+    assertEquals(2, result.await().size)
   }
 
   @Test
-  fun testPreviewParameters() {
+  fun testPreviewParameters() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -473,7 +485,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
   }
 
   @Test
-  fun testOrdering() {
+  fun testOrdering() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -507,36 +519,34 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         }
       """.trimIndent())
 
-    ReadAction.run<Throwable> {
-      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
-        .toMutableList().apply {
-          // Randomize to make sure the ordering works
-          shuffle()
+    AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      .toMutableList().apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .map {
+        // Override positioning for testing for those preview starting with Top
+        object : PreviewElement by it {
+          override val displaySettings: PreviewDisplaySettings =
+            PreviewDisplaySettings(
+              it.displaySettings.name,
+              it.displaySettings.group,
+              it.displaySettings.showDecoration,
+              it.displaySettings.showBackground,
+              it.displaySettings.backgroundColor,
+              if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
         }
-        .map {
-          // Override positioning for testing for those preview starting with Top
-          object : PreviewElement by it {
-            override val displaySettings: PreviewDisplaySettings =
-              PreviewDisplaySettings(
-                it.displaySettings.name,
-                it.displaySettings.group,
-                it.displaySettings.showDecoration,
-                it.displaySettings.showBackground,
-                it.displaySettings.backgroundColor,
-                if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP else it.displaySettings.displayPositioning)
-          }
-        }
-        .sortByDisplayAndSourcePosition()
-        .map { it.composableMethodFqn }
-        .toTypedArray()
-        .let {
-          assertArrayEquals(arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"), it)
-        }
-    }
+      }
+      .sortByDisplayAndSourcePosition()
+      .map { it.composableMethodFqn }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(arrayOf("TestKt.TopA", "TestKt.TopB", "TestKt.C", "TestKt.A", "TestKt.B"), it)
+      }
   }
 
   @Test
-  fun testRepeatedPreviewAnnotations() {
+  fun testRepeatedPreviewAnnotations() = runBlocking {
     val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
@@ -554,7 +564,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile))
     assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile) })
 
-    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList() }
+    val elements =  AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
     assertEquals(2, elements.size)
     elements[0].let {
       assertEquals("preview1", it.displaySettings.name)
@@ -579,6 +589,55 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         assertEquals("@Preview(name = \"preview2\", group = \"groupA\")",
                      it.previewElementDefinitionPsi?.element?.text)
       }
+    }
+  }
+
+  @Test
+  fun testFindPreviewAnnotationsCache() = runBlocking {
+    val composeTest = fixture.addFileToProjectAndInvalidate(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import $PREVIEW_TOOLING_PACKAGE.Devices
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+
+      """.trimIndent())
+
+    val otherFile = fixture.addFileToProjectAndInvalidate(
+      "src/OtherFile.kt",
+      // language=kotlin
+      """
+        import $PREVIEW_TOOLING_PACKAGE.Devices
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+
+        @Composable
+        @Preview
+        fun OtherFilePreview1() {
+        }
+
+        @[Composable Preview]
+        fun OtherFilePreview2() {
+        }
+      """.trimIndent())
+
+    repeat(3) {
+      val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+      assertEquals("Preview1", elements.single().displaySettings.name)
+
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).toList()
+
+      val elementsInOtherFile = AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile).toList()
+      assertEquals("OtherFilePreview1", elementsInOtherFile[0].displaySettings.name)
+      assertEquals("OtherFilePreview2", elementsInOtherFile[1].displaySettings.name)
+
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile).toList()
     }
   }
 }

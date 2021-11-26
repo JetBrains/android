@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -72,7 +73,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun `the psi model reads the preview annotation correctly`() {
+  fun `the psi model reads the preview annotation correctly`() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -122,7 +123,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun `updating model updates the psi correctly`() {
+  fun `updating model updates the psi correctly`() = runBlocking {
     @Language("kotlin")
     val annotationWithParameters = """
       import $composableAnnotationFqName
@@ -152,7 +153,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun `supported parameters displayed correctly`() {
+  fun `supported parameters displayed correctly`() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -178,7 +179,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun `preview default values`() {
+  fun `preview default values`() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -218,7 +219,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun fontScaleEditing() {
+  fun fontScaleEditing() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -252,7 +253,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   }
 
   @Test
-  fun `original order is preserved`() {
+  fun `original order is preserved`() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -279,7 +280,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
   @RunsInEdt
   @Test
-  fun testDevicePropertiesTracked() {
+  fun testDevicePropertiesTracked() = runBlocking {
     @Language("kotlin")
     val fileContent = """
       import $composableAnnotationFqName
@@ -350,7 +351,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(PickerTrackableValue.UNSUPPORTED_OR_OPEN_ENDED, testTracker.valuesRegistered[index])
   }
 
-  private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
+  private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> {
@@ -426,7 +427,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(0, expectedModificationsCountdown)
   }
 
-  private fun getFirstModel(fileContent: String, tracker: PreviewPickerTracker = NoOpTracker): PsiPropertyModel {
+  private suspend fun getFirstModel(fileContent: String, tracker: PreviewPickerTracker = NoOpTracker): PsiPropertyModel {
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     ConfigurationManager.getOrCreateInstance(module)

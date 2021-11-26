@@ -31,6 +31,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -278,4 +281,13 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
     }
   }
   return@coroutineScope result.await()
+}
+
+/**
+ * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
+ */
+suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = runReadAction {
+  if (project.isDisposed) return@runReadAction null
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@runReadAction null
+  return@runReadAction if (psiFile.isValid) psiFile else null
 }

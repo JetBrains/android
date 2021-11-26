@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
@@ -29,8 +30,8 @@ import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
@@ -38,7 +39,6 @@ import junit.framework.Assert.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,6 +46,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,7 +64,7 @@ const val IO_THREAD = "IO thread"
 class CoroutineUtilsTest {
 
   @get:Rule
-  val projectRule = ProjectRule()
+  val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var uiExecutor: ExecutorService
   private lateinit var workerExecutor: ExecutorService
@@ -490,5 +491,16 @@ class CoroutineUtilsTest {
       }
       smartActionJob.cancel()
     }
+  }
+
+  @Test
+  fun `run psi file safely`() = runBlocking {
+    val project = projectRule.project
+    val virtualFile = projectRule.fixture.addFileToProject("src/Test.kt", """
+      fun Test() {
+      }
+    """.trimIndent()).virtualFile
+    runWriteActionAndWait { PsiManager.getInstance(project).dropPsiCaches() }
+    assertTrue(getPsiFileSafely(project, virtualFile)!!.isValid)
   }
 }

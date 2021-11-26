@@ -113,15 +113,10 @@ class ComposePreviewRepresentationTest {
     })
 
     val composeView = TestComposePreviewView(pinnedSurface, mainSurface)
-    val preview = ReadAction.compute<ComposePreviewRepresentation, Throwable> {
-      ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
+    val preview = ComposePreviewRepresentation(composeTest, object : PreviewElementProvider<PreviewElement> {
         override suspend fun previewElements(): Sequence<PreviewElement> =
-          ReadAction.compute<Sequence<PreviewElement>, Throwable> {
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
-          }
-
+          AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile).asSequence()
       }, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _, _ -> composeView }
-    }
     Disposer.register(fixture.testRootDisposable, preview)
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
 

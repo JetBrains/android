@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
@@ -63,7 +63,6 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.idea.util.module
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -393,14 +392,17 @@ internal class ComposePreviewViewImpl(private val project: Project,
     init(issueErrorSplitter, mainSurface, listOf(), false)
     hideContent()
     if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+      log.debug("Project needs build")
       showNeedsToBuildErrorPanel()
     }
     else {
-      showLoading(when {
-                    projectBuildStatusManager.isBuilding -> message("panel.building")
-                    DumbService.getInstance(project).isDumb -> message("panel.indexing")
-                    else -> message("panel.initializing")
-                  })
+      val message = when {
+        projectBuildStatusManager.isBuilding -> message("panel.building")
+        DumbService.getInstance(project).isDumb -> message("panel.indexing")
+        else -> message("panel.initializing")
+      }
+      log.debug("Show loading: $message")
+      showLoading(message)
     }
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
     isFocusCycleRoot = true
