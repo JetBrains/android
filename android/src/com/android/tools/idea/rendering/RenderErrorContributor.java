@@ -677,7 +677,7 @@ public class RenderErrorContributor {
   private void addRefreshAction(@NotNull HtmlBuilder builder) {
     builder.newlineIfNecessary()
       .newline()
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl()).newline();
   }
@@ -1093,11 +1093,11 @@ public class RenderErrorContributor {
     builder.endList();
 
     builder
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "build", " the project.",
                     myLinkManager.createBuildProjectUrl())
       .newline()
-      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl())
       .newline();
