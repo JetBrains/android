@@ -22,11 +22,12 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.google.common.base.Predicate;
@@ -102,7 +103,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private final ListenableFuture<AndroidVersion> myMinSdkVersion;
   private final AndroidFacet myFacet;
   private final IAndroidTarget myProjectTarget;
-  private final Set<String> mySupportedAbis;
+  private final Set<Abi> mySupportedAbis;
 
   private int[] mySelectedRows;
   private final AtomicBoolean myDevicesDetected = new AtomicBoolean();
@@ -116,9 +117,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    mySupportedAbis = androidModuleModel != null ?
-                      androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
+    AndroidModel androidModel = AndroidModel.get(facet);
+    mySupportedAbis = androidModel != null ?
+                      androidModel.getSupportedAbis() :
                       Collections.emptySet();
 
     myDeviceTable = new JBTable();

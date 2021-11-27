@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
@@ -24,6 +25,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -116,6 +118,8 @@ public interface AndroidModel {
    */
   @Nullable
   AndroidVersion getTargetSdkVersion();
+
+  default @NotNull EnumSet<Abi> getSupportedAbis() { return EnumSet.allOf(Abi.class); }
 
   /**
    * Indicates whether the given file or directory is generated.

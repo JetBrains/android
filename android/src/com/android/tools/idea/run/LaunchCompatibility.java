@@ -102,7 +102,7 @@ public class LaunchCompatibility {
                                                    @NotNull IAndroidTarget projectTarget,
                                                    @NotNull AndroidFacet facet,
                                                    Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
-                                                   @NotNull Set<String> supportedAbis,
+                                                   @NotNull Set<Abi> supportedAbis,
                                                    @NotNull AndroidDevice device) {
     // check if the device has the required minApi
     // note that in cases where targetSdk is a preview platform, gradle sets minsdk to be the same as targetsdk,
@@ -143,10 +143,8 @@ public class LaunchCompatibility {
 
     // Verify that the device ABI matches one of the target ABIs for JNI apps.
     if (!supportedAbis.isEmpty()) {
-      Set<String> deviceAbis = Sets.newLinkedHashSet();
-      for (Abi abi : device.getAbis()) {
-        deviceAbis.add(abi.toString());
-      }
+      Set<Abi> deviceAbis = Sets.newLinkedHashSet();
+      deviceAbis.addAll(device.getAbis());
 
       if (Sets.intersection(supportedAbis, deviceAbis).isEmpty()) {
         return new LaunchCompatibility(State.WARNING, "Device supports " + Joiner.on(", ").join(deviceAbis) +

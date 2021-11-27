@@ -137,7 +137,7 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     final AndroidFacet facet = mock(AndroidFacet.class);
-    Set<String> supportedAbis = ImmutableSet.of(Abi.ARMEABI_V7A.toString());
+    Set<Abi> supportedAbis = ImmutableSet.of(Abi.ARMEABI_V7A);
 
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =
@@ -150,7 +150,7 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     final AndroidFacet facet = mock(AndroidFacet.class);
-    Set<String> supportedAbis = ImmutableSet.of(Abi.X86_64.toString());
+    Set<Abi> supportedAbis = ImmutableSet.of(Abi.X86_64);
 
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =
@@ -165,7 +165,7 @@ public class LaunchCompatibilityTest extends TestCase {
     AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
     final AndroidFacet facet = mock(AndroidFacet.class);
-    Set<String> supportedAbis = ImmutableSet.of();
+    Set<Abi> supportedAbis = ImmutableSet.of();
 
     List<Abi> deviceAbis = ImmutableList.of(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A);
     LaunchCompatibility compatibility =

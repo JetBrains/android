@@ -31,6 +31,7 @@ import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.model.IdeAaptOptions;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
@@ -70,11 +71,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -370,6 +373,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidVersion getTargetSdkVersion() {
     IdeApiVersion targetSdkVersion = getSelectedVariant().getTargetSdkVersion();
     return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
+  }
+
+  @Override
+  public @NotNull EnumSet<Abi> getSupportedAbis() {
+    return getSelectedVariant().getMainArtifact().getAbiFilters()
+      .stream().map(Abi::getEnum).collect(Collectors.toCollection(() -> EnumSet.noneOf(Abi.class)));
   }
 
   /**
