@@ -42,8 +42,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);

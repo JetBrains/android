@@ -141,8 +141,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (insertType == InsertType.MOVE) {

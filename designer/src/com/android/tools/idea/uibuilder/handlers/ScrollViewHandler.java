@@ -53,8 +53,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);

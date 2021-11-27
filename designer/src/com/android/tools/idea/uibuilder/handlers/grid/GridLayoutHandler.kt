@@ -40,7 +40,11 @@ open class GridLayoutHandler : ViewGroupHandler() {
   override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler =
       GridDragHandler(editor, this, layout, components, type)
 
-  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+  override fun onChildRemoved(
+    layout: NlComponent,
+    newChild: NlComponent,
+    insertType: InsertType
+  ) {
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW)
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_COLUMN)
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW_SPAN)

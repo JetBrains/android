@@ -139,8 +139,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (newChild.getAndroidAttribute(ATTR_TEXT) == null) {

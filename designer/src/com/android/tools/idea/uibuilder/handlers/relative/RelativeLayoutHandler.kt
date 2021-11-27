@@ -57,7 +57,11 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     return RelativeDragHandler(editor, this, layout, components, type)
   }
 
-  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+  override fun onChildRemoved(
+    layout: NlComponent,
+    newChild: NlComponent,
+    insertType: InsertType
+  ) {
     RELATIVE_LAYOUT_ATTRIBUTES.forEach { newChild.removeAndroidAttribute(it) }
   }
 

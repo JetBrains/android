@@ -63,8 +63,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildRemoved(@NotNull ViewEditor editor,
-                             @NotNull NlComponent layout,
+  public void onChildRemoved(@NotNull NlComponent layout,
                              @NotNull NlComponent newChild,
                              @NotNull InsertType insertType) {
     newChild.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X);

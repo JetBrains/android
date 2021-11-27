@@ -797,7 +797,7 @@ public class NlModel implements Disposable, ModificationTracker {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
         }
-        handleAddition(toAdd, receiver, before, insertType, surface);
+        handleAddition(toAdd, receiver, before, insertType);
       });
 
       notifyModified(ChangeType.ADD_COMPONENTS);
@@ -858,12 +858,11 @@ public class NlModel implements Disposable, ModificationTracker {
   private void handleAddition(@NotNull List<NlComponent> added,
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
-                              @NotNull InsertType insertType,
-                              @Nullable DesignSurface surface) {
+                              @NotNull InsertType insertType) {
     Set<String> ids = getIds();
 
     for (NlComponent component : added) {
-      component.moveTo(receiver, before, insertType, ids, surface);
+      component.moveTo(receiver, before, insertType, ids);
     }
   }
 

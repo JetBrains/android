@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import icons.StudioIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +39,11 @@ public final class SearchItemHandler extends MenuHandler {
     return (DRAWABLE_PREFIX + SEARCH_ICON).equals(item.getAndroidAttribute(ATTR_ICON));
   }
 
-  static void onChildInserted(@NotNull ViewEditor editor) {
-    if (!DesignSurfaceHelper.moduleContainsResource(editor.getModel().getFacet(), ResourceType.DRAWABLE, SEARCH_ICON)) {
-      NlModel model = editor.getModel();
-      DesignSurfaceHelper.copyVectorAssetToMainModuleSourceSet(model.getProject(), model.getFacet(), SEARCH_ICON);
+  static void onChildInserted(@NotNull NlComponent newChild) {
+    NlModel model = newChild.getModel();
+    AndroidFacet facet = model.getFacet();
+    if (!DesignSurfaceHelper.moduleContainsResource(facet, ResourceType.DRAWABLE, SEARCH_ICON)) {
+      DesignSurfaceHelper.copyVectorAssetToMainModuleSourceSet(model.getProject(), facet, SEARCH_ICON);
     }
   }
 

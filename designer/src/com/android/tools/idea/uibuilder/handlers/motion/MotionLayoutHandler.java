@@ -43,7 +43,6 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
@@ -260,12 +259,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     newChild.ensureId();
-    super.onChildInserted(editor, layout, newChild, insertType);
+    super.onChildInserted(layout, newChild, insertType);
   }
 
   @Override

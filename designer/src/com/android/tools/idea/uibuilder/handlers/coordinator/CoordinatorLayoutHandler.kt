@@ -62,14 +62,20 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
   }
 
-  override fun onChildInserted(editor: ViewEditor, parent: NlComponent, child: NlComponent, insertType: InsertType) {
+  override fun onChildInserted(
+    parent: NlComponent,
+    child: NlComponent,
+    insertType: InsertType
+  ) {
     // b/67452405 Do not call super()
     if (COORDINATOR_LAYOUT.newName() == parent.tagName && BOTTOM_APP_BAR == child.tagName) {
       configureNewBottomAppBar(parent, child)
     }
   }
 
-  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+  override fun onChildRemoved(layout: NlComponent,
+                              newChild: NlComponent,
+                              insertType: InsertType) {
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
 

@@ -114,7 +114,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
     )
     val handler = CoordinatorLayoutHandler()
     val editor = mock(ViewEditor::class.java)
-    handler.onChildInserted(editor, myModel.components.first(), bottomAppBar, InsertType.CREATE)
+    handler.onChildInserted(myModel.components.first(), bottomAppBar, InsertType.CREATE)
     UIUtil.dispatchAllInvocationEvents()
 
     val fab = myModel.find("fab")!!

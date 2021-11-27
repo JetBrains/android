@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,12 +41,11 @@ public class MenuHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType type) {
     if (SearchItemHandler.handles(newChild)) {
-      SearchItemHandler.onChildInserted(editor);
+      SearchItemHandler.onChildInserted(newChild);
     }
   }
 

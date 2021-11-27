@@ -101,11 +101,10 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent layout,
+  public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
-    myHandler.onChildInserted(editor, layout, newChild, insertType);
+    myHandler.onChildInserted(layout, newChild, insertType);
   }
 
   @Override
@@ -289,11 +288,10 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildRemoved(@NotNull ViewEditor editor,
-                             @NotNull NlComponent layout,
+  public void onChildRemoved(@NotNull NlComponent layout,
                              @NotNull NlComponent newChild,
                              @NotNull InsertType insertType) {
-    myHandler.onChildRemoved(editor, layout, newChild, insertType);
+    myHandler.onChildRemoved(layout, newChild, insertType);
   }
 
   @Override

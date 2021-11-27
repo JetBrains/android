@@ -515,13 +515,12 @@ class NlComponentMixin(component: NlComponent)
     }
   }
 
-  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent, surface: DesignSurface?) {
-    val editor by lazy { ViewEditorImpl(component.model, surface?.scene) }
+  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent) {
     if (previousParent != receiver) {
-      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, insertType)
+      previousParent?.viewGroupHandler?.onChildRemoved(previousParent, component, insertType)
     }
 
-    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, insertType)
+    receiver.viewGroupHandler?.onChildInserted(receiver, component, insertType)
   }
 
   override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {
@@ -566,7 +565,7 @@ class NlComponentMixin(component: NlComponent)
     }
     component.parent?.let {
       val parentHandler = viewHandlerManager.getHandler(it)
-      (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, it, component, insertType)
+      (parentHandler as? ViewGroupHandler)?.onChildInserted(it, component, insertType)
     }
     return true
   }

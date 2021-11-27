@@ -526,8 +526,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
-  public void onChildRemoved(@NotNull ViewEditor editor,
-                             @NotNull NlComponent layout,
+  public void onChildRemoved(@NotNull NlComponent layout,
                              @NotNull NlComponent newChild,
                              @NotNull InsertType insertType) {
     for (String attribute : ConstraintComponentUtilities.ourConstraintLayoutAttributesToClear) {

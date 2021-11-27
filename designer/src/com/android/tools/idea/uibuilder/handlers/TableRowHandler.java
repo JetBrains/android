@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +41,7 @@ public class TableRowHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull ViewEditor editor,
-                              @NotNull NlComponent parent,
+  public void onChildInserted(@NotNull NlComponent parent,
                               @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     // Overridden to inhibit the setting of layout_width/layout_height since

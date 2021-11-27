@@ -733,8 +733,7 @@ public class NlComponent implements NlAttributesHolder {
     return true;
   }
 
-  public void moveTo(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type, @NotNull Set<String> ids,
-                     @Nullable DesignSurface surface) {
+  public void moveTo(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type, @NotNull Set<String> ids) {
     XmlModelComponentMixin mixin = getMixin();
     if (mixin != null) {
       mixin.beforeMove(type, receiver, ids);
@@ -742,7 +741,7 @@ public class NlComponent implements NlAttributesHolder {
     NlComponent oldParent = getParent();
     addTags(receiver, before, type);
     if (mixin != null) {
-      mixin.afterMove(type, oldParent, receiver, surface);
+      mixin.afterMove(type, oldParent, receiver);
     }
   }
 
@@ -954,8 +953,7 @@ public class NlComponent implements NlAttributesHolder {
 
     public void afterMove(@NotNull InsertType insertType,
                           @Nullable NlComponent previousParent,
-                          @NotNull NlComponent receiver,
-                          @Nullable DesignSurface surface) {}
+                          @NotNull NlComponent receiver) {}
 
     public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
       return true;
