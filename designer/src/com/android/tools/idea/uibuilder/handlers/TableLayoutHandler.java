@@ -25,7 +25,6 @@ import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
@@ -58,15 +57,14 @@ public class TableLayoutHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
       NlWriteCommandActionUtil.run(node, "", () -> {
         for (int i = 0; i < 4; i++) {
-          NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
+          NlComponentHelperKt.createChild(node, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
         }
       });
     }

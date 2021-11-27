@@ -33,12 +33,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.Computable
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 
 class BottomAppBarHandlerTest {
@@ -71,7 +69,7 @@ class BottomAppBarHandlerTest {
     val handler = BottomAppBarHandler()
     val component = WriteCommandAction.runWriteCommandAction(projectRule.project, Computable {
       val component = createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
-      handler.onCreate(createViewEditor(), null, component, InsertType.CREATE)
+      handler.onCreate(null, component, InsertType.CREATE)
       component
     })
     val expected = """
@@ -96,7 +94,7 @@ class BottomAppBarHandlerTest {
     val handler = BottomAppBarHandler()
     val component = WriteCommandAction.runWriteCommandAction(projectRule.project, Computable {
       val component = createComponent(handler.getXml(SdkConstants.BOTTOM_APP_BAR, XmlType.COMPONENT_CREATION))
-      handler.onCreate(createViewEditor(), null, component, InsertType.CREATE)
+      handler.onCreate(null, component, InsertType.CREATE)
       component
     })
     val expected = """

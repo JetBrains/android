@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -71,23 +72,23 @@ public final class ListPreferenceHandler extends PreferenceHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
+    if (!super.onCreate(parent, newChild, type)) {
       return false;
     }
 
     if (type.equals(InsertType.CREATE)) {
+      NlModel model = newChild.getModel();
       EnumSet<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
-      String entries = editor.displayResourceInput("Choose entries Resource", array);
+      String entries = ViewEditor.displayResourceInput(model, "Choose entries Resource", array);
 
       if (entries == null) {
         return false;
       }
 
-      String entryValues = editor.displayResourceInput("Choose entryValues Resource", array);
+      String entryValues = ViewEditor.displayResourceInput(model, "Choose entryValues Resource", array);
 
       if (entryValues == null) {
         return false;

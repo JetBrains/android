@@ -24,7 +24,6 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -779,10 +778,10 @@ public class NlComponent implements NlAttributesHolder {
     }
   }
 
-  public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+  public boolean postCreate(@NotNull InsertType insertType) {
     XmlModelComponentMixin mixin = getMixin();
     if (mixin != null) {
-      return mixin.postCreate(surface, insertType);
+      return mixin.postCreate(insertType);
     }
     return true;
   }
@@ -955,7 +954,7 @@ public class NlComponent implements NlAttributesHolder {
                           @Nullable NlComponent previousParent,
                           @NotNull NlComponent receiver) {}
 
-    public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+    public boolean postCreate(@NotNull InsertType insertType) {
       return true;
     }
 

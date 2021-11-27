@@ -36,13 +36,9 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,7 +54,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.function.Consumer;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -506,13 +501,9 @@ public final class NlComponentTest extends LayoutTestCase {
 
     NlComponent componentWithoutFile = new NlComponent(myModel, mockTag, mockPointer);
 
-    ViewEditor mockEditor = mock(ViewEditor.class);
-    setupMockViewEditorWithMockSurface(mockEditor);
-
     NlWriteCommandActionUtil.run(componentWithoutFile, "addTextView", () -> {
       // should fail as backing component does not have valid VFS.
-      NlComponent child = NlComponentHelperKt.createChild(
-        componentWithoutFile, mockEditor, "", null, InsertType.CREATE);
+      NlComponent child = NlComponentHelperKt.createChild(componentWithoutFile, "", null, InsertType.CREATE);
       assertNull(child);});
 
     UIUtil.dispatchAllInvocationEvents();
@@ -530,11 +521,8 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
 
-    ViewEditor mockEditor =  mock(ViewEditor.class);
-    setupMockViewEditorWithMockSurface(mockEditor);
-
     NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> {
-      assertNotNull(NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE));
+      assertNotNull(NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE));
     });
     UIUtil.dispatchAllInvocationEvents();
   }
@@ -551,15 +539,12 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
 
-    ViewEditor mockEditor =  mock(ViewEditor.class);
-    setupMockViewEditorWithMockSurface(mockEditor);
-
     boolean errorCaught = false;
     try {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          NlComponentHelperKt.createChild(relativeLayout, mockEditor, "TextView", null, InsertType.CREATE);
+          NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE);
         }
       });
     } catch (AssertionError expected) {
@@ -581,33 +566,15 @@ public final class NlComponentTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
     NlComponent relativeLayout = createComponent(rootTag);
 
-    ViewEditor mockEditor =  mock(ViewEditor.class);
-    setupMockViewEditorWithMockSurface(mockEditor);
-
     boolean errorCaught = false;
     try {
-      NlComponentHelperKt.createChild(relativeLayout, mockEditor, "", null, InsertType.CREATE);
+      NlComponentHelperKt.createChild(relativeLayout, "", null, InsertType.CREATE);
     } catch (AssertionError expected) {
       errorCaught = true;
     }
     assertTrue(errorCaught);
 
     UIUtil.dispatchAllInvocationEvents();
-  }
-
-  private DesignSurface setupMockViewEditorWithMockSurface(ViewEditor mockEditor) {
-    Scene mockScene = mock(Scene.class);
-    DesignSurface mockSurface = mock(DesignSurface.class);
-    LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);
-    ViewEditor viewEditor = new ViewEditorImpl(myModel);
-
-    when(mockEditor.getScene()).thenReturn(mockScene);
-    when(mockScene.getDesignSurface()).thenReturn(mockSurface);
-    when(mockSurface.getScene()).thenReturn(mockScene);
-
-    when(mockScene.getSceneManager()).thenReturn(mockSceneManager);
-    when(mockSceneManager.getViewEditor()).thenReturn(viewEditor);
-    return mockSurface;
   }
 
   public void testAddTagsWithInvalidXmlTag() {

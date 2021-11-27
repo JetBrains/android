@@ -204,51 +204,6 @@ public class ViewEditorImpl extends ViewEditor {
       });
   }
 
-  @Nullable
-  @Override
-  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
-    NlModel model = myModel;
-    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
-      title.isEmpty() ? "Pick a Resource" : title,
-      null,
-      model.getFacet(),
-      types,
-      null,
-      false,
-      includeSampleData,
-      true, model.getVirtualFile()
-    );
-
-    dialog.show();
-
-    if (dialog.isOK()) {
-      String resource = dialog.getResourceName();
-
-      if (resource != null && !resource.isEmpty()) {
-        return resource;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public String displayClassInput(@NotNull String title,
-                                  @NotNull Set<String> superTypes,
-                                  @Nullable Predicate<String> filter,
-                                  @Nullable String currentValue) {
-    Module module = myModel.getModule();
-    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
-
-    Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
-    if (filter == null) {
-      filter = ChooseClassDialog.getIsUserDefinedFilter();
-    }
-    psiFilter = psiFilter.and(ChooseClassDialog.qualifiedNameFilter(filter));
-    return ChooseClassDialog.openDialog(module, title, currentValue, psiFilter, superTypesArray);
-  }
-
   @VisibleForTesting
   static boolean isPublicAndUnRestricted(@NotNull PsiClass psiClass) {
     PsiModifierList modifiers = psiClass.getModifierList();

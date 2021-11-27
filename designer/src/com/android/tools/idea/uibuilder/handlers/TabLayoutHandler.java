@@ -124,8 +124,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent node,
                           @NotNull InsertType insertType) {
     // Hide the implementation from HorizontalScrollViewHandler

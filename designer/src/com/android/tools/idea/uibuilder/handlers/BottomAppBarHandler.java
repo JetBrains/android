@@ -34,7 +34,6 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
@@ -73,16 +72,15 @@ public class BottomAppBarHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    if (!Material3UtilKt.hasMaterial3Dependency(editor.getModel().getFacet())) {
+    if (!Material3UtilKt.hasMaterial3Dependency(newChild.getModel().getFacet())) {
       // The BottomAppBar uses the Colored style in Material 2
       NlWriteCommandActionUtil.run(newChild, "Setup BottomAppBar", () ->
         newChild.setAttribute(null, ATTR_STYLE, STYLE_RESOURCE_PREFIX + "Widget.MaterialComponents.BottomAppBar.Colored")
       );
     }
-    return super.onCreate(editor, parent, newChild, insertType);
+    return super.onCreate(parent, newChild, insertType);
   }
 }

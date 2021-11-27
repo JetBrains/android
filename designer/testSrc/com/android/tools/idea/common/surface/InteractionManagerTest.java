@@ -52,7 +52,6 @@ import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -554,8 +553,7 @@ public class InteractionManagerTest extends LayoutTestCase {
 
   private static class FakeImageViewHandler extends ImageViewHandler {
     @Override
-    public boolean onCreate(@NotNull ViewEditor editor,
-                            @Nullable NlComponent parent,
+    public boolean onCreate(@Nullable NlComponent parent,
                             @NotNull NlComponent newChild,
                             @NotNull InsertType insertType) {
       if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW

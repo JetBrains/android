@@ -25,7 +25,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
-  private ViewEditor myCustomViewEditor;
   private boolean myIgnoreRenderRequests;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
@@ -120,16 +118,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     ResourceReference reference = ResourceReference.attr(namespace, attributeName);
     ResourceValue resourceValue = new StyleItemResourceValueImpl(namespace, attributeName, value, null);
     map.put(reference, resourceValue);
-  }
-
-  public void setCustomViewEditor(@NotNull ViewEditor editor) {
-    myCustomViewEditor = editor;
-  }
-
-  @NotNull
-  @Override
-  public ViewEditor getViewEditor() {
-    return myCustomViewEditor != null ? myCustomViewEditor : super.getViewEditor();
   }
 
   public void fireRenderCompleted() {

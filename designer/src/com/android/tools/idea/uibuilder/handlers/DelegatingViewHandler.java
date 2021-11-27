@@ -19,7 +19,6 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
@@ -47,11 +46,10 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    return myHandler.onCreate(editor, parent, newChild, insertType);
+    return myHandler.onCreate(parent, newChild, insertType);
   }
 
   @Override

@@ -58,7 +58,6 @@ import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
@@ -433,7 +432,7 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> model.createComponent(model.getSurface(), recyclerViewTag, frameLayout, null, InsertType.CREATE
+      () -> model.createComponent(recyclerViewTag, frameLayout, null, InsertType.CREATE
       ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
@@ -474,7 +473,7 @@ public class NlModelTest extends LayoutTestCase {
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
                                                                     ANDROID_URI + "\"/>");
     NlComponent recyclerView =
-      model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
+      model.createComponent(recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail

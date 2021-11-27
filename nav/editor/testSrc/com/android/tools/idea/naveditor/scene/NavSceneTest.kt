@@ -338,7 +338,7 @@ class NavSceneTest : NavTestCase() {
     val rootComponent = model.components[0]
     WriteCommandAction.runWriteCommandAction(project) {
       surface.model!!
-      val newComponent = rootComponent.createChild("fragment", true, null, null, surface)!!
+      val newComponent = rootComponent.createChild("fragment", true, null, null)!!
       surface.selectionModel.setSelection(ImmutableList.of(newComponent))
       newComponent.assignId("myId")
     }

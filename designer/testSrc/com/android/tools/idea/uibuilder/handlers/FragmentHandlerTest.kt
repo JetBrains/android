@@ -18,15 +18,15 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants.*
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
+import org.mockito.ArgumentMatchers.eq
 import java.util.*
 
 class FragmentHandlerTest : LayoutTestCase() {
@@ -71,14 +71,13 @@ class FragmentHandlerTest : LayoutTestCase() {
         "    <fragment\n" +
         "        android:id=\"@+id/fragment\"\n" +
         "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
-    val editor = mock(ViewEditorImpl::class.java)
-    `when`(editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION))).thenReturn("@navigation/testNav")
-    (model.surface.sceneManager as SyncLayoutlibSceneManager).setCustomViewEditor(editor)
-    WriteCommandAction.runWriteCommandAction(
-        model.project, null, null,
-        Runnable { model.createComponent(model.surface, tag, model.find("outer"), null, InsertType.CREATE) },
-        model.file
-    )
+
+    mockStatic<ViewEditor>(testRootDisposable).`when`<String> {
+      ViewEditor.displayResourceInput(eq(model), eq("Navigation Graphs"), eq(EnumSet.of(ResourceType.NAVIGATION)))
+    }.thenReturn("@navigation/testNav")
+
+    WriteCommandAction.runWriteCommandAction(model.project, null, null,
+                                             { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) }, model.file)
     val newFragment = model.find("fragment")!!
     assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))
     assertEquals("true", newFragment.getAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST))

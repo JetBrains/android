@@ -139,11 +139,10 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    return myHandler.onCreate(editor, parent, newChild, insertType);
+    return myHandler.onCreate(parent, newChild, insertType);
   }
 
   @Override
@@ -279,12 +278,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @Override
   public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
     return myHandler.needsAccessoryPanel(type);
-  }
-
-  @Nullable
-  @Override
-  public AttributeBrowser getBrowser(@NotNull String attributeName) {
-    return myHandler.getBrowser(attributeName);
   }
 
   @Override

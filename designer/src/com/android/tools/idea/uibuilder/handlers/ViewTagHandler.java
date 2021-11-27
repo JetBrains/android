@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
@@ -44,15 +45,6 @@ public class ViewTagHandler extends ViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_CLASS, ATTR_STYLE);
-  }
-
-  @Override
-  @Nullable
-  public AttributeBrowser getBrowser(@NotNull String attributeName) {
-    if (!attributeName.equals(ATTR_CLASS)) {
-      return null;
-    }
-    return ViewTagHandler::browseClasses;
   }
 
   @Override
@@ -83,13 +75,12 @@ public class ViewTagHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE && newChild.getAttribute(null, ATTR_CLASS) == null &&
         !(isVerticalDivider(newChild) || isHorizontalDivider(newChild))) {
-      String src = browseClasses(editor, null);
+      String src = browseClasses(newChild.getModel(), null);
       if (src != null) {
         NlWriteCommandActionUtil.run(newChild, "Setting layout attribute", () -> newChild.setAttribute(null, ATTR_CLASS, src));
         return true;
@@ -142,8 +133,8 @@ public class ViewTagHandler extends ViewHandler {
   }
 
   @Nullable
-  private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
-    return editor.displayClassInput("Views", Collections.singleton(CLASS_VIEW), SUITABLE_LAYOUT_CLASS, existingValue);
+  private static String browseClasses(@NotNull NlModel model, @Nullable String existingValue) {
+    return ViewEditor.displayClassInput(model, "Views", Collections.singleton(CLASS_VIEW), SUITABLE_LAYOUT_CLASS, existingValue);
   }
 
   private static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {

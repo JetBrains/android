@@ -25,8 +25,14 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiClass;
+import com.intellij.util.ArrayUtil;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,22 +143,45 @@ public abstract class ViewEditor {
   public abstract CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
-  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types) {
-    return displayResourceInput("", types);
+  public static String displayResourceInput(@NotNull NlModel model, @NotNull EnumSet<ResourceType> types) {
+    return displayResourceInput(model, "", types);
   }
 
   @Nullable
-  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
-    return displayResourceInput("", types, includeSampleData);
+  public static String displayResourceInput(@NotNull NlModel model, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
+    return displayResourceInput(model, "", types, includeSampleData);
   }
 
   @Nullable
-  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
-    return displayResourceInput(title, types, false);
+  public static String displayResourceInput(@NotNull NlModel model, @NotNull String title, @NotNull EnumSet<ResourceType> types) {
+    return displayResourceInput(model, title, types, false);
   }
 
   @Nullable
-  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData);
+  public static String displayResourceInput(@NotNull NlModel model, @NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
+    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
+      title.isEmpty() ? "Pick a Resource" : title,
+      null,
+      model.getFacet(),
+      types,
+      null,
+      false,
+      includeSampleData,
+      true, model.getVirtualFile()
+    );
+
+    dialog.show();
+
+    if (dialog.isOK()) {
+      String resource = dialog.getResourceName();
+
+      if (resource != null && !resource.isEmpty()) {
+        return resource;
+      }
+    }
+
+    return null;
+  }
 
   /**
    * Open a dialog to pick a class among classes derived from a specified set of super classes.
@@ -164,10 +193,21 @@ public abstract class ViewEditor {
    * @return class name if user has selected one, or null if either the user cancelled, no classes were found, or we are in dumb mode.
    */
   @Nullable
-  public abstract String displayClassInput(@NotNull String title,
-                                           @NotNull Set<String> superTypes,
-                                           @Nullable Predicate<String> filter,
-                                           @Nullable String currentValue);
+  public static String displayClassInput(@NotNull NlModel model,
+                                         @NotNull String title,
+                                         @NotNull Set<String> superTypes,
+                                         @Nullable Predicate<String> filter,
+                                         @Nullable String currentValue) {
+    Module module = model.getModule();
+    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
+
+    Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
+    if (filter == null) {
+      filter = ChooseClassDialog.getIsUserDefinedFilter();
+    }
+    psiFilter = psiFilter.and(ChooseClassDialog.qualifiedNameFilter(filter));
+    return ChooseClassDialog.openDialog(module, title, currentValue, psiFilter, superTypesArray);
+  }
 
   @NotNull
   public abstract Scene getScene();

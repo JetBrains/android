@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.statelist;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Strings;
@@ -32,8 +31,7 @@ import static com.android.SdkConstants.*;
 
 public final class ItemHandler extends ViewHandler {
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);

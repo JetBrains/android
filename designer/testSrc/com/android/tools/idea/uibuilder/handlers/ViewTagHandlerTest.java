@@ -30,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Set;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
@@ -113,11 +115,13 @@ public class ViewTagHandlerTest extends AndroidTestCase {
     for (XmlTag tag : myViewTags) {
       NlComponent component = MockNlComponent.create(tag);
 
-      ViewEditor editor = mock(ViewEditor.class);
-      handler.onCreate(editor, null, component, InsertType.CREATE);
-      int expectedInvocations = component.getId().equals("view1") ? 1 : 0;
-      verify(editor, times(expectedInvocations))
-        .displayClassInput(eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull());
+      try (MockedStatic<ViewEditor> editor = Mockito.mockStatic(ViewEditor.class)) {
+        handler.onCreate(null, component, InsertType.CREATE);
+        int time = component.getId().equals("view1") ? 1 : 0;
+        editor.verify(times(time), () ->
+          ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull())
+        );
+      }
     }
   }
 

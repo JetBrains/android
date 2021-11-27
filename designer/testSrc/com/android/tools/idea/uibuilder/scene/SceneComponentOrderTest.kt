@@ -31,7 +31,7 @@ class SceneComponentOrderTest : SceneTest() {
     val textView = myModel.find("textView")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, textView, InsertType.CREATE, myModel.surface)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -48,7 +48,7 @@ class SceneComponentOrderTest : SceneTest() {
     val button = myModel.find("button")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE, myModel.surface)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -64,7 +64,7 @@ class SceneComponentOrderTest : SceneTest() {
     val constraintLayout = myModel.find("root")!!
 
     val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
-    val editText = myModel.createComponent(myModel.surface, editTextTag, null, null, InsertType.CREATE)
+    val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)
     myModel.addComponents(listOf(editText), constraintLayout, null, InsertType.CREATE, myModel.surface)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 

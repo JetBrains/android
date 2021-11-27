@@ -96,8 +96,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
@@ -106,7 +105,7 @@ public class ImageViewHandler extends ViewHandler {
         setSrcAttribute(newChild, src);
         return true;
       }
-      return showImageChooser(editor, newChild);
+      return showImageChooser(newChild);
     }
 
     // Fallback if dismissed or during previews etc
@@ -117,8 +116,8 @@ public class ImageViewHandler extends ViewHandler {
     return true;
   }
 
-  private boolean showImageChooser(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP), true);
+  private boolean showImageChooser(@NotNull NlComponent component) {
+    String src = ViewEditor.displayResourceInput(component.getModel(), EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP), true);
     if (src != null) {
       // If the selected item was a sample data item, set in the tools attributes src and not in the regular attribute
       if (src.startsWith(SAMPLE_PREFIX) || src.startsWith(TOOLS_SAMPLE_PREFIX )) {

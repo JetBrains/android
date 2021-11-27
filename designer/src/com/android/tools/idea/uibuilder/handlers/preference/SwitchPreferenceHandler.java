@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -72,11 +71,10 @@ public final class SwitchPreferenceHandler extends PreferenceHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
+    if (!super.onCreate(parent, newChild, type)) {
       return false;
     }
 

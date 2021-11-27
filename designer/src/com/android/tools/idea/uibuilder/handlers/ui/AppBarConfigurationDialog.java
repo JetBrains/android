@@ -112,7 +112,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private static final int START_WIDTH = 225;
   private static final int START_HEIGHT = 400;
 
-  private final ViewEditor myEditor;
+  private final NlModel myModel;
   private final Disposable myDisposable;
   private final JBLoadingPanel myLoadingPanel;
   private final boolean myUserAndroidxDependency;
@@ -144,13 +144,13 @@ public class AppBarConfigurationDialog extends JDialog {
   private String myBackgroundImage;
   private String myFloatingActionButtonImage;
 
-  public AppBarConfigurationDialog(@NotNull ViewEditor editor, boolean useAndroidxDependency) {
-    myEditor = editor;
+  public AppBarConfigurationDialog(@NotNull NlModel model, boolean useAndroidxDependency) {
+    myModel = model;
     myUserAndroidxDependency = useAndroidxDependency;
     myDisposable = Disposer.newDisposable();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
     myLoadingPanel.add(myContentPane);
-    Disposer.register(editor.getModel(), myDisposable);
+    Disposer.register(model, myDisposable);
     setTitle(DIALOG_TITLE);
     setContentPane(myLoadingPanel);
     setModal(true);
@@ -175,14 +175,14 @@ public class AppBarConfigurationDialog extends JDialog {
 
     final ActionListener actionListener = event -> {
       if (event.getSource() == myBackgroundImageSelector) {
-        String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+        String src = ViewEditor.displayResourceInput(myModel, EnumSet.of(ResourceType.DRAWABLE));
         if (src != null) {
           myBackgroundImage = src;
           generatePreviews();
         }
       }
       else if (event.getSource() == myFloatingActionButtonImageSelector) {
-        String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+        String src = ViewEditor.displayResourceInput(myModel, EnumSet.of(ResourceType.DRAWABLE));
         if (src != null) {
           myFloatingActionButtonImage = src;
           generatePreviews();
@@ -224,10 +224,10 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   public boolean open() {
-    NlModel model = myEditor.getModel();
-    Project project = model.getProject();
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN) ||
-                           DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.ANDROIDX_DESIGN);
+    Project project = myModel.getProject();
+    Module module = myModel.getModule();
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.DESIGN) ||
+                           DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_DESIGN);
     if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
@@ -248,7 +248,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
     setVisible(true);
     if (myWasAccepted) {
-      XmlFile file = model.getFile();
+      XmlFile file = myModel.getFile();
       WriteCommandAction.writeCommandAction(project, file).withName("Configure App Bar").run(() -> applyChanges(file));
     }
     return myWasAccepted;
@@ -257,7 +257,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private boolean addDesignLibrary() {
     myLoadingPanel.startLoading();
 
-    Module module = myEditor.getModel().getModule();
+    Module module = myModel.getModule();
 
     GoogleMavenArtifactId artifact = myUserAndroidxDependency ?
                                      GoogleMavenArtifactId.ANDROIDX_DESIGN :
@@ -324,7 +324,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   @NotNull
   private Project getProject() {
-    return myEditor.getModel().getProject();
+    return myModel.getProject();
   }
 
   private void updateControls() {
@@ -611,10 +611,10 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
-    AndroidFacet facet = myEditor.getModel().getFacet();
+    AndroidFacet facet = myModel.getFacet();
     RenderService renderService = RenderService.getInstance(getProject());
     RenderLogger logger = renderService.createLogger(facet);
-    final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
+    final RenderTask task = renderService.taskBuilder(facet, myModel.getConfiguration())
                                          .withLogger(logger)
                                          .withPsiFile(xmlFile)
                                          .buildSynchronously();

@@ -139,9 +139,7 @@ class PreviewProvider(
       return null
     }
     val component = runWriteAction {
-      model.createComponent(
-        scene.surface, tag, null, null, InsertType.CREATE_PREVIEW
-      )
+      model.createComponent(tag, null, null, InsertType.CREATE_PREVIEW)
     } ?: return null
 
     // Some components require a parent to render correctly.

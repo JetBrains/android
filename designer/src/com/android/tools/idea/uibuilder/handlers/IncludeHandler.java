@@ -20,7 +20,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -83,15 +82,14 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include if
     // the layout attribute is not pre-populated.
     String layoutAttr = newChild.getAttribute(null, ATTR_LAYOUT);
     if (insertType == InsertType.CREATE && layoutAttr == null) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
+      String src = ViewEditor.displayResourceInput(newChild.getModel(), EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
         return NlWriteCommandActionUtil.compute(newChild, "Create Include", () -> {
           newChild.setAttribute(null, ATTR_LAYOUT, src);

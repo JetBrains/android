@@ -50,8 +50,7 @@ public class MenuHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     return NlWriteCommandActionUtil.compute(newChild, "Create Menu",

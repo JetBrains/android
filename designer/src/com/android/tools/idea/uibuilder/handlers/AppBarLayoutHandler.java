@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.common.model.NlComponent;
 
@@ -47,13 +47,13 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
+  public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
+      NlModel model = newChild.getModel();
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
+      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(model, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
       ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }
