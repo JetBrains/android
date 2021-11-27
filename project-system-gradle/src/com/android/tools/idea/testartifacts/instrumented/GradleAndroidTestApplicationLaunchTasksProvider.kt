@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run
+package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.run.AndroidLaunchTasksProvider
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.editor.AndroidDebuggerState
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -27,8 +34,6 @@ import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplic
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.methodTest
-import com.android.tools.idea.testartifacts.instrumented.GradleConnectedAndroidTestInvoker
-import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration
 import com.google.common.collect.Lists
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
@@ -41,7 +46,7 @@ import org.jetbrains.plugins.gradle.util.GradleUtil
  */
 class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: AndroidRunConfigurationBase,
                                                       private val myEnv: ExecutionEnvironment,
-                                                      facet: AndroidFacet,
+                                                      private val facet: AndroidFacet,
                                                       applicationIdProvider: ApplicationIdProvider,
                                                       launchOptions: LaunchOptions,
                                                       testingType: Int,
@@ -55,7 +60,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myProject: Project = facet.module.project
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker =
     GradleConnectedAndroidTestInvoker(
-      myRunConfig.getNumberOfSelectedDevices(facet),
+      getNumberOfSelectedDevices(),
       myEnv,
       requireNotNull(myRunConfig.configurationModule.module?.let {
         GradleUtil.findGradleModuleData(it)?.data
@@ -167,6 +172,10 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       }
     }
     else null
+  }
+
+  private fun getNumberOfSelectedDevices(): Int {
+    return (myEnv.getCopyableUserData(DeviceFutures.KEY) ?: error("'DeviceFutures.KEY' not found")).devices.size
   }
 
   companion object {

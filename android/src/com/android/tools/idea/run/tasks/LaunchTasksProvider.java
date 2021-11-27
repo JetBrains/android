@@ -17,16 +17,39 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.extensions.ExtensionPointName;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public interface LaunchTasksProvider {
+
+  /**
+   * An extension point to introduce build system dependent [AndroidRunConfigurationBase] based [LaunchTasksProvider] implementations like
+   * support for running instrumented tests via Gradle.
+   */
+  interface Provider {
+    ExtensionPointName<Provider> EP_NAME = ExtensionPointName.create("com.android.run.createLaunchTasksProvider");
+
+    @Nullable LaunchTasksProvider createLaunchTasksProvider(@NotNull AndroidRunConfigurationBase runConfiguration,
+                                                            @NotNull ExecutionEnvironment env,
+                                                            @NotNull AndroidFacet facet,
+                                                            @NotNull ApplicationIdProvider applicationIdProvider,
+                                                            @NotNull ApkProvider apkProvider,
+                                                            @NotNull LaunchOptions launchOptions);
+  }
+
   @NotNull
   List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter)
     throws ExecutionException;
@@ -34,7 +57,7 @@ public interface LaunchTasksProvider {
   @Nullable
   ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
 
-  default void fillStats(RunStats stats) {}
+  default void fillStats(RunStats stats) { }
 
   default String getLaunchTypeDisplayName() {
     return "Launch";

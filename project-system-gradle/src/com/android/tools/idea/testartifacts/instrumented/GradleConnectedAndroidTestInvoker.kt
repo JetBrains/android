@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -276,10 +276,10 @@ class GradleConnectedAndroidTestInvoker(
       withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
 
       if (retentionConfiguration.enabled == EnableRetention.YES) {
-        withArgument("-P${RETENTION_ENABLE_PROPERTY}=${retentionConfiguration.maxSnapshots}")
-        withArgument("-P${RETENTION_COMPRESS_SNAPSHOT_PROPERTY}=${retentionConfiguration.compressSnapshots}")
+        withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")
+        withArgument("-P$RETENTION_COMPRESS_SNAPSHOT_PROPERTY=${retentionConfiguration.compressSnapshots}")
       } else if (retentionConfiguration.enabled == EnableRetention.NO) {
-        withArgument("-P${RETENTION_ENABLE_PROPERTY}=0")
+        withArgument("-P$RETENTION_ENABLE_PROPERTY=0")
       }
 
       // Add a test filter.
@@ -302,7 +302,7 @@ class GradleConnectedAndroidTestInvoker(
       }
 
       if (uninstallIncompatibleApks) {
-        withArgument("-P${UNINSTALL_INCOMPATIBLE_APKS_PROPERTY}=true")
+        withArgument("-P$UNINSTALL_INCOMPATIBLE_APKS_PROPERTY=true")
       }
 
       // Don't switch focus to build tool window even after build failure because

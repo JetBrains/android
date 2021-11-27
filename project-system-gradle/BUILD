@@ -13,6 +13,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//tools/adt/idea/utp[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module]",

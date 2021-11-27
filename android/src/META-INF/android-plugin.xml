@@ -826,6 +826,8 @@
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
+    <extensionPoint qualifiedName="com.android.run.createLaunchTasksProvider"
+                    interface="com.android.tools.idea.run.tasks.LaunchTasksProvider.Provider" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"

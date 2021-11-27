@@ -11,7 +11,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.configuration.user.settings.AndroidConfigurationExecutionSettings;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -59,6 +58,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -349,7 +350,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
-    LaunchTasksProvider launchTasksProvider = createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
+    LaunchTasksProvider launchTasksProvider =
+      createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
 
     return new AndroidRunState(env, getName(), module, applicationIdProvider,
                                getConsoleProvider(deviceFutures.getDevices().size() > 1), deviceFutures, launchTasksProvider);
@@ -358,12 +360,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /**
    * Subclasses should override to adjust the LaunchTaskProvider
    */
-  protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
-                                                       @NotNull AndroidFacet facet,
-                                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                                       @NotNull ApkProvider apkProvider,
-                                                       @NotNull LaunchOptions launchOptions) {
-    return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
+  private LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
+                                                        @NotNull AndroidFacet facet,
+                                                        @NotNull ApplicationIdProvider applicationIdProvider,
+                                                        @NotNull ApkProvider apkProvider,
+                                                        @NotNull LaunchOptions launchOptions) {
+    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
+      .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
+      .filter(Objects::nonNull)
+      .findFirst();
+    return provided.orElseGet(() -> new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions));
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -391,16 +397,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     Project project = getProject();
 
     return currentTargetProvider.requiresRuntimePrompt(project) ?
-        currentTargetProvider.showPrompt(facet) : currentTargetProvider.getDeployTarget(project);
+           currentTargetProvider.showPrompt(facet) : currentTargetProvider.getDeployTarget(project);
   }
 
   @Nullable
   public ApplicationIdProvider getApplicationIdProvider() {
     return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
-  }
-
-  protected int getNumberOfSelectedDevices(@NotNull AndroidFacet facet) {
-    return getDeployTarget(facet).getDevices(facet).getDevices().size();
   }
 
   @Nullable

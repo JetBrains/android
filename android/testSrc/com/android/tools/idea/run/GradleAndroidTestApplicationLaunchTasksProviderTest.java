@@ -29,8 +29,10 @@ import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTasksProvider;
 import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -84,6 +86,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
@@ -126,6 +129,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
@@ -165,6 +169,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
@@ -202,6 +207,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
@@ -239,6 +245,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
@@ -273,6 +280,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenReturn(null);
@@ -309,6 +317,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(ImmutableList.of(mockDevice)));
 
     ApplicationIdProvider appIdProvider = mock(ApplicationIdProvider.class);
     when(appIdProvider.getTestPackageName()).thenThrow(new ApkProvisionException("unable to determine package name"));

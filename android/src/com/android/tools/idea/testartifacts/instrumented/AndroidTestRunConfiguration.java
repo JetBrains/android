@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -26,17 +25,14 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
-import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
-import com.android.tools.idea.run.GradleAndroidTestApplicationLaunchTasksProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -45,10 +41,8 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -64,7 +58,6 @@ import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
@@ -304,38 +297,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       }
     }
     return errors;
-  }
-
-  @Override
-  protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
-                                                          @NotNull AndroidFacet facet,
-                                                          @NotNull ApplicationIdProvider applicationIdProvider,
-                                                          @NotNull ApkProvider apkProvider,
-                                                          @NotNull LaunchOptions launchOptions) {
-    GradleAndroidTestRunnerOptInDialogKt.showGradleAndroidTestRunnerOptInDialog(getProject());
-
-    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
-      // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
-      // doesn't run twice per test run.
-      env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false);
-      return new GradleAndroidTestApplicationLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
-                                                                 TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
-                                                                 new RetentionConfiguration(RETENTION_ENABLED, RETENTION_MAX_SNAPSHOTS,
-                                                                             RETENTION_COMPRESS_SNAPSHOTS));
-    } else {
-      return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
-    }
-  }
-
-  private static boolean isRunAndroidTestUsingGradleSupported(@NotNull AndroidFacet facet) {
-    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
-      return false;
-    }
-    AndroidModuleModel model = AndroidModuleModel.get(facet);
-    if (model == null) {
-      return false;
-    }
-    return model.getAndroidProject().getAgpFlags().getUnifiedTestPlatformEnabled();
   }
 
   @NotNull
