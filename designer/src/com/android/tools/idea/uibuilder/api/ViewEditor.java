@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
@@ -25,10 +27,13 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
 import java.util.concurrent.CompletableFuture;
@@ -233,7 +238,17 @@ public abstract class ViewEditor {
                                       int index,
                                       @NotNull InsertType insertType);
 
-  public abstract void openResourceFile(@NotNull String resourceId);
+  public static void openResourceFile(@NotNull NlModel model, @NotNull String resourceId) {
+    Configuration config = model.getConfiguration();
+    ResourceResolver resourceResolver = config.getResourceResolver();
+    ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
+
+    VirtualFile file = IdeResourcesUtil.resolveLayout(resourceResolver, resValue);
+    if (file == null) {
+      return;
+    }
+    LayoutNavigationManager.getInstance(config.getModule().getProject()).pushFile(model.getVirtualFile(), file);
+  }
 
   /**
    * Returns true if the current module depends on AppCompat.

@@ -308,13 +308,13 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull NlComponent component, ViewEditor editor) {
-    myHandler.onActivateInComponentTree(component, editor);
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
+    myHandler.onActivateInComponentTree(component);
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component, ViewEditor editor, int x, int y) {
-    myHandler.onActivateInDesignSurface(component, editor, x, y);
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    myHandler.onActivateInDesignSurface(component, x, y);
   }
 
   @Override

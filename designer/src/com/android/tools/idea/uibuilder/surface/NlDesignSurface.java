@@ -747,7 +747,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
 
     if (handler != null) {
-      handler.onActivateInDesignSurface(component, getSceneManager().getViewEditor(), x, y);
+      handler.onActivateInDesignSurface(component, x, y);
     }
     super.notifyComponentActivate(component, x, y);
   }

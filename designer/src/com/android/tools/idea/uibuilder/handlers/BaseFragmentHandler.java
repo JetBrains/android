@@ -30,6 +30,7 @@ import static com.android.SdkConstants.VALUE_TRUE;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -132,13 +133,10 @@ class BaseFragmentHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        ViewEditor editor,
-                                        int x,
-                                        int y) {
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     String graph = component.getAttribute(AUTO_URI, ATTR_NAV_GRAPH);
     if (graph != null) {
-      editor.openResourceFile(graph);
+      ViewEditor.openResourceFile(component.getModel(), graph);
     }
   }
 }

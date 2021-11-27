@@ -34,10 +34,7 @@ import static com.android.SdkConstants.*;
 
 final class NavigationViewHandler extends FrameLayoutHandler {
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        ViewEditor editor,
-                                        @AndroidCoordinate int x,
-                                        @AndroidCoordinate int y) {
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return;
@@ -59,7 +56,7 @@ final class NavigationViewHandler extends FrameLayoutHandler {
     if (resource == null) {
       return;
     }
-    editor.openResourceFile(resource);
+    ViewEditor.openResourceFile(component.getModel(), resource);
   }
 
   private static boolean contains(@NotNull View view, @AndroidCoordinate int x, @AndroidCoordinate int y) {

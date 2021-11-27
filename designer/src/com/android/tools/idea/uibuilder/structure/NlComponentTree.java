@@ -600,7 +600,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
       if (handler != null) {
-        handler.onActivateInComponentTree((NlComponent)component, mySurface.getSceneManager().getViewEditor());
+        handler.onActivateInComponentTree((NlComponent)component);
       }
     }
   }

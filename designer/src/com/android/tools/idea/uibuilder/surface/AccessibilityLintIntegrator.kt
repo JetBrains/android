@@ -133,10 +133,8 @@ class NlATFIncludeIssue(
       }
       val goto = Fix("Open the layout", "Open the include layout.") {
         include.viewHandler?.let { handler ->
-          surface.sceneManager?.viewEditor?.let { viewEditor ->
-            if (handler is IncludeHandler) {
-              IncludeHandler.openIncludedLayout(include, viewEditor)
-            }
+          if (handler is IncludeHandler) {
+            IncludeHandler.openIncludedLayout(include)
           }
         }
       }

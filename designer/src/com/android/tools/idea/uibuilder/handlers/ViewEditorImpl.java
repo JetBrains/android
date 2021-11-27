@@ -243,18 +243,6 @@ public class ViewEditorImpl extends ViewEditor {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
   }
 
-  @Override
-  public void openResourceFile(@NotNull String resourceId) {
-    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
-    ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
-
-    VirtualFile file = IdeResourcesUtil.resolveLayout(resourceResolver, resValue);
-    if (file == null) {
-      return;
-    }
-    LayoutNavigationManager.getInstance(myConfiguration.getModule().getProject()).pushFile(myModel.getVirtualFile(), file);
-  }
-
   /**
    * Try to get an existing View editor from the {@link Scene}'s {@link SceneManager}
    */

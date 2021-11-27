@@ -106,16 +106,13 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull NlComponent component, @NotNull ViewEditor editor) {
-    openIncludedLayout(component, editor);
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
+    openIncludedLayout(component);
   }
 
   @Override
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        @NotNull ViewEditor editor,
-                                        @AndroidCoordinate int x,
-                                        @AndroidCoordinate int y) {
-    openIncludedLayout(component, editor);
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    openIncludedLayout(component);
   }
 
   /**
@@ -124,11 +121,11 @@ public final class IncludeHandler extends ViewHandler {
    *
    * @param component  The include component
    */
-  public static void openIncludedLayout(@NotNull NlComponent component, @NotNull ViewEditor editor) {
+  public static void openIncludedLayout(@NotNull NlComponent component) {
     String attribute = component.getAttribute(null, ATTR_LAYOUT);
     if (attribute == null) {
       return;
     }
-    editor.openResourceFile(attribute);
+    ViewEditor.openResourceFile(component.getModel(), attribute);
   }
 }

@@ -141,20 +141,17 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   /**
    * Handles a double click on the component in the component tree
    */
-  public void onActivateInComponentTree(@NotNull NlComponent component, ViewEditor editor) {
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
     // Do nothing
   }
 
   /**
    * Handles a double click on the component in the design surface
    *
-   * @param editor
    * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
    * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
-  public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        ViewEditor editor, @AndroidCoordinate int x,
-                                        @AndroidCoordinate int y) {
+  public void onActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
   }
 
   /**
