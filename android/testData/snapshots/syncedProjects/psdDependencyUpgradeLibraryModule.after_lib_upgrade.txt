@@ -521,19 +521,11 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             LIBRARY
                 *CLASSES                      : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Provided
-            LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
             Scope                         : Runtime
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Provided
-            LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
             Scope                         : Runtime
         ORDER_ENTRY                   : testPsdDependencyUpgradeLibraryModule.jModuleL.main
@@ -564,19 +556,11 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             LIBRARY
                 *CLASSES                      : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Provided
-            LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
             Scope                         : Runtime
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Provided
-            LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
             Scope                         : Runtime
         ORDER_ENTRY                   : testPsdDependencyUpgradeLibraryModule.jModuleK.main
@@ -696,15 +680,7 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE                        : testPsdDependencyUpgradeLibraryModule.jModuleM.test
         ExternalModuleGroup           : testPsdDependencyUpgradeLibraryModule
         ExternalModuleType            : sourceSet
@@ -727,15 +703,7 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib3:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib4:0.9.1
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         ORDER_ENTRY                   : testPsdDependencyUpgradeLibraryModule.jModuleM.main
     MODULE                        : testPsdDependencyUpgradeLibraryModule.jModuleZ
         ExternalModuleGroup           : testPsdDependencyUpgradeLibraryModule
@@ -3049,17 +3017,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
@@ -3157,15 +3117,7 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
         ORDER_ENTRY                   : testPsdDependencyUpgradeLibraryModule.jModuleK.main
@@ -3277,17 +3229,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]

@@ -1100,17 +1100,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
@@ -1225,15 +1217,7 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
     MODULE                        : testPsdDependencyAndroidToJavaModuleAndBack.mainModule.unitTest
@@ -1362,17 +1346,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
@@ -2738,17 +2714,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:0.9.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
@@ -2846,15 +2814,7 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:0.9.1@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
         ORDER_ENTRY                   : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.main
@@ -2966,17 +2926,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.jlib:lib3:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib3:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: com.example.jlib:lib4:1.0
-                *CLASSES                      : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         LIBRARY                       : Gradle: com.example.libs:lib1:0.9.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]

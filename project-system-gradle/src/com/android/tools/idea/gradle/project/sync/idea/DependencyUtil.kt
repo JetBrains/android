@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -250,6 +251,12 @@ private class AndroidDependenciesSetupContext(
 
   private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
     override fun setupTarget() {
+      ArtifactDependencySpec.create(library.artifactAddress)?.also {
+        libraryData.setGroup(it.group)
+        libraryData.artifactId = it.name
+        libraryData.version = it.version
+      }
+
       libraryData.addPath(BINARY, library.artifact.absolutePath)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }

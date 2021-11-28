@@ -220,17 +220,9 @@ PROJECT                       : testApiDependency
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: junit:junit:4.12
-                *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
-                *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY                   : testApiDependency.app.main
         ORDER_ENTRY                   : testApiDependency.jlib.main
         ORDER_ENTRY                   : testApiDependency.jlib0.main
@@ -330,15 +322,7 @@ PROJECT                       : testApiDependency
         LIBRARY                       : Gradle: com.example.libs:lib1:0.9.1@aar [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: junit:junit:4.12
-                *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
-                *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY                   : testApiDependency.jlib.main
         ORDER_ENTRY                   : testApiDependency.jlib0.main
         ORDER_ENTRY                   : testApiDependency.lib.main
@@ -458,17 +442,9 @@ PROJECT                       : testApiDependency
         LIBRARY                       : Gradle: com.example.libs:lib2:0.9.1@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: junit:junit:4.12
-                *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
-                *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY                   : testApiDependency.app.main
         ORDER_ENTRY                   : testApiDependency.jlib.main
         ORDER_ENTRY                   : testApiDependency.jlib0.main
