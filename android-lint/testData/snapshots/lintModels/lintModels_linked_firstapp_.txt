@@ -23,12 +23,12 @@ MODULE                        : My_First_App.app
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
             - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/source/buildConfig/debug [-]
+            - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/source/buildConfig/debug [-]
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -201,12 +201,12 @@ MODULE                        : My_First_App.app
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 :
-        - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/source/buildConfig/androidTest/debug [-]
+        - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/firstapp/app/build/generated/source/buildConfig/androidTest/debug [-]
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -695,12 +695,12 @@ MODULE                        : My_First_App.app.mysharedlibrary
             NamespacingMode               : DISABLED
         MainArtifact
             ApplicationId                 :
-            - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
             - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/debug [-]
+            - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debug/out [-]
+            - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/debug [-]
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -861,12 +861,12 @@ MODULE                        : My_First_App.app.mysharedlibrary
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 :
-        - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
         - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/androidTest/debug [-]
+        - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        - GeneratedSourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/androidTest/debug [-]
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0

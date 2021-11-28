@@ -201,8 +201,8 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
 private fun ProjectDumper.dump(lintModelAndroidArtifact: LintModelAndroidArtifact) {
   with(lintModelAndroidArtifact) {
     prop("ApplicationId") { applicationId }
-    generatedResourceFolders.forEach { prop("- GeneratedResourceFolders") { it.path.toPrintablePath() } }
-    generatedSourceFolders.forEach { prop("- GeneratedSourceFolders") { it.path.toPrintablePath() } }
+    generatedResourceFolders.sorted().forEach { prop("- GeneratedResourceFolders") { it.path.toPrintablePath() } }
+    generatedSourceFolders.sorted().forEach { prop("- GeneratedSourceFolders") { it.path.toPrintablePath() } }
   }
   dump(lintModelAndroidArtifact as LintModelArtifact)
 }
