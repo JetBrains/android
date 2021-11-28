@@ -41,12 +41,14 @@ MODULE                        : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    org.jetbrains.kotlin:kotlin-stdlib-jdk8 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -57,12 +59,14 @@ MODULE                        : MainActivity.app
                     androidx.lifecycle:lifecycle-common     : null => androidx.lifecycle:lifecycle-common:2.0.0
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+                    artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    org.jetbrains.kotlin:kotlin-stdlib-jdk8 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
@@ -80,6 +84,7 @@ MODULE                        : MainActivity.app
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     artifacts::app                : null => :app@main
+                    artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit                   : null => junit:junit:4.12
@@ -88,6 +93,7 @@ MODULE                        : MainActivity.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    org.jetbrains.kotlin:kotlin-stdlib-jdk8 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -99,6 +105,7 @@ MODULE                        : MainActivity.app
                     androidx.lifecycle:lifecycle-runtime    : null => androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                     androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     artifacts::app                : null => :app@main
+                    artifacts::javaLib            : null => :javaLib@main
                     com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                     javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                     junit:junit                   : null => junit:junit:4.12
@@ -107,6 +114,7 @@ MODULE                        : MainActivity.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    org.jetbrains.kotlin:kotlin-stdlib-jdk8 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
@@ -138,6 +146,7 @@ MODULE                        : MainActivity.app
                 androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
                 androidx.versionedparcelable:versionedparcelable  : null => androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                 artifacts::app                : null => :app@main
+                artifacts::javaLib            : null => :javaLib@main
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.google.dagger:dagger      : null => com.google.dagger:dagger:2.6
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
@@ -151,6 +160,7 @@ MODULE                        : MainActivity.app
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                org.jetbrains.kotlin:kotlin-stdlib-jdk8 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -162,6 +172,7 @@ MODULE                        : MainActivity.app
                 androidx.test:monitor         : null => androidx.test:monitor:1.2.0@aar
                 androidx.test:runner          : null => androidx.test:runner:1.2.0@aar
                 artifacts::app                : null => :app@main
+                artifacts::javaLib            : null => :javaLib@main
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
@@ -213,6 +224,9 @@ MODULE                        : MainActivity.app
             LintModelLibrary              : LocalLibrary(:app)
                 Identifier                    : :app@main
                 ProjectPath                   : :app
+            LintModelLibrary              : LocalLibrary(:javaLib)
+                Identifier                    : :javaLib@main
+                ProjectPath                   : :javaLib
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 Identifier                    : androidx.annotation:annotation:1.0.0
@@ -397,6 +411,10 @@ MODULE                        : MainActivity.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>)
+                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -408,6 +426,9 @@ MODULE                        : MainActivity.app
 MODULE                        : MainActivity.app.androidTest
 MODULE                        : MainActivity.app.main
 MODULE                        : MainActivity.app.unitTest
+MODULE                        : MainActivity.javaLib
+MODULE                        : MainActivity.javaLib.main
+MODULE                        : MainActivity.javaLib.test
 MODULE                        : MainActivity.lib
     Dir                           : <ROOT>/lib
     ModulePath                    : :lib

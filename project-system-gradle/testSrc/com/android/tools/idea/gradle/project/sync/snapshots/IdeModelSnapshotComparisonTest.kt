@@ -47,7 +47,7 @@ import java.io.File
  *
  * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
  *
- * For instructions on how to update the snapshot files see [SnapsfhotComparisonTest] and if running from the command-line use
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
  * target as "//tools/adt/idea/android:intellij.android.core.tests_tests__all --test_filter=IdeModelSnapshotComparisonTest".
  */
 
