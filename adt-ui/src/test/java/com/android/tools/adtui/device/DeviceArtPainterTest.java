@@ -15,24 +15,28 @@
  */
 package com.android.tools.adtui.device;
 
+import static com.android.tools.adtui.device.DeviceArtPainter.DeviceData;
+import static com.android.tools.adtui.device.DeviceArtPainter.FrameData;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.SdkConstants;
 import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.adtui.webp.WebpMetadata;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -40,10 +44,14 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-
-import static com.android.tools.adtui.device.DeviceArtPainter.DeviceData;
-import static com.android.tools.adtui.device.DeviceArtPainter.FrameData;
-import static org.junit.Assert.*;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * If adding a new device (new device art), run the tests to generate crop data and insert
@@ -55,6 +63,11 @@ public class DeviceArtPainterTest {
 
   @Rule
   public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
+
+  @Before
+  public void setUp() {
+    WebpMetadata.ensureWebpRegistered();
+  }
 
   @Test
   public void testGenerateCropData() throws Exception {
@@ -92,20 +105,20 @@ public class DeviceArtPainterTest {
     File deviceArtPath = DeviceArtDescriptor.getBundledDescriptorsFolder();
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
 
-    DeviceArtDescriptor wear_square = findDescriptor(descriptors, "wearos_square");
-    DeviceArtDescriptor wear_round = findDescriptor(descriptors, "wearos_small_round");
+    DeviceArtDescriptor watch_square = findDescriptor(descriptors, "watch_square");
+    DeviceArtDescriptor watch_round = findDescriptor(descriptors, "watch_round");
 
-    assertNotNull(wear_square);
-    assertNotNull(wear_round);
+    assertNotNull(watch_square);
+    assertNotNull(watch_round);
 
-    Dimension size = wear_round.getScreenSize(ScreenOrientation.LANDSCAPE);
+    Dimension size = watch_round.getScreenSize(ScreenOrientation.LANDSCAPE);
     BufferedImage sample = createSampleImage(size, Color.RED);
 
-    BufferedImage framed = DeviceArtPainter.createFrame(sample, wear_round, true, false);
+    BufferedImage framed = DeviceArtPainter.createFrame(sample, watch_round, true, false);
 
     // make sure that a location outside the round frame is empty
     // (if the mask was not applied, this would be the same color as the source image)
-    Point loc = wear_round.getScreenPos(ScreenOrientation.LANDSCAPE);
+    Point loc = watch_round.getScreenPos(ScreenOrientation.LANDSCAPE);
     int c = framed.getRGB(loc.x, loc.y);
     assertEquals(0x0, c);
 
@@ -191,7 +204,6 @@ public class DeviceArtPainterTest {
       System.out.print(",");
       System.out.print(crop.height);
       System.out.println("\"");
-
 
       try {
         effectsImage = landscapeData.computeImage(true, 0, 0, landscapeData.getFrameWidth(), landscapeData.getFrameHeight());
