@@ -55,8 +55,7 @@
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
 
-    <statusBarWidgetFactory id="UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.PositiveUserSentimentWidgetFactory"/>
-    <statusBarWidgetFactory id="UserSentimentPanelNegative" order="after UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.NegativeUserSentimentWidgetFactory"/>
+    <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
   </extensions>
 
   <actions>
