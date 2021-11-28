@@ -145,12 +145,12 @@ class AndroidModule constructor(
       projectSyncIssues.orEmpty(),
       nativeModule,
       nativeAndroidProject,
-      syncedNativeVariant
+      syncedNativeVariant,
+      kaptGradleModel
     )
     with(ModelConsumer(consumer)) {
       ideAndroidModels.deliver()
       kotlinGradleModel?.deliver()
-      kaptGradleModel?.deliver()
       additionalClassifierArtifacts?.deliver()
     }
   }

@@ -628,8 +628,14 @@ PROJECT                       : MainActivity
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
+        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
+        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/main [-]
         CONENT_ENTRY                  : file://<PROJECT>/javaLib/src/main
             JavaSource                    : file://<PROJECT>/javaLib/src/main/java
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLib/build/generated/source/kapt/main [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/main [-]
+            Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/javaLib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/javaLib/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
@@ -637,6 +643,11 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.google.dagger:dagger:2.6 [=]
         LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kaptGeneratedClasses
+                *CLASSES                      : file://<PROJECT>/javaLib/build/tmp/kapt3/classes/main [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
@@ -704,7 +715,13 @@ PROJECT                       : MainActivity
             Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
+        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/javaLib/src/test [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/build/generated/source/kapt/test [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/build/generated/source/kaptKotlin/test [-]
+            Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/src/test/java [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javaLib/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/javaLib/src/test/resources [-]
@@ -713,6 +730,11 @@ PROJECT                       : MainActivity
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: com.google.dagger:dagger:2.6 [=]
         LIBRARY                       : Gradle: javax.inject:javax.inject:1 [=]
+        LIBRARY                       : Gradle: kaptGeneratedClasses [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kaptGeneratedClasses
+                *CLASSES                      : file://<PROJECT>/javaLib/build/tmp/kapt3/classes/test [-]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]

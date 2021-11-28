@@ -53,7 +53,16 @@ class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExten
 
   override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
     resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)?.let {kotlinModels[ideModule.data.internalName] = it}
-    resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let {kaptModels[ideModule.data.internalName] = it}
+    // The KaptGradleModel is present for Java modules
+    resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)?.let {
+      kaptModels[ideModule.data.internalName] = it
+    }
+    // For Android modules it is contained within the IdeAndroidModels class
+    resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)?.let {
+      it.kaptGradleModel?.let { kaptModel ->
+        kaptModels[ideModule.data.internalName] = kaptModel
+      }
+    }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }
 }

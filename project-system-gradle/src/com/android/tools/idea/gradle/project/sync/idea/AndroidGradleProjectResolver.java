@@ -352,7 +352,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     File rootModulePath = FilePaths.stringToFile(moduleNode.getData().getLinkedExternalProjectPath());
 
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
+    KaptGradleModel kaptGradleModel =
+      (androidModels != null) ? androidModels.getKaptGradleModel() : resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
     GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
     BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
 
