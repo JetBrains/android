@@ -151,10 +151,12 @@ abstract class EditorActionsFloatingToolbarProvider(
       floatingToolbar.add(zoomLabelPanel, zoomLabelConstraints)
       hiddenZoomLabelTimer?.start()
       hiddenZoomLabelComponent = zoomLabelPanel
+      zoomLabelPanel.revalidate()
     }
     if (zoomActionGroup != null) {
       val zoomControlsPanel = zoomActionGroup.component.wrapInDesignSurfaceUI()
       floatingToolbar.add(zoomControlsPanel, zoomControlsConstraints)
+      zoomControlsPanel.revalidate()
     }
 
     pauseZoomLabelTimerWhileInteractingOn(listOfNotNull(zoomLabelToolbar as? JPanel, zoomActionGroup as? JPanel))
