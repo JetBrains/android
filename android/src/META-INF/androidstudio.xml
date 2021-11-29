@@ -103,7 +103,7 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
 
-    <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+    <action id="WelcomeScreen.RunAndroidAvdManager" class="com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction"
             icon="StudioIcons.Shell.Menu.AVD_MANAGER">
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.RunAndroidSdkManager" anchor="after"/>
     </action>

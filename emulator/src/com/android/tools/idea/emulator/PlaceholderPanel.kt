@@ -36,7 +36,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction
+import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseEvent

@@ -31,7 +31,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
