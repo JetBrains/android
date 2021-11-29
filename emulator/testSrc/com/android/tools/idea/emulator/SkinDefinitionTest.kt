@@ -236,7 +236,7 @@ class SkinDefinitionTest {
       }
     }
     if (skinProblems.isNotEmpty()) {
-      fail("Invalid skins found:\n\n${skinProblems.joinToString("\n\n")}")
+      fail("Invalid skins found:\n\n${skinProblems.joinToString("\n\n")}\n")
     }
   }
 
