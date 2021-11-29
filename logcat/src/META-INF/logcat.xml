@@ -41,5 +41,11 @@
     />
     <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>
 
+    <completion.contributor
+        language="LogcatFilter"
+        implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterCompletionContributor"
+    />
+
+
   </extensions>
 </idea-plugin>

@@ -242,7 +242,6 @@ class LogcatMainPanelTest {
         override fun actionPerformed(e: AnActionEvent) {}
       })
     }
-
     val logcatMainPanel = logcatMainPanel(popupActionGroup = popupActionGroup).apply {
       size = Dimension(100, 100)
     }
@@ -253,6 +252,9 @@ class LogcatMainPanelTest {
     val popupMenu = popupRule.popupContents as JPopupMenu
     assertThat(popupMenu.components.map { (it as ActionMenuItem).anAction }).containsExactlyElementsIn(popupActionGroup.getChildren(null))
     verify(popupRule.mockPopup).show()
+    // JBPopupMenu has a Timer that is stopped when made invisible. If not stopped, checkJavaSwingTimersAreDisposed() will throw in some
+    // other test.
+    popupMenu.isVisible = false
   }
 
   @RunsInEdt

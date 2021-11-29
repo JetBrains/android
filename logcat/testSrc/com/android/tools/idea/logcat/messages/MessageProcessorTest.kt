@@ -28,6 +28,7 @@ import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
@@ -53,7 +54,7 @@ class MessageProcessorTest {
 
   @After
   fun tearDown() {
-    fakeLogcatPresenter.dispose()
+    Disposer.dispose(fakeLogcatPresenter)
   }
 
   @Test
