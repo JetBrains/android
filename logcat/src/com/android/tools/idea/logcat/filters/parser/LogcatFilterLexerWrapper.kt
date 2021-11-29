@@ -91,6 +91,7 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
   override fun reset(buf: CharSequence?, start: Int, end: Int, initialState: Int) {
     this.buf = buf
     delegate.reset(buf, start, end, initialState)
+    tokenStack.clear()
   }
 }
 

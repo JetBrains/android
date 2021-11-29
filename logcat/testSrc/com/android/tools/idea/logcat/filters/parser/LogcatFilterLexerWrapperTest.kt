@@ -154,4 +154,16 @@ class LogcatFilterLexerWrapperTest {
       TokenInfo(KVALUE, "tag:bar"),
     )
   }
+
+  @Test
+  fun reset_resetsState() {
+    val text = "tag:bar"
+    val lexer = LogcatFilterLexerWrapper()
+    lexer.reset(text, 0, text.length, YYINITIAL)
+    lexer.advance() // The stack in LogcatFilterLexerWrapper will now have a STRING_KVALUE_STATE at TOP
+
+    lexer.reset(text, 0, text.length, YYINITIAL)
+
+    assertThat(lexer.yystate()).isEqualTo(YYINITIAL)
+  }
 }
