@@ -442,7 +442,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "compose" -> buildModel.android().buildFeatures().compose()
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
-      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+      "prefab" -> buildModel.android().buildFeatures().prefab()
+      else -> throw IllegalArgumentException("$name is not a supported build feature.")
     }
 
     if (feature.valueType == ValueType.NONE) {

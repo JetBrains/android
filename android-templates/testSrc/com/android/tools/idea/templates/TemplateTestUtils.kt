@@ -85,6 +85,7 @@ internal fun isBroken(templateName: String): Boolean {
   if (SystemInfo.isWindows) {
     if ("AIDL File" == templateName) return true // b/37139315
     if ("Native C++" == templateName) return true // b/158067606
+    if ("Game Activity (C++)" == templateName) return true // b/158067606
   }
 
   return false

@@ -302,6 +302,16 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
   }
 
   @TemplateCheck
+  fun testGameActivity(){
+    checkCreateTemplate("Game Activity (C++)", avoidModifiedModuleName = true)
+  }
+
+  @TemplateCheck
+  fun testGameActivityWithKotlin(){
+    checkCreateTemplate("Game Activity (C++)", withKotlin, avoidModifiedModuleName = true)
+  }
+
+  @TemplateCheck
   fun testComposeActivity() {
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin

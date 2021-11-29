@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import junit.framework.TestCase
+import org.junit.Rule
+import org.junit.Test
 
 // TODO(qumeric): add tests for more methods
 
-class DefaultRecipeExecutorTest: TestCase() {
+class DefaultRecipeExecutorTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+
+  @Test
   fun testSquishEmptyLines() {
     val doubleEmptyLine = """
       aaa

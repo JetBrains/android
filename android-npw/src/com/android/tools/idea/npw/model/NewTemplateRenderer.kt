@@ -240,6 +240,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
       "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
       "Bottom Navigation Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
       "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
+      "Game Activity (C++)" -> TemplateType.CPP_GAME_ACTIVITY
       "AIDL Folder" -> TemplateType.AIDL_FOLDER
       "Font Folder" -> TemplateType.FONT_FOLDER
       "Raw Resources Folder" -> TemplateType.RAW_RESOURCES_FOLDER
