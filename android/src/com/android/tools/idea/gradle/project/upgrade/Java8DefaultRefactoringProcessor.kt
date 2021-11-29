@@ -64,7 +64,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
       //  PsModuleType.kt)
-      val pluginNames = model.plugins().map { it.name().forceString() }
+      val pluginNames = model.appliedPlugins().map { it.name().forceString() }
       pluginNames
         .firstOrNull { it.startsWith("java") || it.startsWith("org.gradle.java") || it == "application" || it == "org.gradle.application" }
         ?.let { _ ->

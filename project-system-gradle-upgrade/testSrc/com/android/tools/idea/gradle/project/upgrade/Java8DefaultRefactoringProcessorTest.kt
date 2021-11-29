@@ -244,6 +244,16 @@ class Java8DefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testHasNoEffectOnPluginsDslRoot() {
+    writeToBuildFile(TestFileName("Java8Default/PluginsDslRoot"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = INSERT_OLD_DEFAULT
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("Java8Default/PluginsDslRoot"))
+  }
+
+  @Test
   fun testSimpleApplicationNoLanguageLevelInsertOldTooltipsNotNull() {
     writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
     val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))

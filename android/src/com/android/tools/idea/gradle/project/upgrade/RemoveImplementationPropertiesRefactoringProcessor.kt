@@ -103,7 +103,7 @@ class RemoveImplementationPropertyUsageInfo(
 val GradleBuildModel.moduleKind: ModuleKind?
   get() {
     fun Set<String>.intersects(other: Set<String>) = this.any { other.contains(it) }
-    val pluginSet = plugins().map { it.name().forceString() }.toSet()
+    val pluginSet = appliedPlugins().map { it.name().forceString() }.toSet()
     val appSet = setOf("android", "com.android.application")
     val librarySet = setOf("com.android.library")
     val testSet = setOf("com.android.test")

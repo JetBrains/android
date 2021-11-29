@@ -65,4 +65,13 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/TestEverythingExpected"))
   }
+
+  @Test
+  fun testPluginsDslRoot() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/PluginsDslRoot"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/PluginsDslRoot"))
+  }
 }
