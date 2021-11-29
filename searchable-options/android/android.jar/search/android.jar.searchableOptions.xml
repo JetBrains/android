@@ -7,22 +7,6 @@
     <option name="add" path="ActionManager" hit="Add As Library..." />
     <option name="as" path="ActionManager" hit="Add As Library..." />
     <option name="library" path="ActionManager" hit="Add As Library..." />
-    <option name="add" path="ActionManager" hit="Add C++ to Module" />
-    <option name="c" path="ActionManager" hit="Add C++ to Module" />
-    <option name="module" path="ActionManager" hit="Add C++ to Module" />
-    <option name="to" path="ActionManager" hit="Add C++ to Module" />
-    <option name="add" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="build" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="built" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="c" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="cmake" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="code" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="module" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="ndk" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="or" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="this" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="to" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
-    <option name="with" path="ActionManager" hit="Add C/C++ code built with CMake or ndk-build to this module" />
     <option name="add" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="right" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
@@ -317,22 +301,6 @@
     <option name="library" path="ActionManager" hit="Library Properties..." />
     <option name="properties" path="ActionManager" hit="Library Properties..." />
     <option name="licenses" path="ActionManager" hit="Licenses" />
-    <option name="c" path="ActionManager" hit="Link C++ Project with Gradle" />
-    <option name="gradle" path="ActionManager" hit="Link C++ Project with Gradle" />
-    <option name="link" path="ActionManager" hit="Link C++ Project with Gradle" />
-    <option name="project" path="ActionManager" hit="Link C++ Project with Gradle" />
-    <option name="with" path="ActionManager" hit="Link C++ Project with Gradle" />
-    <option name="an" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="build" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="c" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="cmake" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="external" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="gradle" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="link" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="ndk" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="or" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="project" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
-    <option name="with" path="ActionManager" hit="Link an external C/C++ project (cmake or ndk-build) with Gradle" />
     <option name="and" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
     <option name="android" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
     <option name="debug" path="ActionManager" hit="Load and set up Android Test Retention for debug" />
