@@ -77,12 +77,12 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
 
     addSection(CpuThreadStateTable(profilersView.studioProfilers,
                                    listOf(LazyDataSeries { model.getThreadState(model.capture.mainThreadId)}),
-                                   threadEventAt(model.capture.mainThreadEventForSurfaceflingerToken).range(),
+                                   model.sequence.mainEvent.range(),
                                    "Main thread states")
                  .component)
     addSection(CpuThreadStateTable(profilersView.studioProfilers,
                                    listOf(LazyDataSeries{model.getThreadState(model.capture.renderThreadId)}),
-                                   threadEventAt(model.capture.renderThreadEventForSurfaceflingerToken).range(),
+                                   model.sequence.renderEvent.range(),
                                    "RenderThread states")
                  .component)
   }
