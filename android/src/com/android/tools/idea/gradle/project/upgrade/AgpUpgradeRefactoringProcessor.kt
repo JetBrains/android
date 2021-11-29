@@ -611,7 +611,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
  * to the process, and then running the processor under that user input's direction.
  */
-internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
   DumbService.getInstance(project).smartInvokeLater {
     val contentManager = project.getService(ContentManager::class.java)
     contentManager.showContent(new)

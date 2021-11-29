@@ -147,6 +147,7 @@ studio_plugin(
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
             "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
+            "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",
             "//tools/adt/idea/room:intellij.android.room",

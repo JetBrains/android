@@ -1,0 +1,8 @@
+<idea-plugin>
+  <actions>
+    <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
+            text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
+      <add-to-group group-id="ToolsMenu"/>
+    </action>
+  </actions>
+</idea-plugin>

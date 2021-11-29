@@ -31,6 +31,7 @@
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-gradle-upgrade.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>

@@ -27,6 +27,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/assistant[module]",

@@ -211,10 +211,6 @@
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
-            text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
-      <add-to-group group-id="ToolsMenu"/>
-    </action>
 
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>

@@ -33,6 +33,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -56,8 +57,14 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.gradle.upgrade",
+    srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.upgrade.iml"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+    ],
 )
 
 maven_repository(
