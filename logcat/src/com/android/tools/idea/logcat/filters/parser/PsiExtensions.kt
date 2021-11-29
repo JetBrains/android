@@ -16,6 +16,8 @@
 package com.android.tools.idea.logcat.filters.parser
 
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
@@ -27,7 +29,7 @@ private val ESCAPED_CHAR_REGEX = """\\([ :])""".toRegex()
  */
 internal fun PsiElement.toText(): String {
   return when (elementType) {
-    VALUE, KVALUE -> {
+    VALUE, KVALUE, STRING_KVALUE, REGEX_KVALUE -> {
       when {
         text.isSurroundedBy('\'') -> text.substring(1, textLength - 1).replace("\\'", "'")
         text.isSurroundedBy('"') -> text.substring(1, textLength - 1).replace("\\\"", "\"")

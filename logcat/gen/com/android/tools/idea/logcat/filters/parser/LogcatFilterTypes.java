@@ -20,7 +20,11 @@ public interface LogcatFilterTypes {
   IElementType LPAREN = new LogcatFilterTokenType("LPAREN");
   IElementType OR = new LogcatFilterTokenType("OR");
   IElementType PROJECT_APP = new LogcatFilterTokenType("PROJECT_APP");
+  IElementType REGEX_KEY = new LogcatFilterTokenType("REGEX_KEY");
+  IElementType REGEX_KVALUE = new LogcatFilterTokenType("REGEX_KVALUE");
   IElementType RPAREN = new LogcatFilterTokenType("RPAREN");
+  IElementType STRING_KEY = new LogcatFilterTokenType("STRING_KEY");
+  IElementType STRING_KVALUE = new LogcatFilterTokenType("STRING_KVALUE");
   IElementType VALUE = new LogcatFilterTokenType("VALUE");
 
   class Factory {

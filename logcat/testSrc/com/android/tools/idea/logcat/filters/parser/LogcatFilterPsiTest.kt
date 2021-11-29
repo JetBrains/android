@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.logcat.filters.parser
 
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
@@ -333,9 +338,9 @@ private fun LogcatFilterExpression.toFilter(): Filter {
 
 private fun LogcatFilterLiteralExpression.literalToFilter() =
   when (firstChild.elementType) {
-    LogcatFilterTypes.VALUE -> TopLevelFilter(firstChild.toText())
-    LogcatFilterTypes.KEY -> KeyFilter(this)
-    LogcatFilterTypes.PROJECT_APP -> AppFilter
+    VALUE -> TopLevelFilter(firstChild.toText())
+    KEY, STRING_KEY, REGEX_KEY -> KeyFilter(this)
+    PROJECT_APP -> AppFilter
     else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1)
   }
 

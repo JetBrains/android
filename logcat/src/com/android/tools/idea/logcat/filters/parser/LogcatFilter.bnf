@@ -83,6 +83,8 @@ andExpression ::= expression AND expression
 
 literalExpression
   ::= KEY KVALUE
+  |   STRING_KEY STRING_KVALUE
+  |   REGEX_KEY REGEX_KVALUE
   |   VALUE
   |   PROJECT_APP
 

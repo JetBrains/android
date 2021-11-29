@@ -99,12 +99,14 @@ KEY
 PROJECT_APP = "app!" | "package!"
 
 %state STRING_KVALUE_STATE
+%state REGEX_KVALUE_STATE
 %state KVALUE_STATE
 
 %%
 
 <YYINITIAL> {
-  {MINUS}? {TEXT_KEY} {TILDE}? {COLON} { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.KEY; }
+  {MINUS}? {TEXT_KEY} {COLON}          { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.STRING_KEY; }
+  {MINUS}? {TEXT_KEY} {TILDE} {COLON}  { yybegin(REGEX_KVALUE_STATE); return LogcatFilterTypes.REGEX_KEY; }
   {KEY} {COLON}                        { yybegin(KVALUE_STATE); return LogcatFilterTypes.KEY; }
   {PROJECT_APP}                        { return LogcatFilterTypes.PROJECT_APP; }
 
@@ -118,7 +120,9 @@ PROJECT_APP = "app!" | "package!"
 
 {WHITE_SPACE}+                         { return TokenType.WHITE_SPACE; }
 
-<STRING_KVALUE_STATE>   {STRING_VALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.KVALUE; }
+<STRING_KVALUE_STATE>   {STRING_VALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.STRING_KVALUE; }
+
+<REGEX_KVALUE_STATE>    {STRING_VALUE} { yybegin(YYINITIAL); return LogcatFilterTypes.REGEX_KVALUE; }
 
 <KVALUE_STATE>  \S+                    { yybegin(YYINITIAL); return LogcatFilterTypes.KVALUE; }
 

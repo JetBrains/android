@@ -27,7 +27,11 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLiteralExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterOrExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterParenExpression
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.android.tools.idea.logcat.filters.parser.isTopLevelValue
 import com.android.tools.idea.logcat.filters.parser.toText
 import com.intellij.openapi.project.Project
@@ -112,9 +116,9 @@ internal class LogcatFilterParser(
 
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
-      LogcatFilterTypes.VALUE -> StringFilter(firstChild.toText(), LINE)
-      LogcatFilterTypes.KEY -> toKeyFilter(clock)
-      LogcatFilterTypes.PROJECT_APP -> ProjectAppFilter(packageNamesProvider)
+      VALUE -> StringFilter(firstChild.toText(), LINE)
+      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock)
+      PROJECT_APP -> ProjectAppFilter(packageNamesProvider)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
 }
