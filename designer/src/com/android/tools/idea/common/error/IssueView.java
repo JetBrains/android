@@ -89,11 +89,16 @@ public class IssueView extends JPanel {
     // myErrorDescription will not be visible by default so we will only populate it when it's about to become visible. This way, we do not
     // incur in the expensive layout cost when not needed.
     // b/162809891
-    myErrorDescriptionContent = new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml();
+    myErrorDescriptionContent = updateImageSize(new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml(),
+                                                (int)UIUtil.getFontSize(UIUtil.FontSize.NORMAL));
     setupHeader(issue);
     setupDescriptionPanel(issue);
     setupFixPanel(issue);
     myInitialized = true;
+  }
+
+  private String updateImageSize(String html, int size) {
+    return html.replaceAll("(<img .+ width=)[0-9]+( height=)[0-9]+", "$1" + size + "$2" + size);
   }
 
   @Override
@@ -107,7 +112,9 @@ public class IssueView extends JPanel {
       mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+      myErrorDescriptionContent = updateImageSize(myErrorDescriptionContent, (int)UIUtil.getFontSize(UIUtil.FontSize.NORMAL));
       myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+      setExpanded(myIsExpanded);
     }
   }
 
@@ -150,7 +157,8 @@ public class IssueView extends JPanel {
   }
 
   public void updateDescription(@NotNull Issue issue) {
-    myErrorDescriptionContent = new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml();
+    myErrorDescriptionContent = updateImageSize(new HtmlBuilder().openHtmlBody().addHtml(issue.getDescription()).closeHtmlBody().getHtml(),
+                                                (int)UIUtil.getFontSize(UIUtil.FontSize.NORMAL));
   }
 
   /**
