@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
@@ -182,7 +183,7 @@ class CommonDragTargetTest : SceneTest() {
     val textView = myScreen.get("@id/textView").sceneComponent!!
 
     val autoconnected = ToggleAutoConnectAction.isAutoconnectOn()
-    setAutoConnection(textView, true)
+    setAutoConnection(myScreen.screen, textView, true)
 
     myInteraction.select(textView)
     myInteraction.mouseDown("textView")
@@ -196,7 +197,7 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF))
 
     // Restore to original setting of auto-connect
-    setAutoConnection(textView, autoconnected)
+    setAutoConnection(myScreen.screen, textView, autoconnected)
   }
 
   fun testAutoConnectionOffInConstraintLayout() {
@@ -204,7 +205,7 @@ class CommonDragTargetTest : SceneTest() {
     val textView = myScreen.get("@id/textView").sceneComponent!!
 
     val autoconnected = ToggleAutoConnectAction.isAutoconnectOn()
-    setAutoConnection(textView, false)
+    setAutoConnection(myScreen.screen, textView, false)
 
     myInteraction.select(textView)
     myInteraction.mouseDown("textView")
@@ -216,7 +217,7 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals("450dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
 
     // Restore to original setting of auto-connect
-    setAutoConnection(textView, autoconnected)
+    setAutoConnection(myScreen.screen, textView, autoconnected)
   }
 
   fun testDragComponentInConstraintLayout() {
@@ -343,9 +344,9 @@ class CommonDragTargetTest : SceneTest() {
     }
   }
 
-  private fun setAutoConnection(component: SceneComponent, on: Boolean) {
+  private fun setAutoConnection(view: SceneView, component: SceneComponent, on: Boolean) {
     if (ToggleAutoConnectAction.isAutoconnectOn() != on) {
-      ToggleAutoConnectAction().perform(ViewEditorImpl.getOrCreate(myScene),
+      ToggleAutoConnectAction().perform(ViewEditorImpl(view),
                                         component.nlComponent.viewGroupHandler!!,
                                         component.parent!!.nlComponent,
                                         listOf(),

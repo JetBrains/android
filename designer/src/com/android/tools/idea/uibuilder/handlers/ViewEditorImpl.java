@@ -84,10 +84,6 @@ public class ViewEditorImpl extends ViewEditor {
     this(sceneView.getModel(), sceneView.getScene());
   }
 
-  public ViewEditorImpl(@NotNull NlModel model) {
-    this(model, null);
-  }
-
   public ViewEditorImpl(@NotNull NlModel model, @Nullable Scene scene) {
     myConfiguration = model.getConfiguration();
     myModel = model;
@@ -241,14 +237,6 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   private static NlComponent getChild(@NotNull NlComponent parent, int index) {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
-  }
-
-  /**
-   * Try to get an existing View editor from the {@link Scene}'s {@link SceneManager}
-   */
-  @NotNull
-  public static ViewEditor getOrCreate(@NotNull Scene scene) {
-    return ((LayoutlibSceneManager)scene.getSceneManager()).getViewEditor();
   }
 
   @Override

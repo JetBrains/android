@@ -35,7 +35,7 @@ class ToggleSizeViewActionTest: SceneTest() {
 
     val root = myModel.find("root")!!
     val text = myModel.find("myText")!!
-    val editor = ViewEditorImpl.getOrCreate(myModel.surface.scene!!)
+    val editor = ViewEditorImpl(myScreen.screen)
 
     try {
       action.setSelected(editor, root.viewGroupHandler!!, root, listOf(text), true)
