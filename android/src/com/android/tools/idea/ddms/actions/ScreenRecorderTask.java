@@ -59,18 +59,21 @@ final class ScreenRecorderTask implements Runnable {
   private static final CharSequence MEDIA_UNSUPPORTED_ERROR = "-1010";
   private static final long MAX_RECORDING_TIME_MILLIS = TimeUnit.MINUTES.toMillis(3);
 
-  private final Project myProject;
-  private final IDevice myDevice;
-  private final Path myHostRecordingFile;
-  private final ScreenRecorderOptions myOptions;
+  private final @NotNull Project myProject;
+  private final @NotNull IDevice myDevice;
+  private final @NotNull String myRemotePath;
+  private final @Nullable Path myHostRecordingFile;
+  private final @NotNull ScreenRecorderOptions myOptions;
   private DialogWrapper myDialogWrapper;
 
   public ScreenRecorderTask(@NotNull Project project,
                             @NotNull IDevice device,
+                            @NotNull String remotePath,
                             @Nullable Path hostRecordingFile,
                             @NotNull ScreenRecorderOptions options) {
     myProject = project;
     myDevice = device;
+    myRemotePath = remotePath;
     myHostRecordingFile = hostRecordingFile;
     myOptions = options;
   }
@@ -154,7 +157,7 @@ final class ScreenRecorderTask implements Runnable {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       // Store the temp media file in the respective AVD folder.
       try {
-        myDevice.startScreenRecorder(ScreenRecorderAction.REMOTE_PATH, myOptions, receiver);
+        myDevice.startScreenRecorder(myRemotePath, myOptions, receiver);
       }
       catch (Exception e) {
         receiver.flush();
@@ -214,7 +217,8 @@ final class ScreenRecorderTask implements Runnable {
         return;
       }
 
-      new PullRecordingTask(myProject, myDevice, fileWrapper.getFile().getAbsolutePath(), () -> handleSavedRecording(fileWrapper)).queue();
+      new PullRecordingTask(
+        myProject, myDevice, myRemotePath, fileWrapper.getFile().getAbsolutePath(), () -> handleSavedRecording(fileWrapper)).queue();
     });
   }
 

@@ -48,6 +48,7 @@ import java.awt.EventQueue;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class ScreenRecorderAction extends AbstractDeviceAction {
-  static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
+  private static final String REMOTE_PATH = "/sdcard/screen-recording-%d.mp4";
   static final String TITLE = "Screen Recorder";
   private static final Pattern WM_SIZE_OUTPUT_REGEX = Pattern.compile("(?<width>\\d+)x(?<height>\\d+)");
 
@@ -139,7 +140,9 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
         setShowTouch(device, options.showTouches);
       }
       try {
-        ScreenRecorderTask task = new ScreenRecorderTask(myProject, device, emulatorRecordingFile, options);
+        ScreenRecorderTask task =
+          new ScreenRecorderTask(
+            myProject, device, String.format(Locale.US, REMOTE_PATH, System.currentTimeMillis()), emulatorRecordingFile, options);
         task.run();
       }
       finally {

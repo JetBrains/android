@@ -23,13 +23,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PullRecordingTask extends Task.Modal {
+  private final String myRemotePath;
   private final String myLocalPath;
   private final Runnable myHandleSavedFileRunnable;
   private final IDevice myDevice;
 
-  public PullRecordingTask(@Nullable Project project, @NotNull IDevice device, @NotNull String localFilePath, Runnable handleSavedFileRunnable) {
+  public PullRecordingTask(
+    @Nullable Project project,
+    @NotNull IDevice device,
+    @NotNull String remotePath,
+    @NotNull String localFilePath,
+    Runnable handleSavedFileRunnable) {
     super(project, ScreenRecorderAction.TITLE, false);
     myDevice = device;
+    myRemotePath = remotePath;
     myLocalPath = localFilePath;
     myHandleSavedFileRunnable = handleSavedFileRunnable;
   }
@@ -37,8 +44,8 @@ final class PullRecordingTask extends Task.Modal {
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     try {
-      myDevice.pullFile(ScreenRecorderAction.REMOTE_PATH, myLocalPath);
-      myDevice.removeRemotePackage(ScreenRecorderAction.REMOTE_PATH);
+      myDevice.pullFile(myRemotePath, myLocalPath);
+      myDevice.removeRemotePackage(myRemotePath);
     }
     catch (Exception e) {
       ScreenRecorderAction.showError(myProject, "Unexpected error while copying video recording from device", e);
