@@ -86,7 +86,7 @@ public class DeployTask extends AbstractDeployTask {
     // current user. Installing on "all" users causes the device to only update on users that the app
     // is already installed, failing to run if it's not installed on the current user.
     if (!installOnAllUsers && device.getVersion().isGreaterOrEqualThan(24)) {
-      options.setInstallOnCurrentUser();
+      options.setInstallOnUser(InstallOptions.CURRENT_USER);
     }
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
