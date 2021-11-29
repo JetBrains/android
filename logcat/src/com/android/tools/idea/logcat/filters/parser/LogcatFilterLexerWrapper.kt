@@ -16,10 +16,15 @@
 package com.android.tools.idea.logcat.filters.parser
 
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.KVALUE_STATE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.REGEX_KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.STRING_KVALUE_STATE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.YYINITIAL
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
+import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.intellij.lexer.FlexLexer
 import com.intellij.psi.tree.IElementType
@@ -83,9 +88,15 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
     val start = delegate.tokenStart
     val colon = text.indexOf(':')
     val pos = start + colon + 1
-    tokenStack.push(Token(KVALUE, pos, tokenEnd, YYINITIAL))
-    tokenStack.push(Token(KEY, start, pos, if (KEYS.contains(text.substring(0, colon))) KVALUE_STATE else STRING_KVALUE_STATE))
-    return KEY
+
+    val (keyType, valueType, state) = when {
+      KEYS.contains(text.substring(0, colon)) -> TokenValues(KEY, KVALUE, KVALUE_STATE)
+      text[colon - 1] == '~' -> TokenValues(REGEX_KEY, REGEX_KVALUE, REGEX_KVALUE_STATE)
+      else -> TokenValues(STRING_KEY, STRING_KVALUE, STRING_KVALUE_STATE)
+    }
+    tokenStack.push(Token(valueType, pos, tokenEnd, YYINITIAL))
+    tokenStack.push(Token(keyType, start, pos, state))
+    return keyType
   }
 
   override fun reset(buf: CharSequence?, start: Int, end: Int, initialState: Int) {
@@ -97,5 +108,7 @@ internal class LogcatFilterLexerWrapper : FlexLexer {
 
 private fun isHiddenKeyValuePair(elementType: IElementType?, text: CharSequence) =
   elementType == VALUE && KEY_VALUE_REGEX.matches(text)
+
+private data class TokenValues(val keyType: IElementType, val valueType: IElementType, val state: Int)
 
 private data class Token(val elementType: IElementType, val start: Int, val end: Int, val state: Int)
