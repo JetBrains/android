@@ -53,7 +53,7 @@ fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
 }
 
 fun GradleBuildModel.parsedModelModuleType(): PsModuleType =
-    plugins()
+    appliedPlugins()
         .mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }
         .firstOrNull { it != PsModuleType.UNKNOWN }
     ?: PsModuleType.UNKNOWN

@@ -50,6 +50,19 @@ class PsModuleTypeTest : DependencyTestCase() {
     Truth.assertThat(moduleWithoutSyncedModel(project, "lib").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.ANDROID_LIBRARY)
     Truth.assertThat(moduleWithoutSyncedModel(project, "jav").parsedModel?.parsedModelModuleType()).isEqualTo(PsModuleType.JAVA)
   }
+
+  fun testPluginsDsl() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    // parsedModelModuleType() should return UNKNOWN on the root module, which means that it should not feature in the module collection,
+    // so only the app module should be present.
+    Truth.assertThat(project.modules.size).isEqualTo(1)
+    Truth.assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+    Truth.assertThat(moduleWithoutSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+  }
 }
 
 private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsModule {
