@@ -72,19 +72,19 @@ class SkinDefinitionTest {
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-19, -55, 366, 750))
     assertSkinAppearance(layout, "pixel_2_xl")
 
-    // Check the createScaledLayout method with 90 degree rotation and scaling.
+    // Check the createScaledLayout method with 90-degree rotation and scaling.
     layout = skin.createScaledLayout(650, 325, SkinRotation.LANDSCAPE)
     assertThat(layout.displaySize).isEqualTo(Dimension(650, 325))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-55, -22, 750, 366))
     assertSkinAppearance(layout, "pixel_2_xl_90")
 
-    // Check the createScaledLayout method with 180 degree rotation and scaling.
+    // Check the createScaledLayout method with 180-degree rotation and scaling.
     layout = skin.createScaledLayout(325, 650, SkinRotation.REVERSE_PORTRAIT)
     assertThat(layout.displaySize).isEqualTo(Dimension(325, 650))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-22, -45, 366, 750))
     assertSkinAppearance(layout, "pixel_2_xl_180")
 
-    // Check the createScaledLayout method with 270 degree rotation and scaling.
+    // Check the createScaledLayout method with 270-degree rotation and scaling.
     layout = skin.createScaledLayout(650, 325, SkinRotation.REVERSE_LANDSCAPE)
     assertThat(layout.displaySize).isEqualTo(Dimension(650, 325))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-45, -19, 750, 366))
@@ -121,19 +121,19 @@ class SkinDefinitionTest {
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-15, -17, 375, 767))
     assertSkinAppearance(layout, "pixel_3_xl")
 
-    // Check the createScaledLayout method with 90 degree rotation and scaling.
+    // Check the createScaledLayout method with 90-degree rotation and scaling.
     layout = skin.createScaledLayout(700, 341, SkinRotation.LANDSCAPE)
     assertThat(layout.displaySize).isEqualTo(Dimension(700, 341))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-17, -19, 767, 375))
     assertSkinAppearance(layout, "pixel_3_xl_90")
 
-    // Check the createScaledLayout method with 180 degree rotation and scaling.
+    // Check the createScaledLayout method with 180-degree rotation and scaling.
     layout = skin.createScaledLayout(341, 700, SkinRotation.REVERSE_PORTRAIT)
     assertThat(layout.displaySize).isEqualTo(Dimension(341, 700))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-19, -50, 375, 767))
     assertSkinAppearance(layout, "pixel_3_xl_180")
 
-    // Check the createScaledLayout method with 270 degree rotation and scaling.
+    // Check the createScaledLayout method with 270-degree rotation and scaling.
     layout = skin.createScaledLayout(700, 341, SkinRotation.REVERSE_LANDSCAPE)
     assertThat(layout.displaySize).isEqualTo(Dimension(700, 341))
     assertThat(layout.frameRectangle).isEqualTo(Rectangle(-50, -15, 767, 375))
