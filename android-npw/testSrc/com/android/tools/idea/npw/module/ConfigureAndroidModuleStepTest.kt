@@ -42,6 +42,7 @@ import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ConfigureAndroidModuleStepTest {
+  private val myInvokeStrategy = TestInvokeStrategy()
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels(
@@ -54,7 +55,6 @@ class ConfigureAndroidModuleStepTest {
 
   @Before
   fun setUp() {
-    myInvokeStrategy = TestInvokeStrategy()
     BatchInvoker.setOverrideStrategy(myInvokeStrategy)
   }
 
@@ -201,8 +201,6 @@ class ConfigureAndroidModuleStepTest {
   }
 
   companion object {
-    private lateinit var myInvokeStrategy: TestInvokeStrategy
-
     private fun createMockAndroidVersion(apiLevel: Int): VersionItem =
       mock(AndroidVersionsInfo::class.java).VersionItem(object : MockPlatformTarget(apiLevel, 0) {
         override fun getVersion(): AndroidVersion = AndroidVersion(apiLevel - 1, "TEST_PLATFORM")

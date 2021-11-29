@@ -25,7 +25,6 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.Templates
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateResolver;
 import com.android.tools.idea.observable.BatchInvoker;
@@ -44,12 +43,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 
 public class AndroidLibraryTest extends AndroidGradleTestCase {
-  private static TestInvokeStrategy myInvokeStrategy;
+  private final TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myInvokeStrategy = new TestInvokeStrategy();
     BatchInvoker.setOverrideStrategy(myInvokeStrategy);
   }
 
