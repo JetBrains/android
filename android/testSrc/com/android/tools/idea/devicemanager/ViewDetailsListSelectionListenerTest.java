@@ -25,7 +25,7 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ViewDetailsListSelectionListenerTest {
-  private final @NotNull DevicePanel<?> myPanel = Mockito.mock(DevicePanel.class);
+  private final @NotNull DevicePanel myPanel = Mockito.mock(DevicePanel.class);
   private final ListSelectionListener myListener = new ViewDetailsListSelectionListener(myPanel);
 
   @Test

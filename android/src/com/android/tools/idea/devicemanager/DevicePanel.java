@@ -22,7 +22,7 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class DevicePanel<D> extends JBPanel<DevicePanel<D>> implements Disposable, DetailsPanelPanel<D> {
+public abstract class DevicePanel extends JBPanel<DevicePanel> implements Disposable {
   protected JTable myTable;
   protected JComponent myScrollPane;
   protected DetailsPanelPanel2 myDetailsPanelPanel;
@@ -33,22 +33,18 @@ public abstract class DevicePanel<D> extends JBPanel<DevicePanel<D>> implements 
 
   protected final void initTable() {
     myTable = newTable();
-
-    if (DetailsPanelPanel2.ENABLED) {
-      myTable.getSelectionModel().addListSelectionListener(new ViewDetailsListSelectionListener(this));
-    }
-    else {
-      myTable.getSelectionModel().addListSelectionListener(new DetailsPanelPanelListSelectionListener<>(this));
-    }
+    myTable.getSelectionModel().addListSelectionListener(new ViewDetailsListSelectionListener(this));
   }
 
   protected abstract @NotNull JTable newTable();
 
   protected final void initDetailsPanelPanel() {
-    if (DetailsPanelPanel2.ENABLED) {
-      myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
-      Disposer.register(this, myDetailsPanelPanel);
-    }
+    myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+    Disposer.register(this, myDetailsPanelPanel);
+  }
+
+  @Override
+  public final void dispose() {
   }
 
   final boolean hasDetails() {

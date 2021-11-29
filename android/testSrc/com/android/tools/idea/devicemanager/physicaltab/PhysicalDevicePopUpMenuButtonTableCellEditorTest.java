@@ -24,6 +24,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,6 +38,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
     myEditor = new PhysicalDevicePopUpMenuButtonTableCellEditor(Mockito.mock(PhysicalDevicePanel.class));
   }
 
+  @Ignore("http://b/208297087")
   @Test
   public void newPairDeviceItemPhoneAndOnline() {
     // Arrange
@@ -53,6 +55,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
     assertEquals("Wear OS virtual device pairing assistant", item.getToolTipText());
   }
 
+  @Ignore("http://b/208297087")
   @Test
   public void newPairDeviceItemPhone() {
     // Arrange

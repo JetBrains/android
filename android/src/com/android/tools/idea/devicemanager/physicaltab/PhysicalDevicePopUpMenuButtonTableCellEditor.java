@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
@@ -54,11 +53,8 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
     List<JComponent> items = new ArrayList<>();
     Optional<JComponent> optionalItem = newUnpairDeviceItem();
 
-    if (DetailsPanelPanel2.ENABLED) {
-      items.add(newViewDetailsItem());
-      optionalItem.ifPresent(item -> items.add(new Separator()));
-    }
-
+    items.add(newViewDetailsItem());
+    optionalItem.ifPresent(item -> items.add(new Separator()));
     items.add(newPairDeviceItem());
     optionalItem.ifPresent(items::add);
 

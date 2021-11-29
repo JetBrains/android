@@ -19,7 +19,6 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.DevicePanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -38,7 +37,6 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.AbstractButton;
@@ -52,7 +50,7 @@ import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevicePanel extends DevicePanel<PhysicalDevice> {
+public final class PhysicalDevicePanel extends DevicePanel {
   private final @Nullable Project myProject;
   private final @NotNull Disposable myParent;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
@@ -63,7 +61,6 @@ public final class PhysicalDevicePanel extends DevicePanel<PhysicalDevice> {
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
-  private @Nullable DetailsPanel myDetailsPanel;
 
   @VisibleForTesting
   static final class SetDevices implements FutureCallback<List<PhysicalDevice>> {
@@ -185,13 +182,6 @@ public final class PhysicalDevicePanel extends DevicePanel<PhysicalDevice> {
   }
 
   @Override
-  public void dispose() {
-    if (myDetailsPanel != null) {
-      Disposer.dispose(myDetailsPanel);
-    }
-  }
-
-  @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
     return new PhysicalDeviceDetailsPanel(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
@@ -209,90 +199,7 @@ public final class PhysicalDevicePanel extends DevicePanel<PhysicalDevice> {
     return (PhysicalDeviceTable)myTable;
   }
 
-  @Override
-  public @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
-    return getTable().getSelectedDevice();
-  }
-
-  @Override
-  public boolean containsDetailsPanel() {
-    return myDetailsPanel != null;
-  }
-
-  @Override
-  public void removeDetailsPanel() {
-    assert myDetailsPanel != null;
-
-    remove(myDetailsPanel);
-    Disposer.dispose(myDetailsPanel);
-    myDetailsPanel = null;
-  }
-
-  @Override
-  public void initDetailsPanel(@NotNull PhysicalDevice device) {
-    myDetailsPanel = new PhysicalDeviceDetailsPanel(device, myProject);
-
-    myDetailsPanel.getCloseButton().addActionListener(event -> {
-      myTable.clearSelection();
-
-      removeDetailsPanel();
-      layOut();
-    });
-  }
-
-  @Override
-  public void layOut() {
-    if (DetailsPanelPanel2.ENABLED) {
-      layOut2();
-      return;
-    }
-
-    GroupLayout layout = new GroupLayout(this);
-    Group toolbarHorizontalGroup = layout.createSequentialGroup();
-
-    if (myPairUsingWiFiButton != null) {
-      toolbarHorizontalGroup
-        .addGap(JBUIScale.scale(5))
-        .addComponent(myPairUsingWiFiButton)
-        .addGap(JBUIScale.scale(4))
-        .addComponent(mySeparator);
-    }
-
-    toolbarHorizontalGroup.addComponent(myHelpButton);
-
-    Group horizontalGroup = layout.createParallelGroup()
-      .addGroup(toolbarHorizontalGroup)
-      .addComponent(myScrollPane);
-
-    if (myDetailsPanel != null) {
-      horizontalGroup.addComponent(myDetailsPanel);
-    }
-
-    Group toolbarVerticalGroup = layout.createParallelGroup(Alignment.CENTER);
-
-    if (myPairUsingWiFiButton != null) {
-      toolbarVerticalGroup
-        .addComponent(myPairUsingWiFiButton)
-        .addComponent(mySeparator);
-    }
-
-    toolbarVerticalGroup.addComponent(myHelpButton);
-
-    Group verticalGroup = layout.createSequentialGroup()
-      .addGroup(toolbarVerticalGroup)
-      .addComponent(myScrollPane, 0, 0, Short.MAX_VALUE);
-
-    if (myDetailsPanel != null) {
-      verticalGroup.addComponent(myDetailsPanel, 0, 0, JBUIScale.scale(240));
-    }
-
-    layout.setHorizontalGroup(horizontalGroup);
-    layout.setVerticalGroup(verticalGroup);
-
-    setLayout(layout);
-  }
-
-  private void layOut2() {
+  private void layOut() {
     GroupLayout layout = new GroupLayout(this);
     Group toolbarHorizontalGroup = layout.createSequentialGroup();
 

@@ -19,7 +19,6 @@ import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPh
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.devicemanager.DetailsPanelPanel2;
 import com.android.tools.idea.devicemanager.virtualtab.ViewDetailsAction;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -166,14 +165,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     }
 
     actionList.add(new ShowAvdOnDiskAction(this, logDeviceManagerEvents));
-
-    if (!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
-      actionList.add(new AvdSummaryAction(this));
-    }
-    else if (DetailsPanelPanel2.ENABLED) {
-      actionList.add(new ViewDetailsAction(this));
-    }
-
+    actionList.add(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? new ViewDetailsAction(this) : new AvdSummaryAction(this));
     actionList.add(new Separator(this));
 
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() && isWearOrPhone(myAvdInfo)) {

@@ -20,9 +20,9 @@ import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
 
 final class ViewDetailsListSelectionListener implements ListSelectionListener {
-  private final @NotNull DevicePanel<?> myPanel;
+  private final @NotNull DevicePanel myPanel;
 
-  ViewDetailsListSelectionListener(@NotNull DevicePanel<?> panel) {
+  ViewDetailsListSelectionListener(@NotNull DevicePanel panel) {
     myPanel = panel;
   }
 

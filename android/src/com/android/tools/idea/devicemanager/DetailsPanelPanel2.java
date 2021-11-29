@@ -28,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> implements Disposable {
-  public static final boolean ENABLED = false;
-
   private final @NotNull JComponent myScrollPane;
   private @Nullable Disposable myDetailsPanel;
   private @Nullable Splitter mySplitter;
