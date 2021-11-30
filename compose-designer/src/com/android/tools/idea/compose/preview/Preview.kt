@@ -80,6 +80,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -99,7 +100,6 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.idea.debugger.readAction
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -872,10 +872,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
-    val psiFile = readAction {
+    val psiFile = runReadAction {
       val element = psiFilePointer.element
 
-      return@readAction if (element == null || !element.isValid) {
+      return@runReadAction if (element == null || !element.isValid) {
         LOG.warn("doRefresh with invalid PsiFile")
         null
       }
