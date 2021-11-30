@@ -16,6 +16,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />

@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
