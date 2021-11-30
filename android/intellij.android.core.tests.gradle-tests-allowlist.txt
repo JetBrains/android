@@ -102,7 +102,6 @@ com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzerTest
 com.android.tools.idea.gradle.structure.model.DependencyManagementTest
 com.android.tools.idea.gradle.structure.model.PsModuleCollectionTest
 com.android.tools.idea.gradle.structure.model.PsModuleTest
-com.android.tools.idea.gradle.structure.model.PsModuleTypeTest
 com.android.tools.idea.gradle.structure.model.PsProjectImplTest
 com.android.tools.idea.gradle.structure.model.PsVariablesTest
 com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptorsTest
