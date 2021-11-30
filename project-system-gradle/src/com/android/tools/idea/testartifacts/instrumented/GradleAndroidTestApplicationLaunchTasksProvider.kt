@@ -71,20 +71,22 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
   private val myClassName: String = className
   private val myMethodName: String = methodName
 
+  private val myLogger: Logger = Logger.getInstance(GradleAndroidTestApplicationLaunchTasksProvider::class.java)
+
   override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
-    val testAppId: String?
-    try {
-      testAppId = myApplicationIdProvider.testPackageName
-      if (testAppId == null) {
-        launchStatus.terminateLaunch("Unable to determine test package name", true)
-        return launchTasks
-      }
+
+    val testAppId: String? = try {
+      myApplicationIdProvider.testPackageName
+    } catch (e: ApkProvisionException) {
+      myLogger.warn(e)
+      null
     }
-    catch (e: ApkProvisionException) {
+    if (testAppId == null) {
       launchStatus.terminateLaunch("Unable to determine test package name", true)
       return launchTasks
     }
+
     val appLaunchTask = when (myTestingType) {
       TEST_ALL_IN_MODULE -> {
         allInModuleTest(
