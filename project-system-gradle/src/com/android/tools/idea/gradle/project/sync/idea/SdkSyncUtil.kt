@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoun
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger

@@ -18,7 +18,7 @@ package com.android.tools.idea.updater.configure
 import com.android.repository.api.RepositorySource
 import com.android.repository.api.RepositorySourceProvider
 import com.android.tools.idea.sdk.AndroidAuthenticator
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper

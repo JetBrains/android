@@ -23,7 +23,7 @@ import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
 import com.android.sdklib.devices.Storage;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.io.FileUtil;

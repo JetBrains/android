@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.util.ImportUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.annotations.VisibleForTesting

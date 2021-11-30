@@ -36,7 +36,7 @@ import com.android.repository.testframework.FakeRepositorySourceProvider;
 import com.android.repository.testframework.FakeSettingsController;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

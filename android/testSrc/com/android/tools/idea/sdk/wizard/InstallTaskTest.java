@@ -43,7 +43,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.concurrency.AsyncTestUtils;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.progress.EmptyProgressIndicator;

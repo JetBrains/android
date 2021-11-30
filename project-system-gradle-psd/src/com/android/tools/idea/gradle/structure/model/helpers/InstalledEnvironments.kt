@@ -22,7 +22,7 @@ import com.android.sdklib.IAndroidTarget
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel
 
 data class InstalledEnvironments(

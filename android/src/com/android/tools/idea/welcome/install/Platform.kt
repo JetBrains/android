@@ -18,12 +18,11 @@ package com.android.tools.idea.welcome.install
 import com.android.SdkConstants
 import com.android.repository.Revision
 import com.android.repository.api.RemotePackage
-import com.android.repository.io.FileOpUtils
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath.findLatestPlatform
 
 /**

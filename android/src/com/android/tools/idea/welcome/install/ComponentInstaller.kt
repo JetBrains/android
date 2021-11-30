@@ -24,8 +24,8 @@ import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.installer.BasicInstallerFactory
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.ThrottledProgressWrapper
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
 

@@ -27,7 +27,7 @@ import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.options.ShowSettingsUtil

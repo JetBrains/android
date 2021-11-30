@@ -20,7 +20,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
