@@ -130,7 +130,7 @@ private fun DeviceEnumValueBuilder.addGeneric(device: Device) {
  */
 private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
-    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.toList()
+    AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
   } ?: emptyList()
   return groupDevices(studioDevices)
 }

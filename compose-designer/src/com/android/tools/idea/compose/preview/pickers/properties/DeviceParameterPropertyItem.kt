@@ -63,7 +63,7 @@ internal class DeviceParameterPropertyItem(
   //TODO: Do this elsewhere, this is not the only place where it's done
   private val availableDevices = run {
     AndroidFacet.getInstance(model.module)?.let { facet ->
-      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.toList()
+      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)?.filter { !it.isDeprecated }?.toList()
     } ?: emptyList()
   }
 
