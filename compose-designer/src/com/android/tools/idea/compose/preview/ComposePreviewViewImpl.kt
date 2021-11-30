@@ -486,7 +486,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
             // We zoom to fit to have better initial zoom level when first build is completed.
             // We invoke later to allow the panel to layout itself before calling zoomToFit.
             ApplicationManager.getApplication().invokeLater {
-              pinnedSurface.zoomToFit()
+              if (isPinnedSurfaceVisible) pinnedSurface.zoomToFit()
               mainSurface.zoomToFit()
             }
           }

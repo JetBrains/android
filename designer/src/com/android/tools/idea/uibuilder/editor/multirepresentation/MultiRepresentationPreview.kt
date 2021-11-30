@@ -30,6 +30,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Editor
@@ -41,7 +43,6 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -193,7 +194,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     }
   }
 
-  private fun onRepresentationChanged() = UIUtil.invokeLaterIfNeeded {
+  private fun onRepresentationChanged() = invokeAndWaitIfNeeded {
     component.removeAll()
 
     component.add(representationSelectionToolbar, BorderLayout.NORTH)
@@ -237,7 +238,9 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       val representation = runReadAction { provider.createRepresentation (file) }
       Disposer.register(this@MultiRepresentationPreview, representation)
       shortcutsApplicableComponent?.let {
-        representation.registerShortcuts(it)
+        invokeLater {
+          if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
+        }
       }
       newRepresentations[provider.displayName] = representation
 
@@ -409,6 +412,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
     AdtPrimaryPanel(BorderLayout()).apply {
       border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
 
+      isVisible = false
       add(createActionToolbar(createActionGroup()))
     }
   }
