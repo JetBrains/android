@@ -193,6 +193,10 @@ final class DeviceSkinUpdater {
       return myStudioSkins.resolve("wearos_square");
     }
 
+    if (device.equals(device.getFileSystem().getPath("WearRect"))) {
+      return myStudioSkins.resolve("wearos_rect");
+    }
+
     return myStudioSkins.resolve(device);
   }
 
