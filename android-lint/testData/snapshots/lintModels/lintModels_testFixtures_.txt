@@ -38,6 +38,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -63,7 +64,10 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
+                    commons-io:commons-io         : null => commons-io:commons-io:2.4
                 PackageDependencies
                     android.arch.core:common      : null => android.arch.core:common:1.1.1
                     android.arch.core:runtime     : null => android.arch.core:runtime:1.1.1@aar
@@ -72,6 +76,7 @@ MODULE                        : project.app
                     android.arch.lifecycle:livedata-core    : null => android.arch.lifecycle:livedata-core:1.1.1@aar
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
+                    artifacts::lib                : null => :lib@main
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -97,7 +102,10 @@ MODULE                        : project.app
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                    com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
+                    com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
+                    commons-io:commons-io         : null => commons-io:commons-io:2.4
             - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
         TestArtifact
@@ -111,8 +119,8 @@ MODULE                        : project.app
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
                     artifacts::app                : null => :app@main
-                    artifacts::lib                : null => :lib@testFixtures
                     artifacts::lib                : null => :lib@main
+                    artifacts::lib                : null => :lib@testFixtures
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -165,8 +173,8 @@ MODULE                        : project.app
                     android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
                     android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
                     artifacts::app                : null => :app@main
-                    artifacts::lib                : null => :lib@testFixtures
                     artifacts::lib                : null => :lib@main
+                    artifacts::lib                : null => :lib@testFixtures
                     com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                     com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                     com.android.support:animated-vector-drawable      : null => com.android.support:animated-vector-drawable:28.0.0@aar
@@ -229,6 +237,7 @@ MODULE                        : project.app
                 android.arch.lifecycle:runtime          : null => android.arch.lifecycle:runtime:1.1.1@aar
                 android.arch.lifecycle:viewmodel        : null => android.arch.lifecycle:viewmodel:1.1.1@aar
                 artifacts::app                : null => :app@main
+                artifacts::lib                : null => :lib@main
                 com.android.support.constraint:constraint-layout  : null => com.android.support.constraint:constraint-layout:1.0.2@aar
                 com.android.support.constraint:constraint-layout-solver     : null => com.android.support.constraint:constraint-layout-solver:1.0.2
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
@@ -258,9 +267,12 @@ MODULE                        : project.app
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
+                com.example.javaLib:javaLib   : null => com.example.javaLib:javaLib:1.0
+                com.example.publishedLib:publishedLib   : null => com.example.publishedLib:publishedLib:1.0@aar
                 com.google.code.findbugs:jsr305         : null => com.google.code.findbugs:jsr305:2.0.1
                 com.google.guava:guava        : null => com.google.guava:guava:19.0
                 com.squareup:javawriter       : null => com.squareup:javawriter:2.1.1
+                commons-io:commons-io         : null => commons-io:commons-io:2.4
                 javax.inject:javax.inject     : null => javax.inject:javax.inject:1
                 junit:junit                   : null => junit:junit:4.12
                 net.sf.kxml:kxml2             : null => net.sf.kxml:kxml2:2.3.0
@@ -269,6 +281,7 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
                 artifacts::app                : null => :app@main
+                artifacts::lib                : null => :lib@main
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2@aar
                 com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
                 com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2@aar
@@ -723,28 +736,16 @@ MODULE                        : project.app
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
                 ResolvedCoordinates           : com.android.support:viewpager:28.0.0
             LintModelLibrary              : JavaLibrary(com.example.javaLib:javaLib:1.0)
-                - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar
+                - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
                 Identifier                    : com.example.javaLib:javaLib:1.0
                 ResolvedCoordinates           : com.example.javaLib:javaLib:1.0
             LintModelLibrary              : JavaLibrary(com.example.javaLib:javaLib:1.0)
-                - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0.jar
+                - JarFiles                    : <ROOT>/localrepo/com/example/javaLib/javaLib/1.0/javaLib-1.0-test-fixtures.jar
                 Identifier                    : com.example.javaLib:javaLib:1.0 (1)
                 ResolvedCoordinates           : com.example.javaLib:javaLib:1.0
             LintModelLibrary              : AndroidLibrary(com.example.publishedLib:publishedLib:1.0)
-                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
-                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar
-                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
-                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures
-                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
-                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/assets [-]
-                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/public.txt [-]
-                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/R.txt
-                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/annotations.zip [-]
-                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/proguard.txt [-]
-                ResolvedCoordinates           : com.example.publishedLib:publishedLib:1.0
-            LintModelLibrary              : AndroidLibrary(com.example.publishedLib:publishedLib:1.0)
                 - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/jars/classes.jar
-                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar (1)
+                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar
                 Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/AndroidManifest.xml
                 Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0
                 ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/res
@@ -753,6 +754,18 @@ MODULE                        : project.app
                 SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/R.txt
                 ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/annotations.zip [-]
                 ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0/proguard.txt [-]
+                ResolvedCoordinates           : com.example.publishedLib:publishedLib:1.0
+            LintModelLibrary              : AndroidLibrary(com.example.publishedLib:publishedLib:1.0)
+                - JarFiles                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/jars/classes.jar
+                Identifier                    : com.example.publishedLib:publishedLib:1.0@aar (1)
+                Manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/AndroidManifest.xml
+                Folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures
+                ResFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/res
+                AssetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/assets [-]
+                PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/public.txt [-]
+                SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/R.txt
+                ExternalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/annotations.zip [-]
+                ProguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/publishedLib-1.0-test-fixtures/proguard.txt [-]
                 ResolvedCoordinates           : com.example.publishedLib:publishedLib:1.0
             LintModelLibrary              : JavaLibrary(com.google.auto.value:auto-value-annotations:1.6.3)
                 - JarFiles                    : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
