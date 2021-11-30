@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk;
+package com.android.tools.idea.analytics;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
@@ -23,6 +23,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;

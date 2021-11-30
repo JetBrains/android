@@ -28,7 +28,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
+import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
 import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
