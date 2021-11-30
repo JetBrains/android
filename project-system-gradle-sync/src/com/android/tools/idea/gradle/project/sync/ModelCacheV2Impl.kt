@@ -16,14 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
-import com.android.build.OutputFile
-import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeArtifact
-import com.android.builder.model.NativeFile
-import com.android.builder.model.NativeSettings
-import com.android.builder.model.NativeToolchain
-import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.NativeVariantInfo
 import com.android.builder.model.v2.ModelSyncFile
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ClassField
@@ -963,78 +955,6 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     )
   }
 
-  fun nativeFileFrom(file: NativeFile): IdeNativeFileImpl {
-    return IdeNativeFileImpl(
-      filePath = file.filePath,
-      settingsName = file.settingsName,
-      workingDirectory = file.workingDirectory
-    )
-  }
-
-  fun nativeArtifactFrom(artifact: NativeArtifact): IdeNativeArtifactImpl {
-    return IdeNativeArtifactImpl(
-      name = artifact.name,
-      toolChain = artifact.toolChain,
-      groupName = artifact.groupName,
-      sourceFiles = copy(artifact::getSourceFiles, ::nativeFileFrom),
-      exportedHeaders = copy(artifact::getExportedHeaders, ::deduplicateFile),
-      abi = copy(artifact::getAbi) ?: "",
-      targetName = copy(artifact::getTargetName) ?: "",
-      outputFile = artifact.outputFile
-    )
-  }
-
-  fun nativeToolchainFrom(toolchain: NativeToolchain): IdeNativeToolchainImpl {
-    return IdeNativeToolchainImpl(
-      name = toolchain.name,
-      cCompilerExecutable = toolchain.cCompilerExecutable,
-      cppCompilerExecutable = toolchain.cppCompilerExecutable
-    )
-  }
-
-  fun nativeVariantFrom(variantInfo: NativeVariantInfo): IdeNativeVariantInfoImpl {
-    return IdeNativeVariantInfoImpl(
-      abiNames = copy(variantInfo::getAbiNames, ::deduplicateString),
-      buildRootFolderMap = copy(variantInfo::getBuildRootFolderMap, ::deduplicateFile) ?: mapOf()
-    )
-  }
-
-  fun nativeSettingsFrom(settings: NativeSettings): IdeNativeSettingsImpl {
-    return IdeNativeSettingsImpl(
-      name = settings.name,
-      compilerFlags = copy(settings::getCompilerFlags, ::deduplicateString)
-    )
-  }
-
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl {
-    return IdeNativeAndroidProjectImpl(
-      modelVersion = project.modelVersion,
-      apiVersion = project.apiVersion,
-      name = project.name,
-      buildFiles = copy(project::getBuildFiles, ::deduplicateFile),
-      variantInfos = copy(project::getVariantInfos, ::nativeVariantFrom),
-      artifacts = copy(project::getArtifacts, ::nativeArtifactFrom),
-      toolChains = copy(project::getToolChains, ::nativeToolchainFrom),
-      settings = copy(project::getSettings, ::nativeSettingsFrom),
-      fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
-      defaultNdkVersion = copy(project::getDefaultNdkVersion),
-      ndkVersion = ndkVersion ?: copy(project::getDefaultNdkVersion),
-      buildSystems = copy(project::getBuildSystems, ::deduplicateString)
-    )
-  }
-
-  fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl {
-    return IdeNativeVariantAbiImpl(
-      buildFiles = copy(variantAbi::getBuildFiles, ::deduplicateFile),
-      artifacts = copy(variantAbi::getArtifacts, ::nativeArtifactFrom),
-      toolChains = copy(variantAbi::getToolChains, ::nativeToolchainFrom),
-      settings = copy(variantAbi::getSettings, ::nativeSettingsFrom),
-      fileExtensions = copy(variantAbi::getFileExtensions, ::deduplicateString) ?: mapOf(),
-      variantName = variantAbi.variantName,
-      abi = variantAbi.abi
-    )
-  }
-
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl {
     return IdeNativeModuleImpl(
       name = nativeModule.name,
@@ -1262,16 +1182,17 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       androidDsl: AndroidDsl
     ): IdeAndroidProjectImpl = androidProjectFrom(basicProject, project, androidVersion, androidDsl)
 
-    override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =
+    override fun androidArtifactOutputFrom(output: com.android.build.OutputFile): IdeAndroidArtifactOutputImpl =
       throw UnsupportedOperationException("OutputFile is deprecated for AGP 7.0+")
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
 
     // For native models, if we don't find v2 models, we fall back to V1.
-    override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl = nativeVariantAbiFrom(variantAbi)
+    override fun nativeVariantAbiFrom(variantAbi: com.android.builder.model.NativeVariantAbi): IdeNativeVariantAbiImpl =
+      throw UnsupportedOperationException("com.android.builder.model.NativeVariantAbi is a model v1 concept")
 
-    override fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl =
-      nativeAndroidProjectFrom(project, ndkVersion)
+    override fun nativeAndroidProjectFrom(project: com.android.builder.model.NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl =
+      throw UnsupportedOperationException("com.android.builder.model.NativeAndroidProject is a model v1 concept")
   }
 }
 
