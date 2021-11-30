@@ -33,7 +33,8 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
   private val selector: Selector? = builder.selector
   val boxSelectionModel: BoxSelectionModel? = builder.boxSelectionModel
   val allDisplayToggles: List<String> = builder.toggles.keys.toList()
-  var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it }.keys.mapTo(mutableSetOf()) { it }
+  val displayToggleChangeListeners: Map<String, Runnable> = builder.toggles.mapValues { (_, rec) -> rec.second }
+  var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it.first }.keys.toSet()
 
   private val observer = AspectObserver()
   val isTrackSelectable: Boolean // whether the tracks inside this track group are selectable.
@@ -83,6 +84,7 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
         }
       }
       fireContentsChanged(this, 0, size)
+      displayToggleChangeListeners[tag]!!.run()
     }
     else -> { /* no state change */ }
   }
@@ -103,7 +105,7 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     internal var hideHeader = false
     internal var selector: Selector? = null
     internal var boxSelectionModel: BoxSelectionModel? = null
-    internal val toggles = mutableMapOf<String, Boolean>()
+    internal val toggles = mutableMapOf<String, Pair<Boolean, Runnable>>()
 
     /**
      * @param title string to be displayed in the header
@@ -139,7 +141,9 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
     /**
      * Add a display toggle that can be dynamically turned on or off, affecting which tracks are displayed
      */
-    fun addDisplayToggle(title: String, isOnByDefault: Boolean) = this.also { toggles += title to isOnByDefault }
+    @JvmOverloads
+    fun addDisplayToggle(title: String, isOnByDefault: Boolean, onChanged: Runnable = Runnable {}) =
+      this.also { toggles += title to (isOnByDefault to onChanged) }
     fun build() = TrackGroupModel(this)
   }
 

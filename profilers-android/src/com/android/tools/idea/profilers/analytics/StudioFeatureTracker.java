@@ -670,6 +670,21 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackFrameSelectionPerTrace(int count) {
+    newTracker(AndroidProfilerEvent.Type.SELECT_FRAME).setEventCount(count).track();
+  }
+
+  @Override
+  public void trackAllFrameTogglingPerTrace(int count) {
+    newTracker(AndroidProfilerEvent.Type.TOGGLE_ALL_FRAMES).setEventCount(count).track();
+  }
+
+  @Override
+  public void trackLifecycleTogglingPerTrace(int count) {
+    newTracker(AndroidProfilerEvent.Type.TOGGLE_LIFECYCLE).setEventCount(count).track();
+  }
+
+  @Override
   public void trackNetworkMigrationDialogSelected() {
     UsageTracker.log(
       UsageTrackerUtils.withProjectId(
@@ -725,6 +740,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private TraceProcessorDaemonQueryStats myTraceProcessorDaemonQueryStats;
     @Nullable private AdtUiTrackGroupMetadata myTrackGroupMetadata;
     @Nullable private AdtUiBoxSelectionMetadata myBoxSelectionMetadata;
+    private int myEventCount = 0;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -838,6 +854,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setEventCount(int eventCount) {
+      myEventCount = eventCount;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -890,6 +912,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case SELECT_BOX:
           profilerEvent.setBoxSelectionMetadata(myBoxSelectionMetadata);
+          break;
+        case SELECT_FRAME: // Fallthrough
+        case TOGGLE_ALL_FRAMES: // Fallthrough
+        case TOGGLE_LIFECYCLE:
+          profilerEvent.setEventCount(myEventCount);
           break;
         default:
           break;

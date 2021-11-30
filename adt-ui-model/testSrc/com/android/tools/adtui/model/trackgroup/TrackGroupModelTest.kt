@@ -35,4 +35,35 @@ class TrackGroupModelTest {
     assertThat(addedTrackModel2.dataModel).isEqualTo("string")
     assertWithMessage("Track IDs should be unique within a group").that(addedTrackModel1.id).isNotEqualTo(addedTrackModel2.id)
   }
+
+  @Test
+  fun `listeners run when display tag changed`() {
+    var count1 = 0
+    var count2 = 0
+    val trackGroupModel = TrackGroupModel.newBuilder()
+      .setTitle("group")
+      .addDisplayToggle("Tag1", false) { ++count1 }
+      .addDisplayToggle("Tag2", true) { ++count2 }
+      .build()
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("string", TestTrackRendererType.STRING, "bar"))
+
+    trackGroupModel.setDisplayTag("Tag1", false)
+    assertThat(count1).isEqualTo(0)
+
+    trackGroupModel.setDisplayTag("Tag1", true)
+    assertThat(count1).isEqualTo(1)
+
+    trackGroupModel.setDisplayTag("Tag1", false)
+    assertThat(count1).isEqualTo(2)
+
+    trackGroupModel.setDisplayTag("Tag2", false)
+    assertThat(count2).isEqualTo(1)
+
+    trackGroupModel.setDisplayTag("Tag2", true)
+    assertThat(count2).isEqualTo(2)
+
+    trackGroupModel.setDisplayTag("Tag2", true)
+    assertThat(count2).isEqualTo(2)
+  }
 }
