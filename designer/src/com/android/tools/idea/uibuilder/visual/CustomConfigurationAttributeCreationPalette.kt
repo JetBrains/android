@@ -162,7 +162,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet).devices)
+    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet).devices.filter { !it.isDeprecated })
     val devices = groupedDevices.toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption }).flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
