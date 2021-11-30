@@ -44,7 +44,9 @@ import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
+import com.intellij.util.ui.UIUtil
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import org.junit.Assert.fail
 import org.junit.Rule
@@ -292,6 +294,9 @@ class AppInspectionTreeLoaderTest {
     )
     val (window, _) = treeLoader.loadComponentTree(createFakeData(), ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     window!!.refreshImages(1.0)
+    invokeAndWaitIfNeeded {
+      UIUtil.dispatchAllInvocationEvents()
+    }
 
     assertThat(banner.text.text).isEqualTo(msg)
   }
