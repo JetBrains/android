@@ -82,6 +82,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    ------------------------------------------------------\n" +
       "    Wear\n" +
       "    384 \u00d7 384, xhdpi (Small Round)\n" +
+      "    402 \u00d7 476, xhdpi (Rectangular)\n" +
       "    360 \u00d7 360, xhdpi (Square)\n" +
       "    454 \u00d7 454, xhdpi (Large Round)\n" +
       "    ------------------------------------------------------\n" +
