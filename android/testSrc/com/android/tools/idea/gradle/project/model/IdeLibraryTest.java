@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.model.stubs.AndroidLibraryStub;
 import com.android.tools.idea.gradle.model.stubs.JavaLibraryStub;
 import com.android.tools.idea.gradle.model.stubs.LibraryStub;
 import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub;
-import com.android.tools.idea.gradle.project.sync.ModelCacheKt;
+import com.android.tools.idea.gradle.project.sync.ModelCacheV1ImplKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import java.io.File;
@@ -243,9 +243,9 @@ public class IdeLibraryTest {
       buildFoldersPath.addBuildFolderMapping(
         "project", ":androidLib", new File("/ProjectRoot/androidLib/build/")
       );
-      Assert.assertTrue(ModelCacheKt.isLocalAarModule(buildFoldersPath, localAarLibrary));
-      Assert.assertFalse(ModelCacheKt.isLocalAarModule(buildFoldersPath, moduleLibrary));
-      Assert.assertFalse(ModelCacheKt.isLocalAarModule(buildFoldersPath, externalLibrary));
+      Assert.assertTrue(ModelCacheV1ImplKt.isLocalAarModule(buildFoldersPath, localAarLibrary));
+      Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFoldersPath, moduleLibrary));
+      Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFoldersPath, externalLibrary));
     }
 
   @Test
@@ -348,11 +348,11 @@ public class IdeLibraryTest {
     buildFolderPaths.addBuildFolderMapping(
       "Project1", ":androidLib", new File("/Project1/androidLib/build/")
     );
-    Assert.assertTrue(ModelCacheKt.isLocalAarModule(buildFolderPaths, localAarLibraryInRootProject));
-    Assert.assertTrue(ModelCacheKt.isLocalAarModule(buildFolderPaths, localAarLibraryInProject1));
-    Assert.assertFalse(ModelCacheKt.isLocalAarModule(buildFolderPaths, moduleLibraryInRootProject));
-    Assert.assertFalse(ModelCacheKt.isLocalAarModule(buildFolderPaths, moduleLibraryInProject1));
-    Assert.assertFalse(ModelCacheKt.isLocalAarModule(buildFolderPaths, externalLibrary));
+    Assert.assertTrue(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, localAarLibraryInRootProject));
+    Assert.assertTrue(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, localAarLibraryInProject1));
+    Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, moduleLibraryInRootProject));
+    Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, moduleLibraryInProject1));
+    Assert.assertFalse(ModelCacheV1ImplKt.isLocalAarModule(buildFolderPaths, externalLibrary));
   }
 
     @NonNull

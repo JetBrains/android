@@ -133,6 +133,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
@@ -298,19 +299,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  /** Indicates whether the given library is a module wrapping an AAR file.  */
-  fun isLocalAarModule(androidLibrary: AndroidLibrary): Boolean {
-    val projectPath = androidLibrary.project ?: return false
-    val buildFolderPath = buildFolderPaths.findBuildFolderPath(
-      projectPath,
-      copyNewProperty(androidLibrary::getBuildId)
-    )
-    // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
-    return (buildFolderPath != null &&
-            // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
-            !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
-  }
-
   fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeLibrary {
     val core = IdeModuleLibraryCore(
       buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
@@ -437,7 +425,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // Identify such case with the location of aar bundle.
     // If the aar bundle is inside of build directory of sub-module, then it's regular library module dependency, otherwise it's a wrapped aar module.
     val projectPath = androidLibrary.project
-    return if (projectPath != null && !isLocalAarModule(androidLibrary)) {
+    return if (projectPath != null && !isLocalAarModule(buildFolderPaths, androidLibrary)) {
       createIdeModuleLibrary(androidLibrary, projectPath)
     }
     else {
@@ -1205,6 +1193,13 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
 val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
 
+private inline fun <T> safeGet(original: () -> T, default: T): T = try {
+  original()
+}
+catch (ignored: UnsupportedOperationException) {
+  default
+}
+
 private inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defaultValue: () -> T): T {
   return try {
     propertyInvoker()
@@ -1260,4 +1255,60 @@ private inline fun <T : Collection<*>?> copyNewProperty(propertyInvoker: () -> T
 private inline fun <T : Map<*, *>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
 
 private fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
+
+private inline fun <K, V : Any> copyNewModel(
+  getter: () -> K?,
+  mapper: (K) -> V
+): V? {
+  return try {
+    val key: K? = getter()
+    if (key != null) mapper(key) else null
+  }
+  catch (ignored: UnsupportedOperationException) {
+    null
+  }
+}
+
+private inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
+
+@JvmName("copyModelNullable")
+private inline fun <K : Any, V> copyModel(key: K?, mappingFunction: (K) -> V): V? = key?.let(mappingFunction)
+
+private inline fun <K, V> copy(original: () -> Collection<K>, mapper: (K) -> V): List<V> =
+  safeGet(original, listOf()).map(mapper)
+
+private inline fun <K, V> copy(original: () -> Set<K>, mapper: (K) -> V): Set<V> =
+  safeGet(original, setOf()).map(mapper).toSet()
+
+private inline fun <K, V, R> copy(original: () -> Map<K, V>, mapper: (V) -> R): Map<K, R> =
+  safeGet(original, mapOf()).mapValues { (_, v) -> mapper(v) }
+
+internal inline fun <K : Any, R : Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+private inline fun <T : Any?> copyNewProperty(propertyInvoker: () -> T?): T? {
+  return try {
+    propertyInvoker()
+  }
+  catch (ignored: UnsupportedOperationException) {
+    null
+  }
+}
+
+/** Indicates whether the given library is a module wrapping an AAR file.  */
+@VisibleForTesting
+fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: AndroidLibrary): Boolean {
+  val projectPath = androidLibrary.project ?: return false
+  val buildFolderPath = buildFolderPaths.findBuildFolderPath(
+    projectPath,
+    copyNewProperty(androidLibrary::getBuildId)
+  )
+  // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
+  return (buildFolderPath != null &&
+          // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
+          !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
+}
 

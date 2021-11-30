@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.SdkConstants
 import com.android.builder.model.v2.ModelSyncFile
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ClassField
@@ -106,6 +105,7 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
@@ -120,15 +120,9 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.ThrowingIdeDependencies
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantInfoImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
@@ -137,7 +131,6 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
 import java.io.File
-import java.util.HashMap
 
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
@@ -192,9 +185,15 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     }
   }
 
-  fun deduplicateString(s: String): String = strings.putIfAbsent(s, s) ?: s
-  fun String.deduplicate() = deduplicateString(this)
+  fun String.deduplicate() = strings.putIfAbsent(this, this) ?: this
+  fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
+  fun Set<String>.deduplicateStrings(): Set<String> =  this.map { it.deduplicate() }.toSet()
+  fun Collection<String>.deduplicateStrings(): Collection<String> = this.map { it.deduplicate() }
+
   fun deduplicateFile(f: File): File = File(f.path.deduplicate())
+  fun List<File>.deduplicateFiles() = map { deduplicateFile(it) }
+  fun Collection<File>.deduplicateFiles() = map { deduplicateFile(it )}
+
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
     val folder: File? = provider.manifestFile.parentFile
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
@@ -204,15 +203,15 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       myFolder = folder,
       myManifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
       myJavaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
-      myKotlinDirectories = copy(provider::kotlinDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
+      myKotlinDirectories = provider.kotlinDirectories.makeRelativeAndDeduplicate(),
       myResourcesDirectories = provider.resourcesDirectories.makeRelativeAndDeduplicate(),
       myAidlDirectories = provider.aidlDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       myRenderscriptDirectories = provider.renderscriptDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       myResDirectories = provider.resDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       myAssetsDirectories = provider.assetsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
       myJniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
-      myShadersDirectories = copy(provider::shadersDirectories, mapper = { it })?.makeRelativeAndDeduplicate() ?: mutableListOf(),
-      myMlModelsDirectories = copy(provider::mlModelsDirectories, mapper = { it })?.makeRelativeAndDeduplicate() ?: mutableListOf()
+      myShadersDirectories = provider.shadersDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
+      myMlModelsDirectories = provider.mlModelsDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf(),
     )
   }
 
@@ -248,7 +247,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
       name = flavor.name,
-      resValues = copy(flavor::resValues, ::classFieldFrom) ?: mapOf(),
+      resValues = flavor.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
       proguardFiles = ImmutableList.copyOf(flavor.proguardFiles),
       consumerProguardFiles = ImmutableList.copyOf(flavor.consumerProguardFiles),
       // AGP may return internal Groovy GString implementation as a value in
@@ -260,17 +259,17 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       // the manifest merger anyway.
       manifestPlaceholders = ImmutableMap.copyOf(flavor.manifestPlaceholders.entries.associate { it.key to it.value.toString() }),
       applicationIdSuffix = flavor.applicationIdSuffix,
-      versionNameSuffix = copy(flavor::versionNameSuffix),
-      multiDexEnabled = copy(flavor::multiDexEnabled),
+      versionNameSuffix = flavor.versionNameSuffix,
+      multiDexEnabled = flavor.multiDexEnabled,
       testInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.testInstrumentationRunnerArguments),
       resourceConfigurations = ImmutableList.copyOf(flavor.resourceConfigurations),
-      vectorDrawables = copyModel(flavor.vectorDrawables, ::vectorDrawablesOptionsFrom),
+      vectorDrawables = vectorDrawablesOptionsFrom(flavor.vectorDrawables),
       dimension = flavor.dimension,
       applicationId = flavor.applicationId,
       versionCode = flavor.versionCode,
       versionName = flavor.versionName,
-      minSdkVersion = copyModel(flavor.minSdkVersion, ::apiVersionFrom),
-      targetSdkVersion = copyModel(flavor.targetSdkVersion, ::apiVersionFrom),
+      minSdkVersion = flavor.minSdkVersion?.let { it: ApiVersion -> apiVersionFrom(it) },
+      targetSdkVersion = flavor.targetSdkVersion?.let { it: ApiVersion -> apiVersionFrom(it) },
       maxSdkVersion = flavor.maxSdkVersion,
       testApplicationId = flavor.testApplicationId,
       testInstrumentationRunner = flavor.testInstrumentationRunner,
@@ -350,7 +349,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       applicationId =
       if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
         testApplicationId
-      } else {
+      }
+      else {
         applicationId?.plus(if (applicationIdSuffix != null) ".${applicationIdSuffix}" else "")
       },
       versionCode = versionCode,
@@ -371,10 +371,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
       artifactName = if (container.name.startsWith("androidTest")) {
         "_android_test_"
-      } else if (container.name.startsWith("testFixtures")) {
+      }
+      else if (container.name.startsWith("testFixtures")) {
         "_test_fixtures_"
-      } else "_unit_test_",
-      sourceProvider = copyModel(container, ::sourceProviderFrom)
+      }
+      else "_unit_test_",
+      sourceProvider = sourceProviderFrom(container)
     )
   }
 
@@ -382,12 +384,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     productFlavor: ProductFlavor,
     container: SourceSetContainer?): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
-      productFlavor = copyModel(productFlavor, ::productFlavorFrom),
-      sourceProvider = copyModel(container?.sourceProvider, ::sourceProviderFrom),
+      productFlavor = productFlavorFrom(productFlavor),
+      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
       extraSourceProviders = listOfNotNull(
-        copyModel(container?.androidTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container?.unitTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container?.testFixturesSourceProvider, ::sourceProviderContainerFrom)
+        container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.unitTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) }
       )
     )
   }
@@ -395,7 +397,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
       name = buildType.name,
-      resValues = copy(buildType::resValues, ::classFieldFrom) ?: mapOf(),
+      resValues = buildType.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
       proguardFiles = ImmutableList.copyOf(buildType.proguardFiles),
       consumerProguardFiles = ImmutableList.copyOf(buildType.consumerProguardFiles),
       // AGP may return internal Groovy GString implementation as a value in
@@ -407,8 +409,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       // the manifest merger anyway.
       manifestPlaceholders = ImmutableMap.copyOf(buildType.manifestPlaceholders.entries.associate { it.key to it.value.toString() }),
       applicationIdSuffix = buildType.applicationIdSuffix,
-      versionNameSuffix = copy(buildType::versionNameSuffix),
-      multiDexEnabled = copy(buildType::multiDexEnabled),
+      versionNameSuffix = buildType.versionNameSuffix,
+      multiDexEnabled = buildType.multiDexEnabled,
       isDebuggable = buildType.isDebuggable,
       isJniDebuggable = buildType.isJniDebuggable,
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
@@ -420,23 +422,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun buildTypeContainerFrom(buildType: BuildType, container: SourceSetContainer): IdeBuildTypeContainerImpl {
     return IdeBuildTypeContainerImpl(
-      buildType = copyModel(buildType, ::buildTypeFrom),
-      sourceProvider = copyModel(container.sourceProvider, ::sourceProviderFrom),
+      buildType = buildTypeFrom(buildType),
+      sourceProvider = sourceProviderFrom(container.sourceProvider),
       extraSourceProviders = listOfNotNull(
-        copyModel(container.androidTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.unitTestSourceProvider, ::sourceProviderContainerFrom),
-        copyModel(container.testFixturesSourceProvider, ::sourceProviderContainerFrom)
+        container.androidTestSourceProvider?.let { sourceProviderContainerFrom(it) },
+        container.unitTestSourceProvider?.let { sourceProviderContainerFrom(it) },
+        container.testFixturesSourceProvider?.let { sourceProviderContainerFrom(it) }
       )
     )
-  }
-
-  fun getV2SymbolFilePath(androidLibrary: Library): String {
-    return try {
-      androidLibrary.androidLibraryData?.symbolFile?.path ?: ""
-    }
-    catch (e: UnsupportedOperationException) {
-      File(androidLibrary.androidLibraryData?.resFolder?.parentFile, SdkConstants.FN_RESOURCE_TEXT).path
-    }
   }
 
   /**
@@ -460,7 +453,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       compileJarFiles = androidLibraryData.compileJarFiles.map { it.path },
       runtimeJarFiles = androidLibraryData.runtimeJarFiles.map { it.path },
       resFolder = androidLibraryData.resFolder.path ?: "",
-      resStaticLibrary = copy(androidLibraryData::resStaticLibrary),
+      resStaticLibrary = androidLibraryData.resStaticLibrary,
       assetsFolder = androidLibraryData.assetsFolder.path ?: "",
       jniFolder = androidLibraryData.jniFolder.path ?: "",
       aidlFolder = androidLibraryData.aidlFolder.path ?: "",
@@ -468,7 +461,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       proguardRules = androidLibraryData.proguardRules.path ?: "",
       externalAnnotations = androidLibraryData.externalAnnotations.path ?: "",
       publicResources = androidLibraryData.publicResources.path ?: "",
-      symbolFile = getV2SymbolFilePath(androidLibrary),
+      symbolFile = androidLibraryData.symbolFile.path,
       deduplicate = { strings.getOrPut(this) { this } }
     )
     val isProvided = providedLibraries.contains(libraryInfo.toIdentity())
@@ -577,7 +570,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     fun getTypedLibraries(
       dependencies: List<Library>
-    ) : LibrariesByType {
+    ): LibrariesByType {
       return dependencies.groupBy { it.type }.let {
         LibrariesByType(
           androidLibraries = it[LibraryType.ANDROID_LIBRARY] ?: emptyList(),
@@ -695,8 +688,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return createFromDependencies(artifactDependencies, libraries, getVariantNameResolver, buildNameMap)
   }
 
-  fun unresolvedDependenciesFrom(unresolvedDependencies: List<UnresolvedDependency>): List<IdeUnresolvedDependencies> {
-    return unresolvedDependencies.map { IdeUnresolvedDependenciesImpl(it.name, it.cause) }
+  fun List<UnresolvedDependency>.unresolvedDependenciesFrom(): List<IdeUnresolvedDependencies> {
+    return map { IdeUnresolvedDependenciesImpl(it.name, it.cause) }
   }
 
   fun convertV2Execution(execution: TestInfo.Execution?): IdeTestOptions.Execution? {
@@ -758,38 +751,31 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = artifact.classesFolders.single(),
       javaResourcesFolder = null,
-      ideSetupTaskNames = copy(artifact::ideSetupTaskNames).toList(),
-      mutableGeneratedSourceFolders = copy(artifact::generatedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
-      variantSourceProvider = copyNewModel(basicArtifact::variantSourceProvider, ::sourceProviderFrom),
-      multiFlavorSourceProvider = copyNewModel(basicArtifact::multiFlavorSourceProvider, ::sourceProviderFrom),
+      ideSetupTaskNames = artifact.ideSetupTaskNames.toList(),
+      mutableGeneratedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct().toMutableList(),
+      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
+      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
       additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       applicationId = "",
-      generatedResourceFolders = copy(artifact::generatedResourceFolders, ::deduplicateFile).distinct(),
+      generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
       signingConfigName = artifact.signingConfigName,
       abiFilters = ImmutableSet.copyOf(artifact.abiFilters.orEmpty()),
       isSigned = artifact.isSigned,
-      additionalRuntimeApks = if (testInfo != null) copy(testInfo::additionalRuntimeApks, ::deduplicateFile) else emptyList(),
-      testOptions = copyNewModel(artifact::testInfo, ::testOptionsFrom),
+      additionalRuntimeApks = testInfo?.additionalRuntimeApks?.deduplicateFiles() ?: emptyList(),
+      testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
       buildInformation = IdeBuildTasksAndOutputInformationImpl(
         assembleTaskName = artifact.assembleTaskName.deduplicate(),
-        assembleTaskOutputListingFile =
-        copyNewModel(artifact::assembleTaskOutputListingFile, ::deduplicateFile)?.takeUnless { it.path.isEmpty() }?.path,
-        bundleTaskName = if (bundleInfo != null) copyNewModel(bundleInfo::bundleTaskName, ::deduplicateString) else null,
-        bundleTaskOutputListingFile = if (bundleInfo != null) {
-          copyNewModel(bundleInfo::bundleTaskOutputListingFile, ::deduplicateFile)?.path
-        }
-        else null,
-        apkFromBundleTaskName = if (bundleInfo != null) copyNewModel(bundleInfo::apkFromBundleTaskName, ::deduplicateString) else null,
-        apkFromBundleTaskOutputListingFile = if (bundleInfo != null) {
-          copyNewModel(bundleInfo::apkFromBundleTaskOutputListingFile, ::deduplicateFile)?.path
-        }
-        else null
+        assembleTaskOutputListingFile = artifact.assembleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate(),
+        bundleTaskName = bundleInfo?.bundleTaskName?.deduplicate(),
+        bundleTaskOutputListingFile = bundleInfo?.bundleTaskOutputListingFile?.path?.deduplicate(),
+        apkFromBundleTaskName = bundleInfo?.apkFromBundleTaskName?.deduplicate(),
+        apkFromBundleTaskOutputListingFile = bundleInfo?.apkFromBundleTaskOutputListingFile?.path?.deduplicate(),
       ),
-      codeShrinker = convertCodeShrinker(copy(artifact::codeShrinker)),
+      codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == "_android_test_",
-      modelSyncFiles = copy(artifact::modelSyncFiles, ::modelSyncFileFrom)
+      modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
     )
   }
 
@@ -802,7 +788,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   ): IdeAndroidArtifactImpl {
     return artifact.copy(
       level2Dependencies = dependenciesFrom(artifactDependencies, libraries, getVariantNameResolver, buildNameMap),
-      unresolvedDependencies = copyNewModel(artifactDependencies::unresolvedDependencies, ::unresolvedDependenciesFrom) ?: emptyList()
+      unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }
 
@@ -817,14 +803,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       assembleTaskName = artifact.assembleTaskName,
       classesFolder = artifact.classesFolders.single(),
       javaResourcesFolder = null,
-      ideSetupTaskNames = copy(artifact::ideSetupTaskNames, ::deduplicateString).toList(),
-      mutableGeneratedSourceFolders = copy(artifact::generatedSourceFolders, ::deduplicateFile).distinct().toMutableList(),
-      variantSourceProvider = copyNewModel(basicArtifact::variantSourceProvider, ::sourceProviderFrom),
-      multiFlavorSourceProvider = copyNewModel(basicArtifact::multiFlavorSourceProvider, ::sourceProviderFrom),
+      ideSetupTaskNames = artifact.ideSetupTaskNames.deduplicateStrings(),
+      mutableGeneratedSourceFolders = artifact.generatedSourceFolders.deduplicateFiles().distinct().toMutableList(),
+      variantSourceProvider = basicArtifact.variantSourceProvider?.let { sourceProviderFrom(it) },
+      multiFlavorSourceProvider = basicArtifact.multiFlavorSourceProvider?.let { sourceProviderFrom(it) },
       additionalClassesFolders = artifact.additionalClassesFolders,
       level2Dependencies = ThrowingIdeDependencies(),
       unresolvedDependencies = emptyList(),
-      mockablePlatformJar = copy(artifact::mockablePlatformJar),
+      mockablePlatformJar = artifact.mockablePlatformJar,
       isTestArtifact = name == "_unit_test_"
     )
   }
@@ -838,7 +824,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   ): IdeJavaArtifactImpl {
     return artifact.copy(
       level2Dependencies = dependenciesFrom(variantDependencies, libraries, getVariantNameResolver, buildNameMap),
-      unresolvedDependencies = copyNewModel(variantDependencies::unresolvedDependencies, ::unresolvedDependenciesFrom) ?: emptyList()
+      unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
     )
   }
 
@@ -849,7 +835,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun getTestedTargetVariants(variant: Variant): List<IdeTestedTargetVariantImpl> {
     if (variant.testedTargetVariant == null) return emptyList()
-    return listOf(copyModel(variant.testedTargetVariant!!, ::ideTestedTargetVariantFrom))
+    return listOf(ideTestedTargetVariantFrom(variant.testedTargetVariant!!))
   }
 
   fun variantFrom(
@@ -880,23 +866,21 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return IdeVariantImpl(
       name = variant.name,
       displayName = variant.displayName,
-      mainArtifact = copyModel(variant.mainArtifact) {
-        androidArtifactFrom("_main_", basicVariant.mainArtifact, it)
-      },
+      mainArtifact = androidArtifactFrom("_main_", basicVariant.mainArtifact, variant.mainArtifact),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
-      unitTestArtifact = copyModel(variant.unitTestArtifact) {
+      unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
         javaArtifactFrom("_unit_test_", basicVariant.unitTestArtifact!!, it)
       },
-      androidTestArtifact = copyModel(variant.androidTestArtifact) {
+      androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom("_android_test_", basicVariant.androidTestArtifact!!, it)
       },
-      testFixturesArtifact = copyModel(variant.testFixturesArtifact) {
+      testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom("_test_fixtures_", basicVariant.testFixturesArtifact!!, it)
       },
       buildType = basicVariant.buildType ?: "",
       productFlavors = ImmutableList.copyOf(basicVariant.productFlavors),
-      minSdkVersion = copyModel(variant.mainArtifact.minSdkVersion) { apiVersionFrom(it) },
-      targetSdkVersion = copyModel(variant.mainArtifact.targetSdkVersionOverride) { apiVersionFrom(it) },
+      minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
+      targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
       maxSdkVersion = variant.mainArtifact.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
@@ -930,10 +914,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
         javaArtifactFrom(it, variantDependencies.unitTestArtifact!!, variantDependencies.libraries, getVariantNameResolver, buildNameMap)
       },
       androidTestArtifact = variant.androidTestArtifact?.let {
-        androidArtifactFrom(it, variantDependencies.androidTestArtifact!!, variantDependencies.libraries, getVariantNameResolver, buildNameMap)
-      }      ,
+        androidArtifactFrom(it, variantDependencies.androidTestArtifact!!, variantDependencies.libraries, getVariantNameResolver,
+                            buildNameMap)
+      },
       testFixturesArtifact = variant.testFixturesArtifact?.let {
-        androidArtifactFrom(it, variantDependencies.testFixturesArtifact!!, variantDependencies.libraries, getVariantNameResolver, buildNameMap)
+        androidArtifactFrom(it, variantDependencies.testFixturesArtifact!!, variantDependencies.libraries, getVariantNameResolver,
+                            buildNameMap)
       },
     )
   }
@@ -944,21 +930,21 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       sourceFlagsFile = nativeAbi.sourceFlagsFile,
       symbolFolderIndexFile = nativeAbi.symbolFolderIndexFile,
       buildFileIndexFile = nativeAbi.buildFileIndexFile,
-      additionalProjectFilesIndexFile = copy(nativeAbi::additionalProjectFilesIndexFile)
+      additionalProjectFilesIndexFile = nativeAbi.additionalProjectFilesIndexFile
     )
   }
 
   fun nativeVariantFrom(nativeVariant: NativeVariant): IdeNativeVariantImpl {
     return IdeNativeVariantImpl(
       name = nativeVariant.name,
-      abis = copy(nativeVariant::abis, ::nativeAbiFrom)
+      abis = nativeVariant.abis.map { nativeAbiFrom(it) },
     )
   }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl {
     return IdeNativeModuleImpl(
       name = nativeModule.name,
-      variants = copy(nativeModule::variants, ::nativeVariantFrom),
+      variants = nativeModule.variants.map { nativeVariantFrom(it) },
       nativeBuildSystem = when (nativeModule.nativeBuildSystem) {
         NativeBuildSystem.NDK_BUILD -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.NDK_BUILD
         NativeBuildSystem.CMAKE -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.CMAKE
@@ -973,7 +959,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun severityOverridesFrom(lintOptions: LintOptions): Map<String, Int>? {
     val severityOverrides = mutableMapOf<String, Int>()
-    lintOptions.fatal.forEach{ severityOverrides[it] = SEVERITY_FATAL }
+    lintOptions.fatal.forEach { severityOverrides[it] = SEVERITY_FATAL }
     lintOptions.error.forEach { severityOverrides[it] = SEVERITY_ERROR }
     lintOptions.warning.forEach { severityOverrides[it] = SEVERITY_WARNING }
     lintOptions.informational.forEach { severityOverrides[it] = SEVERITY_INFORMATIONAL }
@@ -987,13 +973,13 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       options.baseline
     else
       null,
-    lintConfig = copy(options::lintConfig),
+    lintConfig = options.lintConfig,
     severityOverrides = severityOverridesFrom(options),
     isCheckTestSources = modelVersion != null && options.checkTestSources,
     isCheckDependencies = options.checkDependencies,
-    disable = copy(options::disable, ::deduplicateString),
-    enable = copy(options::enable, ::deduplicateString),
-    check = copy(options::checkOnly, ::deduplicateString),
+    disable = options.disable.deduplicateStrings(),
+    enable = options.enable.deduplicateStrings(),
+    check = options.checkOnly.deduplicateStrings(),
     isAbortOnError = options.abortOnError,
     isAbsolutePaths = options.absolutePaths,
     isNoLines = options.noLines,
@@ -1007,11 +993,11 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     isExplainIssues = options.explainIssues,
     isShowAll = options.showAll,
     textReport = options.textReport,
-    textOutput = copy(options::textOutput),
+    textOutput = options.textOutput,
     htmlReport = options.htmlReport,
-    htmlOutput = copy(options::htmlOutput),
+    htmlOutput = options.htmlOutput,
     xmlReport = options.xmlReport,
-    xmlOutput = copy(options::xmlOutput),
+    xmlOutput = options.xmlOutput,
     isCheckReleaseBuilds = options.checkReleaseBuilds
   )
 
@@ -1070,15 +1056,15 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   )
 
   fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
-     IdeAndroidGradlePluginProjectFlagsImpl(
-        applicationRClassConstantIds =
-        AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
-        testRClassConstantIds = AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.getValue(flags),
-        transitiveRClasses = AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS.getValue(flags),
-        usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
-        mlModelBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING.getValue(flags),
-        unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
-      )
+    IdeAndroidGradlePluginProjectFlagsImpl(
+      applicationRClassConstantIds =
+      AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
+      testRClassConstantIds = AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS.getValue(flags),
+      transitiveRClasses = AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS.getValue(flags),
+      usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
+      mlModelBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING.getValue(flags),
+      unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
+    )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
     // TODO(b/187504821): is the number of supported project type in V2 reduced ? this is a restricted list compared to V1.
@@ -1097,26 +1083,25 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     androidDsl: AndroidDsl
   ): IdeAndroidProjectImpl {
     val parsedModelVersion = GradleVersion.tryParse(modelsVersions.agp)
-    val defaultConfigCopy: IdeProductFlavorContainer = copyModel2(androidDsl.defaultConfig, basicProject.mainSourceSet,
-                                                                 ::productFlavorContainerFrom)
-    val buildTypesCopy: Collection<IdeBuildTypeContainer> = copy(androidDsl::buildTypes, basicProject::buildTypeSourceSets,
-                                                                 ::buildTypeContainerFrom)
-    val productFlavorCopy: Collection<IdeProductFlavorContainer> = copy(androidDsl::productFlavors, basicProject::productFlavorSourceSets,
-                                                                        ::productFlavorContainerFrom)
-    val variantNamesCopy: Collection<String> = copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
-    val flavorDimensionCopy: Collection<String> = copy(androidDsl::flavorDimensions, ::deduplicateString)
+    val defaultConfigCopy: IdeProductFlavorContainer = productFlavorContainerFrom(androidDsl.defaultConfig, basicProject.mainSourceSet)
+    val buildTypesCopy: Collection<IdeBuildTypeContainer> = zip(androidDsl.buildTypes, basicProject.buildTypeSourceSets,
+                                                                ::buildTypeContainerFrom)
+    val productFlavorCopy: Collection<IdeProductFlavorContainer> = zip(androidDsl.productFlavors, basicProject.productFlavorSourceSets,
+                                                                       ::productFlavorContainerFrom)
+    val variantNamesCopy: Collection<String> = project.variants.map { it.name }
+    val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
-    val signingConfigsCopy: Collection<IdeSigningConfig> = copy(androidDsl::signingConfigs, ::signingConfigFrom)
-    val lintOptionsCopy: IdeLintOptions = copyModel(androidDsl.lintOptions, { lintOptionsFrom(it, parsedModelVersion) })
-    val javaCompileOptionsCopy = copyModel(project.javaCompileOptions, ::javaCompileOptionsFrom)
-    val aaptOptionsCopy = copyModel(androidDsl.aaptOptions, ::aaptOptionsFrom)
-    val dynamicFeaturesCopy: Collection<String> = copy(project::dynamicFeatures, ::deduplicateString) ?: listOf()
+    val signingConfigsCopy: Collection<IdeSigningConfig> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
+    val lintOptionsCopy: IdeLintOptions = lintOptionsFrom(androidDsl.lintOptions, parsedModelVersion)
+    val javaCompileOptionsCopy = javaCompileOptionsFrom(project.javaCompileOptions)
+    val aaptOptionsCopy = aaptOptionsFrom(androidDsl.aaptOptions)
+    val dynamicFeaturesCopy: Collection<String> = project.dynamicFeatures?.deduplicateStrings() ?: listOf()
     val variantBuildInformation = createVariantBuildInformation(project, parsedModelVersion)
-    val viewBindingOptionsCopy: IdeViewBindingOptions? = copyNewModel(project::viewBindingOptions, ::viewBindingOptionsFrom)
-    val dependenciesInfoCopy: IdeDependenciesInfo? = copyNewModel(androidDsl::dependenciesInfo, ::dependenciesInfoFrom)
-    val buildToolsVersionCopy = copy(androidDsl::buildToolsVersion)
+    val viewBindingOptionsCopy: IdeViewBindingOptions? = project.viewBindingOptions?.let { viewBindingOptionsFrom(it) }
+    val dependenciesInfoCopy: IdeDependenciesInfo? = androidDsl.dependenciesInfo?.let { dependenciesInfoFrom(it) }
+    val buildToolsVersionCopy = androidDsl.buildToolsVersion
     val groupId = androidDsl.groupId
-    val lintChecksJarsCopy: List<File>? = copy(project::lintChecksJars, ::deduplicateFile)
+    val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
     val agpFlags: IdeAndroidGradlePluginProjectFlags = androidGradlePluginProjectFlagsFrom(project.flags)
 
@@ -1187,33 +1172,16 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
 
-    // For native models, if we don't find v2 models, we fall back to V1.
     override fun nativeVariantAbiFrom(variantAbi: com.android.builder.model.NativeVariantAbi): IdeNativeVariantAbiImpl =
       throw UnsupportedOperationException("com.android.builder.model.NativeVariantAbi is a model v1 concept")
 
-    override fun nativeAndroidProjectFrom(project: com.android.builder.model.NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl =
+    override fun nativeAndroidProjectFrom(project: com.android.builder.model.NativeAndroidProject,
+                                          ndkVersion: String): IdeNativeAndroidProjectImpl =
       throw UnsupportedOperationException("com.android.builder.model.NativeAndroidProject is a model v1 concept")
   }
 }
 
-@JvmName("copy1")
-private inline fun <T : Any?> copy(propertyInvoker: () -> T?): T? {
-  return propertyInvoker()
-}
-
-private inline fun <T : Any> copy(propertyInvoker: () -> T): T {
-  return propertyInvoker()
-}
-
-private inline fun <K, V> copy(original: () -> Collection<K>?, mapper: (K) -> V): List<V>? =
-  ModelCache.safeGet(original, null)?.map(mapper)
-
-private inline fun <K, V, R> copy(original: () -> Map<K, V>?, mapper: (V) -> R): Map<K, R>? =
-  ModelCache.safeGet(original, mapOf())?.mapValues { (_, v) -> mapper(v) }
-
-private inline fun <K, R, V> copy(o1: () -> Collection<K>, o2: () -> Collection<R>, mapper: (K, R) -> V): List<V> {
-  val original1 = ModelCache.safeGet(o1, listOf())
-  val original2 = ModelCache.safeGet(o2, listOf())
+private inline fun <K, R, V> zip(original1: Collection<K>, original2: Collection<R>, mapper: (K, R) -> V): List<V> {
   return original1.zip(original2).toMap().map { (k, v) -> mapper(k, v) }
 }
 
@@ -1265,3 +1233,5 @@ private fun LibraryInfo.toIdentity() =
     attributes.filterKeys { it != "org.gradle.usage" },
     capabilities
   )
+
+

@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.build.OutputFile
-import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.Library
 import com.android.builder.model.NativeAndroidProject
@@ -26,9 +25,10 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
+import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
-import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSortedSet
 import com.intellij.openapi.util.io.FileUtil
@@ -115,68 +114,12 @@ interface ModelCache {
     fun create(): ModelCache {
       return modelCacheV1Impl(BuildFolderPaths())
     }
-
-    @JvmStatic
-    inline fun <T> safeGet(original: () -> T, default: T): T = try {
-      original()
-    }
-    catch (ignored: UnsupportedOperationException) {
-      default
-    }
   }
 }
 
 data class ModuleId(val gradlePath: String, val buildId: String)
 
-internal inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
 
-@JvmName("copyModelNullable")
-internal inline fun <K : Any, V> copyModel(key: K?, mappingFunction: (K) -> V): V? = key?.let(mappingFunction)
-
-internal inline fun <K : Any, R: Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
-
-@JvmName("copyModelNullable")
-internal inline fun <K : Any, R: Any, V> copyModel2(key: K, key2: R?, mappingFunction: (K, R?) -> V): V = mappingFunction(key, key2)
-
-internal inline fun <K : Any, R : Any, V> copyNullableModel(key: K?,
-                                                    key2: R?,
-                                                    mappingFunction: (K, R) -> V): V? =
-  if (key != null && key2 != null) mappingFunction(key, key2) else null
-
-internal inline fun <K, V : Any> copyNewModel(
-  getter: () -> K?,
-  mapper: (K) -> V
-): V? {
-  return try {
-    val key: K? = getter()
-    if (key != null) mapper(key) else null
-  }
-  catch (ignored: UnsupportedOperationException) {
-    null
-  }
-}
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
-internal inline fun <T : Any?>copyNewProperty(propertyInvoker: () -> T?): T? {
-  return try {
-    propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
-    null
-  }
-}
-
-internal inline fun <K, V> copy(original: () -> Collection<K>, mapper: (K) -> V): List<V> =
-  ModelCache.safeGet(original, listOf()).map(mapper)
-
-internal inline fun <K, V> copy(original: () -> Set<K>, mapper: (K) -> V): Set<V> =
-  ModelCache.safeGet(original, setOf()).map(mapper).toSet()
-
-internal inline fun <K, V, R> copy(original: () -> Map<K, V>, mapper: (V) -> R): Map<K, R> =
-  ModelCache.safeGet(original, mapOf()).mapValues { (_, v) -> mapper(v) }
 
 @VisibleForTesting
 /** For older AGP versions pick a variant name based on a heuristic  */
@@ -199,20 +142,6 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   }
   // Otherwise fall back to the first alphabetically
   return sortedNames.first()
-}
-
-/** Indicates whether the given library is a module wrapping an AAR file.  */
-@VisibleForTesting
-fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: AndroidLibrary): Boolean {
-  val projectPath = androidLibrary.project ?: return false
-  val buildFolderPath = buildFolderPaths.findBuildFolderPath(
-    projectPath,
-    copyNewProperty(androidLibrary::getBuildId)
-  )
-  // If the aar bundle is inside of build directory, then it's a regular library module dependency, otherwise it's a wrapped aar module.
-  return (buildFolderPath != null &&
-          // Comparing two absolute paths received from Gradle and thus they don't need canonicalization.
-          !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
 }
 
 internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {

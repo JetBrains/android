@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.v2.ide.BasicVariant
-import com.android.builder.model.v2.ide.Variant
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.safeGet
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
@@ -100,9 +97,8 @@ class AndroidModule constructor(
   val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
   fun getVariantAbiNames(variantName: String): Collection<String>? {
-    fun unsafeGet() = nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
+    return nativeModule?.variants?.firstOrNull { it.name == variantName }?.abis?.map { it.name }
                       ?: nativeAndroidProject?.variantInfos?.get(variantName)?.abiNames
-    return safeGet(::unsafeGet, null)
   }
 
 
