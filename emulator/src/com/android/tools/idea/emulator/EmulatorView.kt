@@ -178,11 +178,11 @@ class EmulatorView(
     get() = screenshotShape.displayMode ?: emulator.emulatorConfig.displayModes.firstOrNull()
 
   /** Count of received display frames. */
-  @VisibleForTesting
+  @get:VisibleForTesting
   var frameNumber = 0
     private set
   /** Time of the last frame update in milliseconds since epoch. */
-  @VisibleForTesting
+  @get:VisibleForTesting
   var frameTimestampMillis = 0L
     private set
 
