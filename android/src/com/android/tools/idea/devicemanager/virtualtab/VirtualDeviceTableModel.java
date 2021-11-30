@@ -17,13 +17,16 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
@@ -32,8 +35,21 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
   static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
-  private @NotNull List<@NotNull AvdInfo> myDevices = Collections.emptyList();
-  private final @NotNull Map<@NotNull AvdInfo, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap = new HashMap<>();
+  private @NotNull List<@NotNull AvdInfo> myDevices;
+  private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
+  private final @NotNull Map<@NotNull AvdInfo, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
+
+  VirtualDeviceTableModel() {
+    this(Collections.emptyList(), AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning);
+  }
+
+  @VisibleForTesting
+  VirtualDeviceTableModel(@NotNull List<@NotNull AvdInfo> devices, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+    myDevices = devices;
+    myIsAvdRunning = isAvdRunning;
+
+    myDeviceToSizeOnDiskMap = new HashMap<>();
+  }
 
   static final class Actions {
     @SuppressWarnings("InstantiationOfUtilityClass")
@@ -104,7 +120,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return VirtualDevices.build(myDevices.get(modelRowIndex)).getApi();
+        return VirtualDevices.build(myDevices.get(modelRowIndex), myIsAvdRunning).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return myDeviceToSizeOnDiskMap.computeIfAbsent(myDevices.get(modelRowIndex), device -> new SizeOnDisk(device, this));
       case ACTIONS_MODEL_COLUMN_INDEX:

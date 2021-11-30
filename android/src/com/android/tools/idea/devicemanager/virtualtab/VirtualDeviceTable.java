@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
@@ -35,6 +36,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import javax.swing.ActionMap;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JComponent;
@@ -49,17 +52,31 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
+  private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    super(new VirtualDeviceTableModel());
-    myPanel = panel;
+    this(panel,
+         new VirtualDeviceTableModel(),
+         () -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true),
+         AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning
+    );
+  }
 
-    TableModel model = getModel();
+  @VisibleForTesting
+  VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
+                     @NotNull VirtualDeviceTableModel model,
+                     @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds,
+                     @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+    super(model);
+
+    myPanel = panel;
+    myGetAvds = getAvds;
+
     model.addTableModelListener(event -> sizeWidthsToFit());
 
     setDefaultEditor(Actions.class, new ActionsTableCell(this));
 
-    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
+    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer(isAvdRunning));
     setDefaultRenderer(Actions.class, new ActionsTableCell(this));
 
     setRowSorter(newRowSorter(model));
@@ -173,7 +190,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
   @Override
   public void refreshAvds() {
-    List<AvdInfo> devices = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
+    List<AvdInfo> devices = myGetAvds.get();
     getModel().setDevices(devices);
 
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
