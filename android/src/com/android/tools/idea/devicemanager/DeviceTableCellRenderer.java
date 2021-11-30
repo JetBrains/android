@@ -44,6 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
+  private final @NotNull Class<@NotNull D> myValueClass;
+  private final @NotNull WearPairingManager myManager;
+
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myOnlineLabel;
@@ -51,9 +54,15 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
 
-  private final @NotNull Class<@NotNull D> myValueClass;
-
   protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
+    this(valueClass, WearPairingManager.INSTANCE);
+  }
+
+  @VisibleForTesting
+  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull WearPairingManager manager) {
+    myValueClass = valueClass;
+    myManager = manager;
+
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myOnlineLabel = new JBLabel();
@@ -91,8 +100,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     layout.setVerticalGroup(verticalGroup);
 
     myPanel.setLayout(layout);
-
-    myValueClass = valueClass;
   }
 
   @Override
@@ -161,8 +168,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return new JBColor(new Color(red, green, blue), color.darker());
   }
 
-  private static @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
-    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(device.getKey().toString());
+  private @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+    PhoneWearPair pair = myManager.getPairedDevices(device.getKey().toString());
 
     if (pair == null) {
       return Optional.empty();

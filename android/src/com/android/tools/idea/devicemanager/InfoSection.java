@@ -82,9 +82,10 @@ public class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device) {
+  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device,
+                                                                               @NotNull WearPairingManager manager) {
     String key = device.getKey().toString();
-    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(key);
+    PhoneWearPair pair = manager.getPairedDevices(key);
 
     if (pair == null) {
       return Optional.empty();

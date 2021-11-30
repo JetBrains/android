@@ -27,6 +27,7 @@ import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,11 +61,13 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   VirtualDeviceDetailsPanel(@NotNull AvdInfo device) {
-    this(device, AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning);
+    this(device, AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting
-  VirtualDeviceDetailsPanel(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+  VirtualDeviceDetailsPanel(@NotNull AvdInfo device,
+                            @NotNull Predicate<@NotNull AvdInfo> isAvdRunning,
+                            @NotNull WearPairingManager manager) {
     super(device.getDisplayName());
     myDevice = device;
 
@@ -72,7 +75,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initPropertiesSection();
 
     myInfoSections.add(mySummarySection);
-    InfoSection.newPairedDeviceSection(VirtualDevices.build(device, isAvdRunning)).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(VirtualDevices.build(device, isAvdRunning), manager).ifPresent(myInfoSections::add);
 
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && isWearOrPhone(device)) {
       myPairedDevicesPanel = new PairedDevicesPanel(new VirtualDeviceName(myDevice.getName()), this);

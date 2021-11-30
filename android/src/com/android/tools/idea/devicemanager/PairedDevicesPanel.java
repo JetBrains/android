@@ -45,6 +45,7 @@ import javax.swing.JComponent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import kotlin.Unit;
+import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 import kotlinx.coroutines.GlobalScope;
 import org.jetbrains.annotations.NotNull;
@@ -52,19 +53,22 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implements Disposable, PairingStatusChangedListener {
   private final @NotNull Key myDeviceId;
+  private final @NotNull WearPairingManager myManager;
 
   public PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent) {
     super(new BorderLayout());
 
     myDeviceId = deviceId;
-    createUi(WearPairingManager.INSTANCE.getPairedDevices(myDeviceId.toString()));
-    WearPairingManager.INSTANCE.addDevicePairingStatusChangedListener(this);
+    myManager = WearPairingManager.INSTANCE;
+
+    createUi(myManager.getPairedDevices(myDeviceId.toString()));
+    myManager.addDevicePairingStatusChangedListener(this);
     Disposer.register(parent, this);
   }
 
   @Override
   public void dispose() {
-    WearPairingManager.INSTANCE.removeDevicePairingStatusChangedListener(this);
+    myManager.removeDevicePairingStatusChangedListener(this);
   }
 
   private static @NotNull String getConnectionStatus(@NotNull PairingState pairingState) {
@@ -170,7 +174,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     new WearDevicePairingWizard().show(project, myDeviceId.toString());
   }
 
-  private static void unpairDevice(@NotNull String deviceId) {
+  private void unpairDevice(@NotNull String deviceId) {
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
       .setKind(EventKind.PHYSICAL_UNPAIR_DEVICE_ACTION)
       .build();
@@ -178,8 +182,8 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     DeviceManagerUsageTracker.log(event);
 
     try {
-      BuildersKt.runBlocking(GlobalScope.INSTANCE.getCoroutineContext(),
-                             (scope, continuation) -> WearPairingManager.INSTANCE.removePairedDevices(deviceId, true, continuation));
+      CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
+      BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(deviceId, true, continuation));
     }
     catch (InterruptedException exception) {
       Thread.currentThread().interrupt();

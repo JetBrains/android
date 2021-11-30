@@ -42,10 +42,13 @@ import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonTableCellEditor {
   private final @NotNull PhysicalDevicePanel myPanel;
+  private final @NotNull WearPairingManager myManager;
+
   private Device myDevice;
 
   PhysicalDevicePopUpMenuButtonTableCellEditor(@NotNull PhysicalDevicePanel panel) {
     myPanel = panel;
+    myManager = WearPairingManager.INSTANCE;
   }
 
   @Override
@@ -105,7 +108,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
   @SuppressWarnings("unused")
   private @NotNull Optional<@NotNull JComponent> newUnpairDeviceItem() {
     String key = myDevice.getKey().toString();
-    PhoneWearPair pair = WearPairingManager.INSTANCE.getPairedDevices(key);
+    PhoneWearPair pair = myManager.getPairedDevices(key);
 
     if (pair == null) {
       return Optional.empty();
@@ -123,7 +126,7 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
 
       try {
         CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-        BuildersKt.runBlocking(context, (scope, continuation) -> WearPairingManager.INSTANCE.removePairedDevices(key, true, continuation));
+        BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(key, true, continuation));
       }
       catch (InterruptedException exception) {
         Thread.currentThread().interrupt();
