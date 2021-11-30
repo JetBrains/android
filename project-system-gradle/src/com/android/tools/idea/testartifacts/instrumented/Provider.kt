@@ -38,7 +38,6 @@ class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
     launchOptions: LaunchOptions
   ): LaunchTasksProvider? {
     if (runConfiguration !is AndroidTestRunConfiguration) return null
-    showGradleAndroidTestRunnerOptInDialog(runConfiguration.project)
 
     if (getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
       // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
