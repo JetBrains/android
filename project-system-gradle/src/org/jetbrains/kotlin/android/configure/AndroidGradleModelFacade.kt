@@ -10,16 +10,13 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.idea.inspections.gradle.KotlinGradleModelFacade
 import org.jetbrains.kotlin.idea.inspections.gradle.findModulesByNames
-import com.android.builder.model.Library
 
 class AndroidGradleModelFacade : KotlinGradleModelFacade {
     override fun getResolvedKotlinStdlibVersionByModuleData(moduleData: DataNode<*>, libraryIds: List<String>): String? {
-        ExternalSystemApiUtil
-                .findAllRecursively(moduleData, AndroidProjectKeys.JAVA_MODULE_MODEL).asSequence()
+        ExternalSystemApiUtil.findAllRecursively(moduleData, AndroidProjectKeys.JAVA_MODULE_MODEL).asSequence()
                 .flatMap { it.data.jarLibraryDependencies.asSequence() }
                 .forEach {
                     val libraryName = it.name
@@ -42,7 +39,7 @@ class AndroidGradleModelFacade : KotlinGradleModelFacade {
             val projectIds = modules.mapNotNull { it.projectPath }
             return projectIds.mapNotNullTo(LinkedHashSet()) { projectId ->
                 ExternalSystemApiUtil.findFirstRecursively(ideProject) {
-                    (it.data as? ModuleData)?.id == projectId
+                  (it.data as? ModuleData)?.id == projectId
                 } as DataNode<ModuleData>?
             }
 
