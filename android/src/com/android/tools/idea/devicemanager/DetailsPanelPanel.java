@@ -27,12 +27,12 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DetailsPanelPanel2 extends JBPanel<DetailsPanelPanel2> implements Disposable {
+final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disposable {
   private final @NotNull JComponent myScrollPane;
   private @Nullable Disposable myDetailsPanel;
   private @Nullable Splitter mySplitter;
 
-  public DetailsPanelPanel2(@NotNull JComponent scrollPane) {
+  DetailsPanelPanel(@NotNull JComponent scrollPane) {
     super(new BorderLayout());
 
     myScrollPane = scrollPane;

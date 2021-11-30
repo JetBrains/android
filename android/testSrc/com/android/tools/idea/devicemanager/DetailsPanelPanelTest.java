@@ -27,12 +27,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public final class DetailsPanelPanel2Test {
+public final class DetailsPanelPanelTest {
   private final JComponent myScrollPane = new JBScrollPane();
-  private final DetailsPanelPanel2 myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+  private final DetailsPanelPanel myDetailsPanelPanel = new DetailsPanelPanel(myScrollPane);
 
   @Test
-  public void detailsPanelPanel2() {
+  public void detailsPanelPanel() {
     // Assert
     assertArrayEquals(new Object[]{myScrollPane}, myDetailsPanelPanel.getComponents());
   }

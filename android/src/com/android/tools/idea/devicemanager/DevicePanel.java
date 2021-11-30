@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class DevicePanel extends JBPanel<DevicePanel> implements Disposable {
   protected JTable myTable;
   protected JComponent myScrollPane;
-  protected DetailsPanelPanel2 myDetailsPanelPanel;
+  protected DetailsPanelPanel myDetailsPanelPanel;
 
   protected DevicePanel() {
     super(null);
@@ -39,7 +39,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
   protected abstract @NotNull JTable newTable();
 
   protected final void initDetailsPanelPanel() {
-    myDetailsPanelPanel = new DetailsPanelPanel2(myScrollPane);
+    myDetailsPanelPanel = new DetailsPanelPanel(myScrollPane);
     Disposer.register(this, myDetailsPanelPanel);
   }
 
