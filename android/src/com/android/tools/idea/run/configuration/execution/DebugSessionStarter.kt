@@ -16,12 +16,13 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
+import com.android.ddmlib.ClientData.DebuggerStatus
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.DeploymentApplicationService
+import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
+import com.google.common.util.concurrent.Uninterruptibles
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.DefaultDebugEnvironment
 import com.intellij.debugger.engine.JavaDebugProcess
@@ -37,26 +38,29 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
-import java.util.concurrent.CountDownLatch
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class DebugSessionStarter(private val environment: ExecutionEnvironment) {
 
-  private val configuration = environment.runProfile as AndroidWearConfiguration
+  private val configuration = environment.runProfile as ComponentSpecificConfiguration
   private val project = configuration.project
   private val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
                       ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
   @WorkerThread
-  fun attachDebuggerToClient(device: IDevice, processHandler: AndroidProcessHandlerForDevices, consoleView: ConsoleView): RunContentDescriptor {
-    waitForClient(device)
-    val client = device.getClient(appId)
+  fun attachDebuggerToClient(device: IDevice,
+                             processHandler: AndroidProcessHandlerForDevices,
+                             consoleView: ConsoleView): RunContentDescriptor {
+    val client = waitForClient(device, consoleView)
     val debugPort = client.debuggerListenPort.toString()
     val remoteConnection = RemoteConnection(true, "localhost", debugPort, false)
     ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Attaching debugger"
@@ -86,36 +90,52 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
   }
 
   @WorkerThread
-  private fun waitForClient(device: IDevice): Client {
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Waiting for a process to start"
-    val appProcessCountDownLatch = CountDownLatch(1)
-    val listener = object : AndroidDebugBridge.IDeviceChangeListener {
-      override fun deviceConnected(device: IDevice) {}
-      override fun deviceDisconnected(device: IDevice) {}
+  private fun waitForClient(device: IDevice, console: ConsoleView): Client {
+    val pollTimeoutSeconds = 15
+    val timeUnit = TimeUnit.SECONDS
 
-      override fun deviceChanged(changedDevice: IDevice, changeMask: Int) {
-        if (changedDevice == device && changeMask and IDevice.CHANGE_CLIENT_LIST != 0) {
-          val clients = changedDevice.clients
-          if (clients.find { it.clientData.packageName == appId } != null) {
-            appProcessCountDownLatch.countDown()
-            AndroidDebugBridge.removeDeviceChangeListener(this)
+    for (i in 0 until pollTimeoutSeconds) {
+      ProgressManager.checkCanceled()
+      if (!device.isOnline) {
+        throw ExecutionException("Device is offline")
+      }
+      val clients = DeploymentApplicationService.getInstance().findClient(device, appId)
+      if (clients.isEmpty()) {
+        console.print("Waiting for application to come online: $appId")
+      }
+      else {
+        console.print("Connecting to $appId")
+        if (clients.size > 1) {
+          Logger.getInstance(DebugSessionStarter::class.java).info("Multiple clients with same application ID: $appId")
+        }
+        val client = clients[0]
+        when (client.clientData.debuggerConnectionStatus) {
+          DebuggerStatus.ERROR -> {
+            val message = String.format(Locale.US,
+                                        "Debug port (%1\$d) is busy, make sure there is no other active debug connection to the same application",
+                                        client.debuggerListenPort)
+            console.printError(message)
+            throw ExecutionException(message)
+          }
+          DebuggerStatus.ATTACHED -> {
+            val message = "A debugger is already attached"
+            console.printError(message)
+            throw ExecutionException(message)
+          }
+          else -> {
+            console.print("Waiting for application to start debug server")
+            return client
           }
         }
+
       }
+      sleep(1, timeUnit)
     }
-    AndroidDebugBridge.addDeviceChangeListener(listener)
+    throw ExecutionException("Process $appId is not found. Aborting session.")
+  }
 
-    if (device.getClient(appId) != null) {
-      appProcessCountDownLatch.countDown()
-      AndroidDebugBridge.removeDeviceChangeListener(listener)
-    }
-
-    if (!appProcessCountDownLatch.await(15, TimeUnit.SECONDS)) {
-      device.executeShellCommand(AndroidRemoteDebugProcessHandler.CLEAR_DEBUG_APP_COMMAND, NullOutputReceiver(), 5, TimeUnit.SECONDS)
-      throw ExecutionException("Process $appId is not found. Aborting session.")
-    }
-
-    return device.getClient(appId)
+  protected fun sleep(sleepFor: Long, unit: TimeUnit) {
+    Uninterruptibles.sleepUninterruptibly(sleepFor, unit)
   }
 }
 
@@ -124,7 +144,7 @@ class DebugSessionStarter(private val environment: ExecutionEnvironment) {
  * [AndroidRemoteDebugProcessHandler] is responsible for monitoring debugger process.
  */
 class AndroidRemoteDebugProcessHandler(
-  project : Project,
+  project: Project,
   private val console: ConsoleView,
   private val processHandler: AndroidProcessHandlerForDevices
 ) : RemoteDebugProcessHandler(project, false) {

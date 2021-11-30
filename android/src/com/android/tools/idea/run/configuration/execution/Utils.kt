@@ -21,3 +21,11 @@ import com.intellij.execution.ui.ConsoleViewContentType
 internal fun ConsoleView.printShellCommand(command: String) {
   print("$ adb shell $command \n", ConsoleViewContentType.NORMAL_OUTPUT)
 }
+
+internal fun ConsoleView.print(text: String) {
+  print(text + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+}
+
+internal fun ConsoleView.printError(error: String) {
+  print(error + "\n", ConsoleViewContentType.ERROR_OUTPUT)
+}
