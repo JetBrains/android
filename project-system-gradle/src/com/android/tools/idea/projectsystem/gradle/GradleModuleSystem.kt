@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -225,7 +226,7 @@ class GradleModuleSystem(
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
-    val androidModel = facet?.let(AndroidModuleModel::get) ?: return ManifestOverrides()
+    val androidModel = facet?.let(GradleAndroidModel::get) ?: return ManifestOverrides()
     val directOverrides = notNullMapOf(
       ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
       ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,
@@ -304,7 +305,7 @@ class GradleModuleSystem(
 
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
-    val androidModel = AndroidModuleModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
+    val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
     return GradleApplicationIdProvider(
       androidFacet, false, androidModel, androidModel.selectedVariant
     )

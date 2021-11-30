@@ -18,7 +18,7 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -84,7 +84,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       artifactsByConfiguration = ${artifactsByConfiguration}
       configurations = ${configurations}
       """.replaceIndent("    ")
-    is AndroidModuleModel -> format()
+    is GradleAndroidModel -> format()
     is NdkModuleModel -> format()
     else -> toString()
   }
@@ -121,7 +121,7 @@ fun NdkVariant.format(): String = """{
   """
 
 @Suppress("DEPRECATION")
-fun AndroidModuleModel.format(): String = "\n" + """
+fun GradleAndroidModel.format(): String = "\n" + """
     androidProject = ${androidProject.format()}
     selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
     selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}

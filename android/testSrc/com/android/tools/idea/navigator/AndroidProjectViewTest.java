@@ -25,7 +25,7 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -347,7 +347,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     // Create BuildConfig.java in one of the generated source folders.
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     assertNotNull(androidModel);
     Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
     assertThat(generatedFolders).isNotEmpty();
@@ -388,7 +388,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     requestSyncAndWait();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     File generatedResourcesFolder = androidModel.getMainArtifact()
       .getGeneratedResourceFolders()
       .stream()

@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
@@ -28,7 +29,7 @@ import com.intellij.openapi.module.Module
  * Use [OutputBuildAction] to obtain post build sync models if isPostBuildSyncSupported is true for all modules.
  */
 fun create(modules: List<Module>): OutputBuildAction? {
-  val usePostBuildSync = modules.mapNotNull { AndroidModuleModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
+  val usePostBuildSync = modules.mapNotNull { GradleAndroidModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
   return if (usePostBuildSync) OutputBuildAction(getModuleGradlePaths(modules)) else null
 }
 

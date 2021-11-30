@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -86,7 +86,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     assertNotNull(androidModel);
 
     ExternalProjectInfo externalInfo =
@@ -96,7 +96,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     assertNotNull("No project structure was found", projectStructure);
 
     //noinspection unchecked
-    DataNode<AndroidModuleModel> androidModelNode = (DataNode<AndroidModuleModel>)ExternalSystemApiUtil
+    DataNode<GradleAndroidModel> androidModelNode = (DataNode<GradleAndroidModel>)ExternalSystemApiUtil
       .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
     Project project = getProject();
 

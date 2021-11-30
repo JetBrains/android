@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.ApplyAbiSelectionMode.OVERRIDE_ONLY
 import com.android.tools.idea.gradle.project.sync.VariantDetails
@@ -173,13 +174,13 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
 }
 
 private fun nameAndVariantDetails(moduleDataNode: DataNode<out ModuleData>): VariantDetails? {
-  val androidModuleModel = AndroidModuleModel.findFromModuleDataNode(moduleDataNode) ?: return null
+  val androidModuleModel = GradleAndroidModel.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
   return getSelectedVariantDetails(androidModuleModel, ndkModuleModel)
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
-  val androidModuleModel = AndroidModuleModel.findFromModuleDataNode(moduleDataNode) ?: return null
+  val androidModuleModel = GradleAndroidModel.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
   return VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
@@ -187,7 +188,7 @@ private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndA
 private class AndroidModule(
   val gradleProjectPath: GradleProjectPath,
   val module: DataNode<out ModuleData>,
-  val androidModel: AndroidModuleModel
+  val androidModel: GradleAndroidModel
 )
 
 private class AndroidModules(
@@ -237,7 +238,7 @@ private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
 
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
-      val androidModel = AndroidModuleModel.findFromModuleDataNode(node) ?: return@mapNotNull null
+      val androidModel = GradleAndroidModel.findFromModuleDataNode(node) ?: return@mapNotNull null
       val moduleId = node.data.id
       // Note: The root project name extracted below does not necessarily match the name of any Gradle projects or included builds.
       // However, it is expected to be always the same for all modules derived from one `IdeaProject` model instance.

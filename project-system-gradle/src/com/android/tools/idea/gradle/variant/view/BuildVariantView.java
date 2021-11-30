@@ -22,7 +22,7 @@ import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -283,7 +283,7 @@ public class BuildVariantView {
   private static Collection<String> getVariantNames(@NotNull Module module) {
     Set<String> buildVariantNames = new HashSet<>();
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       buildVariantNames.addAll(androidModel.getVariantNames());
     }
@@ -907,7 +907,7 @@ public class BuildVariantView {
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = GradleUtil.getModuleIcon(module);
-          isAndriodGradleModule = AndroidModuleModel.get(module) != null;
+          isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
 

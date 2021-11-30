@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -93,7 +93,7 @@ public class ExcludedRoots {
         }
       }
 
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModuleModel = GradleAndroidModel.get(module);
       if (androidModuleModel != null) {
         IdeAndroidArtifact artifact = androidModuleModel.getMainArtifact();
         myExcludedRoots.addAll(getAdditionalClasspathFolders(artifact));
@@ -123,7 +123,7 @@ public class ExcludedRoots {
   }
 
   private void addModuleIfNecessary(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
       IdeBaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
@@ -143,7 +143,7 @@ public class ExcludedRoots {
   }
 
   private static void processFolders(@NotNull IdeBaseArtifact artifact,
-                                     @NotNull AndroidModuleModel androidModel,
+                                     @NotNull GradleAndroidModel androidModel,
                                      @NotNull Consumer<File> action) {
     action.accept(artifact.getClassesFolder());
     for (File file : artifact.getGeneratedSourceFolders()) {
@@ -196,7 +196,7 @@ public class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
+    GradleAndroidModel model = GradleAndroidModel.get(module);
     if (model != null) {
       IdeVariant variant = model.getSelectedVariant();
       IdeBaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();

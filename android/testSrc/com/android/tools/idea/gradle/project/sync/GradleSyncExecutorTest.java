@@ -23,9 +23,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtil.loadText;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
@@ -141,7 +140,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   private static void assertContainsAndroidModels(@NotNull GradleModuleModels models) {
-    assertModelsPresent(models, AndroidModuleModel.class, GradleModuleModel.class);
+    assertModelsPresent(models, GradleAndroidModel.class, GradleModuleModel.class);
   }
 
   private static void assertContainsJavaModels(@NotNull GradleModuleModels models) {

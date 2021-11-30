@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
@@ -310,8 +310,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
     else if (AndroidModel.isRequired(facet)) {
       AndroidModel androidModel = AndroidModel.get(facet);
-      if (androidModel instanceof AndroidModuleModel) {
-        AndroidModuleModel model = (AndroidModuleModel)androidModel;
+      if (androidModel instanceof GradleAndroidModel) {
+        GradleAndroidModel model = (GradleAndroidModel)androidModel;
         String variantName = model.getSelectedVariantName();
 
         LintModelModule lintModel = getLintModuleModel(model, dir, shallowModel);
@@ -337,7 +337,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   @NotNull
-  private static LintModelModule getLintModuleModel(@NotNull AndroidModuleModel model, File dir, boolean shallowModel) {
+  private static LintModelModule getLintModuleModel(@NotNull GradleAndroidModel model, File dir, boolean shallowModel) {
     IdeAndroidProject builderModelProject = model.getAndroidProject();
     if (model.lintModuleModelCache != null) {
       return (LintModelModule)model.lintModuleModelCache;
@@ -604,7 +604,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   private static class LintGradleProject extends LintModelModuleProject {
-    private final AndroidModuleModel myAndroidModuleModel;
+    private final GradleAndroidModel myAndroidModuleModel;
     private final AndroidFacet myFacet;
 
     /**
@@ -616,7 +616,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       @NonNull File referenceDir,
       @NonNull LintModelVariant variant,
       @NonNull AndroidFacet facet,
-      @NonNull AndroidModuleModel androidModuleModel) {
+      @NonNull GradleAndroidModel androidModuleModel) {
       super(client, dir, referenceDir, variant, null);
       gradleProject = true;
       mergeManifests = true;

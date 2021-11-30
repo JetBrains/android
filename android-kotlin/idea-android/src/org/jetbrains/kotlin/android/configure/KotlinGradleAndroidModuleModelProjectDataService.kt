@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*
 import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -30,13 +30,12 @@ import org.jetbrains.kotlin.idea.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.configuration.compilerArgumentsBySourceSet
 import org.jetbrains.kotlin.idea.configuration.configureFacetByGradleModule
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
-import java.util.Locale
 
-class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<AndroidModuleModel, Void>() {
+class KotlinGradleAndroidModuleModelProjectDataService : AbstractProjectDataService<GradleAndroidModel, Void>() {
     override fun getTargetDataKey() = ANDROID_MODEL
 
     override fun postProcess(
-            toImport: Collection<DataNode<AndroidModuleModel>>,
+            toImport: Collection<DataNode<GradleAndroidModel>>,
             projectData: ProjectData?,
             project: Project,
             modelsProvider: IdeModifiableModelsProvider

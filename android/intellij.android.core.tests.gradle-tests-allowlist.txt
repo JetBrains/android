@@ -18,7 +18,7 @@ com.android.tools.idea.gradle.project.build.GradleBuildStateIntegrationTest
 com.android.tools.idea.gradle.project.build.invoker.BuildActionInvokerTest
 com.android.tools.idea.gradle.project.build.invoker.BuildInvokerTest
 com.android.tools.idea.gradle.project.importing.TopLevelModuleFactoryTest
-com.android.tools.idea.gradle.project.model.AndroidModuleModelTest
+com.android.tools.idea.gradle.project.model.GradleAndroidModelTest
 com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
 com.android.tools.idea.gradle.project.sync.AllVariantsSyncWithGradleSyncExecutorTest

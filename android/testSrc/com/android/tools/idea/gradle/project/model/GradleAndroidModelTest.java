@@ -36,9 +36,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Tests for {@link AndroidModuleModel}.
+ * Tests for {@link GradleAndroidModel}.
  */
-public class AndroidModuleModelTest extends AndroidGradleTestCase {
+public class GradleAndroidModelTest extends AndroidGradleTestCase {
 
   public void testSelectedVariantExistsButNotRequested() {
     AndroidProjectStub androidProject = new AndroidProjectStub("MyApp");
@@ -47,9 +47,9 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.addVariant("release");
     androidProject.setVariantNames("debug", "release");
 
-    // Create AndroidModuleModel with "debug" as selected variant.
-    AndroidModuleModel androidModel =
-      AndroidModuleModel.create(androidProject.getName(),
+    // Create GradleAndroidModel with "debug" as selected variant.
+    GradleAndroidModel androidModel =
+      GradleAndroidModel.create(androidProject.getName(),
                                 getBaseDirPath(getProject()),
                                 toIdeAndroidProject(androidProject),
                                 toIdeVariants(androidProject),
@@ -70,9 +70,9 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.addVariant("release");
     androidProject.setVariantNames("debug", "release");
 
-    // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel =
-      AndroidModuleModel.create(androidProject.getName(),
+    // Create GradleAndroidModel with "release" as selected variant.
+    GradleAndroidModel androidModel =
+      GradleAndroidModel.create(androidProject.getName(),
                                 getBaseDirPath(getProject()),
                                 toIdeAndroidProject(androidProject),
                                 toIdeVariants(androidProject),
@@ -95,8 +95,8 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     androidProject.clearVariants();
     androidProject.addVariant(variant);
 
-    // Create AndroidModuleModel with "release" as selected variant.
-    AndroidModuleModel androidModel = AndroidModuleModel.create(androidProject.getName(),
+    // Create GradleAndroidModel with "release" as selected variant.
+    GradleAndroidModel androidModel = GradleAndroidModel.create(androidProject.getName(),
                                                                 rootFile,
                                                                 toIdeAndroidProject(androidProject),
                                                                 toIdeVariants(androidProject),

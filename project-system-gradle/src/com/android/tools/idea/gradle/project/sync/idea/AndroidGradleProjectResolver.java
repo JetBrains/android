@@ -68,7 +68,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -334,7 +334,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   /**
    * Creates and attaches the following models to the moduleNode depending on the type of module:
    * <ul>
-   *   <li>AndroidModuleModel</li>
+   *   <li>GradleAndroidModel</li>
    *   <li>NdkModuleModel</li>
    *   <li>GradleModuleModel</li>
    *   <li>JavaModuleModel</li>
@@ -356,14 +356,14 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
     BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
 
-    AndroidModuleModel androidModel = null;
+    GradleAndroidModel androidModel = null;
     JavaModuleModel javaModuleModel = null;
     NdkModuleModel ndkModuleModel = null;
     GradleModuleModel gradleModel = null;
     Collection<IdeSyncIssue> issueData = null;
 
     if (androidModels != null) {
-      androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidModels);
+      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels);
       issueData = androidModels.getSyncIssues();
       String ndkModuleName = moduleName + ((isModulePerSourceSetEnabled()) ? "." + ModuleUtil.getModuleName(androidModel.getMainArtifact()) : "");
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath, androidModels);
@@ -503,11 +503,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   @NotNull
-  private static AndroidModuleModel createAndroidModuleModel(String moduleName,
+  private static GradleAndroidModel createGradleAndroidModel(String moduleName,
                                                              File rootModulePath,
                                                              @NotNull IdeAndroidModels ideModels) {
 
-    return AndroidModuleModel.create(moduleName,
+    return GradleAndroidModel.create(moduleName,
                                      rootModulePath,
                                      ideModels.getAndroidProject(),
                                      ideModels.getFetchedVariants(),
@@ -516,12 +516,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @SuppressLint("NewApi")
   private void createAndSetupTestDataNode(@NotNull DataNode<ModuleData> moduleDataNode,
-                                          @NotNull AndroidModuleModel androidModuleModel) {
+                                          @NotNull GradleAndroidModel GradleAndroidModel) {
     // TODO(b/205094187): We can also do setUp androidTest tasks from here and they will then be shown as an option when right clicking run tests.
     // Get the unit test task for the current module.
-    String testTaskName = AndroidGradleTestTasksProvider.getTasksFromAndroidModuleData(androidModuleModel);
+    String testTaskName = AndroidGradleTestTasksProvider.getTasksFromAndroidModuleData(GradleAndroidModel);
     Set<String> sourceFolders = new HashSet<>();
-    for (IdeSourceProvider sourceProvider : androidModuleModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
+    for (IdeSourceProvider sourceProvider : GradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
       for (File sourceFolder : getAllSourceFolders(sourceProvider)) {
         sourceFolders.add(sourceFolder.getPath());
       }
@@ -567,7 +567,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * KaptProjectResolverExtension, however as of now this class only works when module per source set is
    * enabled.
    */
-  public static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable AndroidModuleModel androidModel,
+  public static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable GradleAndroidModel androidModel,
                                                                      @NotNull DataNode<ModuleData> moduleDataNode,
                                                                      @Nullable KaptGradleModel kaptGradleModel) {
     if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
@@ -641,7 +641,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Nullable
   private static Pair<IdeVariant, IdeBaseArtifact> findVariantAndArtifact(@NotNull KaptSourceSetModel sourceSetModel,
-                                                                          @NotNull AndroidModuleModel androidModel) {
+                                                                          @NotNull GradleAndroidModel androidModel) {
     String sourceSetName = sourceSetModel.getSourceSetName();
     if (!sourceSetModel.isTest()) {
       IdeVariant variant = androidModel.findVariantByName(sourceSetName);
@@ -685,9 +685,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    DataNode<AndroidModuleModel> androidModuleModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
+    DataNode<GradleAndroidModel> GradleAndroidModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
     // Only process android modules.
-    if (androidModuleModelNode == null) {
+    if (GradleAndroidModelNode == null) {
       super.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -697,7 +697,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (isModulePerSourceSetEnabled()) {
       ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(
         ideModule,
-        androidModuleModelNode.getData()
+        GradleAndroidModelNode.getData()
       );
     } else {
       ContentRootUtilKt.setupAndroidContentEntries(ideModule, null);
@@ -712,7 +712,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    DataNode<AndroidModuleModel> androidModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
+    DataNode<GradleAndroidModel> androidModelNode = ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL);
     // Don't process non-android modules here.
     if (androidModelNode == null) {
       super.populateModuleDependencies(gradleModule, ideModule, ideProject);

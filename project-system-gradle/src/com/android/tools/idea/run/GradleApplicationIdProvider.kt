@@ -24,12 +24,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_IN
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TEST
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
-import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputListingFileOrLogError
-import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.util.androidFacet
@@ -44,7 +41,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class GradleApplicationIdProvider(
   private val androidFacet: AndroidFacet,
   private val forTests: Boolean,
-  private val androidModel: AndroidModuleModel,
+  private val androidModel: GradleAndroidModel,
   private val variant: IdeVariant
 ) : ApplicationIdProvider {
 
@@ -125,7 +122,7 @@ class GradleApplicationIdProvider(
       findModuleByGradlePath(androidFacet.module.project, testedTargetVariant.targetProjectPath)?.androidFacet
       ?: return null
 
-    val targetModel = AndroidModuleModel.get(targetFacet) ?: return null
+    val targetModel = GradleAndroidModel.get(targetFacet) ?: return null
     val targetVariant = targetModel.variants.find { it.name == testedTargetVariant.targetVariant } ?: return null
 
     // Note: Even though our project is a test module project we request an application id provider for the target module which is

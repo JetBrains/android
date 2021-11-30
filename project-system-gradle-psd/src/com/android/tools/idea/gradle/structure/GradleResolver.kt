@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -58,7 +59,7 @@ private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
   val gradlePath = gradleModuleModel.gradlePath
 
   fun tryAndroidModels(): PsResolvedModuleModel.PsAndroidModuleResolvedModel? {
-    val androidModel = module.findModel(AndroidModuleModel::class.java) ?: return null
+    val androidModel = module.findModel(GradleAndroidModel::class.java) ?: return null
     val nativeModel = module.findModel(NdkModuleModel::class.java)
     val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
     return PsResolvedModuleModel.PsAndroidModuleResolvedModel(

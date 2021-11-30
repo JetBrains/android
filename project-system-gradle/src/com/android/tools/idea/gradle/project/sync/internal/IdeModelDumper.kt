@@ -45,7 +45,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -70,7 +70,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
-          AndroidModuleModel.get(module)?.let { it ->
+          GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!module.isHolderModule()) return@let
@@ -101,7 +101,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
   }
 }
 
-fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: AndroidModuleModel, projectPath: String) {
+fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: GradleAndroidModel, projectPath: String) {
   nest(File(projectPath), "PROJECT") {
     with(ideModelDumper(this)) {
       androidModuleModel.let { androidModuleModel ->

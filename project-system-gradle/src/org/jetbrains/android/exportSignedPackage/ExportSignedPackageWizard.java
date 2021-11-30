@@ -40,7 +40,7 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
@@ -228,7 +228,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
 
         // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-        AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+        GradleAndroidModel androidModel = GradleAndroidModel.get(myFacet);
         if (androidModel == null) {
           getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
           trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_ANDROID_MODEL);
@@ -342,15 +342,15 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   @VisibleForTesting
   @NotNull
   static List<String> getGradleTasks(@NotNull String gradleProjectPath,
-                                     @NotNull AndroidModuleModel androidModuleModel,
+                                     @NotNull GradleAndroidModel GradleAndroidModel,
                                      @NotNull List<String> buildVariants,
                                      @NotNull String targetType) {
     List<String> taskNames;
-    if (androidModuleModel.getFeatures().isBuildOutputFileSupported()) {
-      taskNames = getTaskNamesFromBuildInformation(androidModuleModel, buildVariants, targetType);
+    if (GradleAndroidModel.getFeatures().isBuildOutputFileSupported()) {
+      taskNames = getTaskNamesFromBuildInformation(GradleAndroidModel, buildVariants, targetType);
     }
     else {
-      IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
+      IdeVariant selectedVariant = GradleAndroidModel.getSelectedVariant();
       String selectedTaskName = getTaskName(selectedVariant, targetType);
       if (selectedTaskName == null) {
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariant.getName());
@@ -362,12 +362,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @NotNull
-  private static List<String> getTaskNamesFromBuildInformation(@NotNull AndroidModuleModel androidModuleModel,
+  private static List<String> getTaskNamesFromBuildInformation(@NotNull GradleAndroidModel GradleAndroidModel,
                                                                @NotNull List<String> buildVariants,
                                                                @NotNull String targetType) {
     List<String> taskNames = Lists.newArrayListWithExpectedSize(buildVariants.size());
     Map<String, IdeVariantBuildInformation> buildInformationByVariantName =
-      androidModuleModel.getAndroidProject().getVariantsBuildInformation().stream()
+      GradleAndroidModel.getAndroidProject().getVariantsBuildInformation().stream()
         .collect(Collectors.toMap(x -> x.getVariantName(), x -> x));
 
     for (String variantName : buildVariants) {

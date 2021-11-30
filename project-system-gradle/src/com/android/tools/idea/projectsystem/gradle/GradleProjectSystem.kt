@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.OutputBuildAction
 import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
@@ -107,7 +107,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getDefaultApkFile(): VirtualFile? {
     return ModuleManager.getInstance(project).modules.asSequence()
-      .mapNotNull { AndroidModuleModel.get(it) }
+      .mapNotNull { GradleAndroidModel.get(it) }
       .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
@@ -138,7 +138,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     if (runConfiguration !is AndroidRunConfigurationBase &&
         runConfiguration !is AndroidWearConfiguration) return null
     val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
-    val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
+    val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
     val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
 
     return GradleApplicationIdProvider(
@@ -170,7 +170,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     assembleResult: AssembleInvocationResult,
     forTests: Boolean = false
   ): List<ApkInfo>? {
-    val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
+    val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
 
     // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
     // `PostBuildModel`s were not designed to handle this.
@@ -217,15 +217,15 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
     override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
-      val model = AndroidModuleModel.get(facet)
+      val model = GradleAndroidModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
     }
   }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-    val shouldQueryIndex = androidFacets.any { AndroidModuleModel.get(it)?.androidProject?.namespace == null }
-    val facetsFromModuleSystem = androidFacets.filter { AndroidModuleModel.get(it)?.androidProject?.namespace == packageName }
+    val shouldQueryIndex = androidFacets.any { GradleAndroidModel.get(it)?.androidProject?.namespace == null }
+    val facetsFromModuleSystem = androidFacets.filter { GradleAndroidModel.get(it)?.androidProject?.namespace == packageName }
     if (!shouldQueryIndex) {
       return facetsFromModuleSystem
     }
@@ -236,7 +236,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
       }.filter {
         // Filter out any facets that have a manifest override for package name, as that takes priority.
-        AndroidModuleModel.get(it)?.androidProject?.namespace == null
+        GradleAndroidModel.get(it)?.androidProject?.namespace == null
       }
       return facetsFromManifestIndex + facetsFromModuleSystem
     }
@@ -260,7 +260,7 @@ private val IdeAndroidArtifact.scopeType: ScopeType
     IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
   }
 
-fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
+fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
     @Suppress("DEPRECATION")
     (

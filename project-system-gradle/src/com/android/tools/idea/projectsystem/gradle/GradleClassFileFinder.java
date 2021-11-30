@@ -18,8 +18,7 @@ package com.android.tools.idea.projectsystem.gradle;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
@@ -60,7 +59,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   }
 
   @NotNull
-  private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull AndroidModuleModel model) {
+  private static Collection<VirtualFile> getCompilerOutputRoots(@NotNull GradleAndroidModel model) {
     IdeAndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
@@ -172,7 +171,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
 
   @NotNull
   private static Collection<VirtualFile> getModuleCompileOutputs(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       return getCompilerOutputRoots(androidModel);
     }

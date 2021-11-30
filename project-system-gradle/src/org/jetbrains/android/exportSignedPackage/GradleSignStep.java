@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
@@ -51,7 +51,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
   private final ExportSignedPackageWizard myWizard;
   private final DefaultListModel<String> myBuildVariantsListModel = new DefaultListModel<>();
 
-  private AndroidModuleModel myAndroidModel;
+  private GradleAndroidModel myAndroidModel;
 
   public GradleSignStep(@NotNull ExportSignedPackageWizard exportSignedPackageWizard) {
     myWizard = exportSignedPackageWizard;
@@ -63,7 +63,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = AndroidModuleModel.get(myWizard.getFacet());
+    myAndroidModel = GradleAndroidModel.get(myWizard.getFacet());
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
 

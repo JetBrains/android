@@ -19,7 +19,7 @@ import static com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleData
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.model.AndroidModel;
@@ -60,7 +60,7 @@ public final class ConflictResolution {
       // project structure may have changed and the conflict is not longer applicable.
       return true;
     }
-    AndroidModuleModel source = AndroidModuleModel.get(facet);
+    GradleAndroidModel source = GradleAndroidModel.get(facet);
     if (source == null) {
       return false;
     }

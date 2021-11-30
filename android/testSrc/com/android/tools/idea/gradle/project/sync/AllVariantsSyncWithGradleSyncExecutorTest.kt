@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpAllVariantsSyncAndroidModuleModel
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -72,18 +70,18 @@ class AllVariantsSyncWithGradleSyncExecutorTest : GradleSyncIntegrationTestCase(
 
   private fun runSvsAndAvsSyncAndVerifyFetchedVariants() {
     val appModule = project.findAppModule()
-    val svsAndroidModel = AndroidModuleModel.get(appModule)
+    val svsAndroidModel = GradleAndroidModel.get(appModule)
     // Since we ran a SVS Sync, we should only have one fetched variant.
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
     val gradleModules = mySyncExecutor!!.fetchGradleModels()
-    val allVariantsSyncAndroidModel = gradleModules[0].findModel(AndroidModuleModel::class.java)
+    val allVariantsSyncAndroidModel = gradleModules[0].findModel(GradleAndroidModel::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.
     Truth.assertThat(allVariantsSyncAndroidModel!!.variants.size).isEqualTo(12)
 
-    // Dump the AndroidModuleModel.
+    // Dump the GradleAndroidModel.
     val dumper = ProjectDumper(additionalRoots = mapOf("ROOT" to File(project.basePath!!)))
     dumper.dumpAllVariantsSyncAndroidModuleModel(allVariantsSyncAndroidModel, project.basePath!!)
     // Verify dump content matches expected snapshot files.

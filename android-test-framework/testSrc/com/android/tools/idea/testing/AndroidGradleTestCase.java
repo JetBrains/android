@@ -35,7 +35,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -405,8 +405,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected AndroidModuleModel getModel() {
-    AndroidModuleModel model = AndroidModuleModel.get(myAndroidFacet);
+  protected GradleAndroidModel getModel() {
+    GradleAndroidModel model = GradleAndroidModel.get(myAndroidFacet);
     assert model != null;
     return model;
   }

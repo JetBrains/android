@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -187,7 +187,7 @@ public class GradleTaskFinder {
     if (androidFacet != null) {
       AndroidFacetProperties properties = androidFacet.getProperties();
 
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
 
       switch (buildMode) {
         case CLEAN: // Intentional fall-through.
@@ -271,7 +271,7 @@ public class GradleTaskFinder {
   }
 
   private static void addAssembleTasksForTargetVariants(@NotNull Set<String> tasks, @NotNull Module testOnlyModule) {
-    AndroidModuleModel testAndroidModel = AndroidModuleModel.get(testOnlyModule);
+    GradleAndroidModel testAndroidModel = GradleAndroidModel.get(testOnlyModule);
 
     if (testAndroidModel == null ||
         testAndroidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_TEST) {
@@ -285,7 +285,7 @@ public class GradleTaskFinder {
 
       // Adds the assemble task for the tested variants
       if (targetModule != null) {
-        AndroidModuleModel targetAndroidModel = AndroidModuleModel.get(targetModule);
+        GradleAndroidModel targetAndroidModel = GradleAndroidModel.get(targetModule);
 
         if (targetAndroidModel != null) {
           String targetVariantName = testedTargetVariant.getTargetVariant();
@@ -307,7 +307,7 @@ public class GradleTaskFinder {
   private static void addAfterSyncTasksForTestArtifacts(@NotNull Set<String> tasks,
                                                         @NotNull String gradlePath,
                                                         @NotNull TestCompileType testCompileType,
-                                                        @NotNull AndroidModuleModel androidModel) {
+                                                        @NotNull GradleAndroidModel androidModel) {
     IdeVariant variant = androidModel.getSelectedVariant();
     Collection<IdeBaseArtifact> testArtifacts = getArtifacts(testCompileType, variant);
     for (IdeBaseArtifact artifact : testArtifacts) {

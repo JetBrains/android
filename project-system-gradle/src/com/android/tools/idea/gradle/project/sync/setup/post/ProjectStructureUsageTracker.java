@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -81,8 +81,8 @@ public class ProjectStructureUsageTracker {
 
   @VisibleForTesting
   void trackProjectStructure(@NotNull Module[] modules) {
-    AndroidModuleModel appModel = null;
-    AndroidModuleModel libModel = null;
+    GradleAndroidModel appModel = null;
+    GradleAndroidModel libModel = null;
 
     int appCount = 0;
     int libCount = 0;
@@ -90,7 +90,7 @@ public class ProjectStructureUsageTracker {
     List<GradleLibrary> gradleLibraries = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
       if (androidModel != null) {
         if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
@@ -106,7 +106,7 @@ public class ProjectStructureUsageTracker {
 
     // Ideally we would like to get data from an "app" module, but if the project does not have one (which would be unusual, we can use
     // an Android library one.)
-    AndroidModuleModel model = appModel != null ? appModel : libModel;
+    GradleAndroidModel model = appModel != null ? appModel : libModel;
     if (model != null) {
       List<GradleAndroidModule> gradleAndroidModules = new ArrayList<>();
       List<GradleNativeAndroidModule> gradleNativeAndroidModules = new ArrayList<>();
@@ -126,7 +126,7 @@ public class ProjectStructureUsageTracker {
       // @formatter:on
 
       for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+        GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
         if (androidModel != null) {
           IdeAndroidProject moduleAndroidProject = androidModel.getAndroidProject();
           GradleAndroidModule.Builder androidModule = GradleAndroidModule.newBuilder();
@@ -195,7 +195,7 @@ public class ProjectStructureUsageTracker {
     }
   }
 
-  private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {
+  private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull GradleAndroidModel model) {
     // Use Ref because lambda function argument to forEachVariant only works with final variables.
     Ref<IdeVariant> chosenVariant = new Ref<>();
     // We want to track the "release" variants.

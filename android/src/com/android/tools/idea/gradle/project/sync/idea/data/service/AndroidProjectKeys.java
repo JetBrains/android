@@ -20,6 +20,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -62,7 +63,7 @@ public final class AndroidProjectKeys {
   public static final Key<NdkModuleModel> NDK_MODEL = Key.create(NdkModuleModel.class, GRADLE_MODULE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<AndroidModuleModel> ANDROID_MODEL = Key.create(AndroidModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
+  public static final Key<GradleAndroidModel> ANDROID_MODEL = Key.create(GradleAndroidModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);

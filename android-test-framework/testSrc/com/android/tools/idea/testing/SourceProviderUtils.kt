@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -130,7 +130,7 @@ fun Project.dumpSourceProviders(): String {
             val sourceProviderManager = SourceProviderManager.getInstance(facet)
             sourceProviderManager.mainIdeaSourceProvider.dump()
           }
-          val model = AndroidModuleModel.get(facet)
+          val model = GradleAndroidModel.get(facet)
 
           fun IdeSourceProvider.adjustedName() =
             if (name == "main") "_" else name

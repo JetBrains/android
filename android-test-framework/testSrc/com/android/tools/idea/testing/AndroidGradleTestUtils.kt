@@ -65,6 +65,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -1186,9 +1187,9 @@ private fun createAndroidModuleDataNode(
   )
 
   moduleDataNode.addChild(
-    DataNode<AndroidModuleModel>(
+    DataNode<GradleAndroidModel>(
       AndroidProjectKeys.ANDROID_MODEL,
-      AndroidModuleModel.create(
+      GradleAndroidModel.create(
         moduleName,
         moduleBasePath,
         androidProject,

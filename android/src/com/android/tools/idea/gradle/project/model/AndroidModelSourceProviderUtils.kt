@@ -61,21 +61,21 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
     }
 }
 
-internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
-internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
-internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) =
+internal fun GradleAndroidModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
+internal fun GradleAndroidModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
+internal fun GradleAndroidModel.collectAndroidTestSourceProviders(variant: IdeVariant) =
   if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
   else emptyList()
-internal fun AndroidModuleModel.collectTestFixturesSourceProviders(variant: IdeVariant) =
+internal fun GradleAndroidModel.collectTestFixturesSourceProviders(variant: IdeVariant) =
   if (variant.testFixturesArtifact != null) collectCurrentProvidersFor(variant, TEST_FIXTURES)
   else emptyList()
 
-internal fun AndroidModuleModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
-internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
-internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
-internal fun AndroidModuleModel.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
+internal fun GradleAndroidModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
+internal fun GradleAndroidModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
+internal fun GradleAndroidModel.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
+internal fun GradleAndroidModel.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
 
-private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
+private fun GradleAndroidModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
   mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
@@ -88,7 +88,7 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
     }
   }
 
-private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
+private fun GradleAndroidModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
   val variants = variants
   return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {

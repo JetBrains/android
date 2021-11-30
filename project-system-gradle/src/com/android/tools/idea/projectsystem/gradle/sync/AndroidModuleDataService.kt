@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.PROJECT_SYNC_REQUEST
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
@@ -76,22 +76,22 @@ import java.util.concurrent.TimeUnit
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 class AndroidModuleDataService @VisibleForTesting
-internal constructor(private val myModuleValidatorFactory: AndroidModuleValidator.Factory) : ModuleModelDataService<AndroidModuleModel>() {
+internal constructor(private val myModuleValidatorFactory: AndroidModuleValidator.Factory) : ModuleModelDataService<GradleAndroidModel>() {
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   constructor() : this(AndroidModuleValidator.Factory())
 
-  override fun getTargetDataKey(): Key<AndroidModuleModel> = ANDROID_MODEL
+  override fun getTargetDataKey(): Key<GradleAndroidModel> = ANDROID_MODEL
 
   /**
    * This method is responsible for managing the presence of both the [AndroidFacet] and [AndroidArtifactFacet] across all modules.
    *
-   * It also sets up the SDKs and language levels for all modules that stem from an [AndroidModuleModel]
+   * It also sets up the SDKs and language levels for all modules that stem from an [GradleAndroidModel]
    */
-  public override fun importData(toImport: Collection<DataNode<AndroidModuleModel>>,
+  public override fun importData(toImport: Collection<DataNode<GradleAndroidModel>>,
                                  project: Project,
                                  modelsProvider: IdeModifiableModelsProvider,
-                                 modelsByModuleName: Map<String, DataNode<AndroidModuleModel>>) {
+                                 modelsByModuleName: Map<String, DataNode<GradleAndroidModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
     // Any modules left in this set need to be purged of all Android and AndroidArtifact facets.
@@ -152,7 +152,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   /**
    * This may be called from either the EDT or a background thread depending on if the project import is being run synchronously.
    */
-  override fun onSuccessImport(imported: Collection<DataNode<AndroidModuleModel>>,
+  override fun onSuccessImport(imported: Collection<DataNode<GradleAndroidModel>>,
                                projectData: ProjectData?,
                                project: Project,
                                modelsProvider: IdeModelsProvider) {
@@ -192,7 +192,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     })
   }
 
-  override fun postProcess(toImport: Collection<DataNode<AndroidModuleModel>>,
+  override fun postProcess(toImport: Collection<DataNode<GradleAndroidModel>>,
                            projectData: ProjectData?,
                            project: Project,
                            modelsProvider: IdeModifiableModelsProvider) {
@@ -243,7 +243,7 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
  *
  * Note: we use the currently selected variant of the [androidModuleModel] to perform the configuration.
  */
-private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: AndroidModuleModel) {
+private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: GradleAndroidModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
   @Suppress("DEPRECATION")
