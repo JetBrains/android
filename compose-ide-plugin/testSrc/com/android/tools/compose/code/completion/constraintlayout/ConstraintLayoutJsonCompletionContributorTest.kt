@@ -15,16 +15,40 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-internal class ConstraintLayoutJsonCompletionContributorTest : LightPlatformCodeInsightFixture4TestCase() {
+internal class ConstraintLayoutJsonCompletionContributorTest {
+  // TODO(b/207030860): Change test class to 'LightPlatformCodeInsightFixture4TestCase' once/if we remove the Compose requirement
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+
+  @Before
+  fun setup() {
+    StudioFlags.COMPOSE_CONSTRAINTLAYOUT_COMPLETION.override(true)
+    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+  }
+
+  @After
+  fun teardown() {
+    StudioFlags.COMPOSE_CONSTRAINTLAYOUT_COMPLETION.clearOverride()
+  }
 
   @Test
-  fun completeConstraintSetIds() {
+  fun completeConstraintSetFields() {
     @Language("JSON5")
     val content =
       """
@@ -48,6 +72,28 @@ internal class ConstraintLayoutJsonCompletionContributorTest : LightPlatformCode
     assertThat(items).hasSize(2)
     assertThat((items[0])).isEqualTo("id2")
     assertThat((items[1])).isEqualTo("id3")
+  }
+
+  @Test
+  fun completeExtendsValue() {
+    @Language("JSON5")
+    val content =
+      """
+      {
+        ConstraintSets: {
+          start: {
+            id1: {},
+          },
+          end: {
+            Extends: '$caret'
+          }
+        }
+      }
+    """.trimIndent()
+    myFixture.configureByText("myscene.json", content)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings!!).hasSize(1)
+    assertThat(myFixture.lookupElementStrings!![0]).isEqualTo("start")
   }
 
   @Test

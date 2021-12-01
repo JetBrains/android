@@ -1053,6 +1053,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_CONSTRAINTLAYOUT_COMPLETION = Flag.create(
+    COMPOSE, "editor.completion.constraintlayout.json",
+    "Completion for ConstraintLayout JSON syntax",
+    "If enabled, code completion will be abailable for the JSON syntax of Compose ConstraintLayout.",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
