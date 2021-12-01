@@ -78,6 +78,7 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">
