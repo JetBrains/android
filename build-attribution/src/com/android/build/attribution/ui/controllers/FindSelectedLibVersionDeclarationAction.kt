@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Factory
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.FindUsagesProcessPresentation
 import com.intellij.usages.Usage
@@ -58,9 +59,11 @@ class FindSelectedLibVersionDeclarationAction(
     val usageViewPresentation = UsageViewPresentation()
     usageViewPresentation.tabName = "Dependency Version Declaration"
     usageViewPresentation.tabText = "Dependency Version Declaration"
-    usageViewPresentation.codeUsagesString = "Version declarations of $selectedDependency"
-    usageViewPresentation.scopeText = "project build files"
-    usageViewPresentation.searchString = selectedDependency.fullName
+    val fullNameWithoutVersion = selectedDependency.fullName.substringBeforeLast(":")
+    usageViewPresentation.codeUsagesString = "Version declarations of $fullNameWithoutVersion"
+    val pluralizedProject = StringUtil.pluralize("project", selectedDependency.projects.size)
+    usageViewPresentation.scopeText = selectedDependency.projects.joinToString(prefix = "$pluralizedProject ", limit = 5)
+    usageViewPresentation.searchString = fullNameWithoutVersion
     usageViewPresentation.isOpenInNewTab = false
     val processPresentation = FindUsagesProcessPresentation(usageViewPresentation)
     processPresentation.isShowNotFoundMessage = true
