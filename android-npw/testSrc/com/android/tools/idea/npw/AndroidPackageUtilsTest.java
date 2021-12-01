@@ -19,11 +19,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mockito;
 
@@ -46,7 +46,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
     NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", androidModuleTemplate);
-    String defaultPackage = AndroidManifestUtils.getPackageName(myAndroidFacet);
+    String defaultPackage = ProjectSystemUtil.getModuleSystem(myAndroidFacet).getPackageName();
 
     // Anything inside the Java src directory should return the "local package"
     assertEquals("google.simpleapplication", getPackageForPath(moduleTemplate, "app/src/main/java/google/simpleapplication"));

@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.UtpTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.toIoFile
@@ -41,7 +42,6 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.text.DateFormatUtil
 import kotlinx.coroutines.launch
-import org.jetbrains.android.dom.manifest.getPackageName
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
@@ -95,7 +95,7 @@ class ImportUtpResultAction(icon: Icon? = null,
       val testAdapter = UtpTestResultAdapter(file)
       val packageName = testAdapter.getPackageName()
       val module = ModuleManager.getInstance(project).modules.find {
-        getPackageName(it) == packageName
+        it.getModuleSystem().getPackageName() == packageName
       }
       if (module == null) {
         NOTIFICATION_GROUP.createNotification("Cannot find corresponding module. Some features might not be available. Did you "

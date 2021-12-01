@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.Namespacing;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
@@ -61,7 +62,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -675,7 +675,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    String packageName = AndroidManifestUtils.getPackageName(myFacet);
+    String packageName = ProjectSystemUtil.getModuleSystem(myFacet).getPackageName();
     if (packageName == null) {
       return ResourceNamespace.RES_AUTO;
     }
@@ -698,7 +698,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    String testPackageName = AndroidManifestUtils.getTestPackageName(myFacet);
+    String testPackageName = ProjectSystemUtil.getModuleSystem(myFacet).getTestPackageName();
     if (testPackageName == null) {
       return ResourceNamespace.RES_AUTO;
     }

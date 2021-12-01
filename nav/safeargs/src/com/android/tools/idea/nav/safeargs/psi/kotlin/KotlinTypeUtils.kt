@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
-import org.jetbrains.android.dom.manifest.getPackageName
+import com.android.tools.idea.projectsystem.getModuleSystem
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -41,7 +41,7 @@ fun KotlinBuiltIns.getKotlinType(
   moduleDescriptor: ModuleDescriptor,
   isNonNull: Boolean = true
 ): KotlinType {
-  val modulePackageName = moduleDescriptor.module.toModule()?.let { getPackageName(it) } ?: ""
+  val modulePackageName = moduleDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
   val resolvedTypeStr = getPsiTypeStr(modulePackageName, typeStr, defaultValue)
 
   // array type

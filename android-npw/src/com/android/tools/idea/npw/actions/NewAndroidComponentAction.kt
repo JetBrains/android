@@ -23,10 +23,10 @@ import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
-import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -126,7 +126,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val moduleTemplates = facet.getModuleTemplates(targetDirectory)
     assert(moduleTemplates.isNotEmpty())
     val initialPackageSuggestion =
-      if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
+      if (targetDirectory == null) facet.getModuleSystem().getPackageName() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
       shouldOpenFiles, MENU_GALLERY

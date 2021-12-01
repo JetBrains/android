@@ -28,6 +28,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -48,7 +49,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -155,7 +155,7 @@ class RenderTemplateModel private constructor(
         setFacet(androidFacet)
 
         // Register application-wide settings
-        val applicationPackage = getPackageName(androidFacet)
+        val applicationPackage = androidFacet.getModuleSystem().getPackageName()
         if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
           projectTemplateDataBuilder.applicationPackage = applicationPackage
         }

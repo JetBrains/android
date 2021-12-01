@@ -3,6 +3,7 @@ package org.jetbrains.android;
 import static com.android.SdkConstants.R_CLASS;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -76,8 +77,8 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
             }
             else if (qualifierExpression instanceof PsiReferenceExpression) {
               PsiReferenceExpression referenceExpression = (PsiReferenceExpression)qualifierExpression;
-              if (Objects.equals(AndroidManifestUtils.getPackageName(facet), referenceExpression.getQualifiedName()) ||
-                  Objects.equals(AndroidManifestUtils.getTestPackageName(facet), referenceExpression.getQualifiedName())) {
+              if (Objects.equals(ProjectSystemUtil.getModuleSystem(facet).getPackageName(), referenceExpression.getQualifiedName()) ||
+                  Objects.equals(ProjectSystemUtil.getModuleSystem(facet).getTestPackageName(), referenceExpression.getQualifiedName())) {
                 filterPrivateResources = true;
               }
             }

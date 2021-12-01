@@ -31,7 +31,6 @@ import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoader
 import java.io.IOException
@@ -108,7 +107,7 @@ private fun registerResources(module: Module) {
     classRegistry.addLibrary(repositoryManager.appResources,
                              idManager,
                              ReadAction.compute<String?, RuntimeException> {
-                               getPackageName(androidFacet)
+                               androidFacet.getModuleSystem().getPackageName()
                              },
                              repositoryManager.namespace)
   }
@@ -119,7 +118,7 @@ private fun registerResources(module: Module) {
       classRegistry.addLibrary(repositoryManager.appResources,
                                idManager,
                                ReadAction.compute<String?, RuntimeException> {
-                                 getPackageName(facet)
+                                 facet.getModuleSystem().getPackageName()
                                },
                                repositoryManager.namespace)
     }

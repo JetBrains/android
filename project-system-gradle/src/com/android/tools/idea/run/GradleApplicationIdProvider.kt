@@ -29,10 +29,10 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -93,7 +93,7 @@ class GradleApplicationIdProvider(
     val projectType = androidModel.androidProject.projectType
     if (projectType === PROJECT_TYPE_TEST) {
       return variant.testApplicationId.nullize()
-             ?: getPackageName(androidFacet).nullize()
+             ?: androidFacet.getModuleSystem().getPackageName().nullize()
              ?: throw ApkProvisionException("[" + androidFacet.module.name + "] Unable to obtain test package.")
     }
 

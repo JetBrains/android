@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -53,7 +54,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import org.jetbrains.annotations.TestOnly
@@ -150,7 +150,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return ProjectFacetManager.getInstance(project)
       .getFacets(AndroidFacet.ID)
       .asSequence()
-      .filter { getPackageName(it) == packageName }
+      .filter { it.getModuleSystem().getPackageName() == packageName }
       .filter { facet -> facet.sourceProviders.mainManifestFile?.let(projectScope::contains) == true }
       .toList()
   }

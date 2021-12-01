@@ -27,11 +27,11 @@ import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.PlatformIcons
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -223,7 +223,7 @@ class LightDirectionsKtClass(
          * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
          */
         private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
-          val modulePackageName = directionsClassDescriptor.module.toModule()?.let { getPackageName(it) } ?: ""
+          val modulePackageName = directionsClassDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
           val types = entry.value
             .asSequence()
             .map { arg ->

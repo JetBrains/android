@@ -21,6 +21,7 @@ import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryA
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -116,7 +117,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return AndroidManifestUtils.getPackageName(facet);
+    return ProjectSystemUtil.getModuleSystem(facet).getPackageName();
   }
 
   @NotNull

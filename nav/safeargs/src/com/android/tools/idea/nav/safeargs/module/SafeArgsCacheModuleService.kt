@@ -28,6 +28,7 @@ import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
 import com.android.tools.idea.nav.safeargs.safeArgsMode
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.androidFacet
@@ -36,7 +37,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -97,7 +97,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
 
   private fun refreshSafeArgsLightClassesIfNecessary() {
     val facet = AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() } ?: return
-    val modulePackage = getPackageName(facet) ?: return
+    val modulePackage = facet.getModuleSystem().getPackageName() ?: return
 
     if (DumbService.getInstance(module.project).isDumb) {
       LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")

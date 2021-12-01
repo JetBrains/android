@@ -27,6 +27,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +43,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -334,7 +334,7 @@ public class ConfigurationManager implements Disposable {
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
-        String packageName = AndroidManifestUtils.getPackageName(myModule);
+        String packageName = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
         activityFqcn = packageName + activityName;
       }
 

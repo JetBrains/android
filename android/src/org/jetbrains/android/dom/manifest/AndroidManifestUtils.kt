@@ -24,16 +24,12 @@ import com.android.SdkConstants.ATTR_VERSION_NAME
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
-import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.Computable
@@ -49,26 +45,6 @@ import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-
-private val LOG: Logger get() = Logger.getInstance("AndroidManifestUtils.kt")
-/**
- * Returns the module's resource package name, or null if it could not be determined.
- *
- * The resource package name is equivalent to the "package" attribute of the module's
- * merged manifest once it has been built. Depending on the build system, however,
- * this method may be optimized to avoid the costs of merged manifest computation.
- */
-@AnyThread
-fun getPackageName(facet: AndroidFacet) = facet.module.getModuleSystem().getPackageName()
-
-@AnyThread
-fun getPackageName(module: Module) = module.getModuleSystem().getPackageName()
-
-/**
- * Returns the package name for resources from the module under test corresponding to the given [facet].
- * See [https://developer.android.com/studio/build/application-id#change_the_application_id_for_testing].
- */
-fun getTestPackageName(facet: AndroidFacet): String? = facet.getModuleSystem().getTestPackageName()
 
 /**
  * Returns whether the given manifest [element] requires an attribute named [attrName].

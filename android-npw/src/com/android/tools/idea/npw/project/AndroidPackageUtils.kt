@@ -26,24 +26,18 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import java.lang.RuntimeException
-
-/**
- * Return the top-level package associated with this project.
- */
-fun AndroidFacet.getPackageForApplication(): String? = getPackageName(this)
 
 /**
  * Return the package associated with the target directory.
  */
 fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, targetDirectory: VirtualFile): String? {
+  val moduleSystem = this.getModuleSystem()
   if (moduleTemplates.isEmpty()) {
-    return this.getPackageForApplication()
+    return moduleSystem.getPackageName()
   }
 
-  val srcDirectory = moduleTemplates[0].paths.getSrcDirectory(null) ?: return this.getPackageForApplication()
+  val srcDirectory = moduleTemplates[0].paths.getSrcDirectory(null) ?: return moduleSystem.getPackageName()
 
   // We generate a package name relative to the source root, but if the target path is not under the source root, we should just
   // fall back to the default application package.
@@ -56,7 +50,7 @@ fun AndroidFacet.getPackageForPath(moduleTemplates: List<NamedModuleTemplate>, t
       return suggestedPackage
     }
   }
-  return this.getPackageForApplication()
+  return moduleSystem.getPackageName()
 }
 
 /**

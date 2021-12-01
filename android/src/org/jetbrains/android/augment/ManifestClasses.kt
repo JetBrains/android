@@ -17,6 +17,7 @@ package org.jetbrains.android.augment
 
 import com.android.SdkConstants
 import com.android.tools.idea.model.MergedManifestModificationTracker
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.android.tools.idea.res.getFieldNameByResourceName
 import com.intellij.openapi.diagnostic.Logger
@@ -39,7 +40,6 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.MODULE_POINTE
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 private val LOG: Logger get() = Logger.getInstance("ManifestClasses.kt")
@@ -52,7 +52,7 @@ class ManifestClass(
   psiManager: PsiManager
 ) : AndroidClassWithOnlyInnerClassesBase(
   SdkConstants.FN_MANIFEST_BASE,
-  getPackageName(facet),
+  facet.getModuleSystem().getPackageName(),
   psiManager,
   listOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 ) {
@@ -64,7 +64,8 @@ class ManifestClass(
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ManifestClass::class.java)
   }
 
-  override fun getQualifiedName(): String? = getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
+  override fun getQualifiedName(): String? =
+    facet.getModuleSystem().getPackageName()?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     val classes = mutableListOf<PsiClass>()

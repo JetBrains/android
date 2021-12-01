@@ -17,9 +17,9 @@ package com.android.tools.idea.editors;
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.ImportFilter;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +62,7 @@ public class AndroidImportFilter extends ImportFilter {
     AndroidFacet facet = AndroidFacet.getInstance(targetFile);
     if (facet != null) {
       // We need the manifest package here, not the Gradle effective package (which can vary by flavor and build type)
-      return AndroidManifestUtils.getPackageName(facet);
+      return ProjectSystemUtil.getModuleSystem(facet).getPackageName();
     }
 
     return null;
