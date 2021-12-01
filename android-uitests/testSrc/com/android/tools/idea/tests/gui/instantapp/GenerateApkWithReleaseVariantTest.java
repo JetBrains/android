@@ -58,7 +58,7 @@ public class GenerateApkWithReleaseVariantTest {
   public void generateApkWithReleaseVariant() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...");
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026");
 
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToAndroidLibrary()

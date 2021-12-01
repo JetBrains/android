@@ -96,7 +96,7 @@ public class AndroidLibsDepTest {
 
   static private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                     @NotNull String moduleName) {
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()

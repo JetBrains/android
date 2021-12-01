@@ -58,7 +58,7 @@ class AddNewModuleToKtsProjectTest {
     assertAbout(file()).that(settingsGroovyFilePath).doesNotExist()
     assertAbout(file()).that(settingsKtsFilePath).isFile()
 
-    ideFrame.invokeMenuPath("File", "New", "New Module...")
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextPhoneAndTabletModule()
       .enterModuleName("application_module")

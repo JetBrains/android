@@ -67,7 +67,7 @@ public class NewKotlinModuleTest {
   }
 
   private void addNewKotlinModule() {
-    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextPhoneAndTabletModule()
       .enterModuleName(NEW_KOTLIN_MODULE_NAME)
       .setSourceLanguage(Kotlin)

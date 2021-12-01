@@ -53,7 +53,7 @@ public class CreateNewAppModuleWithDefaultsTest {
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
-           .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+           .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
            .clickNextPhoneAndTabletModule()
            .enterModuleName("application_module")
            .wizard()

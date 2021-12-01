@@ -135,7 +135,7 @@ public class NewActivityTest {
     assertThat(guiTest.getProjectFileText("app/build.gradle")).doesNotContain("$kotlin_version");
 
     // Add a new kotlin module, and check that dependencies use "kotlin_my_version", instead of adding a new variable
-    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextPhoneAndTabletModule()
       .enterModuleName("app2")
       .setSourceLanguage(Kotlin)

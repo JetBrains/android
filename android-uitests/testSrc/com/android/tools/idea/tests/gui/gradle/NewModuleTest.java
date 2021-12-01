@@ -54,7 +54,7 @@ public class NewModuleTest {
   @Test
   public void createNewJavaLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToPureLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
@@ -68,7 +68,7 @@ public class NewModuleTest {
   @Test
   public void createNewKotlinLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToPureLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
@@ -83,7 +83,7 @@ public class NewModuleTest {
   @Test
   public void createNewAndroidLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("somelibrary")
@@ -100,7 +100,7 @@ public class NewModuleTest {
   public void addNewModuleToAndroidxProject() {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextPhoneAndTabletModule()
       .enterModuleName("otherModule")
       .wizard()
@@ -122,7 +122,7 @@ public class NewModuleTest {
   public void addNewBasicActivityModuleToNewProject() {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextPhoneAndTabletModule()
       .setSourceLanguage(Kotlin)
       .enterModuleName("otherModule")
@@ -146,7 +146,7 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Use androidx
     final String moduleName = "wearModule";
       guiTest.ideFrame()
-        .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+        .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
         .clickNextWearModule()
         .enterModuleName(moduleName)
         .wizard()
@@ -170,7 +170,7 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Use androidx
     final String moduleName = "automotiveModule";
     guiTest.ideFrame()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextAutomotiveModule()
       .enterModuleName(moduleName)
       .wizard()
@@ -191,7 +191,7 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Use androidx
     final String moduleName = "nativelib";
     guiTest.ideFrame()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNewNativeLibraryModule()
       .enterModuleName(moduleName)
       .wizard()
@@ -204,7 +204,7 @@ public class NewModuleTest {
 
     final String moduleName2 = "nativelib2";
     guiTest.ideFrame()
-      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNewNativeLibraryModule()
       .enterModuleName(moduleName2)
       .setCppStandard(CppStandardType.valueOf("C++11"))

@@ -88,7 +88,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
     // JVM arguments.  See go/studio-testing-pitfalls for information.
-    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    projectFrame.invokeMenuPath("File", "New", "New Module\u2026");
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()
@@ -104,7 +104,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     waitForSessionStart(debugToolWindowFixture);
 
-    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    projectFrame.invokeMenuPath("File", "New", "New Module\u2026");
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .wizard()

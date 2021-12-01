@@ -68,7 +68,7 @@ class NewKtsModuleTest {
   }
 
   private fun addNewJavaMobileModuleWithKts() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextPhoneAndTabletModule()
       .enterModuleName("mobile")
@@ -91,7 +91,7 @@ class NewKtsModuleTest {
   }
 
   private fun addNewKotlinAndroidLibraryWithKtsModule() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToAndroidLibrary()
       .enterModuleName("android_lib")
@@ -110,7 +110,7 @@ class NewKtsModuleTest {
   }
 
   private fun addNewJavaAutomotiveWithKtsModule() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextAutomotiveModule()
       .enterModuleName("automotive")
@@ -130,7 +130,7 @@ class NewKtsModuleTest {
   }
 
   private fun addNewJavaWearWithKtsModule() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextWearModule()
       .enterModuleName("wear")
@@ -150,7 +150,7 @@ class NewKtsModuleTest {
   }
 
   private fun addNewJavaAndroidTvWithKtsModule() {
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextAndroidTvModule()
       .enterModuleName("tv")
@@ -181,7 +181,7 @@ class NewKtsModuleTest {
   @Test
   fun addNewPureJavaLibraryWithKtsModule() {
     guiTest.importSimpleApplication()
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToPureLibrary()
       .enterLibraryName("pure_lib")
@@ -213,7 +213,7 @@ class NewKtsModuleTest {
   @Test
   fun addNewJavaDynamicFeatureWithKtsModule() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToDynamicFeature()
       .enterFeatureModuleName("DynamicFeature")
@@ -243,7 +243,7 @@ class NewKtsModuleTest {
   @Test
   fun addNewJavaInstantDynamicFeatureWithKtsModule() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToInstantDynamicFeature()
       .enterFeatureModuleName("InstantFeature")
@@ -272,7 +272,7 @@ class NewKtsModuleTest {
   @Test
   fun addNewJavaBenchmarkModuleWithKts() {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
+    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026")
     NewModuleWizardFixture.find(guiTest.ideFrame())
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)

@@ -53,7 +53,7 @@ public class CreateNewLibraryModuleWithDefaultsTest {
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
-           .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+           .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
            .clickNextToAndroidLibrary()
            .enterModuleName("library_module")
            .wizard()
