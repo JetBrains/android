@@ -19,7 +19,7 @@ import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.util.Targets;
+import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;

@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.devicemanager.DeviceType;
-import com.android.tools.idea.util.Targets;
+import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;

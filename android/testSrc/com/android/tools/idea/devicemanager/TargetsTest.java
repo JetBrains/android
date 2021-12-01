@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.util;
+package com.android.tools.idea.devicemanager;
 
 import static org.junit.Assert.assertEquals;
 

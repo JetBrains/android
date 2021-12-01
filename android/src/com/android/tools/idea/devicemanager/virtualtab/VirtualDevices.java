@@ -21,7 +21,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
-import com.android.tools.idea.util.Targets;
+import com.android.tools.idea.devicemanager.Targets;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
