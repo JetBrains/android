@@ -181,13 +181,15 @@ public class PropertyUtil {
   @Nullable
   public static GradleDslElement followElement(@NotNull GradleDslSimpleExpression expression) {
     GradleDslElement element = expression;
+    Set<GradleDslElement> seen = new HashSet<>();
     while (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference() && !((GradleDslLiteral)element).hasCycle()) {
+      seen.add(element);
       GradleReferenceInjection injection = ((GradleDslLiteral)element).getReferenceInjection();
       if (injection == null) {
         return null;
       }
       GradleDslElement next = injection.getToBeInjected();
-      if (next == null) {
+      if (next == null || seen.contains(next)) {
         return null;
       }
       element = next;

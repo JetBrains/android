@@ -1,0 +1,8 @@
+allprojects {
+  def libs = rootProject.project.libs
+  repositories {
+    maven {
+      url = "dexguard/Dexguard-${libs.versions.dexguard.runtime.get()}/lib"
+    }
+  }
+}
