@@ -187,19 +187,20 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun String.deduplicate() = strings.putIfAbsent(this, this) ?: this
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
+  fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
   fun Set<String>.deduplicateStrings(): Set<String> =  this.map { it.deduplicate() }.toSet()
   fun Collection<String>.deduplicateStrings(): Collection<String> = this.map { it.deduplicate() }
 
-  fun deduplicateFile(f: File): File = File(f.path.deduplicate())
-  fun List<File>.deduplicateFiles() = map { deduplicateFile(it) }
-  fun Collection<File>.deduplicateFiles() = map { deduplicateFile(it )}
+  fun File.deduplicateFile(): File = File(path.deduplicate())
+  fun List<File>.deduplicateFiles() = map { it.deduplicateFile() }
+  fun Collection<File>.deduplicateFiles() = map { it.deduplicateFile() }
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
-    val folder: File? = provider.manifestFile.parentFile
+    val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
     fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
     return IdeSourceProviderImpl(
-      myName = provider.name,
+      myName = provider.name.deduplicate(),
       myFolder = folder,
       myManifestFile = provider.manifestFile.makeRelativeAndDeduplicate(),
       myJavaDirectories = provider.javaDirectories.makeRelativeAndDeduplicate(),
@@ -217,9 +218,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun classFieldFrom(classField: ClassField): IdeClassFieldImpl {
     return IdeClassFieldImpl(
-      name = classField.name,
-      type = classField.type,
-      value = classField.value
+      name = classField.name.deduplicate(),
+      type = classField.type.deduplicate(),
+      value = classField.value.deduplicate(),
     )
   }
 
@@ -228,28 +229,30 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   }
 
   fun apiVersionFrom(version: ApiVersion): IdeApiVersionImpl {
+    val codename = version.codename?.deduplicate()
+    val apiString = codename ?: version.apiLevel.toString().deduplicate()
     return IdeApiVersionImpl(
       apiLevel = version.apiLevel,
-      codename = version.codename,
-      apiString = version.codename ?: version.apiLevel.toString()
+      codename = codename,
+      apiString = apiString
     )
   }
 
   fun signingConfigFrom(config: SigningConfig): IdeSigningConfigImpl {
     return IdeSigningConfigImpl(
-      name = config.name,
-      storeFile = config.storeFile,
-      storePassword = config.storePassword,
-      keyAlias = config.keyAlias
+      name = config.name.deduplicate(),
+      storeFile = config.storeFile?.deduplicateFile(),
+      storePassword = config.storePassword?.deduplicate(),
+      keyAlias = config.keyAlias?.deduplicate()
     )
   }
 
   fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl {
     return IdeProductFlavorImpl(
-      name = flavor.name,
+      name = flavor.name.deduplicate(),
       resValues = flavor.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
-      proguardFiles = ImmutableList.copyOf(flavor.proguardFiles),
-      consumerProguardFiles = ImmutableList.copyOf(flavor.consumerProguardFiles),
+      proguardFiles = ImmutableList.copyOf(flavor.proguardFiles.deduplicateFiles()),
+      consumerProguardFiles = ImmutableList.copyOf(flavor.consumerProguardFiles.deduplicateFiles()),
       // AGP may return internal Groovy GString implementation as a value in
       // manifestPlaceholders
       // map. It cannot be serialized
@@ -258,21 +261,21 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       // usable as they are converted to String by
       // the manifest merger anyway.
       manifestPlaceholders = ImmutableMap.copyOf(flavor.manifestPlaceholders.entries.associate { it.key to it.value.toString() }),
-      applicationIdSuffix = flavor.applicationIdSuffix,
-      versionNameSuffix = flavor.versionNameSuffix,
+      applicationIdSuffix = flavor.applicationIdSuffix?.deduplicate(),
+      versionNameSuffix = flavor.versionNameSuffix?.deduplicate(),
       multiDexEnabled = flavor.multiDexEnabled,
-      testInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.testInstrumentationRunnerArguments),
-      resourceConfigurations = ImmutableList.copyOf(flavor.resourceConfigurations),
+      testInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.testInstrumentationRunnerArguments.deduplicateStrings()),
+      resourceConfigurations = ImmutableList.copyOf(flavor.resourceConfigurations.deduplicateStrings()),
       vectorDrawables = vectorDrawablesOptionsFrom(flavor.vectorDrawables),
-      dimension = flavor.dimension,
-      applicationId = flavor.applicationId,
+      dimension = flavor.dimension?.deduplicate(),
+      applicationId = flavor.applicationId?.deduplicate(),
       versionCode = flavor.versionCode,
-      versionName = flavor.versionName,
+      versionName = flavor.versionName?.deduplicate(),
       minSdkVersion = flavor.minSdkVersion?.let { it: ApiVersion -> apiVersionFrom(it) },
       targetSdkVersion = flavor.targetSdkVersion?.let { it: ApiVersion -> apiVersionFrom(it) },
       maxSdkVersion = flavor.maxSdkVersion,
-      testApplicationId = flavor.testApplicationId,
-      testInstrumentationRunner = flavor.testInstrumentationRunner,
+      testApplicationId = flavor.testApplicationId?.deduplicate(),
+      testInstrumentationRunner = flavor.testInstrumentationRunner?.deduplicate(),
       testFunctionalTest = flavor.testFunctionalTest,
       testHandleProfiling = flavor.testHandleProfiling
     )
@@ -396,10 +399,10 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
-      name = buildType.name,
+      name = buildType.name.deduplicate(),
       resValues = buildType.resValues?.mapValues { classFieldFrom(it.value) } ?: mapOf(),
-      proguardFiles = ImmutableList.copyOf(buildType.proguardFiles),
-      consumerProguardFiles = ImmutableList.copyOf(buildType.consumerProguardFiles),
+      proguardFiles = ImmutableList.copyOf(buildType.proguardFiles.deduplicateFiles()),
+      consumerProguardFiles = ImmutableList.copyOf(buildType.consumerProguardFiles.deduplicateFiles()),
       // AGP may return internal Groovy GString implementation as a value in
       // manifestPlaceholders
       // map. It cannot be serialized
@@ -407,9 +410,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       // make them
       // usable as they are converted to String by
       // the manifest merger anyway.
-      manifestPlaceholders = ImmutableMap.copyOf(buildType.manifestPlaceholders.entries.associate { it.key to it.value.toString() }),
-      applicationIdSuffix = buildType.applicationIdSuffix,
-      versionNameSuffix = buildType.versionNameSuffix,
+      manifestPlaceholders = ImmutableMap.copyOf(buildType.manifestPlaceholders.entries.associate { it.key to it.value.toString() }.deduplicateStrings()),
+      applicationIdSuffix = buildType.applicationIdSuffix?.deduplicate(),
+      versionNameSuffix = buildType.versionNameSuffix?.deduplicate(),
       multiDexEnabled = buildType.multiDexEnabled,
       isDebuggable = buildType.isDebuggable,
       isJniDebuggable = buildType.isJniDebuggable,
@@ -444,7 +447,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
     val core = IdeAndroidLibraryCore.create(
       artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar",
-      folder = androidLibraryData.resFolder.parentFile ?: File(""), // TODO: verify this always true
+      folder = androidLibraryData.resFolder.parentFile.deduplicateFile() ?: File(""), // TODO: verify this always true
 
       artifact = androidLibrary.artifact ?: File(""),
       lintJar = androidLibrary.lintJar?.path,
@@ -725,8 +728,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return IdeModelSyncFileImpl(
       // TODO(b/205713031): Parse syncType and handle unknown values.
       modelSyncType = IdeModelSyncFile.IdeModelSyncType.BASIC,
-      taskName = modelSyncFile.taskName,
-      syncFile = modelSyncFile.syncFile
+      taskName = modelSyncFile.taskName.deduplicate(),
+      syncFile = modelSyncFile.syncFile.deduplicateFile()
     )
   }
 
@@ -760,7 +763,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       unresolvedDependencies = emptyList(),
       applicationId = "",
       generatedResourceFolders = artifact.generatedResourceFolders.deduplicateFiles().distinct(),
-      signingConfigName = artifact.signingConfigName,
+      signingConfigName = artifact.signingConfigName?.deduplicate(),
       abiFilters = ImmutableSet.copyOf(artifact.abiFilters.orEmpty()),
       isSigned = artifact.isSigned,
       additionalRuntimeApks = testInfo?.additionalRuntimeApks?.deduplicateFiles() ?: emptyList(),
@@ -829,8 +832,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   }
 
   fun ideTestedTargetVariantFrom(testedTargetVariant: TestedTargetVariant): IdeTestedTargetVariantImpl = IdeTestedTargetVariantImpl(
-    targetProjectPath = testedTargetVariant.targetProjectPath,
-    targetVariant = testedTargetVariant.targetVariant
+    targetProjectPath = testedTargetVariant.targetProjectPath.deduplicate(),
+    targetVariant = testedTargetVariant.targetVariant.deduplicate()
   )
 
   fun getTestedTargetVariants(variant: Variant): List<IdeTestedTargetVariantImpl> {
@@ -864,8 +867,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
     return IdeVariantImpl(
-      name = variant.name,
-      displayName = variant.displayName,
+      name = variant.name.deduplicate(),
+      displayName = variant.displayName.deduplicate(),
       mainArtifact = androidArtifactFrom("_main_", basicVariant.mainArtifact, variant.mainArtifact),
       // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
       unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
@@ -877,20 +880,20 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom("_test_fixtures_", basicVariant.testFixturesArtifact!!, it)
       },
-      buildType = basicVariant.buildType ?: "",
-      productFlavors = ImmutableList.copyOf(basicVariant.productFlavors),
+      buildType = basicVariant.buildType?.deduplicate() ?: "",
+      productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
       minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
       targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
       maxSdkVersion = variant.mainArtifact.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
-      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() },
-      versionNameSuffix = versionNameSuffix,
+      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() }?.deduplicate(),
+      versionNameSuffix = versionNameSuffix?.deduplicate(),
       instantAppCompatible = (modelVersion != null && variant.isInstantAppCompatible),
       vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
-      resourceConfigurations = mergedFlavor.resourceConfigurations,
-      testApplicationId = mergedFlavor.testApplicationId,
-      testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
-      testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments,
+      resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
+      testApplicationId = mergedFlavor.testApplicationId?.deduplicate(),
+      testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
+      testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
       testedTargetVariants = getTestedTargetVariants(variant),
       resValues = merge({ resValues }, { resValues }, ::combineMaps),
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
@@ -926,24 +929,24 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
 
   fun nativeAbiFrom(nativeAbi: NativeAbi): IdeNativeAbiImpl {
     return IdeNativeAbiImpl(
-      name = nativeAbi.name,
-      sourceFlagsFile = nativeAbi.sourceFlagsFile,
-      symbolFolderIndexFile = nativeAbi.symbolFolderIndexFile,
-      buildFileIndexFile = nativeAbi.buildFileIndexFile,
-      additionalProjectFilesIndexFile = nativeAbi.additionalProjectFilesIndexFile
+      name = nativeAbi.name.deduplicate(),
+      sourceFlagsFile = nativeAbi.sourceFlagsFile.deduplicateFile(),
+      symbolFolderIndexFile = nativeAbi.symbolFolderIndexFile.deduplicateFile(),
+      buildFileIndexFile = nativeAbi.buildFileIndexFile.deduplicateFile(),
+      additionalProjectFilesIndexFile = nativeAbi.additionalProjectFilesIndexFile.deduplicateFile()
     )
   }
 
   fun nativeVariantFrom(nativeVariant: NativeVariant): IdeNativeVariantImpl {
     return IdeNativeVariantImpl(
-      name = nativeVariant.name,
+      name = nativeVariant.name.deduplicate(),
       abis = nativeVariant.abis.map { nativeAbiFrom(it) },
     )
   }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl {
     return IdeNativeModuleImpl(
-      name = nativeModule.name,
+      name = nativeModule.name.deduplicate(),
       variants = nativeModule.variants.map { nativeVariantFrom(it) },
       nativeBuildSystem = when (nativeModule.nativeBuildSystem) {
         NativeBuildSystem.NDK_BUILD -> com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem.NDK_BUILD
