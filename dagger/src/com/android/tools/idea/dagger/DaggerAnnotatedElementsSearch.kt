@@ -34,12 +34,8 @@ import com.intellij.psi.impl.compiled.SignatureParsing
 import com.intellij.psi.impl.compiled.StubBuildingVisitor
 import com.intellij.psi.impl.search.AnnotatedElementsSearcher
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.descendantsOfType
-import org.jetbrains.kotlin.asJava.ImpreciseResolveResult
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toPsiParameters
@@ -48,11 +44,9 @@ import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.signature.BothSignatureWriter
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.search.PsiBasedClassResolver
+import org.jetbrains.kotlin.idea.search.ideaExtensions.KotlinAnnotatedElementsSearcher
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
-import org.jetbrains.kotlin.idea.stubindex.KotlinSourceFilterScope
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -98,20 +92,9 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     javaProcessor: (PsiElement) -> Unit
   ) {
     val annotationClass = getAnnotation(annotationFQN) ?: return
-    val psiBasedClassResolver = PsiBasedClassResolver.getInstance(annotationClass)
-    val candidates = getKotlinAnnotationCandidates(annotationClass, scope)
-    candidates.filterIsInstance<KtAnnotationEntry>().forEach { annotation ->
-      // For regular import.
-      if (psiBasedClassResolver.matchAnnotation(annotation) ||
-          // Fot import via alias, i.e. import example.Annotation as alias.
-          (annotation.shortName?.asString() != annotationClass.name &&
-           annotation.containingKtFile.findImportByAlias(annotation.shortName.toString())?.importedFqName?.asString() == annotationFQN) ||
-          // For usage as FQCN, i.e @example.Annotation val field... .
-          annotation.typeReference?.typeElement?.textMatches(annotationFQN) == true) {
-
-        val declaration = PsiTreeUtil.getParentOfType<KtDeclaration>(annotation, KtDeclaration::class.java) ?: return@forEach
-        kotlinProcessor(declaration)
-      }
+    KotlinAnnotatedElementsSearcher.processAnnotatedMembers(annotationClass, scope) { declaration ->
+      kotlinProcessor(declaration)
+      true
     }
 
     AnnotatedElementsSearcher().execute(AnnotatedElementsSearch.Parameters(annotationClass, scope, javaClassToSearch)) {
@@ -229,17 +212,6 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     search(annotationFQN, scope, kotlinProcessor, PsiMethod::class.java, javaProcessor)
     return result
   }
-
-  // Copied from KotlinAnnotatedElementsSearcher#getKotlinAnnotationCandidates
-  private fun getKotlinAnnotationCandidates(annClass: PsiClass, useScope: SearchScope): Collection<PsiElement> {
-    if (useScope is GlobalSearchScope) {
-      val name = annClass.name ?: return emptyList()
-      val scope = KotlinSourceFilterScope.sourcesAndLibraries(useScope, annClass.project)
-      return KotlinAnnotationsIndex.getInstance().get(name, annClass.project, scope)
-    }
-
-    return (useScope as LocalSearchScope).scope.flatMap { it.descendantsOfType<KtAnnotationEntry>().toList() }
-  }
 }
 
 /**
@@ -262,8 +234,8 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
     }
   }
 
-  val kotlinPrimitiveTypeFqName = PrimitiveType.getByShortName(shortName)?.let { it.typeFqName }
-                                  ?: PrimitiveType.getByShortArrayName(shortName)?.let { it.arrayTypeFqName }
+  val kotlinPrimitiveTypeFqName = PrimitiveType.getByShortName(shortName)?.typeFqName
+                                  ?: PrimitiveType.getByShortArrayName(shortName)?.arrayTypeFqName
 
   if (kotlinPrimitiveTypeFqName != null) {
     return kotlinPrimitiveTypeFqNameToPsiType[kotlinPrimitiveTypeFqName.asString()] == unboxedPsiType
@@ -327,8 +299,3 @@ private val kotlinTypeMapper = KotlinTypeMapper(
   JvmProtoBufUtil.DEFAULT_MODULE_NAME, KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT,
   useOldInlineClassesManglingScheme = false
 )
-
-private fun PsiBasedClassResolver.matchAnnotation(annotationEntry: KtAnnotationEntry): Boolean {
-  return annotationEntry.calleeExpression?.constructorReferenceExpression
-    ?.let { ref -> canBeTargetReference(ref) } == ImpreciseResolveResult.MATCH
-}
