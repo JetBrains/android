@@ -30,7 +30,6 @@ import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
-import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
 import com.android.tools.idea.stats.GcPauseWatcher;
@@ -128,21 +127,21 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   private static void setupAnalytics() {
     AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
-    // If the user hasn't opted in, we will ask IJ to check if the user has
-    // provided a decision on the statistics consent. If the user hasn't made a
-    // choice, a modal dialog will be shown asking for a decision
-    // before the regular IDE ui components are shown.
-    if (!AnalyticsSettings.getOptedIn()) {
-      Application application = ApplicationManager.getApplication();
-      // If we're running in a test or headless mode, do not show the dialog
-      // as it would block the test & IDE from proceeding.
-      // NOTE: in this case the metrics logic will be left in the opted-out state
-      // and no metrics are ever sent.
-      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
-        if (StudioFlags.NEW_CONSENT_DIALOG.get()){
-          ApplicationManager.getApplication().invokeLater(ConsentDialog::showConsentDialogIfNeeded);
-        }
-        else{
+    if (StudioFlags.NEW_CONSENT_DIALOG.get()) {
+      ConsentDialog.showConsentDialogIfNeeded();
+    }
+    else {
+      // If the user hasn't opted in, we will ask IJ to check if the user has
+      // provided a decision on the statistics consent. If the user hasn't made a
+      // choice, a modal dialog will be shown asking for a decision
+      // before the regular IDE ui components are shown.
+      if (!AnalyticsSettings.getOptedIn()) {
+        Application application = ApplicationManager.getApplication();
+        // If we're running in a test or headless mode, do not show the dialog
+        // as it would block the test & IDE from proceeding.
+        // NOTE: in this case the metrics logic will be left in the opted-out state
+        // and no metrics are ever sent.
+        if (!application.isUnitTestMode() && !application.isHeadlessEnvironment()) {
           ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
         }
       }

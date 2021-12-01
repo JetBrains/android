@@ -259,6 +259,32 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey2"))
   }
 
+  fun testHasUserBeenPromptedForOptin() {
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = null
+    })
+
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = "invalid"
+    })
+
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      lastOptinPromptVersion = "2021.1"
+    })
+
+    assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "0"))
+    assertTrue(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "1"))
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2021", "2"))
+    assertFalse(AnalyticsSettings.hasUserBeenPromptedForOptin("2022", "0"))
+  }
+
   companion object {
     fun createMockDevice(): IDevice {
       val mockDevice = EasyMock.createMock<IDevice>(IDevice::class.java)

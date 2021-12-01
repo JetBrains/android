@@ -16,9 +16,13 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.adtui.ImageComponent
+import com.android.tools.adtui.ImageUtils.iconToImage
+import com.android.tools.analytics.AnalyticsSettings
 import com.google.common.base.Predicates
 import com.intellij.ide.gdpr.Consent
 import com.intellij.ide.gdpr.ConsentOptions
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.AppUIUtil
 import icons.StudioIllustrations
@@ -139,34 +143,52 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   }
 
   companion object {
+    // If the user hasn't opted in, we will ask IJ to check if the user has
+    // provided a decision on the statistics consent. If the user hasn't made a
+    // choice, a modal dialog will be shown asking for a decision
+    // before the regular IDE ui components are shown.
     @JvmStatic
     fun showConsentDialogIfNeeded() {
-      val options = ConsentOptions.getInstance()
-      val consentsToShow = options.getConsents(Predicates.alwaysTrue())
-      if (!consentsToShow.second) {
+      if (AnalyticsSettings.optedIn) {
         return
       }
 
+      // If we're running in a test or headless mode, do not show the dialog
+      // as it would block the test & IDE from proceeding.
+      // NOTE: in this case the metrics logic will be left in the opted-out state
+      // and no metrics are ever sent.
+      val application = ApplicationManager.getApplication()
+      if (application.isUnitTestMode || application.isHeadlessEnvironment) {
+        return
+      }
+
+      val options = ConsentOptions.getInstance()
+      val consentsToShow = options.getConsents(Predicates.alwaysTrue())
       val list = consentsToShow.first
 
       if (list.size != 1) {
         return
       }
 
-      val dialog = ConsentDialog(list[0])
-      dialog.isModal = true
-
-      if (EventQueue.isDispatchThread()) {
-        dialog.show()
+      // if second is false, it indicates that the user has responded
+      // to the consent dialog
+      val majorVersion = ApplicationInfo.getInstance().majorVersion
+      val minorVersion = ApplicationInfo.getInstance().minorVersion
+      if (!consentsToShow.second) {
+        if (AnalyticsSettings.hasUserBeenPromptedForOptin(majorVersion, minorVersion)) {
+          // If the user has already declined during this major release,
+          // do not prompt
+          return
+        }
       }
-      else {
-        try {
-          EventQueue.invokeAndWait { dialog.show() }
-        }
-        catch (e: InterruptedException) {
-        }
-        catch (e: InvocationTargetException) {
-        }
+
+      AnalyticsSettings.lastOptinPromptVersion = "${majorVersion}.${minorVersion}"
+      AnalyticsSettings.saveSettings()
+
+      application.invokeLater {
+        val dialog = ConsentDialog(list[0])
+        dialog.isModal = true
+        dialog.show()
       }
     }
   }
