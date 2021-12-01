@@ -46,12 +46,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
 
   @NotNull List<IdeSourceProvider> getActiveSourceProviders();
 
-  @NotNull List<IdeSourceProvider> getUnitTestSourceProviders();
-
-  @NotNull List<IdeSourceProvider> getAndroidTestSourceProviders();
-
-  @NotNull List<IdeSourceProvider> getTestFixturesSourceProviders();
-
   @Nullable IdeBuildTypeContainer findBuildType(@NotNull String name);
 
   @Nullable IdeProductFlavorContainer findProductFlavor(@NotNull String name);
@@ -69,8 +63,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
   @Nullable LanguageLevel getJavaLanguageLevel();
 
   @Nullable IdeAndroidArtifact getArtifactForAndroidTest();
-
-  @Nullable IdeAndroidArtifact getArtifactForTestFixtures();
 
   @Nullable
   static AndroidModuleModel get(@NotNull Module module) {

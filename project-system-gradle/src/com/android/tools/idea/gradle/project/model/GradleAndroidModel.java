@@ -243,19 +243,16 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
   }
 
-  @Override
   @NotNull
   public List<IdeSourceProvider> getUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
 
-  @Override
   @NotNull
   public List<IdeSourceProvider> getAndroidTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
   }
 
-  @Override
   @NotNull
   public List<IdeSourceProvider> getTestFixturesSourceProviders() {
     return AndroidModelSourceProviderUtils.collectTestFixturesSourceProviders(this, getSelectedVariant());
@@ -586,7 +583,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
            getSelectedVariant().getAndroidTestArtifact();
   }
 
-  @Override
   @Nullable
   public IdeAndroidArtifact getArtifactForTestFixtures() {
     return getSelectedVariant().getTestFixturesArtifact();
