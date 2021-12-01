@@ -36,6 +36,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/project-system-gradle/lib:pepk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
     ],
 )
 

@@ -41,5 +41,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
   </component>
 </module>
