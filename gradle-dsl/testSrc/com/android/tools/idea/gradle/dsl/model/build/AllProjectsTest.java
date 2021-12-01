@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryMod
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -203,10 +204,18 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
   }
 
+  @Test
+  public void testLibsVariablePropertyValue() throws IOException {
+    writeToBuildFile(TestFile.LIBS_VARIABLE_PROPERTY_VALUE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertSize(1, buildModel.repositories().repositories());
+  }
+
   enum TestFile implements TestFileName {
     ALL_PROJECTS_SECTION("allProjectsSection"),
     DELETE_REPOSITORY("deleteRepository"),
     DELETE_REPOSITORY_EXPECTED("deleteRepositoryExpected"),
+    LIBS_VARIABLE_PROPERTY_VALUE("libsVariablePropertyValue"),
     OVERRIDE_ALL_PROJECTS_SECTION("overrideAllProjectsSection"),
     OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT("overrideAllProjectsSectionInSubproject"),
     OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB("overrideAllProjectsSectionInSubproject_sub"),
