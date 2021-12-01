@@ -20,8 +20,8 @@ import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.veri
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.gradle.model.IdeApiVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -37,7 +37,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
@@ -184,15 +184,14 @@ public class NewProjectTest {
       .getIdeFrame()
       .requestProjectSyncAndWaitForSyncToFinish();
 
-    AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
 
-    IdeApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+    AndroidVersion version = AndroidModel.get(appModule).getMinSdkVersion();
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
-    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isAtLeast(LanguageLevel.JDK_1_7);
+    assertThat(LanguageLevelModuleExtensionImpl.getInstance(appModule).getLanguageLevel()).named("Java language level").isAtLeast(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
-    Module appModule = guiTest.ideFrame().getModule("app");
     assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule)).named("Gradle Java language level in module " + appModule.getName())
       .isAtLeast(LanguageLevel.JDK_1_7);
   }

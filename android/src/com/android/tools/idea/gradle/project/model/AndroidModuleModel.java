@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,8 +58,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
   String getSelectedVariantName();
 
   @NotNull ImmutableList<IdeVariant> getVariants();
-
-  @Nullable LanguageLevel getJavaLanguageLevel();
 
   @Nullable IdeAndroidArtifact getArtifactForAndroidTest();
 

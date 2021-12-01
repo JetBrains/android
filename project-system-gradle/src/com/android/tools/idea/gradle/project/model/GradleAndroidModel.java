@@ -533,7 +533,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return names != null ? names : myCachedVariantsByName.keySet();
   }
 
-  @Override
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
     IdeJavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
