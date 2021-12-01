@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.tools.idea.welcome.install.VmType;
+import com.android.tools.idea.sdk.install.VmType;
 import com.intellij.openapi.util.SystemInfo;
 import javax.swing.JComponent;
 import javax.swing.JLabel;

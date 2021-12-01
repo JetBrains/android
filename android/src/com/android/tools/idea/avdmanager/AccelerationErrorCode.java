@@ -32,7 +32,6 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.welcome.install.CpuVendor;
 import com.intellij.openapi.util.SystemInfo;
 
 /**

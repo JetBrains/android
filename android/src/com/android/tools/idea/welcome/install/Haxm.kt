@@ -19,8 +19,10 @@ import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.CpuVendor
 import com.android.tools.idea.observable.core.IntProperty
 import com.android.tools.idea.observable.core.IntValueProperty
+import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.welcome.wizard.deprecated.HaxmInstallSettingsStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
@@ -54,7 +56,8 @@ class Haxm(
           else HaxmInstallSettingsStep(isCustomInstall, willBeInstalled, emulatorMemoryMb))
 
   override val steps: Collection<ModelWizardStep<*>>
-    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(VmType.HAXM)
+    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(
+      VmType.HAXM)
                   else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
 
   /**

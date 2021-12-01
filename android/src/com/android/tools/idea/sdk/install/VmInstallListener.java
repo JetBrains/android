@@ -21,7 +21,6 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
 import com.android.tools.idea.sdk.wizard.VmWizard;
-import com.android.tools.idea.welcome.install.VmType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;

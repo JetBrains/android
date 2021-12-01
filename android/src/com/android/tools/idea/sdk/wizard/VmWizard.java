@@ -32,7 +32,7 @@ import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
 import com.android.tools.idea.welcome.install.InstallationIntention;
 import com.android.tools.idea.welcome.install.Vm;
-import com.android.tools.idea.welcome.install.VmType;
+import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;

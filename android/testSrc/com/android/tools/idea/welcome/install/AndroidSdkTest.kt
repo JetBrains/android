@@ -19,6 +19,7 @@ import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
+import com.android.tools.idea.avdmanager.CpuVendor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Test
