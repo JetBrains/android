@@ -81,7 +81,12 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   // present in the Jdk table but will not have any valid file entries.
   if (sdk != null && sdk.rootProvider.getFiles(CLASSES).isEmpty()) {
     // Delete the invalid JDK to ensure we re-create it with the correct order entries.
-    ProjectJdkTable.getInstance().removeJdk(sdk)
+    val sdkToRemove = sdk
+    invokeAndWaitIfNeeded {
+      runWriteAction {
+        ProjectJdkTable.getInstance().removeJdk(sdkToRemove)
+      }
+    }
     sdk = null
   }
 
