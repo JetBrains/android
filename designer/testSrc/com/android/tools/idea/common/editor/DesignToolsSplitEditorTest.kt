@@ -19,12 +19,14 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.ex.EditorGutterComponentEx
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.KeyboardFocusManager
@@ -37,6 +39,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   private lateinit var splitEditor : DesignToolsSplitEditor
   private lateinit var textEditor : TextEditor
   private lateinit var designerEditor : DesignerEditor
+  private var showDefaultGutterPopupValue = false
 
   override fun setUp() {
     super.setUp()
@@ -45,13 +48,22 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(panel.state).thenReturn(DesignerEditorPanel.State.FULL)
     designerEditor = mock(DesignerEditor::class.java)
     `when`(designerEditor.component).thenReturn(panel)
+
     val textEditorComponent = object: JComponent() {}
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
-    val editor = mock(Editor::class.java)
+    val editor = mock(EditorEx::class.java)
     `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
+
+    val gutterComponentEx = mock(EditorGutterComponentEx::class.java)
+    `when`(editor.gutterComponentEx).thenReturn(gutterComponentEx)
+
+    `when`(gutterComponentEx.setShowDefaultGutterPopup(anyBoolean())).then {
+      showDefaultGutterPopupValue = (it.arguments[0] as? Boolean) ?: false
+      Unit
+    }
     val component = object: JComponent() {}
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
@@ -102,14 +114,17 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     var triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
     assertThat(splitEditor.isTextMode()).isTrue()
+    assertTrue(showDefaultGutterPopupValue)
 
     triggerExplicitly = false
     // We change mode even when users don't trigger it explicitly, e.g. when jumping to XML definition
     splitEditor.selectDesignMode(triggerExplicitly)
     assertThat(splitEditor.isDesignMode()).isTrue()
+    assertFalse(showDefaultGutterPopupValue)
 
     splitEditor.selectSplitMode(triggerExplicitly)
     assertThat(splitEditor.isSplitMode()).isTrue()
+    assertTrue(showDefaultGutterPopupValue)
   }
 
   fun testFileIsDelegateToTextEditor() {

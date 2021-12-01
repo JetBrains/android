@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
@@ -47,11 +48,12 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
                                            defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW)
   : TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), TextEditor, DataProvider {
 
-  private val textViewAction = SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction())
+  private val textViewAction = SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), true)
 
-  private val splitViewAction = SplitEditorAction("Split", AllIcons.General.LayoutEditorPreview, super.getShowEditorAndPreviewAction())
+  private val splitViewAction = SplitEditorAction("Split", AllIcons.General.LayoutEditorPreview, super.getShowEditorAndPreviewAction(),
+                                                  true)
 
-  private val previewViewAction = SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.getShowPreviewAction())
+  private val previewViewAction = SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.getShowPreviewAction(), false)
 
   private val navigateLeftAction = object : AnAction() {
     override fun actionPerformed(e: AnActionEvent) = selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
@@ -130,9 +132,18 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     navigateRightAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB), applicableTo)
   }
 
+  /**
+   * Action to switch to a different mode in the split editor.
+   *
+   * @param name the name of the mode.
+   * @param icon icon for the mode.
+   * @param delegate a [ToggleAction] that will received the [setSelected] call then it is triggered in this action.
+   * @param showDefaultGutterPopup when this action is triggered, if true, the text editor will use the default gutter popup.
+   */
   protected open inner class SplitEditorAction internal constructor(val name: String,
                                                                     val icon: Icon,
-                                                                    val delegate: ToggleAction)
+                                                                    val delegate: ToggleAction,
+                                                                    private val showDefaultGutterPopup: Boolean)
     : ToggleAction(name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
@@ -143,6 +154,11 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
       val isRedundantStateChange = isSelected(e) == state
       delegate.setSelected(e, state)
       if (isRedundantStateChange) return // Return early if state is being redundantly set, otherwise we could request the focus too often.
+
+      // When the text editor is not visible, trying to trigger the right click popup on the breadcrumb bar will throw an
+      // exception. This disables the popup when showDefaultGutterPopup is false allowing to avoid the popup when the text editor
+      // is not visible. See http://b/208596732.
+      (textEditor.editor as? EditorEx)?.gutterComponentEx?.setShowDefaultGutterPopup(showDefaultGutterPopup)
       if (userExplicitlySelected) {
         // We might want to run a callback when users explicitly select the action, i.e. when they click on the action to change the mode.
         // For example, we might want to track when they change modes. An example of indirectly changing the mode is triggering "Go to XML"

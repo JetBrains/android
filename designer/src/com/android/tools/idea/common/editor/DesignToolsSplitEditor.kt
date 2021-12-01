@@ -145,7 +145,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: De
   }
 
   private inner class MyToolBarAction internal constructor(delegate: SplitEditorAction, internal val panelState: DesignerEditorPanel.State)
-    : SplitEditor<DesignerEditor>.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
+    : SplitEditor<DesignerEditor>.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate, panelState != DesignerEditorPanel.State.FULL) {
 
     override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
       designerEditor.component.state = panelState
