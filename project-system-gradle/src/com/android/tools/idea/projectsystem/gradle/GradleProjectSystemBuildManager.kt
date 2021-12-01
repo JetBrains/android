@@ -4,13 +4,13 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -61,7 +61,8 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
 
 class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildManager {
   override fun compileProject() {
-    GradleProjectBuilder.getInstance(project).compileJava()
+    val modules = ModuleManager.getInstance(project).modules
+    GradleBuildInvoker.getInstance(project).compileJava(modules, TestCompileType.ALL)
   }
 
   override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {

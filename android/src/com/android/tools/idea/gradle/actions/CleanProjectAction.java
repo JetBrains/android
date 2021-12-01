@@ -1,7 +1,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbService;
@@ -24,7 +24,7 @@ public class CleanProjectAction extends AndroidStudioGradleAction {
                                                                 "Please wait until the build finishes to clean the project.");
       return;
     }
-    GradleProjectBuilder.getInstance(project).clean();
+    GradleBuildInvoker.getInstance(project).cleanProject();
   }
 
   @Override

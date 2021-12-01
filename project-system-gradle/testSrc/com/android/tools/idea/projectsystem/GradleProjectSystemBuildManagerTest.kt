@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManager
@@ -77,7 +76,6 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     ideComponents = IdeComponents(project)
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
-    ideComponents.mockProjectService(GradleProjectBuilder::class.java)
 
     buildManager = GradleProjectSystemBuildManager(project)
   }

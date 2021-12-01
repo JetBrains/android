@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -59,7 +58,6 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
-    ideComponents.mockProjectService(GradleProjectBuilder::class.java)
     gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
     `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
