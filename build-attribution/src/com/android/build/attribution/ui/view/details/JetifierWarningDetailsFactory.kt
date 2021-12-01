@@ -24,7 +24,6 @@ import com.android.build.attribution.analyzers.JetifierUsedCheckRequired
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
-import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.attribution.FullDependencyPath
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
@@ -98,30 +97,43 @@ class JetifierWarningDetailsFactory(
 
     val callToActionLine = when (data.projectStatus) {
       // The following dependencies are recognized as support libraries: com.android.support, com.android.databinding, android.arch.
-      JetifierUsedCheckRequired -> "Removing Jetifier could reduce project build time. " +
-                                   "To disable Jetifier your project should have no dependencies on legacy support libraries. " +
-                                   "Run check to see if you have any of such dependencies in your project."
-      is JetifierRequiredForLibraries -> when (val size = data.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size) {
-                                           1 -> "This check found <b>1 declared dependency</b> that requires legacy support libraries. " +
-                                                "Removing Jetifier could reduce project build time. " +
-                                                "To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative."
-                                           else -> "This check found <b>$size declared dependencies</b> that require legacy support libraries. " +
-                                                   "Removing Jetifier could reduce project build time. " +
-                                                   "To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives."
-                                         } + " Run this check again to include recent changes to project files."
-      JetifierCanBeRemoved -> "This check found <b>0 declared dependencies</b> that require Jetifier in your project. " +
-                              "You can safely remove the 'android.enableJetifier' flag."
+      JetifierUsedCheckRequired -> """
+        Removing Jetifier could reduce project build time.
+        To disable Jetifier your project should have no dependencies on legacy support libraries.
+        Run check to see if you have any of such dependencies in your project.
+        """.trimIndent()
+      is JetifierRequiredForLibraries ->
+        when (val size = data.projectStatus.checkJetifierResult.dependenciesDependingOnSupportLibs.size) {
+          1 -> """
+            This check found <b>1 declared dependency</b> that requires legacy support libraries.
+            Removing Jetifier could reduce project build time.
+            To disable Jetifier you need to upgrade it to a version that does not require legacy support libraries or find an alternative.
+            Run this check again to include recent changes to project files.
+            """.trimIndent()
+          else -> """
+            This check found <b>$size declared dependencies</b> that require legacy support libraries.
+            Removing Jetifier could reduce project build time.
+            To disable Jetifier you need to upgrade them to versions that do not require legacy support libraries or find alternatives.
+            Run this check again to include recent changes to project files.
+            """.trimIndent()
+        }
+      JetifierCanBeRemoved -> """
+        This check found <b>0 declared dependencies</b> that require Jetifier in your project.
+        You can safely remove the 'android.enableJetifier' flag.
+      """.trimIndent()
       JetifierNotUsed -> error("Warning should not be shown in this state.")
       AnalyzerNotRun -> error("Warning should not be shown in this state.")
     }
 
     val contentHtml = """
-          <b>$headerStatus</b>
-          
-          Your project’s gradle.properties file includes 'android.enableJetifier=true'. This flag is needed to enable AndroidX for libraries that don’t support it natively.  $learnMoreLink.
-          
-          $callToActionLine
-        """.trimIndent().insertBRTags()
+          <b>$headerStatus</b><br/>
+          <br/>
+          Your project’s gradle.properties file includes 'android.enableJetifier=true'.
+          This flag is needed to enable AndroidX for libraries that don’t support it natively.
+          $learnMoreLink.<br/>
+          <br/>
+          $callToActionLine<br/>
+        """.trimIndent()
     val header = htmlTextLabelWithLinesWrap(contentHtml, linksHandler)
     val runCheckButton = JButton("Run Jetifier check").apply {
       name = "run-check-button"
