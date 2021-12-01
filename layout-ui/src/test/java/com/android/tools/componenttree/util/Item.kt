@@ -15,6 +15,7 @@
  */
 package com.android.tools.componenttree.util
 
+import java.awt.datatransfer.Transferable
 import javax.swing.Icon
 
 class Item(
@@ -27,9 +28,17 @@ class Item(
   val children = mutableListOf<Any>()
   var badge1: Icon? = null
   var badge2: Icon? = null
+  var canInsert: Boolean? = null
+  var acceptInsert = true
+  val insertions = mutableListOf<Pair<Transferable, Any?>>()
 
   init {
     parent?.children?.add(this)
+  }
+
+  fun add(vararg extraChildren: Item) {
+    children.addAll(extraChildren)
+    extraChildren.forEach { it.parent = this }
   }
 
   override fun toString() = "$tagName ${id.orEmpty()}"

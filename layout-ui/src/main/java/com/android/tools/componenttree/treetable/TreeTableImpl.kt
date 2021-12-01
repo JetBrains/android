@@ -18,6 +18,7 @@ package com.android.tools.componenttree.treetable
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.TreeSpeedSearch
@@ -30,9 +31,13 @@ import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Point
+import java.awt.datatransfer.Transferable
+import java.awt.dnd.DnDConstants
+import java.awt.dnd.DropTarget
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
+import javax.swing.TransferHandler
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeWillExpandListener
@@ -55,6 +60,7 @@ class TreeTableImpl(
   private val badgeItems: List<BadgeItem>
   private val badgeRenderers: List<BadgeRenderer>
   private var initialized = false
+  private var dropTargetHandler: TreeTableDropTargetHandler? = null
   val treeTableSelectionModel = TreeTableSelectionModelImpl(this)
 
   init {
@@ -93,6 +99,14 @@ class TreeTableImpl(
     }
   }
 
+  fun enableDnD() {
+    dragEnabled = true
+    val treeTransferHandler = TreeTableTransferHandler()
+    transferHandler = treeTransferHandler
+    dropTargetHandler = TreeTableDropTargetHandler(this) { treeTransferHandler.draggedItem }
+    dropTarget = DropTarget(this, dropTargetHandler)
+  }
+
   override fun getTableModel(): TreeTableModelImpl {
     return super.getTableModel() as TreeTableModelImpl
   }
@@ -103,6 +117,7 @@ class TreeTableImpl(
       tableModel.clearRendererCache()
       installKeyboardActions(this)
       initBadgeColumns()
+      dropTargetHandler?.updateUI()
     }
   }
 
@@ -124,6 +139,7 @@ class TreeTableImpl(
   override fun paintComponent(g: Graphics) {
     tree.putClientProperty(Control.Painter.KEY, painter?.invoke())
     super.paintComponent(g)
+    dropTargetHandler?.paintDropTargetPosition(g)
   }
 
   override fun initializeLocalVars() {
@@ -139,11 +155,21 @@ class TreeTableImpl(
     tree.width - tree.insets.right - computeLeftOffset(nodeDepth)
 
   /**
+   * Return the depth of a given pixel distance from the left edge of the table tree.
+   */
+  fun findDepthFromOffset(x: Int): Int {
+    val ourUi = tree.ui as BasicTreeUI
+    val childIndent = ourUi.leftChildIndent + ourUi.rightChildIndent
+    return maxOf(0, (x - tree.insets.left) / childIndent)
+  }
+
+  /**
    * Compute the left offset of a row with the specified [nodeDepth] in the tree.
    *
    * Note: This code is based on the internals of the UI for the tree e.g. the method [BasicTreeUI.getRowX].
    */
-  private fun computeLeftOffset(nodeDepth: Int): Int {
+  @VisibleForTesting
+  fun computeLeftOffset(nodeDepth: Int): Int {
     val ourUi = tree.ui as BasicTreeUI
     return tree.insets.left + (ourUi.leftChildIndent + ourUi.rightChildIndent) * (nodeDepth - 1)
   }
@@ -155,6 +181,15 @@ class TreeTableImpl(
     // The children of an invisible root that are shown without root handles should always be expanded
     return parentPath.parentPath == null && !tree.isRootVisible && !tree.showsRootHandles
   }
+
+  private val selectedItem: Any?
+    get() {
+      val selectedRow = selectedRow
+      if (selectedRow < 0) {
+        return null
+      }
+      return getValueAt(selectedRow, 0)
+    }
 
   private fun Int.toTableSelectionMode() = when(this) {
     TreeSelectionModel.SINGLE_TREE_SELECTION -> ListSelectionModel.SINGLE_SELECTION
@@ -170,6 +205,8 @@ class TreeTableImpl(
         tableModel.fireTreeStructureChange(event)
         TreeUtil.restoreExpandedPaths(tree, expanded)
       }
+      (transferHandler as? TreeTableTransferHandler)?.resetDraggedItem()
+      dropTargetHandler?.reset()
       if (!tree.isRootVisible || !tree.showsRootHandles) {
         tableModel.root?.let { root ->
           val paths = mutableListOf(TreePath(root))
@@ -214,6 +251,32 @@ class TreeTableImpl(
     private fun position(x: Int, y: Int): Pair<Int, Int> {
       val point = Point(x, y)
       return Pair(rowAtPoint(point), columnAtPoint(point))
+    }
+  }
+
+  private inner class TreeTableTransferHandler : TransferHandler() {
+    var draggedItem: Any? = null
+      private set
+
+    fun resetDraggedItem() {
+      draggedItem = null
+    }
+
+    override fun getSourceActions(component: JComponent): Int = DnDConstants.ACTION_COPY_OR_MOVE
+
+    override fun createTransferable(component: JComponent): Transferable? {
+      val item = selectedItem ?: return null
+      val transferable = tableModel.createTransferable(item) ?: return null
+      dragImage = tableModel.createDragImage(item)
+      draggedItem = item
+      return transferable
+    }
+
+    override fun exportDone(source: JComponent, data: Transferable, action: Int) {
+      if (action == DnDConstants.ACTION_MOVE) {
+        draggedItem?.let { tableModel.delete(it) }
+      }
+      draggedItem = null
     }
   }
 }

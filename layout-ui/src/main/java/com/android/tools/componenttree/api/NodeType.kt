@@ -15,6 +15,8 @@
  */
 package com.android.tools.componenttree.api
 
+import java.awt.Image
+import java.awt.datatransfer.Transferable
 import javax.swing.tree.TreeCellRenderer
 
 /**
@@ -47,4 +49,37 @@ interface NodeType<T> {
    * The renderer will be recreated during a LaF change.
    */
   fun createRenderer(): TreeCellRenderer
+
+  // region Drag and Drop Support
+
+  /**
+   * Return true if this [node] can accept [data] being inserted into [node].
+   *
+   * Note: the implementation must return false if [data] refers to a node containing [node].
+   */
+  fun canInsert(node: T, data: Transferable): Boolean = false
+
+  /**
+   * Insert [data] into [node] either before [before] or at the end if [before] is null.
+   *
+   * Return true if the insert was successful.
+   */
+  fun insert(node: T, data: Transferable, before: Any? = null): Boolean = false
+
+  /**
+   * Delete this [node] after a successful DnD move operation.
+   */
+  fun delete(node: T) {}
+
+  /**
+   * Create a [Transferable] for [node].
+   */
+  fun createTransferable(node: T): Transferable? = null
+
+  /**
+   * Create a drag [Image] for [node].
+   */
+  fun createDragImage(node: T): Image? = null
+
+  // endregion
 }

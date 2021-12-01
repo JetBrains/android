@@ -21,6 +21,8 @@ import com.android.tools.componenttree.api.NodeType
 import com.intellij.ui.tree.BaseTreeModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.containers.ContainerUtil
+import java.awt.Image
+import java.awt.datatransfer.Transferable
 import javax.swing.Icon
 import javax.swing.JTree
 import javax.swing.event.TreeModelEvent
@@ -42,6 +44,31 @@ private fun <T> NodeType<T>.childrenOf(item: Any): List<*> {
 /** Type safe access to generic accessor */
 private fun <T> NodeType<T>.toSearchString(item: Any): String {
   return toSearchString(clazz.cast(item))
+}
+
+/** Type safe access to generic accessor */
+private fun <T> NodeType<T>.canInsert(item: Any, data: Transferable): Boolean {
+  return canInsert(clazz.cast(item), data)
+}
+
+/** Type safe access to generic accessor */
+private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?): Boolean {
+  return insert(clazz.cast(item), data, before)
+}
+
+/** Type safe access to generic accessor */
+private fun <T> NodeType<T>.delete(item: Any) {
+  return delete(clazz.cast(item))
+}
+
+/** Type safe access to generic accessor */
+private fun <T> NodeType<T>.createTransferable(item: Any): Transferable? {
+  return createTransferable(clazz.cast(item))
+}
+
+/** Type safe access to generic accessor */
+private fun <T> NodeType<T>.createDragImage(item: Any): Image? {
+  return createDragImage(clazz.cast(item))
 }
 
 /**
@@ -111,6 +138,41 @@ class TreeTableModelImpl(
    */
   fun children(node: Any): List<*> {
     return typeOf(node).childrenOf(node)
+  }
+
+  /**
+   * Return true if this [node] can accept [data] being inserted into [node].
+   */
+  fun canInsert(node: Any?, data: Transferable): Boolean {
+    return node?.let { typeOf(it).canInsert(it, data) } ?: false
+  }
+
+  /**
+   * Insert [data] into [node] either before [before] or at the end if [before] is null.
+   */
+  fun insert(node: Any?, data: Transferable, before: Any? = null): Boolean {
+    return node?.let { typeOf(it).insert(it, data, before) } ?: false
+  }
+
+  /**
+   * Delete this [node] after a successful DnD move operation.
+   */
+  fun delete(node: Any?) {
+    node?.let { typeOf(it).delete(it) }
+  }
+
+  /**
+   * Create a [Transferable] for [node].
+   */
+  fun createTransferable(node: Any?): Transferable? {
+    return node?.let { typeOf(it).createTransferable(it) }
+  }
+
+  /**
+   * Create a drag [Image] for [node].
+   */
+  fun createDragImage(node: Any?): Image? {
+    return node?.let { typeOf(it).createDragImage(it) }
   }
 
   /**

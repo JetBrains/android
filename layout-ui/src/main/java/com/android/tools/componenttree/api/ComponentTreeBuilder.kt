@@ -25,6 +25,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
+import java.awt.GraphicsEnvironment
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
@@ -57,6 +58,7 @@ class ComponentTreeBuilder {
   private var showRootHandles = false
   private var horizontalScrollbar = false
   private var autoScroll = false
+  private var dndSupport = false
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
@@ -105,6 +107,11 @@ class ComponentTreeBuilder {
    * Add a badge icon to go to the right of a tree node item.
    */
   fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
+
+  /**
+   * Add Drag and Drop support.
+   */
+  fun withDnD() = apply { dndSupport = true }
 
   /**
    * Don't show the root node.
@@ -166,6 +173,9 @@ class ComponentTreeBuilder {
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
                               installTreeSearch)
     table.name = componentName // For UI tests
+    if (dndSupport && !GraphicsEnvironment.isHeadless()) {
+      table.enableDnD()
+    }
     val tree = table.tree
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible

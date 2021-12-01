@@ -123,6 +123,7 @@ private class ComponentTreeTest {
       .withBadgeSupport(badge1)
       .withBadgeSupport(badge2)
       .withHorizontalScrollBar()
+      .withDnD()
       .build()
     tree = result.component
     model = result.model
@@ -199,7 +200,7 @@ private class ComponentTreeTest {
     val button2 = Item(BUTTON, "@+id/button1", "OK", buttonIcon, layout2)
     val textView3 = Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
     val layout4 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout3)
-    val button3 = Item(BUTTON, "@+id/button1", "PressMe", buttonIcon, layout3)
+    val button3 = Item(BUTTON, "@+id/button3", "PressMe", buttonIcon, layout3)
     textView1.badge1 = StudioIcons.Common.ERROR_INLINE
     textView1.badge2 = StudioIcons.Common.CLOSE
     textView2.badge2 = StudioIcons.Common.DELETE
