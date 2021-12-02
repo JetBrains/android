@@ -135,7 +135,11 @@ class KotlinDslParser(
           if (gradleDslElement is GradleDslSimpleExpression) {
             synchronized(extractValueSet) {
               val key = context to literal
-              if (extractValueSet.contains(key)) return unquoteString(literal.text)
+              if (extractValueSet.contains(key)) {
+                // in the course of attempting to resolve literal in context, we are now trying again to perform that exact same
+                // resolution: break the circularity by returning DslRawText to indicate that there was a problem.
+                return KotlinDslRawText(literal.text)
+              }
               extractValueSet.add(key)
               try {
                 return gradleDslElement.value

@@ -3467,7 +3467,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(TestFile.PROJECT_VARIABLE_CIRCULARITY)
     val buildModel = gradleBuildModel
     val variable = buildModel.ext().findProperty("libs")
-    assertEquals("rootProject.project.libs", (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value)
+    val value = (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value
+    assertEquals("rootProject.project.libs", value.toString())
   }
 
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
