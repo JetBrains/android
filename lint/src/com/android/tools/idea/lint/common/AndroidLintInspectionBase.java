@@ -40,6 +40,7 @@ import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.LintFix.ShowUrl;
 import com.android.tools.lint.detector.api.Location;
+import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
@@ -560,6 +561,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     sb.append("<br><br>");
     sb.append(myIssue.getExplanation(HTML));
     sb.append("<br><br>Issue id: ").append(myIssue.getId());
+    List<Option> options = myIssue.getOptions();
+    if (!options.isEmpty()) {
+      sb.append("<br><br>");
+      String optionsHtml = Option.Companion.describe(options, TextFormat.HTML, true);
+      sb.append(optionsHtml);
+    }
     List<String> urls = myIssue.getMoreInfo();
     if (!urls.isEmpty()) {
       boolean separated = false;

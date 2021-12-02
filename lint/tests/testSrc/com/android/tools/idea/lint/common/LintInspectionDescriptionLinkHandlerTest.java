@@ -79,6 +79,35 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
     assertThat(description).isEqualTo(issueExplanation);
   }
 
+  public void testOption() {
+    Editor editor = mock(Editor.class);
+
+    assertThat(TooltipLinkHandlerEP.getDescription("_unknown_", editor)).isNull();
+
+    String issueExplanation = "To improve referencing this code from Kotlin, consider adding explicit nullness information here with " +
+                              "either <code>@NonNull</code> or <code>@Nullable</code>.<br><br>Issue id: UnknownNullness<br><br>" +
+                              "Available options:<br/><br/>" +
+                              "<b>ignore-deprecated</b> (default is false):<br/>Whether to ignore classes and members that have been " +
+                              "annotated with <code>@Deprecated</code>.<br/><br/>Normally this lint check will flag all unannotated " +
+                              "elements, but by setting this option to <code>true</code> it will skip any deprecated elements.<br/><br/>" +
+                              "To configure this option, use a <code>lint.xml</code> file with an &lt;option> like this:<br/>" +
+                              "<pre>" +
+                              "&lt;lint>" +
+                              "    &lt;issue id=\"UnknownNullness\">" +
+                              "        &lt;option name=\"ignore-deprecated\" value=\"false\" />" +
+                              "    &lt;/issue>" +
+                              "&lt;/lint>" +
+                              "</pre><br><br>" +
+                              "More info:<br><a href=\"https://developer.android.com/kotlin/interop#nullability_annotations\">" +
+                              "https://developer.android.com/kotlin/interop#nullability_annotations</a><br><br>" +
+                              "Vendor: Android Open Source Project<br/>" +
+                              "Contact: <a href=\"https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
+                              "Feedback: <a href=\"https://issuetracker.google.com/issues/new?component=192708\">" +
+                              "https://issuetracker.google.com/issues/new?component=192708</a><br/>";
+    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "UnknownNullness", editor);
+    assertThat(description).isEqualTo(issueExplanation);
+  }
+
   public void testThirdPartyIssue() {
     Project project = myFixture.getProject();
     Editor editor = mock(Editor.class);

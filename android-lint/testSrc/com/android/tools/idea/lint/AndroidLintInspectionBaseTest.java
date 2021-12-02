@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintUnknownNullnessInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintHardcodedTextInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
@@ -97,5 +98,31 @@ public class AndroidLintInspectionBaseTest extends TestCase {
     } finally {
       issue.setRegistry(prevRegistry);
     }
+  }
+
+  public void testOptions() {
+    AndroidLintUnknownNullnessInspection inspection = new AndroidLintUnknownNullnessInspection();
+    String desc = inspection.getStaticDescription();
+    assertEquals(
+      "" +
+      "<html><body>Unknown nullness<br><br>To improve referencing this code from Kotlin, consider adding explicit nullness information here with either <code>@NonNull</code> or <code>@Nullable</code>.<br><br>Issue id: UnknownNullness<br><br>Available options:<br/>\n" +
+      "<br/>\n" +
+      "<b>ignore-deprecated</b> (default is false):<br/>\n" +
+      "Whether to ignore classes and members that have been annotated with <code>@Deprecated</code>.<br/>\n" +
+      "<br/>\n" +
+      "Normally this lint check will flag all unannotated elements, but by setting this option to <code>true</code> it will skip any deprecated elements.<br/>\n" +
+      "<br/>\n" +
+      "To configure this option, use a <code>lint.xml</code> file with an &lt;option> like this:<br/>\n" +
+      "\n" +
+      "<pre>\n" +
+      "&lt;lint>\n" +
+      "    &lt;issue id=\"UnknownNullness\">\n" +
+      "        &lt;option name=\"ignore-deprecated\" value=\"false\" />\n" +
+      "    &lt;/issue>\n" +
+      "&lt;/lint>\n" +
+      "</pre>\n" +
+      "<br><br>" +
+      "<a href=\"https://developer.android.com/kotlin/interop#nullability_annotations\">https://developer.android.com/kotlin/interop#nullability_annotations</a></body></html>",
+      desc);
   }
 }

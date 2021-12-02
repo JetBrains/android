@@ -21,6 +21,7 @@ import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.lang.Language;
@@ -32,6 +33,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
+import java.util.List;
 import org.jetbrains.android.dom.ProvidedDocumentationPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +65,7 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
       return null;
     }
 
-    return issue.getExplanation(TextFormat.HTML);
+    return getDocumentation(issue);
   }
 
   @Nullable
@@ -79,7 +81,20 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
 
   @VisibleForTesting
   PsiElement getDocumentationElementForLookupItem(PsiManager psiManager, Issue issue) {
+    String documentation = getDocumentation(issue);
+    return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, issue.getId(), documentation);
+  }
+
+  @NotNull
+  private String getDocumentation(Issue issue) {
     String documentation = issue.getExplanation(TextFormat.HTML);
+
+    List<Option> options = issue.getOptions();
+    if (!options.isEmpty()) {
+      String optionsHtml = Option.Companion.describe(options, TextFormat.HTML, true);
+      documentation = documentation + "<br/>\n" + optionsHtml;
+    }
+
     Vendor vendor = issue.getVendor();
     IssueRegistry registry = issue.getRegistry();
     if (vendor == null && registry != null) {
@@ -88,6 +103,6 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
     if (vendor != null && vendor != IssueRegistry.Companion.getAOSP_VENDOR()) {
       documentation = documentation + "<br/>\n" + vendor.describe(TextFormat.HTML);
     }
-    return new ProvidedDocumentationPsiElement(psiManager, Language.ANY, issue.getId(), documentation);
+    return documentation;
   }
 }

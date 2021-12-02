@@ -19,6 +19,7 @@ import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Option;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.highlighting.TooltipLinkHandler;
 import com.intellij.openapi.editor.Editor;
@@ -38,6 +39,13 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
       StringBuilder sb = new StringBuilder(html);
 
       sb.append("<br><br>Issue id: ").append(issue.getId());
+
+      List<Option> options = issue.getOptions();
+      if (!options.isEmpty()) {
+        sb.append("<br><br>");
+        String optionsHtml = Option.Companion.describe(options, TextFormat.HTML, true);
+        sb.append(optionsHtml);
+      }
 
       List<String> urls = issue.getMoreInfo();
       if (!urls.isEmpty()) {
