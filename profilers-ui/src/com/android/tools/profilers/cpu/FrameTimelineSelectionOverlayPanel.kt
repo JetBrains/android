@@ -85,7 +85,7 @@ object FrameTimelineSelectionOverlayPanel {
           }
           GrayOutMode.None -> { }
         }
-        if (deadLineBar) {
+        if (deadLineBar && event.isActionableJank) {
           val expectedEnd = event.expectedEndUs
           if (expectedEnd < event.actualEndUs) {
             with (g as Graphics2D) {

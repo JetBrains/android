@@ -27,7 +27,7 @@ object AndroidFrameTimelineAnalysisModel {
     capture.systemTraceData?.androidFrameTimelineEvents?.isNotEmpty() ?: false -> {
       CpuAnalysisModel<CpuCapture>("All Frames").apply {
         addTabModel(Tab(capture, { true }, Type.FRAMES))
-        addTabModel(Tab(capture, { it.timelineEvent.isJank }, Type.JANKS))
+        addTabModel(Tab(capture, { it.timelineEvent.isActionableJank }, Type.JANKS))
       }
     }
     else -> null

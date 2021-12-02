@@ -643,7 +643,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // Jank
     List<AndroidFrameTimelineEvent> events = systemTraceData.getAndroidFrameTimelineEvents();
     List<AndroidFrameTimelineEvent> jankEvents = events.stream()
-      .filter(AndroidFrameTimelineEvent::isJank)
+      .filter(AndroidFrameTimelineEvent::isActionableJank)
       .collect(Collectors.toList());
     List<SeriesData<Long>> vsyncs = systemTraceData.getVsyncCounterValues();
     AndroidFrameTimelineModel jankyFrameModel =
@@ -679,7 +679,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // lifecycle data for janky frames only
     adder.accept(frame -> {
                    AndroidFrameTimelineEvent event = timelineEventIndex.get((long)frame.getFrameNumber());
-                   return event != null && event.isJank();
+                   return event != null && event.isActionableJank();
                  },
                  toggles -> toggles.contains(toggleLifeCycle) && !toggles.contains(toggleAllFrames));
     // Deadline text
