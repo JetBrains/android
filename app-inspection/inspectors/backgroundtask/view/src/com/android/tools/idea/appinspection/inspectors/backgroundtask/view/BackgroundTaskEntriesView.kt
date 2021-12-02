@@ -46,6 +46,7 @@ import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.Point
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
@@ -200,8 +201,11 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
     // Remove redundant borders from left, right and bottom.
     contentPanel.border = AdtUiUtils.DEFAULT_TOP_BORDER
     contentPanel.add(tableView.component, Mode.TABLE.name)
-    contentPanel.add(JBScrollPane(graphView).apply { horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER },
-                     Mode.GRAPH.name)
+    val scrollPane = JBScrollPane(graphView).apply {
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+      border = BorderFactory.createEmptyBorder()
+    }
+    contentPanel.add(scrollPane, Mode.GRAPH.name)
     add(contentPanel, TabularLayout.Constraint(1, 0))
 
     selectionModel.registerEntrySelectionListener { entry ->
