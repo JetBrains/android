@@ -51,7 +51,6 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     super.setUp()
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
-    previouslyEnabled = DatabaseInspectorFlagController.enableFeature(true)
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
     databaseConnection = pumpEventsAndWaitForFuture(
@@ -67,7 +66,6 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
       }
 
       sqliteUtil.tearDown()
-      DatabaseInspectorFlagController.enableFeature(previouslyEnabled)
     }
     finally {
       super.tearDown()

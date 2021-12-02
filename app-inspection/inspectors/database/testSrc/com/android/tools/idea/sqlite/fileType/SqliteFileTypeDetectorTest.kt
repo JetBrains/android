@@ -22,21 +22,18 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
 class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   private lateinit var mySqliteUtil: SqliteTestUtil
-  private var myFeaturePreviousEnabled: Boolean = false
   private var myFileSupportPreviousEnabled: Boolean = false
 
   override fun setUp() {
     super.setUp()
     mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     mySqliteUtil.setUp()
-    myFeaturePreviousEnabled = DatabaseInspectorFlagController.enableFeature(true)
     myFileSupportPreviousEnabled = DatabaseInspectorFlagController.enableOpenFile(true)
   }
 
   override fun tearDown() {
     try {
       mySqliteUtil.tearDown()
-      DatabaseInspectorFlagController.enableFeature(myFeaturePreviousEnabled)
       DatabaseInspectorFlagController.enableOpenFile(myFileSupportPreviousEnabled)
     }
     finally {

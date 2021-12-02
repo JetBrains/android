@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.intellij.lang.annotation.AnnotationHolder
@@ -34,8 +33,6 @@ import javax.swing.Icon
  */
 class RunSqliteStatementAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!DatabaseInspectorFlagController.isFeatureEnabled) return
-
     val injectedPsiFile = InjectedLanguageManager.getInstance(element.project).getInjectedPsiFiles(element)
                             .orEmpty()
                             .map { it.first }

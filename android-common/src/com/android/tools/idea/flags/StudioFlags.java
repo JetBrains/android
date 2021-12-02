@@ -744,14 +744,6 @@ public final class StudioFlags {
 
   //region Database Inspector
   private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
-  public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "enabled",
-    "Enable Database Inspector",
-    "If enabled the Database Inspector tool window will appear." +
-    "SQLite files opened from the Device Explorer will be opened in the inspector.",
-    true
-  );
   public static final Flag<Boolean> DATABASE_INSPECTOR_OPEN_FILES_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
     "open.files.enabled",
@@ -759,21 +751,6 @@ public final class StudioFlags {
     "If enabled, the Database Inspector tool will be able to open SQLite files." +
     "eg. SQLite files opened from the Device Explorer will open in the inspector.",
     false
-  );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_OFFLINE_MODE_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "offline.enabled",
-    "Enable offline mode in Database Inspector",
-    "If enabled, Database Inspector will download a copy of open databases when the connection to the device is lost.",
-    true
-  );
-  public static final Flag<Boolean> DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED = Flag.create(
-    DATABASE_INSPECTOR,
-    "export.to.file.enabled",
-    "Enable Export to File feature in Database Inspector",
-    "If enabled, Database Inspector will expose an ability for the user to export a table, query results, or the whole database " +
-    "to a local file.",
-    true
   );
   //endregion
 

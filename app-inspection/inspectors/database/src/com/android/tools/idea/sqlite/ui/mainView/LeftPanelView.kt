@@ -222,24 +222,22 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     keepConnectionsOpenButton.addActionListener { mainView.listeners.forEach { it.toggleKeepConnectionOpenActionInvoked() } }
 
-    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
-      exportButton.name = "export-button"
-      exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
-      HelpTooltip()
-        .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
-        .installOn(exportButton)
-      northPanel.add(exportButton)
+    exportButton.name = "export-button"
+    exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
+    HelpTooltip()
+      .setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title"))
+      .installOn(exportButton)
+    northPanel.add(exportButton)
 
-      exportButton.addActionListener {
-        val exportParams =
-          createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON)
-          ?: return@addActionListener // TODO(161081452): log an error / show to user
-        mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
-      }
+    exportButton.addActionListener {
+      val exportParams =
+        createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON)
+        ?: return@addActionListener // TODO(161081452): log an error / show to user
+      mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
+    }
+    updateExportButtonEnabledState()
+    tree.addTreeSelectionListener {
       updateExportButtonEnabledState()
-      tree.addTreeSelectionListener {
-        updateExportButtonEnabledState()
-      }
     }
 
     return northPanel
@@ -287,9 +285,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     tree.name = "left-panel-tree"
 
-    if (DatabaseInspectorFlagController.isExportToFileEnabled) {
-      setUpExportPopUp(tree)
-    }
+    setUpExportPopUp(tree)
     setUpSchemaTreeListeners(tree)
   }
 

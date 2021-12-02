@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.DatabaseInspectorMessenger
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl
@@ -52,8 +51,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
-
     sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
 
     val model = DatabaseInspectorModelImpl()
@@ -68,40 +65,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
     ideComponents = IdeComponents(myFixture)
     ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.DATABASE_INSPECTOR_ENABLED.clearOverride()
-    } finally {
-      super.tearDown()
-    }
-  }
-
-  fun testAnnotatorDoesntWorkIfSqliteInspectorFlagIsDisabled() {
-    StudioFlags.DATABASE_INSPECTOR_ENABLED.override(false)
-    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
-
-    myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      // language=java
-      """
-        package com.example;
-        class Foo {
-          void bar() {
-            // language=RoomSql
-            String query = "select * from Foo";${caret}
-          }
-        }
-        """.trimIndent()
-    )
-
-    try {
-      findHighlightInfo()
-      fail("should have failed")
-    } catch (e: Exception) {
-      assertInstanceOf(e, NoSuchElementException::class.java)
-    }
   }
 
   fun testNoIconWhenDatabaseIsNotOpen() {

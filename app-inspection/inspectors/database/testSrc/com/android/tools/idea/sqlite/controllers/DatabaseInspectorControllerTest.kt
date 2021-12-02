@@ -1517,22 +1517,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     orderVerifier.verify(databaseInspectorView).setRefreshButtonState(true)
   }
 
-  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
-    // Prepare
-    val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(false)
-
-    // Act
-    runDispatching(edtExecutor.asCoroutineDispatcher()) {
-      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
-    }
-
-    // Assert
-    verifyZeroInteractions(offlineModeManager)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
-  }
-
   fun testEnterOfflineModeSuccess() {
     // Prepare
     initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
@@ -1544,7 +1528,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val inOrderVerifier = inOrder(projectService, fileDatabaseManager)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
     val databaseId2 = SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 2)
@@ -1593,8 +1576,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     assertNotNull(offlineModeMetadata)
     assertEquals(sqliteFile.length*3, offlineModeMetadata!!.totalDownloadSizeBytes)
     assertTrue(offlineModeMetadata.totalDownloadTimeMs >= 300)
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testEnterOfflineModeJobCanceled() {
@@ -1605,7 +1586,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1624,8 +1604,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testEnterOfflineModeUserCanceled() {
@@ -1636,7 +1614,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1655,8 +1632,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testShowOfflineModeUnavailablePanelIfNoDbsAreDownloaded() {
@@ -1666,7 +1641,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     val databaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1) as SqliteDatabaseId.LiveSqliteDatabaseId
 
@@ -1686,8 +1660,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testShowOfflineModeUnavailablePanelIfNoLiveDbsAreOpen() {
@@ -1697,7 +1669,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
 
     val previousFlagState = DatabaseInspectorFlagController.isOpenFileEnabled
-    DatabaseInspectorFlagController.enableOfflineMode(true)
 
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
@@ -1707,8 +1678,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verify(databaseInspectorView).showOfflineModeUnavailablePanel()
-
-    DatabaseInspectorFlagController.enableOfflineMode(previousFlagState)
   }
 
   fun testDatabaseNotAddedIfNotFoundInRepository() {

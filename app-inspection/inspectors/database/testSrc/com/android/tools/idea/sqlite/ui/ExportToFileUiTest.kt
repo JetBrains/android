@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.mocks.OpenActionManager
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -34,7 +33,6 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
-import com.android.tools.idea.sqlite.utils.runWithExportToFileFeatureEnabled
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
@@ -74,16 +72,11 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   private val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
   private val schema = SqliteSchema(listOf(table1))
 
-  fun test_defaultFlagState() {
-    assertThat(DatabaseInspectorFlagController.isExportToFileEnabled).isEqualTo(EXPORT_TO_FILE_ENABLED_DEFAULT)
-  }
-
   fun test_tableView_exportButtonVisibleByDefault() {
     assertThat(findExportButtonInActionPanel(TableViewImpl())).isNotNull()
   }
 
-  // verify that the button is visible with the flag on and that it calls the listener when clicked
-  fun test_tableView_exportButton() = runWithExportToFileFeatureEnabled {
+  fun test_tableView_exportButton()  {
     // given
     val listener = mock(TableView.Listener::class.java)
     val tableView = TableViewImpl().also { it.addListener(listener) }
@@ -97,7 +90,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   /* Tests selecting a node in the schema-tree and clicking on the export-button in the action-panel */
-  fun test_leftPanelView_actionsPanel_exportTable() = runWithExportToFileFeatureEnabled {
+  fun test_leftPanelView_actionsPanel_exportTable() {
     test_leftPanelView(
       treeNodePredicate = { it == table1 },
       uiInteractions = { nodePath, tree, exportButton, popUpMenuProvider ->
@@ -109,7 +102,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   /* Tests selecting a node in the schema-tree and clicking on the export-button in the action-panel */
-  fun test_leftPanelView_actionsPanel_exportDatabase() = runWithExportToFileFeatureEnabled {
+  fun test_leftPanelView_actionsPanel_exportDatabase() {
     test_leftPanelView(
       treeNodePredicate = { (it as? ViewDatabase)?.databaseId == databaseId },
       uiInteractions = { nodePath, tree, exportButton, popUpMenuProvider ->
@@ -121,7 +114,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   /* Tests right-clicking on a node in the schema-tree and invoking an export-action through a pop-up menu that appears */
-  fun test_leftPanelView_schemaTreePopUp_exportTable() = runWithExportToFileFeatureEnabled {
+  fun test_leftPanelView_schemaTreePopUp_exportTable() {
     test_leftPanelView(
       treeNodePredicate = { it == table1 },
       uiInteractions = { nodePath, tree, _, popUpMenuProvider ->
@@ -133,7 +126,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
   }
 
   /* Tests right-clicking on a node in the schema-tree and invoking an export-action through a pop-up menu that appears */
-  fun test_leftPanelView_schemaTreePopUp_exportDatabase() = runWithExportToFileFeatureEnabled {
+  fun test_leftPanelView_schemaTreePopUp_exportDatabase()  {
     test_leftPanelView(
       treeNodePredicate = { (it as? ViewDatabase)?.databaseId == databaseId },
       uiInteractions = { nodePath, tree, _, popUpMenuProvider ->
