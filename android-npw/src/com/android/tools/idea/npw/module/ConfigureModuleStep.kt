@@ -26,6 +26,8 @@ import com.android.tools.adtui.validation.Validator.Result.Companion.OK
 import com.android.tools.adtui.validation.Validator.Severity.INFO
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
@@ -57,11 +59,11 @@ import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
+import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -87,7 +89,6 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val androidVersionsInfo = AndroidVersionsInfo()
   private var installRequests: List<UpdatablePackage> = listOf()
   private var installLicenseRequests: List<RemotePackage> = listOf()
-  private var runningJob: Job? = null
 
   protected val moduleName: JTextField = JBTextField()
   protected val packageName: JTextField = JBTextField()
@@ -112,10 +113,17 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
       })
 
-      runningJob = GlobalScope.launch(ioThread) {
-        gradleVersion.value = determineGradlePluginVersion(model.project, false)
-        versionCatalogUse.value = determineVersionCatalogUse(model.project)
+      AndroidCoroutineScope(this).launch(ioThread) {
+        val gradleVersionValue = determineGradlePluginVersion(model.project, false)
+        val versionCatalogUseValue = determineVersionCatalogUse(model.project)
+
+        // ValueProperty's need to be set on the UI thread.
+        withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
+          gradleVersion.value = gradleVersionValue
+          versionCatalogUse.value = versionCatalogUseValue
+        }
       }
+
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
   }
@@ -183,6 +191,5 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   override fun dispose() {
     bindings.releaseAll()
     listeners.releaseAll()
-    runningJob?.cancel()
   }
 }
