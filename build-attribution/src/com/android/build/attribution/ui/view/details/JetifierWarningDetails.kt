@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.ide.common.attribution.FullDependencyPath
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -45,6 +46,7 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.Alarm
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import com.intellij.util.text.JBDateFormat
 import com.intellij.util.ui.JBUI
@@ -53,6 +55,8 @@ import com.intellij.util.ui.UIUtil.getListBackground
 import com.intellij.util.ui.UIUtil.getListForeground
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.util.ui.tree.TreeUtil
+import com.intellij.util.ui.update.Activatable
+import com.intellij.util.ui.update.UiNotifyConnector
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.GridBagConstraints
@@ -76,8 +80,12 @@ import javax.swing.tree.DefaultTreeModel
 
 class JetifierWarningDetailsView(
   private val data: JetifierUsageAnalyzerResult,
-  private val actionHandlers: ViewActionHandlers
+  private val actionHandlers: ViewActionHandlers,
+  private val disposable: Disposable
 ) {
+
+
+  val pagePanel: JPanel = JPanel()
 
   private val headerTextArea: JEditorPane = run {
     val linksHandler = HtmlLinksHandler(actionHandlers)
@@ -197,11 +205,7 @@ class JetifierWarningDetailsView(
   private val tableHeader = SimpleColoredComponent().apply {
     name = "declared-dependencies-header"
     ipad = JBUI.insetsLeft(8)
-    val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
-      val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
-      " (updated $lastUpdatedTime)"
-    } ?: ""
-    append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")
+    // Text set in refreshUI.
     border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
     background = UIUtil.getTreeBackground()
   }
@@ -252,7 +256,7 @@ class JetifierWarningDetailsView(
     add(splitter, BorderLayout.CENTER)
   }
 
-  val panel: JPanel = JPanel().apply {
+  init {
     val buttonsPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       add(removeJetifierButton)
@@ -270,14 +274,14 @@ class JetifierWarningDetailsView(
       add(buttonsPanel)
     }
 
-    layout = GridBagLayout()
-    add(headerPanel, GridBagConstraints().apply {
+    pagePanel.layout = GridBagLayout()
+    pagePanel.add(headerPanel, GridBagConstraints().apply {
       gridx = 0
       gridy = 0
       weightx = 1.0
       fill = GridBagConstraints.HORIZONTAL
     })
-    add(resultPanel, GridBagConstraints().apply {
+    pagePanel.add(resultPanel, GridBagConstraints().apply {
       gridx = 0
       gridy = 1
       gridwidth = GridBagConstraints.REMAINDER
@@ -286,6 +290,37 @@ class JetifierWarningDetailsView(
       insets = JBUI.insetsTop(10)
       fill = GridBagConstraints.BOTH
     })
+
+    setupRefresh()
+  }
+
+  private fun setupRefresh() {
+    // Create alarm for auto-refreshes that has page as activation component, so requests are scheduled only while it is visible.
+    val refreshAlarm = Alarm(pagePanel, disposable)
+    // Refresh ui state and schedule next refresh in 30s.
+    object : Runnable {
+      override fun run() {
+        refreshUi()
+        refreshAlarm.addRequest(this, 30000)
+      }
+    }.run()
+    // Also refresh right away on page reopening, otherwise there will be 30s lag until next alarm triggers.
+    UiNotifyConnector(pagePanel, object : Activatable {
+      override fun showNotify() {
+        refreshUi()
+      }
+    })
+  }
+
+  private fun refreshUi() {
+    tableHeader.let {
+      it.clear()
+      val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
+        val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
+        " (updated $lastUpdatedTime)"
+      } ?: ""
+      it.append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")
+    }
   }
 
   private fun onDeclaredDependencySelection() {

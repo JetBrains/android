@@ -28,6 +28,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.SimpleColoredComponent
@@ -50,13 +51,16 @@ class JetifierWarningDetailsViewTest {
   val applicationRule: ApplicationRule = ApplicationRule()
 
   @get:Rule
+  val disposableRule: DisposableRule = DisposableRule()
+
+  @get:Rule
   val edtRule = EdtRule()
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
   @Test
   fun testCheckRequiredPageCreation() {
-    val page = JetifierWarningDetailsView(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired), mockHandlers).panel
+    val page = JetifierWarningDetailsView(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired), mockHandlers, disposableRule.disposable).pagePanel
 
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().let {
       val html = it.text.clearHtml()
@@ -94,7 +98,7 @@ class JetifierWarningDetailsViewTest {
       lastCheckJetifierBuildTimestamp = 0,
       checkJetifierBuild = true
     )
-    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers).panel
+    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers, disposableRule.disposable).pagePanel
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -154,7 +158,7 @@ class JetifierWarningDetailsViewTest {
       lastCheckJetifierBuildTimestamp = 0,
       checkJetifierBuild = true
     )
-    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers).panel
+    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers, disposableRule.disposable).pagePanel
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -234,7 +238,7 @@ class JetifierWarningDetailsViewTest {
       lastCheckJetifierBuildTimestamp = 0,
       checkJetifierBuild = true
     )
-    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers).panel
+    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers, disposableRule.disposable).pagePanel
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -263,7 +267,7 @@ class JetifierWarningDetailsViewTest {
       lastCheckJetifierBuildTimestamp = 0,
       checkJetifierBuild = false
     )
-    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers).panel
+    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers, disposableRule.disposable).pagePanel
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
@@ -288,7 +292,7 @@ class JetifierWarningDetailsViewTest {
       lastCheckJetifierBuildTimestamp = 0,
       checkJetifierBuild = false
     )
-    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers).panel
+    val page = JetifierWarningDetailsView(jetifierUsageAnalyzerResult, mockHandlers, disposableRule.disposable).pagePanel
     page.size = Dimension(600, 400)
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()

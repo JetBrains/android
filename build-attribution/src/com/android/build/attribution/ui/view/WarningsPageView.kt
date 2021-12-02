@@ -21,6 +21,7 @@ import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.warningsFilterComponent
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.intellij.openapi.Disposable
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -59,7 +60,8 @@ private const val SPLITTER_PROPERTY = "BuildAnalyzer.WarningsView.Splitter.Propo
 class WarningsPageView(
   val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers,
-  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers)
+  val disposable: Disposable,
+  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers, disposable)
 ) : BuildAnalyzerDataPageView {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.

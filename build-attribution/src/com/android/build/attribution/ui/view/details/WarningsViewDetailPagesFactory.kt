@@ -52,6 +52,7 @@ import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
 import com.android.tools.adtui.TabularLayout
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
@@ -70,8 +71,9 @@ import javax.swing.SwingConstants
  * This class creates task detail pages from the node provided.
  */
 class WarningsViewDetailPagesFactory(
-  val model: WarningsDataPageModel,
-  val actionHandlers: ViewActionHandlers
+  private val model: WarningsDataPageModel,
+  private val actionHandlers: ViewActionHandlers,
+  private val disposable: Disposable
 ) {
 
   fun createDetailsPage(pageId: WarningsPageId): JComponent = if (pageId == WarningsPageId.emptySelection) {
@@ -109,7 +111,7 @@ class WarningsViewDetailPagesFactory(
                                                                                            nodeDescriptor.projectConfigurationTime)
     is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
                                                                                           nodeDescriptor.projectConfigurationTime)
-    is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsView(nodeDescriptor.data, actionHandlers).panel
+    is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsView(nodeDescriptor.data, actionHandlers, disposable).pagePanel
   }.apply {
     name = nodeDescriptor.pageId.id
   }

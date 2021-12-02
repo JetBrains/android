@@ -279,7 +279,7 @@ private class NewViewComponentContainer(
   init {
     val model = BuildAnalyzerViewModel(uiData, BuildAttributionWarningsFilter.getInstance(project))
     val controller = BuildAnalyzerViewController(model, project, uiAnalytics, issueReporter)
-    view = BuildAnalyzerComboBoxView(model, controller)
+    view = BuildAnalyzerComboBoxView(model, controller, this)
   }
 
   override fun getPreferredFocusableComponent(): JComponent = component
