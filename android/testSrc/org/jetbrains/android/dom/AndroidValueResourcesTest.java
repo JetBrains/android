@@ -61,6 +61,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javaslang.collection.Array;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -816,6 +817,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       PsiManager.getInstance(getProject()).dropPsiCaches();
       PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
       dispatchEvents();
+      try {
+        AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet);
+      }
+      catch (InterruptedException | TimeoutException ignore) {
+      }
 
       highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(2);
@@ -823,7 +829,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
         ContainerUtil.map(highlightInfos, it -> new Pair<>(it.getSeverity(), it.getText()));
       assertThat(severities).containsExactly(
         Pair.create(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY, "fXoo"),
-        Pair.create( HighlightSeverity.ERROR, "@string/foo"));
+        Pair.create(HighlightSeverity.ERROR, "@string/foo"));
     });
   }
 
