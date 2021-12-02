@@ -109,7 +109,7 @@ class WarningsViewDetailPagesFactory(
                                                                                            nodeDescriptor.projectConfigurationTime)
     is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
                                                                                           nodeDescriptor.projectConfigurationTime)
-    is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsFactory(actionHandlers).createPage(nodeDescriptor.data)
+    is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsView(nodeDescriptor.data, actionHandlers).panel
   }.apply {
     name = nodeDescriptor.pageId.id
   }

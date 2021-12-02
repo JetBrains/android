@@ -64,6 +64,7 @@ import javax.swing.AbstractAction
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
@@ -73,19 +74,12 @@ import javax.swing.ListSelectionModel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
-class JetifierWarningDetailsFactory(
+class JetifierWarningDetailsView(
+  private val data: JetifierUsageAnalyzerResult,
   private val actionHandlers: ViewActionHandlers
 ) {
 
-  fun createPage(data: JetifierUsageAnalyzerResult): JPanel = when (data.projectStatus) {
-    JetifierUsedCheckRequired -> createJetifierWarningPage(data)
-    JetifierCanBeRemoved -> createJetifierWarningPage(data)
-    is JetifierRequiredForLibraries -> createJetifierWarningPage(data)
-    JetifierNotUsed -> JPanel()
-    AnalyzerNotRun -> JPanel()
-  }
-
-  private fun createJetifierWarningPage(data: JetifierUsageAnalyzerResult): JPanel {
+  private val headerTextArea: JEditorPane = run {
     val linksHandler = HtmlLinksHandler(actionHandlers)
     val learnMoreLink = linksHandler.externalLink("Learn more", BuildAnalyzerBrowserLinks.JETIIFER_MIGRATE)
     val headerStatus = when (data.projectStatus) {
@@ -135,25 +129,130 @@ class JetifierWarningDetailsFactory(
           <br/>
           $callToActionLine<br/>
         """.trimIndent()
-    val header = htmlTextLabelWithLinesWrap(contentHtml, linksHandler)
-    val runCheckButton = JButton("Run Jetifier check").apply {
-      name = "run-check-button"
-      addActionListener { actionHandlers.runCheckJetifierTask() }
-      putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus !is JetifierCanBeRemoved)
-    }
-    val removeJetifierButton = JButton("Disable Jetifier").apply {
-      name = "disable-jetifier-button"
-      toolTipText = "Remove the 'android.enableJetifier' flag from gradle.properties"
-      addActionListener { actionHandlers.turnJetifierOffInProperties { RelativePoint.getSouthOf(this) } }
-      putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus is JetifierCanBeRemoved)
-      isVisible = data.projectStatus is JetifierCanBeRemoved
-      // Making this button same size as a bigger "Run Check" button so that they look better when stacked.
-      preferredSize = runCheckButton.preferredSize
-      maximumSize = runCheckButton.maximumSize
-      minimumSize = runCheckButton.minimumSize
-    }
-    val result = createCheckJetifierResultPresentation(data)
+    htmlTextLabelWithLinesWrap(contentHtml, linksHandler)
+  }
 
+  private val runCheckButton = JButton("Run Jetifier check").apply {
+    name = "run-check-button"
+    addActionListener { actionHandlers.runCheckJetifierTask() }
+    putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus !is JetifierCanBeRemoved)
+  }
+
+  private val removeJetifierButton = JButton("Disable Jetifier").apply {
+    name = "disable-jetifier-button"
+    toolTipText = "Remove the 'android.enableJetifier' flag from gradle.properties"
+    addActionListener { actionHandlers.turnJetifierOffInProperties { RelativePoint.getSouthOf(this) } }
+    putClientProperty(DEFAULT_STYLE_KEY, data.projectStatus is JetifierCanBeRemoved)
+    isVisible = data.projectStatus is JetifierCanBeRemoved
+    // Making this button same size as a bigger "Run Check" button so that they look better when stacked.
+    preferredSize = runCheckButton.preferredSize
+    maximumSize = runCheckButton.maximumSize
+    minimumSize = runCheckButton.minimumSize
+  }
+
+  private val declaredDependenciesList = JBList(data.createDeclaredDependenciesList()).apply {
+    name = "declared-dependencies-list"
+    cellRenderer = object : ColoredListCellRenderer<DirectDependencyDescriptor>() {
+      override fun customizeCellRenderer(list: JList<out DirectDependencyDescriptor>,
+                                         value: DirectDependencyDescriptor?,
+                                         index: Int,
+                                         selected: Boolean,
+                                         hasFocus: Boolean) {
+        if (value == null) return
+        icon = LIBRARY_ICON
+        isIconOpaque = true
+        setFocusBorderAroundIcon(true)
+        background = getListBackground(selected, hasFocus)
+        mySelectionForeground = getListForeground(selected, hasFocus)
+        if (data.projectStatus is JetifierRequiredForLibraries) {
+          toolTipText = treeToolTip(supportLibrary = value.isSupportLibrary, declaredDependency = true)
+        }
+        append(value.fullName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+      }
+    }
+    border = JBUI.Borders.empty()
+    selectionMode = ListSelectionModel.SINGLE_SELECTION
+    selectionModel.addListSelectionListener { onDeclaredDependencySelection() }
+
+    emptyText.clear()
+    when (data.projectStatus) {
+      is JetifierUsedCheckRequired -> {
+        emptyText.appendText("Run check", SimpleTextAttributes.LINK_ATTRIBUTES) {
+          actionHandlers.runCheckJetifierTask()
+        }
+        emptyText.appendText(" to see if you need Jetifier in your project.")
+      }
+      is JetifierCanBeRemoved -> {
+        emptyText.appendText("No dependencies require jetifier, ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        emptyText.appendText("remove 'android.enableJetifier' flag.", SimpleTextAttributes.LINK_ATTRIBUTES) {
+          val pointBelowCenter = emptyText.pointBelow.apply { translate(emptyText.preferredSize.width / 2, 0) }
+          actionHandlers.turnJetifierOffInProperties { RelativePoint(this, pointBelowCenter) }
+        }
+      }
+    }
+    installResultsTableActions(this)
+    ListSpeedSearch(this)
+  }
+
+  private val tableHeader = SimpleColoredComponent().apply {
+    name = "declared-dependencies-header"
+    ipad = JBUI.insetsLeft(8)
+    val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
+      val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
+      " (updated $lastUpdatedTime)"
+    } ?: ""
+    append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")
+    border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
+    background = UIUtil.getTreeBackground()
+  }
+
+  private val outdatedResultsBanner = JPanel().apply {
+    name = "outdated-results-banner"
+    isVisible = data.isPreviouslySavedResultReused()
+    layout = HorizontalLayout(10)
+    border = JBUI.Borders.empty(4, 8)
+    add(JLabel("Showing previously saved results."), HorizontalLayout.LEFT)
+    add(ActionLink("Re-run check.") { actionHandlers.runCheckJetifierTask() }, HorizontalLayout.RIGHT)
+    background = JBUI.CurrentTheme.NotificationWarning.backgroundColor()
+    foreground = JBUI.CurrentTheme.NotificationWarning.foregroundColor()
+  }
+
+  private val treeHeader = SimpleColoredComponent().apply {
+    name = "dependency-structure-header"
+    ipad = JBUI.insetsLeft(8)
+    append("Dependency Structure")
+    border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
+    background = UIUtil.getTreeBackground()
+  }
+
+  private val dependencyStructureTree = Tree().apply {
+    isRootVisible = false
+    cellRenderer = DependenciesStructureTreeRenderer()
+    model = DefaultTreeModel(null)
+  }
+
+  private val resultPanel = JPanel().apply {
+    name = "jetifier-libraries-list"
+    layout = BorderLayout()
+
+    val declaredDependenciesListPanel = ScrollPaneFactory.createScrollPane().apply {
+      setColumnHeaderView(tableHeader)
+      val listWithBanner = BorderLayoutPanel()
+      setViewportView(listWithBanner.addToTop(outdatedResultsBanner).addToCenter(declaredDependenciesList))
+    }
+    val librariesStructurePanel = ScrollPaneFactory.createScrollPane().apply {
+      setColumnHeaderView(treeHeader)
+      setViewportView(dependencyStructureTree)
+
+    }
+    val splitter = OnePixelSplitter(false, 0.5f)
+    splitter.firstComponent = declaredDependenciesListPanel
+    splitter.secondComponent = librariesStructurePanel
+
+    add(splitter, BorderLayout.CENTER)
+  }
+
+  val panel: JPanel = JPanel().apply {
     val buttonsPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
       add(removeJetifierButton)
@@ -163,155 +262,47 @@ class JetifierWarningDetailsFactory(
     val headerPanel = JPanel().apply {
       layout = BoxLayout(this, BoxLayout.X_AXIS)
       // TODO determine size from font metrics?
-      header.maximumSize = JBUI.size(800, Int.MAX_VALUE)
+      headerTextArea.maximumSize = JBUI.size(800, Int.MAX_VALUE)
       // Align both components to the bottom.
       buttonsPanel.alignmentY = Component.BOTTOM_ALIGNMENT
-      header.alignmentY = Component.BOTTOM_ALIGNMENT
-      add(header)
+      headerTextArea.alignmentY = Component.BOTTOM_ALIGNMENT
+      add(headerTextArea)
       add(buttonsPanel)
     }
 
-    return JPanel().apply {
-      layout = GridBagLayout()
-      add(headerPanel, GridBagConstraints().apply {
-        gridx = 0
-        gridy = 0
-        weightx = 1.0
-        fill = GridBagConstraints.HORIZONTAL
-      })
-      add(result, GridBagConstraints().apply {
-        gridx = 0
-        gridy = 1
-        gridwidth = GridBagConstraints.REMAINDER
-        weightx = 1.0
-        weighty = 1.0
-        insets = JBUI.insetsTop(10)
-        fill = GridBagConstraints.BOTH
-      })
-    }
+    layout = GridBagLayout()
+    add(headerPanel, GridBagConstraints().apply {
+      gridx = 0
+      gridy = 0
+      weightx = 1.0
+      fill = GridBagConstraints.HORIZONTAL
+    })
+    add(resultPanel, GridBagConstraints().apply {
+      gridx = 0
+      gridy = 1
+      gridwidth = GridBagConstraints.REMAINDER
+      weightx = 1.0
+      weighty = 1.0
+      insets = JBUI.insetsTop(10)
+      fill = GridBagConstraints.BOTH
+    })
   }
 
-  private fun createCheckJetifierResultPresentation(data: JetifierUsageAnalyzerResult) = JPanel().apply {
-    val projectStatus = data.projectStatus
-    name = "jetifier-libraries-list"
-    layout = BorderLayout()
-
-    val declaredDependenciesListValues = (projectStatus as? JetifierRequiredForLibraries)
-                                           ?.checkJetifierResult
-                                           ?.dependenciesDependingOnSupportLibs
-                                           ?.entries
-                                           ?.map { DirectDependencyDescriptor(it) }
-                                           ?.sortedBy { it.fullName }
-                                         ?: emptyList()
-    val declaredDependenciesList = JBList(declaredDependenciesListValues).apply {
-      name = "declared-dependencies-list"
-      cellRenderer = object : ColoredListCellRenderer<DirectDependencyDescriptor>() {
-        override fun customizeCellRenderer(list: JList<out DirectDependencyDescriptor>,
-                                           value: DirectDependencyDescriptor?,
-                                           index: Int,
-                                           selected: Boolean,
-                                           hasFocus: Boolean) {
-          if (value == null) return
-          icon = LIBRARY_ICON
-          isIconOpaque = true
-          setFocusBorderAroundIcon(true)
-          background = getListBackground(selected, hasFocus)
-          mySelectionForeground = getListForeground(selected, hasFocus)
-          if (projectStatus is JetifierRequiredForLibraries) {
-            toolTipText = treeToolTip(supportLibrary = value.isSupportLibrary, declaredDependency = true)
-          }
-          append(value.fullName, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+  private fun onDeclaredDependencySelection() {
+    if (data.projectStatus is JetifierRequiredForLibraries) {
+      val newRoot = DefaultMutableTreeNode()
+      val selectedDependency = declaredDependenciesList.selectedValue
+      if (selectedDependency != null) {
+        val descriptors = selectedDependency.pathToSupportLibrary.map { DependencyDescriptor(it) }
+        descriptors.last().supportLibrary = true
+        descriptors.first().declaredDependency = true
+        descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->
+          DependencyTreeNode(descriptor).also { parentNode.add(it) }
         }
       }
-      border = JBUI.Borders.empty()
-      selectionMode = ListSelectionModel.SINGLE_SELECTION
-      emptyText.clear()
-      when (projectStatus) {
-        is JetifierUsedCheckRequired -> {
-          emptyText.appendText("Run check", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            actionHandlers.runCheckJetifierTask()
-          }
-          emptyText.appendText(" to see if you need Jetifier in your project.")
-        }
-        is JetifierCanBeRemoved -> {
-          emptyText.appendText("No dependencies require jetifier, ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-          emptyText.appendText("remove 'android.enableJetifier' flag.", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            val pointBelowCenter = emptyText.pointBelow.apply { translate(emptyText.preferredSize.width / 2, 0) }
-            actionHandlers.turnJetifierOffInProperties { RelativePoint(this, pointBelowCenter) }
-          }
-        }
-      }
-      installResultsTableActions(this)
+      (dependencyStructureTree.model as? DefaultTreeModel)?.setRoot(newRoot)
+      TreeUtil.expandAll(dependencyStructureTree)
     }
-
-    val tableHeader = SimpleColoredComponent().apply {
-      name = "declared-dependencies-header"
-      ipad = JBUI.insetsLeft(8)
-      val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
-        val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
-        " (updated $lastUpdatedTime)"
-      } ?: ""
-      append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")
-      border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
-      background = UIUtil.getTreeBackground()
-    }
-    val outdatedResultsBanner = JPanel().apply {
-      name = "outdated-results-banner"
-      isVisible = data.isPreviouslySavedResultReused()
-      layout = HorizontalLayout(10)
-      border = JBUI.Borders.empty(4, 8)
-      add(JLabel("Showing previously saved results."), HorizontalLayout.LEFT)
-      add(ActionLink("Re-run check.") { actionHandlers.runCheckJetifierTask() }, HorizontalLayout.RIGHT)
-      background = JBUI.CurrentTheme.NotificationWarning.backgroundColor()
-      foreground = JBUI.CurrentTheme.NotificationWarning.foregroundColor()
-    }
-    val treeHeader = SimpleColoredComponent().apply {
-      name = "dependency-structure-header"
-      ipad = JBUI.insetsLeft(8)
-      append("Dependency Structure")
-      border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())
-      background = UIUtil.getTreeBackground()
-    }
-    val dependencyTreeModel = DefaultTreeModel(null)
-    val tree = Tree(dependencyTreeModel).apply {
-      isRootVisible = false
-      cellRenderer = DependenciesStructureTreeRenderer()
-    }
-
-    declaredDependenciesList.selectionModel.addListSelectionListener {
-      if (projectStatus is JetifierRequiredForLibraries) {
-        val newRoot = DefaultMutableTreeNode()
-        val selectedDependency = declaredDependenciesList.selectedValue
-        if (selectedDependency != null) {
-          val descriptors = selectedDependency.pathToSupportLibrary.map { DependencyDescriptor(it) }
-          descriptors.last().supportLibrary = true
-          descriptors.first().declaredDependency = true
-          descriptors.foldRight(newRoot) { descriptor: DependencyDescriptor, parentNode: DefaultMutableTreeNode ->
-            DependencyTreeNode(descriptor).also { parentNode.add(it) }
-          }
-        }
-        dependencyTreeModel.setRoot(newRoot)
-        TreeUtil.expandAll(tree)
-      }
-    }
-
-    val declaredDependenciesListPanel = ScrollPaneFactory.createScrollPane().apply {
-      setColumnHeaderView(tableHeader)
-      val listWithBanner = BorderLayoutPanel()
-      setViewportView(listWithBanner.addToTop(outdatedResultsBanner).addToCenter(declaredDependenciesList))
-    }
-    val librariesStructurePanel = ScrollPaneFactory.createScrollPane().apply {
-      setColumnHeaderView(treeHeader)
-      setViewportView(tree)
-
-    }
-    val splitter = OnePixelSplitter(false, 0.5f)
-    splitter.firstComponent = declaredDependenciesListPanel
-    splitter.secondComponent = librariesStructurePanel
-
-    add(splitter, BorderLayout.CENTER)
-
-    ListSpeedSearch(declaredDependenciesList)
   }
 
   private fun installResultsTableActions(resultsTable: JBList<DirectDependencyDescriptor>) {
@@ -408,5 +399,14 @@ private fun treeToolTip(supportLibrary: Boolean, declaredDependency: Boolean): S
   declaredDependency -> "This library depends on a legacy support library. In order to disable Jetifier, please, migrate to a version " +
                         "that no longer depends on legacy support libraries."
   else -> null
+}
+
+private fun JetifierUsageAnalyzerResult.createDeclaredDependenciesList(): List<JetifierWarningDetailsView.DirectDependencyDescriptor> {
+  return ((projectStatus as? JetifierRequiredForLibraries) ?: return emptyList())
+     .checkJetifierResult
+     .dependenciesDependingOnSupportLibs
+     .entries
+     .map { JetifierWarningDetailsView.DirectDependencyDescriptor(it) }
+     .sortedBy { it.fullName }
 }
 

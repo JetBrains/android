@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.view.details.JetifierWarningDetailsFactory
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
@@ -40,7 +40,7 @@ import com.intellij.util.Processor
 import java.util.function.Supplier
 
 class FindSelectedLibVersionDeclarationAction(
-  private val selectionSupplier: Supplier<JetifierWarningDetailsFactory.DirectDependencyDescriptor?>,
+  private val selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics,
 ) : AnAction(
@@ -89,7 +89,7 @@ class FindSelectedLibVersionDeclarationAction(
 
 }
 
-fun findVersionDeclarations(project: Project, selectedDependency: JetifierWarningDetailsFactory.DirectDependencyDescriptor): Array<UsageInfo> {
+fun findVersionDeclarations(project: Project, selectedDependency: JetifierWarningDetailsView.DirectDependencyDescriptor): Array<UsageInfo> {
   val selectedParsed = ArtifactDependencySpecImpl.create(selectedDependency.fullName) ?: return emptyArray()
   val rootBuildModel = ProjectBuildModel.get(project).projectBuildModel ?: return emptyArray()
   val modelsForSearch = ProjectBuildModel.get(project).projectSettingsModel?.let {

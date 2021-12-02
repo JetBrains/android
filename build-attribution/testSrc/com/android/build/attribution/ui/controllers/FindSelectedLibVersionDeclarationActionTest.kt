@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.view.details.JetifierWarningDetailsFactory
+import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -55,7 +55,7 @@ class FindSelectedLibVersionDeclarationActionTest : GradleFileModelTestCase() {
     testDataPath = AndroidTestBase.getModulePath("build-attribution") + "/testData/buildFiles"
   }
 
-  private val selectedDependency = JetifierWarningDetailsFactory.DirectDependencyDescriptor(
+  private val selectedDependency = JetifierWarningDetailsView.DirectDependencyDescriptor(
     fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
     projects = listOf(":"),
     pathToSupportLibrary = listOf() // Does not get involved here.
@@ -189,7 +189,7 @@ dependencies {
 }
       """.trimIndent())
     }
-    val selectedDependency = JetifierWarningDetailsFactory.DirectDependencyDescriptor(
+    val selectedDependency = JetifierWarningDetailsView.DirectDependencyDescriptor(
       fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
       projects = listOf(":"),
       pathToSupportLibrary = listOf() // Does not get involved here.
@@ -227,7 +227,7 @@ include(":app")
 include(":lib")
       """.trimIndent())
     }
-    val selectedDependency = JetifierWarningDetailsFactory.DirectDependencyDescriptor(
+    val selectedDependency = JetifierWarningDetailsView.DirectDependencyDescriptor(
       fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
       projects = listOf(":app", ":lib"),
       pathToSupportLibrary = listOf() // Does not get involved here.
@@ -270,7 +270,7 @@ include(":app")
 include(":lib")
       """.trimIndent())
     }
-    val selectedDependency = JetifierWarningDetailsFactory.DirectDependencyDescriptor(
+    val selectedDependency = JetifierWarningDetailsView.DirectDependencyDescriptor(
       fullName = "org.jetbrains.kotlin:kotlin-stdlib:1.5.31",
       projects = listOf(":app"),
       pathToSupportLibrary = listOf() // Does not get involved here.
