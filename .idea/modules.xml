@@ -186,6 +186,7 @@
       <module fileurl="file://$PROJECT_DIR$/android-lint/intellij.android.lint.iml" filepath="$PROJECT_DIR$/android-lint/intellij.android.lint.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-lint/intellij.android.lint.tests.iml" filepath="$PROJECT_DIR$/android-lint/intellij.android.lint.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/logcat/intellij.android.logcat.iml" filepath="$PROJECT_DIR$/logcat/intellij.android.logcat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/logcat/intellij.android.logcat.tests.iml" filepath="$PROJECT_DIR$/logcat/intellij.android.logcat.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" />
