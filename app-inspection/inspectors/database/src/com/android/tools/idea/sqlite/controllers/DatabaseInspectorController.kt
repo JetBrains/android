@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.android.tools.idea.sqlite.FileDatabaseManager
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
@@ -259,7 +260,9 @@ class DatabaseInspectorControllerImpl(
     this.processDescriptor = null
     this.appPackageName = null
 
-    enterOfflineMode(model.getAllDatabaseIds(), appPackageName, processDescriptor)
+    if (DatabaseInspectorSettings.getInstance().isOfflineModeEnabled) {
+      enterOfflineMode(model.getAllDatabaseIds(), appPackageName, processDescriptor)
+    }
   }
 
   /**
