@@ -69,6 +69,8 @@
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
     <completion.contributor language="any"
                             implementationClass="com.android.tools.idea.gradle.completions.GradleDependencyCompletionContributor" />
+    <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
+    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <gradleModelFacade implementation="org.jetbrains.kotlin.android.configure.AndroidGradleModelFacade"/>

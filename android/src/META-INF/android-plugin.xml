@@ -642,7 +642,6 @@
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.res.psi.ResourceReferencePsiElement$ResourceReferencePsiElementDescriptorProvider"/>
-    <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
 
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="org.jetbrains.android.inspections.AndroidResourceQuickFixProvider"/>
     <codeInsight.unresolvedReferenceQuickFixProvider implementation="com.android.tools.idea.imports.AndroidMavenImportJavaResolver"/>
@@ -716,7 +715,6 @@
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <virtualFileSystem key="apk" implementationClass="com.android.tools.idea.apk.viewer.ApkFileSystem"/>
-    <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <codeInsight.unresolvedReferenceQuickFixProvider
         implementation="com.android.tools.idea.gradle.quickfix.AndroidUnresolvedReferenceQuickFixProvider"/>
 
