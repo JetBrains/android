@@ -187,6 +187,8 @@ class SourceCodeEditorProviderTest {
       dumbService.isDumb = false
     }
 
+    dumbService.waitForSmartMode()
+
     runBlocking {
       preview.awaitForRepresentationsUpdated()
     }
