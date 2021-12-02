@@ -45,6 +45,7 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.DateTimeException;
@@ -343,6 +344,8 @@ public class WindowsPerformanceHintsChecker {
         if (!found) {
           result.put(path, false);
         }
+      } catch (NoSuchFileException ignored) {
+        // if path doesn't exist, it doesn't matter if it's excluded, and we don't need to log this fact.
       } catch (IOException e) {
         LOG.warn("Windows Defender exclusion check couldn't get real path for " + path, e);
       }
