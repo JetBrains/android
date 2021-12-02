@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
@@ -29,7 +28,7 @@ public final class InterpolatorDomFileDescription extends MultipleKnownRootsReso
    * Map contains name of a styleable with attributes by a tag name.
    * If key maps to {@link Optional#empty()} it means that such tag exists but doesn't have any attributes.
    */
-  private static final ImmutableMap<String, Optional<String>> STYLEABLE_BY_TAG = Map.<String, Optional<String>>of(
+  public static final Map<String, Optional<String>> STYLEABLE_BY_TAG = Map.of(
     "linearInterpolator", Optional.empty(),
     "accelerateInterpolator", Optional.of("AccelerateInterpolator"),
     "decelerateInterpolator", Optional.of("DecelerateInterpolator"),
@@ -39,7 +38,7 @@ public final class InterpolatorDomFileDescription extends MultipleKnownRootsReso
     "overshootInterpolator", Optional.of("OvershootInterpolator"),
     "anticipateOvershootInterpolator", Optional.of("AnticipateOvershootInterpolator"),
     "bounceInterpolator", Optional.empty(),
-    "pathInterpolator", Optional.of("PathInterpolator"),
+    "pathInterpolator", Optional.of("PathInterpolator")
     );
 
   public InterpolatorDomFileDescription() {

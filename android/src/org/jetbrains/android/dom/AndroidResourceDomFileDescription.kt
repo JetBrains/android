@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
+@file:Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
+
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
-import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.module.Module
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.DomFileDescription
 import org.jetbrains.annotations.NonNls
-import java.util.EnumSet
+import java.util.*
 
 /**
  * Common supertype for [DomFileDescription]s of Android resource files.
@@ -93,20 +94,19 @@ abstract class SingleRootResourceDomFileDescription<T : DomElement>(
 abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   resourceFolderTypes: EnumSet<ResourceFolderType>,
-  private val tagNames: ImmutableSet<String>
+  private val tagNames: Set<String>
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, tagNames.first(), resourceFolderTypes) {
-
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
-    tagNames: ImmutableSet<String>
+    tagNames: Set<String>
   ) : this(rootElementClass, EnumSet.of<ResourceFolderType>(resourceFolderType), tagNames)
 
   constructor(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
     vararg tagNames: String
-  ) : this(rootElementClass, resourceFolderType, ImmutableSet.copyOf<String>(tagNames))
+  ) : this(rootElementClass, resourceFolderType, java.util.Set.of(*tagNames))
 
   final override fun acceptsOtherRootTagNames() = true
   final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && tagNames.contains(file.rootTag?.name)
