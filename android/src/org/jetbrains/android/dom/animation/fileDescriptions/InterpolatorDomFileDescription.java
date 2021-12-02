@@ -16,12 +16,12 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class InterpolatorDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<InterpolatorElement> {
@@ -29,19 +29,17 @@ public class InterpolatorDomFileDescription extends MultipleKnownRootsResourceDo
    * Map contains name of a styleable with attributes by a tag name.
    * If key maps to {@link Optional#empty()} it means that such tag exists but doesn't have any attributes.
    */
-  public static final ImmutableMap<String, Optional<String>> STYLEABLE_BY_TAG =
-    ImmutableMap.<String, Optional<String>>builder()
-      .put("linearInterpolator", Optional.empty())
-      .put("accelerateInterpolator", Optional.of("AccelerateInterpolator"))
-      .put("decelerateInterpolator", Optional.of("DecelerateInterpolator"))
-      .put("accelerateDecelerateInterpolator", Optional.empty())
-      .put("cycleInterpolator", Optional.of("CycleInterpolator"))
-      .put("anticipateInterpolator", Optional.of("AnticipateInterpolator"))
-      .put("overshootInterpolator", Optional.of("OvershootInterpolator"))
-      .put("anticipateOvershootInterpolator", Optional.of("AnticipateOvershootInterpolator"))
-      .put("bounceInterpolator", Optional.empty())
-      .put("pathInterpolator", Optional.of("PathInterpolator"))
-      .build();
+  public static final Map<String, Optional<String>> STYLEABLE_BY_TAG = Map.of(
+    "linearInterpolator", Optional.empty(),
+    "accelerateInterpolator", Optional.of("AccelerateInterpolator"),
+    "decelerateInterpolator", Optional.of("DecelerateInterpolator"),
+    "accelerateDecelerateInterpolator", Optional.empty(),
+    "cycleInterpolator", Optional.of("CycleInterpolator"),
+    "anticipateInterpolator", Optional.of("AnticipateInterpolator"),
+    "overshootInterpolator", Optional.of("OvershootInterpolator"),
+    "anticipateOvershootInterpolator", Optional.of("AnticipateOvershootInterpolator"),
+    "bounceInterpolator", Optional.empty(),
+    "pathInterpolator", Optional.of("PathInterpolator"));
 
   public InterpolatorDomFileDescription() {
     super(InterpolatorElement.class, ResourceFolderType.ANIM, STYLEABLE_BY_TAG.keySet());
