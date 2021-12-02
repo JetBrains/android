@@ -1366,7 +1366,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NEW_CONSENT_DIALOG = Flag.create(
     METRICS, "new.consent.dialog", "New consent dialog",
     "Enable the new consent dialog for opting into metrics",
-    false
+    true
   );
   // endregion SERVER_FLAGS
   private StudioFlags() { }

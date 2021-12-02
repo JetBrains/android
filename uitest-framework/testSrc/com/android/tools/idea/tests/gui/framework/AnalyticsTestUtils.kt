@@ -22,12 +22,16 @@ import org.fest.swing.core.Robot
 import org.fest.swing.exception.WaitTimedOutError
 import java.lang.Boolean.getBoolean
 import java.nio.file.Files
+import java.nio.file.Paths
 
 private const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
 private const val ENABLE_LOGGING_PROPERTY = "enable.android.analytics.logging.for.test"
 
 private val consentFile
   get() = PathManager.getCommonDataPath().resolve("consentOptions/accepted")
+
+private val analyticsSettingsFile
+  get() = Paths.get(System.getProperty("user.home")).resolve(".android/analytics.settings")
 
 private val enableDialog
   get() = getBoolean(ENABLE_DIALOG_PROPERTY)
@@ -37,6 +41,10 @@ private val enableLogging
 
 fun deleteConsentFile() {
   Files.deleteIfExists(consentFile)
+}
+
+fun deleteAnalyticsFile() {
+  Files.deleteIfExists(analyticsSettingsFile)
 }
 
 fun setupConsentFile() {
@@ -51,6 +59,20 @@ fun setupConsentFile() {
 
   val enabled = if (enableLogging) 1 else 0
   consentFile.toFile().writeText("rsch.send.usage.stat:1.0:${enabled}:${System.currentTimeMillis()}")
+}
+
+fun setupAnalyticsFile() {
+  deleteAnalyticsFile()
+
+  val directory = analyticsSettingsFile.parent
+  Files.createDirectories(directory)
+
+  // To suppress the consent dialog when logging is disabled, write an analytics settings file
+  // with a lastOptinPromptVersion far in the future
+  if (!enableDialog && !enableLogging) {
+    analyticsSettingsFile.toFile().writeText(
+      "{\"userId\":\"e7048a7a-7bae-4093-85dc-c4c1f99190cd\",\"saltSkew\":-1,\"lastOptinPromptVersion\":\"9999.9999\"}")
+  }
 }
 
 fun consentFileExists(): Boolean {
