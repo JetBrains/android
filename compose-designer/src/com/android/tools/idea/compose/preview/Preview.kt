@@ -253,7 +253,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val module = psiFile.module
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
-  private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile, LiveLiteralsPsiFileSnapshotFilter(this, psiFile))
+  private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile, LiveLiteralsPsiFileSnapshotFilter(this, psiFile))
 
   /**
    * Frames per second limit for interactive preview.

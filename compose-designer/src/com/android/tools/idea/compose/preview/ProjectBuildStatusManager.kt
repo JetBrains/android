@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -83,19 +82,38 @@ object NopPsiFileSnapshotFilter : PsiFileSnapshotFilter, ModificationTracker by 
 }
 
 /**
- * Class managing the build status of a project and its state.
- *
- * @param parentDisposable [Disposable] to track for disposing this manager.
- * @param editorFile the file in the editor to track changes and the build status. If the project has not been
- *  built since it was open, this file is used to find if there are any existing .class files that indicate that has
- *  been built before.
- * @param psiFilter the filter to apply while detecting the changes in the [editorFile].
- * @param scope [CoroutineScope] to run the execution of the initialization of this ProjectBuildStatusManager.
+ * Interface representing the current build status of the project.
  */
-class ProjectBuildStatusManager(parentDisposable: Disposable,
-                                private val editorFile: PsiFile,
-                                private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
-                                scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)) {
+interface ProjectBuildStatusManager {
+  /** True when the project is currently building. */
+  val isBuilding: Boolean
+
+  /** The current build [ProjectStatus]. */
+  val status: ProjectStatus
+
+  companion object {
+    /**
+     * Creates a new [ProjectBuildStatusManager].
+     *
+     * @param parentDisposable [Disposable] to track for disposing this manager.
+     * @param editorFile the file in the editor to track changes and the build status. If the project has not been
+     *  built since it was open, this file is used to find if there are any existing .class files that indicate that has
+     *  been built before.
+     * @param psiFilter the filter to apply while detecting the changes in the [editorFile].
+     * @param scope [CoroutineScope] to run the execution of the initialization of this ProjectBuildStatusManager.
+     */
+    fun create(parentDisposable: Disposable,
+               editorFile: PsiFile,
+               psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
+               scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)): ProjectBuildStatusManager =
+      ProjectBuildStatusManagerImpl(parentDisposable, editorFile, psiFilter, scope)
+  }
+}
+
+private class ProjectBuildStatusManagerImpl(parentDisposable: Disposable,
+                                            private val editorFile: PsiFile,
+                                            private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
+                                            scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)) : ProjectBuildStatusManager {
   private val project: Project = editorFile.project
   private val fileChangeDetector =
     // If Live Literals is disabled or Live Edit is enabled, disable the PsiFileChangeDetector since
@@ -113,7 +131,7 @@ class ProjectBuildStatusManager(parentDisposable: Disposable,
       }
     }
   private var lastFilterModificationCount = psiFilter.modificationCount
-  val status: ProjectStatus
+  override val status: ProjectStatus
     get() {
       if (psiFilter.modificationCount != lastFilterModificationCount) {
         lastFilterModificationCount = psiFilter.modificationCount
@@ -130,43 +148,47 @@ class ProjectBuildStatusManager(parentDisposable: Disposable,
       }
     }
 
-  val isBuilding: Boolean get() = _isBuilding.get()
+  override val isBuilding: Boolean get() = _isBuilding.get()
 
   init {
     Disposer.register(parentDisposable) {
       fileChangeDetector.clearMarks(editorFile)
     }
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().addBuildListener(parentDisposable, object : ProjectSystemBuildManager.BuildListener {
-      override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-        _isBuilding.set(true)
-        LOG.debug("buildStarted $mode")
-        if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-          projectBuildStatus = ProjectBuildStatus.NeedsBuild
-        }
-      }
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
+      .addBuildListener(parentDisposable,
+                        object : ProjectSystemBuildManager.BuildListener {
+                          override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+                            _isBuilding.set(true)
+                            LOG.debug("buildStarted $mode")
+                            if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+                              projectBuildStatus = ProjectBuildStatus.NeedsBuild
+                            }
+                          }
 
-      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-        _isBuilding.set(false)
-        LOG.debug("buildFinished $result")
-        if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-          fileChangeDetector.markFileAsUpToDate(editorFile)
-          return
-        }
-        projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-          fileChangeDetector.markFileAsUpToDate(editorFile)
-          ProjectBuildStatus.Built
-        }
-        else {
-          when (projectBuildStatus) {
-            // If the project was ready before, we keep it as Ready since it was just the new build
-            // that failed.
-            ProjectBuildStatus.Built -> ProjectBuildStatus.Built
-            // If the project was not ready, then it needs a build since this one failed.
-            else -> ProjectBuildStatus.NeedsBuild
-          }
-        }
-      }
-    })
+                          override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+                            _isBuilding.set(false)
+                            LOG.debug("buildFinished $result")
+                            if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+                              fileChangeDetector.markFileAsUpToDate(
+                                editorFile)
+                              return
+                            }
+                            projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+                              fileChangeDetector.markFileAsUpToDate(
+                                editorFile)
+                              ProjectBuildStatus.Built
+                            }
+                            else {
+                              when (projectBuildStatus) {
+                                // If the project was ready before, we keep it as Ready since it was just the new build
+                                // that failed.
+                                ProjectBuildStatus.Built -> ProjectBuildStatus.Built
+                                // If the project was not ready, then it needs a build since this one failed.
+                                else -> ProjectBuildStatus.NeedsBuild
+                              }
+                            }
+                          }
+                        })
 
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)

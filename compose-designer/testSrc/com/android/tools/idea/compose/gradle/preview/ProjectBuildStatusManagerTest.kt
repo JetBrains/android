@@ -68,7 +68,7 @@ class ProjectBuildStatusManagerTest {
       projectRule.fixture.openFileInEditor(mainFile)
     }
 
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
@@ -105,7 +105,7 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
@@ -145,7 +145,7 @@ class ProjectBuildStatusManagerTest {
     }
 
     val fileFilter = TestFilter()
-    val statusManager = ProjectBuildStatusManager(
+    val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       projectRule.fixture.file,
       fileFilter,
