@@ -31,6 +31,7 @@ import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.ListSpeedSearch
@@ -45,7 +46,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
-import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.text.JBDateFormat
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.getListBackground
@@ -247,8 +248,8 @@ class JetifierWarningDetailsFactory(
       name = "declared-dependencies-header"
       ipad = JBUI.insetsLeft(8)
       val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
-        val lastUpdatedTime = DateFormatUtil.formatDateTime(it)
-        " (last updated $lastUpdatedTime)"
+        val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
+        " (updated $lastUpdatedTime)"
       } ?: ""
       append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")
       border = JBUI.Borders.customLineBottom(JBUI.CurrentTheme.ToolWindow.headerBorderBackground())

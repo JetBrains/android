@@ -108,7 +108,7 @@ class JetifierWarningDetailsFactoryTest {
 
       val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
         .single { it.name == "declared-dependencies-header" }
-      Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
+      Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (updated ")
 
       val dependenciesTree = TreeWalker(page).descendants().filterIsInstance<Tree>().single()
       Truth.assertThat(dependenciesTree.isEmpty).isTrue()
@@ -190,7 +190,7 @@ class JetifierWarningDetailsFactoryTest {
 
     val header = TreeWalker(page).descendants().filterIsInstance<SimpleColoredComponent>()
       .single { it.name == "declared-dependencies-header" }
-    Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (last updated ")
+    Truth.assertThat(header.toString()).startsWith("Declared Dependencies Requiring Jetifier (updated ")
     Truth.assertThat(declaredDependenciesListModel.getElementAt(1).fullName).isEqualTo("example:A:1.0")
     declaredDependenciesList.selectedIndex = 1
     Truth.assertThat(dependenciesTree.isEmpty).isFalse()
