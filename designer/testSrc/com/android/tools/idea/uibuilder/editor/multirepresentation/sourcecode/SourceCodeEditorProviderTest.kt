@@ -39,6 +39,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -166,6 +167,7 @@ class SourceCodeEditorProviderTest {
     }
   }
 
+  @Ignore("b/208720754")
   @Test
   fun testDumbModeUpdatesRepresentation() {
     val file = fixture.addFileToProject("src/Preview.kt", "")
