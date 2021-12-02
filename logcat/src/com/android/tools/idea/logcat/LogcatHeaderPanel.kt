@@ -18,12 +18,10 @@ package com.android.tools.idea.logcat
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.DevicePanel
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.LanguageTextField
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Font
@@ -48,7 +46,7 @@ internal class LogcatHeaderPanel(
   showOnlyProjectApps: Boolean,
 ) : JPanel() {
   private val deviceComboBox: Component
-  private val filterTextField = LanguageTextField(LogcatFilterLanguage, project, filter)
+  private val filterTextField = FilterTextField(project, logcatPresenter, filter)
 
   // TODO(aalbert): This is a temp UX. Will probably be changed to something that can select individual apps from the project as well.
   private val projectAppsCheckbox = object : JCheckBox(LogcatBundle.message("logcat.filter.project.apps")) {

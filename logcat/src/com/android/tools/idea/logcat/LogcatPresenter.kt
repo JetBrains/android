@@ -24,7 +24,7 @@ import com.intellij.openapi.Disposable
 /**
  * Encapsulates the presentation of Logcat messages.
  */
-internal interface LogcatPresenter : Disposable {
+internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposable {
   /**
    * Reloads messages from the backlog into the view
    */

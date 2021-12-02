@@ -418,6 +418,46 @@ class LogcatMainPanelTest {
     }
   }
 
+  @Test
+  fun processMessage_addsUpdatesBacklog(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    val messages = listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    )
+
+    logcatMainPanel.processMessages(messages)
+
+    assertThat(logcatMainPanel.messageBacklog.messages).containsExactlyElementsIn(messages)
+  }
+
+  @Test
+  fun processMessage_updatesTags(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    val messages = listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    )
+
+    logcatMainPanel.processMessages(messages)
+
+    assertThat(logcatMainPanel.getTags()).containsExactly("tag1", "tag2")
+  }
+
+  @Test
+  fun processMessage_updatesPackages(): Unit = runBlocking {
+    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    val messages = listOf(
+      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag1", Instant.ofEpochMilli(1000)), "message1"),
+      LogCatMessage(LogCatHeader(INFO, 1, 2, "?", "tag2", Instant.ofEpochMilli(1000)), "message2"),
+    )
+
+    logcatMainPanel.processMessages(messages)
+
+    assertThat(logcatMainPanel.getPackageNames()).containsExactly("app1", "pid-1")
+  }
+
+
   private fun logcatMainPanel(
     popupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),

@@ -39,6 +39,7 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
@@ -71,6 +72,10 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
 import kotlin.math.max
+
+// This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
+private const val MAX_TAGS = 1000
+private const val MAX_PACKAGE_NAMES = 1000
 
 /**
  * The top level Logcat panel.
@@ -106,6 +111,8 @@ internal class LogcatMainPanel(
 
   @VisibleForTesting
   internal val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
+  private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
+  private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
 
   @VisibleForTesting
   val headerPanel = LogcatHeaderPanel(
@@ -200,6 +207,8 @@ internal class LogcatMainPanel(
 
   override suspend fun processMessages(messages: List<LogCatMessage>) {
     messageBacklog.addAll(messages)
+    tags.addAll(messages.map { it.header.tag })
+    packages.addAll(messages.map(LogCatMessage::getPackageNameOrPid))
     messageProcessor.appendMessages(messages)
   }
 
@@ -257,6 +266,10 @@ internal class LogcatMainPanel(
     }
   }
 
+  override fun getTags(): Set<String> = tags
+
+  override fun getPackageNames(): Set<String> = packages
+
   private fun createToolbarActions(project: Project): ActionGroup {
     return SimpleActionGroup().apply {
       add(ClearLogcatAction(this@LogcatMainPanel))
@@ -307,3 +320,5 @@ internal class LogcatMainPanel(
     ignoreCaretAtBottom = false
   }
 }
+
+private fun LogCatMessage.getPackageNameOrPid() = if (header.appName == "?") "pid-${header.pid}" else header.appName

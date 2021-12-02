@@ -16,8 +16,8 @@
 package com.android.tools.idea.logcat
 
 /**
- * Provides a list of package names.
+ * Provides a list of log tags.
  */
-internal interface PackageNamesProvider {
-  fun getPackageNames(): Set<String>
+internal interface TagsProvider {
+  fun getTags(): Set<String>
 }

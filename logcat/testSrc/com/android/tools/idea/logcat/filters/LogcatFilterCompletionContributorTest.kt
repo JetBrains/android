@@ -16,6 +16,10 @@
 package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log.LogLevel
+import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
+import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.TagsProvider
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -26,22 +30,23 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+private const val PACKAGE_KEY = "package"
+private const val TAG_KEY = "tag"
+private const val AGE_KEY = "age:"
+private const val PROJECT_APP = "app! "
+
 private val STRING_KEYS = listOf(
   "line",
   "message",
-  "package",
-  "tag",
-).map { listOf("$it:", "-$it:", "$it~:", "-$it~:") }.flatten()
+  PACKAGE_KEY,
+  TAG_KEY,
+).map(String::getKeyVariants).flatten()
 
 private val LEVEL_KEYS = listOf(
   "fromLevel:",
   "level:",
   "toLevel:",
 )
-
-private const val AGE_KEY = "age:"
-
-private const val PROJECT_APP = "app! "
 
 private val KEYS = STRING_KEYS + LEVEL_KEYS + AGE_KEY + PROJECT_APP
 
@@ -58,7 +63,7 @@ class LogcatFilterCompletionContributorTest {
 
   @Test
   fun complete_keys() {
-    fixture.configureByText(LogcatFilterFileType, "")
+    fixture.configure("")
 
     fixture.completeBasic()
 
@@ -68,7 +73,7 @@ class LogcatFilterCompletionContributorTest {
   @Test
   fun complete_afterKey_withoutWhitespace() {
     for (key in STRING_KEYS + AGE_KEY) {
-      fixture.configureByText(LogcatFilterFileType, "$key$caret")
+      fixture.configure("$key$caret")
 
       fixture.completeBasic()
 
@@ -79,7 +84,7 @@ class LogcatFilterCompletionContributorTest {
   @Test
   fun complete_afterKey_withWhitespace() {
     for (key in STRING_KEYS + AGE_KEY) {
-      fixture.configureByText(LogcatFilterFileType, "$key  $caret")
+      fixture.configure("$key  $caret")
 
       fixture.completeBasic()
 
@@ -88,10 +93,10 @@ class LogcatFilterCompletionContributorTest {
   }
 
   @Test
-  fun complete_afterLevelKey_withoutWhitespace() {
+  fun complete_levels_withoutWhitespace() {
     val levels = LogLevel.values().map { "${it.name} " }
     for (key in LEVEL_KEYS) {
-      fixture.configureByText(LogcatFilterFileType, "$key$caret")
+      fixture.configure("$key$caret")
 
       fixture.completeBasic()
 
@@ -100,14 +105,83 @@ class LogcatFilterCompletionContributorTest {
   }
 
   @Test
-  fun complete_afterLevelKey_withWhitespace() {
+  fun complete_levels_withWhitespace() {
     val levels = LogLevel.values().map { "${it.name} " }
     for (key in LEVEL_KEYS) {
-      fixture.configureByText(LogcatFilterFileType, "$key  $caret")
+      fixture.configure("$key  $caret")
 
       fixture.completeBasic()
 
       assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(levels)
     }
   }
+
+  @Test
+  fun complete_tags_withoutWhiteSpace() {
+    for (key in TAG_KEY.getKeyVariants()) {
+      fixture.configure("$key$caret", tags = setOf("Tag1", "Tag2"))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("$key without whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+    }
+  }
+
+  @Test
+  fun complete_tags_withWhiteSpace() {
+    for (key in TAG_KEY.getKeyVariants()) {
+      fixture.configure("$key $caret", tags = setOf("Tag1", "Tag2"))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+    }
+  }
+
+  @Test
+  fun complete_tags_removesBankTags() {
+    for (key in TAG_KEY.getKeyVariants()) {
+      fixture.configure("$key $caret", tags = setOf("Tag1", "Tag2", "  "))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("Tag1 ", "Tag2 "))
+    }
+  }
+
+  @Test
+  fun complete_packages_withoutWhiteSpace() {
+    for (key in PACKAGE_KEY.getKeyVariants()) {
+      fixture.configure("$key$caret", packages = setOf("package1", "package2"))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("$key without whitespace").containsExactlyElementsIn(setOf("package1 ", "package2 "))
+    }
+  }
+
+  @Test
+  fun complete_packages_withWhiteSpace() {
+    for (key in PACKAGE_KEY.getKeyVariants()) {
+      fixture.configure("$key $caret", packages = setOf("package1", "package2"))
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("package1 ", "package2 "))
+    }
+  }
+}
+
+/**
+ * Configure fixture with given text and set up its editor.
+ */
+private fun CodeInsightTestFixture.configure(text: String, tags: Set<String> = emptySet(), packages: Set<String> = emptySet()) {
+  configureByText(LogcatFilterFileType, text)
+  // This can't be done in the setUp() method because the editor is only created when the fixture is configured.
+  editor.putUserData(TAGS_PROVIDER_KEY, object : TagsProvider {
+    override fun getTags(): Set<String> = tags
+  })
+  editor.putUserData(PACKAGE_NAMES_PROVIDER_KEY, object : PackageNamesProvider {
+    override fun getPackageNames(): Set<String> = packages
+  })
 }

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.logcat
 
+import com.intellij.openapi.util.Key
+
 /**
- * Provides a list of package names.
+ * Bucket for various global constants
  */
-internal interface PackageNamesProvider {
-  fun getPackageNames(): Set<String>
-}
+
+internal val TAGS_PROVIDER_KEY = Key<TagsProvider>("TagProvider")
+
+internal val PACKAGE_NAMES_PROVIDER_KEY = Key<PackageNamesProvider>("PackageNamesProvider")

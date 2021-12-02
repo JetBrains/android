@@ -63,6 +63,14 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     messageBatches.add(list)
   }
 
+  override fun getTags(): Set<String> {
+    TODO("Not yet implemented")
+  }
+
+  override fun getPackageNames(): Set<String> {
+    TODO("Not yet implemented")
+  }
+
   fun appendMessage(message: String) {
     messageBatches.add(listOf(message))
   }
