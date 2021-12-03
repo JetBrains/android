@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.google.common.base.Objects;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * ApiComboBoxItem wraps choices that appear in a combobox where a user should only be able to
@@ -68,26 +66,6 @@ public class ApiComboBoxItem<T> {
   @Override
   public final int hashCode() {
     return Objects.hashCode(myData, myLabel);
-  }
-
-  /**
-   * Validate this feature against the current API levels set for the project. Returns an error
-   * string if invalid, or {@code null} if there are no issues.
-   */
-  @Nullable
-  public final String validate(int projectApi, int projectBuildApi) {
-    if (myMinApi > projectApi) {
-      return String
-        .format(Locale.US, "The feature \"%1$s\" requires a minimum API level of %2$d (project currently set to %3$d)", myLabel,
-                myMinApi, projectApi);
-    }
-    if (myMinBuildApi > projectBuildApi) {
-      return String
-        .format(Locale.US, "The feature \"%1$s\" requires a minimum build API level of %2$d (project currently set to %3$d)",
-                myLabel, myMinBuildApi, projectBuildApi);
-    }
-
-    return null;
   }
 
   @Override
