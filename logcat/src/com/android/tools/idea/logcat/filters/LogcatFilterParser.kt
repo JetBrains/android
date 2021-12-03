@@ -57,6 +57,7 @@ private val DURATION_RE = "\\d+[smhd]".toRegex()
 internal class LogcatFilterParser(
   project: Project,
   private val packageNamesProvider: PackageNamesProvider,
+  private val joinConsecutiveTopLevelValue: Boolean = false,
   private val clock: Clock = Clock.systemDefaultZone(),
 ) {
   private val psiFileFactory = PsiFileFactory.getInstance(project)
@@ -83,25 +84,40 @@ internal class LogcatFilterParser(
       expressions == null -> null
       expressions.size == 1 -> expressions[0].toFilter()
       else -> {
-        // treat consecutive top level values as concatenations rather than an 'and'. This isn't really testing the parser code, rather it
-        // serves as a proof of concept that we can process the results in this fashion.
-
-        // First, group consecutive top level value expressions.
-        val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
-          if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
-            accumulator.last().add(expression)
-          }
-          else {
-            accumulator.add(mutableListOf(expression))
-          }
-          accumulator
-        }
-
-        // Then, combine in an AndFilter while creating a single top level filter for consecutive top-level expressions.
-        val filters = grouped.map { if (it.size == 1) it[0].toFilter() else topLevelFilter(it) }
-        if (filters.size == 1) filters[0] else AndLogcatFilter(filters)
+        createTopLevelFilter(expressions)
       }
     }
+  }
+
+  private fun createTopLevelFilter(expressions: Array<LogcatFilterExpression>): LogcatFilter {
+    val terms = if (joinConsecutiveTopLevelValue) combineConsecutiveValues(expressions) else expressions.map { it.toFilter() }
+
+    return if (terms.size == 1) terms[0] else AndLogcatFilter(terms)
+  }
+
+  private fun combineConsecutiveValues(expressions: Array<LogcatFilterExpression>): List<LogcatFilter> {
+    // treat consecutive top level values as concatenations rather than an 'and'.
+    // First, group consecutive top level value expressions.
+    val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
+      if (expression.isTopLevelValue() && accumulator.isNotEmpty() && accumulator.last().last().isTopLevelValue()) {
+        accumulator.last().add(expression)
+      }
+      else {
+        accumulator.add(mutableListOf(expression))
+      }
+      accumulator
+    }
+
+    // Then, combine in an AndFilter while creating a single top level filter for consecutive top-level expressions.
+    return grouped.map { if (it.size == 1) it[0].toFilter() else combineLiterals(it) }
+  }
+
+  private fun combineLiterals(expressions: List<LogcatFilterExpression>): StringFilter {
+    val text = expressions.joinToString("") {
+      val expression = it as LogcatFilterLiteralExpression
+      expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
+    }
+    return StringFilter(text.trim(), LINE)
   }
 
   private fun LogcatFilterExpression.toFilter(): LogcatFilter {
@@ -192,11 +208,3 @@ private fun flattenAndExpression(expression: LogcatFilterExpression): List<Logca
   else {
     listOf(expression)
   }
-
-private fun topLevelFilter(expressions: List<LogcatFilterExpression>): StringFilter {
-  val text = expressions.joinToString("") {
-    val expression = it as LogcatFilterLiteralExpression
-    expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
-  }
-  return StringFilter(text.trim(), LINE)
-}

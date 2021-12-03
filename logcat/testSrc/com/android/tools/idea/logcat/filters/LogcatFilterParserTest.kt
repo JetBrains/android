@@ -140,8 +140,8 @@ class LogcatFilterParserTest {
   fun parse_age() {
     for ((key, duration) in AGE_VALUES) {
       val clock = Clock.systemUTC()
-      assertThat(logcatFilterParser(clock).parse("age: $key")).isEqualTo(AgeFilter(duration, clock))
-      assertThat(logcatFilterParser(clock).parse("age:$key")).isEqualTo(AgeFilter(duration, clock))
+      assertThat(logcatFilterParser(clock = clock).parse("age: $key")).isEqualTo(AgeFilter(duration, clock))
+      assertThat(logcatFilterParser(clock = clock).parse("age:$key")).isEqualTo(AgeFilter(duration, clock))
     }
   }
 
@@ -155,16 +155,33 @@ class LogcatFilterParserTest {
   }
 
   @Test
-  fun parse_topLevelExpressions() {
+  fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_true() {
 
-    assertThat(logcatFilterParser().parse("level: I foo    bar   tag: bar   package: foobar")).isEqualTo(
+    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:I foo    bar   tag:bar foo  package:foobar")).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO),
         StringFilter("foo    bar", LINE),
         StringFilter("bar", TAG),
+        StringFilter("foo", LINE),
         StringFilter("foobar", APP),
       )
     )
+  }
+
+  @Test
+  fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_false() {
+
+    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = false).parse("level:I foo    bar   tag:bar foo  package:foobar"))
+      .isEqualTo(
+        AndLogcatFilter(
+          LevelFilter(INFO),
+          StringFilter("foo", LINE),
+          StringFilter("bar", LINE),
+          StringFilter("bar", TAG),
+          StringFilter("foo", LINE),
+          StringFilter("foobar", APP),
+        )
+      )
   }
 
   @Test
@@ -230,5 +247,8 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, LINE))
   }
 
-  private fun logcatFilterParser(clock: Clock = Clock.systemUTC()) = LogcatFilterParser(project, fakePackageNamesProvider, clock)
+  private fun logcatFilterParser(
+    joinConsecutiveTopLevelValue: Boolean = true,
+    clock: Clock = Clock.systemUTC(),
+  ) = LogcatFilterParser(project, fakePackageNamesProvider, joinConsecutiveTopLevelValue, clock)
 }
