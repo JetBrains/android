@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
-import com.android.Version
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible

@@ -79,6 +79,33 @@
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
     <projectResolve implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidMPPGradleProjectResolver"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.AgpVersionNotSupportedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CachedDependencyNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ConnectionPermissionDeniedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DaemonContextMismatchIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.DuplicateClassIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.FailedToParseSdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.ErrorOpeningZipFileIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle2RequiredIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleBrokenPipeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.GradleDslMethodNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.InternetConnectionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidPluginIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingAndroidSdkIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingDependencyIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.NdkToolchainMissingABIIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker"
+                  order="first, before UnsupportedGradleVersionIssueChecker"
+    />
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnexpectedIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueChecker"/>
+    <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">
