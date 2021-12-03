@@ -1035,7 +1035,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   public static boolean shouldDisableForceUpgrades() {
-    if (ApplicationManager.getApplication().isUnitTestMode()) return true;
     if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return true;
     if (StudioFlags.DISABLE_FORCED_UPGRADES.get()) return true;
     return false;
