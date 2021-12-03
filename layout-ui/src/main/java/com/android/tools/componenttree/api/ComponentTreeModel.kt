@@ -30,4 +30,9 @@ interface ComponentTreeModel {
    * this method should be called so that the underlying JTree can be updated appropriately.
    */
   fun hierarchyChanged(changedNode: Any?)
+
+  /**
+   * Notify any listeners that the extra column or badges may have changes. The component tree should update accordingly.
+   */
+  fun columnDataChanged()
 }

@@ -140,6 +140,9 @@ class ComponentTreeModelImpl(
     invokeLater.invoke(Runnable { fireTreeChange(changedNode) })
   }
 
+  override fun columnDataChanged() {
+  }
+
   private fun fireTreeChange(changedNode: Any?) {
     val path = changedNode?.let { TreePath(changedNode) }
     val event = TreeModelEvent(this, path)

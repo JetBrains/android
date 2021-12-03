@@ -26,6 +26,8 @@ class Item(
   var parent: Item? = null
 ) {
   val children = mutableListOf<Any>()
+  var column1: Int = tagName.hashCode().rem(5)
+  var column2: Int = tagName.hashCode().rem(6)
   var badge1: Icon? = null
   var badge2: Icon? = null
   var canInsert: Boolean? = null

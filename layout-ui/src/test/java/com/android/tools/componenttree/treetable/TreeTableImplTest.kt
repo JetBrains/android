@@ -26,6 +26,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuildResult
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
+import com.android.tools.componenttree.api.createIntColumnInfo
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
@@ -44,8 +45,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
 import java.awt.Point
+import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -108,9 +109,7 @@ class TreeTableImplTest {
 
   @Before
   fun setUp() {
-    item1.children.addAll(listOf(item2, item3))
-    item2.parent = item1
-    item3.parent = item1
+    item1.add(item2, item3)
     item2.children.add(style1)
     style1.parent = item2
     style1.children.add(style2)
@@ -151,11 +150,12 @@ class TreeTableImplTest {
     val table = createTreeTable()
     table.tree.expandRow(0)
     table.tree.expandRow(1)
-    val scrollPane = setScrollPaneSize(table, 20, 20)
-    scrollPane.viewport.viewPosition = Point(table.x + table.width - 20, table.y + table.height - 20)
+    val badgeCell = table.getCellRect(3, table.columnCount - 1, true)
+    val scrollPane = setScrollPaneSize(table, 400, 20)
+    scrollPane.viewport.viewPosition = Point(0, badgeCell.bottom - 20)
     UIUtil.dispatchAllInvocationEvents()
     val ui = FakeUi(table)
-    ui.mouse.rightClick(table.width - 5, table.height - 5)
+    ui.mouse.rightClick(395, badgeCell.y + 5)
     assertThat(contextPopup.popupInvokeCount).isEqualTo(0)
     assertThat(doubleClickHandler.clickCount).isEqualTo(0)
     assertThat(badgeItem.lastPopupItem).isEqualTo(item3)
@@ -178,17 +178,14 @@ class TreeTableImplTest {
   @Test
   fun testClickOnBadgeWhenScrolled() {
     val table = createTreeTable()
-    val ui = FakeUi(table)
     table.tree.expandRow(0)
     table.tree.expandRow(1)
+    val badgeCell = table.getCellRect(3, table.columnCount - 1, true)
+    val scrollPane = setScrollPaneSize(table, 400, 20)
+    scrollPane.viewport.viewPosition = Point(0, badgeCell.bottom - 20)
     UIUtil.dispatchAllInvocationEvents()
-    val bounds = table.getCellRect(table.rowCount - 1, 1, true)
-    val right = bounds.maxX.toInt()
-    val bottom = bounds.maxY.toInt()
-    val scrollPane = setScrollPaneSize(table, 20, 20)
-    scrollPane.viewport.viewPosition = Point(0, bottom - 20)
-    table.size = Dimension(right, bottom)
-    ui.mouse.click(right - 5, bottom - 10)
+    val ui = FakeUi(table)
+    ui.mouse.click(395, badgeCell.y + 5)
     assertThat(badgeItem.lastActionItem).isEqualTo(item3)
   }
 
@@ -211,11 +208,35 @@ class TreeTableImplTest {
     val hiddenRoot = Item("hidden")
     hiddenRoot.children.add(item1)
     item1.parent = hiddenRoot
-    val model = table.tableModel as TreeTableModelImpl
-    model.treeRoot = hiddenRoot
+    table.tableModel.treeRoot = hiddenRoot
     assertThat(table.rowCount).isEqualTo(1)
     table.updateUI()
     assertThat(table.rowCount).isEqualTo(1)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testIntColumnWidthIncreasedAfterColumnDataChanged() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    UIUtil.dispatchAllInvocationEvents()
+    val c1CellBefore = table.getCellRect(0, 1, true)
+
+    // increase the width of column1:
+    item2.column1 = 12345678
+    table.tableModel.columnDataChanged()
+    UIUtil.dispatchAllInvocationEvents()
+    val c1CellAfter = table.getCellRect(0, 1, true)
+    assertThat(c1CellAfter.width).isGreaterThan(c1CellBefore.width)
+
+    // decrease the width of column1:
+    item2.column1 = 6
+    table.tableModel.columnDataChanged()
+    UIUtil.dispatchAllInvocationEvents()
+    val c1CellFinal = table.getCellRect(0, 1, true)
+    assertThat(c1CellFinal.width).isLessThan(c1CellAfter.width)
+    assertThat(c1CellFinal.width).isEqualTo(c1CellBefore.width)
   }
 
   private fun setScrollPaneSize(table: TreeTableImpl, width: Int, height: Int): JScrollPane {
@@ -252,6 +273,8 @@ class TreeTableImplTest {
     return ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
       .withNodeType(StyleNodeType())
+      .withColumn(createIntColumnInfo("c1", Item::column1))
+      .withColumn(createIntColumnInfo("c2", Item::column2, getMax = { 6 }))
       .withBadgeSupport(badgeItem)
       .withContextMenu(contextPopup)
       .withDoubleClick(doubleClickHandler)
@@ -259,4 +282,7 @@ class TreeTableImplTest {
       .withInvokeLaterOption { it.run() }
       .build()
   }
+
+  private val Rectangle.bottom
+    get() = y + height
 }

@@ -50,7 +50,7 @@ class ViewTreeCellRendererTest {
   private val type = ItemNodeType()
   private val renderer = ViewTreeCellRenderer(type)
 
-  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
+  private val model = TreeTableModelImpl(listOf(), listOf(), mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
   private var table: TreeTableImpl? = null
   private var tree: JTree? = null
 

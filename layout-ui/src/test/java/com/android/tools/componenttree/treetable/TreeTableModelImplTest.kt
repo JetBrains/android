@@ -51,8 +51,8 @@ class TreeTableModelImplTest {
   private val item2 = Item(FQCN_TEXT_VIEW)
   private val item3 = Item(FQCN_BUTTON)
   private val count = NotificationCount()
-  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, ItemNodeType()),
-                                                         Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
+  private val model = TreeTableModelImpl(listOf(), listOf(), mapOf(Pair(Item::class.java, ItemNodeType()),
+                                                                   Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
   private val table = TreeTableImpl(
     model,
     contextPopup = { _, _, _ -> },
@@ -234,6 +234,7 @@ class TreeTableModelImplTest {
   private class NotificationCount : TreeTableModelImplListener {
     var inserted = 0
     var structureChanges = 0
+    var columnDataChanged = 0
     var nodesChanged = 0
     var nodesRemoved = 0
     var treeChanged = 0
@@ -246,6 +247,10 @@ class TreeTableModelImplTest {
 
     override fun treeStructureChanged(e: TreeModelEvent?) {
       structureChanges++
+    }
+
+    override fun columnDataChanged() {
+      columnDataChanged++
     }
 
     override fun treeNodesChanged(e: TreeModelEvent?) {

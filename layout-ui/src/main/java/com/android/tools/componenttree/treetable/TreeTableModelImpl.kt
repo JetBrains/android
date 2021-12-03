@@ -16,6 +16,7 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.tools.componenttree.api.BadgeItem
+import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.NodeType
 import com.intellij.ui.tree.BaseTreeModel
@@ -76,6 +77,7 @@ private fun <T> NodeType<T>.createDragImage(item: Any): Image? {
  */
 class TreeTableModelImpl(
   val badgeItems: List<BadgeItem>,
+  val columns: List<ColumnInfo>,
   private val nodeTypeLookupMap: Map<Class<*>, NodeType<*>>,
   private val invokeLater: (Runnable) -> Unit
 ) : ComponentTreeModel, TreeTableModel, BaseTreeModel<Any>() {
@@ -88,7 +90,9 @@ class TreeTableModelImpl(
   override fun hierarchyChanged(changedNode: Any?) {
     invokeLater.invoke(Runnable { fireTreeChange(changedNode) })
   }
-// endregion
+
+  override fun columnDataChanged() = fireColumnDataChanged()
+  // endregion
 
 // region TreeTableModel implementation
   override fun getRoot() = treeRoot
@@ -105,15 +109,17 @@ class TreeTableModelImpl(
     modelListeners.remove(listener)
   }
 
-  override fun getColumnCount(): Int = 1 + badgeItems.size
+  override fun getColumnCount(): Int = 1 + columns.size + badgeItems.size
 
-  override fun getColumnName(column: Int): String = when(column) {
+  override fun getColumnName(column: Int): String = when (column) {
     0 -> "Tree"
+    in 1..columns.size -> columns[column - 1].name
     else -> "Badge$column"
   }
 
-  override fun getColumnClass(column: Int): Class<*> = when(column) {
+  override fun getColumnClass(column: Int): Class<*> = when (column) {
     0 -> com.intellij.ui.treeStructure.treetable.TreeTableModel::class.java
+    in 1..columns.size -> ColumnInfo::class.java
     else -> Icon::class.java
   }
 
@@ -139,6 +145,15 @@ class TreeTableModelImpl(
   fun children(node: Any): List<*> {
     return typeOf(node).childrenOf(node)
   }
+
+  /**
+   * Produce a sequence of all nodes in the model.
+   */
+  val allNodes: Sequence<*>
+    get() = treeRoot?.flatten() ?: emptySequence<Nothing>()
+
+  private fun Any.flatten(): Sequence<*> =
+    children(this).asSequence().filterNotNull().flatMap { it.flatten() }.plus(this)
 
   /**
    * Return true if this [node] can accept [data] being inserted into [node].
@@ -219,10 +234,12 @@ class TreeTableModelImpl(
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }
 
+  private fun fireColumnDataChanged() =
+    modelListeners.forEach { (it as? TreeTableModelImplListener)?.columnDataChanged() }
+
   fun fireTreeStructureChange(newRoot: Any?) {
     val path = newRoot?.let { TreePath(newRoot) }
     val event = TreeModelEvent(this, path)
     modelListeners.forEach { it.treeStructureChanged(event) }
   }
-
 }

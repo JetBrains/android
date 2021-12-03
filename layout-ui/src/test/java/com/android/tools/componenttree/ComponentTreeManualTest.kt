@@ -19,6 +19,7 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
@@ -29,6 +30,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -86,6 +88,7 @@ object ComponentTreeManualTest {
     ApplicationManager.setApplication(app, disposable)
     app.registerService(DataManager::class.java, DataManagerImpl())
     app.registerService(WindowManager::class.java, WindowManagerImpl())
+    app.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
     @Suppress("UnstableApiUsage")
     app.extensionArea.registerExtensionPoint(AdvancedSettingBean.EP_NAME.name, AdvancedSettingBean::class.java.name,
                                              ExtensionPoint.Kind.BEAN_CLASS, false)

@@ -28,6 +28,11 @@ interface TreeTableModelImplListener : TreeModelListener {
    * - the expanded nodes (if possible)
    */
   fun treeChanged(event: TreeModelEvent)
+
+  /**
+   * Invoked after the tree column data has changed.
+   */
+  fun columnDataChanged()
 }
 
 abstract class TreeTableModelImplAdapter : TreeTableModelImplListener {

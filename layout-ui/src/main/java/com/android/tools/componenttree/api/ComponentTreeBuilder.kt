@@ -21,6 +21,8 @@ import com.android.tools.componenttree.impl.TreeImpl
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.designer.componentTree.ComponentTreeBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
@@ -51,6 +53,7 @@ class ComponentTreeBuilder {
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
+  private val columns = mutableListOf<ColumnInfo>()
   private var selectionMode = SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
   private var installTreeSearch = true
@@ -104,7 +107,14 @@ class ComponentTreeBuilder {
   fun withoutTreeSearch() = apply { installTreeSearch = false }
 
   /**
-   * Add a badge icon to go to the right of a tree node item.
+   * Add a column to the right of the tree node item.
+   *
+   * Note: This is only supported by the TreeTable implementation.
+   */
+  fun withColumn(columnInfo: ColumnInfo) = apply { columns.add(columnInfo) }
+
+  /**
+   * Add a badge icon to the right of any column added with [withColumn].
    */
   fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
 
@@ -155,6 +165,9 @@ class ComponentTreeBuilder {
     if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) buildTreeTable() else buildTree()
 
   private fun buildTree(): ComponentTreeBuildResult {
+    if (columns.isNotEmpty()) {
+      Logger.getInstance(ComponentTreeBuilder::class.java).warn("Columns are not supported with the Tree implementations")
+    }
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model, selectionMode)
     val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions, selectionModel,
@@ -169,7 +182,7 @@ class ComponentTreeBuilder {
   }
 
   private fun buildTreeTable(): ComponentTreeBuildResult {
-    val model = TreeTableModelImpl(badges, nodeTypeMap, invokeLater)
+    val model = TreeTableModelImpl(badges, columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
                               installTreeSearch)
     table.name = componentName // For UI tests

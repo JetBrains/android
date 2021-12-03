@@ -16,12 +16,14 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.tools.componenttree.api.BadgeItem
+import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.TreeSpeedSearch
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
@@ -57,6 +59,7 @@ class TreeTableImpl(
   autoScroll: Boolean,
   installTreeSearch: Boolean
 ) : TreeTable(model) {
+  private val extraColumns: List<ColumnInfo>
   private val badgeItems: List<BadgeItem>
   private val badgeRenderers: List<BadgeRenderer>
   private var initialized = false
@@ -69,8 +72,10 @@ class TreeTableImpl(
     tree.selectionModel.selectionMode = treeSelectionMode
     selectionModel.selectionMode = treeSelectionMode.toTableSelectionMode()
     setExpandableItemsEnabled(true)
+    extraColumns = model.columns
     badgeItems = model.badgeItems
     badgeRenderers = badgeItems.map { BadgeRenderer(it) }
+    initExtraColumns()
     initBadgeColumns()
     model.addTreeModelListener(DataUpdateHandler(treeTableSelectionModel))
     addMouseListener(MouseHandler())
@@ -88,14 +93,29 @@ class TreeTableImpl(
     updateUI()
   }
 
+  private fun initExtraColumns() {
+    for (index in extraColumns.indices) {
+      val columnInfo = extraColumns[index]
+      val width = columnInfo.width.takeIf { it > 0 }
+                  ?: columnInfo.computeWidth(this, tableModel.allNodes).takeIf { it > 0 }
+                  ?: JBUIScale.scale(10)
+      setColumnWidth(index + 1, width)
+    }
+  }
+
   private fun initBadgeColumns() {
     val badgeWidth = EmptyIcon.ICON_16.iconWidth
-    for (index in 1 until columnCount) {
-      columnModel.getColumn(index).apply {
-        minWidth = badgeWidth
-        maxWidth = badgeWidth
-        preferredWidth = badgeWidth
-      }
+    for (index in 1 + extraColumns.size until columnCount) {
+      setColumnWidth(index, badgeWidth)
+    }
+  }
+
+  private fun setColumnWidth(columnIndex: Int, width: Int) {
+    columnModel.getColumn(columnIndex).apply {
+      maxWidth = width
+      minWidth = width
+      maxWidth = width // set maxWidth twice, since implementation of setMaxWidth depends on the value of minWidth and vice versa
+      preferredWidth = width
     }
   }
 
@@ -116,14 +136,17 @@ class TreeTableImpl(
     if (initialized) {
       tableModel.clearRendererCache()
       installKeyboardActions(this)
+      extraColumns.forEach { it.updateUI() }
       initBadgeColumns()
+      initExtraColumns()
       dropTargetHandler?.updateUI()
     }
   }
 
   override fun getCellRenderer(row: Int, column: Int): TableCellRenderer = when (column) {
     0 -> super.getCellRenderer(row, column)
-    else -> badgeRenderers[column - 1]
+    in 1..extraColumns.size -> extraColumns[column - 1].renderer
+    else -> badgeRenderers[column - 1 - extraColumns.size]
   }
 
   override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
@@ -200,6 +223,7 @@ class TreeTableImpl(
 
   private inner class DataUpdateHandler(private val selectionModel: TreeTableSelectionModelImpl): TreeTableModelImplAdapter() {
     override fun treeChanged(event: TreeModelEvent) {
+      initExtraColumns()
       selectionModel.keepSelectionDuring {
         val expanded = TreeUtil.collectExpandedPaths(tree)
         tableModel.fireTreeStructureChange(event)
@@ -214,6 +238,11 @@ class TreeTableImpl(
           paths.filter { alwaysExpanded(it) }.forEach { tree.expandPath(it) }
         }
       }
+    }
+
+    override fun columnDataChanged() {
+      initExtraColumns()
+      repaint()
     }
   }
 
@@ -231,9 +260,9 @@ class TreeTableImpl(
     override fun invokePopup(comp: Component, x: Int, y: Int) {
       val (row, column) = position(x, y)
       val item = getValueAt(row, column)
-      when (column) {
-        0 -> contextPopup(this@TreeTableImpl, x, y)
-        else -> badgeItems[column - 1].showPopup(item, this@TreeTableImpl, x, y)
+      when {
+        column == 0 -> contextPopup(this@TreeTableImpl, x, y)
+        column > extraColumns.size -> badgeItems[column - 1 - extraColumns.size].showPopup(item, this@TreeTableImpl, x, y)
       }
     }
 
@@ -243,7 +272,7 @@ class TreeTableImpl(
         val item = getValueAt(row, column)
         when {
           column == 0 && event.clickCount == 2 -> doubleClick()
-          column > 0 && event.clickCount == 1 -> badgeItems[column - 1].performAction(item)
+          column > extraColumns.size && event.clickCount == 1 -> badgeItems[column - 1 - extraColumns.size].performAction(item)
         }
       }
     }
