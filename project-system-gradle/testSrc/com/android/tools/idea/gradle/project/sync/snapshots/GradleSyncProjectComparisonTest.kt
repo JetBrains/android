@@ -257,7 +257,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       }
     }
 
-    // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
     @Test
     fun testPsdDependencyAndroidToJavaModuleAndBack() {
       importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
