@@ -19,8 +19,10 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -29,9 +31,15 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.LeakHunter
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.runBlocking
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UnknownCommandResponse
+import org.junit.After
+import org.junit.AfterClass
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -39,11 +47,23 @@ import org.mockito.Mockito.`when`
 import java.nio.file.Paths
 
 class ComposeLayoutInspectorClientTest {
+  private val mockitoCleaner = MockitoThreadLocalsCleaner()
+
   @get:Rule
   val projectRule = ProjectRule()
 
   @get:Rule
   val adbRule = FakeAdbRule()
+
+  @Before
+  fun before() {
+    mockitoCleaner.setup()
+  }
+
+  @After
+  fun after() {
+    mockitoCleaner.cleanupAndTearDown()
+  }
 
   @Test
   fun testClientCreation() = runBlocking {
@@ -69,19 +89,18 @@ class ComposeLayoutInspectorClientTest {
                          DeviceState.HostConnectionType.LOCAL, "myAvd", "/android/avds/myAvd")
 
     val artifactService = mock<InspectorArtifactService>()
+    val messenger = mock<AppInspectorMessenger>()
     `when`(artifactService.getOrResolveInspectorArtifact(any(), any())).thenReturn(Paths.get("/foo/bar"))
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val apiServices = mock<AppInspectionApiServices>()
-    `when`(apiServices.launchInspector(any())).thenReturn(mock())
+    `when`(apiServices.launchInspector(any())).thenReturn(messenger)
     val target = mock<AppInspectionTarget>()
+    `when`(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
     `when`(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1", "")))
     `when`(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock())
     assertThat(client).isNotNull()
-
-    // Reset the mock or else the project is leaked.
-    Mockito.reset(artifactService)
 
     // TODO: probably we should add more checks to make sure the client is functional
   }

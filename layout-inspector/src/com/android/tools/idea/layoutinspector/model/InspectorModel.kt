@@ -324,6 +324,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
         oldNode.composeFlags = newNode.composeFlags
+        oldNode.recomposeCount = newNode.recomposeCount
       }
 
       oldNode.children.clear()

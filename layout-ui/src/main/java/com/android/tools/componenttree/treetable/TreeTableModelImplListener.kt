@@ -38,11 +38,11 @@ interface TreeTableModelImplListener : TreeModelListener {
 abstract class TreeTableModelImplAdapter : TreeTableModelImplListener {
   override fun treeChanged(event: TreeModelEvent) {}
 
-  override fun treeNodesInserted(event: TreeModelEvent?) {}
+  override fun treeNodesInserted(event: TreeModelEvent) {}
 
-  override fun treeStructureChanged(e: TreeModelEvent?) {}
+  override fun treeStructureChanged(event: TreeModelEvent) {}
 
-  override fun treeNodesChanged(e: TreeModelEvent?) {}
+  override fun treeNodesChanged(event: TreeModelEvent) {}
 
-  override fun treeNodesRemoved(e: TreeModelEvent?) {}
+  override fun treeNodesRemoved(event: TreeModelEvent) {}
 }

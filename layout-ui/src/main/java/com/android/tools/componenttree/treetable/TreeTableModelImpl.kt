@@ -102,6 +102,7 @@ class TreeTableModelImpl(
   override fun valueForPathChanged(path: TreePath?, newValue: Any?) { }
 
   override fun addTreeModelListener(listener: TreeModelListener) {
+    super.addTreeModelListener(listener)
     modelListeners.add(listener)
   }
 

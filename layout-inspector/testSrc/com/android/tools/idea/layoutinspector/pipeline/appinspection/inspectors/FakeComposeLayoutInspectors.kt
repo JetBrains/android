@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
@@ -39,6 +40,8 @@ class FakeComposeLayoutInspector
         Response.newBuilder().setGetParametersResponse(GetParametersResponse.getDefaultInstance()).build()
       Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND ->
         Response.newBuilder().setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance()).build()
+      Command.SpecializedCase.UPDATE_SETTINGS_COMMAND ->
+        Response.newBuilder().setUpdateSettingsResponse(LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()).build()
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }

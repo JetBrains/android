@@ -30,11 +30,11 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import kotlinx.coroutines.cancel
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
@@ -109,7 +109,7 @@ class ComposeLayoutInspectorClient(
       val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
-        ComposeLayoutInspectorClient(model, messenger, launchMonitor)
+        ComposeLayoutInspectorClient(model, messenger, launchMonitor).apply { updateSettings() }
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
         InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
@@ -186,6 +186,15 @@ class ComposeLayoutInspectorClient(
       }.build()
     }
     return response.getParameterDetailsResponse
+  }
+
+  suspend fun updateSettings(): LayoutInspectorComposeProtocol.UpdateSettingsResponse {
+    val response = messenger.sendCommand {
+      updateSettingsCommand = LayoutInspectorComposeProtocol.UpdateSettingsCommand.newBuilder().apply {
+        includeRecomposeCounts = true
+      }.build()
+    }
+    return response.updateSettingsResponse
   }
 
   fun disconnect() {

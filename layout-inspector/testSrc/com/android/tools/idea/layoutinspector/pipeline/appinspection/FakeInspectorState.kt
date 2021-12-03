@@ -342,6 +342,7 @@ class FakeInspectorState(
       packageHash = 1
       filename = 2
       name = 4
+      recomposeCount = 7
 
       ComposableNode {
         id = -3

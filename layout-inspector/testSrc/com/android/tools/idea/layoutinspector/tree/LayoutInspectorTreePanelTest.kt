@@ -31,6 +31,7 @@ import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
+import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
@@ -84,6 +85,8 @@ import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.event.TreeModelEvent
+import javax.swing.tree.TreeModel
 
 private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
@@ -659,6 +662,34 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(selection?.view?.qualifiedName).isEqualTo("Button")
     assertThat(selection?.view?.drawId).isEqualTo(10)
     assertThat(model.selection).isSameAs(selection?.view)
+  }
+
+  @Test
+  fun testNonStructuralModelChanges() {
+    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      // This test is specific to the TreeTable implementation of the component tree
+      return
+    }
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    tree.setToolContext(inspector)
+    assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isEqualTo(0)
+    val treeModel = tree.componentTreeModel as TreeModel
+    var columnDataChangeCount = 0
+    var treeChangeCount = 0
+    treeModel.addTreeModelListener(object : TreeTableModelImplAdapter() {
+      override fun columnDataChanged() {
+        columnDataChangeCount++
+      }
+
+      override fun treeChanged(event: TreeModelEvent) {
+        treeChangeCount++
+      }
+    })
+    val model = inspector.layoutInspectorModel
+    model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, false) } }
+    assertThat(columnDataChangeCount).isEqualTo(1)
+    assertThat(treeChangeCount).isEqualTo(0)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

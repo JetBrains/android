@@ -21,6 +21,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.componenttree.api.createIntColumnInfo
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -67,7 +68,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @VisibleForTesting
   val focusComponent: JComponent
   private val componentTreePanel: JComponent
-  private val componentTreeModel: ComponentTreeModel
+  @VisibleForTesting
+  val componentTreeModel: ComponentTreeModel
   private val nodeType = InspectorViewNodeType()
   // synthetic node to hold the root of the tree.
   private var root: TreeViewNode = ViewNode("root").treeNode
@@ -100,6 +102,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withToggleClickCount(3)
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
+      .withColumn(createIntColumnInfo<TreeViewNode>("RecompositionCounts", { (it.view as? ComposeViewNode)?.recomposeCount }))
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
@@ -329,6 +332,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         rebuildRoot()
       }
       changedNode?.let { componentTreeModel.hierarchyChanged(it) }
+    } else {
+      componentTreeModel.columnDataChanged()
     }
   }
 

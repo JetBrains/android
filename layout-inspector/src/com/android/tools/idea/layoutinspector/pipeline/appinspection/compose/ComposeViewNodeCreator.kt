@@ -100,6 +100,7 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
       null,
       "",
       0,
+      recomposeCount,
       stringTable[filename],
       packageHash,
       offset,

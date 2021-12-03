@@ -72,7 +72,6 @@ import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 
-
 @com.google.common.annotations.VisibleForTesting
 const val API_29_BUG_MESSAGE = "Live Inspection not available on this system image revision."
 @com.google.common.annotations.VisibleForTesting

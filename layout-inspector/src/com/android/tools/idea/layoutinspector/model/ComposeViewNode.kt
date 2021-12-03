@@ -66,6 +66,7 @@ class ComposeViewNode(
   viewId: ResourceReference?,
   textValue: String,
   layoutFlags: Int,
+  var recomposeCount: Int,
   var composeFilename: String,
   var composePackageHash: Int,
   var composeOffset: Int,
