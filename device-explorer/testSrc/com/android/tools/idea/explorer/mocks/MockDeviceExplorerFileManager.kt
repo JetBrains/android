@@ -13,146 +13,124 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.mocks;
+package com.android.tools.idea.explorer.mocks
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DownloadProgress;
-import com.android.tools.idea.explorer.DeviceExplorerFileManager;
-import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.FutureValuesTracker;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.io.PathKt;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
-import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.fileSystem
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.downloadFileEntry
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.deleteFile
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.getPathForEntry
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.openFile
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.getDefaultLocalPathForEntry
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl.getDefaultLocalPathForDevice
+import com.intellij.util.io.delete
+import com.android.tools.idea.explorer.DeviceExplorerFileManager
+import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.fs.DeviceFileSystem
+import com.android.tools.idea.FutureValuesTracker
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.fs.DownloadProgress
+import java.lang.RuntimeException
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.android.tools.idea.explorer.mocks.MockDeviceExplorerFileManager
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Path
+import java.util.Arrays
+import java.util.HashSet
+import java.util.concurrent.Executor
+import java.util.function.Consumer
+import java.util.function.Supplier
 
-public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager, Disposable {
-  private static final Logger LOGGER = Logger.getInstance(MockDeviceExplorerFileManager.class);
-
-  @NotNull private final DeviceExplorerFileManagerImpl myFileManagerImpl;
-  @NotNull private final Project myProject;
-  @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @NotNull private final Set<DeviceFileSystem> myDevices = new HashSet<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<VirtualFile> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
-  @Nullable private RuntimeException myOpenFileInEditorError;
-
-  public MockDeviceExplorerFileManager(
-    @NotNull Project project,
-    @NotNull Executor edtExecutor,
-    @NotNull Executor taskExecutor,
-    @NotNull Supplier<Path> defaultPath) {
-    myProject = project;
-    myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath::get);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<VirtualFile> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull DownloadProgress progress) {
-    myDownloadFileEntryTracker.produce(entry);
-
-    myDevices.add(entry.getFileSystem());
-
-    ListenableFuture<VirtualFile> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<VirtualFile>() {
-      @Override
-      public void onSuccess(@Nullable VirtualFile result) {
-        myDownloadFileEntryCompletionTracker.produce(result);
+class MockDeviceExplorerFileManager(
+  private val myProject: Project,
+  edtExecutor: Executor,
+  taskExecutor: Executor,
+  defaultPath: Supplier<Path?>
+) : DeviceExplorerFileManager, Disposable {
+  private val myFileManagerImpl: DeviceExplorerFileManagerImpl
+  private val myEdtExecutor: FutureCallbackExecutor
+  private val myDevices: MutableSet<DeviceFileSystem> = HashSet()
+  val downloadFileEntryTracker = FutureValuesTracker<DeviceFileEntry>()
+  val downloadFileEntryCompletionTracker = FutureValuesTracker<VirtualFile>()
+  val openFileInEditorTracker = FutureValuesTracker<Path>()
+  private var myOpenFileInEditorError: RuntimeException? = null
+  override fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): ListenableFuture<VirtualFile> {
+    downloadFileEntryTracker.produce(entry)
+    myDevices.add(entry.fileSystem)
+    val futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress)
+    myEdtExecutor.addCallback(futureResult, object : FutureCallback<VirtualFile?> {
+      override fun onSuccess(result: VirtualFile?) {
+        downloadFileEntryCompletionTracker.produce(result)
       }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        myDownloadFileEntryCompletionTracker.produceException(t);
+      override fun onFailure(t: Throwable) {
+        downloadFileEntryCompletionTracker.produceException(t)
       }
-    });
-
-    return futureResult;
+    })
+    return futureResult
   }
 
-  @Override
-  public ListenableFuture<Unit> deleteFile(@NotNull VirtualFile virtualFile) {
-    return myFileManagerImpl.deleteFile(virtualFile);
+  override fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit> {
+    return myFileManagerImpl.deleteFile(virtualFile)
   }
 
-  @Override
-  public @NotNull Path getPathForEntry(@NotNull DeviceFileEntry entry, @NotNull Path destinationPath) {
-    return myFileManagerImpl.getPathForEntry(entry, destinationPath);
+  override fun getPathForEntry(entry: DeviceFileEntry, destinationPath: Path): Path {
+    return myFileManagerImpl.getPathForEntry(entry, destinationPath)
   }
 
-  @Override
-  public @NotNull ListenableFuture<Void> openFile(@NotNull Path localPath) {
-    myOpenFileInEditorTracker.produce(localPath);
-    if (myOpenFileInEditorError != null) {
-      return Futures.immediateFailedFuture(myOpenFileInEditorError);
-    }
-    return myFileManagerImpl.openFile(localPath);
+  override fun openFile(localPath: Path): ListenableFuture<Void> {
+    openFileInEditorTracker.produce(localPath)
+    return if (myOpenFileInEditorError != null) {
+      Futures.immediateFailedFuture(myOpenFileInEditorError)
+    } else myFileManagerImpl.openFile(localPath)
   }
 
-  @NotNull
-  @Override
-  public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
-    return myFileManagerImpl.getDefaultLocalPathForEntry(entry);
+  override fun getDefaultLocalPathForEntry(entry: DeviceFileEntry): Path {
+    return myFileManagerImpl.getDefaultLocalPathForEntry(entry)
   }
 
-  @Override
-  public void dispose() {
+  override fun dispose() {
     // Close all editors
-    FileEditorManager manager = FileEditorManager.getInstance(myProject);
-    Arrays.stream(manager.getOpenFiles()).forEach((file) -> {
-      manager.closeFile(file);
+    val manager = FileEditorManager.getInstance(myProject)
+    Arrays.stream(manager.openFiles).forEach { file: VirtualFile? ->
+      manager.closeFile(file!!)
 
       // The TestFileEditorManager does not publish events to the message bus,
       // so we do it here to ensure we hit the code in our DeviceExplorerFileManagerImpl class.
-      myProject.getMessageBus().syncPublisher(FileEditorManagerListener.FILE_EDITOR_MANAGER).fileClosed(manager, file);
-    });
+      myProject.messageBus.syncPublisher(FileEditorManagerListener.FILE_EDITOR_MANAGER).fileClosed(manager, file)
+    }
 
     // Delete local directories associated to test devices
-    myDevices.forEach(fileSystem -> {
-      Path path = myFileManagerImpl.getDefaultLocalPathForDevice(fileSystem);
+    myDevices.forEach(Consumer { fileSystem: DeviceFileSystem? ->
+      val path = myFileManagerImpl.getDefaultLocalPathForDevice(fileSystem!!)
       try {
-        PathKt.delete(path);
+        path.delete()
+      } catch (t: Throwable) {
+        LOGGER.warn(String.format("Error deleting local path \"%s\"", path), t)
       }
-      catch (Throwable t) {
-        LOGGER.warn(String.format("Error deleting local path \"%s\"", path), t);
-      }
-    });
-    myDevices.clear();
+    })
+    myDevices.clear()
   }
 
-  @NotNull
-  public FutureValuesTracker<DeviceFileEntry> getDownloadFileEntryTracker() {
-    return myDownloadFileEntryTracker;
+  fun setOpenFileInEditorError(e: RuntimeException?) {
+    myOpenFileInEditorError = e
   }
 
-  @NotNull
-  public FutureValuesTracker<VirtualFile> getDownloadFileEntryCompletionTracker() {
-    return myDownloadFileEntryCompletionTracker;
+  companion object {
+    private val LOGGER = Logger.getInstance(
+      MockDeviceExplorerFileManager::class.java
+    )
   }
 
-  @NotNull
-  public FutureValuesTracker<Path> getOpenFileInEditorTracker() {
-    return myOpenFileInEditorTracker;
-  }
-
-  public void setOpenFileInEditorError(@Nullable RuntimeException e) {
-    myOpenFileInEditorError = e;
+  init {
+    myEdtExecutor = FutureCallbackExecutor(edtExecutor)
+    myFileManagerImpl = DeviceExplorerFileManagerImpl(myProject, edtExecutor, taskExecutor) { defaultPath.get()!! }
   }
 }
