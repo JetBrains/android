@@ -70,8 +70,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.execution.RunManager
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
@@ -719,6 +721,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
                                                 sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
+      invokeAndWaitIfNeeded {
+        UIUtil.dispatchAllInvocationEvents()
+      }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo(API_29_BUG_MESSAGE)
     })
@@ -737,6 +742,9 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
                                                 sdkHandler = sdkHandler)
       client.connect()
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
+      invokeAndWaitIfNeeded {
+        UIUtil.dispatchAllInvocationEvents()
+      }
       assertThat(banner.isVisible).isTrue()
       assertThat(banner.text.text).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
     })
