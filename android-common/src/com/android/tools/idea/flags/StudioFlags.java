@@ -406,6 +406,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> NELE_INCLUDE_QUALIFIERS_FOR_TRAFFIC_LIGHTS = Flag.create(
+    NELE, "include.qualifiers.for.traffic.lights", "Include errors from qualifier variants in traffic lights",
+    "Use errors from the current file and its qualifier variants to be displayed in the traffic light renderer",
+    false
+  );
+
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
     "Enable the new transform panel in the layout editor and motion editor",

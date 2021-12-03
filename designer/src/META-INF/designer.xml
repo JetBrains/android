@@ -84,6 +84,10 @@
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolProjectSettings"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <trafficLightRendererContributor implementation="com.android.tools.idea.uibuilder.editor.ResourceFileTrafficLightRendererContributor"/>
+  </extensions>
+
   <module-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
