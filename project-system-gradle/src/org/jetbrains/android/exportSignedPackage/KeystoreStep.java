@@ -262,21 +262,27 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
           credentialAttributesForKey(keyStorePasswordKey),
           createKeystoreDeprecatedAttributesPre_2021_1_1_3(keyStorePasswordKey),
           createDeprecatedAttributesPre_3_2(keyStorePasswordKey)
-        )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(() -> {
-          if (myKeyStorePasswordField.getPassword().length == 0) {
-            myKeyStorePasswordField.setText(password.toString());
-          }
-        }, ModalityState.stateForComponent(myKeyStorePasswordField)));
+        )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(
+          () -> {
+            if (myKeyStorePasswordField.getPassword().length == 0) {
+              myKeyStorePasswordField.setText(password.toString());
+            }
+          },
+          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
+          ModalityState.any()));
 
         retrievePassword(passwordSafe, Arrays.asList(
           credentialAttributesForKey(keyPasswordKey),
           createKeyDeprecatedAttributesPre_2021_1_1_3(keyPasswordKey),
           createDeprecatedAttributesPre_3_2(keyPasswordKey)
-        )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(() -> {
-          if (myKeyPasswordField.getPassword().length == 0) {
-            myKeyPasswordField.setText(password.toString());
-          }
-        }, ModalityState.stateForComponent(myKeyPasswordField)));
+        )).map(Credentials::getPassword).ifPresent(password -> ModalityUiUtil.invokeLaterIfNeeded(
+          () -> {
+            if (myKeyPasswordField.getPassword().length == 0) {
+              myKeyPasswordField.setText(password.toString());
+            }
+          },
+          // Need to be any modality as it is not guaranteed that dialog is already opened, but we need to run anyway.
+          ModalityState.any()));
       }
       catch (Throwable t) {
         Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);
@@ -302,7 +308,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * (changes for b/192344567, b/64995008).
    */
   @Slow
-  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe, @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
+  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe,
+                                                                          @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
     return credentialAttributesToTry.stream()
       .map(attributes -> Optional.ofNullable(passwordSafe.get(attributes)))
       .filter(Optional::isPresent)
@@ -311,7 +318,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   }
 
   @VisibleForTesting
-  static void trySavePasswords(@NotNull String keyStoreLocation, char[] keyStorePassword, @NotNull String keyAlias, char[] keyPassword, boolean rememberPasswords) {
+  static void trySavePasswords(@NotNull String keyStoreLocation,
+                               char[] keyStorePassword,
+                               @NotNull String keyAlias,
+                               char[] keyPassword,
+                               boolean rememberPasswords) {
     String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
