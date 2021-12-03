@@ -472,7 +472,8 @@ public class NlModelTest extends LayoutTestCase {
                                                                     ANDROID_URI + "\"/>");
     NlComponent recyclerView =
       model.createComponent(recyclerViewTag, null, null, InsertType.CREATE);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
+    List<NlComponent> toAdd = Collections.singletonList(recyclerView);
+    UtilsKt.createAndSelectComponents(model, toAdd, frameLayout, null, model.getSurface().getSelectionModel());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
@@ -524,7 +525,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, model.getSurface());
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, null);
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.

@@ -157,7 +157,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
     InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
 
-    List<NlComponent> pasted = model.createComponents(transferItem, insertType, mySurface);
+    List<NlComponent> pasted = model.createComponents(transferItem, insertType);
 
     NlComponent before = null;
     if (canHandleChildren(receiver, pasted)) {
@@ -180,7 +180,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
       return true;
     }
     transferItem.consumeCut();
-    model.addComponents(pasted, receiver, before, insertType, mySurface);
+    UtilsKt.addComponentsAndSelectedIfCreated(model, pasted, receiver, before, insertType, mySurface.getSelectionModel());
     if (insertType == InsertType.PASTE) {
       mySurface.getSelectionModel().setSelection(pasted);
     }

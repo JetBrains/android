@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
+import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -404,7 +405,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
       modification
     }
-    model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
+
+    model.addComponentsAndSelectedIfCreated(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface.selectionModel) {
       attributesTransactions.forEach { it.commit() }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }

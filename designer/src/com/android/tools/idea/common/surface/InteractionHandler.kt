@@ -176,7 +176,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
         // remove selection when dragging from Palette.
         surface.selectionModel.clear()
       }
-      dragged = model.createComponents(item, insertType, surface)
+      dragged = model.createComponents(item, insertType)
     }
 
     if (dragged.isEmpty()) {

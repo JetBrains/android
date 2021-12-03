@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -60,7 +61,13 @@ final class GridDragHandler extends DragHandler {
     if (layout.getChildCount() == 0) {
       AttributesTransaction transaction = components.get(0).startAttributeTransaction();
       setRowAndColumnAttribute(transaction, 0, 0);
-      editor.getModel().addComponents(components, layoutComponent, null, insertType, surface, () -> transaction.commit());
+      UtilsKt.addComponentsAndSelectedIfCreated(editor.getModel(),
+                                                components,
+                                                layoutComponent,
+                                                null,
+                                                insertType,
+                                                surface.getSelectionModel(),
+                                                transaction::commit);
       return;
     }
 
@@ -76,8 +83,13 @@ final class GridDragHandler extends DragHandler {
       }
       AttributesTransaction transaction = component.startAttributeTransaction();
       setRowAndColumnAttribute(transaction, row, column);
-
-      editor.getModel().addComponents(components, layoutComponent, null, insertType, surface, () -> transaction.commit());
+      UtilsKt.addComponentsAndSelectedIfCreated(editor.getModel(),
+                                                components,
+                                                layoutComponent,
+                                                null,
+                                                insertType,
+                                                surface.getSelectionModel(),
+                                                transaction::commit);
       return;
     }
 

@@ -507,8 +507,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     NlComponent parent = sceneParent.getNlComponent();
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
     NlModel model = parent.getModel();
-    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE,
-                        component.getScene().getDesignSurface());
+    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE, null);
     return true;
   }
 

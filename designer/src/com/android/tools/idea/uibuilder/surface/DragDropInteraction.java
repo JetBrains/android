@@ -543,7 +543,7 @@ public class DragDropInteraction extends Interaction {
       components = myDesignSurface.getSelectionModel().getSelection();
     }
     else {
-      components = model.createComponents(item, insertType, myDesignSurface);
+      components = model.createComponents(item, insertType);
 
       if (components.isEmpty()) {
         return null;  // User cancelled

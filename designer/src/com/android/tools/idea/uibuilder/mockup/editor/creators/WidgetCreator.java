@@ -194,8 +194,7 @@ public abstract class WidgetCreator {
       myViewGroupAttributesManager.addLayoutAttributes(transaction);
     }
     transaction.commit();
-    myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW,
-                          myScreenView.getSurface());
+    myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW, null);
     return myComponent;
   }
 

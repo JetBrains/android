@@ -31,6 +31,7 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
@@ -146,7 +147,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType, scene.getDesignSurface())));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.createComponents(myTransferItem, insertType)));
         }
         return insertType;
       }
@@ -228,7 +229,17 @@ public class NlDropListener extends DropTargetAdapter {
     try {
       Scene scene = myTree.getScene();
       DesignSurface surface = scene != null ? scene.getDesignSurface() : null;
-      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, surface);
+      if (surface != null) {
+        UtilsKt.addComponentsAndSelectedIfCreated(model,
+                                                  myDragged,
+                                                  myDragReceiver,
+                                                  myNextDragSibling,
+                                                  insertType,
+                                                  surface.getSelectionModel());
+      }
+      else {
+        model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, null);
+      }
 
       event.accept(insertType);
 

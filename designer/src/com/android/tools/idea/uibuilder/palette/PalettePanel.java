@@ -30,6 +30,7 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -608,14 +609,19 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
       InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
 
-      List<NlComponent> toAdd = model.createComponents(dndItem, insertType, surface);
+      List<NlComponent> toAdd = model.createComponents(dndItem, insertType);
 
       NlComponent root = roots.get(0);
       if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType, sceneView.getSurface());
+        UtilsKt.addComponentsAndSelectedIfCreated(model,
+                                                  toAdd,
+                                                  root,
+                                                  null,
+                                                  insertType,
+                                                  sceneView.getSurface().getSelectionModel());
         surface.getSelectionModel().setSelection(toAdd);
         surface.getLayeredPane().requestFocus();
       }
