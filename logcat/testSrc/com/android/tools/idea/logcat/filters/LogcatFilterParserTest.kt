@@ -36,9 +36,7 @@ import java.util.concurrent.TimeUnit
 
 private val KEYS = mapOf(
   "tag" to TAG,
-  "app" to APP,
   "package" to APP,
-  "msg" to MESSAGE,
   "message" to MESSAGE,
   "line" to LINE,
 )
@@ -159,7 +157,7 @@ class LogcatFilterParserTest {
   @Test
   fun parse_topLevelExpressions() {
 
-    assertThat(logcatFilterParser().parse("level: I foo    bar   tag: bar   app: foobar")).isEqualTo(
+    assertThat(logcatFilterParser().parse("level: I foo    bar   tag: bar   package: foobar")).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO),
         StringFilter("foo    bar", LINE),
@@ -171,7 +169,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_and() {
-    assertThat(logcatFilterParser().parse("tag: bar & foo & app: foobar")).isEqualTo(
+    assertThat(logcatFilterParser().parse("tag: bar & foo & package: foobar")).isEqualTo(
       AndLogcatFilter(
         StringFilter("bar", TAG),
         StringFilter("foo", LINE),
@@ -182,7 +180,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_or() {
-    assertThat(logcatFilterParser().parse("tag: bar | foo | app: foobar")).isEqualTo(
+    assertThat(logcatFilterParser().parse("tag: bar | foo | package: foobar")).isEqualTo(
       OrLogcatFilter(
         StringFilter("bar", TAG),
         StringFilter("foo", LINE),
@@ -223,9 +221,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_appFilter() {
-    for (filter in listOf("app!", "package!")) {
-      assertThat(logcatFilterParser().parse(filter)).isEqualTo(ProjectAppFilter(fakePackageNamesProvider))
-    }
+    assertThat(logcatFilterParser().parse("app!")).isEqualTo(ProjectAppFilter(fakePackageNamesProvider))
   }
 
   @Test

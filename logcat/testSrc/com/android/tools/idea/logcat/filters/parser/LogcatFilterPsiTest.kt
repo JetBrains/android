@@ -37,7 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.text.ParseException
 
-private val STRING_KEYS = listOf("tag", "app", "package", "message", "msg", "line")
+private val STRING_KEYS = listOf("tag", "package", "message", "line")
 private val NON_STRING_KEYS = listOf("level", "fromLevel", "toLevel", "age")
 
 @RunsInEdt
@@ -175,40 +175,40 @@ class LogcatFilterPsiTest {
 
   @Test
   fun topLevelExpressions() {
-    val psi = parse("level: I foo    bar   tag: bar   app: foobar")
+    val psi = parse("level: I foo    bar   tag: bar   package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       AndFilter(
         KeyFilter("level", "I"),
         TopLevelFilter("foo    bar"),
         KeyFilter("tag", "bar"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
 
   @Test
   fun and() {
-    val psi = parse("tag: bar & foo & app: foobar")
+    val psi = parse("tag: bar & foo & package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       AndFilter(
         KeyFilter("tag", "bar"),
         TopLevelFilter("foo"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
 
   @Test
   fun or() {
-    val psi = parse("tag: bar | foo | app: foobar")
+    val psi = parse("tag: bar | foo | package: foobar")
 
     assertThat(psi.toFilter()).isEqualTo(
       OrFilter(
         KeyFilter("tag", "bar"),
         TopLevelFilter("foo"),
-        KeyFilter("app", "foobar"),
+        KeyFilter("package", "foobar"),
       )
     )
   }
@@ -265,9 +265,7 @@ class LogcatFilterPsiTest {
 
   @Test
   fun parse_appFilter() {
-    for (filter in listOf("app!", "package!")) {
-      assertThat(parse(filter).toFilter()).isEqualTo(AppFilter)
-    }
+    assertThat(parse("app!").toFilter()).isEqualTo(AppFilter)
   }
 
   @Test

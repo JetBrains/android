@@ -82,10 +82,8 @@ STRING_VALUE        = {UNQUOTED_VALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_
 
 // Keys that accept quoted or unquoted strings.
 TEXT_KEY
-  = "app"
-  | "line"
+  = "line"
   | "message"
-  | "msg"
   | "package"
   | "tag"
 
@@ -96,7 +94,7 @@ KEY
   | "level"
   | "toLevel"
 
-PROJECT_APP = "app!" | "package!"
+PROJECT_APP = "app!"
 
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE

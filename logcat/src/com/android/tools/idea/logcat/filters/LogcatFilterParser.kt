@@ -136,8 +136,8 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock): LogcatFilte
       val field: LogcatFilterField =
         when (key) {
           "tag" -> TAG
-          "app", "package" -> APP
-          "msg", "message" -> MESSAGE
+          "package" -> APP
+          "message" -> MESSAGE
           "line" -> LINE
           else -> {
             throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: $key")) // Should not happen
