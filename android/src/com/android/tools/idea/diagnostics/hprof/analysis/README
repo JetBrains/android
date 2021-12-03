@@ -1,0 +1,22 @@
+The heap reports include a section for the dominator tree, which is a reasonably
+good proxy for memory ownership relations, and when visualized as a flame graph
+can provide a quick overview of what is holding on to lots of memory.
+
+The flame graph format in the reports is a compacted form of the format accepted
+by async-profiler's conversion tools, which is too verbose to be included directly.
+
+A converter is provided in tools/vendor/google/flamegraph-extractor. This will take
+the full heap report files, extract the dominator tree section, convert it to
+async-profiler format, then run async-profiler's conversion tool to produce an HTML
+document.
+
+The compact format is as follows:
+
+Line 0: number N of strings in the string table
+Lines 1-N: line i contains string table entry with index i-1
+Remaining lines: a preorder traversal of the nodes in the dominator tree, one per line.
+    Each line consists of 3 space-separated integers:
+      - classNameIndex: the index in the string table for the class of this node
+      - retainedSize: the retained size of this subtree
+      - numChildren: how many children this node has
+
