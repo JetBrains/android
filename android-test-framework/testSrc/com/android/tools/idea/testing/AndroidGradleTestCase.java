@@ -300,12 +300,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
     return prepareProjectForImport(relativePath, targetPath, null, null, null);
   }
 
+  /**
+   * All overloads of this method should be final, please to not remove.
+   */
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
                                          @NotNull File targetPath,
                                          @Nullable String gradleVersion,
                                          @Nullable String gradlePluginVersion,
@@ -320,7 +323,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
                                          @Nullable String gradleVersion,
                                          @Nullable String gradlePluginVersion,
                                          @Nullable String kotlinVersion) throws IOException {
