@@ -65,7 +65,7 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
     taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
     downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true).toPath()
-    val myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, { downloadPath })
+    val myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project) { downloadPath }
 
     mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
     mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")

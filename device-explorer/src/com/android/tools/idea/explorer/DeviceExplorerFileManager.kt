@@ -35,22 +35,21 @@ interface DeviceExplorerFileManager {
   /**
    * Asynchronously downloads the content of a [DeviceFileEntry] to the local file system.
    *
-   *
-   * Returns a [ListenableFuture] that completes when the download has completed.
-   * The `progress` callback is regularly notified of the current progress of the
-   * download operation.
+   * Returns a VirtualFile when the download has completed. The `progress` callback is
+   * regularly notified (on the UI thread) of the current progress of the download operation.
    */
-  fun downloadFileEntry(
+  suspend fun downloadFileEntry(
     entry: DeviceFileEntry,
     localPath: Path,
     progress: DownloadProgress
-  ): ListenableFuture<VirtualFile>
+  ): VirtualFile
 
   /**
    * Delete the VirtualFile passed as argument using the VFS.
-   * The returned future fails with IOException in case of problems during file deletion.
+   *
+   * @throws java.io.IOException in case of problems during file deletion.
    */
-  fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit>
+  suspend fun deleteFile(virtualFile: VirtualFile)
 
   /**
    * Returns the [Path] to use on the local file system when saving/downloading the entry from the device to the local file system
@@ -63,12 +62,10 @@ interface DeviceExplorerFileManager {
    * Opens a previously downloaded file and gives focus to the open component.
    * If the file contents is not recognized, the implementation may open a dialog box asking the user to pick the best editor type.
    *
-   *  * Completes with a [RuntimeException] if the file can not be opened.
-   *  * Completes with a [java.util.concurrent.CancellationException] if the user cancels
-   * the 'choose editor type' dialog.
-   *
+   * @throws RuntimeException if the file can not be found
+   * @throws java.util.concurrent.CancellationException if the user cancels the 'choose editor type' dialog.
    */
-  fun openFile(localPath: Path): ListenableFuture<Void>
+  suspend fun openFile(localPath: Path)
 
   companion object {
     fun getInstance(project: Project): DeviceExplorerFileManager {

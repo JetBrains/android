@@ -27,8 +27,8 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.serviceContainer.NonInjectable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.guava.asDeferred
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -67,7 +67,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   override suspend fun deleteFiles(virtualFiles: List<VirtualFile>) {
-    virtualFiles.map { fileManager.deleteFile(it).asDeferred() }.awaitAll()
+    virtualFiles.forEach { fileManager.deleteFile(it) }
   }
 
   // TODO(b/170230430) downloading files seems to trigger indexing.
@@ -82,7 +82,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       entries.associate { entry ->
         val localPath = fileManager.getPathForEntry(entry, localDestinationDirectory)
         FileUtils.mkdirs(localPath.parent.toFile())
-        entry.fullPath to fileManager.downloadFileEntry(entry, localPath, downloadProgress).asDeferred()
+        entry.fullPath to async { fileManager.downloadFileEntry(entry, localPath, downloadProgress) }
       }
     }
     entryToDeferredFile.values.awaitAll()

@@ -79,6 +79,7 @@ import java.util.Stack
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Consumer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
@@ -97,17 +98,6 @@ class DeviceExplorerController(
   private val fileManager: DeviceExplorerFileManager,
   private val myFileOpener: FileOpener
 ) {
-  // TODO: Migrate all callers and remove this constructor
-  constructor(
-    myProject: Project,
-    myModel: DeviceExplorerModel,
-    myView: DeviceExplorerView,
-    myService: DeviceFileSystemService<out DeviceFileSystem>,
-    fileManager: DeviceExplorerFileManager,
-    myFileOpener: FileOpener,
-    edtExecutor: Executor,
-    taskExecutor: Executor) :
-    this(myProject, myModel, myView, myService, fileManager, myFileOpener)
 
   private var myShowLoadingNodeDelayMillis = 200
   private var myTransferringNodeRepaintMillis = 100
@@ -430,7 +420,7 @@ class DeviceExplorerController(
 
     private suspend fun openFile(treeNode: DeviceFileEntryNode, localPath: Path) {
       try {
-        myFileOpener.openFile(localPath).await()
+        myFileOpener.openFile(localPath)
       } catch (t: Throwable) {
         myView.reportErrorRelatedToNode(treeNode, "Unable to open file \"$localPath\" in editor", t)
       }
@@ -439,7 +429,7 @@ class DeviceExplorerController(
     private suspend fun downloadAndOpenFile(treeNode: DeviceFileEntryNode) = withContext(uiThread) {
       try {
         val path = downloadFileEntryToDefaultLocation(treeNode)
-        DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, path).await()
+        DeviceExplorerFilesUtils.findFile(path)
         openFile(treeNode, path)
       }
       catch (t: Throwable) {
@@ -1282,38 +1272,36 @@ class DeviceExplorerController(
       val entry = treeNode.entry
       val sizeRef = CompletableDeferred<Long>()
       val stopwatch = Stopwatch.createStarted()
-      withContext(ioThread) {
-        fileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
-          private var previousBytes: Long = 0
-          override fun onStarting(entryFullPath: String) {
+      fileManager.downloadFileEntry(entry, localPath, object : DownloadProgress {
+        private var previousBytes: Long = 0
+        override fun onStarting(entryFullPath: String) {
+          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+          previousBytes = 0
+          startNodeDownload(currentNode)
+        }
+
+        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
+          val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
+          tracker.processFileBytes(currentBytes - previousBytes)
+          previousBytes = currentBytes
+          tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes)
+          if (tracker.isInForeground) {
+            currentNode.setTransferProgress(currentBytes, totalBytes)
+          }
+        }
+
+        override fun onCompleted(entryFullPath: String) {
+          sizeRef.complete(previousBytes)
+          if (tracker.isInForeground) {
             val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-            previousBytes = 0
-            startNodeDownload(currentNode)
+            stopNodeDownload(currentNode)
           }
+        }
 
-          override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
-            val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-            tracker.processFileBytes(currentBytes - previousBytes)
-            previousBytes = currentBytes
-            tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes)
-            if (tracker.isInForeground) {
-              currentNode.setTransferProgress(currentBytes, totalBytes)
-            }
-          }
-
-          override fun onCompleted(entryFullPath: String) {
-            sizeRef.complete(previousBytes)
-            if (tracker.isInForeground) {
-              val currentNode = getTreeNodeFromEntry(treeNode, entryFullPath)!!
-              stopNodeDownload(currentNode)
-            }
-          }
-
-          override fun isCancelled(): Boolean {
-            return tracker.isCancelled
-          }
-        }).await()
-      }
+        override fun isCancelled(): Boolean {
+          return tracker.isCancelled
+        }
+      })
       LOGGER.trace("Downloaded file in $stopwatch: ${entry.fullPath}")
       // downloadFileEntry may complete before onCompleted is called
       return sizeRef.await()
@@ -1609,7 +1597,7 @@ class DeviceExplorerController(
 
   interface FileOpener {
     @UiThread
-    fun openFile(localPath: Path): ListenableFuture<Void>
+    suspend fun openFile(localPath: Path)
   }
 
   companion object {
@@ -1624,6 +1612,16 @@ class DeviceExplorerController(
     @JvmStatic
     fun getProjectController(project: Project?): DeviceExplorerController? {
       return project?.getUserData(KEY)
+    }
+
+    /** Helper method for Java tests to implement the FileOpener interface */
+    @JvmStatic
+    fun makeFileOpener(fn: Consumer<Path>): FileOpener {
+      return object : FileOpener {
+        override suspend fun openFile(localPath: Path) {
+          fn.accept(localPath)
+        }
+      }
     }
   }
 }

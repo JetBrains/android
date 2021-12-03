@@ -16,10 +16,6 @@
 package com.android.tools.idea.explorer
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
@@ -29,21 +25,14 @@ object DeviceExplorerFilesUtils {
    * Creates a [VirtualFile] corresponding to the [Path] passed as argument.
    */
   @AnyThread
-  fun findFile(project: Project, edtExecutor: FutureCallbackExecutor, localPath: Path): ListenableFuture<VirtualFile> {
+  suspend fun findFile(localPath: Path): VirtualFile {
     // We run this operation using invokeLater because we need to refresh a VirtualFile instance
     // this has to be done in a write-safe context.
     // See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
-    val futureFile = SettableFuture.create<VirtualFile>()
-    ExecutorUtil.executeInWriteSafeContextWithAnyModality(project, edtExecutor) {
-
+    return withWriteSafeContextWithCurrentModality {
       // findFileByIoFile should be called from the write thread, in a write-safe context
-      val localFile = VfsUtil.findFileByIoFile(localPath.toFile(), true)
-      if (localFile == null) {
-        futureFile.setException(RuntimeException("Unable to locate file \"$localPath\""))
-      } else {
-        futureFile.set(localFile)
-      }
+      VfsUtil.findFileByIoFile(localPath.toFile(), true)
+          ?: throw RuntimeException("Unable to locate file \"$localPath\"")
     }
-    return futureFile
   }
 }

@@ -16,16 +16,17 @@
 package com.android.tools.idea.explorer
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.explorer.fs.DownloadProgress
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
+import com.android.tools.idea.testing.runDispatching
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.inOrder
@@ -33,7 +34,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.function.Supplier
 
 class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
@@ -62,7 +62,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
     val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
-    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, { downloadPath.toPath() })
+    myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project) { downloadPath.toPath() }
 
     mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
     mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
@@ -96,14 +96,13 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     assertTrue(FileUtil.toSystemIndependentName(defaultLocalPath.toString()).endsWith("/fileSystem/foo/bar1"))
   }
 
-  fun testDownloadFileEntry() {
+  fun testDownloadFileEntry() = runDispatching {
     // Setup
     val downloadProgress = mock(DownloadProgress::class.java)
     val orderVerifier = inOrder(downloadProgress)
 
     // Act
-    val downloadEntryFuture = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
-    val virtualFile = pumpEventsAndWaitForFuture(downloadEntryFuture)
+    val virtualFile = myDeviceExplorerFileManager.downloadFileEntry(fooBar1Entry, fooBar1LocalPath, downloadProgress)
 
     // Assert
     assertTrue(virtualFile.path.endsWith("/foo/bar1"))
@@ -114,12 +113,12 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     verifyNoMoreInteractions(downloadProgress)
   }
 
-  fun testDeleteFile() {
+  fun testDeleteFile() = runDispatching {
     // Prepare
     val fileToDelete = tempDirTestFixture.createFile("newfile")
 
     // Act
-    pumpEventsAndWaitForFuture(myDeviceExplorerFileManager.deleteFile(fileToDelete))
+    myDeviceExplorerFileManager.deleteFile(fileToDelete)
 
     // Assert
     assertFalse(fileToDelete.exists())

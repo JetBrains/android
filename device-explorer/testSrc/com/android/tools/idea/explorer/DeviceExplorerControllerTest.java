@@ -165,7 +165,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myDownloadLocationSupplier = mock(Supplier.class);
     when(myDownloadLocationSupplier.get()).thenReturn(downloadPath.toPath());
-    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor, myTaskExecutor, myDownloadLocationSupplier);
+    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myDownloadLocationSupplier);
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
@@ -1663,7 +1663,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testCustomFileOpenerIsCalled() throws ExecutionException, InterruptedException, TimeoutException {
     // Prepare
     final Path[] openPath = { null };
-    DeviceExplorerController.FileOpener fileOpener = localPath -> { openPath[0] = localPath; return Futures.immediateFuture(null); };
+    DeviceExplorerController.FileOpener fileOpener =
+      DeviceExplorerController.makeFileOpener(localPath -> openPath[0] = localPath);
 
     DeviceExplorerController controller = createController(fileOpener);
 

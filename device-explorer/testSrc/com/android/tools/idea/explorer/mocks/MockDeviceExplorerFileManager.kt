@@ -16,15 +16,12 @@
 package com.android.tools.idea.explorer.mocks
 
 import com.android.tools.idea.FutureValuesTracker
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.explorer.DeviceExplorerFileManager
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DownloadProgress
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -32,20 +29,17 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.delete
+import kotlinx.coroutines.withContext
 import java.nio.file.Path
-import java.util.concurrent.Executor
 import java.util.function.Supplier
 
 class MockDeviceExplorerFileManager(
   private val myProject: Project,
-  edtExecutor: Executor,
-  taskExecutor: Executor,
   defaultPath: Supplier<Path>
 ) : DeviceExplorerFileManager, Disposable {
   private val LOGGER = thisLogger()
 
-  private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
-  private val myFileManagerImpl = DeviceExplorerFileManagerImpl(myProject, edtExecutor, taskExecutor) { defaultPath.get() }
+  private val myFileManagerImpl = DeviceExplorerFileManagerImpl(myProject) { defaultPath.get() }
 
   private val myDevices: MutableSet<DeviceFileSystem> = HashSet()
 
@@ -54,23 +48,21 @@ class MockDeviceExplorerFileManager(
   val openFileInEditorTracker = FutureValuesTracker<Path>()
   var openFileInEditorError: RuntimeException? = null
 
-  override fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): ListenableFuture<VirtualFile> {
-    downloadFileEntryTracker.produce(entry)
-    myDevices.add(entry.fileSystem)
-    val futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress)
-    myEdtExecutor.addCallback(futureResult, object : FutureCallback<VirtualFile> {
-      override fun onSuccess(result: VirtualFile?) {
-        downloadFileEntryCompletionTracker.produce(result)
-      }
-
-      override fun onFailure(t: Throwable) {
+  override suspend fun downloadFileEntry(entry: DeviceFileEntry, localPath: Path, progress: DownloadProgress): VirtualFile =
+    withContext(uiThread) {
+      downloadFileEntryTracker.produce(entry)
+      myDevices.add(entry.fileSystem)
+      try {
+        return@withContext myFileManagerImpl.downloadFileEntry(entry, localPath, progress).also {
+          downloadFileEntryCompletionTracker.produce(it)
+        }
+      } catch (t: Throwable) {
         downloadFileEntryCompletionTracker.produceException(t)
+        throw t
       }
-    })
-    return futureResult
-  }
+    }
 
-  override fun deleteFile(virtualFile: VirtualFile): ListenableFuture<Unit> {
+  override suspend fun deleteFile(virtualFile: VirtualFile) {
     return myFileManagerImpl.deleteFile(virtualFile)
   }
 
@@ -78,11 +70,11 @@ class MockDeviceExplorerFileManager(
     return myFileManagerImpl.getPathForEntry(entry, destinationPath)
   }
 
-  override fun openFile(localPath: Path): ListenableFuture<Void> {
+  override suspend fun openFile(localPath: Path) {
     openFileInEditorTracker.produce(localPath)
     return when (val error = openFileInEditorError) {
       null -> myFileManagerImpl.openFile(localPath)
-      else -> Futures.immediateFailedFuture(error)
+      else -> throw error
     }
   }
 
