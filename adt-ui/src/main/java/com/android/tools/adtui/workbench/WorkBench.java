@@ -111,11 +111,24 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * @param name a name used to identify this type of {@link WorkBench}. Also used for associating properties.
    * @param fileEditor the file editor this work space is associated with.
    * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
+   * @param delayTimeMs milliseconds to wait before switching to the loading mode of the {@link WorkBench}.
    */
-  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable) {
-    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project));
+  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable, int delayTimeMs) {
+    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project), delayTimeMs);
 
     Disposer.register(parentDisposable, this);
+  }
+
+  /**
+   * Creates a work space with associated tool windows, which can be attached.
+   *
+   * @param project the project associated with this work space.
+   * @param name a name used to identify this type of {@link WorkBench}. Also used for associating properties.
+   * @param fileEditor the file editor this work space is associated with.
+   * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
+   */
+  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable) {
+    this(project, name, fileEditor, parentDisposable, 1000);
   }
 
   /**
@@ -159,19 +172,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     for (AttachedToolWindow<T> tool : myModel.getAllTools()) {
       tool.getMinimizedButton().updateUI();
     }
-  }
-
-  /**
-   * Get the content components in this WorkBench. Note that this currently doesn't include the splitters, sidebars, or loading pane--
-   * they can be added as and when they are needed.
-   */
-  @Override
-  public Component[] getComponents() {
-    if (mySplitter.getInnerComponent() == null) {
-      // The inner component will be null before init() is called
-      return new Component[] { mySplitter.getFirstComponent(), mySplitter.getLastComponent() };
-    }
-    return new Component[] { mySplitter.getFirstComponent(), mySplitter.getInnerComponent(), mySplitter.getLastComponent() };
   }
 
   public void setLoadingText(@NotNull String loadingText) {
@@ -280,7 +280,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
             @NotNull String name,
             @Nullable FileEditor fileEditor,
             @NotNull InitParams<T> params,
-            @NotNull DetachedToolWindowManager detachedToolWindowManager) {
+            @NotNull DetachedToolWindowManager detachedToolWindowManager,
+            int startDelayMs) {
     myName = name;
     myFileEditor = fileEditor;
     myPropertiesComponent = PropertiesComponent.getInstance();
@@ -299,7 +300,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
     myMainPanel.add(layeredPanel, BorderLayout.CENTER);
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
-    myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), this, 1000);
+    myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), this, startDelayMs);
     myLoadingPanel.add(myMainPanel);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);

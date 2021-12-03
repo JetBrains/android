@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.scene
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.PreviewGroup
+import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
@@ -35,36 +36,6 @@ import org.junit.Test
 private class FakeView(var _hasAnimations: Boolean) {
   @Suppress("unused") // This method is called via reflection
   private fun hasAnimations(): Boolean = _hasAnimations
-}
-
-private class TestComposePreviewManager(var interactiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
-
-  override fun status(): ComposePreviewManager.Status =
-    ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                 hasSyntaxErrors = false,
-                                 isOutOfDate = false,
-                                 isRefreshing = false,
-                                 interactiveMode = interactiveMode)
-
-  override var isBuildOnSaveEnabled: Boolean = false
-  override val availableGroups: Collection<PreviewGroup> = emptyList()
-  override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
-  override var interactivePreviewElementInstance: PreviewElementInstance? = null
-    private set
-  override var animationInspectionPreviewElementInstance: PreviewElementInstance? = null
-  override val hasLiveLiterals: Boolean = false
-  override val isLiveLiteralsEnabled: Boolean = false
-  override val hasDesignInfoProviders: Boolean = false
-  override val previewedFile: PsiFile? = null
-  override suspend fun startInteractivePreview(instance: PreviewElementInstance) {
-    interactivePreviewElementInstance = instance
-  }
-
-  override fun stopInteractivePreview() {
-    interactivePreviewElementInstance = null
-  }
-
-  override fun dispose() {}
 }
 
 internal class ComposeSceneUpdateListenerTest {

@@ -105,7 +105,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myRightMinimizePanel.setLayout(new BoxLayout(myRightMinimizePanel, BoxLayout.Y_AXIS));
     WorkBench.InitParams<String> initParams = new WorkBench.InitParams<>(myModel, mySplitter, myLeftMinimizePanel, myRightMinimizePanel);
     mySplitter.setSize(1000, 600);
-    myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, myFloatingToolWindowManager);
+    myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, myFloatingToolWindowManager, 1000);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),

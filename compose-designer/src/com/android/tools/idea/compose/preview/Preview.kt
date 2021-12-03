@@ -100,6 +100,7 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -164,13 +165,14 @@ fun LayoutlibSceneManager.changeRequiresReinflate(showDecorations: Boolean, isIn
  *  [isLiveLiteralsEnabled] is false. If true, the classes are assumed to have this support.
  * @param resetLiveLiteralsFound callback called when the classes are about to be reloaded so the live literals state can be discarded.
  */
-private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
-                                           showDecorations: Boolean,
-                                           isInteractive: Boolean,
-                                           requestPrivateClassLoader: Boolean,
-                                           isLiveLiteralsEnabled: Boolean,
-                                           onLiveLiteralsFound: () -> Unit,
-                                           resetLiveLiteralsFound: () -> Unit): LayoutlibSceneManager =
+@VisibleForTesting
+fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
+                                   showDecorations: Boolean,
+                                   isInteractive: Boolean,
+                                   requestPrivateClassLoader: Boolean,
+                                   isLiveLiteralsEnabled: Boolean,
+                                   onLiveLiteralsFound: () -> Unit,
+                                   resetLiveLiteralsFound: () -> Unit): LayoutlibSceneManager =
   sceneManager.apply {
     val reinflate = changeRequiresReinflate(showDecorations, isInteractive, requestPrivateClassLoader)
     setTransparentRendering(!showDecorations)

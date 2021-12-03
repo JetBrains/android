@@ -56,9 +56,6 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   override fun updateVisibilityAndNotifications() {
   }
 
-  override fun showModalErrorMessage(message: String, actionData: ActionData?) {
-  }
-
   override fun updateProgress(message: String) {
   }
 

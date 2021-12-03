@@ -141,11 +141,6 @@ interface ComposePreviewView {
   fun updateVisibilityAndNotifications()
 
   /**
-   * Hides the content if visible and displays the given [message] and the optional [actionData].
-   */
-  fun showModalErrorMessage(message: String, actionData: ActionData? = null)
-
-  /**
    * If the content is not already visible it shows the given message.
    */
   fun updateProgress(message: String)
@@ -163,8 +158,8 @@ fun interface ComposePreviewViewProvider {
              navigationHandler: PreviewNavigationHandler,
              dataProvider: DataProvider,
              parentDisposable: Disposable,
-             onPinFileAction: AnAction?,
-             onUnPinAction: AnAction?): ComposePreviewView
+             onPinFileAction: AnAction,
+             onUnPinAction: AnAction): ComposePreviewView
 }
 
 /**
@@ -183,7 +178,7 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
     }
   }
 
-private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
+private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
   private val button = ActionButtonWithText(pinAction,
                                             PresentationFactory().getPresentation(pinAction ?: EmptyAction()),
                                             "PinnedToolbar",
@@ -245,9 +240,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       navigationHandler: PreviewNavigationHandler,
                                       dataProvider: DataProvider,
                                       parentDisposable: Disposable,
-                                      onPinFileAction: AnAction?,
-                                      onUnPinAction: AnAction?) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView, Pannable {
+                                      onPinFileAction: AnAction,
+                                      onUnPinAction: AnAction) :
+  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0), ComposePreviewView, Pannable {
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -437,7 +432,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
   }
 
-  override fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
+  private fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
     log.debug("showModelErrorMessage: $message")
     loadingStopped(message, actionData)
   }
@@ -540,7 +535,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
   override var isAnimationPreview: Boolean = false
 
-  override var hasContent: Boolean = true
+  override var hasContent: Boolean = false
 
   override val isMessageBeingDisplayed: Boolean
     get() = this.isMessageVisible
