@@ -18,10 +18,14 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.res.isInResourceSubdirectory
+import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.MarkupModelEx
 import com.intellij.openapi.editor.ex.RangeHighlighterEx
@@ -42,6 +46,9 @@ import com.intellij.util.ui.UIUtil
 class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : TrafficLightRenderer(file.project, editor.document) {
   private val errorCountArray = IntArray(severityRegistrar.allSeverities.size)
   private val variantModels = mutableMapOf<VirtualFile, MarkupModelEx>()
+  private val hasVariants
+    get() = variantModels.size > 1
+  private var includeQualifierVariants = true
 
   init {
     val variants = getResourceVariations(file.virtualFile, true)
@@ -53,7 +60,7 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
     if (editorMarkupModel == null) {
       return
     }
-    val variantFiles = getResourceVariations(file.virtualFile, false)
+    val variantFiles = getResourceVariations(file.virtualFile, true)
     variantModels.keys.filterNot { variantFiles.contains(it) }.forEach { variantModels.remove(it)?.removeAllHighlighters() }
     variantFiles.filterNot { variantModels.containsKey(it) }.forEach { updateTrafficLightWithFile(it) }
   }
@@ -95,11 +102,42 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
   }
 
   override fun getErrorCount(): IntArray {
-    return errorCountArray
+    if (hasVariants && includeQualifierVariants) {
+      return errorCountArray
+    }
+    return super.getErrorCount()
   }
 
   override fun createUIController(): UIController {
-    return DefaultUIController()
+    return QualifierVariantsUIController()
+  }
+
+  inner class QualifierVariantsUIController : DefaultUIController() {
+    private val myActions: List<AnAction> by lazy {
+      super.getActions().toMutableList() + IncludeQualifierVariantsAction()
+    }
+
+    override fun getActions(): List<AnAction> {
+      return myActions
+    }
+  }
+
+  inner class IncludeQualifierVariantsAction : ToggleAction("Show Current File and Qualifiers") {
+    override fun isSelected(e: AnActionEvent): Boolean {
+      return includeQualifierVariants
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state != includeQualifierVariants) {
+        includeQualifierVariants = state
+        ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor)
+      }
+    }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isVisible = hasVariants
+    }
   }
 }
 
