@@ -18,9 +18,12 @@ package com.android.tools.idea.logcat.filters
 import com.android.ddmlib.Log.LogLevel
 import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
+import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
+import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
+import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterAndExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
@@ -58,8 +61,14 @@ internal class LogcatFilterParser(
   project: Project,
   private val packageNamesProvider: PackageNamesProvider,
   private val joinConsecutiveTopLevelValue: Boolean = false,
+  private val topLevelSameKeyTreatment: CombineWith = OR,
   private val clock: Clock = Clock.systemDefaultZone(),
 ) {
+  enum class CombineWith {
+    AND,
+    OR,
+  }
+
   private val psiFileFactory = PsiFileFactory.getInstance(project)
 
   fun parse(string: String): LogcatFilter? {
@@ -90,9 +99,18 @@ internal class LogcatFilterParser(
   }
 
   private fun createTopLevelFilter(expressions: Array<LogcatFilterExpression>): LogcatFilter {
-    val terms = if (joinConsecutiveTopLevelValue) combineConsecutiveValues(expressions) else expressions.map { it.toFilter() }
+    val filters = if (joinConsecutiveTopLevelValue) combineConsecutiveValues(expressions) else expressions.map { it.toFilter() }
 
-    return if (terms.size == 1) terms[0] else AndLogcatFilter(terms)
+    return when {
+      filters.size == 1 -> filters[0]
+      topLevelSameKeyTreatment == AND -> AndLogcatFilter(filters)
+      else -> createComplexTopLevelFilter(filters)
+    }
+  }
+
+  private fun createComplexTopLevelFilter(filters: List<LogcatFilter>): LogcatFilter {
+    val groups = filters.withIndex().groupBy({ it.value.getFieldForImplicitOr(it.index) }, { it.value }).values
+    return AndLogcatFilter(groups.map { if (it.size == 1) it[0] else OrLogcatFilter(it.toList()) })
   }
 
   private fun combineConsecutiveValues(expressions: Array<LogcatFilterExpression>): List<LogcatFilter> {
@@ -117,7 +135,7 @@ internal class LogcatFilterParser(
       val expression = it as LogcatFilterLiteralExpression
       expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
     }
-    return StringFilter(text.trim(), LINE)
+    return StringFilter(text.trim(), IMPLICIT_LINE)
   }
 
   private fun LogcatFilterExpression.toFilter(): LogcatFilter {
@@ -132,7 +150,7 @@ internal class LogcatFilterParser(
 
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
-      VALUE -> StringFilter(firstChild.toText(), LINE)
+      VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE)
       KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock)
       PROJECT_APP -> ProjectAppFilter(packageNamesProvider)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
@@ -208,3 +226,28 @@ private fun flattenAndExpression(expression: LogcatFilterExpression): List<Logca
   else {
     listOf(expression)
   }
+
+private data class FilterType(private val obj: Any)
+
+/**
+ * Returns a [FilterType] to be used for grouping.
+ *
+ * The grouping determines if they will be combined with an 'OR' or an 'AND'. The filters inside each group will be combined with an 'OR'
+ * while the groups will be combined with an 'AND'.
+ *
+ * Grouping rules:
+ *   1. StringFilter & RegexFilter are grouped by their `field`.
+ *   2. All level filters are grouped together.
+ *   3. AgeFilter's are grouped together.
+ *   2. Any other filter (including NegatedStringFilter & NegatedRegexFilter) are not grouped and get a unique FilterType which is
+ *   established using its index.
+ */
+private fun LogcatFilter.getFieldForImplicitOr(index: Int): FilterType {
+  return when {
+    this is StringFilter && field != IMPLICIT_LINE -> FilterType(field)
+    this is RegexFilter -> FilterType(field)
+    this is LevelFilter || this is FromLevelFilter || this is ToLevelFilter -> FilterType("level")
+    this is AgeFilter -> FilterType("age")
+    else -> FilterType(index)
+  }
+}

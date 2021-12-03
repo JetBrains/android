@@ -26,6 +26,7 @@ import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
+import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
@@ -392,7 +393,7 @@ class LogcatMainPanelTest {
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow initializing it.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
-    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", LINE))
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
     assertThat(logcatMainPanel.messageProcessor.showOnlyProjectApps).isTrue()
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
     assertThat(logcatMainPanel.headerPanel.isShowProjectApps()).isTrue()

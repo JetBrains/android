@@ -86,6 +86,9 @@ internal enum class LogcatFilterField {
   },
   LINE {
     override fun getValue(message: LogcatMessageWrapper) = message.logLine
+  },
+  IMPLICIT_LINE {
+    override fun getValue(message: LogcatMessageWrapper) = message.logLine
   };
 
   abstract fun getValue(message: LogcatMessageWrapper): String

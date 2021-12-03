@@ -17,11 +17,16 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
+import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
+import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith
+import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
+import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -160,9 +165,9 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = true).parse("level:I foo    bar   tag:bar foo  package:foobar")).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO),
-        StringFilter("foo    bar", LINE),
+        StringFilter("foo    bar", IMPLICIT_LINE),
         StringFilter("bar", TAG),
-        StringFilter("foo", LINE),
+        StringFilter("foo", IMPLICIT_LINE),
         StringFilter("foobar", APP),
       )
     )
@@ -175,13 +180,35 @@ class LogcatFilterParserTest {
       .isEqualTo(
         AndLogcatFilter(
           LevelFilter(INFO),
-          StringFilter("foo", LINE),
-          StringFilter("bar", LINE),
+          StringFilter("foo", IMPLICIT_LINE),
+          StringFilter("bar", IMPLICIT_LINE),
           StringFilter("bar", TAG),
-          StringFilter("foo", LINE),
+          StringFilter("foo", IMPLICIT_LINE),
           StringFilter("foobar", APP),
         )
       )
+  }
+
+  @Test
+  fun parse_topLevelExpressions_sameKey_or() {
+    val parser = logcatFilterParser(topLevelSameKeyTreatment = OR)
+
+    assertThat(parser.parse("-tag:ignore1 foo tag:tag1 -tag~:ignore2 level:I bar fromLevel:W tag~:tag2")).isEqualTo(
+      AndLogcatFilter(
+        NegatedStringFilter("ignore1", TAG),
+        StringFilter("foo", IMPLICIT_LINE),
+        OrLogcatFilter(
+          StringFilter("tag1", TAG),
+          RegexFilter("tag2", TAG),
+        ),
+        NegatedRegexFilter("ignore2", TAG),
+        OrLogcatFilter(
+          LevelFilter(INFO),
+          FromLevelFilter(WARN),
+        ),
+        StringFilter("bar", IMPLICIT_LINE),
+      )
+    )
   }
 
   @Test
@@ -189,7 +216,7 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().parse("tag: bar & foo & package: foobar")).isEqualTo(
       AndLogcatFilter(
         StringFilter("bar", TAG),
-        StringFilter("foo", LINE),
+        StringFilter("foo", IMPLICIT_LINE),
         StringFilter("foobar", APP),
       )
     )
@@ -200,7 +227,7 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().parse("tag: bar | foo | package: foobar")).isEqualTo(
       OrLogcatFilter(
         StringFilter("bar", TAG),
-        StringFilter("foo", LINE),
+        StringFilter("foo", IMPLICIT_LINE),
         StringFilter("foobar", APP),
       )
     )
@@ -211,12 +238,12 @@ class LogcatFilterParserTest {
     assertThat(logcatFilterParser().parse("f1 & f2 | f3 & f4")).isEqualTo(
       OrLogcatFilter(
         AndLogcatFilter(
-          StringFilter("f1", LINE),
-          StringFilter("f2", LINE),
+          StringFilter("f1", IMPLICIT_LINE),
+          StringFilter("f2", IMPLICIT_LINE),
         ),
         AndLogcatFilter(
-          StringFilter("f3", LINE),
-          StringFilter("f4", LINE),
+          StringFilter("f3", IMPLICIT_LINE),
+          StringFilter("f4", IMPLICIT_LINE),
         ),
       )
     )
@@ -226,12 +253,12 @@ class LogcatFilterParserTest {
   fun parse_parens() {
     assertThat(logcatFilterParser().parse("f1 & (tag: foo | tag: 'bar') & f4")).isEqualTo(
       AndLogcatFilter(
-        StringFilter("f1", LINE),
+        StringFilter("f1", IMPLICIT_LINE),
         OrLogcatFilter(
           StringFilter("foo", TAG),
           StringFilter("bar", TAG),
         ),
-        StringFilter("f4", LINE),
+        StringFilter("f4", IMPLICIT_LINE),
       )
     )
   }
@@ -244,11 +271,12 @@ class LogcatFilterParserTest {
   @Test
   fun parse_psiError() {
     val query = "key: 'foo"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, LINE))
+    assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
   }
 
   private fun logcatFilterParser(
     joinConsecutiveTopLevelValue: Boolean = true,
+    topLevelSameKeyTreatment: CombineWith = AND,
     clock: Clock = Clock.systemUTC(),
-  ) = LogcatFilterParser(project, fakePackageNamesProvider, joinConsecutiveTopLevelValue, clock)
+  ) = LogcatFilterParser(project, fakePackageNamesProvider, joinConsecutiveTopLevelValue, topLevelSameKeyTreatment, clock)
 }
