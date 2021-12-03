@@ -25,7 +25,6 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.tools.idea.common.LayoutTestUtilities.createSurface;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
 import static com.google.common.truth.Truth.assertThat;
@@ -48,7 +47,6 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
@@ -888,12 +886,8 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   @NotNull
-  private SyncNlModel createModel(XmlFile modelXml) {
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    SyncNlModel model = SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE,
-                                           null, null, myFacet, modelXml.getVirtualFile());
-    model.setDesignSurface(surface);
-    return model;
+  private SyncNlModel createModel(@NotNull XmlFile modelXml) {
+    return SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE, null, null, myFacet, modelXml.getVirtualFile());
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {
