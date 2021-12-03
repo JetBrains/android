@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
+public class FixBuildToolsVersionHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final List<VirtualFile> myBuildFiles;
   @NotNull private final String myVersion;
   /**
@@ -32,7 +33,9 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
   private final boolean myRemoveBuildTools;
 
   public FixBuildToolsVersionHyperlink(@NotNull String version, @NotNull List<VirtualFile> buildFiles, boolean removeBuildTools) {
-    super("fix.build.tools.version", (removeBuildTools ? "Remove" : "Update") + " Build Tools version and sync project");
+    super("fix.build.tools.version",
+          (removeBuildTools ? "Remove" : "Update") + " Build Tools version and sync project",
+          AndroidStudioEvent.GradleSyncQuickFix.FIX_BUILD_TOOLS_VERSION_HYPERLINK);
     myBuildFiles = buildFiles;
     myVersion = version;
     myRemoveBuildTools = removeBuildTools;

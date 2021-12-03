@@ -19,8 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveSdkFromManifestProcessor;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,14 @@ import java.util.Collection;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 
-public class RemoveSdkFromManifestHyperlink extends NotificationHyperlink {
+public class RemoveSdkFromManifestHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final Collection<Module> myModules;
   @NotNull private final SdkProperty mySdkProperty;
 
   public RemoveSdkFromManifestHyperlink(@NotNull Collection<Module> modules, @NotNull SdkProperty property) {
-    super("remove.sdk.from.manifest", getMessage(modules, property));
+    super("remove.sdk.from.manifest",
+          getMessage(modules, property),
+          AndroidStudioEvent.GradleSyncQuickFix.REMOVE_SDK_FROM_MANIFEST_HYPERLINK);
     myModules = modules;
     mySdkProperty = property;
   }

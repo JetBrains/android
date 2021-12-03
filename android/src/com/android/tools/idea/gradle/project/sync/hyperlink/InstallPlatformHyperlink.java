@@ -20,16 +20,17 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class InstallPlatformHyperlink extends NotificationHyperlink {
+public class InstallPlatformHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final AndroidVersion[] myAndroidVersions;
 
   public InstallPlatformHyperlink(@NotNull Collection<AndroidVersion> androidVersions) {
@@ -37,7 +38,9 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
   }
 
   public InstallPlatformHyperlink(@NotNull AndroidVersion... androidVersions) {
-    super("install.android.platform", "Install missing platform(s) and sync project");
+    super("install.android.platform",
+          "Install missing platform(s) and sync project",
+          AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK);
     myAndroidVersions = androidVersions;
   }
 

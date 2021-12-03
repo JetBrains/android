@@ -23,7 +23,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableList;
@@ -52,10 +51,10 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
   @NotNull
   @Override
-  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<IdeSyncIssue> syncIssues,
-                                                       @NotNull List<Module> affectedModules,
-                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+  protected List<SyncIssueNotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                                @NotNull List<IdeSyncIssue> syncIssues,
+                                                                @NotNull List<Module> affectedModules,
+                                                                @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty() && !affectedModules.isEmpty();
     String minimumVersion = syncIssues.get(0).getData();
     if (minimumVersion == null) {
@@ -66,10 +65,10 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
   }
 
   @NotNull
-  public List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
-                                                           @NotNull List<Module> affectedModules,
-                                                           @NotNull Map<Module, VirtualFile> buildFileMap) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+  public List<SyncIssueNotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
+                                                                    @NotNull List<Module> affectedModules,
+                                                                    @NotNull Map<Module, VirtualFile> buildFileMap) {
+    List<SyncIssueNotificationHyperlink> hyperlinks = new ArrayList<>();
     boolean buildToolInstalled = false;
 
     AndroidSdkHandler sdkHandler = null;

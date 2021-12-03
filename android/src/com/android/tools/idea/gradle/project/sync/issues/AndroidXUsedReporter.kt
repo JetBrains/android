@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperl
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.util.GradleProperties
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -40,13 +39,13 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
   override fun getCustomLinks(project: Project,
                               syncIssues: MutableList<IdeSyncIssue>,
                               affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): MutableList<NotificationHyperlink> {
+                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
     return createQuickFixes(GradleProperties(project).path)
   }
 
   @VisibleForTesting
-  fun createQuickFixes(propertiesPath: File): ArrayList<NotificationHyperlink> {
-    val quickFixes : ArrayList<NotificationHyperlink> = ArrayList()
+  fun createQuickFixes(propertiesPath: File): List<SyncIssueNotificationHyperlink> {
+    val quickFixes = mutableListOf<SyncIssueNotificationHyperlink>()
     quickFixes.add(EnableAndroidXHyperlink())
     if (propertiesPath.exists()) {
       quickFixes.add(OpenFileHyperlink(propertiesPath.path, "Open Gradle properties file", -1, -1))

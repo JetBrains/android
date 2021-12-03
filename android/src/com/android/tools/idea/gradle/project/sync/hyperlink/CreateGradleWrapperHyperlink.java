@@ -20,9 +20,10 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import java.io.File;
@@ -30,9 +31,11 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-public class CreateGradleWrapperHyperlink extends NotificationHyperlink {
+public class CreateGradleWrapperHyperlink extends SyncIssueNotificationHyperlink {
   public CreateGradleWrapperHyperlink() {
-    super("createGradleWrapper", "Migrate to Gradle wrapper and sync project");
+    super("createGradleWrapper",
+          "Migrate to Gradle wrapper and sync project",
+          AndroidStudioEvent.GradleSyncQuickFix.CREATE_GRADLE_WRAPPER_HYPERLINK);
   }
 
   @Override

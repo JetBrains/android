@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 /**
  * Hyperlink to add {@code google()} to the repositories in buildscript block of project build.gradle file.
  */
-public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
+public class AddGoogleMavenRepositoryHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final List<VirtualFile> myBuildFiles;
   private final boolean mySyncAfterFix;
 
@@ -48,7 +49,9 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
 
   @VisibleForTesting
   public AddGoogleMavenRepositoryHyperlink(@NotNull List<VirtualFile> buildFiles, boolean syncAfterFix) {
-    super("add.google.maven.repository", getText(buildFiles.isEmpty(), syncAfterFix));
+    super("add.google.maven.repository",
+          getText(buildFiles.isEmpty(), syncAfterFix),
+          AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK);
     myBuildFiles = buildFiles;
     mySyncAfterFix = syncAfterFix;
   }

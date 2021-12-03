@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenReposi
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -54,15 +53,15 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
 
   @NotNull
   @Override
-  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<IdeSyncIssue> syncIssues,
-                                                       @NotNull List<Module> affectedModules,
-                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+  protected List<SyncIssueNotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                                @NotNull List<IdeSyncIssue> syncIssues,
+                                                                @NotNull List<Module> affectedModules,
+                                                                @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty() && !affectedModules.isEmpty();
     IdeSyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
-    List<NotificationHyperlink> quickFixes = Lists.newArrayList();
+    List<SyncIssueNotificationHyperlink> quickFixes = Lists.newArrayList();
     if (dependency == null) {
 
       if (isOfflineBuildModeEnabled(project)) {
@@ -145,8 +144,8 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
    * @param fixes      List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
   private void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
-                                                        @NotNull List<VirtualFile> buildFiles,
-                                                        @NotNull List<NotificationHyperlink> fixes) {
+                                                 @NotNull List<VirtualFile> buildFiles,
+                                                 @NotNull List<SyncIssueNotificationHyperlink> fixes) {
     if ((!project.isInitialized()) || myAssumeProjectNotInitialized) {
       // No way to tell if the project contains the Google repository, add quick fix anyway (it will do nothing if it already has it)
       fixes.add(new AddGoogleMavenRepositoryHyperlink(project));

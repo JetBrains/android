@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcessor
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -30,9 +31,10 @@ import com.intellij.openapi.ui.Messages
  *   - Project's settings.gradle dependencyResolutionManagement.repositories block
  *   - Affected modules build.gradle repositories block
  */
-class RemoveJcenterHyperlink(val project: Project, val affectedModules: List<Module>) : NotificationHyperlink(
+class RemoveJcenterHyperlink(val project: Project, val affectedModules: List<Module>) : SyncIssueNotificationHyperlink(
   "remove.jcenter.hyperlink",
-  "Remove JCenter from repositories"
+  "Remove JCenter from repositories",
+  AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
 ) {
   companion object {
     fun canBeApplied(project: Project, affectedModules: List<Module>) : Boolean {

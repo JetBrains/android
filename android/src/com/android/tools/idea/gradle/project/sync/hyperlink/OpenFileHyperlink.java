@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -24,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenFileHyperlink extends NotificationHyperlink {
+public class OpenFileHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final String myFilePath;
   private final int myLineNumber;
   private final int myColumn;
@@ -44,7 +45,7 @@ public class OpenFileHyperlink extends NotificationHyperlink {
    * Creates a file hyperlink. The line and column numbers should be 0-based. The file path should be a file system dependent path.
    */
   public OpenFileHyperlink(@NotNull String filePath, @NotNull String text, int lineNumber, int column) {
-    super("openFile:" + filePath, text);
+    super("openFile:" + filePath, text, AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK);
     myFilePath = FileUtil.toSystemIndependentName(filePath);
     myLineNumber = lineNumber;
     myColumn = column;

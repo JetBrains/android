@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -25,14 +26,14 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 
-public class ShowSyncIssuesDetailsHyperlink extends NotificationHyperlink {
+public class ShowSyncIssuesDetailsHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final String myMessage;
   @NotNull private final List<String> myDetails;
 
   private SyncIssueDetailsDialog myDetailsDialog;
 
   public ShowSyncIssuesDetailsHyperlink(@NotNull String message, @NotNull List<String> details) {
-    super(message, "Show Details");
+    super(message, "Show Details", AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK);
     myMessage = message;
     assert !details.isEmpty();
     myDetails = details;

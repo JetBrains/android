@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module
@@ -29,9 +28,9 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getCustomLinks(project: Project,
                               syncIssues: List<IdeSyncIssue>,
                               affectedModules: List<Module>,
-                              buildFileMap: Map<Module, VirtualFile>): List<NotificationHyperlink> {
+                              buildFileMap: Map<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
     val localPropertiesPaths = syncIssues.mapNotNull { it.data }.distinct()
-    return if (localPropertiesPaths.isEmpty()) mutableListOf() else mutableListOf(SetSdkDirHyperlink(project, localPropertiesPaths))
+    return if (localPropertiesPaths.isEmpty()) emptyList() else listOf(SetSdkDirHyperlink(project, localPropertiesPaths))
   }
 
   override fun getSupportedIssueType(): Int = IdeSyncIssue.TYPE_SDK_NOT_SET

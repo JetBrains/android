@@ -18,48 +18,9 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenHttpSettingsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSHA256FromGradleWrapperHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.SetSdkDirHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ShowLogHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.StopGradleDaemonsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UpgradeAppenginePluginVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -99,62 +60,18 @@ interface SyncIssueUsageReporter {
   }
 }
 
-fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<NotificationHyperlink>) =
+abstract class SyncIssueNotificationHyperlink(
+  url: String,
+  text: String,
+  val quickFixId: GradleSyncQuickFix?
+) : NotificationHyperlink(url, text)
+
+fun SyncIssueUsageReporter.collect(issueType: Int, quickFixes: Collection<SyncIssueNotificationHyperlink>) =
     collect(
         GradleSyncIssue
             .newBuilder()
             .setType(issueType.toGradleSyncIssueType() ?: AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
-            .addAllOfferedQuickFixes(quickFixes.mapNotNull { it.toSyncIssueQuickFix() }))
-
-fun SyncIssueUsageReporter.collect(quickFixes: Collection<NotificationHyperlink>) =
-    collect(quickFixes.mapNotNull { it.toSyncIssueQuickFix() })
-
-@Suppress("DUPLICATE_LABEL_IN_WHEN")
-fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
-    when (this) {
-      is AddGoogleMavenRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK
-      is BuildProjectHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.BUILD_PROJECT_HYPERLINK
-      is CreateGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CREATE_GRADLE_WRAPPER_HYPERLINK
-      is DisableOfflineModeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK
-      is DownloadAndroidStudioHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_ANDROID_STUDIO_HYPERLINK
-      is DownloadJdk8Hyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_JDK8_HYPERLINK
-      is FileBugHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FILE_BUG_HYPERLINK
-      is FixAndroidGradlePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK
-      is FixBuildToolsVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_BUILD_TOOLS_VERSION_HYPERLINK
-      is FixGradleVersionInWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK
-      is InstallBuildToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_BUILD_TOOLS_HYPERLINK
-      is InstallNdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK
-      is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
-      is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
-      is OpenAndroidSdkManagerHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_ANDROID_SDK_MANAGER_HYPERLINK
-      is OpenFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK
-      is OpenGradleSettingsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK
-      is OpenHttpSettingsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_HTTP_SETTINGS_HYPERLINK
-      is OpenPluginBuildFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_PLUGIN_BUILD_FILE_HYPERLINK
-      is OpenProjectStructureHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_PROJECT_STRUCTURE_HYPERLINK
-      is OpenUrlHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK
-      is RemoveSdkFromManifestHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_SDK_FROM_MANIFEST_HYPERLINK
-      is SearchInBuildFilesHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SEARCH_IN_BUILD_FILES_HYPERLINK
-      is SelectJdkFromFileSystemHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SELECT_JDK_FROM_FILE_SYSTEM_HYPERLINK
-      is SetSdkDirHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK
-      is ShowDependencyInProjectStructureHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK
-      is ShowLogHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_LOG_HYPERLINK
-      is ShowSyncIssuesDetailsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK
-      is StopGradleDaemonsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.STOP_GRADLE_DAEMONS_HYPERLINK
-      is SyncProjectWithExtraCommandLineOptionsHyperlink ->
-        AndroidStudioEvent.GradleSyncQuickFix.SYNC_PROJECT_WITH_EXTRA_COMMAND_LINE_OPTIONS_HYPERLINK
-      is ToggleOfflineModeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.TOGGLE_OFFLINE_MODE_HYPERLINK
-      is UpdatePluginHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK
-      is UpgradeAppenginePluginVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.UPGRADE_APPENGINE_PLUGIN_VERSION_HYPERLINK
-      is UseJavaHomeAsJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
-      is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
-      is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
-      is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
-      is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
-      is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
-      is RemoveJcenterHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
-      else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
-    }
+            .addAllOfferedQuickFixes(quickFixes.mapNotNull { it.quickFixId }))
 
 @Suppress("DEPRECATION")
 fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =

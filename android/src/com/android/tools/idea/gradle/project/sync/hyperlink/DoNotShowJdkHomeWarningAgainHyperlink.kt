@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsConfiguration
@@ -24,8 +25,8 @@ import com.intellij.openapi.project.Project
 /**
  * A [NotificationHyperlink] that stops showing a warning when the JDK used by Studio is not the same as Java Home.
  */
-class DoNotShowJdkHomeWarningAgainHyperlink : NotificationHyperlink(
-  "doNotShowJdkHomeWarning", "Do not show this warning again") {
+class DoNotShowJdkHomeWarningAgainHyperlink : SyncIssueNotificationHyperlink(
+  "doNotShowJdkHomeWarning", "Do not show this warning again", null) {
 
   public override fun execute(project: Project) {
     val msg = "Warnings about JDK location not being JAVA_HOME were disabled.\n" +

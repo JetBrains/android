@@ -88,13 +88,13 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @Override
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<NotificationHyperlink> quickFixes) {
+                                 @NotNull List<? extends NotificationHyperlink> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(text, quickFixes);
   }
 
   @Override
   public void addNotificationListener(@NotNull NotificationData notification,
-                                      @NotNull List<NotificationHyperlink> quickFixes) {
+                                      @NotNull List<? extends NotificationHyperlink> quickFixes) {
     myNotificationUpdate = new NotificationUpdate(notification.getMessage(), quickFixes);
   }
 
@@ -110,9 +110,9 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public static class NotificationUpdate {
     @NotNull private final String myText;
-    @NotNull private final List<NotificationHyperlink> myFixes;
+    @NotNull private final List<? extends NotificationHyperlink> myFixes;
 
-    NotificationUpdate(@NotNull String text, @NotNull List<NotificationHyperlink> quickFixes) {
+    NotificationUpdate(@NotNull String text, @NotNull List<? extends NotificationHyperlink> quickFixes) {
       myText = text;
       myFixes = quickFixes;
     }
@@ -123,7 +123,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
     }
 
     @NotNull
-    public List<NotificationHyperlink> getFixes() {
+    public List<? extends NotificationHyperlink> getFixes() {
       return myFixes;
     }
   }

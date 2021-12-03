@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -36,14 +35,12 @@ class AgpUsedJavaTooLowReporter: SimpleDeduplicatingSyncIssueReporter() {
   override fun getCustomLinks(project: Project,
                               syncIssues: MutableList<IdeSyncIssue>,
                               affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): MutableList<NotificationHyperlink> {
+                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
     return createQuickFixes()
   }
 
   @VisibleForTesting
-  fun createQuickFixes(): MutableList<NotificationHyperlink> {
-    val quickFixes: ArrayList<NotificationHyperlink> = ArrayList()
-    quickFixes.add(OpenGradleSettingsHyperlink())
-    return quickFixes
+  fun createQuickFixes(): List<SyncIssueNotificationHyperlink> {
+    return listOf(OpenGradleSettingsHyperlink())
   }
 }

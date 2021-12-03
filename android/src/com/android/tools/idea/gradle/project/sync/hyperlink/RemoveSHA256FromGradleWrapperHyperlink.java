@@ -20,8 +20,9 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -29,9 +30,11 @@ import java.io.IOException;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
-public class RemoveSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
+public class RemoveSHA256FromGradleWrapperHyperlink extends SyncIssueNotificationHyperlink {
   public RemoveSHA256FromGradleWrapperHyperlink() {
-    super("remove.SHA256.from.gradle.wrapper", "Remove " + DISTRIBUTION_SHA_256_SUM + " and sync project");
+    super("remove.SHA256.from.gradle.wrapper",
+          "Remove " + DISTRIBUTION_SHA_256_SUM + " and sync project",
+          AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK);
   }
 
   @Override

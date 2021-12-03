@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.module.Module;
@@ -55,7 +54,7 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
     SyncMessage message = new SyncMessage(DEFAULT_GROUP, type, NonNavigatable.INSTANCE, text);
 
     String gradleVersion = syncIssue.getData();
-    List<NotificationHyperlink> quickFixes = getQuickFixHyperlinksWithGradleVersion(module.getProject(), gradleVersion);
+    List<SyncIssueNotificationHyperlink> quickFixes = getQuickFixHyperlinksWithGradleVersion(module.getProject(), gradleVersion);
     message.add(quickFixes);
 
     getSyncMessages(module).report(message);
@@ -63,13 +62,13 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   }
 
   @NotNull
-  private static List<NotificationHyperlink> getQuickFixHyperlinksWithGradleVersion(@NotNull Project project,
-                                                                                   @Nullable String gradleVersion) {
-    List<NotificationHyperlink> hyperlinks = new ArrayList<>();
+  private static List<SyncIssueNotificationHyperlink> getQuickFixHyperlinksWithGradleVersion(@NotNull Project project,
+                                                                                             @Nullable String gradleVersion) {
+    List<SyncIssueNotificationHyperlink> hyperlinks = new ArrayList<>();
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
       // It is very likely that we need to fix the model version as well. Do everything in one shot.
-      NotificationHyperlink hyperlink = createIfProjectUsesGradleWrapper(project, gradleVersion);
+      SyncIssueNotificationHyperlink hyperlink = createIfProjectUsesGradleWrapper(project, gradleVersion);
       if (hyperlink != null) {
         hyperlinks.add(hyperlink);
       }

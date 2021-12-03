@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+
 public class DownloadAndroidStudioHyperlink extends OpenUrlHyperlink {
   public static final String ANDROID_STUDIO_DOWNLOAD_OPTIONS_URL = "http://developer.android.com/studio/index.html#downloads";
 
   public DownloadAndroidStudioHyperlink() {
-    super(ANDROID_STUDIO_DOWNLOAD_OPTIONS_URL, "See Android Studio download options");
+    super(ANDROID_STUDIO_DOWNLOAD_OPTIONS_URL,
+          "See Android Studio download options",
+          AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_ANDROID_STUDIO_HYPERLINK );
   }
 }

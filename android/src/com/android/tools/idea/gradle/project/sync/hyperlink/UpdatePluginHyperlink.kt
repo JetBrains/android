@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePluginInfo
 import com.android.tools.idea.gradle.project.sync.issues.processor.UpdateGradlePluginProcessor
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
 class UpdatePluginHyperlink(
   val pluginToVersionMap: Map<GradlePluginInfo, String>
-) : NotificationHyperlink("update.plugins", "Update plugins") {
+) : SyncIssueNotificationHyperlink(
+  "update.plugins",
+  "Update plugins",
+  AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK
+) {
   override fun execute(project: Project) {
     val processor = UpdateGradlePluginProcessor(project, pluginToVersionMap)
     processor.setPreviewUsages(true)

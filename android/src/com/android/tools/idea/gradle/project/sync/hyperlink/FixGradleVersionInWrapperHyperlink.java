@@ -20,10 +20,11 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
 import javax.swing.event.HyperlinkEvent;
@@ -35,7 +36,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
  */
-public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
+public class FixGradleVersionInWrapperHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final GradleWrapper myGradleWrapper;
   @NotNull private final String myGradleVersion;
 
@@ -47,7 +48,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
    * @return the created hyperlink, or {@code null} if the project is not using the Gradle wrapper.
    */
   @Nullable
-  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
+  public static SyncIssueNotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
     GradleWrapper gradleWrapper = GradleWrapper.find(project);
     if (gradleWrapper != null) {
       String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
@@ -57,7 +58,9 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   }
 
   private FixGradleVersionInWrapperHyperlink(@NotNull GradleWrapper gradleWrapper, @NotNull String gradleVersion) {
-    super("fixGradleVersionInWrapper", "Fix Gradle wrapper and re-import project");
+    super("fixGradleVersionInWrapper",
+          "Fix Gradle wrapper and re-import project",
+          AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK);
     myGradleWrapper = gradleWrapper;
     myGradleVersion = gradleVersion;
   }

@@ -18,22 +18,25 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_DISTRIBUTIONSHA256SUM_CONFIRMED_BY_USER;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConfirmSHA256FromGradleWrapperHyperlink extends NotificationHyperlink {
+public class ConfirmSHA256FromGradleWrapperHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull String myDistributionUrl;
   @NotNull String myDistributionSHA256;
 
   private ConfirmSHA256FromGradleWrapperHyperlink(@NotNull String distribution, @NotNull String checksum) {
-    super("confirm.SHA256.from.gradle.wrapper", generateMessage(distribution, checksum));
+    super("confirm.SHA256.from.gradle.wrapper",
+          generateMessage(distribution, checksum),
+          AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK);
     myDistributionUrl = distribution;
     myDistributionSHA256 = checksum;
   }

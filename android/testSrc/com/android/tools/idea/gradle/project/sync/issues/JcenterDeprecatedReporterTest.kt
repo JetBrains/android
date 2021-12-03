@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue.Companion.TYPE_JCENTER_IS_DEPRECATED
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -60,7 +59,7 @@ class JcenterDeprecatedReporterTest {
     assertThat(quickfixes).isEmpty()
   }
 
-  private fun generateQuickfixes(initialized: Boolean, canApply: Boolean): MutableList<NotificationHyperlink> {
+  private fun generateQuickfixes(initialized: Boolean, canApply: Boolean): List<SyncIssueNotificationHyperlink> {
     val reporter = JcenterDeprecatedReporter()
     val mockProject = mock(Project::class.java)
     `when`(mockProject.isInitialized).thenReturn(initialized)

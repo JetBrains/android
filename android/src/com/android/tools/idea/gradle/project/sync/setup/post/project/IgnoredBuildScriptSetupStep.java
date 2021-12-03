@@ -24,22 +24,19 @@ import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Check if project's build script is ignored (b/67790757)
@@ -102,7 +99,7 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
         "You can change ignored files and folders from " + getIgnoredFileTypesPathInSettings(),
       };
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, text);
-      message.add(new NotificationHyperlink("open.settings.filetypes", "Open in Settings") {
+      message.add(new SyncIssueNotificationHyperlink("open.settings.filetypes", "Open in Settings", null) {
         @Override
         protected void execute(@NotNull Project project) {
           ShowSettingsUtil.getInstance().showSettingsDialog(project, "preferences.fileTypes");

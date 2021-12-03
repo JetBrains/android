@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -43,10 +42,10 @@ public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSync
 
   @NotNull
   @Override
-  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<IdeSyncIssue> syncIssues,
-                                                       @NotNull List<Module> affectedModules,
-                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+  protected List<SyncIssueNotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                                @NotNull List<IdeSyncIssue> syncIssues,
+                                                                @NotNull List<Module> affectedModules,
+                                                                @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty();
     String data = syncIssues.get(0).getData();
     if (data != null) {

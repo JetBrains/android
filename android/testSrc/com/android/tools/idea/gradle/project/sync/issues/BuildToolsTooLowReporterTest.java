@@ -24,7 +24,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -70,8 +69,8 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     when(mySyncIssue.getType()).thenReturn(IdeSyncIssue.TYPE_BUILD_TOOLS_TOO_LOW);
 
     Module module = getModule();
-    List<NotificationHyperlink> quickFixes = new ArrayList<>();
-    quickFixes.add(mock(NotificationHyperlink.class));
+    List<SyncIssueNotificationHyperlink> quickFixes = new ArrayList<>();
+    quickFixes.add(mock(SyncIssueNotificationHyperlink.class));
 
     BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
 

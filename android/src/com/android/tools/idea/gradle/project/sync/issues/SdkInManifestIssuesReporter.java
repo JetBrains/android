@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -123,10 +122,10 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
 
   @NotNull
   @Override
-  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<IdeSyncIssue> syncIssues,
-                                                       @NotNull List<Module> affectedModules,
-                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+  protected List<SyncIssueNotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                                @NotNull List<IdeSyncIssue> syncIssues,
+                                                                @NotNull List<Module> affectedModules,
+                                                                @NotNull Map<Module, VirtualFile> buildFileMap) {
     if (affectedModules.isEmpty()) {
       return ImmutableList.of();
     }

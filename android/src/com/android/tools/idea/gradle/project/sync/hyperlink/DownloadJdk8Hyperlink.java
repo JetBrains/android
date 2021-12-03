@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.sdk.Jdks;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 
 public class DownloadJdk8Hyperlink extends OpenUrlHyperlink {
   public DownloadJdk8Hyperlink() {
-    super(Jdks.DOWNLOAD_JDK_8_URL, "Download JDK 8");
+    super(Jdks.DOWNLOAD_JDK_8_URL,
+          "Download JDK 8",
+          AndroidStudioEvent.GradleSyncQuickFix.DOWNLOAD_JDK8_HYPERLINK);
   }
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePluginInfo
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module
@@ -31,7 +30,7 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
     syncIssues: List<IdeSyncIssue>,
     affectedModules: List<Module>,
     buildFileMap: Map<Module, VirtualFile>
-  ): List<NotificationHyperlink> {
+  ): List<SyncIssueNotificationHyperlink> {
     val pluginToVersionMap = syncIssues.mapNotNull { it.issueData() }.distinctBy { it.name to it.group }.associate {
       GradlePluginInfo(it.name, it.group) to it.minimumVersion
     }

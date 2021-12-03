@@ -95,7 +95,7 @@ public class SyncMessage {
     return myPosition;
   }
 
-  public void add(@NotNull Collection<NotificationHyperlink> quickFixes) {
+  public void add(@NotNull Collection<? extends NotificationHyperlink> quickFixes) {
     for (NotificationHyperlink quickFix : quickFixes) {
       add(quickFix);
     }

@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.util.GradleProperties
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.USE_ANDROIDX_PROPERTY
 import java.util.Properties
 
-class EnableAndroidXHyperlink: NotificationHyperlink(
+class EnableAndroidXHyperlink: SyncIssueNotificationHyperlink(
   "enable.AndroidX",
-  "Enable AndroidX in project's Gradle properties"
+  "Enable AndroidX in project's Gradle properties",
+  AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
 ) {
   override fun execute(project: Project) {
     if (project.isDisposed) {

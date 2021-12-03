@@ -16,19 +16,22 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 
-public class ShowDependencyInProjectStructureHyperlink extends NotificationHyperlink {
+public class ShowDependencyInProjectStructureHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final Module myModule;
   @NotNull private final GradleCoordinate myDependency;
 
   public ShowDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
-    super("open.dependency.in.project.structure", "Show in Project Structure dialog");
+    super("open.dependency.in.project.structure",
+          "Show in Project Structure dialog",
+          AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK);
     myModule = module;
     myDependency = dependency;
   }

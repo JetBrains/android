@@ -28,9 +28,9 @@ import com.android.repository.api.RepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
@@ -39,6 +39,7 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
@@ -52,7 +53,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class InstallNdkHyperlink extends NotificationHyperlink {
+public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
   private static final String ERROR_TITLE = "Gradle Sync Error";
   private final List<VirtualFile> buildFiles;
   private final String searchPrefix;
@@ -60,7 +61,8 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
   public InstallNdkHyperlink(@Nullable String preferredVersion, @NotNull List<VirtualFile> buildFiles) {
     super("install.ndk", preferredVersion == null
                          ? "Install latest NDK and sync project"
-                         : String.format("Install NDK '%s' and sync project", preferredVersion));
+                         : String.format("Install NDK '%s' and sync project", preferredVersion),
+          AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK);
     this.buildFiles = buildFiles;
     this.searchPrefix = preferredVersion == null
                         ? FD_NDK_SIDE_BY_SIDE

@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;
-import com.intellij.find.impl.FindInProjectUtil.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Factory;
 import com.intellij.usageView.UsageInfo;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.find.impl.FindInProjectUtil.*;
 
-public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
+public class SearchInBuildFilesHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final String myTextToFind;
 
   public SearchInBuildFilesHyperlink(@NotNull final String textToFind) {
@@ -41,7 +41,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
   public SearchInBuildFilesHyperlink(@NotNull String url,
                                      @NotNull String text,
                                      @NotNull final String textToFind) {
-    super(url, text);
+    super(url, text, AndroidStudioEvent.GradleSyncQuickFix.SEARCH_IN_BUILD_FILES_HYPERLINK);
     myTextToFind = textToFind;
   }
 

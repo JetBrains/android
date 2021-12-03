@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.util.LocalProperties
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.AndroidSdks
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.CommandProcessor
@@ -33,7 +34,11 @@ import java.io.File
 class SetSdkDirHyperlink(
   val project: Project,
   @get:VisibleForTesting val localPropertiesPaths: List<String>
-) : NotificationHyperlink("set.sdkdir", "Set sdk.dir in local.properties and sync project") {
+) : SyncIssueNotificationHyperlink(
+  "set.sdkdir",
+  "Set sdk.dir in local.properties and sync project",
+  AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK
+) {
   companion object {
     private const val SDK_DIR_UNDO_NAME = "Setup Sdk Location"
   }

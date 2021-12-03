@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-public class SyncProjectWithExtraCommandLineOptionsHyperlink extends NotificationHyperlink {
+public class SyncProjectWithExtraCommandLineOptionsHyperlink extends SyncIssueNotificationHyperlink {
   public static final Key<String[]> EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY = Key.create("extra.gradle.command.line.options");
 
   @NotNull private final String[] myExtraOptions;
@@ -35,7 +37,7 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends Notificatio
   }
 
   public SyncProjectWithExtraCommandLineOptionsHyperlink(@NotNull String text, @NotNull String... extraOptions) {
-    super("syncProject", text);
+    super("syncProject", text, AndroidStudioEvent.GradleSyncQuickFix.SYNC_PROJECT_WITH_EXTRA_COMMAND_LINE_OPTIONS_HYPERLINK);
     myExtraOptions = extraOptions;
   }
 

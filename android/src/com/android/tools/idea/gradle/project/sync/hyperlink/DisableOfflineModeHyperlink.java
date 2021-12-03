@@ -18,14 +18,17 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-public class DisableOfflineModeHyperlink extends NotificationHyperlink {
+public class DisableOfflineModeHyperlink extends SyncIssueNotificationHyperlink {
   public DisableOfflineModeHyperlink() {
-    super("disable.gradle.offline.mode", "Disable offline mode and sync project");
+    super("disable.gradle.offline.mode",
+          "Disable offline mode and sync project",
+          AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK);
   }
 
   @Override

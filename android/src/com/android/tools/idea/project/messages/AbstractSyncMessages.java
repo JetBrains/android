@@ -155,7 +155,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<NotificationHyperlink> quickFixes) {
+                                 @NotNull List<? extends NotificationHyperlink> quickFixes) {
     String message = text;
     int hyperlinkCount = quickFixes.size();
     if (hyperlinkCount > 0) {
@@ -175,7 +175,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   // Call this method only if notification contains detailed text message with hyperlinks
   // Use updateNotification otherwise
-  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<NotificationHyperlink> quickFixes) {
+  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends NotificationHyperlink> quickFixes) {
     for (NotificationHyperlink quickFix : quickFixes) {
       notification.setListener(quickFix.getUrl(), new QuickFixNotificationListener(myProject, quickFix));
     }

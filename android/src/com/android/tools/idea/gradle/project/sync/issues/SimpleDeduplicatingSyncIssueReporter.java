@@ -117,7 +117,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     StringBuilder builder = new StringBuilder();
 
     // Add custom links
-    final List<NotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
+    final List<SyncIssueNotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
     messages
       .updateNotification(notification, notification.getMessage(), customLinks);
     SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), customLinks);
@@ -212,10 +212,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @return a list of hyperlinks to be included in the message displayed to the user.
    */
   @NotNull
-  protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<IdeSyncIssue> syncIssues,
-                                                       @NotNull List<Module> affectedModules,
-                                                       @NotNull Map<Module, VirtualFile> buildFileMap) {
+  protected List<SyncIssueNotificationHyperlink> getCustomLinks(@NotNull Project project,
+                                                                @NotNull List<IdeSyncIssue> syncIssues,
+                                                                @NotNull List<Module> affectedModules,
+                                                                @NotNull Map<Module, VirtualFile> buildFileMap) {
     return ImmutableList.of();
   }
 

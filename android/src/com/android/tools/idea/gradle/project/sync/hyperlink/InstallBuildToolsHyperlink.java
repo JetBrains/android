@@ -20,18 +20,19 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class InstallBuildToolsHyperlink extends NotificationHyperlink {
+public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final String myVersion;
   @NotNull private final List<VirtualFile> myBuildFiles;
   /**
@@ -44,7 +45,9 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   }
 
   public InstallBuildToolsHyperlink(@NotNull String version, @NotNull List<VirtualFile> buildFiles, boolean removeBuildTools) {
-    super("install.build.tools", getText(version, !buildFiles.isEmpty()));
+    super("install.build.tools",
+          getText(version, !buildFiles.isEmpty()),
+          AndroidStudioEvent.GradleSyncQuickFix.INSTALL_BUILD_TOOLS_HYPERLINK);
     myBuildFiles = buildFiles;
     myVersion = version;
     myRemoveBuildTools = removeBuildTools;

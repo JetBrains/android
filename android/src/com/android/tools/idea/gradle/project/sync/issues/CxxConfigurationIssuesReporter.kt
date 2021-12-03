@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.errors.tryExtractPreferredNdkD
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.CxxConfigurationIssuesReporter.Classification.MISSING_NDK_WITH_PREFERRED_VERSION
 import com.android.tools.idea.gradle.project.sync.issues.CxxConfigurationIssuesReporter.Classification.NOT_ACTIONABLE
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -37,7 +36,7 @@ class CxxConfigurationIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getCustomLinks(project: Project,
                               syncIssues: List<IdeSyncIssue>,
                               affectedModules: List<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<NotificationHyperlink> {
+                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
     return when(classifySyncIssue(syncIssues[0])) {
       MISSING_NDK_WITH_PREFERRED_VERSION ->
         // Recognize missing NDK sync issue and offer to install the preferred version.
