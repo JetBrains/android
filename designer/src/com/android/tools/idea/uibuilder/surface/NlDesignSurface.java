@@ -48,6 +48,7 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
@@ -816,9 +817,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
         // createErrorModel needs to run in Smart mode to resolve the classes correctly
         DumbService.getInstance(project).runReadActionInSmartMode(() -> {
-          BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
           ImmutableList<RenderIssueProvider> renderIssueProviders = null;
-          if (gradleBuildMode != null) {
+          if (GradleBuildState.getInstance(project).isBuildInProgress()) {
             for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
               if (entry.getValue().getLogger().hasErrors()) {
                 // We are still building, display the message to the user.

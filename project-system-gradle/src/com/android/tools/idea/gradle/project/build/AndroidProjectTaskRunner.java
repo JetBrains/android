@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -19,7 +18,6 @@ import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -91,8 +89,6 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
 
     ProjectTaskNotification aggregatedCallback = callback == null ? null : new MergedProjectTaskNotification(callback, rootPaths.size());
     for (Path projectRootPath : rootPaths) {
-
-      BuildSettings.getInstance(project).setBuildMode(buildMode);
       // the blocking mode required because of static behaviour of the BuildSettings.setBuildMode() method
 
       @Nullable ExternalSystemTaskNotificationListener listenerDelegate =

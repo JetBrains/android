@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildSettings {
-  private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
   private static final Key<Module[]> SELECTED_MODULE_NAMES_KEY = Key.create("android.gradle.project.selected.module.names");
   private static final Key<String> RUN_CONFIGURATION_TYPE_ID = Key.create("android.gradle.project.run.configuration.type.id");
 
@@ -40,17 +39,7 @@ public class BuildSettings {
 
   public void clear() {
     setModulesToBuild(null);
-    setBuildMode(null);
     setRunConfigurationTypeId(null);
-  }
-
-  @Nullable
-  public BuildMode getBuildMode() {
-    return myProject.getUserData(PROJECT_BUILD_MODE_KEY);
-  }
-
-  public void setBuildMode(@Nullable BuildMode action) {
-    myProject.putUserData(PROJECT_BUILD_MODE_KEY, action);
   }
 
   @Nullable

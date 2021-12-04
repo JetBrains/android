@@ -162,7 +162,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertNull(request); // Build was canceled, no request created.
 
     // If build was canceled, none of these methods should have been invoked.
-    verify(myBuildSettings, never()).setBuildMode(any());
     verify(myFileDocumentManager, never()).saveAllDocuments();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
   }
@@ -297,7 +296,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
-    verify(myBuildSettings).setBuildMode(buildMode);
     verify(myFileDocumentManager).saveAllDocuments();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(1);
   }

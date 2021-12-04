@@ -31,8 +31,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
@@ -128,7 +126,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     NlModel model = modelBuilder.build();
     // Simulate that we are in the middle of a build
-    BuildSettings.getInstance(getProject()).setBuildMode(BuildMode.SOURCE_GEN);
+//    BuildSettings.getInstance(getProject()).setBuildMode(BuildMode.SOURCE_GEN);
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
@@ -136,7 +134,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.requestRender();
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
-    BuildSettings.getInstance(getProject()).setBuildMode(null);
+//    BuildSettings.getInstance(getProject()).setBuildMode(null);
     model = modelBuilder.build();
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);

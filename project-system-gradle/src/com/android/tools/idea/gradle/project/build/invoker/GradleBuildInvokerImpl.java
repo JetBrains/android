@@ -39,7 +39,6 @@ import static one.util.streamex.MoreCollectors.onlyOne;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
@@ -425,8 +424,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @VisibleForTesting
   public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull Request request, @Nullable BuildAction<?> buildAction) {
-    BuildSettings.getInstance(myProject).setBuildMode(request.getMode());
-
     String rootProjectPath = request.getRootProjectPath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(rootProjectPath);

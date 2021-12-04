@@ -360,18 +360,6 @@ public class RenderLogger implements IRenderLogger {
       tag = ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
-
-    if (ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
-        && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null && AndroidModel.isRequired(facet)) {
-        description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
-                      "build is complete.\n\n" + description;
-        tag = TAG_STILL_BUILDING;
-        addTag(tag);
-      }
-    }
-
     addMessage(RenderProblem.createPlain(ERROR, description).tag(tag));
   }
 
