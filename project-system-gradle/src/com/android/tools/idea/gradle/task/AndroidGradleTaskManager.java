@@ -50,26 +50,6 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   public static final Key<Boolean> ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE =
     Key.create("ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE");
 
-  /**
-   * @deprecated use {@link #executeTasks(ExternalSystemTaskId, List, String, GradleExecutionSettings, String, ExternalSystemTaskNotificationListener)}
-   */
-  @Override
-  public boolean executeTasks(@NotNull ExternalSystemTaskId id,
-                              @NotNull List<String> taskNames,
-                              @NotNull String projectPath,
-                              @Nullable GradleExecutionSettings settings,
-                              @NotNull List<String> vmOptions,
-                              @NotNull List<String> scriptParameters,
-                              @Nullable String debuggerSetup,
-                              @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
-    GradleExecutionSettings effectiveSettings =
-      settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
-    effectiveSettings
-      .withVmOptions(vmOptions)
-      .withArguments(scriptParameters);
-    return executeTasks(id, taskNames, projectPath, effectiveSettings, debuggerSetup, listener);
-  }
-
   @Override
   public boolean executeTasks(@NotNull final ExternalSystemTaskId id,
                               @NotNull final List<String> taskNames,
