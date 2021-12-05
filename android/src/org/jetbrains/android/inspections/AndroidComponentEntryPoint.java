@@ -3,6 +3,7 @@ package org.jetbrains.android.inspections;
 
 import static com.android.SdkConstants.CLASS_ACTION_PROVIDER;
 import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.CLASS_APPLICATION;
 import static com.android.SdkConstants.CLASS_BACKUP_AGENT;
 import static com.android.SdkConstants.CLASS_BROADCASTRECEIVER;
 import static com.android.SdkConstants.CLASS_CONTENTPROVIDER;
@@ -36,6 +37,7 @@ public class AndroidComponentEntryPoint extends EntryPoint {
 
   /** Common base classes which are instantiated reflectively by the Android framework. Not an authoritative list. */
   private final static String[] ANDROID_ENTRY_CLASSES = {
+    CLASS_APPLICATION,
     CLASS_ACTIVITY,
     CLASS_SERVICE,
     CLASS_FRAGMENT,

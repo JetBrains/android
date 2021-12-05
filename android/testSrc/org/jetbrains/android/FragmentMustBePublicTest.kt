@@ -66,6 +66,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
       @SuppressWarnings({"unused", "deprecation", "RedundantSuppression", "SpellCheckingInspection"})
       public class WeakTest {
           public static abstract class MyService extends android.app.Service { }
+          public abstract static class MyApplication extends android.app.Application { }
           public static class MyAndroidFragment extends android.app.Fragment { }
           public static class MyAndroidxFragment extends androidx.fragment.app.Fragment { }
           public static class MySupportFragment extends android.support.v4.app.Fragment { }
@@ -79,6 +80,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
 
           private Pojo pojo;
           private MyService myService;
+          private MyApplication myApplication;
           private MyAndroidFragment myAndroidFragment;
           private MyAndroidxFragment myAndroidxFragment;
           private MySupportFragment mySupportFragment;
@@ -94,6 +96,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
 
     // Stubs; this test doesn't have access to the Android SDK directly
 
+    addStubClass("android.app.Application")
     addStubClass("android.app.Service")
     addStubClass("android.app.Fragment")
     addStubClass("androidx.fragment.app.Fragment")
