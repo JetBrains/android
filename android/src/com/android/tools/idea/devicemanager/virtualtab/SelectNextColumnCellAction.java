@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
 import java.awt.event.ActionEvent;
@@ -35,7 +34,7 @@ final class SelectNextColumnCellAction extends AbstractAction {
     ListSelectionModel model = table.getColumnModel().getSelectionModel();
     int viewColumnIndex = model.getLeadSelectionIndex();
     int actionsViewColumnIndex = table.actionsViewColumnIndex();
-    AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+    VirtualDevice device = table.getSelectedDevice().orElseThrow(AssertionError::new);
 
     switch (table.convertColumnIndexToModel(viewColumnIndex)) {
       case -1:

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.Tables;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -28,7 +27,7 @@ final class SelectNextRowAction extends AbstractAction {
     int viewColumnIndex = table.getColumnModel().getSelectionModel().getLeadSelectionIndex();
 
     if (table.isActionsColumn(viewColumnIndex)) {
-      AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+      VirtualDevice device = table.getSelectedDevice().orElseThrow(AssertionError::new);
       int focusedComponent = ((ActionsTableCell)table.getCellEditor()).getComponent(device).getFocusedComponent();
       table.removeEditor();
 

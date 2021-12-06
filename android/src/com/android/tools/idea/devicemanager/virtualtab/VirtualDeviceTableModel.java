@@ -17,13 +17,13 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -35,19 +35,16 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
   static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
-  private @NotNull List<@NotNull AvdInfo> myDevices;
-  private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
-  private final @NotNull Map<@NotNull AvdInfo, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
+  private @NotNull List<@NotNull VirtualDevice> myDevices;
+  private final @NotNull Map<@NotNull VirtualDevice, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
 
   VirtualDeviceTableModel() {
-    this(Collections.emptyList(), AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning);
+    this(Collections.emptyList());
   }
 
   @VisibleForTesting
-  VirtualDeviceTableModel(@NotNull List<@NotNull AvdInfo> devices, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+  VirtualDeviceTableModel(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
-    myIsAvdRunning = isAvdRunning;
-
     myDeviceToSizeOnDiskMap = new HashMap<>();
   }
 
@@ -59,13 +56,21 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
     }
   }
 
-  @NotNull List<@NotNull AvdInfo> getDevices() {
+  @NotNull List<@NotNull VirtualDevice> getDevices() {
     return myDevices;
   }
 
-  void setDevices(@NotNull List<@NotNull AvdInfo> devices) {
+  void setDevices(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
     fireTableDataChanged();
+  }
+
+  int modelRowIndexOf(@NotNull AvdInfo avdInfo) {
+    OptionalInt index = IntStream.range(0, myDevices.size())
+      .filter(i -> myDevices.get(i).getAvdInfo().equals(avdInfo))
+      .findFirst();
+
+    return index.orElse(-1);
   }
 
   @Override
@@ -120,9 +125,10 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return VirtualDevices.build(myDevices.get(modelRowIndex), myIsAvdRunning).getApi();
+        return myDevices.get(modelRowIndex).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return myDeviceToSizeOnDiskMap.computeIfAbsent(myDevices.get(modelRowIndex), device -> new SizeOnDisk(device, this));
+        return myDeviceToSizeOnDiskMap.computeIfAbsent(myDevices.get(modelRowIndex), // TODO: put size in VirtualDevice
+                                                       device -> new SizeOnDisk(device.getAvdInfo(), this));
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.INSTANCE;
       default:

@@ -19,7 +19,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Targets;
 import java.util.function.Predicate;
@@ -29,7 +28,7 @@ final class VirtualDevices {
   private VirtualDevices() {
   }
 
-  static @NotNull Device build(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+  static @NotNull VirtualDevice build(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
     IdDisplay tag = device.getTag();
     AndroidVersion version = device.getAndroidVersion();
 
@@ -41,6 +40,7 @@ final class VirtualDevices {
       .setOnline(isAvdRunning.test(device))
       .setTarget(Targets.toString(version, tag))
       .setApi(Integer.toString(version.getApiLevel()))
+      .setAvdInfo(device)
       .build();
   }
 

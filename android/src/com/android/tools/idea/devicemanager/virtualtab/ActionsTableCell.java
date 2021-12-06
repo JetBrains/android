@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.Tables;
@@ -31,14 +30,14 @@ import org.jetbrains.annotations.Nullable;
 
 final class ActionsTableCell extends AbstractTableCellEditor implements TableCellRenderer {
   private final @NotNull AvdRefreshProvider myRefreshProvider;
-  private final @NotNull Map<@NotNull AvdInfo, @NotNull AvdActionPanel> myDeviceToComponentMap;
+  private final @NotNull Map<@NotNull VirtualDevice, @NotNull AvdActionPanel> myDeviceToComponentMap;
 
   ActionsTableCell(@NotNull AvdRefreshProvider refreshProvider) {
     myRefreshProvider = refreshProvider;
     myDeviceToComponentMap = new HashMap<>();
   }
 
-  @NotNull AvdActionPanel getComponent(@NotNull AvdInfo device) {
+  @NotNull AvdActionPanel getComponent(@NotNull VirtualDevice device) {
     return myDeviceToComponentMap.get(device);
   }
 
@@ -74,9 +73,9 @@ final class ActionsTableCell extends AbstractTableCellEditor implements TableCel
     return component;
   }
 
-  private @NotNull AvdActionPanel newAvdActionPanel(@NotNull AvdInfo device) {
+  private @NotNull AvdActionPanel newAvdActionPanel(@NotNull VirtualDevice device) {
     boolean projectNull = myRefreshProvider.getProject() == null;
-    return new AvdActionPanel(myRefreshProvider, device, true, !projectNull, projectNull ? 2 : 3);
+    return new AvdActionPanel(myRefreshProvider, device.getAvdInfo(), true, !projectNull, projectNull ? 2 : 3);
   }
 
   @Override

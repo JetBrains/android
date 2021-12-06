@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
 import java.awt.Component;
-import java.util.function.Predicate;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
-  private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
-
-  VirtualDeviceTableCellRenderer(@NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+  VirtualDeviceTableCellRenderer() {
     super(VirtualDevice.class);
-    myIsAvdRunning = isAvdRunning;
   }
 
   @Override
@@ -37,7 +32,6 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
-    value = VirtualDevices.build((AvdInfo)value, myIsAvdRunning);
     return super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
@@ -25,10 +26,12 @@ import org.jetbrains.annotations.Nullable;
 final class VirtualDevice extends Device {
   private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
+  private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
     private boolean myOnline;
     private @Nullable String myCpuArchitecture;
+    private @Nullable AvdInfo myAvdInfo;
 
     @NotNull Builder setKey(@NotNull Key key) {
       myKey = key;
@@ -65,6 +68,11 @@ final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setAvdInfo(@NotNull AvdInfo avdInfo) {
+      myAvdInfo = avdInfo;
+      return this;
+    }
+
     @Override
     protected @NotNull VirtualDevice build() {
       return new VirtualDevice(this);
@@ -77,6 +85,9 @@ final class VirtualDevice extends Device {
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
+
+    assert builder.myAvdInfo != null;
+    myAvdInfo = builder.myAvdInfo;
   }
 
   @NotNull String getCpuArchitecture() {
@@ -91,5 +102,9 @@ final class VirtualDevice extends Device {
   @Override
   public boolean isOnline() {
     return myOnline;
+  }
+
+  @NotNull AvdInfo getAvdInfo() {
+    return myAvdInfo;
   }
 }

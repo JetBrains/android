@@ -19,11 +19,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.DeviceType;
 import icons.StudioIcons;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTest {
@@ -37,6 +39,7 @@ public final class VirtualDeviceTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
     assertEquals(new VirtualDeviceName("Pixel_3_API_30"), device.getKey());
@@ -55,6 +58,7 @@ public final class VirtualDeviceTest {
       .setOnline(false)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
     assertEquals(new VirtualDeviceName("Wear_OS_Round_API_30"), device.getKey());
@@ -73,6 +77,7 @@ public final class VirtualDeviceTest {
       .setOnline(false)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
     assertEquals(new VirtualDeviceName("Android_TV_1080p_API_30"), device.getKey());
@@ -91,6 +96,7 @@ public final class VirtualDeviceTest {
       .setOnline(false)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setAvdInfo(Mockito.mock(AvdInfo.class))
       .build();
 
     assertEquals(new VirtualDeviceName("Automotive_1024p_landscape_API_30"), device.getKey());

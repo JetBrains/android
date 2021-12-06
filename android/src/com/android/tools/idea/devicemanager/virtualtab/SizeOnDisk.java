@@ -84,7 +84,7 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
         myString = SizeOnDisk.toString(storage);
         myValue = storage.getSize();
 
-        tableModel.fireTableCellUpdated(tableModel.getDevices().indexOf(device), MODEL_COLUMN_INDEX);
+        tableModel.fireTableCellUpdated(tableModel.modelRowIndexOf(device), MODEL_COLUMN_INDEX);
       }
 
       @Override
@@ -94,7 +94,7 @@ final class SizeOnDisk implements Comparable<SizeOnDisk> {
         myString = "Failed to calculate";
         myValue = Long.MAX_VALUE;
 
-        tableModel.fireTableCellUpdated(tableModel.getDevices().indexOf(device), MODEL_COLUMN_INDEX);
+        tableModel.fireTableCellUpdated(tableModel.modelRowIndexOf(device), MODEL_COLUMN_INDEX);
       }
     });
   }

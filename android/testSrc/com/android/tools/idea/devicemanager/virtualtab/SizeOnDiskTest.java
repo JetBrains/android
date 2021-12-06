@@ -63,12 +63,15 @@ public final class SizeOnDiskTest {
   @Test
   public void sizeOnDiskOnSuccess() {
     // Arrange
-    AvdInfo device = Mockito.mock(AvdInfo.class);
+    AvdInfo avdInfo = Mockito.mock(AvdInfo.class);
 
-    Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(device));
+    VirtualDevice virtualDevice = Mockito.mock(VirtualDevice.class);
+    Mockito.when(virtualDevice.getAvdInfo()).thenReturn(avdInfo);
+
+    Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(virtualDevice));
 
     // Act
-    Object sizeOnDisk = new SizeOnDisk(device, myModel, Futures.immediateFuture(537_920_595L));
+    Object sizeOnDisk = new SizeOnDisk(avdInfo, myModel, Futures.immediateFuture(537_920_595L));
 
     // Assert
     assertEquals("513 MB", sizeOnDisk.toString());
@@ -78,12 +81,15 @@ public final class SizeOnDiskTest {
   @Test
   public void sizeOnDiskOnFailure() {
     // Arrange
-    AvdInfo device = Mockito.mock(AvdInfo.class);
+    AvdInfo avdInfo = Mockito.mock(AvdInfo.class);
 
-    Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(device));
+    VirtualDevice virtualDevice = Mockito.mock(VirtualDevice.class);
+    Mockito.when(virtualDevice.getAvdInfo()).thenReturn(avdInfo);
+
+    Mockito.when(myModel.getDevices()).thenReturn(Collections.singletonList(virtualDevice));
 
     // Act
-    Object sizeOnDisk = new SizeOnDisk(device, myModel, Futures.immediateFailedFuture(new RuntimeException()));
+    Object sizeOnDisk = new SizeOnDisk(avdInfo, myModel, Futures.immediateFailedFuture(new RuntimeException()));
 
     // Assert
     assertEquals("Failed to calculate", sizeOnDisk.toString());

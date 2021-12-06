@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.swing.ActionMap;
 import javax.swing.DefaultRowSorter;
 import javax.swing.JComponent;
@@ -53,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
+  private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
     this(panel,
@@ -71,12 +73,13 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
     myPanel = panel;
     myGetAvds = getAvds;
+    myIsAvdRunning = isAvdRunning;
 
     model.addTableModelListener(event -> sizeWidthsToFit());
 
     setDefaultEditor(Actions.class, new ActionsTableCell(this));
 
-    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer(isAvdRunning));
+    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
     setDefaultRenderer(Actions.class, new ActionsTableCell(this));
 
     setRowSorter(newRowSorter(model));
@@ -115,7 +118,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
-    sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(AvdInfo::getDisplayName));
+    sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX, Comparator.comparing(VirtualDevice::getName));
     sorter.setComparator(VirtualDeviceTableModel.API_MODEL_COLUMN_INDEX, new ApiLevelComparator().reversed());
     sorter.setComparator(VirtualDeviceTableModel.SIZE_ON_DISK_MODEL_COLUMN_INDEX, Comparator.naturalOrder().reversed());
     sorter.setSortable(VirtualDeviceTableModel.ACTIONS_MODEL_COLUMN_INDEX, false);
@@ -155,10 +158,10 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
   @Override
   public @Nullable AvdInfo getAvdInfo() {
-    return getSelectedDevice().orElse(null);
+    return getSelectedDevice().map(VirtualDevice::getAvdInfo).orElse(null);
   }
 
-  @NotNull Optional<@NotNull AvdInfo> getSelectedDevice() {
+  @NotNull Optional<@NotNull VirtualDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {
@@ -168,8 +171,8 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
     return Optional.of(getDeviceAt(viewRowIndex));
   }
 
-  @NotNull AvdInfo getDeviceAt(int viewRowIndex) {
-    return (AvdInfo)getValueAt(viewRowIndex, deviceViewColumnIndex());
+  @NotNull VirtualDevice getDeviceAt(int viewRowIndex) {
+    return (VirtualDevice)getValueAt(viewRowIndex, deviceViewColumnIndex());
   }
 
   int deviceViewColumnIndex() {
@@ -190,7 +193,10 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
 
   @Override
   public void refreshAvds() {
-    List<AvdInfo> devices = myGetAvds.get();
+    List<VirtualDevice> devices = myGetAvds.get().stream()
+      .map(avdInfo -> VirtualDevices.build(avdInfo, myIsAvdRunning))
+      .collect(Collectors.toList());
+
     getModel().setDevices(devices);
 
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()

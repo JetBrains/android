@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdActionPanel;
 import com.android.tools.idea.devicemanager.Tables;
 import java.awt.event.ActionEvent;
@@ -78,7 +77,7 @@ final class SelectPreviousColumnCellAction extends AbstractAction {
   private static void setFocusedActionComponentToLast(@NotNull VirtualDeviceTable table, int viewRowIndex, int viewColumnIndex) {
     table.editCellAt(viewRowIndex, viewColumnIndex);
 
-    AvdInfo device = table.getSelectedDevice().orElseThrow(AssertionError::new);
+    VirtualDevice device = table.getSelectedDevice().orElseThrow(AssertionError::new);
     AvdActionPanel panel = ((ActionsTableCell)table.getCellEditor()).getComponent(device);
 
     panel.setFocusedComponent(panel.getVisibleComponentCount() - 1);
