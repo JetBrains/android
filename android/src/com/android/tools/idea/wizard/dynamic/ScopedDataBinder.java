@@ -20,7 +20,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope;
 
 import com.android.tools.adtui.DocumentAccessor;
 import com.android.tools.adtui.TextAccessors;
-import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
@@ -289,14 +288,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      Object selectedObject = ((JComboBox)component).getSelectedItem();
-      if (selectedObject instanceof ApiComboBoxItem) {
-        ApiComboBoxItem selectedItem = (ApiComboBoxItem)selectedObject;
-        newValue = selectedItem.getData();
-      }
-      else {
-        newValue = selectedObject;
-      }
+      newValue = ((JComboBox)component).getSelectedItem();
     }
     else if (component instanceof JSlider) {
       newValue = ((JSlider)component).getValue();
@@ -544,9 +536,6 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     int index = -1;
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
-      if (item instanceof ApiComboBoxItem) {
-        item = ((ApiComboBoxItem)item).getData();
-      }
       if (Objects.equal(item, value)) {
         index = i;
         break;
