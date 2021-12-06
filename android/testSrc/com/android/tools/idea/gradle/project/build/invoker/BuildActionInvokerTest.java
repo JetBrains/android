@@ -19,11 +19,8 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.injectBuil
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.Ref;
 import java.io.File;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Tests for making sure that {@link org.gradle.tooling.BuildAction} is run when passed to {@link GradleBuildInvoker}.
@@ -32,31 +29,20 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
   public void testBuildWithBuildAction() throws Exception {
     loadSimpleApplication();
 
-    Ref<String> model = new Ref<>("");
-    CountDownLatch latch = new CountDownLatch(1);
-
     GradleBuildInvokerImpl invoker = (GradleBuildInvokerImpl)GradleBuildInvoker.getInstance(getProject());
-    invoker.add(result -> {
-      Object resultModel = result.getModel();
-      if (resultModel instanceof String) {
-        model.set((String)resultModel);
-      }
-      latch.countDown();
-    });
     injectBuildOutputDumpingBuildViewManager(getProject(), getProject());
-    invoker.executeTasks(
-      new GradleBuildInvoker.Request.Builder(
-        getProject(),
-        new File(getProject().getBasePath()),
-        ImmutableList.of("assembleDebug")
-      )
-        .setMode(BuildMode.ASSEMBLE)
-        .build(),
-      new TestBuildAction()
-    );
+    Object model = invoker
+      .executeTasks(
+        new GradleBuildInvoker.Request.Builder(
+          getProject(),
+          new File(getProject().getBasePath()),
+          ImmutableList.of("assembleDebug")
+        )
+          .setMode(BuildMode.ASSEMBLE)
+          .build(),
+        new TestBuildAction()
+      ).get().getModel();
 
-    latch.await();
-
-    assertEquals("test", model.get());
+    assertEquals("test", model);
   }
 }
