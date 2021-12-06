@@ -53,6 +53,7 @@ import static com.android.SdkConstants.SUPPORT_ANNOTATIONS_PREFIX;
 import static com.android.tools.lint.checks.AnnotationDetectorKt.*;
 import static com.android.tools.lint.checks.AnnotationDetector.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.getNameInProject;
 
 /**
  * Infer support annotations, e.g. if a method returns {@code R.drawable.something},
@@ -87,8 +88,6 @@ public class InferSupportAnnotations {
    * hidden APIs. This is primarily used when this action is invoked on the framework itself.
    */
   static final boolean FILTER_HIDDEN = true;
-
-  public static final String KEEP_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "Keep"; //$NON-NLS-1$
 
   private static final int MAX_PASSES = 10;
   private int numAnnotationsAdded;
@@ -380,9 +379,9 @@ public class InferSupportAnnotations {
     }
 
     @NotNull
-    public String getKeepAnnotationsString() {
+    public String getKeepAnnotationsString(@NotNull Project project) {
       if (keep) {
-        return "@" + KEEP_ANNOTATION;
+        return "@" + getNameInProject(SUPPORT_ANNOTATIONS_PREFIX, project) + "Keep";
       }
 
       return "";
@@ -498,7 +497,7 @@ public class InferSupportAnnotations {
     }
 
     if (constraints.keep) {
-      insertAnnotation(project, element, constraints.getKeepAnnotationsString());
+      insertAnnotation(project, element, constraints.getKeepAnnotationsString(project));
     }
   }
 
@@ -1015,7 +1014,7 @@ public class InferSupportAnnotations {
                 PsiClass containingClass = method.getContainingClass();
                 String signature = (containingClass != null ? (containingClass.getName() + "#") : "")
                                    + method.getName();
-                String message = constraints.getKeepAnnotationsString() + " because it is called reflectively from " + signature;
+                String message = constraints.getKeepAnnotationsString(myProject) + " because it is called reflectively from " + signature;
                 constraints.addReport(reflectiveReference, message);
               }
             }
