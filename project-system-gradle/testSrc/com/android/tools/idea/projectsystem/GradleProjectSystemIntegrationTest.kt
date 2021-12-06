@@ -182,7 +182,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
         gradlePluginVersion = testDefinition.agpVersion.agpVersion,
         kotlinVersion = testDefinition.agpVersion.kotlinVersion
       )
-      openPreparedProject("project", test)
+      openPreparedProject("project", action = test)
     }
     finally {
       if (!testDefinition.modelsV2) {

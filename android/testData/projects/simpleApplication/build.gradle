@@ -17,3 +17,5 @@ allprojects {
         // This will be populated by AndroidGradleTestCase
     }
 }
+
+println("This is a simple application!")

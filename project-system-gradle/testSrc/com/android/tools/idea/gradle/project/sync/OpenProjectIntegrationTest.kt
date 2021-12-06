@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.fileUnderGradleRoot
@@ -99,9 +100,11 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject(
       "project",
-      verifyOpened = { project ->
-        assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-      }
+      options = OpenPreparedProjectOptions(
+        verifyOpened = { project ->
+          assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+        }
+      )
     ) { project ->
       // Make sure we tried to sync.
       assertThat(GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp).isNotEqualTo(lastSyncFinishedTimestamp)

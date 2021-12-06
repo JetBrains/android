@@ -64,6 +64,8 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -116,6 +118,9 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
@@ -1375,18 +1380,14 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
   AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectPath, projectPatcher)
 }
 
-/**
- * Opens a test project previously prepared under the given [name], runs a test [action] and then closes and disposes the project.
- *
- * The project's `.idea` directory is not required to exist, however.
- */
-fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T {
-  return openPreparedProject(
-    nameToPath(name),
-    verifyOpened = ::verifySyncedSuccessfully,
-    action = action
-  )
-}
+data class OpenPreparedProjectOptions(
+  val verifyOpened: (Project) -> Unit = ::verifySyncedSuccessfully,
+  val outputHandler: (String) -> Unit = {},
+  val syncExceptionHandler: (Exception) -> Unit = { e ->
+    println(e.message)
+    e.printStackTrace()
+  }
+)
 
 /**
  * Opens a test project previously prepared under the given [name], verifies the state of the project with [verifyOpened] and runs
@@ -1394,17 +1395,18 @@ fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project
  *
  * The project's `.idea` directory is not required to exist, however.
  */
+@JvmOverloads
 fun <T> GradleIntegrationTest.openPreparedProject(
   name: String,
-  verifyOpened: (Project) -> Unit,
+  options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(),
   action: (Project) -> T
 ): T {
-  return openPreparedProject(nameToPath(name), verifyOpened, action)
+  return openPreparedProject(nameToPath(name), options, action)
 }
 
 private fun <T> openPreparedProject(
   projectPath: File,
-  verifyOpened: (Project) -> Unit,
+  options: OpenPreparedProjectOptions,
   action: (Project) -> T
 ): T {
   // Use per-project code style settings so we never modify the IDE defaults.
@@ -1413,14 +1415,17 @@ private fun <T> openPreparedProject(
   fun body(): T {
     val project = runInEdtAndGet {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-      val project = ProjectUtil.openOrImport(
-        projectPath.toPath(),
-        OpenProjectTask(
-          projectToClose = null,
-          forceOpenInNewFrame = true,
-          beforeInit = { project -> injectBuildOutputDumpingBuildViewManager(project, project) }
-        )
-      )!!
+      val project = GradleProjectImporter.withAfterCreate(
+        afterCreate = { project -> injectSyncOutputDumper(project, project, options.outputHandler, options.syncExceptionHandler) }
+      ) {
+        ProjectUtil.openOrImport(
+          projectPath.toPath(),
+          OpenProjectTask(
+            projectToClose = null,
+            forceOpenInNewFrame = true
+          )
+        )!!
+      }
       // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
       emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1428,7 +1433,7 @@ private fun <T> openPreparedProject(
       project
     }
     try {
-      verifyOpened(project)
+      options.verifyOpened(project)
       return action(project)
     }
     finally {
@@ -1579,9 +1584,11 @@ private fun createGradleProjectPathToModuleDataMap(
     .associateBy { moduleData -> GradleProjectPath(buildId, moduleData.id, IdeModuleSourceSet.MAIN) }
 }
 
+@JvmOverloads
 fun injectBuildOutputDumpingBuildViewManager(
   project: Project,
-  disposable: Disposable
+  disposable: Disposable,
+  eventHandler: (BuildEvent) -> Unit = {}
 ) {
   project.replaceService(
     BuildViewManager::class.java,
@@ -1590,17 +1597,41 @@ fun injectBuildOutputDumpingBuildViewManager(
         if (event is MessageEvent) {
           println(event.result.details)
         }
+        eventHandler(event)
       }
     },
     disposable
   )
 }
 
-inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
+fun injectSyncOutputDumper(
+  project: Project,
+  disposable: Disposable,
+  outputHandler: (String) -> Unit,
+  syncExceptionHandler: (Exception) -> Unit
+) {
+  val projectId = ExternalSystemTaskId.getProjectId(project)
+  ExternalSystemProgressNotificationManager.getInstance().addNotificationListener(
+    object : ExternalSystemTaskNotificationListenerAdapter() {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+        if (id.ideProjectId != projectId) return
+        outputHandler(text)
+      }
+
+      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+        if (id.ideProjectId != projectId) return
+        syncExceptionHandler(e)
+      }
+    },
+    disposable
+  )
+}
+
+fun <T> Project.buildAndWait(eventHandler: (BuildEvent) -> Unit = {}, invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
   val gradleBuildInvoker = GradleBuildInvoker.getInstance(this)
   val disposable = Disposer.newDisposable()
   try {
-    injectBuildOutputDumpingBuildViewManager(project = this, disposable = disposable)
+    injectBuildOutputDumpingBuildViewManager(project = this, disposable = disposable, eventHandler = eventHandler)
     val future = invoker(gradleBuildInvoker)
     try {
       return future.get(5, TimeUnit.MINUTES)

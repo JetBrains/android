@@ -41,6 +41,7 @@ import com.intellij.openapi.roots.CompilerProjectExtension
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -48,6 +49,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.service.project.open.setupGradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -179,6 +181,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         )
       ) ?: throw NullPointerException("Failed to create a new project")
       configureNewProject(newProject)
+      ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(newProject)
       return newProject
     }
   }
@@ -244,4 +247,18 @@ private fun GradleSettings.setupGradleSettings() {
   gradleVmOptions = GradleEnvironment.Headless.GRADLE_VM_OPTIONS ?: gradleVmOptions
   isOfflineWork = GradleEnvironment.Headless.GRADLE_OFFLINE?.toBoolean() ?: isOfflineWork
   serviceDirectoryPath = GradleEnvironment.Headless.GRADLE_SERVICE_DIRECTORY ?: serviceDirectoryPath
+}
+
+private val AFTER_CREATE = Key.create<(Project) -> Unit>("GradleProjectImporter.after_create_for_tests")
+
+@TestOnly
+fun <T> GradleProjectImporter.Companion.withAfterCreate(afterCreate: (Project) -> Unit, body: () -> T): T {
+  val application = ApplicationManager.getApplication()
+  application.putUserData(AFTER_CREATE, afterCreate)
+  try {
+    return body()
+  }
+  finally {
+    application.putUserData(AFTER_CREATE, null)
+  }
 }
