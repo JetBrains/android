@@ -28,14 +28,10 @@ import org.jetbrains.annotations.NotNull;
 public class ApiComboBoxItem<T> {
   private T myData;
   private String myLabel;
-  private int myMinApi;
-  private int myMinBuildApi;
 
-  public ApiComboBoxItem(@NotNull T data, @NotNull String label, int minApi, int minBuildApi) {
+  public ApiComboBoxItem(@NotNull T data, @NotNull String label) {
     myData = data;
     myLabel = label;
-    myMinApi = minApi;
-    myMinBuildApi = minBuildApi;
   }
 
   public final T getData() {
@@ -44,14 +40,6 @@ public class ApiComboBoxItem<T> {
 
   public final String getLabel() {
     return myLabel;
-  }
-
-  public final int getMinApi() {
-    return myMinApi;
-  }
-
-  public final int getMinBuildApi() {
-    return myMinBuildApi;
   }
 
   @Override
