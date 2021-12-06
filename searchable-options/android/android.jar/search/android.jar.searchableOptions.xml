@@ -755,13 +755,6 @@
     <option name="when" hit="When encountering snapshots incompatible with the current configuration:" />
     <option name="with" hit="When encountering snapshots incompatible with the current configuration:" />
   </configurable>
-  <configurable id="database.inspector" configurable_name="Database Inspector">
-    <option name="database" hit="Database Inspector" />
-    <option name="inspector" hit="Database Inspector" />
-    <option name="enable" hit="Enable offline mode" />
-    <option name="mode" hit="Enable offline mode" />
-    <option name="offline" hit="Enable offline mode" />
-  </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
     <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />

@@ -28,7 +28,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
-import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
@@ -57,7 +56,7 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
     return true
   }
 
-  override fun supportsOffline() = DatabaseInspectorSettings.getInstance().isOfflineModeEnabled
+  override fun supportsOffline() = true
 
   override fun createTab(
     project: Project,

@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorClientCommandsChannel
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
-import com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings
 import com.android.tools.idea.sqlite.FileDatabaseException
 import com.android.tools.idea.sqlite.OfflineModeManager
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -1692,18 +1691,5 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // `updateDatabases` is invoked once with empty list when the controller adds the listener to the view.
     // here we are testing that it is not invoked more then once.
     verify(databaseInspectorView, times(1)).updateDatabases(any())
-  }
-
-  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
-    // Prepare
-    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = false
-
-    // Act
-    runDispatching(edtExecutor.asCoroutineDispatcher()) {
-      databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
-    }
-
-    // Assert
-    verifyZeroInteractions(offlineModeManager)
   }
 }
