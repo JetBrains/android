@@ -103,6 +103,9 @@ import org.jetbrains.annotations.Nullable;
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage<Timeline> {
+
+  private static final String DISPLAY_HELP_LINK = "https://d.android.com/r/studio-ui/profiler/display-tracks";
+
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -546,7 +549,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                         "<p><b>VSYNC</b>: a signal that synchronizes the display pipeline.</p>" +
                         "<p><b>BufferQueue</b>: how many frame buffers are queued up, waiting for SurfaceFlinger to consume.</p>")
       // TODO(b/202330841)
-      .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
+      .setTitleHelpLink("Learn more", DISPLAY_HELP_LINK)
       .build();
 
     // Frame
@@ -629,7 +632,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
                         "<p><b>Wait for GPU</b>: Time it takes the GPU to complete the frame.</p>" +
                         "<p><b>Composition</b>: Composition time by SurfaceFlinger (not controlled by your app process).</p>" +
                         "<p><b>Frames on display</b>: Duration of the frame presented on screen display.</p>")
-      .setTitleHelpLink("Learn more", "https://source.android.com/devices/graphics")
+      .setTitleHelpLink("Learn more", DISPLAY_HELP_LINK)
       .addDisplayToggle(
         toggleAllFrames, false,
         () -> getStudioProfilers().getIdeServices().getFeatureTracker().trackAllFrameTogglingPerTrace(++myAllFrameTogglingCount));
