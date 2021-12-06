@@ -29,7 +29,7 @@ import javax.swing.DefaultComboBoxModel
  */
 class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<*>>(parameter) {
   private fun createItemForOption(value: Enum<*>): ApiComboBoxItem =
-    ApiComboBoxItem(value.name, value.name)
+    ApiComboBoxItem(value.name)
 
   override fun createComponent(parameter: Parameter<*>): ComboBox<*> {
     val options = (parameter as EnumParameter<*>).options // FIXME EnumParameterComponentProvider?

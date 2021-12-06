@@ -25,19 +25,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiComboBoxItem {
   private String myData;
-  private String myLabel;
 
-  public ApiComboBoxItem(@NotNull String data, @NotNull String label) {
+  public ApiComboBoxItem(@NotNull String data) {
     myData = data;
-    myLabel = label;
   }
 
   public final String getData() {
     return myData;
-  }
-
-  public final String getLabel() {
-    return myLabel;
   }
 
   @Override
@@ -46,16 +40,16 @@ public class ApiComboBoxItem {
       return false;
     }
     ApiComboBoxItem other = (ApiComboBoxItem)obj;
-    return Objects.equal(myData, other.myData) && Objects.equal(myLabel, other.myLabel);
+    return Objects.equal(myData, other.myData);
   }
 
   @Override
   public final int hashCode() {
-    return Objects.hashCode(myData, myLabel);
+    return Objects.hashCode(myData);
   }
 
   @Override
   public String toString() {
-    return myLabel;
+    return myData;
   }
 }
