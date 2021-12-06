@@ -36,6 +36,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -92,6 +93,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -356,14 +358,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getCommonVersion() : null;
-    GradleTaskRunner.DefaultGradleTaskRunner runner = GradleTaskRunner.newRunner(myTaskRunnerFactory.myProject);
     BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
-    boolean success = builder.build(runner, cmdLineArgs);
+    AssembleInvocationResult buildResult = builder.build(cmdLineArgs);
 
-    if (androidRunConfiguration != null) {
-      Object model = runner.getModel();
+    if (androidRunConfiguration != null && buildResult != null) {
+      Object model = buildResult.getInvocationResult().getModels().stream().filter(Objects::nonNull).findFirst().orElse(null);
       if (model instanceof OutputBuildAction.PostBuildProjectModels) {
         androidRunConfiguration.putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
       }
@@ -372,7 +373,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
     }
 
-    getLog().info("Gradle invocation complete, success = " + success);
+    getLog().info("Gradle invocation complete, build result = " + buildResult);
 
     // If the model needs a sync, we need to sync "synchronously" before running.
     Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
@@ -392,7 +393,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
-    return success;
+    return buildResult != null && buildResult.isBuildSuccessful() && !buildResult.getInvocationResult().getInvocations().isEmpty();
   }
 
   @NotNull
@@ -530,6 +531,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       throw new IllegalStateException("Unable to determine list of modules to build");
     }
 
+    Project project = configuration.getProject();
     if (!isEmpty(userGoal)) {
       ListMultimap<Path, String> tasks = ArrayListMultimap.create();
       StreamEx.of(modules)
@@ -538,7 +540,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         .distinct()
         .map(path -> Paths.get(path))
         .forEach(path -> tasks.put(path, userGoal));
-      return new DefaultGradleBuilder(modules, tasks, null);
+      return new DefaultGradleBuilder(project, modules, tasks, null);
     }
 
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
@@ -553,7 +555,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     if (testCompileType == TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
-      return new DefaultGradleBuilder(modules, gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
+      return new DefaultGradleBuilder(project, modules, gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
@@ -564,10 +566,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       AndroidRunConfigurationBase.
     if (configuration instanceof AndroidRunConfigurationBase
         && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceVersion)) {
-      return new DefaultGradleBuilder(modules, gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
+      return new DefaultGradleBuilder(project, modules, gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
-    return new DefaultGradleBuilder(modules, gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
+    return new DefaultGradleBuilder(project, modules, gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType),
+                                    BuildMode.ASSEMBLE);
   }
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,

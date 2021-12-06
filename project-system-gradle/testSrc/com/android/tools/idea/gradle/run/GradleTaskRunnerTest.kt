@@ -45,17 +45,17 @@ class GradleTaskRunnerTest : GradleIntegrationTest {
     val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
       val appModule = project.gradleModule(":app")!!
-      val gradleTaskRunner = GradleTaskRunner.newRunner(project)
       val tasksToRun = ArrayListMultimap.create<Path, String>().apply {
         put(projectRoot.toPath(), ":app:assembleDebug")
       }
 
       expect.that(
-        gradleTaskRunner.run(
+        GradleTaskRunner.run(
+          project,
           arrayOf(appModule),
           tasksToRun,
           BuildMode.ASSEMBLE, listOf()
-        )
+        ).isBuildSuccessful
       ).named("Successful build result").isTrue()
 
       // Set the activity file content to something that does not compile.
@@ -66,12 +66,14 @@ class GradleTaskRunnerTest : GradleIntegrationTest {
       }
 
       expect.that(
-        gradleTaskRunner.run(
+        GradleTaskRunner.run(
+          project,
           arrayOf(appModule),
           tasksToRun,
           BuildMode.ASSEMBLE, listOf()
         )
-      ).named("Failed build result").isFalse()
+          .isBuildSuccessful.let { !it }
+      ).named("Failed build result").isTrue()
     }
   }
 

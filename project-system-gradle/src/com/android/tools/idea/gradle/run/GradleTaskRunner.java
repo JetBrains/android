@@ -18,83 +18,51 @@ package com.android.tools.idea.gradle.run;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface GradleTaskRunner {
-  boolean run(@NotNull Module[] assembledModules, @NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments);
+public class GradleTaskRunner {
+  @WorkerThread
+  public static AssembleInvocationResult run(@NotNull Project project,
+                                             @NotNull Module[] assembledModules,
+                                             @NotNull ListMultimap<Path, String> tasks,
+                                             @Nullable BuildMode buildMode,
+                                             @NotNull List<String> commandLineArguments) {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+    GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
-  @NotNull
-  static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
-    return new DefaultGradleTaskRunner(project);
-  }
+    List<GradleBuildInvoker.Request> requests = tasks.keySet().stream()
+      .map(path ->
+             GradleBuildInvoker.Request
+               .builder(project, path.toFile(), tasks.get(path))
+               .setMode(buildMode)
+               .setCommandLineArguments(commandLineArguments)
+               .build())
+      .collect(Collectors.toList());
 
-  class DefaultGradleTaskRunner implements GradleTaskRunner {
-    @NotNull private final Project myProject;
-    @NotNull private final AtomicReference<Object> model = new AtomicReference<>();
+    ListenableFuture<AssembleInvocationResult> future = gradleBuildInvoker.executeAssembleTasks(assembledModules, requests);
 
-    DefaultGradleTaskRunner(@NotNull Project project) {
-      myProject = project;
+    try {
+      return future.get();
     }
-
-    /**
-     * This method will deadlock if invoked on the UI thread.
-     */
-    @Override
-    @WorkerThread
-    public boolean run(@NotNull Module[] assembledModules,
-                       @NotNull ListMultimap<Path, String> tasks,
-                       @Nullable BuildMode buildMode,
-                       @NotNull List<String> commandLineArguments) {
-      assert !ApplicationManager.getApplication().isDispatchThread();
-      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
-
-      List<GradleBuildInvoker.Request> requests = tasks.keySet().stream()
-        .map(path ->
-               GradleBuildInvoker.Request
-                 .builder(myProject, path.toFile(), tasks.get(path))
-                 .setMode(buildMode)
-                 .setCommandLineArguments(commandLineArguments)
-                 .build())
-        .collect(Collectors.toList());
-
-      ListenableFuture<AssembleInvocationResult> future = gradleBuildInvoker.executeAssembleTasks(assembledModules, requests);
-
-      try {
-        GradleMultiInvocationResult invocationResult = future.get().getInvocationResult();
-        invocationResult.getModels().stream()
-          // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
-          // `PostBuildModel`s were not designed to handle this.
-          .findFirst()
-          .ifPresent(model::set);
-        return invocationResult.isBuildSuccessful();
-      }
-      catch (InterruptedException e) {
-        throw new ProcessCanceledException();
-      }
-      catch (ExecutionException e) {
-        Logger.getInstance(DefaultGradleTaskRunner.class).error(e);
-        return false;
-      }
+    catch (InterruptedException e) {
+      throw new ProcessCanceledException();
     }
-
-    @Nullable
-    public Object getModel() {
-      return model.get();
+    catch (ExecutionException e) {
+      // Build failures are not returned this way.
+      throw new RuntimeException(e);
     }
   }
 }
+
