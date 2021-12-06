@@ -21,6 +21,11 @@ interface DesignerCommonIssueProvider<T> {
   val source: T
   fun getIssues(file: IssuedFileData): List<Issue>
   fun getIssuedFileDataList(): List<IssuedFileData>
+
+  /**
+   * Callback when issue provider is removed.
+   */
+  fun onRemoved() = Unit
 }
 
 data class IssuedFileData(val file: VirtualFile, val source: Any?)
@@ -34,11 +39,14 @@ object EmptyIssueProvider : DesignerCommonIssueProvider<Any?> {
 /**
  * An adapter of [DesignerCommonIssueProvider] to wrap the data from [IssueModel].
  */
-class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile): DesignerCommonIssueProvider<IssueModel> {
+class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile, private val onRemovedTask: () -> Unit = {})
+  : DesignerCommonIssueProvider<IssueModel> {
   override val source: IssueModel = issueModel
   override fun getIssues(file: IssuedFileData): List<Issue> {
     return if (file.source == issueModel) issueModel.issues else emptyList()
   }
 
   override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))
+
+  override fun onRemoved() = onRemovedTask()
 }

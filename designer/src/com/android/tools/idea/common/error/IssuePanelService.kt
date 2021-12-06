@@ -15,14 +15,31 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
+import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.type.DrawableFileType
+import com.android.tools.idea.uibuilder.type.LayoutFileType
+import com.android.tools.idea.uibuilder.type.MenuFileType
+import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.HtmlBuilder
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.UIUtil
 
@@ -44,12 +61,10 @@ class IssuePanelService(private val project: Project) {
   private val initLock = Any()
   private var inited = false
 
-  private val layoutAndQualifierIssueProviders = EmptyIssueProvider
-
   init {
     val manager = ToolWindowManager.getInstance(project)
     val problemsView = manager.getToolWindow(ProblemsView.ID)
-    if (problemsView != null) {
+    if (problemsView != null && !problemsView.isDisposed) {
       // ProblemsView has registered, init the tab.
       initIssueTabs(problemsView)
     }
@@ -60,7 +75,7 @@ class IssuePanelService(private val project: Project) {
         override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
           if (ProblemsView.ID in ids) {
             val problemsViewToolWindow = ProblemsView.getToolWindow(project)
-            if (problemsViewToolWindow != null) {
+            if (problemsViewToolWindow != null && !problemsViewToolWindow.isDisposed) {
               initIssueTabs(problemsViewToolWindow)
               connection.disconnect()
             }
@@ -83,16 +98,82 @@ class IssuePanelService(private val project: Project) {
     val contentManager = problemsViewWindow.contentManager
     val contentFactory = contentManager.factory
 
+    // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       val issuePanel = DesignerCommonIssuePanel(project, project)
       sharedIssuePanel = issuePanel
-      issuePanel.setIssueProvider(layoutAndQualifierIssueProviders)
+      issuePanel.setIssueProvider(EmptyIssueProvider)
       contentFactory.createContent(issuePanel.getComponent(), "Design Issue", true).apply {
         sharedIssueTab = this
         isCloseable = false
         contentManager.addContent(this@apply)
       }
     }
+
+    project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+        if (!isTabShowing(sharedIssueTab)) {
+          return
+        }
+        // If it is current tab, remove it.
+        if (!source.hasOpenFiles()) {
+          if (removeSharedIssueTabFromProblemsPanel()) {
+            // The tab has been removed, clear the issue provider.
+            sharedIssuePanel!!.setIssueProvider(EmptyIssueProvider)
+          }
+        }
+      }
+
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        val surface = getDesignSurface(event.newEditor)
+        if (surface == null || surface.layoutType is DrawableFileType) {
+          if (removeSharedIssueTabFromProblemsPanel()) {
+            // The tab has been removed, clear the issue provider.
+            sharedIssuePanel!!.setIssueProvider(EmptyIssueProvider)
+          }
+        }
+        else {
+          // Surface exists.
+          if (addSharedIssueTabToProblemsPanel()) {
+            // The tab was not in the tab before, setup it.
+            setShowIssuePanel(true, surface, false)
+          }
+        }
+      }
+    })
+  }
+
+  private fun getDesignSurface(editor: FileEditor?): DesignSurface? {
+    return (editor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface ?:
+      // Compose case.
+      // TODO: Having simple way to get the DesignSurface from Compose file editor.
+      (((((editor as? SplitEditor<*>)?.preview as? DesignFileEditor)?.component?.components?.getOrNull(1)) as? WorkBench<*>)
+        ?.components?.getOrNull(1) as? IssuePanelSplitter)?.surface
+  }
+
+  /**
+   * Remove the [sharedIssueTab] from Problems Tool Window. Return true if the [sharedIssueTab] is removed successfully, or false if
+   * the [sharedIssueTab] doesn't exist or the [sharedIssueTab] is not in the Problems Tool Window (e.g. has been removed before).
+   */
+  private fun removeSharedIssueTabFromProblemsPanel(): Boolean {
+    val tab = sharedIssueTab ?: return false
+    val toolWindow = ProblemsView.getToolWindow(project) ?: return false
+    toolWindow.contentManager.removeContent(tab, false)
+    return true
+  }
+
+  /**
+   * Add the [sharedIssueTab] into Problems Tool Window. Return true if the [sharedIssueTab] is added successfully, or false if the
+   * [sharedIssueTab] doesn't exist or the [sharedIssueTab] is in the Problems Tool Window already (e.g. has been added before).
+   */
+  private fun addSharedIssueTabToProblemsPanel(): Boolean {
+    val tab = sharedIssueTab ?: return false
+    val toolWindow = ProblemsView.getToolWindow(project) ?: return false
+    if (toolWindow.contentManager.contents.contains(tab)) {
+      return false
+    }
+    toolWindow.contentManager.addContent(tab, 2)
+    return true
   }
 
   /**
@@ -127,14 +208,35 @@ class IssuePanelService(private val project: Project) {
       if (!isTabShowing(tab)) {
         showTab(tab)
       }
-      tab.displayName = "${surface.name} (${surface.issueModel.issueCount})"
+      val surfaceName = when (surface.name) {
+        null -> {
+          when (surface.models.firstOrNull()?.file?.typeOf()) {
+            is LayoutFileType -> "Layout Editor"
+            is PreferenceScreenFileType -> "Preference"
+            is MenuFileType -> "Menu"
+            null -> "Unknown"
+            else -> "Compose"
+          }
+        }
+        else -> surface.name
+      }
+      tab.displayName = createTabName(surfaceName, surface.issueModel.issueCount)
+
       val panel = sharedIssuePanel ?: return
       // the tab is showing, replace the issue provider to the issue model of surface.
       val issueProvider = panel.getIssueProvider()
       if (issueProvider?.source != issueModel) {
         // TODO: Refactor to not rely on the virtual file
         val file = surface.models.firstOrNull()?.virtualFile ?: return
-        panel.setIssueProvider(IssueModelProvider(issueModel, file))
+        val listener = IssueModel.IssueModelListener {
+          // The number of issue count may be changed, update the title.
+          tab.displayName = createTabName(surfaceName, surface.issueModel.issueCount)
+          panel.updateTree(file, issueModel)
+        }
+        issueModel.addErrorModelListener(listener)
+        panel.setIssueProvider(IssueModelProvider(issueModel, file) {
+          issueModel.removeErrorModelListener(listener)
+        })
         panel.updateTree(file, issueModel)
       }
     }
@@ -205,7 +307,7 @@ class IssuePanelService(private val project: Project) {
       return false
     }
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return false
-    if (!problemsViewPanel.isVisible) {
+    if (!problemsViewPanel.isVisible || tab !in problemsViewPanel.contentManager.contents) {
       return false
     }
     return tab.isSelected
@@ -225,7 +327,6 @@ class IssuePanelService(private val project: Project) {
     if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       return surface.issuePanel
     }
-    // We don't use shared issue panel for compose at this moment.
     return null
   }
 
@@ -249,4 +350,15 @@ private fun DesignSurface.setShowIssuePanel(show: Boolean, userInvoked: Boolean)
     revalidate()
     repaint()
   }
+}
+
+/**
+ * This is same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
+ */
+private fun createTabName(title: String, issueCount: Int): String {
+  return HtmlBuilder().append(title)
+    .append(" ")
+    .append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
+    .wrapWithHtmlBody()
+    .toString()
 }

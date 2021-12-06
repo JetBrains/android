@@ -42,7 +42,7 @@ import kotlin.streams.toList
 class LayoutFileIssuedFileNode(val fileData: IssuedFileData, parent: DesignerCommonIssueNode)
   : DesignerCommonIssueNode(parent.project, parent) {
 
-  override fun getLeafState() = LeafState.NEVER
+  override fun getLeafState() = LeafState.DEFAULT
 
   override fun getName() = fileData.file.presentableName
 
@@ -66,6 +66,9 @@ class LayoutFileIssuedFileNode(val fileData: IssuedFileData, parent: DesignerCom
     if (count > 0) {
       val text = "Has $count problems"
       presentation.addText("  $text", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    }
+    else {
+      presentation.addText("  There is no issues", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     }
   }
 

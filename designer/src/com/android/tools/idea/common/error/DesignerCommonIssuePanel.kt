@@ -84,6 +84,10 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, project: Project): 
 
   fun setIssueProvider(issueProvider: DesignerCommonIssueProvider<out Any?>) {
     val root = treeModel.root as? DesignerCommonIssueRoot ?: return
+    if (root.issueProvider == issueProvider) {
+      return
+    }
+    root.issueProvider?.onRemoved()
     root.issueProvider = issueProvider
     treeModel.structureChanged(null)
   }
