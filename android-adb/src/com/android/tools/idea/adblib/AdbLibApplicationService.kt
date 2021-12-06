@@ -25,6 +25,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import java.time.Duration
 
 /**
  * Application service that provides access to the implementation of [AdbLibSession] and [AdbLibHost]
@@ -47,10 +48,10 @@ class AdbLibApplicationService : Disposable {
     listOf(AndroidDebugBridge.getSocketAddress())
   }
 
-  val session = AdbLibSession(
+  val session = AdbLibSession.create(
     host = host,
     channelProvider = channelProvider,
-    connectionTimeoutMillis = DdmPreferences.getTimeOut().toLong()
+    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
   )
 
   override fun dispose() {

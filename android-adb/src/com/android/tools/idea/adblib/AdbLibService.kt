@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import java.net.InetSocketAddress
+import java.time.Duration
 
 /**
  * [Project] service that provides access to the corresponding [AdbLibSession] for that project.
@@ -46,10 +47,10 @@ class AdbLibService(val project: Project) : Disposable {
     listOf(getAdbSocketAddress())
   }
 
-  val session = AdbLibSession(
+  val session: AdbLibSession = AdbLibSession.create(
     host = host,
     channelProvider = channelProvider,
-    connectionTimeoutMillis = DdmPreferences.getTimeOut().toLong()
+    connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut ().toLong())
   )
 
   override fun dispose() {
