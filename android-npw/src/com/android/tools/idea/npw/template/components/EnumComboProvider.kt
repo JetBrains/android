@@ -31,7 +31,7 @@ import javax.swing.DefaultComboBoxModel
 class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<*>>(parameter) {
   private val log: Logger = Logger.getInstance(EnumComboProvider::class.java)
 
-  private fun createItemForOption(parameter: EnumParameter<*>, value: Enum<*>): ApiComboBoxItem<String> =
+  private fun createItemForOption(parameter: EnumParameter<*>, value: Enum<*>): ApiComboBoxItem =
     ApiComboBoxItem(value.name, value.name)
 
   override fun createComponent(parameter: Parameter<*>): ComboBox<*> {
@@ -61,7 +61,7 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
       val model = comboBox.model as DefaultComboBoxModel<*>
 
       for (i in 0 until model.size) {
-        val item = model.getElementAt(i) as ApiComboBoxItem<*>
+        val item = model.getElementAt(i) as ApiComboBoxItem
         if (value == item.data) {
           comboBox.selectedIndex = i
           return
@@ -72,8 +72,8 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
     }
 
     override fun get(): String {
-      val item = comboBox.selectedItem as? ApiComboBoxItem<*> ?: return ""
-      return item.data as String
+      val item = comboBox.selectedItem as? ApiComboBoxItem ?: return ""
+      return item.data
     }
 
     override fun actionPerformed(e: ActionEvent) {

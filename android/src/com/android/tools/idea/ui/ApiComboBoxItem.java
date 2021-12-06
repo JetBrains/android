@@ -22,19 +22,17 @@ import org.jetbrains.annotations.NotNull;
  * ApiComboBoxItem wraps choices that appear in a combobox where a user should only be able to
  * select them if they're targeting a minimum API (or newer). It is up to the parent UI form to
  * query these combobox items and reject them if necessary.
- *
- * @param <T> The type of item this class wraps around.
  */
-public class ApiComboBoxItem<T> {
-  private T myData;
+public class ApiComboBoxItem {
+  private String myData;
   private String myLabel;
 
-  public ApiComboBoxItem(@NotNull T data, @NotNull String label) {
+  public ApiComboBoxItem(@NotNull String data, @NotNull String label) {
     myData = data;
     myLabel = label;
   }
 
-  public final T getData() {
+  public final String getData() {
     return myData;
   }
 
