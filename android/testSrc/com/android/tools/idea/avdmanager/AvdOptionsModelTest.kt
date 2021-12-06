@@ -260,12 +260,13 @@ class AvdOptionsModelTest : AndroidTestCase() {
     Mockito.`when`(avd.deviceManufacturer).thenReturn("Google")
     Mockito.`when`(avd.deviceName).thenReturn("pixel_3")
     Mockito.`when`(avd.displayName).thenReturn("Pixel 3 API 30")
-    Mockito.`when`(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to AvdManagerUtils.NO_SKIN))
+    Mockito.`when`(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to SkinUtils.NO_SKIN))
 
     // Act
     val model = AvdOptionsModel(avd)
 
     // Assert
-    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(AvdManagerUtils.NO_SKIN))
+    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(
+      SkinUtils.NO_SKIN))
   }
 }

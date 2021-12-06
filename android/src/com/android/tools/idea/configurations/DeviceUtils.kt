@@ -22,14 +22,13 @@ import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.avdmanager.AvdManagerUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AvdManagerUtils
 import kotlin.math.roundToInt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()

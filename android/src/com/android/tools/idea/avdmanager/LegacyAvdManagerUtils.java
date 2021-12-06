@@ -16,30 +16,13 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.ddmlib.IDevice;
-import com.android.prefs.AndroidLocationsException;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AvdManagerUtils {
-  static final String NO_SKIN = "_no_skin";
-
-  @Nullable
-  public static AvdManager getAvdManagerSilently(@NotNull AndroidFacet facet) {
-    try {
-      return AvdManager.getInstance(AndroidSdkData.getSdkHolder(facet), new AvdManagerLog());
-    }
-    catch (AndroidLocationsException ignored) {
-    }
-    return null;
-  }
-
+final class LegacyAvdManagerUtils {
   @NotNull
   static FutureCallback<IDevice> newCallback(@Nullable Project project) {
     String name = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? "Device Manager" : "AVD Manager";

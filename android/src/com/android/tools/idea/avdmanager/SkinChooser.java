@@ -180,7 +180,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
   private static @NotNull Collection<@NotNull Path> transform(@NotNull Collection<@NotNull Path> paths) {
     List<Path> transformed = new ArrayList<>(1 + paths.size());
-    transformed.add(Paths.get(AvdManagerUtils.NO_SKIN));
+    transformed.add(Paths.get(SkinUtils.NO_SKIN));
 
     paths.stream()
       .filter(Files::exists)

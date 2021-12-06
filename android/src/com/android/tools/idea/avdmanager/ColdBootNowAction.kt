@@ -52,7 +52,7 @@ internal class ColdBootNowAction(avdInfoProvider: AvdInfoProvider,
     val project = myAvdInfoProvider.project
     val avd = avdInfo ?: return
     val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvdWithColdBoot(project, avd)
-    Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance())
+    Futures.addCallback(deviceFuture, LegacyAvdManagerUtils.newCallback(project), EdtExecutorService.getInstance())
   }
 
   override fun isEnabled(): Boolean {

@@ -58,7 +58,7 @@ public class RunAvdAction extends AvdUiAction {
       Project project = myAvdInfoProvider.getProject();
 
       ListenableFuture<IDevice> deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo);
-      Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
+      Futures.addCallback(deviceFuture, LegacyAvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
     }
   }
 
