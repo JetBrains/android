@@ -20,35 +20,15 @@ import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.FutureCallback;
-import com.intellij.CommonBundle;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AvdManagerLog;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AvdManagerUtils {
   static final String NO_SKIN = "_no_skin";
-
-  public static boolean reloadAvds(@NotNull AvdManager manager, @NotNull Project project) {
-    try {
-      MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-      manager.reloadAvds(log);
-      if (!log.getErrorMessage().isEmpty()) {
-        String message = AndroidBundle.message("cant.load.avds.error.prefix") + ' ' + log.getErrorMessage();
-        Messages.showErrorDialog(project, message, CommonBundle.getErrorTitle());
-      }
-      return true;
-    }
-    catch (AndroidLocationsException e) {
-      Messages.showErrorDialog(project, AndroidBundle.message("cant.load.avds.error"), CommonBundle.getErrorTitle());
-      return false;
-    }
-  }
 
   @Nullable
   public static AvdManager getAvdManagerSilently(@NotNull AndroidFacet facet) {
