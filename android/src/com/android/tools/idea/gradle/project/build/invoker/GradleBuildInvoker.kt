@@ -28,15 +28,15 @@ import java.io.File
 import java.util.concurrent.Executor
 
 interface GradleBuildInvoker {
-  fun cleanProject()
+  fun cleanProject(): ListenableFuture<GradleMultiInvocationResult>
 
-  fun generateSources(modules: Array<Module>)
-  fun compileJava(modules: Array<Module>, testCompileType: TestCompileType)
+  fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult>
+  fun compileJava(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<GradleMultiInvocationResult>
   fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
   fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
 
-  fun rebuild()
-  fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>)
+  fun rebuild(): ListenableFuture<GradleMultiInvocationResult>
+  fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>): ListenableFuture<GradleMultiInvocationResult>
 
   /**
    * Executes Gradle tasks requested for each root in separate Gradle invocations. The results (including failed sub-builds) are reported as

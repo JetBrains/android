@@ -31,6 +31,7 @@ import static com.intellij.openapi.ui.Messages.NO;
 import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -48,6 +49,7 @@ import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
@@ -144,28 +146,31 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   @Override
-  public void cleanProject() {
+  public @NotNull ListenableFuture<GradleMultiInvocationResult> cleanProject() {
     if (stopNativeDebugSessionOrStopBuild()) {
-      return;
+      return Futures.immediateFuture(new GradleMultiInvocationResult(emptyList()));
     }
     // Collect the root project path for all modules, there is one root project path per included project.
     Set<File> projectRootPaths = Arrays.stream(ModuleManager.getInstance(getProject()).getModules())
       .map(module -> ProjectStructure.getInstance(myProject).getModuleFinder().getRootProjectPath(module).toFile())
       .collect(Collectors.toSet());
-    for (File projectRootPath : projectRootPaths) {
-      executeTasks(CLEAN, projectRootPath, Collections.singletonList(CLEAN_TASK_NAME));
-    }
+    return combineGradleInvocationResults(
+      projectRootPaths.stream()
+        .map(projectRootPath -> executeTasks(CLEAN, projectRootPath, Collections.singletonList(CLEAN_TASK_NAME)))
+        .collect(toList()));
   }
 
   @Override
-  public void generateSources(@NotNull Module @NotNull [] modules) {
+  public @NotNull ListenableFuture<GradleMultiInvocationResult> generateSources(@NotNull Module @NotNull [] modules) {
     BuildMode buildMode = SOURCE_GEN;
 
     GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
     ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
-    }
+    return combineGradleInvocationResults(
+      tasks.keySet().stream()
+        .map(rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath),
+                                      Collections.singletonList(createGenerateSourcesOnlyProperty())))
+        .collect(toList()));
   }
 
   /**
@@ -271,12 +276,13 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
    *                        main sources, {@link TestCompileType#UNIT_TESTS} if class files for running unit tests are needed.
    */
   @Override
-  public void compileJava(@NotNull Module @NotNull [] modules, @NotNull TestCompileType testCompileType) {
+  public @NotNull ListenableFuture<GradleMultiInvocationResult> compileJava(@NotNull Module @NotNull [] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = COMPILE_JAVA;
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath));
-    }
+    return combineGradleInvocationResults(
+      tasks.keySet().stream()
+        .map(rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath)))
+        .collect(toList()));
   }
 
   @Override
@@ -313,28 +319,30 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   @Override
-  public void rebuild() {
+  public @NotNull ListenableFuture<GradleMultiInvocationResult> rebuild() {
     BuildMode buildMode = REBUILD;
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     ListMultimap<Path, String> tasks =
       GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath));
-    }
+    return combineGradleInvocationResults(
+      tasks.keySet().stream()
+        .map(rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath)))
+        .collect(toList()));
   }
 
   /**
    * Execute the last run set of Gradle tasks, with the specified gradle options prepended before the tasks to run.
    */
   @Override
-  public void rebuildWithTempOptions(@NotNull File rootProjectPath, @NotNull List<String> options) {
+  public @NotNull ListenableFuture<GradleMultiInvocationResult> rebuildWithTempOptions(@NotNull File rootProjectPath,
+                                                                                       @NotNull List<String> options) {
     myOneTimeGradleOptions.addAll(options);
     try {
-      // TODO(solodkyy): Rework to preserve the last requests?
+      // TODO(solodkyy): Rework to preserve the last requests? This may not work when build involves multiple roots.
       Collection<String> tasks = myLastBuildTasks.get(rootProjectPath.getPath());
       if (tasks.isEmpty()) {
         // For some reason the IDE lost the Gradle tasks executed during the last build.
-        rebuild();
+        return rebuild();
       }
       else {
         // The use case for this is the following:
@@ -343,10 +351,13 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
         // 3. the IDE re-runs the build, with the Gradle tasks that were executed when the build failed, and it adds "--stacktrace"
         //    to the command line arguments.
         List<String> tasksFromLastBuild = new ArrayList<>(tasks);
-        executeTasks(
-          Request.builder(myProject, rootProjectPath, tasksFromLastBuild)
-            .setCommandLineArguments(myOneTimeGradleOptions)
-            .build());
+        return combineGradleInvocationResults(
+          ImmutableList.of(
+            executeTasks(
+              Request
+                .builder(myProject, rootProjectPath, tasksFromLastBuild)
+                .setCommandLineArguments(myOneTimeGradleOptions)
+                .build())));
       }
     }
     finally {
@@ -355,8 +366,8 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     }
   }
 
-  private void executeTasks(@NotNull BuildMode buildMode, @NotNull File rootProjectPath, @NotNull List<String> gradleTasks) {
-    executeTasks(buildMode, rootProjectPath, gradleTasks, myOneTimeGradleOptions);
+  private @NotNull ListenableFuture<GradleInvocationResult> executeTasks(@NotNull BuildMode buildMode, @NotNull File rootProjectPath, @NotNull List<String> gradleTasks) {
+    return executeTasks(buildMode, rootProjectPath, gradleTasks, myOneTimeGradleOptions);
   }
 
   @NotNull
@@ -365,6 +376,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       requests.stream()
         .map(it -> executeTasks(it.first, it.second))
         .collect(toList());
+    return combineGradleInvocationResults(futures);
+  }
+
+  @NotNull
+  private ListenableFuture<GradleMultiInvocationResult> combineGradleInvocationResults(List<ListenableFuture<GradleInvocationResult>> futures) {
     Futures.FutureCombiner<GradleInvocationResult> result = Futures.whenAllComplete(futures);
     return result.call(() -> {
       List<GradleInvocationResult> results = new ArrayList<>();

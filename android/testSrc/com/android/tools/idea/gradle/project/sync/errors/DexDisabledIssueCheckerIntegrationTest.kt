@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
@@ -64,7 +63,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
       obj: GradleBuildInvoker -> obj.rebuild()
     }
     assertThat(result).isNotNull()
-    assertThat(result.buildError).isNotNull()
+    assertThat(result.invocations.firstOrNull()?.buildError).isNotNull()
     // and that error generates the expected BuildIssue
     val throwableCaptor = ArgumentCaptor.forClass(Throwable::class.java)
     verify(spyNotificationManager).createNotification(any(), throwableCaptor.capture(), any(), eq(project), any())

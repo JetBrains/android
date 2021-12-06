@@ -34,6 +34,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -43,6 +44,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -52,7 +54,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -76,7 +77,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.AndroidTempDirTestFixture;
@@ -346,7 +347,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
 
   protected void generateSources() throws InterruptedException {
-    GradleInvocationResult result =
+    GradleBuildResult result =
       invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
     refreshProjectFiles();
@@ -371,36 +372,29 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   @NotNull
-  protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
-    throws InterruptedException {
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask) {
     return invokeGradle(project, gradleInvocationTask, null);
   }
 
-  @NotNull
-  protected static GradleInvocationResult invokeGradle(@NotNull Project project,
-                                                       @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask,
-                                                       @Nullable Long sourceFolderTimeoutMillis
-  ) throws InterruptedException {
-    Ref<GradleInvocationResult> resultRef = new Ref<>();
-    CountDownLatch latch = new CountDownLatch(1);
+  protected static <T extends GradleBuildResult> T invokeGradle(
+    @NotNull Project project,
+    @NotNull Function<GradleBuildInvoker, ListenableFuture<T>> gradleInvocationTask,
+    @Nullable Long sourceFolderTimeoutMillis
+  ) {
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
-    GradleBuildInvoker.AfterGradleInvocationTask task = result -> {
-      resultRef.set(result);
-      latch.countDown();
-    };
+    ListenableFuture<T> future = gradleInvocationTask.apply(gradleBuildInvoker);
 
-    gradleBuildInvoker.add(task);
-
+    T result;
     try {
-      gradleInvocationTask.consume(gradleBuildInvoker);
+      result = future.get(5, MINUTES);
     }
-    finally {
-      gradleBuildInvoker.remove(task);
+    catch (Exception e) {
+      throw new RuntimeException(e);
     }
 
-    latch.await(5, MINUTES);
-    GradleInvocationResult result = resultRef.get();
     refreshProjectFiles();
     ApplicationManager.getApplication().invokeAndWait(() -> {
       try {
