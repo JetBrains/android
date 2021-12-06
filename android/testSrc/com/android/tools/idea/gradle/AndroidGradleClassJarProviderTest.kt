@@ -43,7 +43,7 @@ class AndroidGradleClassJarProviderTest {
     val module = gradleProjectRule.project.findAppModule()
 
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
-    assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency), null))
+    assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency)))
 
     val model = AndroidModuleModel.get(module)!!
     val runtimeDependencies = model.selectedMainCompileLevel2Dependencies.runtimeOnlyClasses.map(File::getAbsolutePath)
