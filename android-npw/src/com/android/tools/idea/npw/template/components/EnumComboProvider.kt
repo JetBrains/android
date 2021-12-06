@@ -27,13 +27,13 @@ import javax.swing.DefaultComboBoxModel
 /**
  * Provides a [ComboBox] well suited for handling [EnumParameter] parameters.
  */
-class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<*>>(parameter) {
+class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvider<ComboBox<ApiComboBoxItem>>(parameter) {
   private fun createItemForOption(value: Enum<*>): ApiComboBoxItem =
     ApiComboBoxItem(value.name)
 
-  override fun createComponent(parameter: Parameter<*>): ComboBox<*> {
+  override fun createComponent(parameter: Parameter<*>): ComboBox<ApiComboBoxItem> {
     val options = (parameter as EnumParameter<*>).options // FIXME EnumParameterComponentProvider?
-    val comboBoxModel = DefaultComboBoxModel<Any>()
+    val comboBoxModel = DefaultComboBoxModel<ApiComboBoxItem>()
 
     assert(options.isNotEmpty())
     options.forEach {
@@ -42,23 +42,23 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
     return ComboBox(comboBoxModel)
   }
 
-  override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = ApiComboBoxTextProperty(component)
+  override fun createProperty(component: ComboBox<ApiComboBoxItem>): AbstractProperty<*> = ApiComboBoxTextProperty(component)
 
   /**
    * Swing property which interacts with [ApiComboBoxItem]s.
    *
    * NOTE: This is currently only needed here but, we can promote it to ui.wizard.properties if it's ever needed in more places.
    */
-  private class ApiComboBoxTextProperty(private val comboBox: ComboBox<*>) : AbstractProperty<String>(), ActionListener {
+  private class ApiComboBoxTextProperty(private val comboBox: ComboBox<ApiComboBoxItem>) : AbstractProperty<String>(), ActionListener {
     init {
       comboBox.addActionListener(this)
     }
 
     override fun setDirectly(value: String) {
-      val model = comboBox.model as DefaultComboBoxModel<*>
+      val model = comboBox.model as DefaultComboBoxModel<ApiComboBoxItem>
 
       for (i in 0 until model.size) {
-        val item = model.getElementAt(i) as ApiComboBoxItem
+        val item = model.getElementAt(i)
         if (value == item.data) {
           comboBox.selectedIndex = i
           return
