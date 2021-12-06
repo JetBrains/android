@@ -277,9 +277,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myPsiNameHelper = PsiNameHelper.getInstance(getProject());
     myWolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
 
-    PsiTreeChangeListener psiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get()
-                                        ? new IncrementalUpdatePsiListener()
-                                        : new SimplePsiListener();
+    PsiTreeChangeListener psiListener = new IncrementalUpdatePsiListener();
+
     myPsiListener = LOG.isDebugEnabled()
                     ? new LoggingPsiTreeChangeListener(psiListener, LOG)
                     : psiListener;
@@ -1068,23 +1067,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   protected void setModificationCount(long count) {
     ResourceUpdateTracer.log(() -> getSimpleId(this) + ".setModificationCount " + count);
     super.setModificationCount(count);
-  }
-
-  /**
-   * PSI listener which schedules a full file rescan after every change.
-   *
-   * @see IncrementalUpdatePsiListener
-   */
-  private final class SimplePsiListener extends PsiTreeAnyChangeAbstractAdapter {
-    @Override
-    protected void onChange(@Nullable PsiFile psiFile) {
-      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onChange " + pathForLogging(psiFile));
-      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
-      if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
-        scheduleScan(psiFile.getVirtualFile(), folderType);
-      }
-      ResourceUpdateTracer.log(() -> getSimpleId(this) + ".onChange " + pathForLogging(psiFile) + " end");
-    }
   }
 
   /**

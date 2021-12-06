@@ -891,15 +891,6 @@ public final class StudioFlags {
     false
   );
 
-
-  public static final Flag<Boolean> INCREMENTAL_RESOURCE_REPOSITORIES = Flag.create(
-    EDITOR, "incremental.resource.repositories",
-    "Handle PSI events incrementally in ResourceFolderRepository",
-    "If enabled, ResourceFolderRepository will handle PSI events synchronously, rather than rescanning the whole file.",
-    true
-  );
-
-
   public static final Flag<Boolean> TWEAK_COLOR_SCHEME = Flag.create(
     EDITOR, "tweak.color.scheme",
     "Change the default color scheme",
