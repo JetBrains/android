@@ -37,6 +37,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.AbstractButton;
@@ -57,6 +58,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
   private final @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull PhysicalDeviceTable> myNewPhysicalDeviceTable;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
+  private final @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> myNewPhysicalDeviceDetailsPanel;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
@@ -91,7 +93,8 @@ public final class PhysicalDevicePanel extends DevicePanel {
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
          new PhysicalDeviceAsyncSupplier(project),
-         SetDevices::new);
+         SetDevices::new,
+         PhysicalDeviceDetailsPanel::new);
   }
 
   @VisibleForTesting
@@ -102,13 +105,15 @@ public final class PhysicalDevicePanel extends DevicePanel {
                       @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices) {
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices,
+                      @NotNull BiFunction<@NotNull PhysicalDevice, @Nullable Project, @NotNull DetailsPanel> newPhysicalDeviceDetailsPanel) {
     myProject = project;
     myParent = parent;
     myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
     myNewPhysicalDeviceTable = newPhysicalDeviceTable;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
+    myNewPhysicalDeviceDetailsPanel = newPhysicalDeviceDetailsPanel;
 
     initPairUsingWiFiButton();
     initSeparator();
@@ -183,7 +188,7 @@ public final class PhysicalDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new PhysicalDeviceDetailsPanel(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    return myNewPhysicalDeviceDetailsPanel.apply(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
   }
 
   @Nullable Project getProject() {

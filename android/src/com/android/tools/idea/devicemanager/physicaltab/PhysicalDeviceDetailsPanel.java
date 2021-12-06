@@ -129,11 +129,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device,
-         new AsyncDetailsBuilder(project, device).buildAsync(),
-         SummarySectionCallback::new,
-         DeviceSectionCallback::new,
-         WearPairingManager.INSTANCE);
+    this(device, new AsyncDetailsBuilder(project, device).buildAsync());
+  }
+
+  @VisibleForTesting
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future) {
+    this(device, future, SummarySectionCallback::new, DeviceSectionCallback::new, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting

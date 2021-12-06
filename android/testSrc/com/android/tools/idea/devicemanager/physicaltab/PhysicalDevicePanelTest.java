@@ -17,10 +17,12 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetDevices;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
@@ -109,7 +111,8 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      this::newSetDevices);
+                                      this::newSetDevices,
+                                      PhysicalDeviceDetailsPanel::new);
 
     // Assert
     CountDownLatchAssert.await(myLatch);
@@ -137,7 +140,8 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      this::newSetDevices);
+                                      this::newSetDevices,
+                                      PhysicalDeviceDetailsPanel::new);
 
     // Assert
     CountDownLatchAssert.await(myLatch);
@@ -172,7 +176,8 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      SetDevices::new);
+                                      SetDevices::new,
+                                      PhysicalDeviceDetailsPanel::new);
 
     // Assert
     assertNull(myPanel.getPairUsingWiFiButton());
@@ -194,7 +199,8 @@ public final class PhysicalDevicePanelTest {
                                       () -> myComponent,
                                       model -> myListener,
                                       mySupplier,
-                                      SetDevices::new);
+                                      SetDevices::new,
+                                      PhysicalDeviceDetailsPanel::new);
 
     AbstractButton button = myPanel.getPairUsingWiFiButton();
     assert button != null;
@@ -204,5 +210,32 @@ public final class PhysicalDevicePanelTest {
     // Assert
     assertEquals("Pair using Wi-Fi", button.getText());
     Mockito.verify(controller).showDialog();
+  }
+
+  @Test
+  public void viewDetails() throws InterruptedException {
+    // Arrange
+    myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
+                                      project -> myService,
+                                      PhysicalDeviceTable::new,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      mySupplier,
+                                      this::newSetDevices,
+                                      (device, project) -> newPhysicalDeviceDetailsPanel(device));
+
+    CountDownLatchAssert.await(myLatch);
+
+    // Act
+    myPanel.getTable().setRowSelectionInterval(0, 0);
+    myPanel.viewDetails();
+
+    // Assert
+    assertTrue(myPanel.hasDetails());
+  }
+
+  private static @NotNull DetailsPanel newPhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device) {
+    return new PhysicalDeviceDetailsPanel(device, Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
   }
 }

@@ -123,11 +123,8 @@ public final class PhysicalDeviceDetailsPanelTest {
   @Test
   public void setInfoSectionPanelLayout() {
     // Act
-    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3,
-                                                               Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3),
-                                                               SummarySectionCallback::new,
-                                                               DeviceSectionCallback::new,
-                                                               WearPairingManager.INSTANCE);
+    ListenableFuture<PhysicalDevice> future = Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, future);
 
     // Assert
     Container sectionPanel = detailsPanel.getInfoSectionPanel();

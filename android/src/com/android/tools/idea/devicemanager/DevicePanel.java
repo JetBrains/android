@@ -47,7 +47,7 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
   public final void dispose() {
   }
 
-  final boolean hasDetails() {
+  public final boolean hasDetails() {
     return myDetailsPanelPanel.getSplitter().isPresent();
   }
 
