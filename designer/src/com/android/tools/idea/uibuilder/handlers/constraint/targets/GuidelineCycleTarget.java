@@ -72,10 +72,13 @@ public class GuidelineCycleTarget extends GuidelineTarget {
       myBottom = t + size / 2F;
     }
     else {
+      // Draw at the bottom of the parent
       myLeft = l - size / 2F;
-      myTop = t - size;
       myRight = l + size / 2F;
-      myBottom = t;
+
+      SceneComponent parent = myComponent.getParent();
+      myTop = parent != null ? parent.getDrawHeight() : b;
+      myBottom = myTop + size;
     }
     return false;
   }
