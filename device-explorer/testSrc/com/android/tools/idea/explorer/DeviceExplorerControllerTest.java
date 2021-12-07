@@ -1912,7 +1912,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                                                     DeviceFileSystemService service,
                                                     DeviceExplorerFileManager deviceExplorerFileManager,
                                                     @Nullable DeviceExplorerController.FileOpener fileOpener) {
-    return new DeviceExplorerController(getProject(), myModel, view, service, deviceExplorerFileManager, fileOpener, myEdtExecutor, myTaskExecutor);
+    return new DeviceExplorerController(getProject(), myModel, view, service, deviceExplorerFileManager, fileOpener);
   }
 
   /**

@@ -20,7 +20,6 @@ import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.adb.AdbFileProvider.Companion.fromProject
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
@@ -96,14 +95,23 @@ class DeviceExplorerController(
   private val myView: DeviceExplorerView,
   private val myService: DeviceFileSystemService<out DeviceFileSystem>,
   private val fileManager: DeviceExplorerFileManager,
-  private val myFileOpener: FileOpener,
-  edtExecutor: Executor,
-  taskExecutor: Executor
+  private val myFileOpener: FileOpener
 ) {
+  // TODO: Migrate all callers and remove this constructor
+  constructor(
+    myProject: Project,
+    myModel: DeviceExplorerModel,
+    myView: DeviceExplorerView,
+    myService: DeviceFileSystemService<out DeviceFileSystem>,
+    fileManager: DeviceExplorerFileManager,
+    myFileOpener: FileOpener,
+    edtExecutor: Executor,
+    taskExecutor: Executor) :
+    this(myProject, myModel, myView, myService, fileManager, myFileOpener)
+
   private var myShowLoadingNodeDelayMillis = 200
   private var myTransferringNodeRepaintMillis = 100
-  private val myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val myWorkEstimator = FileTransferWorkEstimator(myEdtExecutor, taskExecutor)
+  private val myWorkEstimator = FileTransferWorkEstimator()
   private val myTransferringNodes: MutableSet<DeviceFileEntryNode> = HashSet()
   private val myLoadingChildren: MutableSet<DeviceFileEntryNode> = HashSet()
   private val myLoadingNodesAlarms = Alarm()
@@ -575,7 +583,7 @@ class DeviceExplorerController(
 
     suspend fun addUploadOperationWork(tracker: FileTransferOperationTracker, path: Path) {
       val progress = createFileTransferEstimatorProgress(tracker)
-      val estimate = myWorkEstimator.estimateUploadWork(path, progress).await()
+      val estimate = myWorkEstimator.estimateUploadWork(path, progress)
       tracker.addWorkEstimate(estimate)
     }
 
@@ -591,7 +599,7 @@ class DeviceExplorerController(
       entryNode: DeviceFileEntryNode
     ) {
       val progress = createFileTransferEstimatorProgress(tracker)
-      val estimate = myWorkEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress).await()
+      val estimate = myWorkEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress)
       tracker.addWorkEstimate(estimate)
     }
 

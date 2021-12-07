@@ -53,9 +53,6 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
-    Executor edtExecutor = EdtExecutorService.getInstance();
-    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-
     AdbDeviceFileSystemService adbService = project.getService(AdbDeviceFileSystemService.class);
     DeviceExplorerFileManager fileManager = project.getService(DeviceExplorerFileManager.class);
 
@@ -65,7 +62,7 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, adbService, fileManager, fileManager::openFile, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, fileManager::openFile);
 
     controller.setup();
 

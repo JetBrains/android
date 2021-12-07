@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.explorer
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.concurrency.transformAsyncNullable
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.directoryWorkUnits
 import com.android.tools.idea.explorer.FileTransferWorkEstimator.Companion.fileWorkUnits
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.ThrottledProgress
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.file.Path
-import java.util.concurrent.Executor
 
 /**
  * Helper class used to estimate the amount of work required to transfer files from/to a device.
@@ -70,106 +71,84 @@ import java.util.concurrent.Executor
  * The [.getFileContentsWorkUnits] returns the estimated cost (in work units)
  * proportional to the amount of bytes to transfer.
  */
-class FileTransferWorkEstimator internal constructor(edtExecutor: Executor, taskExecutor: Executor) {
-  private val myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+class FileTransferWorkEstimator {
   private val myThrottledProgress = ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS.toLong())
 
-  fun estimateDownloadWork(
+  suspend fun estimateDownloadWork(
     entry: DeviceFileEntry,
     isLinkToDirectory: Boolean,
     progress: FileTransferWorkEstimatorProgress
-  ): ListenableFuture<FileTransferWorkEstimate> {
+  ): FileTransferWorkEstimate {
     val workEstimate = FileTransferWorkEstimate()
-    val future = estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress)
-    return myEdtExecutor.transform(future) { workEstimate }
+    estimateDownloadWorkWorker(entry, isLinkToDirectory, workEstimate, progress)
+    return workEstimate
   }
 
-  fun estimateDownloadWorkWorker(
+  suspend fun estimateDownloadWorkWorker(
     entry: DeviceFileEntry,
     isLinkToDirectory: Boolean,
     estimate: FileTransferWorkEstimate,
     progress: FileTransferWorkEstimatorProgress
-  ): ListenableFuture<Unit> {
+  ) {
     if (progress.isCancelled) {
-      return Futures.immediateCancelledFuture()
+      throw CancellationException()
     }
     reportProgress(estimate, progress)
-    return if (entry.isDirectory || isLinkToDirectory) {
-      entry.entries.transformAsync(myEdtExecutor) { entries: List<DeviceFileEntry> ->
-        estimate.addDirectoryCount(1)
-        estimate.addWorkUnits(directoryWorkUnits)
-        myEdtExecutor.executeFuturesInSequence(entries.iterator()) {
-          estimateDownloadWorkWorker(it, false, estimate, progress)
-        }
+    if (entry.isDirectory || isLinkToDirectory) {
+      val children = entry.entries.await()
+      estimate.addDirectoryCount(1)
+      estimate.addWorkUnits(directoryWorkUnits)
+      for (child in children) {
+        estimateDownloadWorkWorker(child, false, estimate, progress)
       }
     } else {
       estimate.addFileCount(1)
       estimate.addWorkUnits(fileWorkUnits + getFileContentsWorkUnits(entry.size))
-      Futures.immediateFuture(Unit)
     }
   }
 
-  fun estimateUploadWork(
+  suspend fun estimateUploadWork(
     path: Path,
     progress: FileTransferWorkEstimatorProgress
-  ): ListenableFuture<FileTransferWorkEstimate> {
-    return myTaskExecutor.executeAsync {
+  ): FileTransferWorkEstimate = coroutineScope {
+    withContext(ioThread) {
       val workEstimate = FileTransferWorkEstimate()
-      if (!estimateUploadWorkWorker(path.toFile(), workEstimate, progress)) {
-        null
-      } else {
-        workEstimate
-      }
-    }.transformAsyncNullable(myTaskExecutor) {
-      when (it) {
-        // Handle "cancel" case
-        null -> Futures.immediateCancelledFuture()
-        else -> Futures.immediateFuture(it)
-      }
+      estimateUploadWorkWorker(path.toFile(), workEstimate, progress)
+      workEstimate
     }
   }
-
   /**
    * Build the estimate by scanning the local file system (synchronously).
    *
-   * @return true if completed; false if canceled via the [progress] parameter.
+   * @throws CancellationException if canceled via the [progress] parameter.
    */
-  private fun estimateUploadWorkWorker(
+  private suspend fun estimateUploadWorkWorker(
     file: File,
     estimate: FileTransferWorkEstimate,
     progress: FileTransferWorkEstimatorProgress
-  ): Boolean {
+  ) {
     if (progress.isCancelled) {
-      return false
+      throw CancellationException()
     }
     reportProgress(estimate, progress)
     if (file.isDirectory) {
       estimate.addWorkUnits(directoryWorkUnits)
       estimate.addDirectoryCount(1)
-      val children = file.listFiles()
-      if (children != null) {
-        for (child in children) {
-          if (!estimateUploadWorkWorker(child, estimate, progress)) {
-            return false
-          }
-        }
-      }
+      file.listFiles()?.forEach { estimateUploadWorkWorker(it, estimate, progress) }
     } else {
       estimate.addWorkUnits(fileWorkUnits + getFileContentsWorkUnits(file.length()))
       estimate.addFileCount(1)
     }
-    return true
   }
 
-  private fun reportProgress(estimate: FileTransferWorkEstimate, progress: FileTransferWorkEstimatorProgress) {
+  private suspend fun reportProgress(estimate: FileTransferWorkEstimate, progress: FileTransferWorkEstimatorProgress) = coroutineScope {
     if (myThrottledProgress.check()) {
       // Capture values for lambda (since lambda may be executed after some delay)
       val fileCount = estimate.fileCount
       val directoryCount = estimate.directoryCount
 
       // Report progress on the EDT executor
-      myEdtExecutor.execute { progress.progress(fileCount, directoryCount) }
+      launch(uiThread) { progress.progress(fileCount, directoryCount) }
     }
   }
 
