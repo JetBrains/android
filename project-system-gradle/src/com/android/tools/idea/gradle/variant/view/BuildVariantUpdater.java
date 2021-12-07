@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.gradle.project.sync.idea.VariantAndAbi;
@@ -340,7 +341,7 @@ public class BuildVariantUpdater {
         // using the remainder of out setup steps.
         VariantSwitcher.switchVariant(project, variantData);
 
-        GradleSyncState.getInstance(project).syncSkipped(null);
+        GradleSyncStateHolder.getInstance(project).syncSkipped(null);
 
         // Commit changes and dispose models providers
         if (application.isUnitTestMode()) {

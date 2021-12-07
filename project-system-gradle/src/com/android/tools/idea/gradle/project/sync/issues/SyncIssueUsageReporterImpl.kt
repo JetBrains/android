@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.diagnostic.Logger
@@ -32,7 +32,7 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
   override fun reportToUsageTracker() {
     if (collectedIssues.isNotEmpty()) {
       UsageTracker.log(
-          GradleSyncState
+          GradleSyncStateHolder
               .getInstance(project)
               .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES)
               .addAllGradleSyncIssues(collectedIssues))
@@ -41,7 +41,7 @@ class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageR
 
     if (collectedQuickFixes.isNotEmpty() || collectedFailure != null) {
       UsageTracker.log(
-          GradleSyncState
+          GradleSyncStateHolder
               .getInstance(project)
               .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS)
               .addAllOfferedQuickFixes(collectedQuickFixes)

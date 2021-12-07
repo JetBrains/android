@@ -44,7 +44,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.ProjectSyncRequest;
 import com.android.tools.idea.gradle.project.sync.PsdModuleModels;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
@@ -99,7 +99,7 @@ public class GradleSyncExecutor {
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
-      GradleSyncState.getInstance(myProject).syncSkipped(listener);
+      GradleSyncStateHolder.getInstance(myProject).syncSkipped(listener);
       return;
     }
 
@@ -124,7 +124,7 @@ public class GradleSyncExecutor {
         }
         else {
           // Linking failed.
-          GradleSyncState.getInstance(myProject).syncSkipped(listener);
+          GradleSyncStateHolder.getInstance(myProject).syncSkipped(listener);
           return;
         }
       }

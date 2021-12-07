@@ -74,7 +74,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
@@ -1002,7 +1002,7 @@ fun updateTestProjectFromAndroidModel(
   vararg moduleBuilders: ModuleModelBuilder
 ) {
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = false)
-  getInstance(project).syncSkipped(null)
+  GradleSyncStateHolder.getInstance(project).syncSkipped(null)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
@@ -1015,7 +1015,7 @@ fun switchTestProjectVariantsFromAndroidModel(
   vararg moduleBuilders: ModuleModelBuilder
 ) {
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = true)
-  getInstance(project).syncSkipped(null)
+  GradleSyncStateHolder.getInstance(project).syncSkipped(null)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 

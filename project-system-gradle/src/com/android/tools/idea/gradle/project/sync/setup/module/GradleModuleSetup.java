@@ -22,7 +22,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -46,7 +46,7 @@ public class GradleModuleSetup {
 
     String gradleVersion = model.getGradleVersion();
     if (isNotEmpty(gradleVersion)) {
-        GradleSyncState.getInstance(module.getProject()).setLastSyncedGradleVersion(GradleVersion.parse(gradleVersion));
+        GradleSyncStateHolder.getInstance(module.getProject()).setLastSyncedGradleVersion(GradleVersion.parse(gradleVersion));
     }
   }
 }

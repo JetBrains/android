@@ -291,7 +291,6 @@
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.metrics.CacheInvalidatorMetricCollector"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
-    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncListener" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
@@ -562,8 +561,10 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
-    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncState$SyncStateUpdater" />
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncState"
+        serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder"/>
+    <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$SyncStateUpdater" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
@@ -916,7 +917,7 @@
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
-    <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncState$DataImportListener"
+    <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
     <listener class="org.jetbrains.android.AndroidPropertyFilesUpdater$ModuleRootListenerImpl"
               topic="com.intellij.openapi.roots.ModuleRootListener"/>

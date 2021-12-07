@@ -21,6 +21,8 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.GRADLE_SYNC_TOPIC
+import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
@@ -56,7 +58,6 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil.formatDuration
-import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
@@ -76,14 +77,27 @@ data class ProjectSyncRequest(val projectRoot: String, val trigger: GradleSyncSt
 val PROJECT_SYNC_REQUEST = Key.create<ProjectSyncRequest>("PROJECT_SYNC_REQUEST")
 
 /**
- * This class manages the state of Gradle sync for a project.
- *
-*
- * This class records information from various sources about the current state of sync (e.g time taken for each stage) and passes these
- * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
- * invocation of sync.
+ * NOTE: Do not use this interface. Most callers should use `ProjectSystemSyncManager` instead.
  */
-open class GradleSyncState @NonInjectable constructor(private val project: Project) {
+interface GradleSyncState {
+  val isSyncInProgress: Boolean
+  val externalSystemTaskId: ExternalSystemTaskId?
+  val lastSyncFinishedTimeStamp: Long
+  val lastSyncedGradleVersion: GradleVersion?
+
+  /**
+   * Indicates whether the last started Gradle sync has failed.
+   *
+   * Possible failure causes:
+   *   *An error occurred in Gradle (e.g. a missing dependency, or a missing Android platform in the SDK)
+   *   *An error occurred while setting up a project using the models obtained from Gradle during sync (e.g. invoking a method that
+   *    doesn't exist in an old version of the Android plugin)
+   *   *An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)
+   */
+  fun lastSyncFailed(): Boolean
+
+  fun isSyncNeeded(): ThreeState
+
   companion object {
     @JvmField
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
@@ -109,6 +123,36 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     @JvmStatic
     fun getInstance(project: Project): GradleSyncState = project.getService(GradleSyncState::class.java)
   }
+}
+
+/**
+ * This class manages the state of Gradle sync for a project.
+ *
+*
+ * This class records information from various sources about the current state of sync (e.g time taken for each stage) and passes these
+ * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
+ * invocation of sync.
+ */
+class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
+  private val delegate = GradleSyncStateHolder.getInstance(project)
+  override val isSyncInProgress: Boolean
+    get() = delegate.isSyncInProgress
+  override val externalSystemTaskId: ExternalSystemTaskId?
+    get() = delegate.externalSystemTaskId
+  override val lastSyncFinishedTimeStamp: Long
+    get() = delegate.lastSyncFinishedTimeStamp
+  override val lastSyncedGradleVersion: GradleVersion?
+    get() = delegate.lastSyncedGradleVersion
+
+  override fun lastSyncFailed(): Boolean = delegate.lastSyncFailed()
+  override fun isSyncNeeded(): ThreeState = delegate.isSyncNeeded()
+}
+
+class GradleSyncStateHolder constructor(private val project: Project)  {
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): GradleSyncStateHolder = project.getService(GradleSyncStateHolder::class.java)
+  }
 
   private enum class LastSyncState(val isInProgress: Boolean = false, val isSuccessful: Boolean = false, val isFailed: Boolean = false) {
     UNKNOWN(),
@@ -122,7 +166,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
   }
 
-  open var lastSyncedGradleVersion: GradleVersion? = null
+  var lastSyncedGradleVersion: GradleVersion? = null
 
   /**
    * Indicates whether the last started Gradle sync has failed.
@@ -133,9 +177,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
    *    doesn't exist in an old version of the Android plugin)
    *   *An error in the structure of the project after sync (e.g. more than one module with the same path in the file system)
    */
-  open fun lastSyncFailed(): Boolean = state.isFailed
+  fun lastSyncFailed(): Boolean = state.isFailed
 
-  open val isSyncInProgress: Boolean get() = state.isInProgress
+  val isSyncInProgress: Boolean get() = state.isInProgress
 
   private val lock = ReentrantLock()
 
@@ -150,7 +194,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
   fun generateSyncEvent(eventKind: AndroidStudioEvent.EventKind) = eventLogger.generateSyncEvent(project, eventKind)
 
-  open var lastSyncFinishedTimeStamp = -1L; protected set
+  var lastSyncFinishedTimeStamp = -1L; protected set
 
   /**
    * Triggered at the start of a sync.
@@ -256,7 +300,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     syncPublisher { syncSkipped(project) }
   }
 
-  open fun isSyncNeeded(): ThreeState {
+  fun isSyncNeeded(): ThreeState {
     return when {
       PropertiesComponent.getInstance().getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
       GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
@@ -412,7 +456,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       LOG.info("onImportFinished($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!)) {
-        GradleSyncState.getInstance(project).syncSucceeded()
+        GradleSyncStateHolder.getInstance(project).syncSucceeded()
       }
     }
   }
@@ -429,14 +473,16 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
 
     override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
       if (!id.isGradleResolveProjectTask()) return
-      LOG.info("onStart($id, $workingDir)")
       val project = id.findProjectorLog() ?: return
+      val syncStateImpl = getInstance(project)
+      syncStateImpl.externalSystemTaskId = id
+      LOG.info("onStart($id, $workingDir)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
       val trigger =
         project.getUserData(PROJECT_SYNC_REQUEST)
           ?.takeIf { it.projectRoot == workingDir }
-      if (!GradleSyncState.getInstance(project)
+      if (!GradleSyncStateHolder.getInstance(project)
           .syncStarted(trigger?.trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
       ) {
         stopTrackingTask(project, id)
@@ -452,7 +498,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       val project = id.findProjectorLog() ?: return
       val runningTasks = project.getService(SyncStateUpdaterService::class.java).runningTasks
       if (!runningTasks.containsKey(id)) return
-      GradleSyncState.getInstance(project).setupStarted()
+      GradleSyncStateHolder.getInstance(project).setupStarted()
     }
 
     override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
@@ -460,7 +506,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       LOG.info("onFailure($id, $e)")
       val project = id.findProjectorLog() ?: return
       if (!stopTrackingTask(project, id)) return
-      GradleSyncState.getInstance(project).syncFailed(null, e)
+      GradleSyncStateHolder.getInstance(project).syncFailed(null, e)
     }
 
     override fun onStart(id: ExternalSystemTaskId) = error("Not expected to be called. onStart with a different signature is implemented")
@@ -483,7 +529,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
       val failure = event.result as? FailureResult
       val message = failure?.failures?.mapNotNull { it.message }?.joinToString(separator = "\n") ?: "Sync failed: reason unknown"
       val throwable = failure?.failures?.map { it.error }?.firstOrNull { it != null }
-      GradleSyncState.getInstance(project).syncFailed(message, throwable)
+      GradleSyncStateHolder.getInstance(project).syncFailed(message, throwable)
     }
 
     private fun stopTrackingTask(project: Project, buildId: ExternalSystemTaskId): Boolean {

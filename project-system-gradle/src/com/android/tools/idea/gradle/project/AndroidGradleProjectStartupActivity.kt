@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.shouldDisableForceUpgrades
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
@@ -319,7 +319,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
   additionalProjectSetup(project)
 
-  GradleSyncState.getInstance(project).syncSkipped(null)
+  GradleSyncStateHolder.getInstance(project).syncSkipped(null)
 }
 
 private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T>) =
