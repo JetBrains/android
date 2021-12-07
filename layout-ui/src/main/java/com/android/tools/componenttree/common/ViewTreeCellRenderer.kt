@@ -56,7 +56,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
   // renderer is used to paint.
   override fun getTreeCellRendererComponent(
     tree: JTree,
-    value: Any?,
+    value: Any,
     selected: Boolean,
     expanded: Boolean,
     leaf: Boolean,
@@ -276,7 +276,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
  *
  * TODO: Remove when TreeImpl is removed
  */
-fun JTree.computeDepth(item: Any?): Int = when (this) {
+fun JTree.computeDepth(item: Any): Int = when (this) {
   is TreeImpl -> model?.computeDepth(item)
   is TreeTableTree -> (treeTable.tableModel as? TreeTableModelImpl)?.computeDepth(item)
   else -> null

@@ -34,7 +34,7 @@ interface NodeType<T> {
   /**
    * Returns the children of [node], which may be of a different node types.
    */
-  fun childrenOf(node: T): List<Any>
+  fun childrenOf(node: T): List<*>
 
   /**
    * Returns a string used for speed search based on [node].

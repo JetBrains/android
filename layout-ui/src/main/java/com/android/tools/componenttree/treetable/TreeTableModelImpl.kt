@@ -35,7 +35,7 @@ private fun <T> NodeType<T>.parentOf(item: Any): Any? {
 }
 
 /** Type safe access to generic accessor */
-private fun <T> NodeType<T>.childrenOf(item: Any): List<Any> {
+private fun <T> NodeType<T>.childrenOf(item: Any): List<*> {
   return childrenOf(clazz.cast(item))
 }
 
@@ -66,7 +66,7 @@ class TreeTableModelImpl(
 // region TreeTableModel implementation
   override fun getRoot() = treeRoot
 
-  override fun getChildren(parent: Any): List<Any> = children(parent)
+  override fun getChildren(parent: Any): List<*> = children(parent)
 
   override fun valueForPathChanged(path: TreePath?, newValue: Any?) { }
 
@@ -109,7 +109,7 @@ class TreeTableModelImpl(
   /**
    * Find the children of the given [node] using the relevant [NodeType].
    */
-  fun children(node: Any): List<Any> {
+  fun children(node: Any): List<*> {
     return typeOf(node).childrenOf(node)
   }
 
@@ -123,7 +123,7 @@ class TreeTableModelImpl(
   /**
    * Find the [TreeCellRenderer] using the relevant [NodeType] for the specified [node].
    */
-  fun rendererOf(node: Any): TreeCellRenderer? {
+  fun rendererOf(node: Any): TreeCellRenderer {
     val type = typeOf(node)
     return rendererCache.getOrPut(type.clazz) { type.createRenderer() }
   }
@@ -149,7 +149,7 @@ class TreeTableModelImpl(
    *
    * Do not use Tree.getPathForRow(row) since it may return null on first draw.
    */
-  fun computeDepth(node: Any?): Int = generateSequence(node) { parent(it) }.count()
+  fun computeDepth(node: Any): Int = generateSequence(node) { parent(it) }.count()
 
   private fun fireTreeChange(changedNode: Any?) {
     val path = changedNode?.let { TreePath(changedNode) }

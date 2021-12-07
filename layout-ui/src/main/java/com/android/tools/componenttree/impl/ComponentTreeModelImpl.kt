@@ -31,7 +31,7 @@ private fun <T> NodeType<T>.parentOf(item: Any): Any? {
 }
 
 /** Type safe access to generic accessor */
-private fun <T> NodeType<T>.childrenOf(item: Any): List<Any> {
+private fun <T> NodeType<T>.childrenOf(item: Any): List<*> {
   return childrenOf(clazz.cast(item))
 }
 
@@ -50,21 +50,21 @@ class ComponentTreeModelImpl(
   private val rendererCache: MutableMap<Class<*>, TreeCellRenderer> = mutableMapOf()
   private val modelListeners: MutableList<TreeModelListener> = ContainerUtil.createConcurrentList()
 
-  override var treeRoot: Any? by Delegates.observable<Any?>(null) { _, _, newRoot -> hierarchyChanged(newRoot) }
+  override var treeRoot: Any? by Delegates.observable(null) { _, _, newRoot -> hierarchyChanged(newRoot) }
 
   //region Implementation of TreeModel
 
   override fun getRoot() = treeRoot
 
-  override fun isLeaf(node: Any?) = children(node).isEmpty()
+  override fun isLeaf(node: Any) = children(node).isEmpty()
 
-  override fun getChildCount(parent: Any?) = children(parent).size
+  override fun getChildCount(parent: Any) = children(parent).size
 
-  override fun getIndexOfChild(parent: Any?, child: Any?) = children(parent).indexOf(child)
+  override fun getIndexOfChild(parent: Any, child: Any) = children(parent).indexOf(child)
 
-  override fun getChild(parent: Any?, index: Int) = children(parent)[index]
+  override fun getChild(parent: Any, index: Int) = children(parent)[index]
 
-  override fun valueForPathChanged(path: TreePath?, newValue: Any?) { }
+  override fun valueForPathChanged(path: TreePath, newValue: Any?) { }
 
   override fun addTreeModelListener(listener: TreeModelListener) {
     modelListeners.add(listener)
@@ -86,8 +86,8 @@ class ComponentTreeModelImpl(
   /**
    * Find the children of the given [node] using the relevant [NodeType].
    */
-  fun children(node: Any?): List<Any> {
-    return node?.let { typeOf(it).childrenOf(it) } ?: emptyList()
+  fun children(node: Any): List<*> {
+    return typeOf(node).childrenOf(node)
   }
 
   /**
@@ -100,8 +100,8 @@ class ComponentTreeModelImpl(
   /**
    * Find the [TreeCellRenderer] using the relevant [NodeType] for the specified [node].
    */
-  fun rendererOf(node: Any?): TreeCellRenderer? {
-    val type = node?.let { typeOf(node) } ?: return null
+  fun rendererOf(node: Any): TreeCellRenderer {
+    val type = typeOf(node)
     return rendererCache[type.clazz] ?: createRenderer(type)
   }
 
@@ -110,7 +110,7 @@ class ComponentTreeModelImpl(
    *
    * Do not use Tree.getPathForRow(row) since it may return null on first draw.
    */
-  fun computeDepth(node: Any?): Int {
+  fun computeDepth(node: Any): Int {
     return generateSequence(node) { parent(it) }.count()
   }
 
