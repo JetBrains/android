@@ -1696,10 +1696,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(databaseInspectorView, times(1)).updateDatabases(any())
   }
 
-  fun testOfflineDatabasesNotOpenedIfFlagDisabled() {
-    // Prepare
-    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = false
-
+  fun testOfflineDatabasesNotOpenedIfFlagDisabled() = runWithState(offlineModeEnabled = false) {
     // Act
     runDispatching(edtExecutor.asCoroutineDispatcher()) {
       databaseInspectorController.stopAppInspectionSession("processName", processDescriptor)
@@ -1707,5 +1704,14 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     verifyZeroInteractions(offlineModeManager)
+  }
+
+  private fun runWithState(offlineModeEnabled: Boolean, block: () -> Unit) {
+    val originalState = DatabaseInspectorSettings.getInstance().isOfflineModeEnabled
+    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = offlineModeEnabled
+
+    block()
+
+    DatabaseInspectorSettings.getInstance().isOfflineModeEnabled = originalState
   }
 }
