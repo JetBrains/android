@@ -657,11 +657,12 @@
     <option name="verbose" hit="Verbose" />
     <option name="warning" hit="Warning" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of literals" configurable_name="Live Edit of literals">
-    <option name="edit" hit="Live Edit of literals" />
-    <option name="literals" hit="Live Edit of literals" />
-    <option name="live" hit="Live Edit of literals" />
-    <option name="of" hit="Live Edit of literals" />
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of Compose Literals" configurable_name="Live Edit of Compose Literals">
+    <option name="compose" hit="Live Edit of Compose Literals" />
+    <option name="edit" hit="Live Edit of Compose Literals" />
+    <option name="literals" hit="Live Edit of Compose Literals" />
+    <option name="live" hit="Live Edit of Compose Literals" />
+    <option name="of" hit="Live Edit of Compose Literals" />
     <option name="decorations" hit="Literals decorations" />
     <option name="literals" hit="Literals decorations" />
   </configurable>
@@ -858,7 +859,7 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="android.live.literals" configurable_name="Live Edit of literals">
+  <configurable id="android.live.literals" configurable_name="Live Edit of Compose Literals">
     <option name="" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
     <option name="after" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
     <option name="building" hit=" Building is required after enabling live edit of literals so the feature can work properly." />
@@ -880,10 +881,11 @@
     <option name="literals" hit="Enable Live Edit of literals" />
     <option name="live" hit="Enable Live Edit of literals" />
     <option name="of" hit="Enable Live Edit of literals" />
-    <option name="edit" hit="Live Edit of literals" />
-    <option name="literals" hit="Live Edit of literals" />
-    <option name="live" hit="Live Edit of literals" />
-    <option name="of" hit="Live Edit of literals" />
+    <option name="compose" hit="Live Edit of Compose Literals" />
+    <option name="edit" hit="Live Edit of Compose Literals" />
+    <option name="literals" hit="Live Edit of Compose Literals" />
+    <option name="live" hit="Live Edit of Compose Literals" />
+    <option name="of" hit="Live Edit of Compose Literals" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool." />
