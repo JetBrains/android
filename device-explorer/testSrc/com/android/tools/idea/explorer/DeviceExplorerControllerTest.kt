@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -36,9 +38,6 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
 import com.android.tools.idea.explorer.ui.TreeUtil
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFailedFuture
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -68,10 +67,9 @@ import com.intellij.ui.UIBundle
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.tree.TreeModelAdapter
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.any
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.awt.Component
@@ -208,11 +206,11 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewInitialState(controller, myDevice1)
   }
 
-  fun testStartControllerFailure() {
+  fun testStartControllerFailure() = runBlocking {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start(any())).thenReturn(immediateFailedFuture(RuntimeException(setupErrorMessage)))
+    `when`(service.start(any())).thenThrow(RuntimeException(setupErrorMessage))
     val controller = createController(service = service)
 
     // Act
@@ -224,10 +222,10 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(setupErrorMessage))
   }
 
-  fun testStartControllerUnexpectedFailure() {
+  fun testStartControllerUnexpectedFailure() = runBlocking {
     // Prepare
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start(any())).thenReturn(immediateFailedFuture(RuntimeException()))
+    `when`(service.start(any())).thenThrow(RuntimeException())
     val controller = createController(service = service)
 
     // Act
@@ -254,14 +252,12 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewInitialState(controller, myDevice1)
   }
 
-  fun testRestartControllerFailure() {
+  fun testRestartControllerFailure() = runBlocking  {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`<ListenableFuture<*>>(service.start(any())).thenReturn(immediateFuture<Any>(null))
-    `when`<ListenableFuture<*>>(service.restart(any()))
-      .thenReturn(immediateFailedFuture<Any>(RuntimeException(setupErrorMessage)))
-    `when`<ListenableFuture<*>>(service.devices).thenReturn(immediateFuture(ArrayList<Any>()))
+    `when`(service.restart(any())).thenThrow(RuntimeException(setupErrorMessage))
+    `when`(service.devices).thenReturn(ArrayList())
     val controller = createController(service = service)
 
     // Act
@@ -274,12 +270,11 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(setupErrorMessage))
   }
 
-  fun testGetDevicesFailure() {
+  fun testGetDevicesFailure() = runBlocking {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
-    `when`(service.start(any())).thenReturn(immediateFuture(null))
-    `when`(service.devices).thenReturn(immediateFailedFuture(RuntimeException(setupErrorMessage)))
+    `when`(service.devices).thenThrow(RuntimeException(setupErrorMessage))
     val controller = createController(service = service)
 
     // Act
@@ -473,7 +468,7 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     fireEnterKey(myMockView.tree)
     pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     pumpEventsAndWaitForFuture(myMockFileManager.downloadFileEntryTracker.consume())
-    val t = pumpEventsAndWaitForFutureException(myMockFileManager.downloadFileEntryCompletionTracker.consume())
+    val t = pumpEventsAndWaitForFutureException<VirtualFile>(myMockFileManager.downloadFileEntryCompletionTracker.consume())
     val loadingError = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToNodeTracker.consume())
 
     // Assert

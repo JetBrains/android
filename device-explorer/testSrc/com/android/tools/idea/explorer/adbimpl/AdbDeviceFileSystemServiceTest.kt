@@ -19,8 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.Sdks
@@ -29,12 +27,12 @@ import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeoutException
+import java.io.FileNotFoundException
 import java.util.function.Supplier
 
 class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
@@ -57,23 +55,23 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNull("AndroidDebugBridge should have been terminated", AndroidDebugBridge.getBridge())
   }
 
-  fun testStartService() {
+  fun testStartService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
     // Act
-    pumpEventsAndWaitForFuture(service.start(adbSupplier))
+    service.start(adbSupplier)
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(pumpEventsAndWaitForFuture(service.devices))
+    assertNotNull(service.devices)
   }
 
-  fun testDebugBridgeListenersRemovedOnDispose() {
+  fun testDebugBridgeListenersRemovedOnDispose() = runBlocking {
     // Prepare
     val service = getInstance(project)
-    pumpEventsAndWaitForFuture(service.start(adbSupplier))
+    service.start(adbSupplier)
     assertEquals(1, AndroidDebugBridge.getDebugBridgeChangeListenerCount())
     assertEquals(1, AndroidDebugBridge.getDeviceChangeListenerCount())
 
@@ -85,18 +83,18 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
   }
 
-  fun testStartAlreadyStartedService() {
+  fun testStartAlreadyStartedService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
     // Act
     service.start(adbSupplier)
-    pumpEventsAndWaitForFuture(service.start(adbSupplier))
+    service.start(adbSupplier)
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(pumpEventsAndWaitForFuture(service.devices))
+    assertNotNull(service.devices)
   }
 
   fun testStartServiceFailsIfAdbIsNull() {
@@ -104,50 +102,55 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     val service = getInstance(project)
 
     // Act
-    val throwable = pumpEventsAndWaitForFutureException(service.start { null })
-
-    // Assert
-    assertEquals("java.io.FileNotFoundException: Android Debug Bridge not found.", throwable.message)
+    assertThrows(FileNotFoundException::class.java, "Android Debug Bridge not found.") {
+      runBlocking {
+        service.start { null }
+      }
+    }
   }
 
-  fun testRestartService() {
+  fun testRestartService() = runBlocking {
     // Prepare
     val service = getInstance(project)
-    pumpEventsAndWaitForFuture(service.start(adbSupplier))
+    service.start(adbSupplier)
 
     // Act
-    pumpEventsAndWaitForFuture(service.restart(adbSupplier))
+    service.restart(adbSupplier)
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(pumpEventsAndWaitForFuture(service.devices))
+    assertNotNull(service.devices)
   }
 
-  fun testRestartNonStartedService() {
+  fun testRestartNonStartedService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
     // Act
-    pumpEventsAndWaitForFuture(service.restart(adbSupplier))
+    service.restart(adbSupplier)
 
     // Assert
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
-    assertNotNull(pumpEventsAndWaitForFuture(service.devices))
+    assertNotNull(service.devices)
   }
 
-  fun testRestartServiceCantTerminateDdmlib() {
+  fun testRestartServiceCantTerminateDdmlib() = runBlocking {
     // Prepare
     val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mock()))
 
     Mockito.doThrow(RuntimeException()).`when`(mockAdbService).terminateDdmlib()
     val service = getInstance(project)
-    pumpEventsAndWaitForFuture(service.start(adbSupplier))
+    service.start(adbSupplier)
 
     // Act
-    val t = pumpEventsAndWaitForFutureException(service.restart(adbSupplier))
+    try {
+      service.restart(adbSupplier)
+    } catch(e: RuntimeException) {
+      // expected
+    }
     Mockito.doNothing().`when`(mockAdbService).terminateDdmlib()
   }
 
@@ -157,11 +160,9 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
 
-    // Act
-    val t = pumpEventsAndWaitForFutureException(service.start(adbSupplier))
-
-    // Assert
-    assertEquals("java.lang.RuntimeException: test fail", t.message)
+    assertThrows(RuntimeException::class.java, "test fail") {
+      runBlocking { service.start(adbSupplier) }
+    }
   }
 
   fun testGetDebugBridgeFailureNoMessage() {
@@ -171,6 +172,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException()))
 
     // Act
-    pumpEventsAndWaitForFutureException(service.start(adbSupplier))
+    assertThrows(RuntimeException::class.java) {
+      runBlocking { service.start(adbSupplier) }
+    }
   }
 }

@@ -129,7 +129,7 @@ class DeviceExplorerController(
       myView.setup()
       myView.startRefresh("Initializing ADB")
       try {
-        myService.start { getAdbFile() }.await()
+        myService.start { getAdbFile() }
         setupJob.complete(Unit)
         refreshDeviceList(null)
       } catch (t: Throwable) {
@@ -145,7 +145,7 @@ class DeviceExplorerController(
     myProject.coroutineScope.launch(uiThread) {
       myView.startRefresh("Restarting ADB")
       try {
-        myService.restart { getAdbFile() }.await()
+        myService.restart { getAdbFile() }
         // A successful restart invokes {@link ServiceListener#serviceRestarted()} which
         // eventually refreshes the list of devices
       } catch (t: Throwable) {
@@ -181,7 +181,7 @@ class DeviceExplorerController(
     cancelOrMoveToBackgroundPendingOperations()
     myView.startRefresh("Refreshing list of devices")
     try {
-      val devices = myService.devices.await()
+      val devices = myService.devices
       myModel.removeAllDevices()
       devices.forEach { myModel.addDevice(it) }
       if (devices.isEmpty()) {

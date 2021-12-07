@@ -34,16 +34,16 @@ interface DeviceFileSystemService<S : DeviceFileSystem> {
   /**
    * Starts the service, usually after registering one or more [DeviceFileSystemServiceListener].
    */
-  fun start(adbSupplier: Supplier<File?>): ListenableFuture<Unit>
+  suspend fun start(adbSupplier: Supplier<File?>)
 
   /**
    * Restarts the service, usually as the result of a user action when/if the service has become
    * unreliable.
    */
-  fun restart(adbSupplier: Supplier<File?>): ListenableFuture<Unit>
+  suspend fun restart(adbSupplier: Supplier<File?>)
 
   /**
    * Returns the list of currently known devices.
    */
-  val devices: ListenableFuture<List<S>>
+  val devices: List<S>
 }
