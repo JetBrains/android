@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
 import javax.swing.JTable;

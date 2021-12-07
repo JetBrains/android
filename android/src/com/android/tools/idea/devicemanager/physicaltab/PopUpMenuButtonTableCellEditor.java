@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.JBPopupMenu;
 import java.util.List;

@@ -17,7 +17,9 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,13 +32,52 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
+  private static final boolean SPLIT_ACTIONS_ENABLED = false;
+
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
   static final int SIZE_ON_DISK_MODEL_COLUMN_INDEX = 2;
   static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
+  private static final int LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX = 3;
+  private static final int ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX = 4;
+  private static final int EDIT_MODEL_COLUMN_INDEX = 5;
+  private static final int POP_UP_MENU_MODEL_COLUMN_INDEX = 6;
+
   private @NotNull List<@NotNull VirtualDevice> myDevices;
   private final @NotNull Map<@NotNull VirtualDevice, @NotNull SizeOnDisk> myDeviceToSizeOnDiskMap;
+
+  static final class Actions {
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final Actions INSTANCE = new Actions();
+
+    private Actions() {
+    }
+  }
+
+  private static final class LaunchInEmulatorValue {
+    private static final LaunchInEmulatorValue INSTANCE = new LaunchInEmulatorValue();
+
+    private LaunchInEmulatorValue() {
+    }
+
+    @Override
+    public @NotNull String toString() {
+      return "Launch in emulator";
+    }
+  }
+
+  private static final class EditValue {
+    private static final EditValue INSTANCE = new EditValue();
+
+    private EditValue() {
+    }
+
+    @Override
+    public @NotNull String toString() {
+      return "Edit";
+    }
+  }
 
   VirtualDeviceTableModel() {
     this(Collections.emptyList());
@@ -46,14 +87,6 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
   VirtualDeviceTableModel(@NotNull List<@NotNull VirtualDevice> devices) {
     myDevices = devices;
     myDeviceToSizeOnDiskMap = new HashMap<>();
-  }
-
-  static final class Actions {
-    @SuppressWarnings("InstantiationOfUtilityClass")
-    static final Actions INSTANCE = new Actions();
-
-    private Actions() {
-    }
   }
 
   @NotNull List<@NotNull VirtualDevice> getDevices() {
@@ -80,11 +113,29 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 4;
+    return SPLIT_ACTIONS_ENABLED ? 7 : 4;
   }
 
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
+    if (SPLIT_ACTIONS_ENABLED) {
+      switch (modelColumnIndex) {
+        case DEVICE_MODEL_COLUMN_INDEX:
+          return "Device";
+        case API_MODEL_COLUMN_INDEX:
+          return "API";
+        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+          return "Size on Disk";
+        case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        case EDIT_MODEL_COLUMN_INDEX:
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return "";
+        default:
+          throw new AssertionError(modelColumnIndex);
+      }
+    }
+
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return "Device";
@@ -101,6 +152,26 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
+    if (SPLIT_ACTIONS_ENABLED) {
+      switch (modelColumnIndex) {
+        case DEVICE_MODEL_COLUMN_INDEX:
+          return Device.class;
+        case API_MODEL_COLUMN_INDEX:
+        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+          return Object.class;
+        case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+          return LaunchInEmulatorValue.class;
+        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+          return ActivateDeviceFileExplorerWindowValue.class;
+        case EDIT_MODEL_COLUMN_INDEX:
+          return EditValue.class;
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return PopUpMenuValue.class;
+        default:
+          throw new AssertionError(modelColumnIndex);
+      }
+    }
+
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
@@ -116,23 +187,64 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
+    if (SPLIT_ACTIONS_ENABLED) {
+      switch (modelColumnIndex) {
+        case DEVICE_MODEL_COLUMN_INDEX:
+        case API_MODEL_COLUMN_INDEX:
+        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+          return false;
+        case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+        case EDIT_MODEL_COLUMN_INDEX:
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return true;
+        default:
+          throw new AssertionError(modelColumnIndex);
+      }
+    }
+
     return modelColumnIndex == ACTIONS_MODEL_COLUMN_INDEX;
   }
 
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
+    if (SPLIT_ACTIONS_ENABLED) {
+      switch (modelColumnIndex) {
+        case DEVICE_MODEL_COLUMN_INDEX:
+          return myDevices.get(modelRowIndex);
+        case API_MODEL_COLUMN_INDEX:
+          return myDevices.get(modelRowIndex).getApi();
+        case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+          return getSizeOnDisk(myDevices.get(modelRowIndex));
+        case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
+          return LaunchInEmulatorValue.INSTANCE;
+        case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
+          return ActivateDeviceFileExplorerWindowValue.INSTANCE;
+        case EDIT_MODEL_COLUMN_INDEX:
+          return EditValue.INSTANCE;
+        case POP_UP_MENU_MODEL_COLUMN_INDEX:
+          return PopUpMenuValue.INSTANCE;
+        default:
+          throw new AssertionError(modelColumnIndex);
+      }
+    }
+
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-        return myDeviceToSizeOnDiskMap.computeIfAbsent(myDevices.get(modelRowIndex), // TODO: put size in VirtualDevice
-                                                       device -> new SizeOnDisk(device.getAvdInfo(), this));
+        return getSizeOnDisk(myDevices.get(modelRowIndex));
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.INSTANCE;
       default:
         throw new AssertionError(modelColumnIndex);
     }
+  }
+
+  // TODO Put size in VirtualDevice
+  private @NotNull Object getSizeOnDisk(@NotNull VirtualDevice device) {
+    return myDeviceToSizeOnDiskMap.computeIfAbsent(device, d -> new SizeOnDisk(d.getAvdInfo(), this));
   }
 }

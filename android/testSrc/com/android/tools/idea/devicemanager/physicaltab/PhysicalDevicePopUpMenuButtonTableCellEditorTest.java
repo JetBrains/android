@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTable;

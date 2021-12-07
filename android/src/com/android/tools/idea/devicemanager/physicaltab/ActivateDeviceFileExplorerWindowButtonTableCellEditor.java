@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceExplorerViewServiceInvokeLater;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;

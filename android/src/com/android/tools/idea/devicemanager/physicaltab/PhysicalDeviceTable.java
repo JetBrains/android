@@ -16,10 +16,10 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;

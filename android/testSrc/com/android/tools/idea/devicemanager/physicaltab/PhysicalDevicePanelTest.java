@@ -21,11 +21,11 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.DetailsPanel;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetDevices;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.ActivateDeviceFileExplorerWindowValue;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

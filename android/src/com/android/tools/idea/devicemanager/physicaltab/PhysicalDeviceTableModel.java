@@ -16,7 +16,9 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,27 +41,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
 
-  static final class ActivateDeviceFileExplorerWindowValue {
-    @SuppressWarnings("InstantiationOfUtilityClass")
-    static final ActivateDeviceFileExplorerWindowValue INSTANCE = new ActivateDeviceFileExplorerWindowValue();
-
-    private ActivateDeviceFileExplorerWindowValue() {
-    }
-  }
-
   static final class RemoveValue {
     @SuppressWarnings("InstantiationOfUtilityClass")
     static final RemoveValue INSTANCE = new RemoveValue();
 
     private RemoveValue() {
-    }
-  }
-
-  static final class PopUpMenuValue {
-    @SuppressWarnings("InstantiationOfUtilityClass")
-    static final PopUpMenuValue INSTANCE = new PopUpMenuValue();
-
-    private PopUpMenuValue() {
     }
   }
 
