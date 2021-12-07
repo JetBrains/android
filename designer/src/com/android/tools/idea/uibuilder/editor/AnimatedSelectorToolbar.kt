@@ -135,6 +135,13 @@ private constructor(
     comboBox?.selectedIndex = 0
   }
 
+  /**
+   * Return if the any transition is selected. This means the selected item is [ID_ANIMATED_SELECTOR_MODEL].
+   */
+  fun isTransitionSelected(): Boolean {
+    return (comboBox?.selectedIndex ?: -1) > 0
+  }
+
   companion object {
     /**
      * Constructs a new toolbar for animated selector file.
@@ -281,6 +288,9 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
    * Set the content of given the [option], this will change the content of temp file to the given option.
    */
   fun setPreviewOption(option: String) {
+    if (currentOption == option) {
+      return
+    }
     currentOption = option
     val tag = animationTags[option] ?: return
     WriteCommandAction.runWriteCommandAction(nlModelOfTempFile.project) {

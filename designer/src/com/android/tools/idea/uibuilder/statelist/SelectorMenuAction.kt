@@ -49,6 +49,26 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
 
   override fun displayTextInToolbar(): Boolean = true
 
+  override fun update(e: AnActionEvent) {
+    val toolbar = e.getData(DESIGN_SURFACE)?.let { surface -> DataManager.getDataProvider(surface) }
+      ?.let { provider -> ANIMATION_TOOLBAR.getData(provider) }
+
+    if (toolbar == null) {
+      e.presentation.isVisible = false
+      return
+    }
+
+    e.presentation.isVisible = true
+    if (toolbar is AnimatedSelectorToolbar && toolbar.isTransitionSelected()) {
+      e.presentation.isEnabled = false
+      e.presentation.description = "Cannot select the state when previewing a transition"
+    }
+    else {
+      e.presentation.isEnabled = true
+      e.presentation.description = null
+    }
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE)
     val button = e.inputEvent.component
@@ -158,22 +178,18 @@ private fun setState(surface: DesignSurface, state: State, enabled: Boolean) {
   val states = image.drawableState
   val stateValue = state.intValue
 
-  var shouldRender = false
+  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager
 
   // image.setImageState(states, true) didn't work as expected. So I'm doing it this way.
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
-      image.setImageState(ArrayUtil.append(states, stateValue), false)
-      shouldRender = true
+      sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.append(states, stateValue), false) }
+        .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
     }
   }
   else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
-    image.setImageState(ArrayUtil.remove(states, i), false)
-    shouldRender = true
-  }
-
-  if (shouldRender) {
-    surface.sceneManager?.requestRenderAsync()
+    sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
+      .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
   }
 }
