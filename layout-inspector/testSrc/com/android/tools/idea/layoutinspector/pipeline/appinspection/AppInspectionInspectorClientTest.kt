@@ -397,6 +397,8 @@ class AppInspectionInspectorClientTest {
       ViewProtocol.Response.newBuilder().setStopFetchResponse(ViewProtocol.StopFetchResponse.getDefaultInstance()).build()
     }
 
+    var sawInitialFirstBatchEvent = false
+    var sawInitialSecondBatchEvent = false
     val treeEventsHandled = ReportingCountDownLatch(1)
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
@@ -404,13 +406,29 @@ class AppInspectionInspectorClientTest {
           assertThat(viewEvent.rootView.id).isEqualTo(1)
 
           if (handlingFirstBatch) {
-            handlingFirstBatch = false
-            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
-            client.stopFetching() // Triggers second batch of layout events
+            if (!sawInitialFirstBatchEvent && viewEvent.screenshot.bytes.byteAt(0) < 10) {
+              // This will get called at some point between when we start generating events and after we get to event 10.
+              // If we haven't gotten to event 10 yet, wait a little until the rest can be ready for us. After this we should expect the
+              // next available event to be 10.
+              sawInitialFirstBatchEvent = true
+              Thread.sleep(100)
+            }
+            else {
+              handlingFirstBatch = false
+              assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
+              client.stopFetching() // Triggers second batch of layout events
+            }
           }
           else {
-            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(20.toByte())
-            treeEventsHandled.countDown()
+            if (!sawInitialSecondBatchEvent && viewEvent.screenshot.bytes.byteAt(0) < 20) {
+              // Same as above with the second batch of events, up to event 20.
+              sawInitialSecondBatchEvent = true
+              Thread.sleep(100)
+            }
+            else {
+              assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(20.toByte())
+              treeEventsHandled.countDown()
+            }
           }
         }
       }

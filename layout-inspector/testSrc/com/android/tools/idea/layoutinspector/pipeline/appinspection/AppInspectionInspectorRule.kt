@@ -54,7 +54,6 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
  */
 class AppInspectionClientProvider(
   private val getApiServices: () -> AppInspectionApiServices,
-  private val getScope: () -> CoroutineScope,
   private val getMonitor: () -> InspectorClientLaunchMonitor,
   private val parentDisposable: Disposable
 )
@@ -63,7 +62,7 @@ class AppInspectionClientProvider(
     val apiServices = getApiServices()
 
     return AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
-                                        parentDisposable, apiServices, getScope()).apply {
+                                        parentDisposable, apiServices).apply {
       launchMonitor = getMonitor()
     }
   }
@@ -134,10 +133,7 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
   fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor()): AppInspectionClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, {
-      // We might want to shut down the client and create a new one, so it needs its own supervisor scope
-      inspectionService.scope.createChildScope(true)
-    }, { monitor }, parentDisposable)
+    return AppInspectionClientProvider({ inspectionService.apiServices }, { monitor }, parentDisposable)
   }
 
   override fun apply(base: Statement, description: Description): Statement {

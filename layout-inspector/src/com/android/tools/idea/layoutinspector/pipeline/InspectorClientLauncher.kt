@@ -28,9 +28,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.jetbrains.rd.util.threadLocalWithInitial
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -48,7 +51,7 @@ class InspectorClientLauncher(
   private val clientCreators: List<(Params) -> InspectorClient?>,
   private val project: Project,
   private val parentDisposable: Disposable,
-  @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+  @VisibleForTesting executor: Executor? = null
 ) {
   companion object {
 
@@ -85,15 +88,68 @@ class InspectorClientLauncher(
     val disposable: Disposable
   }
 
+  private val sequenceNumberLock = Any()
+  private var sequenceNumber = 0
+  private val threadSequenceNumber = threadLocalWithInitial { -1 }
+  private val workerExecutor = AndroidExecutors.getInstance().workerThreadExecutor
+
   init {
-    processes.addSelectedProcessListeners(executor) {
+    val realExecutor = executor ?: object: Executor {
+      private val singleThreadExecutor = Executors.newSingleThreadExecutor()
+      override fun execute(command: Runnable) {
+        // If we're already in a worker thread as part of a recursive call (e.g. when setting the selected process to
+        // null after failing to connect) execute directly in the current thread. Otherwise execute incoming requests sequentially.
+        if (threadSequenceNumber.get() > 0) {
+          command.run()
+        }
+        else {
+          singleThreadExecutor.execute(command)
+        }
+      }
+    }
+
+    processes.addSelectedProcessListeners(realExecutor) {
       if (!project.isDisposed) {
-        handleProcess(processes.selectedProcess, processes.isAutoConnected)
+        val processHandler = {
+          try {
+            handleProcess(processes.selectedProcess, processes.isAutoConnected)
+          }
+          catch (ignore: CancellationException) {
+          }
+        }
+        // If we're already executing a recursive call in the most recent request, execute directly in the current thread.
+        // If this is a new request, execute in a new worker.
+        // If this is an obsolete request, do nothing.
+        if (threadSequenceNumber.get() == sequenceNumber) {
+          processHandler()
+        }
+        else if (threadSequenceNumber.get() < 0) {
+          synchronized(sequenceNumberLock) {
+            val threadStartedLatch = CountDownLatch(1)
+            (executor ?: workerExecutor).execute {
+              threadSequenceNumber.set(++sequenceNumber)
+              try {
+                threadStartedLatch.countDown()
+                processHandler()
+              }
+              finally {
+                threadSequenceNumber.set(-1)
+              }
+            }
+            threadStartedLatch.await()
+          }
+        }
       }
     }
 
     Disposer.register(parentDisposable) {
-      activeClient = DisconnectedClient
+      threadSequenceNumber.set(++sequenceNumber)
+      try {
+        activeClient = DisconnectedClient
+      }
+      finally {
+        threadSequenceNumber.set(-1)
+      }
     }
   }
 
@@ -107,6 +163,7 @@ class InspectorClientLauncher(
       }
 
       for (createClient in clientCreators) {
+        checkCancelled()
         val client = createClient(params)
         if (client != null) {
           try {
@@ -118,12 +175,27 @@ class InspectorClientLauncher(
               }
             }
 
-            activeClient = client // client.connect() call internally might throw
+            activeClient = client
+
             // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
             latch.await(1, TimeUnit.MINUTES)
+            // This client didn't work, try the next
             if (validClientConnected) {
               break
             }
+            else {
+              // Disconnect to clean up any partial connection or leftover process
+              client.disconnect()
+            }
+            // The current selected process changed out from under us, abort the whole thing.
+            if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
+              return
+            }
+          }
+          catch (cancellationException: CancellationException) {
+            // Disconnect to clean up any partial connection or leftover process
+            client.disconnect()
+            throw cancellationException
           }
           catch (ignored: Exception) {
           }
@@ -145,14 +217,25 @@ class InspectorClientLauncher(
     }
   }
 
+  private fun checkCancelled() {
+    if (threadSequenceNumber.get() < sequenceNumber) {
+      throw CancellationException("Launch thread preempted")
+    }
+  }
+
   var activeClient: InspectorClient = DisconnectedClient
     private set(value) {
       if (field != value) {
-        if (field.isConnected) {
-          field.disconnect()
+        val oldClient = synchronized(sequenceNumberLock) {
+          checkCancelled()
+          field
         }
-        Disposer.dispose(field)
-        field = value
+        oldClient.disconnect()
+        Disposer.dispose(oldClient)
+        synchronized(sequenceNumberLock) {
+          checkCancelled()
+          field = value
+        }
         clientChangedCallbacks.forEach { callback -> callback(value) }
         value.connect()
       }
@@ -179,8 +262,9 @@ class InspectorClientLauncher(
                                  ?: processes.processes.firstOrNull { it.pid == process.pid && it.isRunning }
 
             if (runningProcess != null) {
-              processes.selectedProcess = runningProcess // As a side effect, will ensure the pulldown is updated
-              executor.execute { handleProcess(processes.selectedProcess, isInstantlyAutoConnected = false) }
+              // Reset the process to cause us to connect.
+              processes.selectedProcess = null
+              processes.selectedProcess = runningProcess
             }
           }
         }

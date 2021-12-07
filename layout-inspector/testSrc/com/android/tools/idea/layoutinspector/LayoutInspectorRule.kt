@@ -230,7 +230,7 @@ class LayoutInspectorRule(
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated
     inspectorClient = launcher.activeClient
-    assertThat(!inspectorClient.isConnected)
+    assertThat(inspectorClient.isConnected).isFalse()
     processes.addSelectedProcessListeners {
       processes.selectedProcess?.let { process ->
         // If a process is selected, let's just make sure we have ADB aware of the device as well. Some client code expects

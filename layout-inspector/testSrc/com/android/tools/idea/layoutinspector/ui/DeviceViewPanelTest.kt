@@ -269,8 +269,9 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).hasSize(3)
     assertThat(commands[0].hasStartFetchCommand()).isTrue()
-    assertThat(commands[1].hasStopFetchCommand()).isTrue()
-    assertThat(commands[2].updateScreenshotTypeCommand.type).isEqualTo(LayoutInspectorViewProtocol.Screenshot.Type.SKP)
+    // stop and update screenshot type can come in either order
+    assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
+    assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
     assertThat(stats.currentModeIsLive).isFalse()
   }
 

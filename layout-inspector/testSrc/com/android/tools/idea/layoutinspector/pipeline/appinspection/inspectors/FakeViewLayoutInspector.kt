@@ -51,14 +51,14 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT)
         connection.sendEvent {
-          rootsEvent = WindowRootsEvent.getDefaultInstance()
+          rootsEvent = WindowRootsEvent.newBuilder().addIds(123).build()
         }
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
         connection.sendEvent {
-          layoutEvent = LayoutEvent.getDefaultInstance()
+          layoutEvent = LayoutEvent.newBuilder().apply { rootViewBuilder.id = 123 }.build()
         }
         if (!command.startFetchCommand.continuous) {
           connection.sendEvent {

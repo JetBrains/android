@@ -42,9 +42,10 @@ abstract class AbstractInspectorClient(
 
   final override var state: InspectorClient.State = InspectorClient.State.INITIALIZED
     private set(value) {
-      assert(field != value)
-      field = value
-      fireState(value)
+      if (field != value) {
+        field = value
+        fireState(value)
+      }
     }
 
   private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
@@ -117,10 +118,14 @@ abstract class AbstractInspectorClient(
 
   protected abstract fun doConnect(): ListenableFuture<Nothing>
 
+  private val disconnectStateLock = Any()
   final override fun disconnect() {
-    assert(state == InspectorClient.State.CONNECTED || state == InspectorClient.State.CONNECTING)
-    state = InspectorClient.State.DISCONNECTING
-
+    synchronized(disconnectStateLock) {
+      if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
+        return
+      }
+      state = InspectorClient.State.DISCONNECTING
+    }
     doDisconnect().addListener(
       {
         state = InspectorClient.State.DISCONNECTED
