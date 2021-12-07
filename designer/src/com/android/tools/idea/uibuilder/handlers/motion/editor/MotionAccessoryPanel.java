@@ -528,7 +528,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       myMotionHelper.setState(mSelectedStartConstraintId);
     } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
       myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
-      myMotionHelper.setProgress(mLastProgress);
+      mMotionEditor.stopAnimation();
     } else {
       myMotionHelper.setState(null);
       mSelectedStartConstraintId = null;

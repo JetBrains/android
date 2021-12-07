@@ -355,6 +355,7 @@ public class TimeLinePanel extends JPanel {
 
   public void stopAnimation() {
     performCommand(TimelineCommands.PAUSE, 0);
+    resetMotionProgress();
   }
 
   private static String buildKey(MTag keyFrame) {
