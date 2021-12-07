@@ -39,6 +39,7 @@ import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
+import javax.tools.ToolProvider
 
 /**
  * Snapshot tests for 'Android Project View'.
@@ -177,6 +178,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     } finally {
       StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
     }
+  }
+
+  fun testSimpleApplicationVersionCatalog() {
+    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
+    assertIsEqualToSnapshot(text)
   }
 
   private fun importSyncAndDumpProject(
