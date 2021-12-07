@@ -19,7 +19,6 @@ import static com.intellij.util.ui.JBUI.Borders.empty;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.android.tools.adtui.validation.Validator;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -121,21 +120,5 @@ public final class WizardUtils {
     sp.setBorder(WIZARD_BORDER.EMPTY.border); // Remove outer border line decoration
     innerPanel.setBorder(wizardBorder.border);
     return sp;
-  }
-
-  /**
-   * Utility method that returns a unique name using an initial seed and a {@link Validator}
-   * @return The supplied initialValue if its valid (as per the return of {@link Validator}, or the initialValue contatenated with an
-   * {@link Integer} value that will be valid.
-   */
-  public static String getUniqueName(String initialValue, Validator<? super String> validator) {
-    int i = 2;
-    String uniqueName = initialValue;
-    while (i <= 100 && validator.validate(uniqueName).getSeverity() == Validator.Severity.ERROR) {
-      uniqueName = initialValue + i;
-      i++;
-    }
-
-    return uniqueName;
   }
 }

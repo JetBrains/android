@@ -27,9 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.idea.ui.wizard.WizardUtils.getProjectLocationParent;
-import static com.android.tools.idea.ui.wizard.WizardUtils.getUniqueName;
 import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
@@ -37,37 +35,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class WizardUtilsTest {
-  private final Result ERROR = new Result(Severity.ERROR, "Some error message");
-  private final Result WARNING = new Result(Severity.WARNING, "Some warning message");
-  private final Result INFO = new Result(Severity.INFO, "Some info message");
-
   @Rule
   public AndroidProjectRule projectRule = AndroidProjectRule.onDisk();
-
-  @Test
-  public void getUniqueNameForAlwaysOKResult() {
-    assertThat(getUniqueName("test", value -> OK)).isEqualTo("test");
-  }
-
-  @Test
-  public void getUniqueNameForAlwaysERRORResult() {
-    assertThat(getUniqueName("test", value -> ERROR)).isEqualTo("test100");
-  }
-
-  @Test
-  public void getUniqueNameForAlwaysWarningResult() {
-    assertThat(getUniqueName("test", value -> WARNING)).isEqualTo("test");
-  }
-
-  @Test
-  public void getUniqueNameForAlwaysInfoResult() {
-    assertThat(getUniqueName("test", value -> INFO)).isEqualTo("test");
-  }
-
-  @Test
-  public void getUniqueNameForSomeOKResult() {
-    assertThat(getUniqueName("test", value -> value.endsWith("9") ? OK : ERROR)).isEqualTo("test9");
-  }
 
   @Test
   public void validatePackageNameWithNullPackage() {
