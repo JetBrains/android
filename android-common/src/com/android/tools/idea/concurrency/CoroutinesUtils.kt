@@ -16,6 +16,7 @@
 package com.android.tools.idea.concurrency
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -32,6 +33,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -45,7 +47,9 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -134,6 +138,49 @@ fun SupervisorJob(disposable: Disposable): Job {
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
   return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler + context)
+}
+
+/**
+ * Launches a new coroutine that will be bound to the given [ProgressIndicatorEx]. If the indicator is stopped, the coroutine will be
+ * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped.
+ * This method also accepts an optional [CoroutineContext].
+ */
+fun CoroutineScope.launchWithProgress(
+  progressIndicator: ProgressIndicatorEx,
+  context: CoroutineContext = EmptyCoroutineContext,
+  runnable: suspend CoroutineScope.() -> Unit): Job {
+  if (!progressIndicator.isRunning) progressIndicator.start()
+
+  // We create a new scope that we will cancel if the progressIndicator is stopped.
+  val scope = createChildScope()
+
+  /**
+   * Checks if [progressIndicator] is cancelled and cancels the scope. Returns true as long as the scope is still active.
+   */
+  fun checkProgressIndicatorState(): Boolean {
+    if (progressIndicator.isCanceled) {
+      scope.cancel("User cancelled the refresh")
+    }
+    else if (!progressIndicator.isRunning) {
+      scope.cancel("The progress indicator is not running")
+    }
+
+    return scope.isActive
+  }
+
+  scope.launch(workerThread) {
+    while (checkProgressIndicatorState()) { delay(500) }
+  }
+
+  return scope.launch(context = scope.coroutineContext + context, block = runnable).apply {
+    invokeOnCompletion {
+      // The coroutine completed so, if needed, we stop the indicator.
+      if (progressIndicator.isRunning) {
+        progressIndicator.stop()
+        progressIndicator.processFinish()
+      }
+    }
+  }
 }
 
 /**

@@ -61,6 +61,12 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
 
   override fun setPinnedSurfaceVisibility(visible: Boolean) {
   }
+
+  override fun onRefreshCancelledByTheUser() {
+  }
+
+  override fun onRefreshCompleted() {
+  }
 }
 
 class ComposePreviewRepresentationTest {

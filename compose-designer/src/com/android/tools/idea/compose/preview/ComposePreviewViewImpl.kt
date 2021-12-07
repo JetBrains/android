@@ -149,6 +149,16 @@ interface ComposePreviewView {
    * If called the pinned previews will be shown/hidden at the top.
    */
   fun setPinnedSurfaceVisibility(visible: Boolean)
+
+  /**
+   * Called when a refresh in progress was cancelled by the user.
+   */
+  fun onRefreshCancelledByTheUser()
+
+  /**
+   * Called when a refresh has completed.
+   */
+  fun onRefreshCompleted()
 }
 
 fun interface ComposePreviewViewProvider {
@@ -344,6 +354,18 @@ internal class ComposePreviewViewImpl(private val project: Project,
     dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX
   }
 
+  /**
+   * [ActionData] that triggers Build and Refresh of the preview.
+   */
+  private val buildAndRefreshAction: ActionData
+    get() {
+      val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
+      return ActionData(actionDataText) {
+        psiFilePointer.element?.virtualFile?.let { requestBuild(project, it, true) }
+        repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
+      }
+    }
+
   init {
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
@@ -457,11 +479,18 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * Shows an error message saying a successful build is needed and a link to trigger a new build.
    */
   private fun showNeedsToBuildErrorPanel() {
-    val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
-    showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
-      psiFilePointer.element?.virtualFile?.let { requestBuild(project, it, true) }
-      repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
-    })
+    showModalErrorMessage(message("panel.needs.build"), buildAndRefreshAction)
+  }
+
+  override fun onRefreshCancelledByTheUser() {
+    if (!hasRendered)
+      showModalErrorMessage(message("panel.refresh.cancelled"), buildAndRefreshAction)
+    else
+      onRefreshCompleted()
+  }
+
+  override fun onRefreshCompleted() {
+    updateVisibilityAndNotifications()
   }
 
   /**

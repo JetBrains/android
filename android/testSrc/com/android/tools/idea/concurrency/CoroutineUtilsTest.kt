@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -46,6 +47,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -502,5 +504,54 @@ class CoroutineUtilsTest {
     """.trimIndent()).virtualFile
     runWriteActionAndWait { PsiManager.getInstance(project).dropPsiCaches() }
     assertTrue(getPsiFileSafely(project, virtualFile)!!.isValid)
+  }
+
+  @Test
+  fun `launch with progress cancels if the indicator is stopped`() = runBlocking {
+    val progressIndicator = ProgressIndicatorBase()
+    progressIndicator.start()
+    val coroutineCompleted = CompletableDeferred<Unit>()
+    launchWithProgress(progressIndicator) {
+      try {
+        while (true) { delay(1000) }
+      } catch (_: CancellationException) {}
+      catch (t: Throwable) {
+        fail("Unexpected exception $t")
+      }
+    }.invokeOnCompletion {
+      coroutineCompleted.complete(Unit)
+    }
+
+    try {
+      withTimeout(500) {
+        coroutineCompleted.await()
+      }
+      fail("Expected timeout")
+    } catch(_: TimeoutCancellationException) {}
+    // This will cancel the indicator which should stop the launched coroutine
+    progressIndicator.cancel()
+    coroutineCompleted.await()
+  }
+
+  @Test
+  fun `launch with progress stops the indicator if the coroutine ends`() = runBlocking {
+    val progressIndicator = ProgressIndicatorBase()
+    progressIndicator.start()
+
+    // The coroutine will start and wait for the CompletableDeferred to be completed.
+    val waitPoint = CompletableDeferred<Unit>()
+    val coroutineCompleted = CompletableDeferred<Unit>()
+
+    launchWithProgress(progressIndicator) {
+      waitPoint.await()
+    }.invokeOnCompletion {
+      coroutineCompleted.complete(Unit)
+    }
+
+    assertTrue(progressIndicator.isRunning)
+    waitPoint.complete(Unit)
+
+    coroutineCompleted.await()
+    assertFalse(progressIndicator.isRunning)
   }
 }

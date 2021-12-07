@@ -341,4 +341,35 @@ class ComposePreviewViewImplTest {
     fakeUi.root.validate()
     assertNull(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" })
   }
+
+  @RunsInEdt
+  @Test
+  fun `verify refresh cancellation`() {
+    previewView.hasComponentsOverlay = true
+    previewView.onRefreshCancelledByTheUser()
+    fakeUi.root.validate()
+    assertEquals("""
+      Refresh was cancelled and needs to be completed before the preview can be displayed
+      [Build & Refresh... (Ctrl+Shift+F5)]
+    """.trimIndent(), (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText())
+  }
+
+  @RunsInEdt
+  @Test
+  fun `verify refresh cancellation with content available does not show error panel`() {
+    previewView.hasComponentsOverlay = true
+    val composePreviewManager = TestComposePreviewManager()
+    val previews = listOf(
+      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display1"),
+      SinglePreviewElementInstance.forTesting("Fake Test Method", "Display2")
+    )
+    val fakePreviewProvider = object : PreviewElementProvider<PreviewElementInstance> {
+      override suspend fun previewElements(): Sequence<PreviewElementInstance> = previews.asSequence()
+    }
+    updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
+    previewView.onRefreshCancelledByTheUser()
+    fakeUi.root.validate()
+
+    assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+  }
 }
