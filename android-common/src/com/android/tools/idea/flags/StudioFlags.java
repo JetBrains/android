@@ -1262,7 +1262,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_USE_LOADER_WITH_AFFINITY = Flag.create(
     COMPOSE, "preview.loader.affinity", "Enable the class loading affinity.",
     "If enabled, the class loading will cache which class loaders are more likely to have the class.",
-    false);
+    true);
   // endregion
 
   // region WorkManager Inspector
