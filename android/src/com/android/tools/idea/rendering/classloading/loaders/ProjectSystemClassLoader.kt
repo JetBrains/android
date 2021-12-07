@@ -17,9 +17,18 @@ package com.android.tools.idea.rendering.classloading.loaders
 
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.uipreview.ClassModificationTimestamp
+import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+
+private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
+                                               startsWith("javax.") ||
+                                               startsWith("kotlin.") ||
+                                               startsWith(INTERNAL_PACKAGE) ||
+                                               startsWith("sun.")
 
 /**
  * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
@@ -31,6 +40,8 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    * [ClassModificationTimestamp] representing the loading timestamp.
    */
   private val virtualFileCache = ConcurrentHashMap<String, Pair<VirtualFile, ClassModificationTimestamp>>()
+
+  private val nonProjectFiles: MutableSet<String> = Collections.newSetFromMap(ContainerUtil.createConcurrentSoftMap())
 
   /**
    * [Sequence] of all the [VirtualFile]s and their associated [ClassModificationTimestamp] that have been loaded
@@ -48,14 +59,23 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
    */
   fun findClassVirtualFile(fqcn: String): VirtualFile? {
+    // Avoid loading a few well known system prefixes for the project class loader and also classes that have failed before.
+    if (fqcn.isSystemPrefix() || nonProjectFiles.contains(fqcn)) {
+      return null
+    }
     val cachedVirtualFile = virtualFileCache[fqcn]
 
     if (cachedVirtualFile?.first?.isValid == true) return cachedVirtualFile.first
     val vFile = findClassVirtualFileImpl(fqcn)
-    return vFile?.let {
-      virtualFileCache[fqcn] = Pair(it, ClassModificationTimestamp.fromVirtualFile(it))
-      it
+
+    if (vFile != null) {
+      virtualFileCache[fqcn] = Pair(vFile, ClassModificationTimestamp.fromVirtualFile(vFile))
     }
+    else {
+      nonProjectFiles.add(fqcn)
+    }
+
+    return vFile
   }
 
   /**
@@ -63,6 +83,7 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
    */
   fun invalidateCaches() {
     virtualFileCache.clear()
+    nonProjectFiles.clear()
   }
 
   override fun loadClass(fqcn: String): ByteArray? = try {

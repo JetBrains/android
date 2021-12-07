@@ -29,6 +29,7 @@ import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
+import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
@@ -67,14 +68,6 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
     .setLogErrorOnMissingJar(false)
     .get()
 }
-
-private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
-                                               startsWith("javax.") ||
-                                               startsWith("android.") ||
-                                               startsWith("sun.") ||
-                                               startsWith("org.jetbrains.") ||
-                                               startsWith("com.android.")
-
 
 /**
  * [PseudoClassLocator] that uses the given [DelegatingClassLoader.Loader] to find the `.class` file.
@@ -284,12 +277,15 @@ internal class ModuleClassLoaderImpl(module: Module,
                                                   externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
-    loader = MultiLoader(
-      listOfNotNull(
-        createOptionalOverlayLoader(module, onClassRewrite),
-        projectLoader,
-        nonProjectLoader,
-        RecyclerViewAdapterLoader()))
+    val allLoaders = listOfNotNull(
+      createOptionalOverlayLoader(module, onClassRewrite),
+      projectLoader,
+      nonProjectLoader,
+      RecyclerViewAdapterLoader())
+    loader = if (StudioFlags.COMPOSE_USE_LOADER_WITH_AFFINITY.get())
+      MultiLoaderWithAffinity(allLoaders)
+    else
+      MultiLoader(allLoaders)
   }
 
   private fun recordOverlayLoadedClass(fqcn: String) {

@@ -122,4 +122,25 @@ class ProjectSystemClassLoaderTest {
     assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertTrue(loader.loadedVirtualFiles.single { it.first == "a.class1" }.third.isUpToDate(virtualFile1))
   }
+
+  @Test
+  fun `verify platform classes are not loaded`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    val virtualFile1 = TestVirtualFile(rootDir, "file1")
+    val virtualFile2 = TestVirtualFile(rootDir, "file2")
+    val virtualFile3 = TestVirtualFile(rootDir, "file3")
+    val classes = mapOf(
+      "_layoutlib_._internal_..class1" to virtualFile1,
+      "java.lang.Test" to virtualFile2,
+      "test.package.A" to virtualFile3
+    )
+    val loader = ProjectSystemClassLoader {
+      classes[it]
+    }
+
+    assertNull(loader.loadClass("_layoutlib_._internal_..Class1"))
+    assertNull(loader.loadClass("java.lang.Test"))
+    assertEquals(virtualFile3.contentsToByteArray(), loader.loadClass("test.package.A"))
+    assertEquals(1, loader.loadedVirtualFiles.count())
+  }
 }
