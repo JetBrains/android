@@ -32,7 +32,7 @@ import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.adtui.ComboCheckBox;
-import com.android.tools.profilers.PathUtils;
+import com.android.tools.profilers.StringUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayout;
@@ -131,7 +131,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                          return Unit.INSTANCE;
                        },
                        "Apply",
-                       PathUtils::abbreviate)
+                       StringUtils::abbreviatePath)
   );
   private final JBCheckBox myVsyncBackgroundCheckBox = new JBCheckBox("VSync guide", true);
 

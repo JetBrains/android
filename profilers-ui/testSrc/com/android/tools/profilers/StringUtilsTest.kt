@@ -18,15 +18,21 @@ package com.android.tools.profilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class PathUtilsTest {
+class StringUtilsTest {
 
   @Test
   fun `short path left alone`() {
-    assertThat(PathUtils.abbreviate("/a/b/c")).isEqualTo("/a/b/c")
+    assertThat(StringUtils.abbreviatePath("/a/b/c")).isEqualTo("/a/b/c")
   }
 
   @Test
   fun `long path abbreviated`() {
-    assertThat(PathUtils.abbreviate("/a/b/c/d/e")).isEqualTo("/a/b/.../d/e")
+    assertThat(StringUtils.abbreviatePath("/a/b/c/d/e")).isEqualTo("/a/b/.../d/e")
+  }
+
+  @Test
+  fun `best fitting suffix gives longest suffix for width`() {
+    assertThat(StringUtils.bestFittingSuffix("0123456789", 4, String::length)).isEqualTo("6789")
+    assertThat(StringUtils.bestFittingSuffix("0123456789", 10, String::length)).isEqualTo("0123456789")
   }
 }

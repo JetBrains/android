@@ -15,15 +15,25 @@
  */
 package com.android.tools.profilers
 
-object PathUtils {
+object StringUtils {
   /**
    * Shorten a path such as "a/b/c/d/e" to "a/.../e"
    */
   @JvmStatic
-  fun abbreviate(path: String) = path.split('/').filterNot{it.isEmpty()}.let { parts ->
+  fun abbreviatePath(path: String) = path.split('/').filterNot{it.isEmpty()}.let { parts ->
     when {
       parts.size > 4 -> "/${parts[0]}/${parts[1]}/.../${parts[parts.size - 2]}/${parts.last()}"
       else -> path
     }
+  }
+
+  @JvmStatic
+  fun bestFittingSuffix(text: String, availableWidth: Int, textWidth: (String) -> Int): String {
+    tailrec fun abbrevFrom(start: Int): String = when {
+      start >= text.length -> ""
+      textWidth(text.substring(start)) <= availableWidth -> text.substring(start)
+      else -> abbrevFrom(start + 1)
+    }
+    return abbrevFrom(0)
   }
 }

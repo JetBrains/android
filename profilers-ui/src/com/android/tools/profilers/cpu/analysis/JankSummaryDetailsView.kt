@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.StringUtils.bestFittingSuffix
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
@@ -30,9 +31,12 @@ import com.android.tools.profilers.cpu.getActiveColor
 import com.android.tools.profilers.cpu.systemtrace.getTitle
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.SwingHelper
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableCellRenderer
 import kotlin.math.min
@@ -55,6 +59,7 @@ class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnal
     addRowToCommonSection("Jank type", JBLabel(event.appJankType.getTitle()).apply {
       foreground = event.getActiveColor()
     })
+    addRowToCommonSection("Layer name:", abbreviatedLabel(event.layerName))
     addRowToCommonSection("Display timing", JBLabel(event.presentType.getTitle()))
 
     val (expectedPercent, actualPercent) = when {
@@ -131,3 +136,21 @@ private object EventTable {
 private fun CpuCapture.offset(us: Long) = us - range.min.toLong()
 private fun CaptureNode?.descendants() = this?.descendantsStream?.toList() ?: listOf()
 private fun CaptureNode?.range() = this?.let { Range(it.startGlobal.toDouble(), it.endGlobal.toDouble())} ?: Range()
+
+private fun abbreviatedLabel(text: String) = JBLabel().apply {
+  val fontMetrics = getFontMetrics(font)
+  val ellipsisWidth = fontMetrics.stringWidth(SwingHelper.ELLIPSIS)
+  addComponentListener(object : ComponentAdapter() {
+    override fun componentResized(e: ComponentEvent) = when {
+      fontMetrics.stringWidth(text) < width -> {
+        this@apply.text = text
+        toolTipText = null
+      }
+      else -> {
+        val availableWidth = width - ellipsisWidth - /* leeway */ 4
+        this@apply.text = "${SwingHelper.ELLIPSIS}${bestFittingSuffix(text, availableWidth, fontMetrics::stringWidth)}"
+        toolTipText = text
+      }
+    }
+  })
+}
