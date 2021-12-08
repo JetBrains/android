@@ -550,7 +550,6 @@
                       factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"
                       facetIdList="android,apk"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
-    <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>

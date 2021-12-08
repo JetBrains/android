@@ -21,7 +21,6 @@ import com.android.testutils.TestUtils.getSdk
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -99,7 +98,6 @@ data class ProjectChecker(
 
   private fun createProject(fixture: JavaCodeInsightTestFixture, moduleName: String) {
     val project = fixture.project!!
-    IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java))
     AndroidGradleTests.setUpSdks(fixture, getSdk().toFile())
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")

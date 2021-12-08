@@ -98,7 +98,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -122,7 +121,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @NotNull private final FileDocumentManager myDocumentManager;
   @NotNull private final GradleTasksExecutor myTaskExecutor;
 
-  @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
   @NotNull private final List<String> myOneTimeGradleOptions = new ArrayList<>();
   @NotNull private final Multimap<String, String> myLastBuildTasks = ArrayListMultimap.create();
   @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
@@ -495,21 +493,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       return true;
     }
     return false;
-  }
-
-  @Override
-  public void add(@NotNull AfterGradleInvocationTask task) {
-    myAfterTasks.add(task);
-  }
-
-  @NotNull
-  protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
-    return myAfterTasks.toArray(new AfterGradleInvocationTask[0]);
-  }
-
-  @Override
-  public void remove(@NotNull AfterGradleInvocationTask task) {
-    myAfterTasks.remove(task);
   }
 
   @Override

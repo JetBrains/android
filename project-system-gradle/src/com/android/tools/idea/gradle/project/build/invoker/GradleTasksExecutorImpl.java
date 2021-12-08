@@ -426,30 +426,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
           application.invokeLater(() -> notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(MILLISECONDS)));
 
           if (!getProject().isDisposed()) {
-            GradleInvocationResult result =
-              new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), buildError, model.get());
-            RuntimeException error = null;
-            for (GradleBuildInvoker.AfterGradleInvocationTask task : ((GradleBuildInvokerImpl)(GradleBuildInvoker
-                                                                                                 .getInstance(getProject())))
-              .getAfterInvocationTasks()) {
-              try {
-                task.execute(result);
-              }
-              catch (ProcessCanceledException e) {
-                // Ignore process cancellation exceptions.
-                // We must run all post invocation tasks in order to ensure all relevant locks are released.
-              }
-              catch (RuntimeException e) {
-                if (error == null) {
-                  // Stash the first non-PCE exception to re-throw after all post invocation tasks had a chance to execute.
-                  error = e;
-                }
-              }
-            }
-            if (error != null) {
-              throw error;
-            }
-            return result;
+            return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), buildError, model.get());
           }
         }
         return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), null);

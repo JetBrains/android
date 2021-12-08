@@ -47,13 +47,7 @@ interface GradleBuildInvoker {
   fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
 
   fun stopBuild(id: ExternalSystemTaskId): Boolean
-  fun add(task: AfterGradleInvocationTask)
-  fun remove(task: AfterGradleInvocationTask)
   val project: Project
-
-  interface AfterGradleInvocationTask {
-    fun execute(result: GradleInvocationResult)
-  }
 
   data class Request constructor(
     val mode: BuildMode?,

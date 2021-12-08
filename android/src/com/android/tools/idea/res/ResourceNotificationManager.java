@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.ANDROID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ResourceFolderType;
@@ -26,7 +27,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.utils.HashCodes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -476,14 +477,14 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class ProjectBuildObserver implements AndroidProjectBuildNotifications.AndroidProjectBuildListener {
+  private class ProjectBuildObserver implements ProjectSystemBuildManager.BuildListener {
     private boolean myAlreadyAddedBuildListener;
     private boolean myIgnoreBuildEvents;
 
     private void startListening() {
       if (!myAlreadyAddedBuildListener) { // See comment in stopListening.
         myAlreadyAddedBuildListener = true;
-        AndroidProjectBuildNotifications.subscribe(myProject, this);
+        getProjectSystem(myProject).getBuildManager().addBuildListener(myProject, this);
       }
       myIgnoreBuildEvents = false;
     }
@@ -498,9 +499,16 @@ public class ResourceNotificationManager {
       myIgnoreBuildEvents = true;
     }
 
-    // ---- Implements AndroidProjectBuildNotifications.AndroidProjectBuildListener ----
     @Override
-    public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
+    public void buildStarted(@NotNull ProjectSystemBuildManager.BuildMode mode) {
+    }
+
+    @Override
+    public void beforeBuildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
+    }
+
+    @Override
+    public void buildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
       if (!myIgnoreBuildEvents) {
         myModificationCount++;
         notice(Reason.PROJECT_BUILD, null);

@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
@@ -27,7 +28,6 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -229,12 +229,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Trigger build.
-    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion();
+    getProjectSystem(getProject()).getBuildManager().compileFilesAndDependencies(
+      ImmutableList.of(Objects.requireNonNull(VfsUtil.findFile(modifiedSrc, false))));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Recompile and check ClassLoader is out of date. We are not really modifying the PSI so we can not use isUserCodeUpToDate
     // since it relies on the PSI modification to cache the information.
+    loader.injectProjectClassFile("com.google.example.Modified", modifiedClass);
     assertTrue(loader.isUserCodeUpToDateNonCached());
     javac.run(null, null, null, modifiedSrc.toAbsolutePath().toString());
     assertFalse(loader.isUserCodeUpToDateNonCached());

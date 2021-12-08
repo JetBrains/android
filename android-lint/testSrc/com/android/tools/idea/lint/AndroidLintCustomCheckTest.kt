@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint
 
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
@@ -45,12 +44,6 @@ class AndroidLintCustomCheckTest {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
 
     ApplicationManager.getApplication().invokeAndWait {
-
-      // b/133189922: Disable PostProjectBuildTasksExecutor so that we do not get
-      // VFS refreshes concurrently with syntax highlighting.
-      IdeComponents(myProjectRule.project).replaceProjectService(
-        PostProjectBuildTasksExecutor::class.java,
-        mock(PostProjectBuildTasksExecutor::class.java))
 
       // Load project (runs Gradle sync).
       myProjectRule.load("projects/lintCustomChecks")
