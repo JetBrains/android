@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.physicaltab.Key;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,16 @@ final class VirtualDevice extends Device {
 
     @NotNull Builder setApi(@NotNull String api) {
       myApi = api;
+      return this;
+    }
+
+    @NotNull Builder setResolution(@Nullable Resolution resolution) {
+      myResolution = resolution;
+      return this;
+    }
+
+    @NotNull Builder setDensity(int density) {
+      myDensity = density;
       return this;
     }
 

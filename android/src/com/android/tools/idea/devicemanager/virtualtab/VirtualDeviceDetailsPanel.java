@@ -15,30 +15,23 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPhone;
-
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
-  // TODO Use VirtualDevice instead
-  private final @NotNull AvdInfo myDevice;
+  private final @NotNull VirtualDevice myDevice;
 
   private @Nullable SummarySection mySummarySection;
   private @Nullable InfoSection myPropertiesSection;
@@ -60,25 +53,30 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     }
   }
 
-  VirtualDeviceDetailsPanel(@NotNull AvdInfo device) {
-    this(device, AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning, WearPairingManager.INSTANCE);
+  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device) {
+    this(device, WearPairingManager.INSTANCE);
   }
 
   @VisibleForTesting
-  VirtualDeviceDetailsPanel(@NotNull AvdInfo device,
-                            @NotNull Predicate<@NotNull AvdInfo> isAvdRunning,
-                            @NotNull WearPairingManager manager) {
-    super(device.getDisplayName());
+  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @NotNull WearPairingManager manager) {
+    super(device.getName());
     myDevice = device;
 
     initSummarySection();
     initPropertiesSection();
 
     myInfoSections.add(mySummarySection);
-    InfoSection.newPairedDeviceSection(VirtualDevices.build(device, isAvdRunning), manager).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && isWearOrPhone(device)) {
-      myPairedDevicesPanel = new PairedDevicesPanel(new VirtualDeviceName(myDevice.getName()), this);
+    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+      switch (device.getType()) {
+        case PHONE:
+        case WEAR_OS:
+          myPairedDevicesPanel = new PairedDevicesPanel(myDevice.getKey(), this);
+          break;
+        default:
+          break;
+      }
     }
 
     if (myPropertiesSection != null) {
@@ -90,19 +88,19 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
 
   private void initSummarySection() {
     mySummarySection = new SummarySection();
-    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
 
-    Resolution resolution = getResolution();
+    InfoSection.setText(mySummarySection.myApiLevelLabel, myDevice.getApi());
+    InfoSection.setText(mySummarySection.myResolutionLabel, myDevice.getResolution());
+    InfoSection.setText(mySummarySection.myDpLabel, myDevice.getDp());
 
-    InfoSection.setText(mySummarySection.myResolutionLabel, resolution);
-    InfoSection.setText(mySummarySection.myDpLabel, getDp(resolution));
+    AvdInfo device = myDevice.getAvdInfo();
 
-    if (!myDevice.getStatus().equals(AvdStatus.OK)) {
+    if (!device.getStatus().equals(AvdStatus.OK)) {
       mySummarySection.myErrorLabel = mySummarySection.addNameAndValueLabels("Error");
-      InfoSection.setText(mySummarySection.myErrorLabel, myDevice.getErrorMessage());
+      InfoSection.setText(mySummarySection.myErrorLabel, device.getErrorMessage());
     }
     else {
-      Object snapshot = myDevice.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
+      Object snapshot = device.getProperty(AvdManager.AVD_INI_SNAPSHOT_PRESENT);
 
       if (snapshot != null) {
         mySummarySection.mySnapshotLabel = mySummarySection.addNameAndValueLabels("Snapshot");
@@ -113,48 +111,14 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     mySummarySection.setLayout();
   }
 
-  private @Nullable Resolution getResolution() {
-    String width = myDevice.getProperty("hw.lcd.width");
-
-    if (width == null) {
-      return null;
-    }
-
-    String height = myDevice.getProperty("hw.lcd.height");
-
-    if (height == null) {
-      return null;
-    }
-
-    try {
-      return new Resolution(Integer.parseInt(width), Integer.parseInt(height));
-    }
-    catch (NumberFormatException exception) {
-      return null;
-    }
-  }
-
-  private @Nullable Resolution getDp(@Nullable Resolution resolution) {
-    String density = myDevice.getProperty("hw.lcd.density");
-
-    if (density == null) {
-      return null;
-    }
-
-    try {
-      return Device.getDp(Integer.parseInt(density), resolution);
-    }
-    catch (NumberFormatException exception) {
-      return null;
-    }
-  }
-
   private void initPropertiesSection() {
-    if (!myDevice.getStatus().equals(AvdStatus.OK)) {
+    AvdInfo device = myDevice.getAvdInfo();
+
+    if (!device.getStatus().equals(AvdStatus.OK)) {
       return;
     }
 
-    Map<String, String> properties = new HashMap<>(myDevice.getProperties());
+    Map<String, String> properties = new HashMap<>(device.getProperties());
 
     properties.remove(AvdManager.AVD_INI_ABI_TYPE);
     properties.remove(AvdManager.AVD_INI_CPU_ARCH);

@@ -20,9 +20,11 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.Targets;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevices {
   private VirtualDevices() {
@@ -40,6 +42,8 @@ final class VirtualDevices {
       .setOnline(isAvdRunning.test(device))
       .setTarget(Targets.toString(version, tag))
       .setApi(Integer.toString(version.getApiLevel()))
+      .setResolution(getResolution(device))
+      .setDensity(getDensity(device))
       .setAvdInfo(device)
       .build();
   }
@@ -62,6 +66,42 @@ final class VirtualDevices {
     }
     else {
       return DeviceType.PHONE;
+    }
+  }
+
+  private static @Nullable Resolution getResolution(@NotNull AvdInfo device) {
+    String width = device.getProperty("hw.lcd.width");
+
+    if (width == null) {
+      return null;
+    }
+
+    String height = device.getProperty("hw.lcd.height");
+
+    if (height == null) {
+      return null;
+    }
+
+    try {
+      return new Resolution(Integer.parseInt(width), Integer.parseInt(height));
+    }
+    catch (NumberFormatException exception) {
+      return null;
+    }
+  }
+
+  private static int getDensity(@NotNull AvdInfo device) {
+    String density = device.getProperty("hw.lcd.density");
+
+    if (density == null) {
+      return -1;
+    }
+
+    try {
+      return Integer.parseInt(density);
+    }
+    catch (NumberFormatException exception) {
+      return -1;
     }
   }
 }

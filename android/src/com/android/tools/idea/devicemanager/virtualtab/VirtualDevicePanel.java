@@ -85,8 +85,7 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    // TODO: make VirtualDeviceDetailsPanel take VirtualDevice instead
-    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new).getAvdInfo());
+    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new));
   }
 
   @Nullable Project getProject() {

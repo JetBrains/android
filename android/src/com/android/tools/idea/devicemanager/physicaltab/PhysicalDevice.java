@@ -33,8 +33,6 @@ public final class PhysicalDevice extends Device {
   private final @NotNull String myNameOverride;
   private final @NotNull ImmutableCollection<@NotNull ConnectionType> myConnectionTypes;
   private final @Nullable Battery myPower;
-  private final @Nullable Resolution myResolution;
-  private final int myDensity;
   private final @NotNull ImmutableCollection<@NotNull String> myAbis;
   private final @Nullable StorageDevice myStorageDevice;
 
@@ -42,8 +40,6 @@ public final class PhysicalDevice extends Device {
     private @NotNull String myNameOverride = "";
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
     private @Nullable Battery myPower;
-    private @Nullable Resolution myResolution;
-    private int myDensity = -1;
     private final @NotNull Collection<@NotNull String> myAbis = new ArrayList<>();
     private @Nullable StorageDevice myStorageDevice;
 
@@ -124,8 +120,6 @@ public final class PhysicalDevice extends Device {
     myNameOverride = builder.myNameOverride;
     myConnectionTypes = ImmutableSet.copyOf(builder.myConnectionTypes);
     myPower = builder.myPower;
-    myResolution = builder.myResolution;
-    myDensity = builder.myDensity;
     myAbis = ImmutableList.copyOf(builder.myAbis);
     myStorageDevice = builder.myStorageDevice;
   }
@@ -150,14 +144,6 @@ public final class PhysicalDevice extends Device {
 
   @Nullable Battery getPower() {
     return myPower;
-  }
-
-  @Nullable Resolution getResolution() {
-    return myResolution;
-  }
-
-  @Nullable Resolution getDp() {
-    return getDp(myDensity, myResolution);
   }
 
   @NotNull Collection<@NotNull String> getAbis() {

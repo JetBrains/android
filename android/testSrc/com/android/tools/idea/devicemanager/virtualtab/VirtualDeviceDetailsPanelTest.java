@@ -50,7 +50,8 @@ public final class VirtualDeviceDetailsPanelTest {
                                   properties,
                                   AvdStatus.OK);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false, WearPairingManager.INSTANCE);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(VirtualDevices.build(avdInfo, device -> false),
+                                                                    WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());
@@ -78,7 +79,8 @@ public final class VirtualDeviceDetailsPanelTest {
                                   properties,
                                   AvdStatus.ERROR_IMAGE_MISSING);
 
-    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(avdInfo, device -> false, WearPairingManager.INSTANCE);
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(VirtualDevices.build(avdInfo, device -> false),
+                                                                    WearPairingManager.INSTANCE);
     SummarySection section = panel.getSummarySection();
 
     assertEquals("30", section.myApiLevelLabel.getText());

@@ -27,6 +27,8 @@ public abstract class Device {
   protected final @NotNull String myName;
   protected final @NotNull String myTarget;
   protected final @NotNull String myApi;
+  protected final @Nullable Resolution myResolution;
+  protected final int myDensity;
 
   protected static abstract class Builder {
     protected @Nullable Key myKey;
@@ -34,6 +36,8 @@ public abstract class Device {
     protected @Nullable String myName;
     protected @Nullable String myTarget;
     protected @Nullable String myApi;
+    protected @Nullable Resolution myResolution;
+    protected int myDensity = -1;
 
     protected abstract @NotNull Device build();
   }
@@ -52,6 +56,9 @@ public abstract class Device {
 
     assert builder.myApi != null;
     myApi = builder.myApi;
+
+    myResolution = builder.myResolution;
+    myDensity = builder.myDensity;
   }
 
   public final @NotNull Key getKey() {
@@ -78,17 +85,21 @@ public abstract class Device {
     return myApi;
   }
 
-  public static @Nullable Resolution getDp(int density, @Nullable Resolution resolution) {
-    if (density == -1) {
+  public final @Nullable Resolution getResolution() {
+    return myResolution;
+  }
+
+  public final @Nullable Resolution getDp() {
+    if (myDensity == -1) {
       return null;
     }
 
-    if (resolution == null) {
+    if (myResolution == null) {
       return null;
     }
 
-    int width = (int)Math.ceil((double)Density.DEFAULT_DENSITY * resolution.getWidth() / density);
-    int height = (int)Math.ceil((double)Density.DEFAULT_DENSITY * resolution.getHeight() / density);
+    int width = (int)Math.ceil((double)Density.DEFAULT_DENSITY * myResolution.getWidth() / myDensity);
+    int height = (int)Math.ceil((double)Density.DEFAULT_DENSITY * myResolution.getHeight() / myDensity);
 
     return new Resolution(width, height);
   }
