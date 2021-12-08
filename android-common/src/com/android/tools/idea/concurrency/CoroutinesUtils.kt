@@ -21,6 +21,7 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.ex.ApplicationUtil
 import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
 import com.intellij.openapi.diagnostic.Logger
@@ -322,9 +323,11 @@ suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
  */
 suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScope {
   val result = CompletableDeferred<T>()
-  withContext(ioThread) {
-    com.intellij.openapi.application.runWriteActionAndWait {
-      result.complete(compute.compute())
+  ApplicationManager.getApplication().invokeLater {
+    if (isActive) {
+      WriteAction.run<Throwable> {
+        if (isActive) result.complete(compute.compute())
+      }
     }
   }
   return@coroutineScope result.await()
