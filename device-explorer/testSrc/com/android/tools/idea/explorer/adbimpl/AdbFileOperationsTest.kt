@@ -13,310 +13,395 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.adbimpl;
+package com.android.tools.idea.explorer.adbimpl
 
-import static com.google.common.truth.Truth.assertThat;
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.name
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.device
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.isDevice
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.deviceState
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.rootDirectory
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.name
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.getEntry
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.symbolicLinkTarget
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.permissions
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.Permissions.text
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.size
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.lastModifiedDate
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.DateTime.text
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.uploadFile
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.fullPath
+import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing.root
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing.getChildren
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing.getChildrenRunAs
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing.isDirectoryLink
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewFile
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewFileRunAs
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewDirectory
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewDirectoryRunAs
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteFile
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteFileRunAs
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteRecursive
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteRecursiveRunAs
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.listPackages
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
+import com.android.tools.idea.explorer.adbimpl.MockDdmlibDevice
+import java.util.concurrent.ExecutorService
+import kotlin.Throws
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.adbimpl.UniqueFileNameGenerator
+import com.google.common.truth.Truth
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.explorer.fs.DeviceFileEntry
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemTest
+import java.lang.IllegalArgumentException
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.adb.AdbShellCommandException
+import com.android.tools.idea.testing.DebugLoggerRule
+import java.lang.AssertionError
+import com.android.tools.idea.explorer.adbimpl.TestShellCommands
+import com.android.tools.idea.explorer.adbimpl.AdbFileListing
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingTest
+import com.android.ddmlib.ShellCommandUnresponsiveException
+import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
+import com.android.tools.idea.explorer.adbimpl.AdbFileOperationsTest
+import com.google.common.util.concurrent.ListenableFuture
+import org.hamcrest.core.IsInstanceOf
+import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.ExpectedException
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.awt.EventQueue
+import java.lang.Exception
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.adb.AdbShellCommandException;
-import com.android.tools.idea.testing.DebugLoggerRule;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.awt.EventQueue;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import kotlin.Unit;
-import org.hamcrest.core.IsInstanceOf;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-@RunWith(Parameterized.class)
-public class AdbFileOperationsTest {
-  private static final long TIMEOUT_MILLISECONDS = 30_000;
-
-  @NotNull private final Consumer<TestShellCommands> mySetupCommands;
-
-  @Parameterized.Parameters
-  public static Object[] data() {
-    return new Object[]{
-      (Consumer<TestShellCommands>)TestDevices::addEmulatorApi10Commands,
-      (Consumer<TestShellCommands>)TestDevices::addNexus7Api23Commands,
-    };
-  }
-
+@RunWith(Parameterized::class)
+class AdbFileOperationsTest(private val mySetupCommands: Consumer<TestShellCommands>) {
   @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @ClassRule
-  public static DebugLoggerRule ourLoggerRule = new DebugLoggerRule();
-
-  public AdbFileOperationsTest(@NotNull Consumer<TestShellCommands> setupCommands) {
-    mySetupCommands = setupCommands;
-  }
-
-  @NotNull
-  private AdbFileOperations setupMockDevice() throws Exception {
-    TestShellCommands commands = new TestShellCommands();
-    mySetupCommands.accept(commands);
-    IDevice device = commands.createMockDevice();
-    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    return new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
+  var thrown = ExpectedException.none()
+  @Throws(Exception::class)
+  private fun setupMockDevice(): AdbFileOperations {
+    val commands = TestShellCommands()
+    mySetupCommands.accept(commands)
+    val device = commands.createMockDevice()
+    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
+    return AdbFileOperations(device, AdbDeviceCapabilities(device), taskExecutor)
   }
 
   @Test
-  public void testCreateNewFileSuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFileSuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.createNewFile("/sdcard", "foo.txt"));
+    val result = waitForFuture(fileOperations.createNewFile("/sdcard", "foo.txt"))
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testCreateNewFileRunAsSuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFileRunAsSuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.createNewFileRunAs("/data/data/com.example.rpaquay.myapplication",
-                                                                  "NewTextFile.txt",
-                                                                  "com.example.rpaquay.myapplication"));
+    val result = waitForFuture(
+      fileOperations.createNewFileRunAs(
+        "/data/data/com.example.rpaquay.myapplication",
+        "NewTextFile.txt",
+        "com.example.rpaquay.myapplication"
+      )
+    )
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testCreateNewFileInvalidFileNameError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFileInvalidFileNameError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/", "fo/o.txt"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewFile("/", "fo/o.txt"))
   }
 
   @Test
-  public void testCreateNewFileReadOnlyError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFileReadOnlyError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/", "foo.txt"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewFile("/", "foo.txt"))
   }
 
   @Test
-  public void testCreateNewFilePermissionError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFilePermissionError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/system", "foo.txt"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewFile("/system", "foo.txt"))
   }
 
   @Test
-  public void testCreateNewFileExistError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewFileExistError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/", "default.prop"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewFile("/", "default.prop"))
   }
 
   @Test
-  public void testCreateNewDirectorySuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectorySuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.createNewDirectory("/sdcard", "foo-dir"));
+    val result = waitForFuture(fileOperations.createNewDirectory("/sdcard", "foo-dir"))
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testCreateNewDirectoryRunAsSuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectoryRunAsSuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.createNewDirectoryRunAs("/data/data/com.example.rpaquay.myapplication",
-                                                                       "foo-dir",
-                                                                       "com.example.rpaquay.myapplication"));
+    val result = waitForFuture(
+      fileOperations.createNewDirectoryRunAs(
+        "/data/data/com.example.rpaquay.myapplication",
+        "foo-dir",
+        "com.example.rpaquay.myapplication"
+      )
+    )
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testCreateNewDirectoryInvalidNameError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectoryInvalidNameError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
-
-    // Act
-
-    // Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewDirectory("/", "fo/o-dir"));
-  }
-
-  @Test
-  public void testCreateNewDirectoryReadOnlyError() throws Exception {
-    // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
 
     // Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewDirectory("/", "foo-dir"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewDirectory("/", "fo/o-dir"))
   }
 
   @Test
-  public void testCreateNewDirectoryPermissionError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectoryReadOnlyError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
 
     // Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewDirectory("/system", "foo-dir"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewDirectory("/", "foo-dir"))
   }
 
   @Test
-  public void testCreateNewDirectoryExistError() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectoryPermissionError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
 
     // Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewDirectory("/", "data"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewDirectory("/system", "foo-dir"))
   }
 
   @Test
-  public void testDeleteExistingFileSuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testCreateNewDirectoryExistError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"));
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.createNewDirectory("/", "data"))
   }
 
   @Test
-  public void testDeleteExistingFileRunAsSuccess() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingFileSuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.deleteFileRunAs("/data/data/com.example.rpaquay.myapplication/NewTextFile.txt",
-                                                               "com.example.rpaquay.myapplication"));
+    val result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"))
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testDeleteExistingDirectoryAsFileError() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingFileRunAsSuccess() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
+
+    // Act
+    val result = waitForFuture(
+      fileOperations.deleteFileRunAs(
+        "/data/data/com.example.rpaquay.myapplication/NewTextFile.txt",
+        "com.example.rpaquay.myapplication"
+      )
+    )
+
+    // Assert
+    Truth.assertThat(result).isEqualTo(Unit)
+  }
+
+  @Test
+  @Throws(Exception::class)
+  fun testDeleteExistingDirectoryAsFileError() {
+    // Prepare
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.deleteFile("/sdcard/foo-dir"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.deleteFile("/sdcard/foo-dir"))
   }
 
   @Test
-  public void testDeleteExistingReadOnlyFileError() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingReadOnlyFileError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.deleteFile("/system/bin/sh"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.deleteFile("/system/bin/sh"))
   }
 
   @Test
-  public void testDeleteExistingDirectorySucceeds() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingDirectorySucceeds() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"));
+    val result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"))
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testDeleteExistingDirectoryRunAsSucceeds() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingDirectoryRunAsSucceeds() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    Unit result = waitForFuture(fileOperations.deleteRecursiveRunAs("/data/data/com.example.rpaquay.myapplication/foo-dir",
-                                                                    "com.example.rpaquay.myapplication"));
+    val result = waitForFuture(
+      fileOperations.deleteRecursiveRunAs(
+        "/data/data/com.example.rpaquay.myapplication/foo-dir",
+        "com.example.rpaquay.myapplication"
+      )
+    )
 
     // Assert
-    assertThat(result).isEqualTo(Unit.INSTANCE);
+    Truth.assertThat(result).isEqualTo(Unit)
   }
 
   @Test
-  public void testDeleteExistingDirectoryPermissionError() throws Exception {
+  @Throws(Exception::class)
+  fun testDeleteExistingDirectoryPermissionError() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act/Assert
-    thrown.expect(ExecutionException.class);
-    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.deleteRecursive("/config"));
+    thrown.expect(ExecutionException::class.java)
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException::class.java))
+    waitForFuture(fileOperations.deleteRecursive("/config"))
   }
 
   @Test
-  public void testListPackages() throws Exception {
+  @Throws(Exception::class)
+  fun testListPackages() {
     // Prepare
-    AdbFileOperations fileOperations = setupMockDevice();
+    val fileOperations = setupMockDevice()
 
     // Act
-    List<String> result = waitForFuture(fileOperations.listPackages());
+    val result = waitForFuture<List<String?>>(fileOperations.listPackages())
 
     // Assert
-    assertThat(result).isNotNull();
-    assertThat(result).contains("com.example.rpaquay.myapplication");
+    Truth.assertThat(result).isNotNull()
+    Truth.assertThat(result).contains("com.example.rpaquay.myapplication")
   }
 
-  private static <V> V waitForFuture(@NotNull ListenableFuture<V> future) throws Exception {
-    assert !EventQueue.isDispatchThread();
-    return future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+  companion object {
+    private const val TIMEOUT_MILLISECONDS: Long = 30000
+    @Parameterized.Parameters
+    fun data(): Array<Any> {
+      return arrayOf(
+        Consumer { commands: TestShellCommands? ->
+          TestDevices.addEmulatorApi10Commands(
+            commands!!
+          )
+        },
+        Consumer { commands: TestShellCommands? ->
+          TestDevices.addNexus7Api23Commands(
+            commands!!
+          )
+        }
+      )
+    }
+
+    @ClassRule
+    var ourLoggerRule = DebugLoggerRule()
+    @Throws(Exception::class)
+    private fun <V> waitForFuture(future: ListenableFuture<V>): V {
+      assert(!EventQueue.isDispatchThread())
+      return future[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    }
   }
 }
