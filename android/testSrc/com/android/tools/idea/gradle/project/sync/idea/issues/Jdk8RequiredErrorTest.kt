@@ -47,8 +47,7 @@ class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
     if (androidStudio) { // Android Studio has extra quick-fix
       expectedText.append("<a href=\"use.java.home.as.jdk\">Set Android Studio to use the same JDK as Gradle and sync project</a>\n")
     }
-    expectedText.append("<a href=\"select.jdk.from.new.psd\">Select a JDK from the File System</a>\n" +
-                        "<a href=\"download.jdk8\">Download JDK 8</a>")
+    expectedText.append("<a href=\"select.jdk.from.new.psd\">Change Gradle JDK...</a>")
     assertThat(message).contains(expectedText.toString())
     assertEquals(GradleSyncFailure.JDK8_REQUIRED, usageReporter.collectedFailure)
   }

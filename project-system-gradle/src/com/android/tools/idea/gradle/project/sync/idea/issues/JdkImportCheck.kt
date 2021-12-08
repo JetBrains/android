@@ -24,14 +24,12 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
@@ -115,7 +113,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
         }
 
         if (issueQuickFixes.isEmpty()) {
-          val embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath()
+          val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
           if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.toAbsolutePath().toString())) {
             addQuickFix(UseEmbeddedJdkQuickFix())
@@ -126,7 +124,6 @@ class JdkImportIssueChecker : GradleIssueChecker {
       }
 
       addQuickFix(SelectJdkFromFileSystemQuickFix())
-      addQuickFix(DownloadJdk8QuickFix())
     }.composeBuildIssue()
   }
 
@@ -143,7 +140,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
   override val description: String = "Set Android Studio to use the same JDK as Gradle and sync project"
   override val id: String = "use.java.home.as.jdk"
 
-  override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
       runWriteAction { setJdkAsJavaHome(project, javaHome) }
@@ -155,7 +152,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
 }
 
 private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "Use embedded JDK"
+  override val description: String = "Use embedded JDK as Gradle JDK (${IdeSdks.getInstance().embeddedJdkPath.toString()})"
   override val id: String = "use.embedded.jdk"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -169,18 +166,8 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   }
 }
 
-private class DownloadJdk8QuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "Download JDK 8"
-  override val id: String = "download.jdk8"
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    BrowserUtil.browse(Jdks.DOWNLOAD_JDK_8_URL)
-    return CompletableFuture.completedFuture(null)
-  }
-}
-
 private class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "Select a JDK from the File System"
+  override val description: String = "Change Gradle JDK..."
   override val id: String = "select.jdk.from.new.psd"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
