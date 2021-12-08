@@ -30,6 +30,7 @@ import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.MutableComboBoxModel
 
@@ -222,6 +223,11 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
   @VisibleForTesting var singleColumnHeight = 0
   private var rows = listOf<Pair<JComponent, String>>()
 
+  // We track the root panel, so we can clean it before creating a new panel to adapt to a different size.
+  // Without doing so, we run into strange repainting issues when multiple panels hold the same
+  // UI elements
+  private var root: JPanel? = null
+
   @VisibleForTesting
   var mode = Mode.Wide
     set(newMode) {
@@ -258,12 +264,14 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
   }
 
   private fun refresh() {
+    root?.removeAll()
     removeAll()
-    add(when (mode) {
+    root = when (mode) {
       Mode.Wide -> makeWideView()
       Mode.Tall -> makeTallView()
       Mode.Compact -> makeCompactView()
-    })
+    }
+    add(root)
     invalidate()
     repaint()
   }
