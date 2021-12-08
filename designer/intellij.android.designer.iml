@@ -45,7 +45,7 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="kotlin.core" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
   </component>

@@ -25,7 +25,7 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="library" name="Guava" level="project" />

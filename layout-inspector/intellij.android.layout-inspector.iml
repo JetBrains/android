@@ -53,7 +53,8 @@
     <orderEntry type="library" name="error-prone-annotations" level="project" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
     <orderEntry type="module" module-name="kotlin.idea" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
     <orderEntry type="module" module-name="kotlin.common" />
   </component>
 </module>

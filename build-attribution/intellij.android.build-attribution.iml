@@ -23,7 +23,7 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinx-collections-immutable-jvm" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />

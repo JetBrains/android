@@ -38,6 +38,6 @@
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.java.psi" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
   </component>
 </module>

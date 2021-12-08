@@ -36,7 +36,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" scope="TEST" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
   </component>
 </module>
