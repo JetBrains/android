@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.ddmlib.logcat.LogCatMessage
+import java.time.Instant
 import java.time.ZoneId
 
 
@@ -34,6 +35,10 @@ internal class MessageFormatter(private val formattingOptions: FormattingOptions
     // Replace each newline with a newline followed by the indentation of the message portion
     val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 5)
     for (message in messages) {
+      if (message.header.timestamp == Instant.EPOCH) {
+        textAccumulator.accumulate(message.message + '\n')
+        continue
+      }
       val header = message.header
       val tag = header.tag
       val appName = header.appName

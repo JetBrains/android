@@ -394,6 +394,19 @@ class MessageFormatterTest {
       assertThat(it.getText(textAccumulator.text).trim()).isEqualTo(it.data)
     }
   }
+
+  @Test
+  fun formatMessages_systemMessages() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      textAccumulator,
+      listOf(
+        LogCatMessage(LogCatHeader(WARN, 1, 2, appName = "", tag = "", Instant.EPOCH), "message"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("message\n")
+  }
 }
 
 private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)

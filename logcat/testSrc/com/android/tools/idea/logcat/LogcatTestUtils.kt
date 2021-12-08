@@ -60,6 +60,6 @@ fun logCatMessage(
   tid: Int = 2,
   appName: String = "com.example.app",
   tag: String = "ExampleTag",
-  timestamp: Instant = Instant.EPOCH,
+  timestamp: Instant = Instant.ofEpochSecond(10), // Instant.EPOCH has a special meaning to the formatter.
   message: String = "message",
 ): LogCatMessage = LogCatMessage(LogCatHeader(logLevel, pid, tid, appName, tag, timestamp), message)

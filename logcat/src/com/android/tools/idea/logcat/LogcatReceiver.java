@@ -180,7 +180,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
     ImmutableList.Builder<LogCatMessage> batchMessages = new ImmutableList.Builder<>();
     for (String line : newLines) {
       if (isSystemLine(line)) {
-        batchMessages.add(new LogCatMessage(new LogCatHeader(INFO, /* pid=*/ 0, /* tid=*/ 0, "System", "Logcat", Instant.now()), line));
+        batchMessages.add(new LogCatMessage(new LogCatHeader(INFO, /* pid=*/ 0, /* tid=*/ 0, "System", "Logcat", Instant.EPOCH), line));
         continue;
       }
       line = fixLine(line);

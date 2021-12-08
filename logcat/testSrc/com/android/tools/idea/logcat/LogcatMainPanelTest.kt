@@ -402,11 +402,11 @@ class LogcatMainPanelTest {
   @Test
   fun reloadMessages() {
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also {
+      logcatMainPanel(zoneId = ZoneId.of("Asia/Yerevan")).also {
         it.editor.document.setText("Some previous text")
       }
     }
-    logcatMainPanel.messageBacklog.addAll(listOf(logCatMessage(message = "message")))
+    logcatMainPanel.messageBacklog.addAll(listOf(logCatMessage(message = "message", timestamp = Instant.ofEpochSecond(10))))
 
     runInEdtAndWait(logcatMainPanel::reloadMessages)
 
@@ -414,7 +414,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.text)
-        .isEqualTo("1970-01-01 04:00:00.000     1-2     ExampleTag              com.example.app                      I  message\n")
+        .isEqualTo("1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  message\n")
 
     }
   }
