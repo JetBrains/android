@@ -71,6 +71,7 @@ public class StudioIcons {
     @Deprecated
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.svg"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.svg"); // 16x16
+    public static final Icon ERROR_STACK = load("/studio/icons/common/error-stack.svg"); // 16x16
     public static final Icon ERROR = load("/studio/icons/common/error.svg"); // 16x16
 
     /** @deprecated use AllIcons.ToolbarDecorator.Export */
@@ -126,6 +127,7 @@ public class StudioIcons {
     public static final Icon SUCCESS_INLINE_SELECTED = load("/studio/icons/common/success-inline-selected.svg"); // 16x16
     public static final Icon SUCCESS_INLINE = load("/studio/icons/common/success-inline.svg"); // 16x16
     public static final Icon SUCCESS = load("/studio/icons/common/success.svg"); // 16x16
+    public static final Icon TYPO_STACK = load("/studio/icons/common/typo-stack.svg"); // 16x16
 
     /** @deprecated use ColoredIconGenerator.kt */
     @Deprecated
@@ -136,7 +138,9 @@ public class StudioIcons {
     @Deprecated
     public static final Icon WARNING_INLINE_SELECTED = load("/studio/icons/common/warning-inline-selected.svg"); // 16x16
     public static final Icon WARNING_INLINE = load("/studio/icons/common/warning-inline.svg"); // 16x16
+    public static final Icon WARNING_STACK = load("/studio/icons/common/warning-stack.svg"); // 16x16
     public static final Icon WARNING = load("/studio/icons/common/warning.svg"); // 16x16
+    public static final Icon WEAK_WARNING_STACK = load("/studio/icons/common/weak-warning-stack.svg"); // 16x16
 
     /** @deprecated use AllIcons.General.ActualZoom */
     @Deprecated
