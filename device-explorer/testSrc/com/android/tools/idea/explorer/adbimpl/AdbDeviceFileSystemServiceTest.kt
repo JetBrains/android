@@ -16,56 +16,47 @@
 package com.android.tools.idea.explorer.adbimpl
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.start
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.devices
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.restart
-import org.jetbrains.android.sdk.AndroidSdkUtils
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
 import com.android.tools.idea.testing.IdeComponents
-import kotlin.Throws
-import java.lang.Runnable
-import com.intellij.openapi.roots.ProjectRootManager
 import com.android.tools.idea.testing.Sdks
-import java.lang.InterruptedException
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
-import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
+import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.mockito.Mockito
-import org.mockito.ArgumentMatchers
-import java.io.File
-import java.lang.Exception
-import java.lang.RuntimeException
+import org.mockito.Mockito.`when`
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
 
 class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
   private val adbSupplier = Supplier { AndroidSdkUtils.getAdb(project) }
-  private var ideComponents: IdeComponents? = null
-  @Throws(Exception::class)
+  private lateinit var ideComponents: IdeComponents
+
   public override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(project)
 
     // Setup Android SDK path so that ddmlib can find adb.exe
-    ApplicationManager.getApplication()
-      .runWriteAction { ProjectRootManager.getInstance(project).projectSdk = Sdks.createLatestAndroidSdk() }
+    ApplicationManager.getApplication().runWriteAction {
+      ProjectRootManager.getInstance(project).projectSdk = Sdks.createLatestAndroidSdk()
+    }
   }
 
-  @Throws(Exception::class)
   override fun tearDown() {
     super.tearDown()
     // This assumes that ADB is terminated on project close
     assertNull("AndroidDebugBridge should have been terminated", AndroidDebugBridge.getBridge())
   }
 
-  @Throws(InterruptedException::class, ExecutionException::class, TimeoutException::class)
   fun testStartService() {
     // Prepare
     val service = getInstance(project)
@@ -94,7 +85,6 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
   }
 
-  @Throws(InterruptedException::class, ExecutionException::class, TimeoutException::class)
   fun testStartAlreadyStartedService() {
     // Prepare
     val service = getInstance(project)
@@ -120,7 +110,6 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertEquals("java.io.FileNotFoundException: Android Debug Bridge not found.", throwable.message)
   }
 
-  @Throws(InterruptedException::class, ExecutionException::class, TimeoutException::class)
   fun testRestartService() {
     // Prepare
     val service = getInstance(project)
@@ -135,7 +124,6 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(pumpEventsAndWaitForFuture(service.devices))
   }
 
-  @Throws(InterruptedException::class, ExecutionException::class, TimeoutException::class)
   fun testRestartNonStartedService() {
     // Prepare
     val service = getInstance(project)
@@ -149,25 +137,11 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(pumpEventsAndWaitForFuture(service.devices))
   }
 
-  @Throws(InterruptedException::class, ExecutionException::class, TimeoutException::class)
   fun testRestartServiceCantTerminateDdmlib() {
     // Prepare
-    val mockAdbService = ideComponents!!.mockApplicationService(
-      AdbService::class.java
-    )
-    Mockito.`when`(
-      mockAdbService.getDebugBridge(
-        ArgumentMatchers.any(
-          File::class.java
-        )
-      )
-    ).thenReturn(
-      Futures.immediateFuture(
-        Mockito.mock(
-          AndroidDebugBridge::class.java
-        )
-      )
-    )
+    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mock()))
+
     Mockito.doThrow(RuntimeException()).`when`(mockAdbService).terminateDdmlib()
     val service = getInstance(project)
     pumpEventsAndWaitForFuture(service.start(adbSupplier))
@@ -180,16 +154,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
   fun testGetDebugBridgeFailure() {
     // Prepare
     val service = getInstance(project)
-    val mockAdbService = ideComponents!!.mockApplicationService(
-      AdbService::class.java
-    )
-    Mockito.`when`(
-      mockAdbService.getDebugBridge(
-        ArgumentMatchers.any(
-          File::class.java
-        )
-      )
-    ).thenReturn(Futures.immediateFailedFuture(RuntimeException("test fail")))
+    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
 
     // Act
     val t = pumpEventsAndWaitForFutureException(service.start(adbSupplier))
@@ -201,16 +167,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
   fun testGetDebugBridgeFailureNoMessage() {
     // Prepare
     val service = getInstance(project)
-    val mockAdbService = ideComponents!!.mockApplicationService(
-      AdbService::class.java
-    )
-    Mockito.`when`(
-      mockAdbService.getDebugBridge(
-        ArgumentMatchers.any(
-          File::class.java
-        )
-      )
-    ).thenReturn(Futures.immediateFailedFuture(RuntimeException()))
+    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException()))
 
     // Act
     pumpEventsAndWaitForFutureException(service.start(adbSupplier))

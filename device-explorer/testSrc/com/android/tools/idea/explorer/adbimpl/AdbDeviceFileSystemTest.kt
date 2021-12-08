@@ -15,61 +15,13 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.name
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.device
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.isDevice
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.deviceState
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.rootDirectory
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.name
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.entries
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem.getEntry
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.symbolicLinkTarget
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.permissions
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.Permissions.text
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.size
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.lastModifiedDate
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.DateTime.text
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.uploadFile
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.fullPath
-import com.android.tools.idea.explorer.fs.DeviceFileEntry.downloadFile
-import com.android.tools.idea.explorer.adbimpl.AdbFileListing.root
-import com.android.tools.idea.explorer.adbimpl.AdbFileListing.getChildren
-import com.android.tools.idea.explorer.adbimpl.AdbFileListing.getChildrenRunAs
-import com.android.tools.idea.explorer.adbimpl.AdbFileListing.isDirectoryLink
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewFile
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewFileRunAs
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewDirectory
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.createNewDirectoryRunAs
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteFile
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteFileRunAs
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteRecursive
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.deleteRecursiveRunAs
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations.listPackages
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem
-import com.android.tools.idea.explorer.adbimpl.MockDdmlibDevice
-import java.util.concurrent.ExecutorService
-import kotlin.Throws
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.explorer.adbimpl.UniqueFileNameGenerator
-import com.google.common.truth.Truth
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemTest
-import java.lang.IllegalArgumentException
-import com.android.tools.idea.explorer.fs.FileTransferProgress
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.testing.DebugLoggerRule
-import java.lang.AssertionError
-import com.android.tools.idea.explorer.adbimpl.TestShellCommands
-import com.android.tools.idea.explorer.adbimpl.AdbFileListing
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingTest
-import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperationsTest
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.explorer.fs.DeviceState
+import com.android.tools.idea.explorer.fs.FileTransferProgress
+import com.android.tools.idea.testing.DebugLoggerRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.EmptyRunnable
@@ -85,35 +37,35 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.rules.TestRule
 import java.awt.EventQueue
-import java.lang.Exception
 import java.nio.file.Files
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 class AdbDeviceFileSystemTest {
-  private var myParentDisposable: Disposable? = null
-  private var myFileSystem: AdbDeviceFileSystem? = null
-  private var myMockDevice: MockDdmlibDevice? = null
-  private var myCallbackExecutor: ExecutorService? = null
+  private lateinit var myParentDisposable: Disposable
+  private lateinit var myFileSystem: AdbDeviceFileSystem
+  private lateinit var myMockDevice: MockDdmlibDevice
+  private lateinit var myCallbackExecutor: ExecutorService
 
-  @Rule
+  @get:Rule
   var thrown = ExpectedException.none()
+  
   @Before
-  @Throws(Exception::class)
   fun setUp() {
     myParentDisposable = Disposer.newDisposable()
     myCallbackExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
       "EDT Simulation Thread",
       PooledThreadExecutor.INSTANCE,
       1,
-      myParentDisposable!!
+      myParentDisposable
     )
     myMockDevice = MockDdmlibDevice()
     val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
-    val edtExecutor = FutureCallbackExecutor(myCallbackExecutor!!)
-    myFileSystem = AdbDeviceFileSystem(myMockDevice!!.iDevice, edtExecutor, taskExecutor)
+    val edtExecutor = FutureCallbackExecutor(myCallbackExecutor)
+    myFileSystem = AdbDeviceFileSystem(myMockDevice.iDevice, edtExecutor, taskExecutor)
     val fileNameGenerator: UniqueFileNameGenerator = object : UniqueFileNameGenerator() {
       private var myNextId = 0
       override fun getUniqueFileName(prefix: String, suffix: String): String {
@@ -125,294 +77,238 @@ class AdbDeviceFileSystemTest {
 
   @After
   fun cleanUp() {
-    if (myParentDisposable != null) {
-      Disposer.dispose(myParentDisposable!!)
-    }
+    Disposer.dispose(myParentDisposable)
     UniqueFileNameGenerator.setInstanceOverride(null)
   }
 
   @Test
   fun test_FileSystem_Has_DeviceName() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act/Assert
-    myMockDevice!!.name = "foo bar"
-    Truth.assertThat(myFileSystem!!.name).isEqualTo(myMockDevice!!.name)
+    myMockDevice.name = "foo bar"
+    assertThat(myFileSystem.name).isEqualTo(myMockDevice.name)
   }
 
   @Test
   fun test_FileSystem_Is_Device() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act/Assert
-    Truth.assertThat(myFileSystem!!.device).isEqualTo(myMockDevice!!.iDevice)
-    Truth.assertThat(myFileSystem!!.isDevice(myMockDevice!!.iDevice)).isTrue()
+    assertThat(myFileSystem.device).isEqualTo(myMockDevice.iDevice)
+    assertThat(myFileSystem.isDevice(myMockDevice.iDevice)).isTrue()
   }
 
   @Test
   fun test_FileSystem_Exposes_DeviceState() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act/Assert
-    myMockDevice!!.state = null
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.DISCONNECTED)
-    myMockDevice!!.state = IDevice.DeviceState.BOOTLOADER
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.BOOTLOADER)
-    myMockDevice!!.state = IDevice.DeviceState.OFFLINE
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.OFFLINE)
-    myMockDevice!!.state = IDevice.DeviceState.ONLINE
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.ONLINE)
-    myMockDevice!!.state = IDevice.DeviceState.RECOVERY
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.RECOVERY)
-    myMockDevice!!.state = IDevice.DeviceState.SIDELOAD
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.SIDELOAD)
-    myMockDevice!!.state = IDevice.DeviceState.UNAUTHORIZED
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.UNAUTHORIZED)
-    myMockDevice!!.state = IDevice.DeviceState.DISCONNECTED
-    Truth.assertThat(myFileSystem!!.deviceState).isEqualTo(DeviceState.DISCONNECTED)
+    myMockDevice.state = null
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.DISCONNECTED)
+    myMockDevice.state = IDevice.DeviceState.BOOTLOADER
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.BOOTLOADER)
+    myMockDevice.state = IDevice.DeviceState.OFFLINE
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.OFFLINE)
+    myMockDevice.state = IDevice.DeviceState.ONLINE
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.ONLINE)
+    myMockDevice.state = IDevice.DeviceState.RECOVERY
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.RECOVERY)
+    myMockDevice.state = IDevice.DeviceState.SIDELOAD
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.SIDELOAD)
+    myMockDevice.state = IDevice.DeviceState.UNAUTHORIZED
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.UNAUTHORIZED)
+    myMockDevice.state = IDevice.DeviceState.DISCONNECTED
+    assertThat(myFileSystem.deviceState).isEqualTo(DeviceState.DISCONNECTED)
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_Has_Root() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.rootDirectory)
+    val result = waitForFuture(myFileSystem.rootDirectory)
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_Has_DataTopLevelDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
-    val rootEntry = waitForFuture(myFileSystem!!.rootDirectory)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
+    val rootEntry = waitForFuture(myFileSystem.rootDirectory)
 
     // Act
-    val result = waitForFuture<List<DeviceFileEntry?>>(rootEntry.entries)
+    val result = waitForFuture(rootEntry.entries)
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.stream().anyMatch { x: DeviceFileEntry? -> "data" == x!!.name }).isTrue()
+    assertThat(result).isNotNull()
+    assertThat(result.find { it.name == "data" }).isNotNull()
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_Root_ForEmptyPath() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry(""))
+    val result = waitForFuture(myFileSystem.getEntry(""))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_Root() {
-    // Prepare
-    assert(myFileSystem != null)
-
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/"))
+    val result = waitForFuture(myFileSystem.getEntry("/"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_LinkInfo() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/charger"))
+    val result = waitForFuture(myFileSystem.getEntry("/charger"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("charger")
-    Truth.assertThat(result.symbolicLinkTarget).isEqualTo("/sbin/healthd")
-    Truth.assertThat(result.permissions.text).isEqualTo("lrwxrwxrwx")
-    Truth.assertThat(result.size).isEqualTo(-1)
-    Truth.assertThat(result.lastModifiedDate.text).isEqualTo("1969-12-31 16:00")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("charger")
+    assertThat(result.symbolicLinkTarget).isEqualTo("/sbin/healthd")
+    assertThat(result.permissions.text).isEqualTo("lrwxrwxrwx")
+    assertThat(result.size).isEqualTo(-1)
+    assertThat(result.lastModifiedDate.text).isEqualTo("1969-12-31 16:00")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_DataDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/data"))
+    val result = waitForFuture(myFileSystem.getEntry("/data"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("data")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("data")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_DataAppDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/data/app"))
+    val result = waitForFuture(myFileSystem.getEntry("/data/app"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("app")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("app")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntries_Returns_DataAppPackages() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
-    val dataEntry = waitForFuture(myFileSystem!!.getEntry("/data/app"))
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
+    val dataEntry = waitForFuture(myFileSystem.getEntry("/data/app"))
 
     // Act
-    val result = waitForFuture<List<DeviceFileEntry?>>(dataEntry.entries)
+    val result = waitForFuture(dataEntry.entries)
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    val app = result.stream()
-      .filter { entry: DeviceFileEntry? -> entry!!.name == "com.example.rpaquay.myapplication-2" }
-      .findFirst()
-      .orElse(null)
-    Truth.assertThat(app).isNotNull()
+    assertThat(result).isNotNull()
+    val app = result.find { it.name == "com.example.rpaquay.myapplication-2" }
+    checkNotNull(app)
 
     // Act
-    val appFiles = waitForFuture<List<DeviceFileEntry?>>(
-      app!!.entries
-    )
+    val appFiles = waitForFuture(app.entries)
 
     // Assert
-    Truth.assertThat(appFiles).isNotNull()
-    Truth.assertThat(appFiles.stream().anyMatch { x: DeviceFileEntry? -> x!!.name == "base.apk" }).isTrue()
+    assertThat(appFiles).isNotNull()
+    assertThat(appFiles.find { it.name == "base.apk" }).isNotNull()
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_DataDataDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/data/data"))
+    val result = waitForFuture(myFileSystem.getEntry("/data/data"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("data")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("data")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntries_Returns_DataDataPackages() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
-    val dataEntry = waitForFuture(myFileSystem!!.getEntry("/data/data"))
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
+    val dataEntry = waitForFuture(myFileSystem.getEntry("/data/data"))
 
     // Act
-    val result = waitForFuture<List<DeviceFileEntry?>>(dataEntry.entries)
+    val result = waitForFuture(dataEntry.entries)
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.stream().anyMatch { x: DeviceFileEntry? -> x!!.name == "com.example.rpaquay.myapplication" }).isTrue()
+    assertThat(result).isNotNull()
+    assertThat(result.find { it.name == "com.example.rpaquay.myapplication" }).isNotNull()
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_DataLocalDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/data/local"))
+    val result = waitForFuture(myFileSystem.getEntry("/data/local"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("local")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("local")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Returns_DataLocalTempDirectory() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act
-    val result = waitForFuture(myFileSystem!!.getEntry("/data/local/tmp"))
+    val result = waitForFuture(myFileSystem.getEntry("/data/local/tmp"))
 
     // Assert
-    Truth.assertThat(result).isNotNull()
-    Truth.assertThat(result.name).isEqualTo("tmp")
+    assertThat(result).isNotNull()
+    assertThat(result.name).isEqualTo("tmp")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_GetEntry_Fails_ForInvalidPath() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
 
     // Act/Assert
     thrown.expect(ExecutionException::class.java)
     thrown.expectCause(IsInstanceOf.instanceOf(IllegalArgumentException::class.java))
-    /*DeviceFileEntry result = */waitForFuture(myFileSystem!!.getEntry("/data/invalid/path"))
+    /*DeviceFileEntry result = */waitForFuture(myFileSystem.getEntry("/data/invalid/path"))
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_UploadLocalFile_Works() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
-    val dataEntry = waitForFuture(myFileSystem!!.getEntry("/data/local/tmp"))
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
+    val dataEntry = waitForFuture(myFileSystem.getEntry("/data/local/tmp"))
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
     Files.write(tempFile, ByteArray(1024))
 
@@ -429,23 +325,19 @@ class AdbDeviceFileSystemTest {
       }
     }))
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor!!.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    myCallbackExecutor.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
 
     // Assert
-    Truth.assertThat(result).isEqualTo(Unit)
-    Truth.assertThat(totalBytesRef.get()).isEqualTo(1024)
+    assertThat(result).isEqualTo(Unit)
+    assertThat(totalBytesRef.get()).isEqualTo(1024)
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_DownloadRemoteFile_Works() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    assert(myCallbackExecutor != null)
-    TestDevices.addNexus7Api23Commands(myMockDevice!!.shellCommands)
-    val deviceEntry = waitForFuture(myFileSystem!!.getEntry("/default.prop"))
-    myMockDevice!!.addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
+    TestDevices.addNexus7Api23Commands(myMockDevice.shellCommands)
+    val deviceEntry = waitForFuture(myFileSystem.getEntry("/default.prop"))
+    myMockDevice.addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
 
     // Act
@@ -460,24 +352,21 @@ class AdbDeviceFileSystemTest {
       }
     }))
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor!!.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
     // Assert
-    Truth.assertThat(result).isEqualTo(Unit)
-    Truth.assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
-    Truth.assertThat(Files.exists(tempFile)).isTrue()
-    Truth.assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
+    assertThat(result).isEqualTo(Unit)
+    assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
+    assertThat(Files.exists(tempFile)).isTrue()
+    assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_UploadSystemFile_ReturnsError() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    TestDevices.addEmulatorApi25Commands(myMockDevice!!.shellCommands)
-    myMockDevice!!.addRemoteRestrictedAccessFile("/system/build.prop", 1024)
-    val dataEntry = waitForFuture(myFileSystem!!.getEntry("/system"))
+    TestDevices.addEmulatorApi25Commands(myMockDevice.shellCommands)
+    myMockDevice.addRemoteRestrictedAccessFile("/system/build.prop", 1024)
+    val dataEntry = waitForFuture(myFileSystem.getEntry("/system"))
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
     Files.write(tempFile, ByteArray(1024))
 
@@ -494,23 +383,19 @@ class AdbDeviceFileSystemTest {
       }
     }))
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor!!.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
 
     // Assert
-    Truth.assertThat(error).isInstanceOf(AdbShellCommandException::class.java)
-    Truth.assertThat(error!!.message).isEqualTo("cp: /system/build.prop: Read-only file system")
+    assertThat(error).isInstanceOf(AdbShellCommandException::class.java)
+    assertThat(error.message).isEqualTo("cp: /system/build.prop: Read-only file system")
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_DownloadAccessibleSystemFile_Works() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    assert(myCallbackExecutor != null)
-    TestDevices.addEmulatorApi25Commands(myMockDevice!!.shellCommands)
-    val deviceEntry = waitForFuture(myFileSystem!!.getEntry("/system/build.prop"))
-    myMockDevice!!.addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
+    TestDevices.addEmulatorApi25Commands(myMockDevice.shellCommands)
+    val deviceEntry = waitForFuture(myFileSystem.getEntry("/system/build.prop"))
+    myMockDevice.addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
 
     // Act
@@ -525,26 +410,22 @@ class AdbDeviceFileSystemTest {
       }
     }))
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor!!.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    myCallbackExecutor.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
 
     // Assert
-    Truth.assertThat(result).isEqualTo(Unit)
-    Truth.assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
-    Truth.assertThat(Files.exists(tempFile)).isTrue()
-    Truth.assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
+    assertThat(result).isEqualTo(Unit)
+    assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
+    assertThat(Files.exists(tempFile)).isTrue()
+    assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
   }
 
   @Test
-  @Throws(Exception::class)
   fun test_FileSystem_DownloadRestrictedSystemFile_RecoversFromPullError() {
     // Prepare
-    assert(myFileSystem != null)
-    assert(myMockDevice != null)
-    assert(myCallbackExecutor != null)
-    TestDevices.addEmulatorApi25Commands(myMockDevice!!.shellCommands)
-    val deviceEntry = waitForFuture(myFileSystem!!.getEntry("/system/build.prop"))
-    myMockDevice!!.addRemoteRestrictedAccessFile(deviceEntry.fullPath, deviceEntry.size)
-    myMockDevice!!.addRemoteFile("/data/local/tmp/temp0", deviceEntry.size)
+    TestDevices.addEmulatorApi25Commands(myMockDevice.shellCommands)
+    val deviceEntry = waitForFuture(myFileSystem.getEntry("/system/build.prop"))
+    myMockDevice.addRemoteRestrictedAccessFile(deviceEntry.fullPath, deviceEntry.size)
+    myMockDevice.addRemoteFile("/data/local/tmp/temp0", deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
 
     // Act
@@ -559,34 +440,34 @@ class AdbDeviceFileSystemTest {
       }
     }))
     // Ensure all progress callbacks have been executed
-    myCallbackExecutor!!.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+    myCallbackExecutor.submit(EmptyRunnable.getInstance())[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
 
     // Assert
-    Truth.assertThat(result).isEqualTo(Unit)
-    Truth.assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
-    Truth.assertThat(Files.exists(tempFile)).isTrue()
-    Truth.assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
+    assertThat(result).isEqualTo(Unit)
+    assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.size)
+    assertThat(Files.exists(tempFile)).isTrue()
+    assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.size)
   }
 
   companion object {
     private const val TIMEOUT_MILLISECONDS: Long = 30000
 
+    @JvmField
     @ClassRule
     val ourLoggerRule: TestRule = DebugLoggerRule()
-    @Throws(Exception::class)
+
     private fun <V> waitForFuture(future: Future<V>): V {
       assert(!EventQueue.isDispatchThread())
-      return future[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+      return future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
 
-    @Throws(Exception::class)
-    private fun <V> waitForFutureException(future: Future<V>): Throwable? {
+    private fun <V> waitForFutureException(future: Future<V>): Throwable {
       assert(!EventQueue.isDispatchThread())
       return try {
-        future[TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS]
+        future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
         throw AssertionError("Future should have failed with an exception")
       } catch (e: ExecutionException) {
-        e.cause
+        checkNotNull(e.cause)
       }
     }
   }
