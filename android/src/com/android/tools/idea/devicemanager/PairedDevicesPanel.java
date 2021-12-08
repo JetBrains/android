@@ -22,9 +22,9 @@ import com.android.tools.idea.devicemanager.physicaltab.Key;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
-import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.ide.DataManager;
@@ -41,8 +41,9 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI.CurrentTheme.Table;
 import java.awt.BorderLayout;
+import java.util.Collections;
 import javax.swing.JComponent;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 import kotlin.Unit;
 import kotlin.coroutines.CoroutineContext;
@@ -56,10 +57,15 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   private final @NotNull WearPairingManager myManager;
 
   public PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent) {
+    this(deviceId, parent, WearPairingManager.INSTANCE);
+  }
+
+  @VisibleForTesting
+  PairedDevicesPanel(@NotNull Key deviceId, @NotNull Disposable parent, @NotNull WearPairingManager pairingManager) {
     super(new BorderLayout());
 
     myDeviceId = deviceId;
-    myManager = WearPairingManager.INSTANCE;
+    myManager = pairingManager;
 
     createUi(myManager.getPairedDevices(myDeviceId.toString()));
     myManager.addDevicePairingStatusChangedListener(this);
@@ -69,21 +75,6 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
   @Override
   public void dispose() {
     myManager.removeDevicePairingStatusChangedListener(this);
-  }
-
-  private static @NotNull String getConnectionStatus(@NotNull PairingState pairingState) {
-    switch (pairingState) {
-      case OFFLINE:
-        return "Offline";
-      case CONNECTING:
-        return "Connecting";
-      case CONNECTED:
-        return "Connected";
-      case PAIRING_FAILED:
-        return "Error pairing";
-      default:
-        throw new AssertionError(pairingState);
-    }
   }
 
   @Override
@@ -117,9 +108,11 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
       PairingDevice peerDevice = phoneWearPair.getPeerDevice(myDeviceId.toString());
 
       // TODO: Paired Device Table b/193747557
-      DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Device", "Status"}, 0);
-      tableModel.addRow(new Object[]{peerDevice.getDisplayName(), getConnectionStatus(phoneWearPair.getPairingStatus())});
-      JBTable table = new JBTable(tableModel);
+      Pairing pairing = new Pairing(peerDevice.getDisplayName(), phoneWearPair.getPairingStatus());
+
+      JTable table = new JBTable(new PairingTableModel(Collections.singletonList(pairing)));
+      table.setShowGrid(false);
+
       TableColumnModel columnModel = table.getColumnModel();
       columnModel.getColumn(0).setPreferredWidth(80_000); // Some large number, 80% of total width
       columnModel.getColumn(1).setPreferredWidth(20_000);
