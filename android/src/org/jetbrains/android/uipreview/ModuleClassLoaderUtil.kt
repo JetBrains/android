@@ -271,14 +271,21 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   init {
     // Project classes loading pipeline
-    val projectLoader = createProjectLoader(projectSystemLoader, onClassRewrite)
+    val projectLoader = if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+      createProjectLoader(projectSystemLoader, onClassRewrite)
+    }
+    else {
+      MultiLoader(
+        createOptionalOverlayLoader(module, onClassRewrite),
+        createProjectLoader(projectSystemLoader, onClassRewrite)
+      )
+    }
     val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
                                                   binaryCache,
                                                   externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
     val allLoaders = listOfNotNull(
-      createOptionalOverlayLoader(module, onClassRewrite),
       projectLoader,
       nonProjectLoader,
       RecyclerViewAdapterLoader())
@@ -296,8 +303,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Creates an overlay loader. See [OverlayLoader].
    */
-  private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader? {
-    if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) return null
+  private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
       recordOverlayLoadedClass(fqcn)
     }), onClassRewrite)
