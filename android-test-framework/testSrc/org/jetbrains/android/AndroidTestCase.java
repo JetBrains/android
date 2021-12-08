@@ -5,6 +5,7 @@ package org.jetbrains.android;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
@@ -27,6 +28,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -50,6 +55,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -111,6 +117,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
+    Path jdkPath = TestUtils.getJava11Jdk();
+    WriteAction.runAndWait(() -> {
+      cleanJdkTable();
+      setupJdk(jdkPath);
+    });
     myFacet = addAndroidFacet(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
@@ -168,6 +179,24 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+  }
+
+  private void setupJdk(Path path) {
+    assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
+
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
+    @Nullable Sdk addedSdk = SdkConfigurationUtil.createAndAddSDK(path.toString(), JavaSdk.getInstance());
+    if (addedSdk != null) {
+      Disposer.register(getTestRootDisposable(), () -> {
+        WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));
+      });
+    }
+  }
+
+  private void cleanJdkTable() {
+    for (Sdk jdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      ProjectJdkTable.getInstance().removeJdk(jdk);
+    }
   }
 
   @Override
