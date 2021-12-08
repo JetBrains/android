@@ -218,10 +218,6 @@ public final class StudioFlags {
     NELE, "animated.list.preview", "Show preview animations toolbar for animation list",
     "Show an animations bar that allows playback of animation list files.",
     true);
-  public static final Flag<Boolean> NELE_MOTION_LAYOUT_EDITOR = Flag.create(
-    NELE, "animated.motion.editor", "Show motion editor for MotionLayout",
-    "Show the motion editor UI for MotionLayout.",
-    true);
   public static final Flag<Boolean> NELE_MOTION_AREA_GRAPH = Flag.create(
     NELE, "motion.area.graph", "Show area graph in Timeline panel",
     "Show area graph in Timeline panel for Motion Editor.",

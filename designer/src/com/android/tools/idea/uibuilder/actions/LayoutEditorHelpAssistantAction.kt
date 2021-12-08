@@ -154,7 +154,6 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   private fun getDirectType(tagName: String): Type {
     if (SdkConstants.MOTION_LAYOUT.isEquals(tagName) &&
-        StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get() &&
         StudioFlags.NELE_MOTION_LAYOUT_ASSISTANT.get()) {
       return Type.MOTION_LAYOUT
     } else if (SdkConstants.CONSTRAINT_LAYOUT.isEquals(tagName) &&

@@ -254,7 +254,7 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       DRAWER_LAYOUT.isEquals(viewTag) -> DrawerLayoutHandler()
       FLOATING_ACTION_BUTTON.isEquals(viewTag) -> FloatingActionButtonHandler()
       GRID_LAYOUT_V7.isEquals(viewTag) -> GridLayoutV7Handler()
-      MOTION_LAYOUT.isEquals(viewTag) && StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get() -> MotionLayoutHandler()
+      MOTION_LAYOUT.isEquals(viewTag) -> MotionLayoutHandler()
       NAVIGATION_VIEW.isEquals(viewTag) -> NavigationViewHandler()
       NESTED_SCROLL_VIEW.isEquals(viewTag) -> NestedScrollViewHandler()
       PLAYBACK_OVERLAY_FRAGMENT.isEquals(viewTag) -> PlaybackOverlayFragmentHandler()

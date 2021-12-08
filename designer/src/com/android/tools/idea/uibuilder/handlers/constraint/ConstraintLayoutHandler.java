@@ -389,9 +389,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add(new DisappearingActionMenu("Center", CENTER_HORIZONTAL, ConstraintViewActions.CENTER_ACTIONS));
     actions.add(new DisappearingActionMenu("Add helpers", GUIDELINE_VERTICAL, ConstraintViewActions.HELPER_ACTIONS));
 
-    if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
-      actions.add(new ConvertToMotionLayoutComponentsAction());
-    }
+    actions.add(new ConvertToMotionLayoutComponentsAction());
     return true;
   }
 
