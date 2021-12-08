@@ -26,7 +26,6 @@ import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
 import static com.android.SdkConstants.SHERPA_URI;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.InsertType;
@@ -35,17 +34,14 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
-import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
@@ -64,7 +60,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLay
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -92,16 +87,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_TRANSITION_SHOW_PATHS);
   }
-
-  @Nullable
-  private static ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.isEquals(component.getTagName())) {
-      return null;
-    }
-
-    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
-  }
-
 
   @NotNull
   @Override
@@ -186,9 +171,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     CommonActions.getPopupMenuActions(component, actions);
-
-    actions
-      .add(new ComponentAssistantViewAction((nlComponent) -> getComponentAssistant(component.getScene().getDesignSurface(), nlComponent)));
 
     return false;
   }
