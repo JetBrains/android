@@ -1,6 +1,6 @@
 PROJECT                       : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
-    PROJECT_JDK                   : app_jdk
-        Version                       : java 11
+    PROJECT_JDK                   : corretto-<JAVA_VERSION>
+        Version                       : Amazon Corretto version <JDK_VERSION>
     MODULE                        : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectId               : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectPath             : <TEMP>
@@ -75,7 +75,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : java 11
+            VersionString                 : Amazon Corretto version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     RUN_CONFIGURATION             : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         *class*                       : AndroidRunConfiguration

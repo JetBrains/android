@@ -26,6 +26,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
@@ -366,7 +367,17 @@ public class TestUtils {
 
   @NonNull
   public static Path getJava11Jdk() {
-    assert Runtime.version().feature() == 11;
+    if (System.getenv("JDK_11") != null) {
+      Path jdkPath = Paths.get(System.getenv("JDK_11"));
+      if (Files.isDirectory(jdkPath)) {
+        return jdkPath;
+      }
+      else {
+        Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_11 because it is not a directory: " + jdkPath);
+      }
+    }
+
+    assert Runtime.version().feature() == 11 : "To continue we need to know where JDK11 is. env.JDK_11 didn't work.";
     return Paths.get(SystemProperties.getJavaHome());
   }
 

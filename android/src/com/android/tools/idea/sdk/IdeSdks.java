@@ -790,6 +790,10 @@ public class IdeSdks {
       }
     }
 
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      LOG.warn("Using non-deterministic JDK lookup. Test may render different results in different environments.");
+    }
+
     JavaSdk javaSdk = JavaSdk.getInstance();
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     Set<String> checkedJdkPaths = jdks.stream().map(Sdk::getHomePath).collect(Collectors.toSet());
