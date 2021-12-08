@@ -19,3 +19,18 @@ internal object KeyWords {
   const val ConstraintSets = "ConstraintSets"
   const val Extends = "Extends"
 }
+
+/**
+ * The basic supported anchors used to constrain a widget.
+ *
+ * @param keyWord The case-sensitive string used in the syntax
+ */
+internal enum class StandardAnchor(val keyWord: String) {
+  Start("start"),
+  Left("left"),
+  End("end"),
+  Right("right"),
+  Top("top"),
+  Bottom("bottom"),
+  Baseline("baseline")
+}

@@ -17,6 +17,7 @@ package com.android.tools.compose.code.completion.constraintlayout
 
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintSetNamesProvider
+import com.android.tools.compose.code.completion.constraintlayout.provider.ConstraintsProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -32,6 +33,17 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PsiElementPattern
 import com.intellij.psi.PsiElement
 
+private const val BASE_DEPTH_FOR_LITERAL_IN_PROPERTY = 2
+
+/** Depth for a literal of a property of the list of ConstraintSets. With respect to the ConstraintSets root element. */
+private const val CONSTRAINT_SET_LIST_PROPERTY_DEPTH = BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+
+/** Depth for a literal of a property of a ConstraintSet. With respect to the ConstraintSets root element. */
+private const val CONSTRAINT_SET_PROPERTY_DEPTH = CONSTRAINT_SET_LIST_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+
+/** Depth for a literal of a property of a Constraints block. With respect to the ConstraintSets root element. */
+private const val CONSTRAINT_BLOCK_PROPERTY_DEPTH = CONSTRAINT_SET_PROPERTY_DEPTH + BASE_DEPTH_FOR_LITERAL_IN_PROPERTY
+
 /**
  * [CompletionContributor] for the JSON5 format supported in ConstraintLayout-Compose (and MotionLayout).
  *
@@ -43,8 +55,14 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
     extend(
       CompletionType.BASIC,
       // Complete field names in ConstraintSets
-      jsonPropertyName().withConstraintSetsParentAtLevel(6),
+      jsonPropertyName().withConstraintSetsParentAtLevel(CONSTRAINT_SET_PROPERTY_DEPTH),
       ConstraintSetFieldsProvider
+    )
+    extend(
+      CompletionType.BASIC,
+      // Complete constraints field names (width, height, start, end, etc.)
+      jsonPropertyName().withConstraintSetsParentAtLevel(CONSTRAINT_BLOCK_PROPERTY_DEPTH),
+      ConstraintsProvider
     )
     extend(
       CompletionType.BASIC,

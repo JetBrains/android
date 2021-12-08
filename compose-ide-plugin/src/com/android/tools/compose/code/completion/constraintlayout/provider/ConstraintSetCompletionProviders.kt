@@ -15,13 +15,21 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
+import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
 import com.android.tools.compose.code.completion.constraintlayout.InsertionFormat
-import com.android.tools.compose.code.completion.constraintlayout.InsertionFormatHandler
 import com.android.tools.compose.code.completion.constraintlayout.JsonNewObjectTemplate
 import com.android.tools.compose.code.completion.constraintlayout.JsonStringValueTemplate
 import com.android.tools.compose.code.completion.constraintlayout.KeyWords
+import com.android.tools.compose.code.completion.constraintlayout.LiteralNewLineFormat
+import com.android.tools.compose.code.completion.constraintlayout.LiteralWithCaretFormat
+import com.android.tools.compose.code.completion.constraintlayout.LiveTemplateFormat
+import com.android.tools.compose.code.completion.constraintlayout.StandardAnchor
+import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithCaretInsertHandler
+import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithLiveTemplateInsertHandler
+import com.android.tools.compose.code.completion.constraintlayout.inserthandler.FormatWithNewLineInsertHandler
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
+import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintsModel
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -120,12 +128,37 @@ internal object ConstraintSetNamesProvider : BaseConstraintSetsCompletionProvide
   }
 }
 
+/**
+ * Autocomplete options used to define the constraints of a widget (defined by the ID) within a ConstraintSet
+ */
+internal object ConstraintsProvider : BaseConstraintSetsCompletionProvider() {
+  override fun addCompletions(
+    constraintSetsPropertyModel: ConstraintSetsPropertyModel,
+    parameters: CompletionParameters,
+    result: CompletionResultSet
+  ) {
+    val currentConstraintsModel = getJsonPropertyParent(parameters)?.let { ConstraintsModel(it) }
+    val existingFields = currentConstraintsModel?.declaredFieldNames?.toHashSet() ?: emptySet<String>()
+    StandardAnchor.values().forEach {
+      if (!existingFields.contains(it.keyWord)) {
+        result.addLookupElement(name = it.keyWord, tailText = " [...]", format = ConstrainAnchorTemplate)
+      }
+    }
+    // TODO(b/207030860): Add all other supported fields
+  }
+}
+
 private fun CompletionResultSet.addLookupElement(name: String, tailText: String? = null, format: InsertionFormat? = null) {
   var lookupBuilder = if (format == null) {
     LookupElementBuilder.create(name)
   }
   else {
-    LookupElementBuilder.create(format, name).withInsertHandler(InsertionFormatHandler)
+    val insertionHandler = when (format) {
+      is LiteralWithCaretFormat -> FormatWithCaretInsertHandler(format)
+      is LiteralNewLineFormat -> FormatWithNewLineInsertHandler(format)
+      is LiveTemplateFormat -> FormatWithLiveTemplateInsertHandler(format)
+    }
+    LookupElementBuilder.create(name).withInsertHandler(insertionHandler)
   }
   lookupBuilder = lookupBuilder.withCaseSensitivity(false)
   if (tailText != null) {
