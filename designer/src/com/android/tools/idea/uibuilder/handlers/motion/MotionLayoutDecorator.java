@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MotionLayoutDecorator extends SceneDecorator {
   public static final String CONSTRAINT_HOVER = "CONSTRAINT_HOVER";
-  private static boolean ourBlockSelection = !StudioFlags.NELE_CONSTRAINT_SELECTOR.get();
+  private static final boolean ourBlockSelection = false;
   private final static String[] LEFT_DIR = {
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
@@ -686,9 +686,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
         }
 
         DrawConnection
-          .buildDisplayList(list, ourBlockSelection
-                                  ? null
-                                  : SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
+          .buildDisplayList(list, SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
                             source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
         if (((anchorTarget != null && anchorTarget.isMouseHovered()) || hoverConnection) && viewSelected) {

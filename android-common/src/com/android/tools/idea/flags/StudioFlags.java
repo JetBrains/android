@@ -216,10 +216,6 @@ public final class StudioFlags {
     NELE, "motion.area.graph", "Show area graph in Timeline panel",
     "Show area graph in Timeline panel for Motion Editor.",
     true);
-  public static final Flag<Boolean> NELE_CONSTRAINT_SELECTOR = Flag.create(
-    NELE, "constraint.selection", "Allow selection of Constraints",
-    "Allow the selection of constraints.",
-    true);
   public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",
