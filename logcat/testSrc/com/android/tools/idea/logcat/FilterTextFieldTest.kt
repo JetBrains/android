@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
+import com.android.tools.idea.logcat.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_ENTER
+import javax.swing.ComboBoxModel
+import javax.swing.KeyStroke
 
 /**
  * Tests for [FilterTextField]
@@ -35,24 +41,123 @@ class FilterTextFieldTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
+  private val properties by lazy { PropertiesComponent.getInstance() }
+
+  @After
+  fun tearDown() {
+    properties.setValues(HISTORY_PROPERTY_NAME, null)
+  }
+
   @Test
-  fun constructor() {
-    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), text = "text")
+  fun constructor_setsText() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "text")
 
     assertThat(filterTextField.text).isEqualTo("text")
-    assertThat(filterTextField.fileType).isEqualTo(LogcatFilterFileType)
+  }
+
+  @Test
+  fun constructor_setsHistory() {
+    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "text")
+
+    assertThat(filterTextField.model.getItems()).containsExactly(
+      "text",
+      "bar",
+      "foo",
+    ).inOrder()
+  }
+
+  @Test
+  fun constructor_emptyText() {
+    properties.setValues(HISTORY_PROPERTY_NAME, arrayOf("foo", "bar"))
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+
+    assertThat(filterTextField.text).isEqualTo("")
+    assertThat(filterTextField.model.getItems()).containsExactly(
+      "bar",
+      "foo",
+    ).inOrder()
   }
 
   @Test
   fun createEditor_putsUserData() {
+    val editorFactory = EditorFactory.getInstance()
     val logcatPresenter = FakeLogcatPresenter()
-    val filterTextField = FilterTextField(projectRule.project, logcatPresenter, text = "")
+    val filterTextField = FilterTextField(projectRule.project, logcatPresenter, initialText = "")
+    filterTextField.addNotify() // Creates editor
 
-    val editor = filterTextField.createEditor()
+    val editor = filterTextField.editorEx
 
     assertThat(editor.getUserData(TAGS_PROVIDER_KEY)).isEqualTo(logcatPresenter)
     assertThat(editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)).isEqualTo(logcatPresenter)
-
-    EditorFactory.getInstance().releaseEditor(editor)
+    editorFactory.releaseEditor(editor)
   }
+
+  @Test
+  fun pressEnter_addsToHistory() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    filterTextField.addNotify() // Creates editor
+    filterTextField.text = "foo"
+
+    filterTextField.processKeyBinding(
+      KeyStroke.getKeyStroke('\n'),
+      KeyEvent(filterTextField, 1, 0, 0, VK_ENTER, '\n'),
+      condition = 0,
+      pressed = true)
+
+    assertThat(filterTextField.model.getItems()).containsExactly("foo")
+  }
+
+  @Test
+  fun openPopup_addsToHistory() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "")
+    filterTextField.addNotify() // Creates editor
+    filterTextField.text = "foo"
+
+    filterTextField.firePopupMenuWillBecomeVisible()
+
+    assertThat(filterTextField.model.getItems()).containsExactly("foo")
+  }
+
+  @Test
+  fun history_size() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "", maxHistorySize = 3)
+    filterTextField.addNotify() // Creates editor
+
+    for (text in listOf("foo1", "foo2", "foo3", "foo4")) {
+      filterTextField.text = text
+      filterTextField.firePopupMenuWillBecomeVisible()
+    }
+
+    assertThat(filterTextField.model.getItems()).containsExactly(
+      "foo4",
+      "foo3",
+      "foo2",
+    ).inOrder()
+  }
+
+  @Test
+  fun history_bubbles() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "", maxHistorySize = 3)
+    filterTextField.addNotify() // Creates editor
+
+    for (text in listOf("foo1", "foo2", "foo3", "foo1")) {
+      filterTextField.text = text
+      filterTextField.firePopupMenuWillBecomeVisible()
+    }
+
+    assertThat(filterTextField.model.getItems()).containsExactly(
+      "foo1",
+      "foo3",
+      "foo2",
+    ).inOrder()
+  }
+}
+
+private fun <T> ComboBoxModel<T>.getItems(): List<T> {
+  val list = mutableListOf<T>()
+  for (i in 0 until size) {
+    list.add(getElementAt(i))
+  }
+  return list
 }
