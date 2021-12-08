@@ -34,7 +34,8 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     // Avoid depending on the execution order and initializing icons with dummies.
