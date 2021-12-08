@@ -226,7 +226,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   }
 
   private void createLayoutOnlyActions(@Nullable NlComponent leafComponent, @NotNull DefaultActionGroup group) {
-    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
+    if (leafComponent != null) {
       group.add(new MorphComponentAction(leafComponent));
     }
     if (ConvertToConstraintLayoutAction.ENABLED) {

@@ -225,11 +225,6 @@ public final class StudioFlags {
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
     false);
 
-  public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
-    NELE, "convert.view", "Enable the Convert View action",
-    "Enable the Convert View Action when right clicking on a component",
-    true);
-
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
