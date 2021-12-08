@@ -741,7 +741,7 @@ public class IdeSdks {
         return jdk;
       }
     }
-    JavaSdkVersion preferredVersion = getRunningVersionOrDefault();
+    JavaSdkVersion preferredVersion = DEFAULT_JDK_VERSION;
     Sdk existingJdk = getExistingJdk(preferredVersion);
     if (existingJdk != null) return existingJdk;
     if (createIfNeeded) {
