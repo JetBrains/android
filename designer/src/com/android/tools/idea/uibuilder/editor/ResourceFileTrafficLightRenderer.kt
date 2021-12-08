@@ -32,12 +32,23 @@ import com.intellij.openapi.editor.ex.RangeHighlighterEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.impl.EditorMarkupModelImpl
 import com.intellij.openapi.editor.impl.event.MarkupModelListener
+import com.intellij.openapi.editor.markup.AnalyzerStatus
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.editor.markup.StatusItem
 import com.intellij.openapi.editor.markup.UIController
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+
+private val SEVERITY_TO_ICON = mapOf(
+  Pair(SpellCheckerSeveritiesProvider.TYPO, StudioIcons.Common.TYPO_STACK),
+  Pair(HighlightSeverity.WEAK_WARNING, StudioIcons.Common.WEAK_WARNING_STACK),
+  Pair(HighlightSeverity.WARNING, StudioIcons.Common.WARNING_STACK),
+  Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK)
+)
 
 /**
  * Custom [TrafficLightRenderer] to be used by resource files.
@@ -106,6 +117,27 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
       return errorCountArray
     }
     return super.getErrorCount()
+  }
+
+  override fun getStatus(): AnalyzerStatus {
+    val status = super.getStatus()
+    if (hasVariants && includeQualifierVariants) {
+      val nonZeroSeverities = errorCountArray.indices.reversed().filterNot { errorCountArray[it] == 0 }.map {
+        severityRegistrar.getSeverityByIndex(it)
+      }
+      val items = mutableListOf<StatusItem>()
+      val currentItems = status.expandedStatus
+      if (currentItems.size != nonZeroSeverities.size) {
+        return status
+      }
+      for (index in currentItems.indices) {
+        val item = currentItems[index]
+        val icon = SEVERITY_TO_ICON[nonZeroSeverities[index]] ?: item.icon
+        items.add(StatusItem(item.text, icon, item.detailsText))
+      }
+      status.withExpandedStatus(items)
+    }
+    return status
   }
 
   override fun createUIController(): UIController {
