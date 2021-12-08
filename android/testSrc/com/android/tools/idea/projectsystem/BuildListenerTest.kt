@@ -49,41 +49,6 @@ private class TestBuildListener: BuildListener {
   fun getLog(): String = log.toString().trimEnd()
 }
 
-private class TestProjectSystemBuildManager: ProjectSystemBuildManager {
-  private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
-  private var lastBuildResult: ProjectSystemBuildManager.BuildResult = ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
-  private var lastBuildMode = ProjectSystemBuildManager.BuildMode.UNKNOWN
-  override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
-
-  override fun compileProject() {}
-
-  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {}
-
-  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
-    listeners.add(buildListener)
-    Disposer.register(parentDisposable) {
-      listeners.remove(buildListener)
-    }
-  }
-
-  fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
-    lastBuildMode = mode
-    listeners.forEach {
-      it.buildStarted(mode)
-    }
-  }
-
-  fun buildCompleted(status: ProjectSystemBuildManager.BuildStatus) {
-    lastBuildResult = ProjectSystemBuildManager.BuildResult(lastBuildMode, status, System.currentTimeMillis())
-    listeners.forEach {
-      it.beforeBuildCompleted(lastBuildResult)
-    }
-    listeners.forEach {
-      it.buildCompleted(lastBuildResult)
-    }
-  }
-}
-
 @RunsInEdt
 class BuildListenerTest {
   @get:Rule
@@ -91,7 +56,7 @@ class BuildListenerTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val testBuildManager = TestProjectSystemBuildManager()
+  private val testBuildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
   private val project: Project
     get() = projectRule.project
 

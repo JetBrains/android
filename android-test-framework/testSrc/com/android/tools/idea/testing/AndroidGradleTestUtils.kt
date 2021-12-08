@@ -90,8 +90,11 @@ import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -989,7 +992,12 @@ fun setupTestProjectFromAndroidModel(
     error("There is already more than one module in the test project.")
   }
 
-  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(object: AndroidProjectSystem by GradleProjectSystem(project) {
+    // Many tests that invoke `compileProject` work with timestamps. To avoid flaky tests we inject a millisecond delay each time
+    // build is requested.
+    private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
+    override fun getBuildManager(): ProjectSystemBuildManager = buildManager
+  })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
 

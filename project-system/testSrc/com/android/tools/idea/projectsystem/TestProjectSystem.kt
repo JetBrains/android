@@ -21,7 +21,6 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildResult
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -36,6 +35,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
@@ -235,31 +235,7 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getBuildManager(): ProjectSystemBuildManager = buildManager
 
-  private val buildManager = object : ProjectSystemBuildManager {
-    private val buildListeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
-
-    override fun compileProject() {
-      simulateBuild()
-    }
-
-    override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
-      error("not supported for the test implementation")
-    }
-
-    override fun getLastBuildResult(): BuildResult {
-      error("not supported for the test implementation")
-    }
-
-    override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
-      buildListeners.add(buildListener)
-    }
-
-    private fun simulateBuild() {
-      buildListeners.forEach { it.buildStarted(BuildMode.UNKNOWN) }
-      buildListeners.forEach { it.beforeBuildCompleted(BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, 5000L)) }
-      buildListeners.forEach { it.buildCompleted(BuildResult(BuildMode.UNKNOWN, BuildStatus.UNKNOWN, 5500L)) }
-    }
-  }
+  private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
 
   override fun getDefaultApkFile(): VirtualFile? {
     error("not supported for the test implementation")
@@ -290,6 +266,67 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     return emptyList()
+  }
+}
+
+class TestProjectSystemBuildManager(
+  val ensureClockAdvancesWhileBuilding: Boolean
+): ProjectSystemBuildManager {
+  companion object {
+    @JvmStatic
+    fun get(project: Project): TestProjectSystemBuildManager = project.getProjectSystem().getBuildManager() as TestProjectSystemBuildManager
+  }
+
+  private val listeners = mutableListOf<ProjectSystemBuildManager.BuildListener>()
+  private var lastBuildResult: ProjectSystemBuildManager.BuildResult = ProjectSystemBuildManager.BuildResult.createUnknownBuildResult()
+  private var lastBuildMode = ProjectSystemBuildManager.BuildMode.UNKNOWN
+  override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
+
+  override fun compileProject() {
+    simulateBuild(BuildMode.ASSEMBLE)
+  }
+
+  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
+    simulateBuild(BuildMode.COMPILE)
+  }
+
+  override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
+    listeners.add(buildListener)
+    Disposer.register(parentDisposable) {
+      listeners.remove(buildListener)
+    }
+  }
+
+  fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
+    maybeEnsureClockAdvanced()
+    lastBuildMode = mode
+    listeners.forEach {
+      it.buildStarted(mode)
+    }
+    maybeEnsureClockAdvanced()
+  }
+
+  fun buildCompleted(status: ProjectSystemBuildManager.BuildStatus) {
+    lastBuildResult = ProjectSystemBuildManager.BuildResult(lastBuildMode, status, System.currentTimeMillis())
+    maybeEnsureClockAdvanced()
+    listeners.forEach {
+      it.beforeBuildCompleted(lastBuildResult)
+    }
+    listeners.forEach {
+      it.buildCompleted(lastBuildResult)
+    }
+    maybeEnsureClockAdvanced()
+  }
+
+  private fun maybeEnsureClockAdvanced() {
+    if (ensureClockAdvancesWhileBuilding) {
+      Thread.sleep(1)
+    }
+  }
+
+  private fun simulateBuild(mode: BuildMode) {
+    buildStarted(mode)
+    buildCompleted(BuildStatus.SUCCESS)
   }
 }
 
