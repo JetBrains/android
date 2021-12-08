@@ -18,16 +18,11 @@ package com.android.tools.profilers.memory.adapters.classifiers;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.base.Strings;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +37,7 @@ public class MethodSet extends ClassifierSet {
 
   @NotNull
   public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject) {
-    return new MethodClassifier(captureObject, 0);
+    return methodClassifier(captureObject, 0);
   }
 
   public MethodSet(@NotNull CaptureObject captureObject, @NotNull MethodSetInfo methodInfo, int callstackDepth) {
@@ -55,7 +50,7 @@ public class MethodSet extends ClassifierSet {
   @NotNull
   @Override
   public Classifier createSubClassifier() {
-    return new MethodClassifier(myCaptureObject, myCallstackDepth);
+    return methodClassifier(myCaptureObject, myCallstackDepth);
   }
 
   @NotNull
@@ -68,83 +63,40 @@ public class MethodSet extends ClassifierSet {
     return myMethodInfo.getMethodName();
   }
 
-  private static final class MethodClassifier extends Classifier {
-    @NotNull private final CaptureObject myCaptureObject;
-    @NotNull private final Map<MethodSetInfo, MethodSet> myStackLineMap = new LinkedHashMap<>();
-    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
-    private final int myDepth;
+  private static Classifier methodClassifier(CaptureObject captureObject, int depth) {
+    return new Classifier.Join<>(getMethodInfo(captureObject, depth), info -> new MethodSet(captureObject, info, depth + 1),
+                                 Classifier.of(InstanceObject::getClassEntry, ClassSet::new));
+  }
 
-    private MethodClassifier(@NotNull CaptureObject captureObject, int depth) {
-      myCaptureObject = captureObject;
-      myDepth = depth;
-    }
-
-    @Nullable
-    @Override
-    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-      MethodSetInfo methodInfo = getMethodInfo(instance);
-      if (methodInfo != null) {
-        MethodSet methodSet = myStackLineMap.get(methodInfo);
-        if (methodSet == null && createIfAbsent) {
-          methodSet = new MethodSet(myCaptureObject, methodInfo, myDepth + 1);
-          myStackLineMap.put(methodInfo, methodSet);
-        }
-        return methodSet;
-      }
-
-      ClassDb.ClassEntry classEntry = instance.getClassEntry();
-      ClassSet classSet = myClassMap.get(classEntry);
-      if (classSet == null && createIfAbsent) {
-        classSet = new ClassSet(classEntry);
-        myClassMap.put(classEntry, classSet);
-      }
-      return classSet;
-    }
-
-    @Nullable
-    private MethodSetInfo getMethodInfo(@NotNull InstanceObject instance) {
-      int stackDepth = instance.getCallStackDepth();
-      if (stackDepth <= 0 || myDepth >= stackDepth) {
+  private static Function1<InstanceObject, MethodSetInfo> getMethodInfo(CaptureObject captureObject, int depth) {
+    return inst -> {
+      int stackDepth = inst.getCallStackDepth();
+      if (stackDepth <= 0 || depth >= stackDepth) {
         return null;
       }
-
-      int frameIndex = stackDepth - myDepth - 1;
-      AllocationStack stack = instance.getAllocationCallStack();
+      int frameIndex = stackDepth - depth - 1;
+      AllocationStack stack = inst.getAllocationCallStack();
       if (stack != null) {
         switch (stack.getFrameCase()) {
           case FULL_STACK:
             AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
             AllocationStack.StackFrame stackFrame = fullStack.getFrames(frameIndex);
-            return new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+            return new MethodSetInfo(captureObject, stackFrame.getClassName(), stackFrame.getMethodName());
           case ENCODED_STACK:
             AllocationStack.EncodedFrameWrapper smallStack = stack.getEncodedStack();
             AllocationStack.EncodedFrame smallFrame = smallStack.getFrames(frameIndex);
-            return new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
+            return new MethodSetInfo(captureObject, smallFrame.getMethodId());
           default:
             throw new UnsupportedOperationException();
         }
       }
 
       assert frameIndex >= 0 && frameIndex < stackDepth;
-      CodeLocation location = instance.getAllocationCodeLocations().get(frameIndex);
-      return new MethodSetInfo(myCaptureObject,
+      CodeLocation location = inst.getAllocationCodeLocations().get(frameIndex);
+      return new MethodSetInfo(captureObject,
                                Strings.nullToEmpty(location.getClassName()),
                                Strings.nullToEmpty(location.getMethodName()));
-    }
-
-    @NotNull
-    @Override
-    public List<ClassifierSet> getFilteredClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered())
-        .collect(Collectors.toList());
-    }
-
-    @NotNull
-    @Override
-    protected List<ClassifierSet> getAllClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream())
-        .collect(Collectors.toList());
-    }
+    };
   }
 
   private static final class MethodSetInfo {

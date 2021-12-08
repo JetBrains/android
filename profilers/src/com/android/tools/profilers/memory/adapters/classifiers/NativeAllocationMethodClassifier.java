@@ -15,41 +15,8 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers;
 
-import com.android.tools.profilers.memory.adapters.ClassDb;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-final class NativeAllocationMethodClassifier extends Classifier {
-  @NotNull private final Map<String, NativeAllocationMethodSet> myAllocationMap = new LinkedHashMap<>();
-
-  @Nullable
-  @Override
-  public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-    ClassDb.ClassEntry classEntry = instance.getClassEntry();
-    // The classname is the leaf function name that issued the allocation.
-    NativeAllocationMethodSet set = myAllocationMap.get(classEntry.getClassName());
-    if (set == null && createIfAbsent) {
-      set = new NativeAllocationMethodSet(classEntry.getClassName());
-      myAllocationMap.put(classEntry.getClassName(), set);
-    }
-    return set;
-  }
-
-  @NotNull
-  @Override
-  public List<ClassifierSet> getFilteredClassifierSets() {
-    return ContainerUtil.filter(myAllocationMap.values(), child -> !child.getIsFiltered());
-  }
-
-  @NotNull
-  @Override
-  protected List<ClassifierSet> getAllClassifierSets() {
-    return new ArrayList<>(myAllocationMap.values());
+final class NativeAllocationMethodClassifier {
+  public static Classifier newInstance() {
+    return Classifier.of(inst -> inst.getClassEntry().getClassName(), NativeAllocationMethodSet::new);
   }
 }
