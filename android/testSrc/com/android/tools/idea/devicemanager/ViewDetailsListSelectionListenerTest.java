@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,10 @@ public final class ViewDetailsListSelectionListenerTest {
   @Test
   public void valueChangedPanelDoesntHaveDetails() {
     // Arrange
+    JTable table = Mockito.mock(JTable.class);
+    Mockito.when(table.getSelectedRowCount()).thenReturn(1);
+
+    myPanel.myTable = table;
     ListSelectionEvent event = new ListSelectionEvent(new Object(), 0, 0, false);
 
     // Act
@@ -55,7 +60,12 @@ public final class ViewDetailsListSelectionListenerTest {
   @Test
   public void valueChanged() {
     // Arrange
+    JTable table = Mockito.mock(JTable.class);
+    Mockito.when(table.getSelectedRowCount()).thenReturn(1);
+
+    myPanel.myTable = table;
     Mockito.when(myPanel.hasDetails()).thenReturn(true);
+
     ListSelectionEvent event = new ListSelectionEvent(new Object(), 0, 0, false);
 
     // Act

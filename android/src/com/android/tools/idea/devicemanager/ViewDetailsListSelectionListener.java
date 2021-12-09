@@ -32,6 +32,10 @@ final class ViewDetailsListSelectionListener implements ListSelectionListener {
       return;
     }
 
+    if (myPanel.myTable.getSelectedRowCount() == 0) {
+      return;
+    }
+
     if (!myPanel.hasDetails()) {
       return;
     }

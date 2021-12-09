@@ -213,6 +213,30 @@ public final class PhysicalDevicePanelTest {
   }
 
   @Test
+  public void newDetailsPanelDoesntThrowAssertionError() throws InterruptedException {
+    // Arrange
+    myPanel = new PhysicalDevicePanel(myProject,
+                                      myParent,
+                                      project -> myService,
+                                      PhysicalDeviceTable::new,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      mySupplier,
+                                      this::newSetDevices,
+                                      (device, project) -> newPhysicalDeviceDetailsPanel(device));
+
+    CountDownLatchAssert.await(myLatch);
+
+    PhysicalDeviceTable table = myPanel.getTable();
+
+    table.setRowSelectionInterval(0, 0);
+    myPanel.viewDetails();
+
+    // Act
+    table.getModel().addOrSet(TestPhysicalDevices.GOOGLE_PIXEL_3);
+  }
+
+  @Test
   public void viewDetails() throws InterruptedException {
     // Arrange
     myPanel = new PhysicalDevicePanel(myProject,
