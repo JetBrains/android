@@ -21,13 +21,11 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import java.io.File;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +38,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
   @Nullable IdeDependencies getSelectedAndroidTestCompileDependencies();
 
   @NotNull GradleVersion getAgpVersion();
-
-  @NotNull List<IdeSourceProvider> getActiveSourceProviders();
 
   @Nullable IdeBuildTypeContainer findBuildType(@NotNull String name);
 

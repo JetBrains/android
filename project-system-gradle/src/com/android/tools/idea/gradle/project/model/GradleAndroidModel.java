@@ -236,7 +236,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
-  @Override
   @NotNull
   public List<IdeSourceProvider> getActiveSourceProviders() {
     return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
