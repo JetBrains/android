@@ -36,7 +36,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
-import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseEvent
@@ -77,8 +79,10 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         if (emulatorLaunchesInToolWindow) {
           if (emulatorVersionIsSufficient) {
-            val action = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction
-            action.openAvdManager(project)
+            // Action id is from com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction.
+            val runAndroidAvdManagerAction = ActionManager.getInstance().getAction("Android.RunAndroidAvdManager")
+            val projectContext = SimpleDataContext.getProjectContext(project)
+            ActionUtil.invokeAction(runAndroidAvdManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
           }
           else {
             val actionManager = ActionManager.getInstance()

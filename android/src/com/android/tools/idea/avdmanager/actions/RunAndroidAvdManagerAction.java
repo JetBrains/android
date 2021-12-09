@@ -94,7 +94,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     openAvdManager(e.getProject());
   }
 
-  public void openAvdManager(@Nullable Project project) {
+  private void openAvdManager(@Nullable Project project) {
     if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
       openDeviceManager(project);
     }

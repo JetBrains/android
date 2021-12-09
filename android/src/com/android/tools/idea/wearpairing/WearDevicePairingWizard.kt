@@ -32,7 +32,10 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
-import com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
 
@@ -44,13 +47,24 @@ internal class WearDevicePairingWizard {
   private fun show(project: Project?, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {
       window?.toFront()  // We already have a dialog, just bring it to the front and return
-      return
+      return@show
     }
 
     val wizardAction = object : WizardAction {
       override fun closeAndStartAvd(project: Project?) {
         wizardDialog?.close(CANCEL_EXIT_CODE)
-        (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
+
+        if (project == null) {
+          ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager").actionPerformed(
+            AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
+          )
+        }
+        else {
+          // Action id is from com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction.
+          val runAndroidAvdManagerAction = ActionManager.getInstance().getAction("Android.RunAndroidAvdManager")
+          val projectContext = SimpleDataContext.getProjectContext(project)
+          ActionUtil.invokeAction(runAndroidAvdManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
+        }
       }
 
       override fun restart(project: Project?) {
