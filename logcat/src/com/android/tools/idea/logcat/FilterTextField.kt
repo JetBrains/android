@@ -16,21 +16,24 @@
 package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
+import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.ui.ComboboxEditorTextField
-import com.intellij.ui.EditorComboBox
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.EditorTextField
 import com.intellij.ui.PopupMenuListenerAdapter
+import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.ComboBoxEditor
+import javax.swing.DefaultComboBoxModel
+import javax.swing.JLabel
 import javax.swing.KeyStroke
 import javax.swing.event.PopupMenuEvent
 
@@ -38,16 +41,15 @@ private const val MAX_HISTORY_SIZE = 20
 
 /**
  * A text field for the filter.
- *
- * TODO(aalbert): Add `Clear Text` button (x).
  */
 internal class FilterTextField(
   project: Project,
-  private val logcatPresenter: LogcatPresenter,
+  logcatPresenter: LogcatPresenter,
   initialText: String,
   maxHistorySize: Int = MAX_HISTORY_SIZE,
-) : EditorComboBox(createDocument(project, initialText), project, LogcatFilterFileType) {
+) : ComboBox<String>() {
 
+  private val textField = FilterEditorTextField(project, logcatPresenter, initialText)
   private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
   private val history = MostRecentlyAddedSet<String>(maxHistorySize).apply {
     addAll(propertiesComponent.getValues(HISTORY_PROPERTY_NAME) ?: emptyArray())
@@ -56,24 +58,30 @@ internal class FilterTextField(
     }
   }
 
+  var text: String
+    get() = textField.text
+    set(value) {
+      textField.text = value
+    }
+
   init {
-    setHistory(history.reversed().toTypedArray())
+    setEditable(true)
+    setEditor(FilterComboBoxEditor(textField))
+
+    setHistory()
     if (initialText.isEmpty()) {
       selectedItem = null
     }
     addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
+      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent) {
         addHistoryItem()
       }
     })
   }
 
-  public override fun createEditorTextField(
-    document: Document,
-    project: Project,
-    fileType: FileType,
-    isViewer: Boolean,
-  ): ComboboxEditorTextField = EditorTextFieldWithUserData(document, project, logcatPresenter)
+  fun addDocumentListener(listener: DocumentListener) {
+    textField.addDocumentListener(listener)
+  }
 
   // Registering a KeyListener doesn't seem to work.
   @VisibleForTesting
@@ -85,12 +93,18 @@ internal class FilterTextField(
     return super.processKeyBinding(ks, e, condition, pressed)
   }
 
+  internal fun getEditorEx() = textField.editor as EditorEx
+
   private fun addHistoryItem() {
     if (text.isNotEmpty()) {
       history.add(text)
-      setHistory(history.reversed().toTypedArray())
+      setHistory()
       propertiesComponent.setValues(HISTORY_PROPERTY_NAME, history.toTypedArray())
     }
+  }
+
+  private fun setHistory() {
+    model = DefaultComboBoxModel(history.reversed().toTypedArray())
   }
 
   companion object {
@@ -99,17 +113,61 @@ internal class FilterTextField(
   }
 }
 
-private class EditorTextFieldWithUserData(document: Document, project: Project, val logcatPresenter: LogcatPresenter)
-  : ComboboxEditorTextField(document, project, LogcatFilterFileType) {
+private class FilterEditorTextField(project: Project, val logcatPresenter: LogcatPresenter, text: String)
+  : EditorTextField(project, LogcatFilterFileType) {
   public override fun createEditor(): EditorEx {
     return super.createEditor().apply {
       putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
       putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
     }
   }
+
+  init {
+    this.text = text
+  }
 }
 
-private fun createDocument(project: Project, text: String): Document {
-  val psiFile: PsiFile = PsiFileFactory.getInstance(project).createFileFromText(LogcatFilterLanguage, text)
-  return PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: throw IllegalStateException("Should not happen")
+private class FilterComboBoxEditor(private val textField: EditorTextField) : ComboBoxEditor {
+  private val panel = object : BorderLayoutPanel() {
+    override fun getBackground() = textField.background
+  }
+
+  private val clearButton = JLabel(AllIcons.Actions.Close)
+
+  init {
+    panel.addToCenter(textField)
+    panel.addToRight(clearButton)
+
+    clearButton.addMouseListener(object : MouseAdapter() {
+      override fun mouseEntered(e: MouseEvent) {
+        clearButton.icon = AllIcons.Actions.CloseHovered
+      }
+
+      override fun mouseExited(e: MouseEvent) {
+        clearButton.icon = AllIcons.Actions.Close
+      }
+
+      override fun mouseClicked(e: MouseEvent) {
+        item = ""
+      }
+    })
+  }
+
+  override fun getEditorComponent() = panel
+
+  override fun setItem(item: Any?) {
+    textField.text = item as? String ?: ""
+  }
+
+  override fun getItem() = textField.text
+
+  override fun selectAll() {
+    textField.selectAll()
+  }
+
+  override fun addActionListener(listener: ActionListener?) {
+  }
+
+  override fun removeActionListener(listener: ActionListener?) {
+  }
 }

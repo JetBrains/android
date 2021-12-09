@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.logcat.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -26,9 +27,11 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.ComboBoxModel
+import javax.swing.JLabel
 import javax.swing.KeyStroke
 
 /**
@@ -86,7 +89,7 @@ class FilterTextFieldTest {
     val filterTextField = FilterTextField(projectRule.project, logcatPresenter, initialText = "")
     filterTextField.addNotify() // Creates editor
 
-    val editor = filterTextField.editorEx
+    val editor = filterTextField.getEditorEx()
 
     assertThat(editor.getUserData(TAGS_PROVIDER_KEY)).isEqualTo(logcatPresenter)
     assertThat(editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)).isEqualTo(logcatPresenter)
@@ -151,6 +154,18 @@ class FilterTextFieldTest {
       "foo3",
       "foo2",
     ).inOrder()
+  }
+
+  @Test
+  fun clickClear() {
+    val filterTextField = FilterTextField(projectRule.project, FakeLogcatPresenter(), initialText = "foo")
+    filterTextField.size = Dimension(100, 100)
+    val fakeUi = FakeUi(filterTextField)
+    val clearButton = fakeUi.getComponent<JLabel> { true }
+
+    fakeUi.clickOn(clearButton)
+
+    assertThat(filterTextField.text).isEmpty()
   }
 }
 
