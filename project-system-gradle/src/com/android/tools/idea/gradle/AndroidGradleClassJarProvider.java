@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.Lists;
@@ -36,7 +36,7 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
   @Override
   @NotNull
   public List<File> getModuleExternalLibraries(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
+    GradleAndroidModel model = GradleAndroidModel.get(module);
     if (model == null) {
       return Lists.transform(AndroidRootUtil.getExternalLibraries(module), VfsUtilCore::virtualToIoFile);
     }

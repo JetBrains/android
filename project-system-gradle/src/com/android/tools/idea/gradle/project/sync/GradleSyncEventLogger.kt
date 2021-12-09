@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.stats.withProjectId
@@ -66,7 +66,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 
       val ordering = Ordering.natural<GradleVersion>().nullsFirst<GradleVersion>()
 
-      ModuleManager.getInstance(project).modules.mapNotNull { module -> AndroidModuleModel.get(module) }.forEach { model ->
+      ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
         val dependencies = model.selectedMainCompileLevel2Dependencies
 
         kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin:kotlin-stdlib"))

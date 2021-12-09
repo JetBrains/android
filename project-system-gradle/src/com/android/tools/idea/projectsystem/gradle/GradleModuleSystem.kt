@@ -380,7 +380,7 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
   fun IdeAndroidLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
 
   val aarManifests =
-    AndroidModuleModel.get(this)
+    GradleAndroidModel.get(this)
       ?.selectedMainCompileLevel2Dependencies
       ?.androidLibraries
       ?.mapNotNull { it.manifestFile() }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -45,7 +46,7 @@ class AndroidGradleClassJarProviderTest {
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
     assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency)))
 
-    val model = AndroidModuleModel.get(module)!!
+    val model = GradleAndroidModel.get(module)!!
     val runtimeDependencies = model.selectedMainCompileLevel2Dependencies.runtimeOnlyClasses.map(File::getAbsolutePath)
     assertTrue(runtimeDependencies.isNotEmpty())
 

@@ -195,7 +195,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * @return Instance of {@link IdeDependencies} from main artifact.
    */
-  @Override
   @NotNull
   public IdeDependencies getSelectedMainCompileLevel2Dependencies() {
     IdeAndroidArtifact mainArtifact = getMainArtifact();
