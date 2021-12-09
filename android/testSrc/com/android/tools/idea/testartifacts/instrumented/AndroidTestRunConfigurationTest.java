@@ -20,16 +20,12 @@ import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.VirtualFileSystem;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.StubIndex;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -45,7 +41,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
    */
   public void testCheckConfigurationNoErrors() throws Exception {
     System.out.println("isDumb: " + DumbService.isDumb(getProject()));
-    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME.hashCode(), getProject(), GlobalSearchScope
+    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME, getProject(), GlobalSearchScope
       .projectScope(getProject())));
 
     loadProject(DYNAMIC_APP);
@@ -63,9 +59,9 @@ try {
     assertThat(errors).isEmpty();
 } finally {
     System.out.println("isDumb: " + DumbService.isDumb(getProject()));
-    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME.hashCode(), getProject(), GlobalSearchScope
+    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME, getProject(), GlobalSearchScope
       .projectScope(getProject())));
-    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME.hashCode(), getProject(), GlobalSearchScope
+    System.out.println("JavaFullClassNameIndex: " + JavaFullClassNameIndex.getInstance().get(TEST_APP_CLASS_NAME, getProject(), GlobalSearchScope
       .projectScope(getProject())));
     System.out.println("JavaFullClassNameIndex.containsKey: " + JavaFullClassNameIndex.getInstance().getAllKeys(getProject()).contains(TEST_APP_CLASS_NAME.hashCode()));
 
