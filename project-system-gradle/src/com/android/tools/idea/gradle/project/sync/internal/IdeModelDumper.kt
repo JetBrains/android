@@ -485,6 +485,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideSourceProvider.jniLibsDirectories.forEach { prop("JniLibsDirectories") { it.path.toPrintablePath() } }
       ideSourceProvider.shadersDirectories.forEach { prop("ShadersDirectories") { it.path.toPrintablePath() } }
       ideSourceProvider.mlModelsDirectories.forEach { prop("MlModelsDirectories") { it.path.toPrintablePath() } }
+      ideSourceProvider.customSourceDirectories.forEach {
+        head("CustomSourceDirectories")
+        nest {
+          prop("SourceTypeName") { it.sourceTypeName }
+          prop("Directory") { it.directory.path.toPrintablePath() }
+        }
+      }
     }
 
     private fun dump(extraSourceProvider: IdeSourceProviderContainer) {

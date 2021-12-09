@@ -331,6 +331,10 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
       override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
       override val shadersDirectoryUrls get() = providers.asSequence().map { it.shadersDirectoryUrls.asSequence() }.flatten()
       override val mlModelsDirectoryUrls get() = providers.asSequence().map { it.mlModelsDirectoryUrls.asSequence() }.flatten()
+      override val customSourceDirectories: Map<String, Sequence<String>> =
+        providers.asSequence().flatMap { it.custom.keys }.toSet().associateWith { customKey ->
+          providers.asSequence().map { it.custom[customKey]!!.directoryUrls.asSequence() }.flatten()
+        }
     }
   )
 }
@@ -362,6 +366,7 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     override val assetsDirectories: Iterable<VirtualFile> = emptyList()
     override val shadersDirectories: Iterable<VirtualFile> = emptyList()
     override val mlModelsDirectories: Iterable<VirtualFile> = emptyList()
+    override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
   }
 }
 

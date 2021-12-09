@@ -167,7 +167,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
       myJniLibsDirectories = provider.jniLibsDirectories.makeRelativeAndDeduplicate(),
       myShadersDirectories = copy(provider::getShadersDirectories, mapper = { it }).makeRelativeAndDeduplicate(),
       myMlModelsDirectories =
-      if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList()
+      if (mlModelBindingEnabled) copy(provider::getMlModelsDirectories, mapper = { it }).makeRelativeAndDeduplicate() else emptyList(),
+      myCustomSourceDirectories = emptyList(),
     )
   }
 

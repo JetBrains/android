@@ -128,31 +128,31 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   protected void update(@NotNull PresentationData presentation) {
-    presentation.addText(CPP.getName(), REGULAR_ATTRIBUTES);
+    presentation.addText(CPP.INSTANCE.getName(), REGULAR_ATTRIBUTES);
 
-    Icon icon = CPP.getIcon();
+    Icon icon = CPP.INSTANCE.getIcon();
     if (icon != null) {
       presentation.setIcon(icon);
     }
-    presentation.setPresentableText(CPP.getName());
+    presentation.setPresentableText(CPP.INSTANCE.getName());
   }
 
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return CPP.getName();
+    return CPP.INSTANCE.getName();
   }
 
   @Override
   @Nullable
   public Comparable getSortKey() {
-    return CPP;
+    return CPP.INSTANCE;
   }
 
   @Override
   @Nullable
   public Comparable getTypeSortKey() {
-    return CPP;
+    return CPP.INSTANCE;
   }
 
   /**

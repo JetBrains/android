@@ -110,7 +110,7 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
 
   @NotNull
   private static AndroidSourceType getSourceType() {
-    return AndroidSourceType.CPP;
+    return AndroidSourceType.CPP.INSTANCE;
   }
 
   @Override

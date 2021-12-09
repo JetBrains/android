@@ -177,7 +177,7 @@ class AndroidModuleNode(
       // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
       // as part of this source type.
       val allSources: MutableSet<VirtualFile> = HashSet()
-      for (sourceType in AndroidSourceType.values()) {
+      for (sourceType in AndroidSourceType.BUILT_IN_TYPES) {
         if (sourceType == AndroidSourceType.SHADERS && androidModel == null) {
           continue
         }
@@ -200,6 +200,13 @@ class AndroidModuleNode(
           sourcesByType.putAll(sourceType, sources)
         }
         allSources.addAll(sources)
+      }
+
+      for (provider in AndroidViewNodes.getSourceProviders(providers)) {
+        for (customKey in provider.custom.keys) {
+          val customType = AndroidSourceType.Custom(customKey)
+          sourcesByType.putAll(customType, getSources(customType, providers))
+        }
       }
       return sourcesByType
     }

@@ -150,6 +150,9 @@ private fun IdeSourceProvider.processAll(
   (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories).forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
+  customSourceDirectories.forEach {
+    processor(it.directory.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
+  }
   processor(manifestFile.parentFile.absolutePath, null)
 
   val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories

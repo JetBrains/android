@@ -86,7 +86,7 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.addText(MANIFESTS_NODE, REGULAR_ATTRIBUTES);
-    Icon icon = AndroidSourceType.MANIFEST.getIcon();
+    Icon icon = AndroidSourceType.MANIFEST.INSTANCE.getIcon();
     if (icon != null) {
       presentation.setIcon(icon);
     }
@@ -155,13 +155,13 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   @Override
   @Nullable
   public Comparable getSortKey() {
-    return AndroidSourceType.MANIFEST;
+    return AndroidSourceType.MANIFEST.INSTANCE;
   }
 
   @Override
   @Nullable
   public Comparable getTypeSortKey() {
-    return AndroidSourceType.MANIFEST;
+    return AndroidSourceType.MANIFEST.INSTANCE;
   }
 
   @Override

@@ -41,6 +41,8 @@ fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scope
       override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()
       override val shadersDirectoryUrls: Sequence<String> get() = it.shadersDirectories.asSequence().toUrls()
       override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
+      override val customSourceDirectories: Map<String, Sequence<String>>
+        get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
     }
   )
 }

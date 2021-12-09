@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
@@ -22,6 +23,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.getManifestFiles
@@ -69,6 +71,13 @@ fun Project.dumpSourceProviders(): String {
     fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Iterable<VirtualFile?>) =
       dumpPathsCore(name, getter) { it?.url }
 
+    fun IdeCustomSourceDirectory.dump() {
+      nest("CustomSourceDirectory") {
+        out(sourceTypeName)
+        out(directory.systemIndependentPath.toPrintablePath())
+      }
+    }
+
     fun IdeSourceProvider.dump() {
       out(name)
       nest {
@@ -83,6 +92,7 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
         dumpPaths("ShadersDirectories") { it.shadersDirectories }
         dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
+        customSourceDirectories.forEach { it.dump() }
       }
     }
 

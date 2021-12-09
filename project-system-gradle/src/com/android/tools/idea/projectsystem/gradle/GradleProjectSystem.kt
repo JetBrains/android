@@ -296,6 +296,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val assetsDirectoryUrls: Sequence<String> = emptySequence()
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
+        override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
       }
     )
   }
@@ -318,6 +319,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val assetsDirectoryUrls: Sequence<String> = emptySequence()
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
+        override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
       }
     )
   }

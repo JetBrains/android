@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
+import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import java.io.File
 import java.io.Serializable
@@ -32,7 +33,8 @@ data class IdeSourceProviderImpl(
   private val myAssetsDirectories: Collection<String>,
   private val myJniLibsDirectories: Collection<String>,
   private val myShadersDirectories: Collection<String>,
-  private val myMlModelsDirectories: Collection<String>
+  private val myMlModelsDirectories: Collection<String>,
+  private val myCustomSourceDirectories: Collection<IdeCustomSourceDirectory>
 ) : Serializable, IdeSourceProvider {
   private fun String.translate(): File = (myFolder?.resolve(this) ?: File(this)).normalize()
   private fun Collection<String>.translate(): Collection<File> = map { it.translate() }
@@ -51,7 +53,8 @@ data class IdeSourceProviderImpl(
     myAssetsDirectories = mutableListOf(),
     myJniLibsDirectories = mutableListOf(),
     myShadersDirectories = mutableListOf(),
-    myMlModelsDirectories = mutableListOf()
+    myMlModelsDirectories = mutableListOf(),
+    myCustomSourceDirectories = mutableListOf(),
   )
 
   fun appendDirectories(
@@ -92,4 +95,6 @@ data class IdeSourceProviderImpl(
   override val jniLibsDirectories: Collection<File> get() = myJniLibsDirectories.translate()
   override val shadersDirectories: Collection<File> get() = myShadersDirectories.translate()
   override val mlModelsDirectories: Collection<File> get() = myMlModelsDirectories.translate()
+  override val customSourceDirectories: Collection<IdeCustomSourceDirectory>
+    get() = myCustomSourceDirectories
 }

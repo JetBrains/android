@@ -71,6 +71,15 @@ interface IdeaSourceProvider {
 
   val mlModelsDirectoryUrls: Iterable<String>
   val mlModelsDirectories: Iterable<VirtualFile>
+
+  interface Custom {
+    val directoryUrls: Iterable<String>
+    val directories: Iterable<VirtualFile>
+  }
+
+  /** Map of sourceTypeName to the source roots */
+  val custom: Map<String, Custom>
+
 }
 
 /**

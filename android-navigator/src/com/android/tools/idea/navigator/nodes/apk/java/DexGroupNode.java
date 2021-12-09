@@ -174,7 +174,7 @@ public class DexGroupNode extends ProjectViewNode<DexGroupNode.DexGroupElement> 
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(SourceRoot);
-    presentation.addText(AndroidSourceType.JAVA.getName(), REGULAR_ATTRIBUTES);
+    presentation.addText(AndroidSourceType.JAVA.INSTANCE.getName(), REGULAR_ATTRIBUTES);
     if (myDexFiles.size() == 1) {
       // Example: java (classes.dex)
       presentation.addText(" (" + myDexFiles.get(0).getName() + ")", GRAY_ATTRIBUTES);
@@ -199,7 +199,7 @@ public class DexGroupNode extends ProjectViewNode<DexGroupNode.DexGroupElement> 
 
   @NotNull
   private static AndroidSourceType getSourceType() {
-    return AndroidSourceType.JAVA;
+    return AndroidSourceType.JAVA.INSTANCE;
   }
 
   @Override
@@ -222,7 +222,7 @@ public class DexGroupNode extends ProjectViewNode<DexGroupNode.DexGroupElement> 
   }
 
   /**
-   * Lazily populates and returns {@link myPackages}.
+   * Lazily populates and returns {@code myPackages}.
    */
   @NotNull
   private Collection<ApkPackage> getPackages() {
