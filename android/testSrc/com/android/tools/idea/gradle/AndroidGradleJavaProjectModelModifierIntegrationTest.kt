@@ -12,8 +12,6 @@ import org.junit.runners.Parameterized
 import java.util.concurrent.TimeUnit
 
 class AndroidGradleJavaProjectModelModifierIntegrationTest : GradleImportingTestCase() {
-  override fun runInWriteAction(): Boolean = false
-
   override fun runInDispatchThread(): Boolean = false
 
   @Test
