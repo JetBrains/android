@@ -54,12 +54,12 @@ public class HeapSet extends ClassifierSet {
     // Subsequent calls to getChildrenClassifierSets will re-partition them to the correct child ClassifierSet.
     List<InstanceObject> snapshotStream = getSnapshotInstanceStream().collect(Collectors.toList());
     List<InstanceObject> deltaStream = getDeltaInstanceStream().collect(Collectors.toList());
-    myDeltaInstances.clear();
-    mySnapshotInstances.clear();
-    myClassifier = null;
-    myDeltaInstances.addAll(deltaStream);
-    mySnapshotInstances.addAll(snapshotStream);
-    myNeedsRefiltering = true;
+    deltaInstances.clear();
+    snapshotInstances.clear();
+    classifier = null;
+    deltaInstances.addAll(deltaStream);
+    snapshotInstances.addAll(snapshotStream);
+    needsRefiltering = true;
   }
 
   public int getId() {

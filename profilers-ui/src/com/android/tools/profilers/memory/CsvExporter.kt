@@ -46,16 +46,16 @@ class CsvExporter(private val getTree: () -> JTree?,
                                ::classStream,
                                mapOf(
                                  ClassifierAttribute.LABEL to ClassifierSet::getName,
-                                 ClassifierAttribute.ALLOCATIONS to ClassifierSet::getDeltaAllocationCount,
-                                 ClassifierAttribute.DEALLOCATIONS to ClassifierSet::getDeltaDeallocationCount,
-                                 ClassifierAttribute.TOTAL_COUNT to ClassifierSet::getTotalObjectCount,
-                                 ClassifierAttribute.NATIVE_SIZE to ClassifierSet::getTotalNativeSize,
-                                 ClassifierAttribute.SHALLOW_SIZE to ClassifierSet::getTotalShallowSize,
-                                 ClassifierAttribute.SHALLOW_DIFFERENCE to ClassifierSet::getDeltaShallowSize,
-                                 ClassifierAttribute.RETAINED_SIZE to ClassifierSet::getTotalRetainedSize,
-                                 ClassifierAttribute.ALLOCATIONS_SIZE to ClassifierSet::getAllocationSize,
-                                 ClassifierAttribute.DEALLOCATIONS_SIZE to ClassifierSet::getDeallocationSize,
-                                 ClassifierAttribute.REMAINING_SIZE to ClassifierSet::getTotalRemainingSize
+                                 ClassifierAttribute.ALLOCATIONS to ClassifierSet::deltaAllocationCount,
+                                 ClassifierAttribute.DEALLOCATIONS to ClassifierSet::deltaDeallocationCount,
+                                 ClassifierAttribute.TOTAL_COUNT to ClassifierSet::totalObjectCount,
+                                 ClassifierAttribute.NATIVE_SIZE to ClassifierSet::totalNativeSize,
+                                 ClassifierAttribute.SHALLOW_SIZE to ClassifierSet::totalShallowSize,
+                                 ClassifierAttribute.SHALLOW_DIFFERENCE to ClassifierSet::deltaShallowSize,
+                                 ClassifierAttribute.RETAINED_SIZE to ClassifierSet::totalRetainedSize,
+                                 ClassifierAttribute.ALLOCATIONS_SIZE to ClassifierSet::allocationSize,
+                                 ClassifierAttribute.DEALLOCATIONS_SIZE to ClassifierSet::deallocationSize,
+                                 ClassifierAttribute.REMAINING_SIZE to ClassifierSet::totalRemainingSize
                                ))
   }
 
