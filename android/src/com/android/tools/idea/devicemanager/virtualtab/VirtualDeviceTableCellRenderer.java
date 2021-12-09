@@ -16,23 +16,11 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
-import java.awt.Component;
-import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
 final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
   VirtualDeviceTableCellRenderer() {
     super(VirtualDevice.class);
-  }
-
-  @Override
-  public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
-                                                          @NotNull Object value,
-                                                          boolean selected,
-                                                          boolean focused,
-                                                          int viewRowIndex,
-                                                          int viewColumnIndex) {
-    return super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
   }
 
   @Override

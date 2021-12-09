@@ -103,12 +103,12 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   }
 
   @Override
-  public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
-                                                          @NotNull Object value,
-                                                          boolean selected,
-                                                          boolean focused,
-                                                          int viewRowIndex,
-                                                          int viewColumnIndex) {
+  public final @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
+                                                                @NotNull Object value,
+                                                                boolean selected,
+                                                                boolean focused,
+                                                                int viewRowIndex,
+                                                                int viewColumnIndex) {
     D device = myValueClass.cast(value);
     Color foreground = Tables.getForeground(table, selected);
 
