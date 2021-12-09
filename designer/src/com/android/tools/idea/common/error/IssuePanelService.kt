@@ -20,17 +20,12 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.UIUtil
 
-/**
- * The name of issue tab.
- */
-private const val TAB_NAME = "Current File and Qualifiers"
 /**
  * A service to help to show the issues of Design Tools in IJ's Problems panel.
  */
@@ -46,16 +41,10 @@ class IssuePanelService(private val project: Project) {
   private var sharedIssueTab: Content? = null
   private var sharedIssuePanel: DesignerCommonIssuePanel? = null
 
-  /**
-   * The issue panel for both Layout Editor and Validation Tool.
-   */
-  private var issueAndQualifierTab: Content? = null
-  private var layoutAndQualifierPanel: DesignerCommonIssuePanel? = null
-
   private val initLock = Any()
   private var inited = false
 
-  private val layoutAndQualifierIssueProviders = LayoutIssueProviderGroup()
+  private val layoutAndQualifierIssueProviders = EmptyIssueProvider
 
   init {
     val manager = ToolWindowManager.getInstance(project)
@@ -104,17 +93,6 @@ class IssuePanelService(private val project: Project) {
         contentManager.addContent(this@apply)
       }
     }
-
-    if (StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
-      val issuePanel = DesignerCommonIssuePanel(project, project)
-      layoutAndQualifierPanel = issuePanel
-      issuePanel.setIssueProvider(layoutAndQualifierIssueProviders)
-      contentFactory.createContent(issuePanel.getComponent(), TAB_NAME, true).apply {
-        issueAndQualifierTab = this
-        isCloseable = false
-        contentManager.addContent(this@apply)
-      }
-    }
   }
 
   /**
@@ -126,13 +104,6 @@ class IssuePanelService(private val project: Project) {
         return false
       }
       return sharedIssuePanel?.getIssueProvider()?.source == surface.issueModel
-    }
-    else if (StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
-      if (!isLayoutAndQualifierPanelVisible()) {
-        return false
-      }
-
-      return layoutAndQualifierIssueProviders.source.any { it.source == (surface.issueModel) }
     }
     return false
   }
@@ -162,20 +133,10 @@ class IssuePanelService(private val project: Project) {
       val issueProvider = panel.getIssueProvider()
       if (issueProvider?.source != issueModel) {
         // TODO: Refactor to not rely on the virtual file
-        val file = surface.model?.virtualFile ?: return
+        val file = surface.models.firstOrNull()?.virtualFile ?: return
         panel.setIssueProvider(IssueModelProvider(issueModel, file))
         panel.updateTree(file, issueModel)
       }
-    }
-    else if (StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
-      if (!isLayoutAndQualifierPanelVisible()) {
-        issueAndQualifierTab?.let {
-          showTab(it)
-          it.displayName = "${surface.name} (${surface.issueModel.issueCount})"
-        }
-      }
-      val file = surface.model?.virtualFile ?: return
-      attachIssueModel(issueModel, file)
     }
     else {
       surface.setShowIssuePanel(true, userInvoked)
@@ -192,10 +153,6 @@ class IssuePanelService(private val project: Project) {
       val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
       problemsViewPanel.hide()
     }
-    else if (StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
-      // FIXME: We are not going to use attach and detach mechanism.
-      detachIssueModel(surface.issueModel)
-    }
     else {
       surface.setShowIssuePanel(false, userInvoked)
     }
@@ -208,7 +165,7 @@ class IssuePanelService(private val project: Project) {
   fun showIssueForComponent(surface: DesignSurface, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
     setShowIssuePanel(true, surface, userInvoked)
     // TODO: The shared issue panel should support this feature.
-    if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get() && !StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
+    if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       val issuePanel = surface.issuePanel
       val issueModel = surface.issueModel
       val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
@@ -235,19 +192,10 @@ class IssuePanelService(private val project: Project) {
       }
       return sharedIssuePanel?.getIssueProvider()?.source == surface.issueModel
     }
-    else if (StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
-      if (isLayoutAndQualifierPanelVisible()) {
-        // FIXME: We are not going to use attach and detach mechanism.
-        return isIssueModelAttached(surface.issueModel)
-      }
-      return false
-    }
     else {
       return !surface.issuePanel.isMinimized
     }
   }
-
-  private fun isLayoutAndQualifierPanelVisible() = issueAndQualifierTab?.let { isTabShowing(it) } ?: false
 
   /**
    * Return true if IJ's problem panel is visible and selecting the given [tab], false otherwise.
@@ -270,35 +218,11 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
-  @Deprecated("We are not going to use attach and detach mechanism for shared issue panel")
-  private fun isIssueModelAttached(issueModel: IssueModel): Boolean {
-    return layoutAndQualifierIssueProviders.containsIssueModel(issueModel)
-  }
-
-  @Deprecated("We are not going to use attach and detach mechanism for shared issue panel")
-  private fun attachIssueModel(issueModel: IssueModel, file: VirtualFile) {
-    val commonIssuePanel = layoutAndQualifierPanel ?: return
-    if (layoutAndQualifierIssueProviders.containsIssueModel(issueModel)) {
-      return
-    }
-    layoutAndQualifierIssueProviders.addProvider(issueModel, file)
-    commonIssuePanel.updateTree(file, issueModel)
-  }
-
-  @Deprecated("We are not going to use attach and detach mechanism for shared issue panel")
-  private fun detachIssueModel(issueModel: IssueModel) {
-    val commonIssuePanel = layoutAndQualifierPanel ?: return
-    if (layoutAndQualifierIssueProviders.containsIssueModel(issueModel)) {
-      layoutAndQualifierIssueProviders.removeProvider(issueModel)
-      commonIssuePanel.updateTree(null, issueModel)
-    }
-  }
-
   /**
    * Get the issue panel for the given [DesignSurface], if any.
    */
   fun getIssuePanel(surface: DesignSurface): IssuePanel? {
-    if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get() && !StudioFlags.NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL.get()) {
+    if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       return surface.issuePanel
     }
     // We don't use shared issue panel for compose at this moment.

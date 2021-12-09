@@ -42,33 +42,3 @@ class IssueModelProvider(private val issueModel: IssueModel, private val file: V
 
   override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))
 }
-
-class LayoutIssueProviderGroup : DesignerCommonIssueProvider<List<DesignerCommonIssueProvider<IssueModel>>> {
-  val providers = mutableMapOf<IssueModel, DesignerCommonIssueProvider<IssueModel>>()
-
-  override val source = providers.values.toList()
-
-  fun addProvider(issueModel: IssueModel, file: VirtualFile) {
-    if (providers[issueModel] == null) {
-      providers[issueModel] = IssueModelProvider(issueModel, file)
-    }
-  }
-
-  fun removeProvider(issueModel: IssueModel) {
-    if (providers[issueModel] != null) {
-      providers.remove(issueModel)
-    }
-  }
-
-  fun containsIssueModel(issueModel: IssueModel): Boolean {
-    return providers[issueModel] != null
-  }
-
-  override fun getIssues(file: IssuedFileData): List<Issue> {
-    return providers.values.flatMap { it.getIssues(file) }.toList()
-  }
-
-  override fun getIssuedFileDataList(): List<IssuedFileData> {
-    return providers.values.flatMap { it.getIssuedFileDataList() }.toList()
-  }
-}

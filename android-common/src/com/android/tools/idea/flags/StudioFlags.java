@@ -389,12 +389,6 @@ public final class StudioFlags {
     "Enable so that visual lint always runs for select configurations.",
     false);
 
-  public static final Flag<Boolean> NELE_USE_LAYOUT_AND_QUALIFIER_ISSUE_PANEL = Flag.create(
-    NELE, "use.layout.and.qualifier.issue.panel", "Show the Layout and Qualifier panel",
-    "Show the issues of Layout Editor and Validation Tool in an issue tab of IJ's Issue Panel.",
-    false
-  );
-
   public static final Flag<Boolean> NELE_INCLUDE_QUALIFIERS_FOR_TRAFFIC_LIGHTS = Flag.create(
     NELE, "include.qualifiers.for.traffic.lights", "Include errors from qualifier variants in traffic lights",
     "Use errors from the current file and its qualifier variants to be displayed in the traffic light renderer",
