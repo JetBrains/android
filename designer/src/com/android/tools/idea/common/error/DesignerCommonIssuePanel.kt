@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.AsyncTreeModel
 import com.intellij.ui.treeStructure.Tree
@@ -59,6 +60,8 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, project: Project): 
   private val tree: Tree
   private val treeModel: DesignerCommonIssueModel
 
+  private val splitter: OnePixelSplitter
+
   init {
     Disposer.register(parentDisposable, this)
 
@@ -72,7 +75,24 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, project: Project): 
 
     // TODO: Add action toolbar
 
-    rootPanel.add(ScrollPaneFactory.createScrollPane(tree, true), BorderLayout.CENTER)
+    splitter = OnePixelSplitter(false, 0.5f, 0.3f, 0.7f)
+    splitter.proportion = 0.5f
+    splitter.firstComponent = ScrollPaneFactory.createScrollPane(tree, true)
+    splitter.secondComponent = null
+    splitter.setResizeEnabled(true)
+    rootPanel.add(splitter, BorderLayout.CENTER)
+
+    tree.addTreeSelectionListener {
+      val node = (it?.newLeadSelectionPath?.lastPathComponent) as? DesignerCommonIssueNode
+      splitter.secondComponent = null
+      if (node != null) {
+        val sideComponent = node.detailPanel()
+        if (sideComponent != null) {
+          splitter.secondComponent = sideComponent
+        }
+      }
+      splitter.revalidate()
+    }
   }
 
   fun getComponent(): JComponent = rootPanel

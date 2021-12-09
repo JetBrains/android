@@ -23,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.tree.LeafState
+import javax.swing.JComponent
 
 /**
  * The issue node in [DesignerCommonIssuePanel].
@@ -33,6 +34,11 @@ abstract class DesignerCommonIssueNode(project: Project?, parentDescriptor: Node
   protected abstract fun update(project: Project, presentation: PresentationData)
 
   abstract override fun getName(): String
+
+  /**
+   * Get the detail panel for the issue if it has.
+   */
+  open fun detailPanel(): JComponent? = null
 
   override fun toString() = name
 
