@@ -62,6 +62,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
@@ -741,13 +742,21 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     else -> error("Invalid android artifact name: $name")
   }
 
+  fun buildTasksOutputInformationFrom(artifact: AndroidArtifact): IdeBuildTasksAndOutputInformation = IdeBuildTasksAndOutputInformationImpl(
+    assembleTaskName = artifact.assembleTaskName,
+    assembleTaskOutputListingFile = artifact.assembleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate(),
+    bundleTaskName = artifact.bundleInfo?.bundleTaskName,
+    bundleTaskOutputListingFile = artifact.bundleInfo?.bundleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate(),
+    apkFromBundleTaskName = artifact.bundleInfo?.apkFromBundleTaskName,
+    apkFromBundleTaskOutputListingFile = artifact.bundleInfo?.apkFromBundleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate()
+  )
+
   fun androidArtifactFrom(
     name: String,
     basicArtifact: BasicArtifact,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactImpl {
     val testInfo = artifact.testInfo
-    val bundleInfo = artifact.bundleInfo
     return IdeAndroidArtifactImpl(
       name = convertV2ArtifactName(name),
       compileTaskName = artifact.compileTaskName,
@@ -768,14 +777,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       isSigned = artifact.isSigned,
       additionalRuntimeApks = testInfo?.additionalRuntimeApks?.deduplicateFiles() ?: emptyList(),
       testOptions = artifact.testInfo?.let { testOptionsFrom(it) },
-      buildInformation = IdeBuildTasksAndOutputInformationImpl(
-        assembleTaskName = artifact.assembleTaskName.deduplicate(),
-        assembleTaskOutputListingFile = artifact.assembleTaskOutputListingFile?.path?.takeUnless { it.isEmpty() }?.deduplicate(),
-        bundleTaskName = bundleInfo?.bundleTaskName?.deduplicate(),
-        bundleTaskOutputListingFile = bundleInfo?.bundleTaskOutputListingFile?.path?.deduplicate(),
-        apkFromBundleTaskName = bundleInfo?.apkFromBundleTaskName?.deduplicate(),
-        apkFromBundleTaskOutputListingFile = bundleInfo?.apkFromBundleTaskOutputListingFile?.path?.deduplicate(),
-      ),
+      buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == "_android_test_",
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
@@ -1025,18 +1027,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
     return IdeAaptOptionsImpl(namespacing = convertNamespacing(original.namespacing))
   }
 
-  fun buildInformationInfoFrom(variant: Variant): IdeBuildTasksAndOutputInformationImpl = IdeBuildTasksAndOutputInformationImpl(
-    assembleTaskName = variant.mainArtifact.assembleTaskName,
-    assembleTaskOutputListingFile = variant.mainArtifact.assembleTaskOutputListingFile?.absolutePath,
-    bundleTaskName = variant.mainArtifact.bundleInfo?.bundleTaskName,
-    bundleTaskOutputListingFile = variant.mainArtifact.bundleInfo?.bundleTaskOutputListingFile?.absolutePath,
-    apkFromBundleTaskName = variant.mainArtifact.bundleInfo?.apkFromBundleTaskName,
-    apkFromBundleTaskOutputListingFile = variant.mainArtifact.bundleInfo?.apkFromBundleTaskOutputListingFile?.absolutePath
-  )
-
   fun ideVariantBuildInformationFrom(variant: Variant): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
     variantName = variant.name,
-    buildInformation = buildInformationInfoFrom(variant)
+    buildInformation = buildTasksOutputInformationFrom(variant.mainArtifact)
   )
 
   fun createVariantBuildInformation(
