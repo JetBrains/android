@@ -626,6 +626,13 @@ public final class StudioFlags {
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
     true);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_LOGCAT_V2 = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.logcatv2",
+    "Use adblib in the logcat v2 toolwindow",
+    "Use adblib instead of ddmlib in the logcat v2 toolwindow",
+    true);
+
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,
     "feature.on.feature",

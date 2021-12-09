@@ -19,6 +19,8 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
     ],
 )
 

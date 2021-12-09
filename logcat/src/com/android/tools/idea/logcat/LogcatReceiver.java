@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import static com.android.ddmlib.Log.LogLevel.INFO;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatHeaderParser;
@@ -252,6 +253,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
   }
 
   public interface LogcatListener {
+    @WorkerThread
     default void onLogMessagesReceived(@NotNull List<@NotNull LogCatMessage> lines) {
     }
   }

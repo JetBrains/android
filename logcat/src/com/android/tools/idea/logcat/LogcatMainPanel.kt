@@ -155,14 +155,16 @@ internal class LogcatMainPanel(
     addToCenter(editor.component)
 
     deviceContext.addListener(object : DeviceConnectionListener() {
+      @UiThread
       override fun onDeviceConnected(device: IDevice) {
         logcatReader?.let {
           Disposer.dispose(it)
         }
         document.setText("")
-        logcatReader = LogcatReader(device, this@LogcatMainPanel)
+        logcatReader = LogcatReader.create(project, device, this@LogcatMainPanel)
       }
 
+      @UiThread
       override fun onDeviceDisconnected(device: IDevice) {
         logcatReader?.let {
           Disposer.dispose(it)
