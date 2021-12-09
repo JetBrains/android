@@ -80,6 +80,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   ANDROIDX_ESPRESSO_CONTRIB("androidx.test.espresso", "espresso-contrib", false),
   TEST_RULES("com.android.support.test", "rules", false),
   ANDROIDX_TEST_RULES("androidx.test", "rules", false),
+  ANDROIDX_TEST_EXT_JUNIT("androidx.test.ext", "junit", false),
 
   // Data binding
   DATA_BINDING_LIB("com.android.databinding", "library", false),
