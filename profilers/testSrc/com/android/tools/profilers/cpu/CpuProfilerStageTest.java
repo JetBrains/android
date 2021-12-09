@@ -553,7 +553,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void setCaptureShouldUseTraceType() throws IOException, InterruptedException {
-    myServices.enableCpuCaptureStage(true);
     // Capture a new trace.
     long traceId =
       CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());

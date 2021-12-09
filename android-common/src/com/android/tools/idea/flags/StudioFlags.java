@@ -98,12 +98,6 @@ public final class StudioFlags {
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
-  public static final Flag<Boolean> PROFILER_CPU_CAPTURE_STAGE = Flag.create(
-    PROFILER, "cpu.capture.stage", "Enable new capture stage",
-    "With the new System Trace design we have a cpu capture stage. This flag uses that flow instead of the legacy " +
-    "CpuProfilerStageView flow.",
-    true);
-
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",

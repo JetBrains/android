@@ -129,11 +129,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCpuNewRecordingWorkflowEnabled = false;
 
   /**
-   * Toggle for cpu capture stage switching vs cpu profiler stage when handling captures.
-   */
-  private boolean myIsCaptureStageEnabled = false;
-
-  /**
    * Whether custom event visualization should be visible
    */
   private boolean myCustomEventVisualizationEnabled = false;
@@ -243,9 +238,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
-
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
         return myCpuNewRecordingWorkflowEnabled;
@@ -480,8 +472,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableCpuNewRecordingWorkflow(boolean enabled) {
     myCpuNewRecordingWorkflowEnabled = enabled;
   }
-
-  public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
