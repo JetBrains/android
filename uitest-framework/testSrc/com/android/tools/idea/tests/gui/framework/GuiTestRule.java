@@ -61,6 +61,7 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -329,6 +330,17 @@ public class GuiTestRule implements TestRule {
     return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
+
+  @NotNull
+  public IdeFrameFixture importProjectWithSharedIndexAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
+                                                                    @Nullable String gradleVersion,
+                                                                    @Nullable String gradlePluginVersion,
+                                                                    @Nullable String kotlinVersion,
+                                                                    @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpSharedIndexProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+  }
+
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
                                                                     @Nullable String gradleVersion,
@@ -337,6 +349,11 @@ public class GuiTestRule implements TestRule {
                                                                     @NotNull Wait waitForSync) throws IOException {
     File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture importProjectWithSharedIndexAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
+    return importProjectWithSharedIndexAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
   }
 
   @NotNull
@@ -359,6 +376,42 @@ public class GuiTestRule implements TestRule {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
     return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
+  }
+
+  /**
+   * Sets up a project before using it in a UI test. This method uses the project with prebuilt indices
+   * <ul>
+   * <li>Makes a copy of the project in testData/guiTests/newProjects (deletes any existing copy of the project first.) This copy is
+   * the one the test will use.</li>
+   * <li>Creates a Gradle wrapper for the test project.</li>
+   * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
+   * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
+   * 'ANDROID_SDK_ROOT'</li>
+   * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
+   * <p/>
+   * </ul>
+   *
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param gradleVersion              optional Gradle version to use or null to use the default.
+   * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
+   * @param kotlinVersion              optional Kotlin version to use or null to use the default.
+   * @throws IOException if an unexpected I/O error occurs.
+   */
+  @NotNull
+  public File setUpSharedIndexProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion) throws IOException {
+    File projectPath = copyProjectBeforeOpening(projectDirName);
+    // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
+    System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
+    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+    updateLocalProperties(projectPath);
+    cleanUpProjectForImport(projectPath);
+    refreshFiles();
+    return projectPath;
   }
 
   /**
@@ -387,7 +440,6 @@ public class GuiTestRule implements TestRule {
                            @Nullable String gradlePluginVersion,
                            @Nullable String kotlinVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
-
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
     updateLocalProperties(projectPath);

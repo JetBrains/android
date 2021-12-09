@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateDefaultActivityTest {
-  private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
+  private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleappwithsharedindex/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
   private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
@@ -53,7 +53,7 @@ public class CreateDefaultActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
+    guiTest.importProjectWithSharedIndexAndWaitForProjectSyncToFinish("SimpleAppWithSharedIndex", Wait.seconds(120));
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -92,7 +92,7 @@ public class CreateDefaultActivityTest {
     myDialog.clickFinishAndWaitForSyncToFinish(Wait.seconds(120));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
-      "app/src/main/java/google/simpleapplication/MainActivity.java",
+      "app/src/main/java/google/simpleappwithsharedindex/MainActivity.java",
       "app/src/main/res/layout/activity_main.xml"
     );
 
