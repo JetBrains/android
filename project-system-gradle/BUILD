@@ -140,6 +140,7 @@ maven_repository(
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
+        "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.jimfs.jimfs_1.1",

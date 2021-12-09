@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
