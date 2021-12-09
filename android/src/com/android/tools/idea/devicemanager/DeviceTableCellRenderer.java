@@ -168,7 +168,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return new JBColor(new Color(red, green, blue), color.darker());
   }
 
-  private @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+  @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
     PhoneWearPair pair = myManager.getPairedDevices(device.getKey().toString());
 
     if (pair == null) {

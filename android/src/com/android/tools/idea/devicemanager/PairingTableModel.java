@@ -26,7 +26,7 @@ final class PairingTableModel extends AbstractTableModel {
   private final @NotNull List<@NotNull Pairing> myPairings;
 
   PairingTableModel(@NotNull List<@NotNull Pairing> pairings) {
-    this.myPairings = pairings;
+    myPairings = pairings;
   }
 
   @Override
@@ -52,10 +52,22 @@ final class PairingTableModel extends AbstractTableModel {
   }
 
   @Override
+  public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
+    switch (modelColumnIndex) {
+      case DEVICE_MODEL_COLUMN_INDEX:
+        return Device.class;
+      case STATUS_MODEL_COLUMN_INDEX:
+        return Object.class;
+      default:
+        throw new AssertionError(modelColumnIndex);
+    }
+  }
+
+  @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
-        return myPairings.get(modelRowIndex).getOtherDeviceName();
+        return myPairings.get(modelRowIndex).getOtherDevice();
       case STATUS_MODEL_COLUMN_INDEX:
         return myPairings.get(modelRowIndex).getStatus();
       default:

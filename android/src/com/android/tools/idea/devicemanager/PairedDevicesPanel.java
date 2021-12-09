@@ -107,10 +107,10 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     else {
       PairingDevice peerDevice = phoneWearPair.getPeerDevice(myDeviceId.toString());
 
-      // TODO: Paired Device Table b/193747557
-      Pairing pairing = new Pairing(peerDevice.getDisplayName(), phoneWearPair.getPairingStatus());
+      Pairing pairing = new Pairing(peerDevice, phoneWearPair.getPairingStatus());
 
       JTable table = new JBTable(new PairingTableModel(Collections.singletonList(pairing)));
+      table.setDefaultRenderer(Device.class, new DeviceManagerPairingDeviceTableCellRenderer());
       table.setShowGrid(false);
 
       TableColumnModel columnModel = table.getColumnModel();

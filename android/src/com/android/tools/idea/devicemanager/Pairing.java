@@ -15,20 +15,40 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceName;
+import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import org.jetbrains.annotations.NotNull;
 
 final class Pairing {
-  private final @NotNull String myOtherDeviceName;
+  private final @NotNull Device myOtherDevice;
   private final @NotNull PairingState myStatus;
 
-  Pairing(@NotNull String otherDeviceName, @NotNull PairingState status) {
-    myOtherDeviceName = otherDeviceName;
+  Pairing(@NotNull PairingDevice otherDevice, @NotNull PairingState status) {
+    myOtherDevice = toDevice(otherDevice);
     myStatus = status;
   }
 
-  @NotNull String getOtherDeviceName() {
-    return myOtherDeviceName;
+  private static @NotNull Device toDevice(@NotNull PairingDevice device) {
+    boolean virtual = device.isEmulator();
+    DeviceType type = device.isWearDevice() ? DeviceType.WEAR_OS : DeviceType.PHONE;
+    AndroidVersion version = new AndroidVersion(device.getApiLevel());
+
+    return new DeviceManagerPairingDevice.Builder()
+      .setKey(virtual ? new VirtualDeviceName(device.getDeviceID()) : new SerialNumber(device.getDeviceID()))
+      .setType(type)
+      .setIcon(virtual ? type.getVirtualIcon() : type.getPhysicalIcon())
+      .setName(device.getDisplayName())
+      .setOnline(device.isOnline())
+      .setTarget(Targets.toString(version))
+      .setApi(version.getApiString())
+      .build();
+  }
+
+  @NotNull Device getOtherDevice() {
+    return myOtherDevice;
   }
 
   @NotNull String getStatus() {

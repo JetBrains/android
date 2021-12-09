@@ -21,10 +21,10 @@ import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDeviceName extends Key {
+public final class VirtualDeviceName extends Key {
   private final @NotNull String myValue;
 
-  VirtualDeviceName(@NotNull String value) {
+  public VirtualDeviceName(@NotNull String value) {
     myValue = value;
   }
 

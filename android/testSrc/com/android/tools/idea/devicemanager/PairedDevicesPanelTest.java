@@ -41,9 +41,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.table.JBTable;
+import icons.StudioIcons;
+import java.awt.Component;
+import java.util.Objects;
 import java.util.function.Predicate;
+import javax.swing.Icon;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -125,6 +132,47 @@ public final class PairedDevicesPanelTest {
     assertThat(table.getColumnName(0)).isEqualTo("Device");
     assertThat(table.getColumnName(1)).isEqualTo("Status");
     assertThat(table.getModel().getValueAt(0, 1)).isEqualTo("Connected");
+  }
+
+  @Test
+  @RunsInEdt
+  public void cellRender() throws Exception {
+    // Arrange
+    Key phoneKey = new SerialNumber("86UX00F4R");
+    PairingDevice phoneDevice = new PairingDevice(phoneKey.toString(), "My Phone", 30, false, false, true, ConnectionState.ONLINE);
+    PairingDevice wearDevice = new PairingDevice("WearId", "My Wear", 30, false, true, true, ConnectionState.ONLINE);
+
+    PhoneWearPair phoneWearPair = new PhoneWearPair(phoneDevice, wearDevice);
+    phoneWearPair.setPairingStatus(PairingState.CONNECTING);
+    when(myWearPairingManager.getPairedDevices(phoneKey.toString())).thenReturn(phoneWearPair);
+
+    FakeUi fakeUi = createFakeUi(phoneKey);
+    JTable table = fakeUi.findComponent(JBTable.class, (Predicate<JBTable>)t -> true);
+    assert table != null;
+    Component tableCell = table.getCellRenderer(0, 0).getTableCellRendererComponent(table, table.getValueAt(0, 0), false, true, 0, 0);
+    tableCell.setSize(640, 100);
+    FakeUi fakeTableCellUi = new FakeUi(tableCell);
+
+    // Act
+    Object iconLabel = findLabelWithIcon(fakeTableCellUi, StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
+    Object onlineLabel = findLabelWithIcon(fakeTableCellUi, StudioIcons.Avd.STATUS_DECORATOR_ONLINE);
+    Object nameLabel = findLabelWithText(fakeTableCellUi, "My Wear");
+    Object line2Label = findLabelWithText(fakeTableCellUi, "Android 11.0");
+
+    // Assert
+    assertThat(table.getModel().getValueAt(0, 1)).isEqualTo("Connecting");
+    assertThat(iconLabel).isNotNull();
+    assertThat(onlineLabel).isNotNull();
+    assertThat(nameLabel).isNotNull();
+    assertThat(line2Label).isNotNull();
+  }
+
+  private static @Nullable JBLabel findLabelWithIcon(@NotNull FakeUi fakeUi, @NotNull Icon icon) {
+    return fakeUi.findComponent(JBLabel.class, (Predicate<JBLabel>)label -> Objects.equals(label.getIcon(), icon));
+  }
+
+  private static @Nullable JBLabel findLabelWithText(@NotNull FakeUi fakeUi, @NotNull String text) {
+    return fakeUi.findComponent(JBLabel.class, (Predicate<JBLabel>)label -> Objects.equals(label.getText(), text));
   }
 
   private @NotNull FakeUi createFakeUi(@NotNull Key key) throws InterruptedException {
