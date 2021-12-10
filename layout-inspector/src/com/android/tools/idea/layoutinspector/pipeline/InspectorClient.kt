@@ -68,6 +68,11 @@ interface InspectorClient: Disposable {
      * Indicates that this client is able to inspect compose parts of the application.
      */
     SUPPORTS_COMPOSE,
+
+    /**
+     * Indicates that this client is able to inspect compose recomposition counts of the application.
+     */
+    SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
   }
 
   /**

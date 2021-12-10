@@ -70,6 +70,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val componentTreePanel: JComponent
   @VisibleForTesting
   val componentTreeModel: ComponentTreeModel
+  private val setColumnVisibility: (columnIndex: Int, visible: Boolean) -> Unit
   private val nodeType = InspectorViewNodeType()
   // synthetic node to hold the root of the tree.
   private var root: TreeViewNode = ViewNode("root").treeNode
@@ -115,6 +116,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     focusComponent = result.focusComponent
     componentTreeModel = result.model
     componentTreeSelectionModel = result.selectionModel
+    setColumnVisibility = result.setColumnVisibility
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTreePanel, parentDisposable) }
     componentTreeSelectionModel.addSelectionListener {
@@ -171,6 +173,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
+  fun showRecompositionColumn(show: Boolean) =
+    setColumnVisibility(1, show)
+
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(modelModifiedListener)
@@ -181,6 +186,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.treeRoot = root
     layoutInspector?.layoutInspectorModel?.selectionListeners?.add(selectionChangedListener)
     layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
+    layoutInspector?.let { showRecompositionColumn(it.treeSettings.showRecompositions) }
   }
 
   override fun getAdditionalActions() = additionalActions

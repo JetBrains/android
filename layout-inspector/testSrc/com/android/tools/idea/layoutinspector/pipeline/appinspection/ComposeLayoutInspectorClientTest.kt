@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -45,6 +46,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.nio.file.Paths
+import java.util.EnumSet
 
 class ComposeLayoutInspectorClientTest {
   private val mockitoCleaner = MockitoThreadLocalsCleaner()
@@ -99,7 +101,9 @@ class ComposeLayoutInspectorClientTest {
     `when`(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1", "")))
     `when`(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
-    val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock())
+    val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
+    val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock(), capabilities,
+                                                     mock())
     assertThat(client).isNotNull()
 
     // TODO: probably we should add more checks to make sure the client is functional

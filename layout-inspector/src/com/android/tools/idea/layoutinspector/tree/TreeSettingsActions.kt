@@ -18,8 +18,10 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -37,6 +39,7 @@ object FilterGroupAction : DropDownAction("Filter", "View options for Component 
     add(SystemNodeFilterAction)
     add(HighlightSemanticsAction)
     add(CallstackAction)
+    add(RecompositionCounts)
     add(SupportLines)
   }
 }
@@ -120,6 +123,28 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspector.get(event)?.treeSettings?.supportLines = state
     event.treePanel()?.component?.repaint()
+  }
+}
+
+object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.showRecompositions ?: DEFAULT_RECOMPOSITIONS
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    val inspector = LayoutInspector.get(event) ?: return
+    val client = inspector.currentClient as? AppInspectionInspectorClient ?: return
+    inspector.treeSettings.showRecompositions = state
+    client.updateRecompositionCountSettings()
+    event.treePanel()?.showRecompositionColumn(state)
+    inspector.layoutInspectorModel.updateAll { (it as? ComposeViewNode)?.recomposeCount = 0 }
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
+                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
+                                   StudioFlags.USE_COMPONENT_TREE_TABLE.get()
   }
 }
 

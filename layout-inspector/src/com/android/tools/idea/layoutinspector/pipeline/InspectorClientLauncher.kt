@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -64,6 +65,7 @@ class InspectorClientLauncher(
       processes: ProcessesModel,
       model: InspectorModel,
       metrics: LayoutInspectorMetrics,
+      treeSettings: TreeSettings,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
@@ -71,7 +73,7 @@ class InspectorClientLauncher(
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable)
+              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, metrics, treeSettings, parentDisposable)
             }
             else {
               null

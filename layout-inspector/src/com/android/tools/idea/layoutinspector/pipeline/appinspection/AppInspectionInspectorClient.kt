@@ -44,6 +44,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
@@ -92,6 +93,7 @@ class AppInspectionInspectorClient(
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
   private val metrics: LayoutInspectorMetrics,
+  private val treeSettings: TreeSettings,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -169,7 +171,7 @@ class AppInspectionInspectorClient(
       apiServices.attachToProcess(process, model.project.name)
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, launchMonitor)
+      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor)
       val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,
                                                      launchMonitor)
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
@@ -257,6 +259,12 @@ class AppInspectionInspectorClient(
 
   override fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {
     capabilities.addAll(dynamicCapabilities)
+  }
+
+  fun updateRecompositionCountSettings() {
+    scope.launch(loggingExceptionHandler) {
+      composeInspector?.updateSettings()
+    }
   }
 
   @Slow

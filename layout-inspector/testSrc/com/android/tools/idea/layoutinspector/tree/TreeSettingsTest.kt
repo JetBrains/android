@@ -38,7 +38,13 @@ class InspectorTreeSettingsTest {
   val appRule = ApplicationRule()
 
   @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+  val semanticsFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+
+  @get:Rule
+  val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
+
+  @get:Rule
+  val treeTableFlagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
 
   private val client: InspectorClient = mock()
   private val capabilities = mutableSetOf<Capability>()
@@ -84,6 +90,22 @@ class InspectorTreeSettingsTest {
   @Test
   fun testSupportLines() {
     testFlag(DEFAULT_SUPPORT_LINES, KEY_SUPPORT_LINES, null) { settings.supportLines }
+  }
+
+  @Test
+  fun testShowRecompositions() {
+    testFlag(DEFAULT_RECOMPOSITIONS, KEY_RECOMPOSITIONS, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) { settings.showRecompositions }
+
+    capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    settings.showRecompositions = true
+    assertThat(settings.showRecompositions).isTrue()
+
+    StudioFlags.USE_COMPONENT_TREE_TABLE.override(false)
+    assertThat(settings.showRecompositions).isFalse()
+
+    StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.override(false)
+    assertThat(settings.showRecompositions).isFalse()
   }
 
   private fun testFlag(defaultValue: Boolean, key: String, controllingCapability: Capability?, flag: () -> Boolean) {

@@ -692,6 +692,17 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(treeChangeCount).isEqualTo(0)
   }
 
+  @Test
+  fun testInitialRecomposeCounts() {
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    inspector.treeSettings.showRecompositions = true
+    tree.setToolContext(inspector)
+    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      assertThat((tree.focusComponent as JTable).columnModel.getColumn(1).maxWidth).isGreaterThan(0)
+    }
+  }
+
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
     tree.setToolContext(inspector)
     // Normally the tree would have received structural changes when the mode was loaded.

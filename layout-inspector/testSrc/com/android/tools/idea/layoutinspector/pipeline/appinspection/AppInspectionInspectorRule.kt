@@ -57,7 +57,7 @@ fun AppInspectionClientProvider(
 
   AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
                                LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
-                               parentDisposable, apiServices).apply {
+                               inspector.treeSettings, parentDisposable, apiServices).apply {
     launchMonitor = getMonitor()
   }
 }

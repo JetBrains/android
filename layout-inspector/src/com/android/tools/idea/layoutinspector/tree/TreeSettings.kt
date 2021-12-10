@@ -32,6 +32,9 @@ const val DEFAULT_COMPOSE_AS_CALLSTACK = true
 const val KEY_SUPPORT_LINES = "live.layout.inspector.tree.lines"
 const val DEFAULT_SUPPORT_LINES = true
 
+const val KEY_RECOMPOSITIONS = "live.layout.inspector.tree.recompositions"
+const val DEFAULT_RECOMPOSITIONS = false
+
 /**
  * Miscellaneous tree settings.
  */
@@ -41,6 +44,7 @@ interface TreeSettings {
   var composeAsCallstack: Boolean
   var highlightSemantics: Boolean
   var supportLines: Boolean
+  var showRecompositions: Boolean
 
   fun isInComponentTree(node: ViewNode): Boolean =
     !(hideSystemNodes && node.isSystemNode)
@@ -65,6 +69,13 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
   override var supportLines: Boolean
     get() = get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)
     set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
+
+  override var showRecompositions: Boolean
+    get() = hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
+            get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS) &&
+            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
+            StudioFlags.USE_COMPONENT_TREE_TABLE.get()
+    set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
   @Suppress("SameParameterValue")
   private fun hasCapability(capability: Capability): Boolean {
@@ -91,4 +102,5 @@ class EditorTreeSettings(capabilities: Set<Capability>) : TreeSettings {
   override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
   override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES
+  override var showRecompositions: Boolean = DEFAULT_RECOMPOSITIONS
 }

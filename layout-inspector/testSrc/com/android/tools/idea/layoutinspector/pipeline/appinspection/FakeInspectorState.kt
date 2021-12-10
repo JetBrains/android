@@ -798,6 +798,14 @@ class FakeInspectorState(
     }
   }
 
+  fun simulateComposeVersionWithoutUpdateSettingsCommand() {
+    composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { _ ->
+      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
+        unknownCommandResponse = LayoutInspectorComposeProtocol.UnknownCommandResponse.getDefaultInstance()
+      }.build()
+    }
+  }
+
   fun getPropertiesRequestCountFor(viewId: Long): Int {
     return getPropertiesRequestCount[viewId] ?: 0
   }
