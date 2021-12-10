@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 @file:JvmName("JdkImportCheck")
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
-import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -41,6 +40,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import org.apache.commons.lang.StringUtils.isNotBlank
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -65,7 +65,7 @@ fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
     return
   }
   val jdk: Sdk? =
-    if (StringUtils.isNotBlank(projectPath)) {
+    if (isNotBlank(projectPath)) {
       (AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager).getGradleJdk(project, projectPath!!)
     }
     else {

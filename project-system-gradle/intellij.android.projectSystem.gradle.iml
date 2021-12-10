@@ -18,6 +18,8 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
