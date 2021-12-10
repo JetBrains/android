@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
@@ -69,7 +70,11 @@ internal class LogcatReader(private val device: IDevice, logcatPresenter: Logcat
         executeDebugLogcatFromFile(filename)
       }
       else {
-        device.executeShellCommand("logcat -v long -v epoch", logcatReceiver)
+        val command = StringBuilder("logcat -v long")
+        if (device.version.apiLevel >= AndroidVersion.VersionCodes.N) {
+          command.append(" -v epoch")
+        }
+        device.executeShellCommand(command.toString(), logcatReceiver)
       }
     }
   }
