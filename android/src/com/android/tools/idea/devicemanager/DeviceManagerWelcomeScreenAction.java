@@ -20,16 +20,19 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
   private final @NotNull BooleanSupplier myEnableNewDeviceManagerPanelGet;
   private final @NotNull BooleanSupplier myIsChromeOSAndIsNotHWAccelerated;
   private final @NotNull BooleanSupplier myIsAndroidSdkAvailable;
+  private @Nullable DeviceManagerWelcomeScreenFrame myDeviceManagerWelcomeScreenFrame;
 
   @SuppressWarnings("unused")
   private DeviceManagerWelcomeScreenAction() {
@@ -63,6 +66,13 @@ final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    new DeviceManagerWelcomeScreenFrame(event.getProject()).show();
+    if (myDeviceManagerWelcomeScreenFrame == null) {
+      myDeviceManagerWelcomeScreenFrame = new DeviceManagerWelcomeScreenFrame(event.getProject());
+      Disposer.register(myDeviceManagerWelcomeScreenFrame, () -> myDeviceManagerWelcomeScreenFrame = null);
+      myDeviceManagerWelcomeScreenFrame.show();
+    }
+    else {
+      myDeviceManagerWelcomeScreenFrame.getFrame().toFront();
+    }
   }
 }
