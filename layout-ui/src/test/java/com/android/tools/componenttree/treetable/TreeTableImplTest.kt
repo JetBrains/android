@@ -50,6 +50,7 @@ import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
+import javax.swing.JTable
 import javax.swing.ScrollPaneConstants
 
 class TreeTableImplTest {
@@ -221,22 +222,62 @@ class TreeTableImplTest {
     table.tree.expandRow(0)
     table.tree.expandRow(1)
     UIUtil.dispatchAllInvocationEvents()
-    val c1CellBefore = table.getCellRect(0, 1, true)
+    val c1Before = table.cellWidth(1)
 
     // increase the width of column1:
     item2.column1 = 12345678
     table.tableModel.columnDataChanged()
     UIUtil.dispatchAllInvocationEvents()
-    val c1CellAfter = table.getCellRect(0, 1, true)
-    assertThat(c1CellAfter.width).isGreaterThan(c1CellBefore.width)
+    val c1After = table.cellWidth(1)
+    assertThat(c1After).isGreaterThan(c1Before)
 
     // decrease the width of column1:
     item2.column1 = 6
     table.tableModel.columnDataChanged()
     UIUtil.dispatchAllInvocationEvents()
-    val c1CellFinal = table.getCellRect(0, 1, true)
-    assertThat(c1CellFinal.width).isLessThan(c1CellAfter.width)
-    assertThat(c1CellFinal.width).isEqualTo(c1CellBefore.width)
+    val c1Final = table.cellWidth(1)
+    assertThat(c1Final).isLessThan(c1After)
+    assertThat(c1Final).isEqualTo(c1Before)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testHideColumns() {
+    val result = createTree()
+    val table = result.focusComponent as JTable
+    result.tree.expandRow(0)
+    result.tree.expandRow(1)
+    UIUtil.dispatchAllInvocationEvents()
+    val c1Before = table.cellWidth(1)
+    val c2Before = table.cellWidth(2)
+    val badgeBefore = table.cellWidth(3)
+    assertThat(c1Before).isGreaterThan(0)
+    assertThat(c2Before).isGreaterThan(0)
+    assertThat(badgeBefore).isGreaterThan(0)
+
+    // hide c1 column
+    result.setColumnVisibility(1, false)
+    assertThat(table.cellWidth(1)).isEqualTo(0)
+    assertThat(table.cellWidth(2)).isEqualTo(c2Before)
+    assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
+
+    // hide badge column
+    result.setColumnVisibility(3, false)
+    assertThat(table.cellWidth(1)).isEqualTo(0)
+    assertThat(table.cellWidth(2)).isEqualTo(c2Before)
+    assertThat(table.cellWidth(3)).isEqualTo(0)
+
+    // show c1 column
+    result.setColumnVisibility(1, true)
+    assertThat(table.cellWidth(1)).isEqualTo(c1Before)
+    assertThat(table.cellWidth(2)).isEqualTo(c2Before)
+    assertThat(table.cellWidth(3)).isEqualTo(0)
+
+    // show badge column
+    result.setColumnVisibility(3, true)
+    assertThat(table.cellWidth(1)).isEqualTo(c1Before)
+    assertThat(table.cellWidth(2)).isEqualTo(c2Before)
+    assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
   }
 
   private fun setScrollPaneSize(table: TreeTableImpl, width: Int, height: Int): JScrollPane {
@@ -259,14 +300,17 @@ class TreeTableImplTest {
   private fun getScrollPane(table: TreeTableImpl): JScrollPane =
     table.parent.parent as JScrollPane
 
-  private fun createTreeTable(): TreeTableImpl {
+  private fun createTreeTable(): TreeTableImpl =
+    createTree().focusComponent as TreeTableImpl
+
+  private fun createTree(): ComponentTreeBuildResult {
     val result = createTreeWithScrollPane()
-    val table = (result.component as JScrollPane).viewport.view as TreeTableImpl
+    val table = result.focusComponent as TreeTableImpl
     result.model.treeRoot = item1
 
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())
-    return table
+    return result
   }
 
   private fun createTreeWithScrollPane(): ComponentTreeBuildResult {
@@ -285,4 +329,7 @@ class TreeTableImplTest {
 
   private val Rectangle.bottom
     get() = y + height
+
+  private fun JTable.cellWidth(columnIndex: Int) =
+    getCellRect(0, columnIndex, true).width
 }

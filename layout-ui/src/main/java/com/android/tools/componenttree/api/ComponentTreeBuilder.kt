@@ -178,7 +178,7 @@ class ComponentTreeBuilder {
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel)
+    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel) { _, _ -> }
   }
 
   private fun buildTreeTable(): ComponentTreeBuildResult {
@@ -197,7 +197,9 @@ class ComponentTreeBuilder {
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel)
+    return ComponentTreeBuildResult(scrollPane, table, tree, model, table.treeTableSelectionModel) {
+      columnIndex, visible -> table.setColumnVisibility(columnIndex, visible)
+    }
   }
 }
 
@@ -234,5 +236,12 @@ class ComponentTreeBuildResult(
   /**
    * The component tree selection model.
    */
-  val selectionModel: ComponentTreeSelectionModel
+  val selectionModel: ComponentTreeSelectionModel,
+
+  /**
+   * Callback for controlling the visibility of each column.
+   *
+   * (This only works for the TreeTable implementation.)
+   */
+  val setColumnVisibility: (columnIndex: Int, visible: Boolean) -> Unit
 )

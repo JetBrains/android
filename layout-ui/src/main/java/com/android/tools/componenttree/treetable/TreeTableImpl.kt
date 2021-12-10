@@ -64,6 +64,7 @@ class TreeTableImpl(
   private val badgeRenderers: List<BadgeRenderer>
   private var initialized = false
   private var dropTargetHandler: TreeTableDropTargetHandler? = null
+  private val hiddenColumns = mutableSetOf<Int>()
   val treeTableSelectionModel = TreeTableSelectionModelImpl(this)
 
   init {
@@ -110,13 +111,25 @@ class TreeTableImpl(
     }
   }
 
-  private fun setColumnWidth(columnIndex: Int, width: Int) {
+  private fun setColumnWidth(columnIndex: Int, wantedWidth: Int) {
+    val width = if (hiddenColumns.contains(columnIndex)) 0 else wantedWidth
     columnModel.getColumn(columnIndex).apply {
       maxWidth = width
       minWidth = width
       maxWidth = width // set maxWidth twice, since implementation of setMaxWidth depends on the value of minWidth and vice versa
       preferredWidth = width
     }
+  }
+
+  fun setColumnVisibility(columnIndex: Int, visible: Boolean) {
+    if (visible) {
+      hiddenColumns.remove(columnIndex)
+    }
+    else {
+      hiddenColumns.add(columnIndex)
+    }
+    initExtraColumns()
+    initBadgeColumns()
   }
 
   fun enableDnD() {
