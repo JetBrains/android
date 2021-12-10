@@ -3468,7 +3468,18 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val buildModel = gradleBuildModel
     val variable = buildModel.ext().findProperty("libs")
     val value = (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value
+    // `rootProject.project.libs` is not the obviously right answer, but what this shouldn't do is loop forever.
     assertEquals("rootProject.project.libs", value.toString())
+  }
+
+  @Test
+  fun testProjectVariableCircularityMap() {
+    writeToBuildFile(TestFile.PROJECT_VARIABLE_CIRCULARITY_MAP)
+    val buildModel = gradleBuildModel
+    val variable = buildModel.ext().findProperty("group")
+    val value = (variable.getValue(REFERENCE_TO_TYPE)?.referredElement as? GradleDslSimpleExpression)?.value
+    // null is not the obviously right answer, but what this shouldn't do is loop forever.
+    assertEquals(null, value)
   }
 
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
@@ -4097,6 +4108,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     REWRITE_PROPERTIES("rewriteProperties"),
     REWRITE_PROPERTIES_EXPECTED("rewritePropertiesExpected"),
     PROJECT_VARIABLE_CIRCULARITY("projectVariableCircularity"),
+    PROJECT_VARIABLE_CIRCULARITY_MAP("projectVariableCircularityMap"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
