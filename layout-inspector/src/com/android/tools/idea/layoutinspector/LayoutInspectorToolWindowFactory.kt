@@ -32,7 +32,6 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -65,8 +64,6 @@ fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewP
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-
-  override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)

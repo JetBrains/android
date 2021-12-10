@@ -97,7 +97,6 @@ studio_plugin(
         ],
         "android.jar": [
             "//tools/adt/idea/analytics:analytics",
-            "//tools/adt/idea/android-layout-inspector:android-layout-inspector",
             "//tools/base/flags:studio.android.sdktools.flags",
             "//tools/adt/idea/assistant:assistant",
             "//tools/adt/idea/connection-assistant:connection-assistant",
