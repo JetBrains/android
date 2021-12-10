@@ -56,6 +56,35 @@ fun Editor.deleteText(text: String) {
 }
 
 /**
+ * Deletes the current line.
+ */
+fun Editor.deleteLine() {
+  val line = document.getLineNumber(caretModel.offset)
+  document.deleteString(
+    document.getLineStartOffset(line),
+    document.getLineEndOffset(line))
+}
+
+/**
+ * Moves the caret the number of [lines] specified. A negative number indicates the caret moving up, a positive one moving down.
+ * If [setToEnd] is false the method, when possible, will try to set the caret at the same distance from the start as it was in
+ * the current line.
+ */
+fun Editor.moveCaretLines(lines: Int, setToEnd: Boolean = true) {
+  val line = document.getLineNumber(caretModel.offset)
+  val lineEndOffset = document.getLineStartOffset(line + lines)
+  val newOffset = if (setToEnd) {
+    lineEndOffset
+  }
+  else {
+    val positionInCurrentLine = caretModel.offset - document.getLineStartOffset(line)
+    val lineStartOffset = document.getLineStartOffset(line + lines)
+    (lineStartOffset + positionInCurrentLine).coerceAtMost(lineEndOffset)
+  }
+  caretModel.moveToOffset(newOffset)
+}
+
+/**
  * Replaces the first occurrence of [old] text with [new].
  */
 fun Editor.replaceText(old: String, new: String) {
