@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.explorer.fs
 
-import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.google.common.util.concurrent.ListenableFuture
-
 /**
  * Abstraction over the file system of a single device.
  */
@@ -41,14 +38,14 @@ interface DeviceFileSystem {
    * Returns the root [DeviceFileEntry] of the device. The returned directory
    * can be used to traverse the file system recursively.
    */
-  val rootDirectory: ListenableFuture<DeviceFileEntry>
+  suspend fun rootDirectory(): DeviceFileEntry
 
   /**
    * Returns the [DeviceFileEntry] corresponding to the given `path`
    * The path follows the Unix syntax, i.e. starts with `/` and uses `/`
    * as name separator.
    *
-   * If the path is not found the future fails with an IllegalArgumentException.
+   * @throws IllegalArgumentException if the path is not found
    */
-  fun getEntry(path: String): ListenableFuture<DeviceFileEntry>
+  suspend fun getEntry(path: String): DeviceFileEntry
 }

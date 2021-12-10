@@ -20,13 +20,9 @@ import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.SyncException
 import com.android.ddmlib.TimeoutException
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.concurrency.catchingAsync
-import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Path
 
@@ -43,49 +39,46 @@ class AdbDeviceDirectFileEntry(
   parent: AdbDeviceFileEntry?,
   private val myRunAs: String?
 ) : AdbDeviceFileEntry(device, entry, parent) {
-  override val entries: ListenableFuture<List<DeviceFileEntry>>
-    get() =
-      fileSystem.adbFileListing.getChildrenRunAs(myEntry, myRunAs).transform(fileSystem.taskExecutor) { children ->
-        children.map { AdbDeviceDefaultFileEntry(fileSystem, it, this) }
-      }
+  override suspend fun entries(): List<DeviceFileEntry> =
+    fileSystem.adbFileListing.getChildrenRunAs(myEntry, myRunAs).map { AdbDeviceDefaultFileEntry(fileSystem, it, this) }
 
-  override fun delete(): ListenableFuture<Unit> =
+  override suspend fun delete() =
     if (isDirectory) {
       fileSystem.adbFileOperations.deleteRecursiveRunAs(fullPath, myRunAs)
     } else {
       fileSystem.adbFileOperations.deleteFileRunAs(fullPath, myRunAs)
     }
 
-  override fun createNewFile(fileName: String): ListenableFuture<Unit> =
+  override suspend fun createNewFile(fileName: String) =
     fileSystem.adbFileOperations.createNewFileRunAs(fullPath, fileName, myRunAs)
 
-  override fun createNewDirectory(directoryName: String): ListenableFuture<Unit> =
+  override suspend fun createNewDirectory(directoryName: String) =
     fileSystem.adbFileOperations.createNewDirectoryRunAs(fullPath, directoryName, myRunAs)
 
-  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
-    get() = fileSystem.adbFileListing.isDirectoryLinkRunAs(myEntry, myRunAs)
+  override suspend fun isSymbolicLinkToDirectory(): Boolean =
+    fileSystem.adbFileListing.isDirectoryLinkRunAs(myEntry, myRunAs)
 
-  override fun downloadFile(
+  override suspend fun downloadFile(
     localPath: Path,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> =
+  ) =
     // Note: First try to download the file as the default user. If we get a permission error,
     //       download the file via a temp. directory using the "su 0" user.
-    fileSystem.adbFileTransfer.downloadFile(myEntry, localPath, progress)
-      .catchingAsync(fileSystem.taskExecutor, SyncException::class.java) { syncException ->
-        if (isSyncPermissionError(syncException) && isDeviceSuAndNotRoot) {
-          fileSystem.adbFileTransfer.downloadFileViaTempLocation(fullPath, size, localPath, progress, null)
-        }
-        else {
-          Futures.immediateFailedFuture(syncException)
-        }
+    try {
+      fileSystem.adbFileTransfer.downloadFile(myEntry, localPath, progress)
+    } catch (syncException: SyncException) {
+      if (isSyncPermissionError(syncException) && isDeviceSuAndNotRoot()) {
+        fileSystem.adbFileTransfer.downloadFileViaTempLocation(fullPath, size, localPath, progress, null)
+      } else {
+        throw syncException
       }
+    }
 
-  override fun uploadFile(
+  override suspend fun uploadFile(
     localPath: Path,
     fileName: String,
     progress: FileTransferProgress
-  ): ListenableFuture<Unit> {
+  ) {
     val remotePath = AdbPathUtil.resolve(myEntry.fullPath, fileName)
 
     // If the device is *not* root, but supports "su 0", the ADB Sync service may not have the
@@ -95,30 +88,23 @@ class AdbDeviceDirectFileEntry(
     // the whole file.
     // So, instead we "touch" the file and either use a regular upload if it succeeded or an upload
     // via the temp directory if it failed.
-    val futureShouldCreateRemote = fileSystem.taskExecutor.executeAsync { isDeviceSuAndNotRoot }
-    return fileSystem.taskExecutor.transformAsync(futureShouldCreateRemote) { shouldCreateRemote: Boolean? ->
-      if (checkNotNull(shouldCreateRemote)) {
-        fileSystem.adbFileOperations.touchFileAsDefaultUser(remotePath).transformAsync(fileSystem.taskExecutor) {
-          fileSystem.adbFileTransfer.uploadFile(localPath, remotePath, progress)
-        }.catchingAsync(fileSystem.taskExecutor, AdbShellCommandException::class.java) {
-          fileSystem.adbFileTransfer.uploadFileViaTempLocation(localPath, remotePath, progress, null)
-        }
-      }
-      else {
-        // Regular upload if root or su not supported (i.e. user devices)
+    if (isDeviceSuAndNotRoot()) {
+      try {
+        fileSystem.adbFileOperations.touchFileAsDefaultUser(remotePath)
         fileSystem.adbFileTransfer.uploadFile(localPath, remotePath, progress)
+      } catch(e : AdbShellCommandException) {
+        fileSystem.adbFileTransfer.uploadFileViaTempLocation(localPath, remotePath, progress, null)
       }
+    } else {
+      // Regular upload if root or su not supported (i.e. user devices)
+      fileSystem.adbFileTransfer.uploadFile(localPath, remotePath, progress)
     }
   }
 
-  @get:Throws(
-    TimeoutException::class,
-    AdbCommandRejectedException::class,
-    ShellCommandUnresponsiveException::class,
-    IOException::class
-  )
-  private val isDeviceSuAndNotRoot: Boolean
-    get() = fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot
+  private suspend fun isDeviceSuAndNotRoot(): Boolean =
+    withContext(fileSystem.dispatcher) {
+      fileSystem.capabilities.supportsSuRootCommand() && !fileSystem.capabilities.isRoot
+    }
 
   companion object {
     private fun isSyncPermissionError(pullError: SyncException): Boolean {

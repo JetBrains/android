@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.explorer.fs
 
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import java.lang.RuntimeException
 import java.nio.file.Path
 
 /**

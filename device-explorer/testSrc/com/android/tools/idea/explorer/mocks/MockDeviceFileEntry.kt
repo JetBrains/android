@@ -16,13 +16,10 @@
 package com.android.tools.idea.explorer.mocks
 
 import com.android.tools.idea.adb.AdbShellCommandException
-import com.android.tools.idea.concurrency.delayedError
-import com.android.tools.idea.concurrency.delayedOperation
-import com.android.tools.idea.concurrency.delayedValue
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.delay
 import java.nio.file.Path
 
 class MockDeviceFileEntry(
@@ -33,7 +30,7 @@ class MockDeviceFileEntry(
   override val isSymbolicLink: Boolean,
   override val symbolicLinkTarget: String?,
   private var myIsSymbolicLinkToDirectory: Boolean = false,
-  var getEntriesTimeoutMillis: Int = OPERATION_TIMEOUT_MILLIS
+  var getEntriesTimeoutMillis: Long = OPERATION_TIMEOUT_MILLIS
 ) : DeviceFileEntry {
   init {
     parent?.myEntries?.add(this)
@@ -98,35 +95,38 @@ class MockDeviceFileEntry(
       else -> AdbPathUtil.resolve(parent.fullPath, name)
     }
 
-  override val entries: ListenableFuture<List<DeviceFileEntry>>
-    get() =
-      when (val error = getEntriesError) {
-        null -> delayedValue(myEntries.toList(), getEntriesTimeoutMillis)
-        else -> delayedError(error, getEntriesTimeoutMillis)
-      }
-
-  override fun delete(): ListenableFuture<Unit> =
-    when (val error = deleteError) {
-      null -> delayedOperation({ parent?.removeEntry(this); Unit }, OPERATION_TIMEOUT_MILLIS)
-      else -> delayedError(error, OPERATION_TIMEOUT_MILLIS)
-    }
-
-  override fun createNewFile(fileName: String): ListenableFuture<Unit> {
-    return delayedOperation({ addFile(fileName) }, OPERATION_TIMEOUT_MILLIS)
+  override suspend fun entries(): List<DeviceFileEntry> {
+    delay(getEntriesTimeoutMillis)
+    getEntriesError?.let { throw it }
+    return myEntries.toList()
   }
 
-  override fun createNewDirectory(directoryName: String): ListenableFuture<Unit> {
-    return delayedOperation({ addDirectory(directoryName) }, OPERATION_TIMEOUT_MILLIS)
+  override suspend fun delete() {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    deleteError?.let { throw it }
+    parent?.removeEntry(this)
   }
 
-  override val isSymbolicLinkToDirectory: ListenableFuture<Boolean>
-    get() = delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS)
+  override suspend fun createNewFile(fileName: String) {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    addFile(fileName)
+  }
 
-  override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> {
+  override suspend fun createNewDirectory(directoryName: String) {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    addDirectory(directoryName)
+  }
+
+  override suspend fun isSymbolicLinkToDirectory(): Boolean {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    return myIsSymbolicLinkToDirectory
+  }
+
+  override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) {
     return fileSystem.downloadFile(this, localPath, progress)
   }
 
-  override fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress): ListenableFuture<Unit> {
+  override suspend fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress) {
     return fileSystem.uploadFile(localPath, this, fileName, progress)
   }
 

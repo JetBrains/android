@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.explorer.fs
 
-import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
 import java.util.function.Supplier
 
 /**
  * Abstraction over ADB devices and their corresponding file system.
  *
- * The service is meant to be called on the EDT thread, where long pending operations return a future,
+ * The service is meant to be called on the EDT thread, where long pending operations suspend,
  * while state changes (e.g. new device discovered, existing device disconnected, etc.) fire events on
  * the registered [DeviceFileSystemServiceListener] instances. Events are always fired on the EDT
  * thread.

@@ -21,19 +21,17 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.android.tools.idea.explorer.fs.DeviceState
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.text.StringUtil
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
-class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, taskExecutor: Executor) : DeviceFileSystem {
+class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, val dispatcher: CoroutineDispatcher) : DeviceFileSystem {
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
-  val taskExecutor = FutureCallbackExecutor(taskExecutor)
   val capabilities = AdbDeviceCapabilities(this.device)
-  val adbFileListing = AdbFileListing(this.device, capabilities, this.taskExecutor)
-  val adbFileOperations = AdbFileOperations(this.device, capabilities, this.taskExecutor)
-  val adbFileTransfer = AdbFileTransfer(this.device, adbFileOperations, myEdtExecutor, this.taskExecutor)
+  val adbFileListing = AdbFileListing(this.device, capabilities, dispatcher)
+  val adbFileOperations = AdbFileOperations(this.device, capabilities, dispatcher)
+  val adbFileTransfer = AdbFileTransfer(this.device, adbFileOperations, myEdtExecutor, dispatcher)
 
   fun isDevice(device: IDevice?): Boolean {
     return this.device == device
@@ -57,59 +55,32 @@ class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, taskExecut
       else -> DeviceState.DISCONNECTED
     }
 
-  override val rootDirectory: ListenableFuture<DeviceFileEntry>
-    get() = taskExecutor.transform(adbFileListing.root) { entry: AdbFileListingEntry ->
-      AdbDeviceDefaultFileEntry(this, entry, null)
-    }
-
-  override fun getEntry(path: String): ListenableFuture<DeviceFileEntry> {
-    val resultFuture = SettableFuture.create<DeviceFileEntry>()
-    taskExecutor.addCallback(rootDirectory, object : FutureCallback<DeviceFileEntry> {
-      override fun onSuccess(result: DeviceFileEntry?) {
-        checkNotNull(result)
-        if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
-          resultFuture.set(result)
-          return
-        }
-        val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toTypedArray()
-        resolvePathSegments(resultFuture, result, pathSegments, 0)
-      }
-
-      override fun onFailure(t: Throwable) {
-        resultFuture.setException(t)
-      }
-    })
-    return resultFuture
+  override suspend fun rootDirectory(): DeviceFileEntry {
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.root, null)
   }
 
-  private fun resolvePathSegments(
-    future: SettableFuture<DeviceFileEntry>,
-    currentEntry: DeviceFileEntry,
-    segments: Array<String>,
-    segmentIndex: Int
-  ) {
-    if (segmentIndex >= segments.size) {
-      future.set(currentEntry)
-      return
+  override suspend fun getEntry(path: String): DeviceFileEntry {
+    val root = rootDirectory()
+    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+      return root
     }
-    val entriesFuture = currentEntry.entries
-    taskExecutor.addCallback(entriesFuture, object : FutureCallback<List<DeviceFileEntry>> {
-      override fun onSuccess(result: List<DeviceFileEntry>?) {
-        checkNotNull(result)
-        when(val entry = result.find { it.name == segments[segmentIndex] }) {
-          null -> future.setException(IllegalArgumentException("Path not found"))
-          else -> resolvePathSegments(future, entry, segments, segmentIndex + 1)
-        }
-      }
-
-      override fun onFailure(t: Throwable) {
-        future.setException(t)
-      }
-    })
+    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
+    return resolvePathSegments(root, pathSegments)
   }
 
-  fun resolveMountPoint(entry: AdbDeviceFileEntry): ListenableFuture<AdbDeviceFileEntry> {
-    return taskExecutor.executeAsync {
+  private suspend fun resolvePathSegments(
+    rootEntry: DeviceFileEntry,
+    segments: List<String>
+  ): DeviceFileEntry {
+    var currentEntry = rootEntry
+    for (segment in segments) {
+      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
+    }
+    return currentEntry
+  }
+
+  suspend fun resolveMountPoint(entry: AdbDeviceFileEntry): AdbDeviceFileEntry =
+    withContext(dispatcher) {
       when {
         // Root devices or "su 0" devices don't need mount points
         capabilities.supportsSuRootCommand() || capabilities.isRoot -> createDirectFileEntry(entry)
@@ -118,7 +89,6 @@ class AdbDeviceFileSystem(val device: IDevice, edtExecutor: Executor, taskExecut
         else -> createDirectFileEntry(entry)
       }
     }
-  }
 
   companion object {
     private fun createDirectFileEntry(entry: AdbDeviceFileEntry): AdbDeviceDirectFileEntry {

@@ -35,7 +35,6 @@ import com.android.utils.FileUtils
 import com.google.common.base.Stopwatch
 import com.google.common.base.Strings.emptyToNull
 import com.google.common.primitives.Ints
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.CommonBundle
@@ -62,7 +61,6 @@ import com.intellij.util.ExceptionUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
@@ -79,7 +77,6 @@ import java.util.Stack
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Consumer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
@@ -247,7 +244,7 @@ class DeviceExplorerController(
       return
     }
     try {
-      val root = device.rootDirectory.await()
+      val root = device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
       myModel.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
@@ -410,7 +407,7 @@ class DeviceExplorerController(
             if (treeNode.isTransferring) {
               myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", RuntimeException())
             }
-            else if (!treeNode.entry.isSymbolicLinkToDirectory.await()) {
+            else if (!treeNode.entry.isSymbolicLinkToDirectory()) {
               downloadAndOpenFile(treeNode)
             }
           }
@@ -765,7 +762,7 @@ class DeviceExplorerController(
         for (fileEntry in fileEntries) {
           try {
             withTimeout(FILE_ENTRY_DELETION_TIMEOUT) {
-              fileEntry.delete().await()
+              fileEntry.delete()
             }
           } catch (t: Throwable) {
             LOGGER.info("Error deleting file \"${fileEntry.fullPath}\"", t)
@@ -858,7 +855,7 @@ class DeviceExplorerController(
       prompt: String,
       emptyErrorMessage: String,
       errorMessage: (String) -> String,
-      createFunction: (String) -> ListenableFuture<Unit>
+      createFunction: suspend (String) -> Unit
     ) {
       var initialName = initialName
       getTreeModel() ?: return
@@ -885,7 +882,7 @@ class DeviceExplorerController(
 
         try {
           withTimeout(FILE_ENTRY_CREATION_TIMEOUT) {
-            createFunction(newFileName).await()
+            createFunction(newFileName)
           }
 
           // Refresh the parent node to show the newly created file
@@ -1015,7 +1012,7 @@ class DeviceExplorerController(
       // Store the exception here on failure, or Unit if there is none
       val createDirectoryResult: Any =
         try {
-          parentEntry.createNewDirectory(directoryName).await()
+          parentEntry.createNewDirectory(directoryName)
         } catch (t: Throwable) { t }
 
       // Refresh node entries
@@ -1112,7 +1109,7 @@ class DeviceExplorerController(
           override fun isCancelled(): Boolean {
             return tracker.isCancelled
           }
-        }).await()
+        })
 
         tracker.summary.addFileCount(1)
         tracker.summary.addByteCount(uploadState.byteCount)
@@ -1344,7 +1341,7 @@ class DeviceExplorerController(
       myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis)
       startLoadChildren(node)
       try {
-        val entries = node.entry.entries.await()
+        val entries = node.entry.entries()
         if (treeModel != getTreeModel()) {
           // We switched to another device, ignore this callback
           return
@@ -1473,7 +1470,7 @@ class DeviceExplorerController(
       //       to the device to reject additional requests.
       for (treeNode in symlinkNodes) {
         val isDirectory = try {
-          treeNode.entry.isSymbolicLinkToDirectory.await()
+          treeNode.entry.isSymbolicLinkToDirectory()
         } catch (t: Throwable) {
           // Log error, but keep going as we may have more symlinkNodes to examine
           LOGGER.info("Error determining if file entry \"${treeNode.entry.name}\" is a link to a directory", t)
@@ -1614,14 +1611,5 @@ class DeviceExplorerController(
       return project?.getUserData(KEY)
     }
 
-    /** Helper method for Java tests to implement the FileOpener interface */
-    @JvmStatic
-    fun makeFileOpener(fn: Consumer<Path>): FileOpener {
-      return object : FileOpener {
-        override suspend fun openFile(localPath: Path) {
-          fn.accept(localPath)
-        }
-      }
-    }
   }
 }

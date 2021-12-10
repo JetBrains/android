@@ -16,7 +16,6 @@
 package com.android.tools.idea.explorer.adbimpl
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
-import com.android.tools.idea.explorer.fs.DeviceFileSystem
 import com.intellij.openapi.util.text.StringUtil
 
 /**

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
-import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.FileTransferProgress
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.withContext
 import java.nio.file.Path
 
 /**
@@ -30,11 +29,11 @@ import java.nio.file.Path
 class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
   : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(entry.fileSystem, entry.myEntry, entry.parent, null)) {
 
-  override val entries: ListenableFuture<List<DeviceFileEntry>>
-    get() = fileSystem.taskExecutor.executeAsync {
-      listOf(AdbDeviceDataAppDirectoryEntry(this, createDirectoryEntry(myEntry, "app")),
-             AdbDeviceDataDataDirectoryEntry(this, createDirectoryEntry(myEntry, "data")),
-             AdbDeviceDataLocalDirectoryEntry(this, createDirectoryEntry(myEntry, "local")))
+  override suspend fun entries(): List<DeviceFileEntry> =
+    withContext(fileSystem.dispatcher) {
+      listOf(AdbDeviceDataAppDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "app")),
+             AdbDeviceDataDataDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "data")),
+             AdbDeviceDataLocalDirectoryEntry(this@AdbDeviceDataDirectoryEntry, createDirectoryEntry(myEntry, "local")))
     }
 
   /**
@@ -49,13 +48,10 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
     entry: AdbFileListingEntry
   ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
-    override val entries: ListenableFuture<List<DeviceFileEntry>>
-      get() =
+    override suspend fun entries(): List<DeviceFileEntry> =
         // Create an entry for each package returned by "pm list packages"
-        fileSystem.adbFileOperations.listPackages().transform(fileSystem.taskExecutor) { packages: List<String> ->
-          packages.map { packageName: String ->
-            AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, packageName), packageName)
-          }
+        fileSystem.adbFileOperations.listPackages().map { packageName: String ->
+          AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, packageName), packageName)
         }
   }
 
@@ -71,25 +67,22 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
     entry: AdbFileListingEntry
   ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
-    override val entries: ListenableFuture<List<DeviceFileEntry>>
-      get() =
+    override suspend fun entries(): List<DeviceFileEntry> =
         // Create an entry for each package returned by "pm list packages"
-        fileSystem.adbFileOperations.listPackageInfo().transform(fileSystem.taskExecutor) { packages ->
-          packages.mapNotNull { info: AdbFileOperations.PackageInfo ->
-            val segments = AdbPathUtil.getSegments(info.path)
-            if (segments.size >= 3 && segments[0] == "data" && segments[1] == "app") {
-              if (segments.size == 3) {
-                // Some package paths are files directly inside the "/data/app" directory
-                AdbDeviceDirectFileEntry(fileSystem, createFileEntry(myEntry, segments[2]), this, info.packageName)
-              }
-              else {
-                // Most package paths are directories inside the "/data/app" directory
-                AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, segments[2]), info.packageName)
-              }
-            }
-            else null
+      fileSystem.adbFileOperations.listPackageInfo().mapNotNull { info: AdbFileOperations.PackageInfo ->
+        val segments = AdbPathUtil.getSegments(info.path)
+        if (segments.size >= 3 && segments[0] == "data" && segments[1] == "app") {
+          if (segments.size == 3) {
+            // Some package paths are files directly inside the "/data/app" directory
+            AdbDeviceDirectFileEntry(fileSystem, createFileEntry(myEntry, segments[2]), this, info.packageName)
+          } else {
+            // Most package paths are directories inside the "/data/app" directory
+            AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, segments[2]), info.packageName)
           }
         }
+        else null
+      }
+
 
   }
 
@@ -98,11 +91,10 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
     entry: AdbFileListingEntry
   ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, null)) {
 
-    override val entries: ListenableFuture<List<DeviceFileEntry>>
-      get() {
-        return fileSystem.taskExecutor.executeAsync {
-          listOf(AdbDeviceDirectFileEntry(fileSystem, createDirectoryEntry(myEntry, "tmp"), this, null))
-        }
+    override suspend fun entries(): List<DeviceFileEntry> =
+      withContext(fileSystem.dispatcher) {
+        listOf(AdbDeviceDirectFileEntry(
+          fileSystem, createDirectoryEntry(myEntry, "tmp"), this@AdbDeviceDataLocalDirectoryEntry, null))
       }
   }
 
@@ -118,29 +110,27 @@ class AdbDeviceDataDirectoryEntry(entry: AdbDeviceFileEntry)
     private val myPackageName: String
   ) : AdbDeviceForwardingFileEntry(AdbDeviceDirectFileEntry(parent.fileSystem, entry, parent, myPackageName)) {
 
-    override val entries: ListenableFuture<List<DeviceFileEntry>>
-      get() {
-        // Create "run-as" entries for child entries
-        return fileSystem.adbFileListing.getChildrenRunAs(myEntry, myPackageName).transform(fileSystem.taskExecutor) { entries ->
-          entries.map { AdbDevicePackageDirectoryEntry(this, it, myPackageName) }
-        }
+    override suspend fun entries(): List<DeviceFileEntry> =
+      // Create "run-as" entries for child entries
+      fileSystem.adbFileListing.getChildrenRunAs(myEntry, myPackageName).map {
+        AdbDevicePackageDirectoryEntry(this, it, myPackageName)
       }
 
-    override fun downloadFile(localPath: Path, progress: FileTransferProgress): ListenableFuture<Unit> {
+    override suspend fun downloadFile(localPath: Path, progress: FileTransferProgress) {
       // Note: We should reach this code only if the device is not root, in which case
       // trying a "pullFile" would fail because of permission error (reading from the /data/data/
       // directory), so we copy the file to a temp. location, then pull from that temp location.
-      return fileSystem.adbFileTransfer.downloadFileViaTempLocation(fullPath, size, localPath, progress, myPackageName)
+      fileSystem.adbFileTransfer.downloadFileViaTempLocation(fullPath, size, localPath, progress, myPackageName)
     }
 
-    override fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress): ListenableFuture<Unit> {
+    override suspend fun uploadFile(localPath: Path, fileName: String, progress: FileTransferProgress) {
       // Note: We should reach this code only if the device is not root, in which case
       // trying a "pushFile" would fail because of permission error (writing to the /data/data/
       // directory), so we use the push to temporary location, then copy to final location.
       //
       // We do this directly instead of doing it as a fallback to attempting a regular push
       // because of https://code.google.com/p/android/issues/detail?id=241157.
-      return fileSystem.adbFileTransfer.uploadFileViaTempLocation(
+      fileSystem.adbFileTransfer.uploadFileViaTempLocation(
         localPath,
         AdbPathUtil.resolve(fullPath, fileName),
         progress,

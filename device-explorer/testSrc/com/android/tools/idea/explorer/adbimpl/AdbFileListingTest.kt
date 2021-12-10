@@ -18,21 +18,19 @@ package com.android.tools.idea.explorer.adbimpl
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.ListenableFuture
-import org.hamcrest.core.IsInstanceOf
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
-import java.awt.EventQueue
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 class AdbFileListingTest {
   @get:Rule
   var thrown = ExpectedException.none()
+
+  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   @Test
   fun test_Nexus7Api23_GetRoot() {
@@ -40,11 +38,10 @@ class AdbFileListingTest {
     val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
+    val root = fileListing.root
 
     // Assert
     assertThat(root).isNotNull()
@@ -54,36 +51,33 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun test_Nexus7Api23__GetRootChildrenError() {
+  fun test_Nexus7Api23__GetRootChildrenError(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val device = commands.createMockDevice()
-    val taskExecutor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
+    val root = fileListing.root
 
     // Assert
-    thrown.expect(ExecutionException::class.java)
-    thrown.expectCause(IsInstanceOf.instanceOf(ShellCommandUnresponsiveException::class.java))
-    waitForFuture(fileListing.getChildren(root))
+    thrown.expect(ShellCommandUnresponsiveException::class.java)
+    fileListing.getChildren(root)
   }
 
   @Test
-  fun test_Nexus7Api23_GetRootChildren() {
+  fun test_Nexus7Api23_GetRootChildren(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
-    val rootEntries = waitForFuture(fileListing.getChildren(root))
+    val root = fileListing.root
+    val rootEntries = fileListing.getChildren(root)
 
     // Assert
     assertThat(rootEntries).isNotNull()
@@ -138,17 +132,16 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun test_Nexus7Api23_IsDirectoryLink() {
+  fun test_Nexus7Api23_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
-    val rootEntries = waitForFuture(fileListing.getChildren(root))
+    val root = fileListing.root
+    val rootEntries = fileListing.getChildren(root)
 
     // Assert
     assertThat(rootEntries).isNotNull()
@@ -161,16 +154,15 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun test_EmulatorApi25_GetRoot() {
+  fun test_EmulatorApi25_GetRoot(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
+    val root = fileListing.root
 
     // Assert
     assertThat(root).isNotNull()
@@ -180,36 +172,33 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun test_EmulatorApi25_GetRootChildrenError() {
+  fun test_EmulatorApi25_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
     commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
+    val root = fileListing.root
 
     // Assert
-    thrown.expect(ExecutionException::class.java)
-    thrown.expectCause(IsInstanceOf.instanceOf(ShellCommandUnresponsiveException::class.java))
-    waitForFuture(fileListing.getChildren(root))
+    thrown.expect(ShellCommandUnresponsiveException::class.java)
+    fileListing.getChildren(root)
   }
 
   @Test
-  fun test_EmulatorApi25_GetRootChildren() {
+  fun test_EmulatorApi25_GetRootChildren(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
-    val rootEntries = waitForFuture(fileListing.getChildren(root))
+    val root = fileListing.root
+    val rootEntries = fileListing.getChildren(root)
 
     // Assert
     assertThat(rootEntries).isNotNull()
@@ -265,11 +254,11 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun whenLsEscapes() {
+  fun whenLsEscapes(): Unit = runBlocking {
     val commands = TestShellCommands()
     TestDevices.addWhenLsEscapesCommands(commands)
     val device = commands.createMockDevice()
-    val listing = AdbFileListing(device, AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE)
+    val listing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
       EntryKind.DIRECTORY,
@@ -281,15 +270,15 @@ class AdbFileListingTest {
       "4096",
       null
     )
-    assertThat(waitForFuture(listing.getChildrenRunAs(dir, null))[0].name).isEqualTo("dir with spaces")
+    assertThat(listing.getChildrenRunAs(dir, null)[0].name).isEqualTo("dir with spaces")
   }
 
   @Test
-  fun whenLsDoesNotEscape() {
+  fun whenLsDoesNotEscape(): Unit = runBlocking {
     val commands = TestShellCommands()
     TestDevices.addWhenLsDoesNotEscapeCommands(commands)
     val device = commands.createMockDevice()
-    val listing = AdbFileListing(device, AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE)
+    val listing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
       EntryKind.DIRECTORY,
@@ -301,21 +290,20 @@ class AdbFileListingTest {
       "4096",
       null
     )
-    assertThat(waitForFuture(listing.getChildrenRunAs(dir, null))[0].name).isEqualTo("dir with spaces")
+    assertThat(listing.getChildrenRunAs(dir, null)[0].name).isEqualTo("dir with spaces")
   }
 
   @Test
-  fun test_EmulatorApi25_IsDirectoryLink() {
+  fun test_EmulatorApi25_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
     val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
     val device = commands.createMockDevice()
-    val taskExecutor: Executor = PooledThreadExecutor.INSTANCE
-    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), taskExecutor)
+    val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
-    val root = waitForFuture(fileListing.root)
-    val rootEntries = waitForFuture(fileListing.getChildren(root))
+    val root = fileListing.root
+    val rootEntries = fileListing.getChildren(root)
 
     // Assert
     assertThat(rootEntries).isNotNull()
@@ -328,16 +316,14 @@ class AdbFileListingTest {
   }
 
   companion object {
-    private const val TIMEOUT_MILLISECONDS: Long = 30000
-
-    private fun assertDirectoryLink(
+    private suspend fun assertDirectoryLink(
       fileListing: AdbFileListing,
       entries: List<AdbFileListingEntry>,
       name: String,
       value: Boolean
     ) {
       val entry = checkNotNull(entries.find { it.name == name })
-      assertThat(waitForFuture(fileListing.isDirectoryLink(entry))).isEqualTo(value)
+      assertThat(fileListing.isDirectoryLink(entry)).isEqualTo(value)
     }
 
     private fun assertEntry(
@@ -347,11 +333,6 @@ class AdbFileListingTest {
     ) {
       val entry = checkNotNull(entries.find { it.name == name })
       consumer.accept(entry)
-    }
-
-    private fun <V> waitForFuture(future: ListenableFuture<V>): V {
-      assert(!EventQueue.isDispatchThread())
-      return future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
   }
 }

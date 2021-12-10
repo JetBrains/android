@@ -65,8 +65,4 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
     // Assert
     assertNotNull(renderer.getDeviceNameListRenderer());
   }
-
-  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) throws Exception {
-    return FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-  }
 }

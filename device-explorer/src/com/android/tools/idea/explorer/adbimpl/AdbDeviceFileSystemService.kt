@@ -23,7 +23,6 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService
@@ -34,6 +33,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,7 +59,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
 
   private val coroutineScope = AndroidCoroutineScope(this)
   private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
+  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val myDevices: MutableList<AdbDeviceFileSystem> = ArrayList()
   private val myListeners: MutableList<DeviceFileSystemServiceListener> = ArrayList()
   private var myState = State.Initial
@@ -146,7 +146,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
     }
     checkState(State.SetupDone)
 
-    withContext(workerThread) {
+    withContext(dispatcher) {
       AdbService.getInstance().terminateDdmlib()
     }
 
@@ -176,7 +176,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
           myBridge = bridge
           if (bridge.hasInitialDeviceList()) {
             for (device in bridge.devices) {
-              myDevices.add(AdbDeviceFileSystem(device, edtExecutor, taskExecutor))
+              myDevices.add(AdbDeviceFileSystem(device, edtExecutor, dispatcher))
             }
           }
         }
@@ -189,7 +189,7 @@ class AdbDeviceFileSystemService private constructor() : Disposable, DeviceFileS
       LOGGER.info(String.format("Device connected: %s", device))
       coroutineScope.launch(uiThread) {
         if (findDevice(device) == null) {
-          val newDevice = AdbDeviceFileSystem(device, edtExecutor, taskExecutor)
+          val newDevice = AdbDeviceFileSystem(device, edtExecutor, dispatcher)
           myDevices.add(newDevice)
           myListeners.forEach { it.deviceAdded(newDevice) }
         }

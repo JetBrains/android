@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.explorer.fs
 
-import com.android.tools.idea.explorer.fs.DeviceFileSystem
-
 /**
  * Events fired by an instance of [DeviceFileSystemService].
  */

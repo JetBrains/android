@@ -18,7 +18,6 @@ package com.android.tools.idea.explorer
 import com.android.tools.idea.explorer.DeviceExplorerFileManager
 import com.android.tools.idea.explorer.fs.DeviceFileEntry
 import com.android.tools.idea.explorer.fs.DownloadProgress
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
