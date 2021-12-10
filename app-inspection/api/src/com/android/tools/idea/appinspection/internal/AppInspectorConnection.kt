@@ -97,6 +97,11 @@ private fun CoroutineScope.commandSender(commands: ReceiveChannel<InspectorComma
     }
   }
   catch (e: CancellationException) {
+    // There exists a window of time between when this coroutine's scope is cancelled and when
+    // the channel is closed. Callers can be suspended indefinitely if they try to send a command
+    // in that window. That's why we call cancel here to cancel any remaining items and close
+    // the channel.
+    commands.cancel()
     // We receive this exception when the scope in which this actor is launched is cancelled.
     pendingCommands.values.forEach {
       it.completeExceptionally(AppInspectionConnectionException(inspectorDisposedMessage(inspectorId)))
@@ -289,6 +294,9 @@ internal class AppInspectorConnection(
     val response = CompletableDeferred<AppInspection.AppInspectionResponse>()
     try {
       commandChannel.send(InspectorCommand(appInspectionCommand, response))
+    }
+    catch (e: CancellationException) {
+      throw AppInspectionConnectionException(connectionClosedMessage)
     }
     catch (e: AppInspectionConnectionException) {
       throw AppInspectionConnectionException(connectionClosedMessage)

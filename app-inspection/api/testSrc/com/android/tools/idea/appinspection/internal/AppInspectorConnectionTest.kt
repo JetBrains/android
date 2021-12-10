@@ -44,6 +44,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
@@ -439,6 +440,36 @@ class AppInspectorConnectionTest {
     sendRawCommandCalled.join()
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
     appInspectionRule.scope.cancel()
+
+    client.awaitForDisposal()
+  }
+
+  // Test the scenario where a cancellation command is sent during teardown of AppInspectorConnection.
+  @Test
+  fun cancellationDuringTearDown() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    val sendRawCommandCalled = CompletableDeferred<Unit>()
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+        sendRawCommandCalled.complete(Unit)
+      }
+    })
+
+    val sendJob = launch {
+      try {
+        client.sendRawCommand(byteArrayOf(0x12, 0x15))
+        fail()
+      }
+      catch (e: AppInspectionConnectionException) {
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
+      }
+    }
+
+    sendRawCommandCalled.join()
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
+    client.scope.cancel()
+    sendJob.cancelAndJoin()
 
     client.awaitForDisposal()
   }
