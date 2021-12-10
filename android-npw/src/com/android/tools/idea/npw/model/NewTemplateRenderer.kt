@@ -293,6 +293,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.THINGS_ACTIVITY -> TemplateType.THINGS_EMPTY_ACTIVITY
     TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY -> TemplateType.WEAR_GOOGLE_MAPS_ACTIVITY
     TemplateRenderer.WATCH_FACE -> TemplateType.WEAR_FACE_ACTIVITY
+    TemplateRenderer.WEAR_OS_COMPOSE_ACTIVITY -> TemplateType.EMPTY_ACTIVITY
     TemplateRenderer.RESPONSIVE_ACTIVITY -> TemplateType.RESPONSIVE_ACTIVITY
     TemplateRenderer.GOOGLE_PAY_ACTIVITY -> TemplateType.GOOGLE_PAY_ACTIVITY
 
