@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
-import com.android.tools.property.ptable2.*
+import com.android.tools.property.ptable.*
 import com.intellij.util.ui.AbstractTableCellEditor
 import java.awt.Component
 import javax.swing.JTable

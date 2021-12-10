@@ -20,9 +20,9 @@ import com.android.SdkConstants.ATTR_TEXT
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableModelUpdateListener
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
+import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

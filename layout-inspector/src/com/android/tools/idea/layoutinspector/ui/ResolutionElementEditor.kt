@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertyEditorModel
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupItem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.components.JBLabel

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.item.Group
-import com.android.tools.property.ptable2.item.Item
-import com.android.tools.property.ptable2.item.createModel
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.item.Group
+import com.android.tools.property.ptable.item.Item
+import com.android.tools.property.ptable.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DECLARED
@@ -36,8 +35,8 @@ import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table

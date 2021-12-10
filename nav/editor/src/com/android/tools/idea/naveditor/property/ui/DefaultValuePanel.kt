@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.property.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.property.ptable2.PFormTable
+import com.android.tools.property.ptable.PFormTable
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout

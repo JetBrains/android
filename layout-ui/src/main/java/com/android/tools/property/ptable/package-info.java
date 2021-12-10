@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
 
-import javax.swing.event.TableModelEvent
-import javax.swing.table.TableModel
-
-class PTableModelRepaintEvent(source: TableModel): TableModelEvent(source)
+/**
+ * A generic "property table" widget that has 2 columns (name and value).
+ */
+package com.android.tools.property.ptable;

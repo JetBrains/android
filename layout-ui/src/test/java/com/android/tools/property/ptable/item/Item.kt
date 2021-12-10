@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.item
+package com.android.tools.property.ptable.item
 
-import com.android.tools.property.ptable2.*
-import com.android.tools.property.ptable2.impl.PTableModelImpl
+import com.android.tools.property.ptable.*
+import com.android.tools.property.ptable.impl.PTableModelImpl
 import org.mockito.Mockito
 import javax.swing.JPanel
 import javax.swing.event.TableModelListener

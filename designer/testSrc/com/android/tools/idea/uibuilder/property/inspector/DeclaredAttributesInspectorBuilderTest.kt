@@ -42,11 +42,11 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableModelUpdateListener
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
+import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil

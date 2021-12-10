@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
-import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.item.EmptyPTableCellEditorProvider
-import com.android.tools.property.ptable2.item.Group
-import com.android.tools.property.ptable2.item.Item
-import com.android.tools.property.ptable2.item.addModelListener
-import com.android.tools.property.ptable2.item.createModel
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.item.EmptyPTableCellEditorProvider
+import com.android.tools.property.ptable.item.Group
+import com.android.tools.property.ptable.item.Item
+import com.android.tools.property.ptable.item.addModelListener
+import com.android.tools.property.ptable.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.ArgumentMatchers

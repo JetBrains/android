@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupItem
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt

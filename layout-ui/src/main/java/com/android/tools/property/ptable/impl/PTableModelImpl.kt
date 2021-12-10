@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
 import com.google.common.annotations.VisibleForTesting
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableGroupModification
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableModelUpdateListener
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupModification
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
+import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.intellij.util.ThreeState
 import java.util.Collections
 import java.util.IdentityHashMap

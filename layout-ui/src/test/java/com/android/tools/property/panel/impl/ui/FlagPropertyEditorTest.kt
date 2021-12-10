@@ -29,11 +29,11 @@ import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
-import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.impl.PTableImpl
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
+import com.android.tools.property.ptable.impl.PTableImpl
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager

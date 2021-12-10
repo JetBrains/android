@@ -16,8 +16,8 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.android.tools.property.panel.api.PropertyItem
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.google.common.truth.Truth

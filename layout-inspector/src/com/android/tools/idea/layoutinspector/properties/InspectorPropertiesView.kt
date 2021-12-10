@@ -21,7 +21,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import org.jetbrains.android.formatter.AttributeComparator
 import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 

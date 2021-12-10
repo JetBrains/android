@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector.groups
 
 import com.android.SdkConstants
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.PropertiesTable

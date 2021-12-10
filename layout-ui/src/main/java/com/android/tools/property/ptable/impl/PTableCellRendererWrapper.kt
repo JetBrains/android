@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
-import com.android.tools.property.ptable2.DefaultPTableCellRenderer
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.DefaultPTableCellRenderer
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.util.ui.JBUI
 import java.awt.Component

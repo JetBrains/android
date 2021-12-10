@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlNewPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
-import com.android.tools.property.ptable2.PTableItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.property.panel.api
 
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableModel
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 

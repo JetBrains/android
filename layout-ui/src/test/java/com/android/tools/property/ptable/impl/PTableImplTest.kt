@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -22,19 +22,19 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellEditor
-import com.android.tools.property.ptable2.PTableCellEditorProvider
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.item.Group
-import com.android.tools.property.ptable2.item.Item
-import com.android.tools.property.ptable2.item.PTableTestModel
-import com.android.tools.property.ptable2.item.createModel
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellEditor
+import com.android.tools.property.ptable.PTableCellEditorProvider
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableCellRendererProvider
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.item.Group
+import com.android.tools.property.ptable.item.Item
+import com.android.tools.property.ptable.item.PTableTestModel
+import com.android.tools.property.ptable.item.createModel
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBLabel

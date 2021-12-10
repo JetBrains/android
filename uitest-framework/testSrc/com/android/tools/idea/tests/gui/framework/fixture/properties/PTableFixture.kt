@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.impl.PTableImpl
+import com.android.tools.property.ptable.PTableItem
+import com.android.tools.property.ptable.impl.PTableImpl
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JTableFixture

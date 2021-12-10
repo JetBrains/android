@@ -29,7 +29,7 @@ import com.android.tools.property.panel.impl.model.GenericInspectorLineModel
 import com.android.tools.property.panel.impl.model.SeparatorLineModel
 import com.android.tools.property.panel.impl.model.TitleLineModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable

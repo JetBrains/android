@@ -21,9 +21,9 @@ import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.item.PTableTestModel
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.item.PTableTestModel
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat

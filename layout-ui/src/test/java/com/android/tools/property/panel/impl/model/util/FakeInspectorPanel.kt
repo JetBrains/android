@@ -21,7 +21,7 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableModel
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.Icon

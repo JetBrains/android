@@ -16,7 +16,7 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction

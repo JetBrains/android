@@ -13,16 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2
+package com.android.tools.property.ptable.impl
 
-interface PTableGroupItem : PTableItem {
-  val children: List<PTableItem>
+import javax.swing.event.TableModelEvent
+import javax.swing.table.TableModel
 
-  /**
-   * Called before expansion of a [PTableGroupItem].
-   * Specify `restructured=true` if children of [PTableGroupItem] were changed.
-   */
-  fun expandWhenPossible(expandNow: (restructured: Boolean) -> Unit) {
-    expandNow(false)
-  }
-}
+class PTableModelRepaintEvent(source: TableModel): TableModelEvent(source)

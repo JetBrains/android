@@ -21,9 +21,9 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableGroupItem
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.ui.components.JBLabel

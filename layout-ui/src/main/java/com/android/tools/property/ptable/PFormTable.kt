@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2
+package com.android.tools.property.ptable
 
-import com.android.tools.property.ptable2.impl.PFormTableImpl
+import com.android.tools.property.ptable.impl.PFormTableImpl
 import javax.swing.table.TableModel
 
 /**

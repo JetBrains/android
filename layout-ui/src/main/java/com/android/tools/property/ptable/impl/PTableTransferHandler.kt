@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2.impl
+package com.android.tools.property.ptable.impl
 
 import org.jdesktop.swingx.plaf.basic.core.BasicTransferable
 import java.awt.datatransfer.DataFlavor

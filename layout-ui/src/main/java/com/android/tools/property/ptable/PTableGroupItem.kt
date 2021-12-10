@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.property.ptable2
+package com.android.tools.property.ptable
 
-import java.lang.IndexOutOfBoundsException
+interface PTableGroupItem : PTableItem {
+  val children: List<PTableItem>
 
-/**
- * Column enumeration specifying either the [NAME] or the [VALUE] column.
- */
-enum class PTableColumn {
-  NAME,
-  VALUE;
-
-  companion object {
-    fun fromColumn(columnIndex: Int): PTableColumn {
-      return when (columnIndex) {
-        0 -> NAME
-        1 -> VALUE
-        else -> throw IndexOutOfBoundsException("columnIndex: $columnIndex")
-      }
-    }
+  /**
+   * Called before expansion of a [PTableGroupItem].
+   * Specify `restructured=true` if children of [PTableGroupItem] were changed.
+   */
+  fun expandWhenPossible(expandNow: (restructured: Boolean) -> Unit) {
+    expandNow(false)
   }
 }

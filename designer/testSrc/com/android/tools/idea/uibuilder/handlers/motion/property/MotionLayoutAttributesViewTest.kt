@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanContro
 import com.android.tools.property.panel.api.EditorProvider.Companion.create
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
-import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction

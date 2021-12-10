@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.property.panel.api.LinkPropertyItem
-import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable.PTable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys

@@ -15,7 +15,7 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.ptable2.*
+import com.android.tools.property.ptable.*
 import com.android.tools.property.panel.api.*
 import com.intellij.util.ui.UIUtil
 

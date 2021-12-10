@@ -16,10 +16,10 @@
 package com.android.tools.property.panel.impl.table
 
 import com.android.tools.property.panel.api.TableSupport
-import com.android.tools.property.ptable2.DefaultPTableCellEditor
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellEditor
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.DefaultPTableCellEditor
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellEditor
+import com.android.tools.property.ptable.PTableGroupItem
 
 /**
  * Cell editor for a table group item.

@@ -15,7 +15,7 @@
  */
 package com.android.tools.property.panel.api
 
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.PTableGroupItem
 
 /**
  * A data structure designed for a property which contains flags.

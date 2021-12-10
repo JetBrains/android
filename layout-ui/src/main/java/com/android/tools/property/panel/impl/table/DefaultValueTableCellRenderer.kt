@@ -15,10 +15,10 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableCellRenderer
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableCellRenderer
+import com.android.tools.property.ptable.PTableColumn
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil

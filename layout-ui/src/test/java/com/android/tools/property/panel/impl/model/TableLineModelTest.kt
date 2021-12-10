@@ -15,8 +15,8 @@
  */
 package com.android.tools.property.panel.impl.model
 
-import com.android.tools.property.ptable2.PTable
-import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.panel.impl.model.util.TestGroupItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModel
 import com.google.common.truth.Truth.assertThat
