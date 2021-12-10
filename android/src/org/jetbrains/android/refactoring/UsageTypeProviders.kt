@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.isResourceDeclaration
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -37,23 +36,7 @@ import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.plugins.groovy.GroovyLanguage
-
-/**
- * Recognizes Groovy elements in files that [GradleFiles] considers to be build scripts.
- */
-class GradleUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement): UsageType? {
-    if (element?.language != GroovyLanguage && element?.language != KotlinLanguage.INSTANCE) return null
-    return if (GradleFiles.getInstance(element.project).isGradleFile(element.containingFile)) GRADLE_USAGE_TYPE else null
-  }
-
-  companion object {
-    private val GRADLE_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.build.script"))
-  }
-}
 
 private val ANDROID_MANIFEST_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.manifest"))
 
