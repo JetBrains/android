@@ -34,8 +34,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -61,7 +59,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
   private JCheckBox myAnimationPreviewCheckBox;
-  private JCheckBox myInteractiveAndAnimationsComboBox;
   private JCheckBox myPreviewPickerCheckBox;
   private JCheckBox myBuildOnSaveCheckBox;
   private JLabel myBuildOnSaveLabel;
@@ -82,9 +79,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
 
-    Hashtable qualityLabels = new Hashtable();
-    qualityLabels.put(Integer.valueOf(0), new JLabel("Fastest"));
-    qualityLabels.put(Integer.valueOf(100), new JLabel("Slowest"));
+    Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
+    qualityLabels.put(0, new JLabel("Fastest"));
+    qualityLabels.put(100, new JLabel("Slowest"));
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
@@ -206,20 +203,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   }
 
   private void initTraceComponents() {
-    myTraceGradleSyncCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateTraceComponents();
-      }
-    });
+    myTraceGradleSyncCheckBox.addActionListener(e -> updateTraceComponents());
 
-    myTraceProfileComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
-        if (isTraceProfileInvalid()) {
-          ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
-        }
+    myTraceProfileComboBox.addActionListener(e -> {
+      myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
+      if (isTraceProfileInvalid()) {
+        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
       }
     });
 
@@ -308,7 +297,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     DEFAULT("Default profile"),
     SPECIFIED_LOCATION("Specified location");
 
-    private String displayValue;
+    private final String displayValue;
 
     TraceProfileItem(@NotNull String value) {
       displayValue = value;
