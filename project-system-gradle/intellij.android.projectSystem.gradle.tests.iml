@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-Groovy" level="project" />
   </component>
 </module>

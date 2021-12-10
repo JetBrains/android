@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_RES_RAW;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static java.lang.Math.max;
 
 import com.android.SdkConstants;
@@ -24,7 +28,6 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
-import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -32,6 +35,7 @@ import com.android.tools.idea.util.FileExtensions;
 import com.intellij.AppTopics;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -71,6 +75,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinFileType;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
@@ -241,6 +246,21 @@ public class AndroidFileChangeListener implements Disposable {
 
     String parentName = parent.getName();
     return parentName.startsWith(FD_RES_RAW);
+  }
+
+  public static boolean isGradleFile(@NotNull PsiFile file) {
+    if (file.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || file.getFileType().getName().equals("Kotlin")) {
+      if (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS)) {
+        return true;
+      }
+    }
+    if (file.getFileType() == PropertiesFileType.INSTANCE) {
+      if (FN_GRADLE_PROPERTIES.equals(file.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(file.getName())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
 
@@ -471,7 +491,7 @@ public class AndroidFileChangeListener implements Disposable {
       else if (isRelevantFile(psiFile)) {
         dispatchChildAdded(event, psiFile.getVirtualFile());
       }
-      else if (isGradleFileEdit(psiFile)) {
+      else if (isGradleFile(psiFile)) {
         notifyGradleEdit();
       }
 
@@ -515,7 +535,7 @@ public class AndroidFileChangeListener implements Disposable {
         VirtualFile file = psiFile.getVirtualFile();
         dispatchChildRemoved(event, file);
       }
-      else if (isGradleFileEdit(psiFile)) {
+      else if (isGradleFile(psiFile)) {
         notifyGradleEdit();
       }
 
@@ -544,7 +564,7 @@ public class AndroidFileChangeListener implements Disposable {
         if (isRelevantFile(psiFile)) {
           dispatchChildReplaced(event, file);
         }
-        else if (isGradleFileEdit(psiFile)) {
+        else if (isGradleFile(psiFile)) {
           notifyGradleEdit();
         }
 
@@ -563,10 +583,6 @@ public class AndroidFileChangeListener implements Disposable {
 
     private void dispatchChildReplaced(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
       dispatch(virtualFile, listener -> listener.childReplaced(event));
-    }
-
-    private boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
-      return GradleFiles.getInstance(myProject).isGradleFile(psiFile);
     }
 
     private void notifyGradleEdit() {

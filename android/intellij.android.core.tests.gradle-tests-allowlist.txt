@@ -23,7 +23,6 @@ com.android.tools.idea.gradle.project.model.IdeAndroidProjectImplTest
 com.android.tools.idea.gradle.project.model.ModelSerializationTest
 com.android.tools.idea.gradle.project.sync.AllVariantsSyncWithGradleSyncExecutorTest
 com.android.tools.idea.gradle.project.sync.DependencySetupTest
-com.android.tools.idea.gradle.project.sync.GradleFilesTest
 com.android.tools.idea.gradle.project.sync.GradleSyncExecutorTest
 com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest
 com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase

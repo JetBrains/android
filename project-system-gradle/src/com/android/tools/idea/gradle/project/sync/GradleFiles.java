@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -30,9 +27,9 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -72,7 +69,6 @@ import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
@@ -422,18 +418,7 @@ public class GradleFiles {
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || psiFile.getFileType().getName().equals("Kotlin")) {
-      if (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
-        return true;
-      }
-    }
-    if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
-      if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
-        return true;
-      }
-    }
-
-    return false;
+    return AndroidFileChangeListener.isGradleFile(psiFile);
   }
 
   public boolean isExternalBuildFile(@NotNull PsiFile psiFile) {
