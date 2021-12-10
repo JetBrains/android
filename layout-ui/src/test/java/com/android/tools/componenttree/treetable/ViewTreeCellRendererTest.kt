@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.tabletree
+package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.common.ViewTreeCellRenderer.ColoredViewRenderer
-import com.android.tools.componenttree.treetable.TreeTableImpl
-import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.property.testing.ApplicationRule

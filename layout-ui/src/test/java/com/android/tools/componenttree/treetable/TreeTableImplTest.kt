@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.tabletree
+package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
@@ -26,8 +26,6 @@ import com.android.tools.componenttree.api.ComponentTreeBuildResult
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
-import com.android.tools.componenttree.treetable.TreeTableImpl
-import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style

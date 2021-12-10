@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.tabletree
+package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FQCN_BUTTON
@@ -22,9 +22,6 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.componenttree.common.ViewTreeCellRenderer
-import com.android.tools.componenttree.treetable.TreeTableImpl
-import com.android.tools.componenttree.treetable.TreeTableModelImpl
-import com.android.tools.componenttree.treetable.TreeTableModelImplListener
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
