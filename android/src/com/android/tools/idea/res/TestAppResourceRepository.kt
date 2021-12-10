@@ -22,6 +22,9 @@ import com.android.projectmodel.RecursiveResourceFolder
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.ImmutableList
 import org.jetbrains.android.facet.AndroidFacet
@@ -41,43 +44,23 @@ class TestAppResourceRepository private constructor(
     @Slow
     fun create(
       facet: AndroidFacet,
-      moduleTestResources: LocalResourceRepository,
-      model: AndroidModuleModel
+      moduleTestResources: LocalResourceRepository
     ): TestAppResourceRepository {
-      val project = facet.module.project
       val localRepositories = mutableListOf(moduleTestResources)
-
-      val dependencies = model.selectedAndroidTestCompileDependencies
-      if (dependencies != null) {
-        val thisModuleGradlePath = GradleUtil.getGradlePath(facet.module)
-
-        localRepositories.addAll(
-          dependencies.moduleDependencies.asSequence()
-            .mapNotNull {
-              it.projectPath.takeIf { path ->
-                // This needs to be fixed properly in the model, see http://b/149078408.
-                //
-                // Fixing http://b/115334911 adds dependency from androidTest to tested (main) variant. This check is to
-                // filter that out. Note that this androidTest compile classpath still contains too many things
-                // because compile classpath extends tested compile classpath. While this is OK for classes,
-                // it is not correct for resources.
-                thisModuleGradlePath == null || path != thisModuleGradlePath
-              }
-            }
-            .mapNotNull { GradleUtil.findModuleByGradlePath(project, it) }
-            .mapNotNull { it.androidFacet }
-            .map { ResourceRepositoryManager.getModuleResources(it) }
-        )
-      }
+      val androidModuleSystem = facet.getModuleSystem()
+      localRepositories.addAll(
+        androidModuleSystem
+          .getAndroidTestDirectResourceModuleDependencies()
+          //
+          .filter { it.getHolderModule() != facet.holderModule }
+          .mapNotNull { it.androidFacet }
+          .map { ResourceRepositoryManager.getModuleResources(it) }
+      )
 
       val aarCache = AarResourceRepositoryCache.instance
-      val libraryRepositories: Collection<AarResourceRepository> = dependencies?.androidLibraries.orEmpty().asSequence()
-        .map {
-          aarCache.getSourceRepository(
-            ExternalLibraryImpl(address = it.artifactAddress,
-                                location = PathString(it.artifact),
-                                resFolder = RecursiveResourceFolder(PathString(it.resFolder))))
-        }
+      val libraryRepositories: Collection<AarResourceRepository> = androidModuleSystem
+        .getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST)
+        .map { aarCache.getSourceRepository(it) }
         .toList()
 
       if (facet.configuration.isLibraryProject) {

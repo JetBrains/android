@@ -204,7 +204,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * @return Instance of {@link IdeDependencies} from test artifact, or {@code null} if current module has no test artifact.
    */
-  @Override
   @Nullable
   public IdeDependencies getSelectedAndroidTestCompileDependencies() {
     IdeAndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();

@@ -487,7 +487,7 @@ public final class ResourceRepositoryManager implements Disposable {
       return moduleTestResources;
     }
 
-    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
   /**

@@ -35,8 +35,6 @@ import org.jetbrains.annotations.Nullable;
  * AndroidProject/ModuleSystem APIs. Those callers needing Gradle specific features should, for now, depend on gradle-project-system.
  */
 public interface AndroidModuleModel extends AndroidModel, ModuleModel {
-  @Nullable IdeDependencies getSelectedAndroidTestCompileDependencies();
-
   @NotNull GradleVersion getAgpVersion();
 
   @Nullable IdeBuildTypeContainer findBuildType(@NotNull String name);

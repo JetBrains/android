@@ -185,6 +185,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResourceModuleDependencies(): List<Module>
 
   /**
+   * Returns the Android modules that this module's `androidTest` module depends on for resources.
+   */
+  @JvmDefault
+  fun getAndroidTestDirectResourceModuleDependencies(): List<Module> = emptyList()
+
+  /**
    * Returns the Android modules that directly depend on this module for resources.
    * As Android modules, each module in the returned list will have an associated AndroidFacet.
    *
