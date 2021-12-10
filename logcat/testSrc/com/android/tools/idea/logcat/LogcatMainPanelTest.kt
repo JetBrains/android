@@ -264,16 +264,18 @@ class LogcatMainPanelTest {
     val logcatMainPanel = logcatMainPanel()
     logcatMainPanel.editor.document.setText("")
 
-    assertThat(logcatMainPanel.isMessageViewEmpty()).isTrue()
+    assertThat(logcatMainPanel.isLogcatEmpty()).isTrue()
   }
 
-  @RunsInEdt
   @Test
-  fun isMessageViewEmpty_notEmptyDocument() {
-    val logcatMainPanel = logcatMainPanel()
-    logcatMainPanel.editor.document.setText("not-empty")
+  fun isMessageViewEmpty_notEmptyLogcat() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet {
+      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+    }
 
-    assertThat(logcatMainPanel.isMessageViewEmpty()).isFalse()
+    logcatMainPanel.processMessages(listOf(logCatMessage()))
+
+    assertThat(logcatMainPanel.isLogcatEmpty()).isFalse()
   }
 
   @Test

@@ -50,9 +50,9 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
   fun clearMessageView()
 
   /**
-   * Returns true if the message view is empty
+   * Returns true if the attached logcat is empty
    */
-  fun isMessageViewEmpty(): Boolean
+  fun isLogcatEmpty(): Boolean
 
   /**
    * Processes incoming messages from logcat
@@ -63,4 +63,9 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
    * Emits formatted text to the message view
    */
   suspend fun appendMessages(textAccumulator: TextAccumulator)
+
+  /**
+   * Returns `true` if panel is attached to a device
+   */
+  fun isAttachedToDevice(): Boolean
 }

@@ -36,6 +36,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
  */
 internal class FakeLogcatPresenter : LogcatPresenter {
   var reloadedMessages = 0
+  var attachedToDevice = false
   val messageBatches = mutableListOf<List<String>>()
 
   override fun reloadMessages() {
@@ -54,7 +55,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     messageBatches.clear()
   }
 
-  override fun isMessageViewEmpty(): Boolean = messageBatches.isEmpty()
+  override fun isLogcatEmpty(): Boolean = messageBatches.isEmpty()
 
   override suspend fun processMessages(messages: List<LogCatMessage>) {}
 
@@ -62,6 +63,8 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     val list: List<String> = textAccumulator.text.trim().split("\n")
     messageBatches.add(list)
   }
+
+  override fun isAttachedToDevice() = attachedToDevice
 
   override fun getTags(): Set<String> {
     TODO("Not yet implemented")

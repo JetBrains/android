@@ -266,6 +266,8 @@ internal class LogcatMainPanel(
     }
   }
 
+  override fun isAttachedToDevice() = logcatReader != null
+
   override fun getTags(): Set<String> = tags
 
   override fun getPackageNames(): Set<String> = packages
@@ -303,7 +305,7 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun isMessageViewEmpty() = document.textLength == 0
+  override fun isLogcatEmpty() = messageBacklog.messages.isEmpty()
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread

@@ -28,7 +28,7 @@ internal class ClearLogcatAction(private val logcatPresenter: LogcatPresenter) :
     AllIcons.Actions.GC){
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = !logcatPresenter.isMessageViewEmpty()
+    e.presentation.isEnabled = logcatPresenter.isAttachedToDevice() && !logcatPresenter.isLogcatEmpty()
   }
 
   override fun actionPerformed(e: AnActionEvent) {

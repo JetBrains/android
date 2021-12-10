@@ -43,7 +43,8 @@ class ClearLogcatActionTest {
   }
 
   @Test
-  fun update_notEmpty() {
+  fun update_notEmptyAndAttached() {
+    fakeLogcatPresenter.attachedToDevice = true
     fakeLogcatPresenter.appendMessage("not-empty")
     val action = newClearLogcatAction(fakeLogcatPresenter)
 
@@ -53,7 +54,19 @@ class ClearLogcatActionTest {
   }
 
   @Test
-  fun update_isEmpty() {
+  fun update_notEmptyAndNotAttached() {
+    fakeLogcatPresenter.attachedToDevice = false
+    fakeLogcatPresenter.appendMessage("not-empty")
+    val action = newClearLogcatAction(fakeLogcatPresenter)
+
+    action.update(event)
+
+    assertThat(event.presentation.isEnabled).isFalse()
+  }
+
+  @Test
+  fun update_isEmptyAndAttached() {
+    fakeLogcatPresenter.attachedToDevice = true
     fakeLogcatPresenter.appendMessage("not-empty")
     fakeLogcatPresenter.clearMessageView()
     val action = newClearLogcatAction(fakeLogcatPresenter)
@@ -70,7 +83,7 @@ class ClearLogcatActionTest {
 
     action.actionPerformed(event)
 
-    assertThat(fakeLogcatPresenter.isMessageViewEmpty()).isTrue()
+    assertThat(fakeLogcatPresenter.isLogcatEmpty()).isTrue()
   }
 
   private fun newClearLogcatAction(logcatPresenter: LogcatPresenter = fakeLogcatPresenter) = ClearLogcatAction(logcatPresenter)

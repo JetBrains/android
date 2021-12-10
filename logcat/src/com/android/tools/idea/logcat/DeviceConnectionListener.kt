@@ -18,6 +18,10 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.CHANGE_STATE
+import com.android.ddmlib.IDevice.DeviceState.DISCONNECTED
+import com.android.ddmlib.IDevice.DeviceState.OFFLINE
+import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.tools.idea.ddms.DeviceContext.DeviceSelectionListener
 import com.intellij.openapi.application.runInEdt
 
@@ -43,21 +47,21 @@ abstract class DeviceConnectionListener : DeviceSelectionListener {
     else {
       this.device = device
       deviceState = device?.state
-      if (device?.state == IDevice.DeviceState.ONLINE) {
+      if (device?.state == ONLINE) {
         runInEdt { onDeviceConnected(device) }
       }
     }
   }
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    if (this.device != device || changeMask != IDevice.CHANGE_STATE || deviceState == device.state) {
+    if (this.device != device || changeMask != CHANGE_STATE || deviceState == device.state) {
       return
     }
     deviceState = device.state
-    if (deviceState == IDevice.DeviceState.DISCONNECTED) {
+    if (deviceState == DISCONNECTED || deviceState == OFFLINE) {
       runInEdt { onDeviceDisconnected(device) }
     }
-    else if (deviceState == IDevice.DeviceState.ONLINE) {
+    else if (deviceState == ONLINE) {
       runInEdt {
         onDeviceConnected(device)
       }
