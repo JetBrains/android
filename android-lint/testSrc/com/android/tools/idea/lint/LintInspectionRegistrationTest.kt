@@ -37,6 +37,7 @@ import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Assert
 import java.io.File
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.lang.reflect.Modifier
@@ -66,26 +67,21 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
 
   companion object {
     private fun findSourceTree(): File? {
-      var sourceTree = System.getenv(ADT_SOURCE_TREE)
-      if (sourceTree == null) {
-        sourceTree = System.getProperty(ADT_SOURCE_TREE)
-      }
+      val sourceTree =
+        System.getenv(ADT_SOURCE_TREE)
+        ?: System.getProperty(ADT_SOURCE_TREE)
+        // Tip: you can temporarily set your own path here:
+        // ?: "/your/path"
+        ?: return null
 
-      // Tip: you can temporarily override sourceTree="/your/path/to/source/tree" here
-      //sourceTree = "/your/path"
-
-      val root = sourceTree?.let {
-        if (it.isNotBlank() )
-          File(it)
-        else
-          null
-      }
-      if (root != null && !File(root, ".repo").isDirectory) {
-        fail("Invalid directory $root: should be pointing to the root of a tools checkout directory")
-      }
-      return root
+      return if (sourceTree.isNotBlank()) {
+        File(sourceTree).apply {
+          if (!File(this, ".repo").isDirectory) {
+            Assert.fail("Invalid directory $this: should be pointing to the root of a tools checkout directory")
+          }
+        }
+      } else null
     }
-
 
     private const val ADT_SOURCE_TREE = "ADT_SOURCE_TREE"
     private var ourDone = false

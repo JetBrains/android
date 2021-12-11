@@ -50,7 +50,7 @@ android.overridePathCheck=$overridePathCheck
 android.nonTransitiveRClass=true
 """
 
-    return  """
+  return  """
 # Project-wide Gradle settings.
 
 # IDE (e.g. Android Studio) users:
