@@ -143,14 +143,6 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
     }
   }
 
-  public void stop() {
-    myCanceled = true;
-  }
-
-  public void resume() {
-    myCanceled = false;
-  }
-
   private void processPendingMessage() {
     mySequentialExecutor.execute(() -> {
       if (myPendingMessage != null) {

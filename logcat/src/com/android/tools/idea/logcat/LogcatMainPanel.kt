@@ -71,6 +71,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.time.ZoneId
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
@@ -110,7 +111,7 @@ internal class LogcatMainPanel(
   private val messageFormatter = MessageFormatter(formattingOptions, logcatColors, zoneId)
 
   @VisibleForTesting
-  internal val messageBacklog = MessageBacklog(ConsoleBuffer.getCycleBufferSize())
+  internal val messageBacklog = AtomicReference(MessageBacklog(ConsoleBuffer.getCycleBufferSize()))
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
 
@@ -158,7 +159,7 @@ internal class LogcatMainPanel(
           Disposer.dispose(it)
         }
         document.setText("")
-        logcatReader = LogcatReader(device, this@LogcatMainPanel).also(LogcatReader::start)
+        logcatReader = LogcatReader(device, this@LogcatMainPanel)
       }
 
       override fun onDeviceDisconnected(device: IDevice) {
@@ -206,7 +207,7 @@ internal class LogcatMainPanel(
   }
 
   override suspend fun processMessages(messages: List<LogCatMessage>) {
-    messageBacklog.addAll(messages)
+    messageBacklog.get().addAll(messages)
     tags.addAll(messages.map { it.header.tag })
     packages.addAll(messages.map(LogCatMessage::getPackageNameOrPid))
     messageProcessor.appendMessages(messages)
@@ -262,7 +263,7 @@ internal class LogcatMainPanel(
   override fun reloadMessages() {
     document.setText("")
     AndroidCoroutineScope(this, workerThread).launch {
-      messageProcessor.appendMessages(messageBacklog.messages)
+      messageProcessor.appendMessages(messageBacklog.get().messages)
     }
   }
 
@@ -290,22 +291,15 @@ internal class LogcatMainPanel(
   @UiThread
   override fun clearMessageView() {
     AndroidCoroutineScope(this, ioThread).launch {
-      logcatReader?.let {
-        it.stop()
-        it.clearLogcat()
-      }
-      messageBacklog.clear()
-      logcatReader?.start()
+      logcatReader?.clearLogcat()
+      messageBacklog.set(MessageBacklog(ConsoleBuffer.getCycleBufferSize()))
       withContext(uiThread) {
         document.setText("")
-        withContext(workerThread) {
-          messageProcessor.appendMessages(messageBacklog.messages)
-        }
       }
     }
   }
 
-  override fun isLogcatEmpty() = messageBacklog.messages.isEmpty()
+  override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
 
   // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   @UiThread

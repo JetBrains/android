@@ -291,7 +291,7 @@ class LogcatMainPanelTest {
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().ioThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
     runInEdtAndWait { }
     assertThat(logcatMainPanel.editor.document.text).isEmpty()
-    assertThat(logcatMainPanel.messageBacklog.messages).isEmpty()
+    assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
 
@@ -408,7 +408,7 @@ class LogcatMainPanelTest {
         it.editor.document.setText("Some previous text")
       }
     }
-    logcatMainPanel.messageBacklog.addAll(listOf(logCatMessage(message = "message", timestamp = Instant.ofEpochSecond(10))))
+    logcatMainPanel.messageBacklog.get().addAll(listOf(logCatMessage(message = "message", timestamp = Instant.ofEpochSecond(10))))
 
     runInEdtAndWait(logcatMainPanel::reloadMessages)
 
@@ -431,7 +431,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.processMessages(messages)
 
-    assertThat(logcatMainPanel.messageBacklog.messages).containsExactlyElementsIn(messages)
+    assertThat(logcatMainPanel.messageBacklog.get().messages).containsExactlyElementsIn(messages)
   }
 
   @Test
