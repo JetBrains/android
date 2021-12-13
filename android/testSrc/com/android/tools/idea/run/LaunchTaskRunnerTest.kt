@@ -16,6 +16,8 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -38,6 +40,7 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import java.util.function.BiConsumer
@@ -86,6 +89,7 @@ class LaunchTaskRunnerTest {
       val device = mock<AndroidDevice>()
       val iDevice = mock<IDevice>()
       `when`(iDevice.isOnline).thenReturn(true)
+      `when`(iDevice.version).thenReturn(AndroidVersion(MIN_RECOMMENDED_API, null))
       `when`(device.launchedDevice).thenReturn(Futures.immediateFuture(iDevice))
       device
     }.toList()
@@ -129,6 +133,8 @@ class LaunchTaskRunnerTest {
     runner.run(progressIndicator)
 
     verify(mockProcessHandler).addTargetDevice(eq(deviceFutures.get()[0].get()))
+    // we should have two force-stop calls for APIs <= 25, which the mock IDevice is
+    verify(deviceFutures.get()[0].get(), times(2)).forceStop(any())
     verify(mockProcessHandler, never()).detachDevice(any())
     verify(mockProcessHandler, never()).detachProcess()
     verify(mockProcessHandler, never()).destroyProcess()

@@ -19,6 +19,7 @@ import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
@@ -57,6 +58,11 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
   @Trace
   public boolean killApp(@NotNull LaunchStatus launchStatus) {
     myIDevice.forceStop(myApplicationId);
+    if (myIDevice.getVersion().getApiLevel() <= AndroidVersion.VersionCodes.N_MR1) {
+      // APIs <= 25 have a bug (b/181004316) where the first call to "force-stop" does not terminate the app
+      // but rather places it in the background. Calling "force-stop" a second time does terminate the app.
+      myIDevice.forceStop(myApplicationId);
+    }
     myClientsToWaitFor.addAll(DeploymentApplicationService.getInstance().findClient(myIDevice, myApplicationId));
     if (!myIDevice.isOnline() || myClientsToWaitFor.isEmpty()) {
       myProcessKilledLatch.countDown();
