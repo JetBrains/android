@@ -23,7 +23,6 @@ import com.android.tools.idea.avdmanager.AccelerationErrorCode;
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel;
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.annotations.VisibleForTesting;

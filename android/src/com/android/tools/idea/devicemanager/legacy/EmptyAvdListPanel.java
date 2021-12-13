@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.legacy;
 
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.intellij.ui.components.JBLabel;
 import java.awt.BorderLayout;
 import java.awt.Cursor;

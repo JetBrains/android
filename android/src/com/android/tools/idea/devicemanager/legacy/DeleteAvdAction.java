@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.legacy;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -39,14 +38,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DeleteAvdAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
-  private final @NotNull Function<@NotNull AvdInfoProvider, @NotNull ListenableFuture<@NotNull Boolean>> myIsAvdRunning;
+  private final @NotNull Function<@NotNull AvdInfo, @NotNull ListenableFuture<@NotNull Boolean>> myIsAvdRunning;
   private final @NotNull Executor myExecutor;
 
   public DeleteAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
     super(provider, "Delete", "Delete this AVD", AllIcons.Actions.Cancel);
 
     myLogDeviceManagerEvents = logDeviceManagerEvents;
-    myIsAvdRunning = AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning;
+    myIsAvdRunning = AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunningAsync;
     myExecutor = EdtExecutorService.getInstance();
   }
 
@@ -70,7 +69,7 @@ public class DeleteAvdAction extends AvdUiAction {
       return;
     }
 
-    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<Boolean>() {
+    FutureUtils.addCallback(myIsAvdRunning.apply(info), myExecutor, new FutureCallback<Boolean>() {
       @Override
       public void onSuccess(@Nullable Boolean running) {
         assert running != null;

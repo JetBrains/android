@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.legacy;
 
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.event.ActionEvent;
 import org.jetbrains.annotations.NotNull;

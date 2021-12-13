@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;

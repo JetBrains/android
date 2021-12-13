@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab.columns;
 import com.android.annotations.Nullable;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.devicemanager.legacy.AvdUiAction;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;

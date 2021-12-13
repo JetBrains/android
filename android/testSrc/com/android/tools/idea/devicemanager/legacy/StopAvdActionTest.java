@@ -18,7 +18,8 @@ package com.android.tools.idea.devicemanager.legacy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.beans.PropertyChangeEvent;
@@ -36,6 +37,9 @@ public final class StopAvdActionTest {
   public void addPropertyChangeListener() {
     // Arrange
     AvdInfoProvider provider = Mockito.mock(AvdInfoProvider.class);
+    AvdInfo avdInfo = Mockito.mock(AvdInfo.class);
+    Mockito.when(provider.getAvdInfo()).thenReturn(avdInfo);
+
     Action action = new StopAvdAction(provider, false, p -> Futures.immediateFuture(false), MoreExecutors.directExecutor());
 
     PropertyChangeListener listener = Mockito.mock(PropertyChangeListener.class);

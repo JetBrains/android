@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.devicemanager.legacy;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,7 +41,7 @@ final class StopAvdAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
 
   @NotNull
-  private final Function<AvdInfoProvider, ListenableFuture<Boolean>> myIsAvdRunning;
+  private final Function<@NotNull AvdInfo, @NotNull ListenableFuture<Boolean>> myIsAvdRunning;
 
   @NotNull
   private final Executor myExecutor;
@@ -54,14 +54,14 @@ final class StopAvdAction extends AvdUiAction {
   StopAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
     this(provider,
          logDeviceManagerEvents,
-         AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning,
+         AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunningAsync,
          EdtExecutorService.getInstance());
   }
 
   @VisibleForTesting
   StopAvdAction(@NotNull AvdInfoProvider provider,
                 boolean logDeviceManagerEvents,
-                @NotNull Function<AvdInfoProvider, ListenableFuture<Boolean>> isAvdRunning,
+                @NotNull Function<@NotNull AvdInfo, @NotNull ListenableFuture<Boolean>> isAvdRunning,
                 @NotNull Executor executor) {
     super(provider, "Stop", "Stop the emulator running this AVD", AllIcons.Actions.Suspend);
 
@@ -90,7 +90,12 @@ final class StopAvdAction extends AvdUiAction {
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
     myPropertyChangeSupport.addPropertyChangeListener(listener);
 
-    FutureUtils.addCallback(myIsAvdRunning.apply(myAvdInfoProvider), myExecutor, new FutureCallback<Boolean>() {
+    AvdInfo info = getAvdInfo();
+    if (info == null) {
+      return;
+    }
+
+    FutureUtils.addCallback(myIsAvdRunning.apply(info), myExecutor, new FutureCallback<Boolean>() {
       @Override
       public void onSuccess(@Nullable Boolean running) {
         // noinspection ConstantConditions

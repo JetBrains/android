@@ -20,7 +20,6 @@ import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPh
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
 import com.android.tools.idea.devicemanager.virtualtab.ViewDetailsAction;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;

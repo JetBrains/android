@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.devicemanager.legacy.AvdUiAction;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.event.ActionEvent;
 import org.jetbrains.annotations.NotNull;

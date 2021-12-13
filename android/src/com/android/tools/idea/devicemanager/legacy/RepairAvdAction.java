@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanager.legacy;
 
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.DialogWrapper;

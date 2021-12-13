@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.WizardStepHeaderPanel;
 import com.intellij.openapi.project.Project;
