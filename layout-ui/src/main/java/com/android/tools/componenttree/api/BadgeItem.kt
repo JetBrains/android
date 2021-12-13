@@ -29,9 +29,22 @@ interface BadgeItem {
   fun getIcon(item: Any): Icon?
 
   /**
+   * Return the icon while hovering over the specified [item].
+   *
+   * (The icon from getIcon will be hidden while this hover icon is displayed.)
+   */
+  fun getHoverIcon(item: Any): Icon? = null
+
+  /**
    * Return the tooltip text for the icon of the specified [item].
    */
   fun getTooltipText(item: Any?): String
+
+  /**
+   * Display a divider on the left.
+   */
+  val leftDivider: Boolean
+    get() = false
 
   /**
    * Perform this action when the icon is clicked on.

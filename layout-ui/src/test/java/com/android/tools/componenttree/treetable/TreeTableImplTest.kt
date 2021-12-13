@@ -17,6 +17,7 @@ package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
 import com.android.flags.junit.SetFlagRule
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
@@ -41,16 +42,21 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.JTable
+import javax.swing.RepaintManager
 import javax.swing.ScrollPaneConstants
 
 class TreeTableImplTest {
@@ -91,6 +97,12 @@ class TreeTableImplTest {
       else -> null
     }
 
+    override fun getHoverIcon(item: Any): Icon? = when (item) {
+      item1 -> StudioIcons.LayoutEditor.Properties.VISIBLE
+      item2 -> StudioIcons.LayoutEditor.Properties.INVISIBLE
+      else -> null
+    }
+
     override fun getTooltipText(item: Any?): String = when (item) {
       item1 -> "LinearLayout tip"
       item2 -> "TextView tip"
@@ -107,6 +119,7 @@ class TreeTableImplTest {
       lastPopupItem = item
     }
   }
+  private val renderer = BadgeRenderer(badgeItem)
 
   @Before
   fun setUp() {
@@ -121,6 +134,11 @@ class TreeTableImplTest {
       override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
     }
     appRule.testApplication.registerService(AdvancedSettings::class.java, settings, appRule.testRootDisposable)
+  }
+
+  @After
+  fun tearDown() {
+    RepaintManager.setCurrentManager(null)
   }
 
   @RunsInEdt
@@ -280,6 +298,72 @@ class TreeTableImplTest {
     assertThat(table.cellWidth(3)).isEqualTo(badgeBefore)
   }
 
+  @RunsInEdt
+  @Test
+  fun testHoverCell() {
+    val table = createTreeTable()
+    setScrollPaneSize(table, 300, 800)
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    val ui = FakeUi(table)
+    UIUtil.dispatchAllInvocationEvents()
+    val c1 = table.getCellRect(2, 1, true)
+    val c2 = table.getCellRect(3, 2, true)
+    val badge1 = table.getCellRect(0, 3, true)
+    val badge2 = table.getCellRect(1, 3, true)
+    val badge3 = table.getCellRect(2, 3, true)
+    val manager: RepaintManager = mock()
+    RepaintManager.setCurrentManager(manager)
+
+    // move mouse over column c1 for style1 (row 2)
+    ui.mouse.moveTo(c1.centerX.toInt(), c1.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(2, 1)).isTrue()
+    verifyNoInteractions(manager) // c1 is not a badge column
+
+    // move mouse over column c2 for item3 (row 3)
+    ui.mouse.moveTo(c2.centerX.toInt(), c2.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(3, 2)).isTrue()
+    verifyNoInteractions(manager) // c2 is not a badge column
+
+    // move mouse over the tree column for item3 (row 3)
+    ui.mouse.moveTo(5, c2.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(3, 0)).isTrue()
+    verifyNoInteractions(manager) // the tree is not a badge column
+
+    // move mouse over the badge column below the last row in the table
+    ui.mouse.moveTo(badge1.centerX.toInt(), 750)
+    assertThat(table.hoverCell).isNull()
+    verifyNoInteractions(manager) // mouse was moved below the last row
+
+    // move mouse over the badge column for style1 (row 2)
+    ui.mouse.moveTo(badge3.centerX.toInt(), badge3.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(2, 3)).isTrue()
+    verifyNoInteractions(manager) // badge in row 3 (style1) doesn't have a hoverIcon
+    assertThat(table.badgeIconOf(2, 3)).isNull()
+
+    // move mouse over the badge column for item1 (row 0)
+    ui.mouse.moveTo(badge1.centerX.toInt(), badge1.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(0, 3)).isTrue()
+    verify(manager).addDirtyRegion(table, badge1.x, badge1.y, badge1.width, badge1.height)
+    assertThat(table.badgeIconOf(0, 3)).isSameAs(StudioIcons.LayoutEditor.Properties.VISIBLE)
+    assertThat(table.badgeIconOf(1, 3)).isSameAs(StudioIcons.Common.FILTER)
+
+    // move mouse over the badge column for item2 (row 1)
+    ui.mouse.moveTo(badge2.centerX.toInt(), badge2.centerY.toInt())
+    assertThat(table.hoverCell?.equalTo(1, 3)).isTrue()
+    verify(manager, times(2)).addDirtyRegion(table, badge1.x, badge1.y, badge1.width, badge1.height)
+    verify(manager).addDirtyRegion(table, badge2.x, badge2.y, badge2.width, badge2.height)
+    assertThat(table.badgeIconOf(0, 3)).isSameAs(StudioIcons.Common.ERROR)
+    assertThat(table.badgeIconOf(1, 3)).isSameAs(StudioIcons.LayoutEditor.Properties.INVISIBLE)
+
+    // move mouse outside the table
+    ui.mouse.moveTo(table.width + 40, badge2.centerY.toInt())
+    assertThat(table.hoverCell).isNull()
+    verify(manager, times(2)).addDirtyRegion(table, badge2.x, badge2.y, badge2.width, badge2.height)
+    assertThat(table.badgeIconOf(0, 3)).isSameAs(StudioIcons.Common.ERROR)
+    assertThat(table.badgeIconOf(1, 3)).isSameAs(StudioIcons.Common.FILTER)
+  }
+
   private fun setScrollPaneSize(table: TreeTableImpl, width: Int, height: Int): JScrollPane {
     val scrollPane = getScrollPane(table)
     scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
@@ -332,4 +416,9 @@ class TreeTableImplTest {
 
   private fun JTable.cellWidth(columnIndex: Int) =
     getCellRect(0, columnIndex, true).width
+
+  private fun JTable.badgeIconOf(row: Int, column: Int): Icon? {
+    renderer.getTableCellRendererComponent(this, getValueAt(row, column), false, true, row, column)
+    return renderer.icon
+  }
 }

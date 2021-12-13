@@ -18,6 +18,7 @@ package com.android.tools.componenttree.treetable
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.api.BadgeItem
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
@@ -36,8 +37,11 @@ class BadgeRenderer(val badge: BadgeItem) : TableCellRenderer, ColoredTableCellR
     column: Int
   ) {
     val focused = selected && table.hasFocus()
+    val hoverCell = table.hoverCell
     background = UIUtil.getTreeBackground(selected, focused)
-    icon = value?.let { badge.getIcon(it) }?.let { if (focused) ColoredIconGenerator.generateWhiteIcon(it) else it }
+    val hoverIcon = if (value != null && hoverCell?.equalTo(row, column) == true) badge.getHoverIcon(value) else null
+    icon = (hoverIcon ?: value?.let{ badge.getIcon(it) })?.let { if (focused) ColoredIconGenerator.generateWhiteIcon(it) else it }
+    border = JBUI.Borders.empty(0, 1)
     isTransparentIconBackground = true
   }
 }

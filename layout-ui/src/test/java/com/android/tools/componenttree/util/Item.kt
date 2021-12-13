@@ -30,6 +30,8 @@ class Item(
   var column2: Int = tagName.hashCode().rem(6)
   var badge1: Icon? = null
   var badge2: Icon? = null
+  var badge3: Icon? = null
+  var hover3: Icon? = null
   var canInsert: Boolean? = null
   var acceptInsert = true
   val insertions = mutableListOf<Pair<Transferable, Any?>>()

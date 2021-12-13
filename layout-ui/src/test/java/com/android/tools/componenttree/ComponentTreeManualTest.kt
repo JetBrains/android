@@ -118,6 +118,7 @@ private class ComponentTreeTest {
 
     val badge1 = Badge("badge1")
     val badge2 = Badge("badge2")
+    val badge3 = Badge("badge3")
 
     val result = ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
@@ -125,6 +126,7 @@ private class ComponentTreeTest {
       .withoutTreeSearch()
       .withBadgeSupport(badge1)
       .withBadgeSupport(badge2)
+      .withBadgeSupport(badge3)
       .withHorizontalScrollBar()
       .withDnD()
       .build()
@@ -206,8 +208,13 @@ private class ComponentTreeTest {
     val button3 = Item(BUTTON, "@+id/button3", "PressMe", buttonIcon, layout3)
     textView1.badge1 = StudioIcons.Common.ERROR_INLINE
     textView1.badge2 = StudioIcons.Common.CLOSE
-    textView2.badge2 = StudioIcons.Common.DELETE
+    textView1.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
+    textView2.badge2 = StudioIcons.Common.CLEAR
+    textView2.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
+    textView3.badge3 = StudioIcons.Common.FILTER
+    textView3.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
     button1.badge1 = StudioIcons.Common.WARNING_INLINE
+    button1.hover3 = StudioIcons.LayoutEditor.Properties.VISIBLE
     return layout1
   }
 
@@ -226,8 +233,24 @@ private class ComponentTreeTest {
 
     override fun getIcon(item: Any): Icon? {
       val itemValue = item as? Item
-      return if (context == "badge1") itemValue?.badge1 else itemValue?.badge2
+      return when (context) {
+        "badge1" -> itemValue?.badge1
+        "badge2" -> itemValue?.badge2
+        "badge3" -> itemValue?.badge3
+        else -> null
+      }
     }
+
+    override fun getHoverIcon(item: Any): Icon? {
+      val itemValue = item as? Item
+      return when (context) {
+        "badge3" -> itemValue?.hover3
+        else -> null
+      }
+    }
+
+    override val leftDivider: Boolean
+      get() = context == "badge3"
 
     override fun getTooltipText(item: Any?) = "Tooltip for $item"
 

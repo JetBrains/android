@@ -21,6 +21,7 @@ import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.invokeLater
+import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.scale.JBUIScale
@@ -38,6 +39,7 @@ import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTarget
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
 import javax.swing.event.TreeExpansionEvent
@@ -48,6 +50,15 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.ExpandVetoException
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+
+private const val HOVER_CELL = "component.tree.hover.cell"
+internal class Cell(val row: Int, val column: Int) {
+  fun equalTo(otherRow: Int, otherColumn: Int) = otherRow == row && otherColumn == column
+}
+
+internal var JTable.hoverCell: Cell?
+  get() = getClientProperty(HOVER_CELL) as? Cell
+  set(value) { putClientProperty(HOVER_CELL, value)}
 
 class TreeTableImpl(
   model: TreeTableModelImpl,
@@ -79,7 +90,10 @@ class TreeTableImpl(
     initExtraColumns()
     initBadgeColumns()
     model.addTreeModelListener(DataUpdateHandler(treeTableSelectionModel))
-    addMouseListener(MouseHandler())
+    MouseHandler().let {
+      addMouseListener(it)
+      addMouseMotionListener(it)
+    }
     if (autoScroll) {
       treeTableSelectionModel.addAutoScrollListener {
         invokeLater {
@@ -105,7 +119,7 @@ class TreeTableImpl(
   }
 
   private fun initBadgeColumns() {
-    val badgeWidth = EmptyIcon.ICON_16.iconWidth
+    val badgeWidth = EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(2)
     for (index in 1 + extraColumns.size until columnCount) {
       setColumnWidth(index, badgeWidth)
     }
@@ -176,6 +190,21 @@ class TreeTableImpl(
     tree.putClientProperty(Control.Painter.KEY, painter?.invoke())
     super.paintComponent(g)
     dropTargetHandler?.paintDropTargetPosition(g)
+    paintBadgeDividers(g)
+  }
+
+  private fun paintBadgeDividers(g: Graphics) {
+    val color = g.color
+    g.color = JBColor.border()
+    var x = width
+    for (index in badgeItems.indices.reversed()) {
+      val item = badgeItems[index]
+      x -= columnModel.getColumn(1 + extraColumns.size + index).maxWidth
+      if (!hiddenColumns.contains(index) && item.leftDivider) {
+        g.drawLine(x, 0, x, height)
+      }
+    }
+    g.color = color
   }
 
   override fun initializeLocalVars() {
@@ -271,28 +300,56 @@ class TreeTableImpl(
 
   private inner class MouseHandler : PopupHandler() {
     override fun invokePopup(comp: Component, x: Int, y: Int) {
-      val (row, column) = position(x, y)
-      val item = getValueAt(row, column)
+      val cell = position(x, y) ?: return
+      val item = getValueAt(cell.row, cell.column)
       when {
-        column == 0 -> contextPopup(this@TreeTableImpl, x, y)
-        column > extraColumns.size -> badgeItems[column - 1 - extraColumns.size].showPopup(item, this@TreeTableImpl, x, y)
+        cell.column == 0 -> contextPopup(this@TreeTableImpl, x, y)
+        cell.column > extraColumns.size -> badgeItems[cell.column - 1 - extraColumns.size].showPopup(item, this@TreeTableImpl, x, y)
       }
     }
 
     override fun mouseClicked(event: MouseEvent) {
       if (event.button == MouseEvent.BUTTON1 && !event.isPopupTrigger && !event.isShiftDown && !event.isControlDown && !event.isMetaDown) {
-        val (row, column) = position(event.x, event.y)
-        val item = getValueAt(row, column)
+        val cell = position(event.x, event.y) ?: return
+        val item = getValueAt(cell.row, cell.column)
         when {
-          column == 0 && event.clickCount == 2 -> doubleClick()
-          column > extraColumns.size && event.clickCount == 1 -> badgeItems[column - 1 - extraColumns.size].performAction(item)
+          cell.column == 0 && event.clickCount == 2 -> doubleClick()
+          cell.column > extraColumns.size && event.clickCount == 1 -> badgeItems[cell.column - 1 - extraColumns.size].performAction(item)
         }
       }
     }
 
-    private fun position(x: Int, y: Int): Pair<Int, Int> {
+    override fun mouseMoved(event: MouseEvent) {
+      val cell = position(event.x, event.y)
+      val oldHoverCell = hoverCell
+      if (cell != oldHoverCell) {
+        hoverCell = cell
+        repaintBadge(oldHoverCell)
+        repaintBadge(cell)
+      }
+    }
+
+    override fun mouseExited(event: MouseEvent) {
+      repaintBadge(hoverCell)
+      hoverCell = null
+    }
+
+    private fun position(x: Int, y: Int): Cell? {
       val point = Point(x, y)
-      return Pair(rowAtPoint(point), columnAtPoint(point))
+      val row = rowAtPoint(point)
+      val column = columnAtPoint(point)
+      return if (row >= 0 && column >= 0) Cell(row, column) else null
+    }
+
+    private fun repaintBadge(cell: Cell?) {
+      val column = cell?.column ?: return
+      if (column >= 1 + extraColumns.size) {
+        val badge = badgeItems[column - 1 - extraColumns.size]
+        val item = getValueAt(cell.row, column) ?: return
+        if (badge.getHoverIcon(item) != null) {
+          repaint(getCellRect(cell.row, column, true))
+        }
+      }
     }
   }
 
