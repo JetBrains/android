@@ -104,6 +104,14 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  renderscript\n" +
                       "   test.rs (main)\n" +
                       "  assets\n" +
+                      "   a (main)\n" +
+                      "    x\n" +
+                      "     a.x.txt\n" +
+                      "    a.txt\n" +
+                      "   b (main)\n" +
+                      "    y\n" +
+                      "     b.y.txt\n" +
+                      "    b.txt\n" +
                       "   raw.asset.txt (main)\n" +
                       "  res\n" +
                       "   drawable\n" +

@@ -109,6 +109,14 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testAssets_flattenPackages() {
+    val text = importSyncAndDumpProject(
+      TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE,
+      projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)
+    )
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testCompositeBuild() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD)
     assertIsEqualToSnapshot(text)
