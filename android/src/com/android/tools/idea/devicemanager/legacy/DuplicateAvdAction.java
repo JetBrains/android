@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
-import com.intellij.openapi.project.Project;
-import com.intellij.util.concurrency.EdtExecutorService;
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 import java.awt.event.ActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Run an Android virtual device
- */
-public class RunAvdAction extends AvdUiAction {
+public class DuplicateAvdAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
 
-  public RunAvdAction(@NotNull AvdInfoProvider provider, boolean logDeviceManagerEvents) {
-    super(provider, "Run", "Launch this AVD in the emulator", StudioIcons.Avd.RUN);
+  public DuplicateAvdAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
+    super(avdInfoProvider, "Duplicate", "Duplicate this AVD", AllIcons.Actions.Edit);
     myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
@@ -43,7 +37,7 @@ public class RunAvdAction extends AvdUiAction {
   public void actionPerformed(ActionEvent e) {
     if (myLogDeviceManagerEvents) {
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION)
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION)
         .build();
 
       AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
@@ -53,18 +47,15 @@ public class RunAvdAction extends AvdUiAction {
       UsageTracker.log(builder);
     }
 
-    AvdInfo avdInfo = getAvdInfo();
-    if (avdInfo != null) {
-      Project project = myAvdInfoProvider.getProject();
-
-      ListenableFuture<IDevice> deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo);
-      Futures.addCallback(deviceFuture, LegacyAvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizardForDuplication(myAvdInfoProvider.getAvdProviderComponent(),
+                                                                            getProject(), getAvdInfo());
+    if (dialog.showAndGet()) {
+      refreshAvds();
     }
   }
 
   @Override
   public boolean isEnabled() {
-    AvdInfo avdInfo = getAvdInfo();
-    return avdInfo != null && avdInfo.getStatus() == AvdInfo.AvdStatus.OK;
+    return getAvdInfo() != null;
   }
 }

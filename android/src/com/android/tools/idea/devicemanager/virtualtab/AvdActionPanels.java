@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdActionPanel;
+import com.android.tools.idea.devicemanager.legacy.AvdActionPanel;
 import org.jetbrains.annotations.NotNull;
 
 final class AvdActionPanels {

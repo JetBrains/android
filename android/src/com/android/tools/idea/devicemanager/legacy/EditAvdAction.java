@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;

@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.avdmanager.AccelerationErrorCode;
+import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel;
+import com.android.tools.idea.avdmanager.ApiLevelComparator;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

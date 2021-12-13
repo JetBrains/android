@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.RevealFileAction;
+import com.intellij.openapi.ui.Messages;
 import java.awt.event.ActionEvent;
-import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Show the contents of the AVD on disk
- */
-public class ShowAvdOnDiskAction extends AvdUiAction {
+public class WipeAvdDataAction extends AvdUiAction {
   private final boolean myLogDeviceManagerEvents;
 
-  ShowAvdOnDiskAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
-    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
+  WipeAvdDataAction(@NotNull AvdInfoProvider avdInfoProvider, boolean logDeviceManagerEvents) {
+    super(avdInfoProvider, "Wipe Data", "Wipe the user data of this AVD", AllIcons.Actions.Edit);
     myLogDeviceManagerEvents = logDeviceManagerEvents;
   }
 
@@ -40,7 +38,7 @@ public class ShowAvdOnDiskAction extends AvdUiAction {
   public void actionPerformed(ActionEvent e) {
     if (myLogDeviceManagerEvents) {
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_SHOW_ON_DISK_ACTION)
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_WIPE_DATA_ACTION)
         .build();
 
       AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
@@ -50,12 +48,24 @@ public class ShowAvdOnDiskAction extends AvdUiAction {
       UsageTracker.log(builder);
     }
 
-    AvdInfo info = getAvdInfo();
-    if (info == null) {
+    AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
+    AvdInfo avdInfo = getAvdInfo();
+    if (avdInfo == null) {
       return;
     }
-    Path dataFolder = info.getDataFolderPath();
-    RevealFileAction.openDirectory(dataFolder);
+    if (connection.isAvdRunning(avdInfo)) {
+      Messages.showErrorDialog(myAvdInfoProvider.getAvdProviderComponent(),
+                               "The selected AVD is currently running in the Emulator. " +
+                               "Please exit the emulator instance and try wiping again.", "Cannot Wipe A Running AVD");
+      return;
+    }
+    int result = Messages.showYesNoDialog(myAvdInfoProvider.getAvdProviderComponent(),
+                                          "Do you really want to wipe user files from AVD " + avdInfo.getName() + "?",
+                                          "Confirm Data Wipe", AllIcons.General.QuestionDialog);
+    if (result == Messages.YES) {
+      connection.wipeUserData(avdInfo);
+      refreshAvds();
+    }
   }
 
   @Override

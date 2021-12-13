@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdActionPanel;
+import com.android.tools.idea.devicemanager.legacy.AvdActionPanel;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.ListSelectionModel;

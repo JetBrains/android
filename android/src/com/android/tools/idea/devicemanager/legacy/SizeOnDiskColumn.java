@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdDisplayList.AvdColumnInfo;
+import com.android.tools.idea.devicemanager.legacy.AvdDisplayList.AvdColumnInfo;
 import com.intellij.ui.table.TableView;
 import java.util.Comparator;
 import java.util.HashMap;

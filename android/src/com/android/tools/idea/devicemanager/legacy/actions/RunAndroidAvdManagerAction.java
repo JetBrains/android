@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager.actions;
+package com.android.tools.idea.devicemanager.legacy.actions;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdListDialog;
+import com.android.tools.idea.devicemanager.legacy.AvdListDialog;
 import com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.ActionPlaces;

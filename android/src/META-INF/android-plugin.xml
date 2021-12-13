@@ -92,7 +92,7 @@
             description="Opens the Wear OS emulator pairing assistant" />
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
-      <action id="Android.RunAndroidAvdManager" class="com.android.tools.idea.avdmanager.actions.RunAndroidAvdManagerAction"/>
+      <action id="Android.RunAndroidAvdManager" class="com.android.tools.idea.devicemanager.legacy.actions.RunAndroidAvdManagerAction"/>
       <separator/>
       <action id="ResourceExplorer.open"
               text="Resource Manager"

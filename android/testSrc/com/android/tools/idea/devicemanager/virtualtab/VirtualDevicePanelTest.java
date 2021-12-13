@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.CreateAvdAction;
+import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.intellij.testFramework.fixtures.BareTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import org.junit.After;

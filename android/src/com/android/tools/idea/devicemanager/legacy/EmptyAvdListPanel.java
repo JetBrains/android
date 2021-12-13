@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
+import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.intellij.ui.components.JBLabel;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -26,7 +27,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 /**
- * If no AVDs are present on the system, the {@link com.android.tools.idea.avdmanager.AvdListDialog} will display
+ * If no AVDs are present on the system, the {@link AvdListDialog} will display
  * this panel instead which contains instructional messages about AVDs and links to documentation as well as a button
  * to create a new AVD.
  */

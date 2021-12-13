@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import static com.android.tools.idea.wearpairing.WearPairingManagerKt.isWearOrPhone;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
 import com.android.tools.idea.devicemanager.virtualtab.ViewDetailsAction;
 import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.flags.StudioFlags;

@@ -442,7 +442,7 @@ public class AvdManagerConnection {
     return myAvdManager.isAvdRunning(info, SDK_LOG);
   }
 
-  @NotNull ListenableFuture<@NotNull Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
+  public @NotNull ListenableFuture<@NotNull Boolean> isAvdRunning(@NotNull AvdInfoProvider provider) {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     return service.submit(() -> {
@@ -1041,7 +1041,7 @@ public class AvdManagerConnection {
     return findAvd(candidate) != null;
   }
 
-  static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
+  public static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING

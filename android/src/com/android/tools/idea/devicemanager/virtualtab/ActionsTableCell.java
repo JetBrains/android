@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.avdmanager.AvdActionPanel;
-import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider;
+import com.android.tools.idea.devicemanager.legacy.AvdActionPanel;
+import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProvider;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
 import com.intellij.util.ui.AbstractTableCellEditor;

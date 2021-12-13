@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
+import com.android.tools.idea.avdmanager.AvdUiAction;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.DialogWrapper;
 import java.awt.event.ActionEvent;
