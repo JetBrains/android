@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
-import com.android.tools.adtui.model.filter.Filter
-
 /**
  * Native method [ClassifierSet] that represents a leaf node in a heapprofd trace.
  */
@@ -25,17 +23,6 @@ class NativeAllocationMethodSet(allocationFunction: String) : ClassifierSet(allo
     // Do nothing, as this is a leaf node.
     return Classifier.Id
   }
-
-  public override fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, filterChanged: Boolean) {
-    if (filterChanged || needsRefiltering) {
-      isMatched = matches(filter)
-      filterMatchCount = if (isMatched) 1 else 0
-      myIsFiltered = !isMatched && !hasMatchedAncestor
-      needsRefiltering = false
-    }
-  }
-
-  public override fun matches(filter: Filter) = filter.matches(name)
 
   companion object {
     @JvmStatic

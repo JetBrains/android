@@ -19,8 +19,6 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,16 +47,7 @@ public class HeapSet extends ClassifierSet {
       return;
     }
     myClassGrouping = classGrouping;
-
-    // Gather all the instances from the descendants and add them to the heap node.
-    // Subsequent calls to getChildrenClassifierSets will re-partition them to the correct child ClassifierSet.
-    List<InstanceObject> snapshotStream = getSnapshotInstanceStream().collect(Collectors.toList());
-    List<InstanceObject> deltaStream = getDeltaInstanceStream().collect(Collectors.toList());
-    deltaInstances.clear();
-    snapshotInstances.clear();
-    classifier = null;
-    deltaInstances.addAll(deltaStream);
-    snapshotInstances.addAll(snapshotStream);
+    coalesce();
     needsRefiltering = true;
   }
 

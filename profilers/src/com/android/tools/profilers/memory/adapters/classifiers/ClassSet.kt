@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers
 
-import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.InstanceObject
 
@@ -24,19 +23,10 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
  */
 class ClassSet(val classEntry: ClassDb.ClassEntry) : ClassifierSet(classEntry.simpleClassName) {
 
+  override val stringForMatching get() = classEntry.className
+
   // Do nothing, as this is a leaf node (presently).
   public override fun createSubClassifier(): Classifier = Classifier.Id
-
-  override fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, filterChanged: Boolean) {
-    if (filterChanged || needsRefiltering) {
-      isMatched = matches(filter)
-      filterMatchCount = if (isMatched) 1 else 0
-      myIsFiltered =!isMatched && !hasMatchedAncestor
-      needsRefiltering = false
-    }
-  }
-
-  override fun matches(filter: Filter): Boolean = filter.matches(classEntry.className)
 
   companion object {
     @JvmField

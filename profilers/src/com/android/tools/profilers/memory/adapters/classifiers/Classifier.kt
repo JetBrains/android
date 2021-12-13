@@ -58,7 +58,7 @@ sealed class Classifier {
    * Partitions [InstanceObject]s in `snapshotInstances` and `myDeltaInstances` according to the current
    * [ClassifierSet]'s strategy. This will consume the instances from the input.
    */
-  fun partition(snapshotInstances: MutableCollection<InstanceObject>, deltaInstances: MutableCollection<InstanceObject>) {
+  fun partition(snapshotInstances: Collection<InstanceObject>, deltaInstances: Collection<InstanceObject>) {
     if (isTerminalClassifier) {
       return
     }
@@ -74,8 +74,6 @@ sealed class Classifier {
         getClassifierSet(it, true)!!.addDeltaInstanceObject(it)
       }
     }
-    snapshotInstances.clear()
-    deltaInstances.clear()
   }
 
   companion object {
