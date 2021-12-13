@@ -123,7 +123,8 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
       listOf(
         android().aidlPackagedList(),
         android().targetProjectPath(),
-        android().defaultConfig().consumerProguardFiles()
+        android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().dimension(),
       ) +
       android().buildTypes().map { it.consumerProguardFiles() } +
       android().productFlavors().map { it.consumerProguardFiles() }
@@ -136,6 +137,7 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
         android().targetProjectPath(),
         android().defaultConfig().applicationId(),
         android().defaultConfig().applicationIdSuffix(),
+        android().defaultConfig().dimension(),
         android().defaultConfig().maxSdkVersion(),
         android().defaultConfig().versionCode(),
         android().defaultConfig().versionName(),
@@ -158,6 +160,7 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
         android().defaultConfig().applicationId(),
         android().defaultConfig().applicationIdSuffix(),
         android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().dimension(),
         android().defaultConfig().maxSdkVersion(),
         android().defaultConfig().multiDexEnabled(),
         android().defaultConfig().targetSdkVersion(),
@@ -197,6 +200,7 @@ enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<
         android().defaultConfig().applicationId(),
         android().defaultConfig().applicationIdSuffix(),
         android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().dimension(),
         android().defaultConfig().versionCode(),
         android().defaultConfig().versionName(),
         android().defaultConfig().versionNameSuffix(),
