@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.other;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
@@ -38,10 +37,9 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
   public NonAndroidModuleNode(
     @NotNull Project project,
     @NotNull Module value,
-    @NotNull AndroidProjectViewPane projectViewPane,
     @NotNull ViewSettings settings
   ) {
-    super(project, value, projectViewPane, settings);
+    super(project, value, settings);
   }
 
   @Override

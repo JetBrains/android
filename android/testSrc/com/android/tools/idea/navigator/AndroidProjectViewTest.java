@@ -458,7 +458,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
     @Override
     protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
-      return new AndroidViewProjectNode(project, settings, myPane);
+      return new AndroidViewProjectNode(project, settings);
     }
 
     @Override

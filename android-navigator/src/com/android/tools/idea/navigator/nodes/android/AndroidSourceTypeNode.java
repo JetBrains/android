@@ -20,7 +20,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
@@ -59,18 +58,15 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @NotNull private final AndroidSourceType mySourceType;
   @NotNull private final Set<VirtualFile> mySourceRoots;
-  @NotNull protected final AndroidProjectViewPane myProjectViewPane;
 
   AndroidSourceTypeNode(@NotNull Project project,
                         @NotNull AndroidFacet androidFacet,
                         @NotNull ViewSettings settings,
                         @NotNull AndroidSourceType sourceType,
-                        @NotNull Set<VirtualFile> sources,
-                        @NotNull AndroidProjectViewPane projectViewPane) {
+                        @NotNull Set<VirtualFile> sources) {
     super(project, androidFacet, settings);
     mySourceType = sourceType;
     mySourceRoots = sources;
-    myProjectViewPane = projectViewPane;
   }
 
   @Override

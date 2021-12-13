@@ -37,9 +37,8 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
                        @NotNull AndroidFacet androidFacet,
                        @NotNull AndroidSourceType sourceType,
                        @NotNull ViewSettings settings,
-                       @NotNull Set<VirtualFile> sourceRoots,
-                       @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, androidFacet, settings, sourceType, sourceRoots, projectViewPane);
+                       @NotNull Set<VirtualFile> sourceRoots) {
+    super(project, androidFacet, settings, sourceType, sourceRoots);
   }
 
   /**

@@ -18,18 +18,13 @@ package com.android.tools.idea.navigator.nodes.android;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedByNativeNodes;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -38,8 +33,6 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -51,7 +44,6 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -73,9 +65,8 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   public AndroidModuleNode(@NotNull Project project,
                            @NotNull Module module,
-                           @NotNull AndroidProjectViewPane projectViewPane,
                            @NotNull ViewSettings settings) {
-    super(project, module, projectViewPane, settings);
+    super(project, module, settings);
   }
 
   @Override
@@ -89,13 +80,12 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
     }
-    return getChildren(facet, getSettings(), myProjectViewPane, SourceProviderManager.getInstance(facet));
+    return getChildren(facet, getSettings(), SourceProviderManager.getInstance(facet));
   }
 
   @NotNull
   static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                      @NotNull ViewSettings settings,
-                                                     @NotNull AndroidProjectViewPane projectViewPane,
                                                      @NotNull SourceProviders providers) {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = facet.getModule().getProject();
@@ -114,7 +104,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.RES || sourceType == GENERATED_RES) {
-        result.add(new AndroidResFolderNode(project, facet, sourceType, settings, sourcesByType.get(sourceType), projectViewPane));
+        result.add(new AndroidResFolderNode(project, facet, sourceType, settings, sourcesByType.get(sourceType)));
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
@@ -122,7 +112,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
           continue;
         }
       }
-      result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), projectViewPane));
+      result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType)));
     }
 
     if (ndkModuleModel != null) {

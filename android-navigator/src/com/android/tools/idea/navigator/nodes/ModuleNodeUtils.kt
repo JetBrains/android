@@ -20,7 +20,6 @@ package com.android.tools.idea.navigator.nodes
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode
@@ -39,7 +38,6 @@ import java.util.ArrayList
 fun createChildModuleNodes(
   project: Project,
   submodules: Collection<Module>,
-  projectViewPane: AndroidProjectViewPane,
   settings: ViewSettings
 ): MutableList<AbstractTreeNode<*>> {
   val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
@@ -53,11 +51,11 @@ fun createChildModuleNodes(
         children.add(ExternalLibrariesNode(project, settings))
       }
       androidFacet != null && AndroidModel.isRequired(androidFacet) ->
-        children.add(AndroidModuleNode(project, module, projectViewPane, settings))
+        children.add(AndroidModuleNode(project, module, settings))
       ndkFacet != null ->
-        children.add(NdkModuleNode(project, module, projectViewPane, settings))
+        children.add(NdkModuleNode(project, module, settings))
       else ->
-        children.add(NonAndroidModuleNode(project, module, projectViewPane, settings))
+        children.add(NonAndroidModuleNode(project, module, settings))
     }
   }
   return children

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon
-import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes
@@ -46,8 +45,7 @@ import java.util.ArrayList
 class NdkModuleNode(
   project: Project,
   value: Module,
-  projectViewPane: AndroidProjectViewPane,
-  settings: ViewSettings) : AndroidViewModuleNode(project, value, projectViewPane, settings) {
+  settings: ViewSettings) : AndroidViewModuleNode(project, value, settings) {
 
   override fun getModuleChildren(): Collection<AbstractTreeNode<*>> {
     val module = value ?: return emptyList()

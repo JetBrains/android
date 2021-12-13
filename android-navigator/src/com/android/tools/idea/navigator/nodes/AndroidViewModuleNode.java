@@ -16,7 +16,6 @@ package com.android.tools.idea.navigator.nodes;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.intellij.util.containers.ContainerUtil.emptyList;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -45,14 +44,11 @@ import org.jetbrains.annotations.Nullable;
  * Specialization of {@link ProjectViewModuleNode} for Android view.
  */
 public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
-  @NotNull protected final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidViewModuleNode(@NotNull Project project,
                                @NotNull Module value,
-                               @NotNull AndroidProjectViewPane projectViewPane,
                                ViewSettings viewSettings) {
     super(project, value, viewSettings);
-    myProjectViewPane = projectViewPane;
   }
 
   /**
@@ -101,7 +97,6 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
       .createChildModuleNodes(
         Objects.requireNonNull(getProject()),
         androidModuleSystem.getSubmodules(),
-        myProjectViewPane,
         getSettings());
   }
 

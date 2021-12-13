@@ -21,7 +21,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
@@ -48,13 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
-  private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidViewProjectNode(@NotNull Project project,
-                                @NotNull ViewSettings settings,
-                                @NotNull AndroidProjectViewPane projectViewPane) {
+                                @NotNull ViewSettings settings) {
     super(project, project, settings);
-    myProjectViewPane = projectViewPane;
   }
 
   @Override
@@ -70,7 +66,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     // begin a write action while waiting.
     AndroidViewProjectNodeUtil.maybeWaitForAnySyncOutcomeInterruptibly(projectSystem.getSyncManager());
     List<AbstractTreeNode<?>> children =
-      ModuleNodeUtils.createChildModuleNodes(myProject, projectSystem.getSubmodules(), myProjectViewPane, settings);
+      ModuleNodeUtils.createChildModuleNodes(myProject, projectSystem.getSubmodules(), settings);
 
     // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
     // are still visible. See https://code.google.com/p/android/issues/detail?id=76564
