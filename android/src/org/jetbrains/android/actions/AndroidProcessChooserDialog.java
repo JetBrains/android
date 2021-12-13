@@ -25,10 +25,9 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.execution.RunManager;
@@ -105,7 +104,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   // Dropdown to select Run Configuration.
   private JLabel myDebuggerRunConfigLabel;
-  private JComboBox<RunConfiguration> myDebuggerRunConfigCombo;
+  private JComboBox<RunConfigurationWithDebugger> myDebuggerRunConfigCombo;
 
   // Dropdown to select the debugger type.
   private JLabel myDebuggerLabel;
@@ -120,9 +119,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private final AndroidDebugBridge.IClientChangeListener myClientChangeListener;
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceChangeListener;
 
-  // Process, RunConfiguration, and DebuggerType selected by the user.
+  // Process, RunConfigurationWithDebugger, and DebuggerType selected by the user.
   private Client mySelectedClient;
-  private RunConfiguration mySelectedRunConfiguration;
+  private RunConfigurationWithDebugger mySelectedRunConfiguration;
   private AndroidDebugger mySelectedAndroidDebugger;
 
   /**
@@ -261,25 +260,25 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
         final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
         String lastSelectedDebuggerId = properties.getValue(DEBUGGER_ID_PROPERTY);
-        populateDebuggerTypeCombo((RunConfiguration)myDebuggerRunConfigCombo.getSelectedItem(), lastSelectedDebuggerId);
+        populateDebuggerTypeCombo((RunConfigurationWithDebugger)myDebuggerRunConfigCombo.getSelectedItem(), lastSelectedDebuggerId);
       }
     });
 
     // The attach dialog contains the project's run configurations.
     // We also add null to the front of the list to represent "[Create New]" run configuration.
     // Note we can't use ImmutableList here because ImmutableList doesn't allow null elements.
-    List<RunConfiguration> existingValidRunConfigurations =
-      ContainerUtil.filter(
+    List<RunConfigurationWithDebugger> existingValidRunConfigurations =
+      ContainerUtil.filterIsInstance(
         RunManager.getInstance(myProject).getAllConfigurationsList(),
-        AndroidProcessChooserDialog::isAndroidRunConfig);
-    ArrayList<RunConfiguration> runConfigurations = new ArrayList<>();
+        RunConfigurationWithDebugger.class);
+    ArrayList<RunConfigurationWithDebugger> runConfigurations = new ArrayList<>();
     runConfigurations.add(null);
     runConfigurations.addAll(existingValidRunConfigurations);
-    myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel(runConfigurations));
-    myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Create New]", RunConfiguration::getName));
+    myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel<>(runConfigurations));
+    myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Use default settings]", RunConfigurationWithDebugger::getName));
 
     // The run configuration dropdown is initialized to the project's currently selected run configuration; if there is no run configuration,
-    // then [Create New] remains as the default initial selection.
+    // then [Use default settings] remains as the default initial selection.
     RunConfiguration configuration = getCurrentRunConfiguration();
     if (!existingValidRunConfigurations.contains(configuration)) {
       configuration = null;
@@ -287,12 +286,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     myDebuggerRunConfigCombo.setSelectedItem(configuration);
 
     // Initialize the DebuggerType dropdown contents and the selection.
-    populateDebuggerTypeCombo(configuration, lastSelectedDebuggerId);
-  }
-
-  private static boolean isAndroidRunConfig(@NotNull RunConfiguration config) {
-    return config instanceof AndroidRunConfiguration ||
-           config instanceof AndroidTestRunConfiguration;
+    populateDebuggerTypeCombo((RunConfigurationWithDebugger)configuration, lastSelectedDebuggerId);
   }
 
   /**
@@ -302,7 +296,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
    * @param lastSelectedDebuggerId if configuration is null, this debugger Id is used as a hint to determine which debugger to select from
    *                               all possible debugger types supported by the current project
    */
-  private void populateDebuggerTypeCombo(@Nullable RunConfiguration configuration, @Nullable String lastSelectedDebuggerId) {
+  private void populateDebuggerTypeCombo(@Nullable RunConfigurationWithDebugger configuration, @Nullable String lastSelectedDebuggerId) {
     if (configuration != null) {
       myDebuggerRunConfigCombo.setSelectedItem(configuration);
 
@@ -373,7 +367,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
    *                      the extension points.
    * @return all android debuggers that should be populated in the debugger type dropdown.
    */
-  private ArrayList<AndroidDebugger> getAndroidDebuggers(@Nullable RunConfiguration configuration) {
+  private ArrayList<AndroidDebugger> getAndroidDebuggers(@Nullable RunConfigurationWithDebugger configuration) {
     if (configuration != null) {
       for (AndroidDebuggerInfoProvider provider : AndroidDebuggerInfoProvider.EP_NAME.getExtensions()) {
         if (!provider.supportsProject(myProject)) {
@@ -395,7 +389,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   }
 
   /**
-   * @return the RunConfiguration selected in the main UI for the current project, or null if there is no selection
+   * @return the RunConfigurationWithDebugger selected in the main UI for the current project, or null if there is no selection
    */
   @Nullable
   private RunConfiguration getCurrentRunConfiguration() {
@@ -638,7 +632,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       properties.setValue(DEBUGGER_ID_PROPERTY, mySelectedAndroidDebugger.getId());
     }
 
-    mySelectedRunConfiguration = (RunConfiguration)myDebuggerRunConfigCombo.getSelectedItem();
+    mySelectedRunConfiguration = (RunConfigurationWithDebugger)myDebuggerRunConfigCombo.getSelectedItem();
 
     super.doOKAction();
   }
@@ -655,7 +649,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
    * Returns the run configuration that was selected if OK was pressed, null otherwise.
    */
   @Nullable
-  public RunConfiguration getRunConfiguration() {
+  public RunConfigurationWithDebugger getRunConfiguration() {
     return mySelectedRunConfiguration;
   }
 

@@ -12,6 +12,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -79,7 +80,8 @@ import org.xmlpull.v1.XmlPullParserException;
  * is selected, but the Debug action doesn't support running on multiple devices.
  */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
-  implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
+  implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction,
+             RunConfigurationWithDebugger {
 
   /**
    * Element name used to group the {@link ProfilerState} settings
@@ -469,6 +471,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
+  @Override
   public AndroidDebuggerContext getAndroidDebuggerContext() {
     return myAndroidDebuggerContext;
   }

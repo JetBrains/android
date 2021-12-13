@@ -16,10 +16,19 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.run.editor.AndroidDebuggerContext
 import com.intellij.execution.configurations.ModuleRunConfiguration
 import com.intellij.openapi.module.Module
 
+/**
+ * Interfaces in this file eventually should become one single interface as we migrate all configuration on the new code flow and support all
+ * features for them.
+ */
 interface ComponentSpecificConfiguration : ModuleRunConfiguration {
   val componentType: ComponentType
   val module: Module?
+}
+
+interface RunConfigurationWithDebugger : ModuleRunConfiguration {
+  val androidDebuggerContext: AndroidDebuggerContext
 }
