@@ -197,20 +197,26 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val fakeUi = createDeviceListStepUi()
 
     model.phoneList.set(listOf(
-      phoneDevice,
+      phoneDevice, // Selectable
       phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED),
-      phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"),
+      phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"), // Selectable
       phoneDevice.copy(deviceID = "id4", displayName = "My Phone4", apiLevel = 29),
       phoneDevice.copy(deviceID = "id5", displayName = "My Phone5", isEmulator = true, hasPlayStore = false),
       phoneDevice.copy(deviceID = "id6", displayName = "My Phone6", state = DISCONNECTED),
-      phoneDevice.copy(deviceID = "id7", displayName = "My Phone7"),
+      phoneDevice.copy(deviceID = "id7", displayName = "My Phone7"), // Selectable
     ))
 
     fakeUi.getPhoneList().apply {
+      // Assert that list was sorted. Enabled first, disabled last.
+      arrayOf("id1", "id3", "id7", "id2", "id4", "id5", "id6").forEachIndexed { index, id ->
+        println(">> " + model.getElementAt(index).deviceID)
+        assertThat(model.getElementAt(index).deviceID).isEqualTo(id)
+      }
+
       assertThat(selectedIndex).isEqualTo(0) // The first selectable device is 0
 
       selectedIndex = 1
-      assertThat(selectedIndex).isEqualTo(0) // Selecting 1 should be rejected (Disconnected)
+      assertThat(selectedIndex).isEqualTo(1) // Selecting 1 should be OK
 
       selectedIndex = 2
       assertThat(selectedIndex).isEqualTo(2) // Selecting 2 is OK too
@@ -225,7 +231,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(selectedIndex).isEqualTo(2) // Selecting 5 should be rejected (paired but disconnected)
 
       selectedIndex = 6
-      assertThat(selectedIndex).isEqualTo(6) // Selecting 6 is OK
+      assertThat(selectedIndex).isEqualTo(2) // Selecting 6 should be rejected (Disconnected)
     }
   }
 
@@ -283,10 +289,15 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       }
     }
 
-    assertThat(getListItemTooltip(0)).contains("Wear pairing requires API level >= 30")
-    assertThat(getListItemTooltip(1)).contains("Wear pairing requires Google Play")
-    assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
-    assertThat(getListItemTooltip(3)).contains("Paired with Round Watch")
+    // Assert that list was sorted. Enabled first, disabled last.
+    arrayOf("id5", "id1", "id3", "id4").forEachIndexed { index, id ->
+      assertThat(phoneList.model.getElementAt(index).deviceID).isEqualTo(id)
+    }
+
+    assertThat(getListItemTooltip(0)).isNull() // Non emulators are always OK
+    assertThat(getListItemTooltip(1)).contains("Paired with Round Watch")
+    assertThat(getListItemTooltip(2)).contains("Wear pairing requires API level >= 30")
+    assertThat(getListItemTooltip(3)).contains("Wear pairing requires Google Play")
   }
 
   private fun createDeviceListStepUi(wizardAction: WizardAction = WizardActionTest()): FakeUi {

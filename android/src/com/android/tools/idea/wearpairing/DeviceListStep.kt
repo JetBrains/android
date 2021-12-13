@@ -27,6 +27,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.ProgressManager
@@ -46,6 +47,7 @@ import com.intellij.util.containers.FixedHashMap
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
+import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.GlobalScope
@@ -175,11 +177,11 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
   private fun createDeviceListPanel(title: String, listName: String, emptyTextTitle: String): DeviceListPanel {
     val list = createList(listName)
     HelpTooltipForList<PairingDevice>().installOnList(this, list) { listIndex, helpTooltip ->
-        val tooltip = list.model.getElementAt(listIndex).getTooltip() ?: return@installOnList false
-        helpTooltip.setDescription(tooltip)
-        helpTooltip.setBrowserLink(message("wear.assistant.device.list.tooltip.learn.more"), URL(WEAR_DOCS_LINK))
-        true
-      }
+      val tooltip = list.model.getElementAt(listIndex).getTooltip() ?: return@installOnList false
+      helpTooltip.setDescription(tooltip)
+      helpTooltip.setBrowserLink(message("wear.assistant.device.list.tooltip.learn.more"), URL(WEAR_DOCS_LINK))
+      true
+    }
 
     return DeviceListPanel(title, list, createEmptyListPanel(list, emptyTextTitle))
   }
@@ -187,15 +189,36 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
   private fun createList(listName: String): TooltipList<PairingDevice> {
     return TooltipList<PairingDevice>().apply {
       name = listName
-      setCellRenderer { _, value, _, isSelected, _ ->
+      setCellRenderer { _, value, index, isSelected, _ ->
 
         JPanel().apply {
           layout = GridBagLayout()
-          add(JBLabel(getDeviceIcon(value, isSelected)))
+          if (index > 0 && value.isDisabled() && !model.getElementAt(index - 1).isDisabled()) {
+            add(
+              JBLabel("Unavailable devices").apply {
+                isOpaque = true
+                background = JBUI.CurrentTheme.NewClassDialog.panelBackground()
+                border = empty(4, 16)
+              },
+              GridBagConstraints().apply {
+                gridwidth = GridBagConstraints.REMAINDER
+                fill = GridBagConstraints.HORIZONTAL
+              }
+            )
+          }
+          add(
+            JBLabel(getDeviceIcon(value, isSelected)).apply {
+              border = emptyLeft(16)
+            },
+            GridBagConstraints().apply {
+              gridx = 0
+              gridy = 1
+            }
+          )
           add(
             JPanel().apply {
               layout = BoxLayout(this, BoxLayout.Y_AXIS)
-              border = JBUI.Borders.emptyLeft(8)
+              border = empty(4, 4, 8, 16)
               isOpaque = false
               add(JBLabel(value.displayName).apply {
                 icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
@@ -219,15 +242,29 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
               fill = GridBagConstraints.HORIZONTAL
               weightx = 1.0
               gridx = 1
+              gridy = 1
             }
           )
-          if (WearPairingManager.isPaired(value.deviceID)) {
-            add(JBLabel(getIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN, isSelected)))
+
+          val rightIcon = when {
+            WearPairingManager.isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+            value.isDisabled() -> AllIcons.General.ShowInfos
+            else -> null
+          }
+          if (rightIcon != null) {
+            add(
+              JBLabel(getIcon(rightIcon, isSelected)).apply {
+                border = empty(0, 0, 0, 16)
+              },
+              GridBagConstraints().apply {
+                gridx = 2
+                gridy = 1
+              }
+            )
           }
 
           isOpaque = true
           background = UIUtil.getListBackground(isSelected, isSelected)
-          border = empty(4, 16)
         }
       }
 
@@ -243,7 +280,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
     }
   }
 
-  private fun updateList(deviceListPanel: DeviceListPanel, deviceList: List<PairingDevice>) {
+  private fun updateList(deviceListPanel: DeviceListPanel, originalDeviceList: List<PairingDevice>) {
+    val deviceList = originalDeviceList.sortedWith(compareBy { it.isDisabled() }) // Disabled at the bottom
     val uiList: JBList<PairingDevice> = deviceListPanel.list
     if (uiList.model.size == deviceList.size) {
       deviceList.forEachIndexed { index, device ->
