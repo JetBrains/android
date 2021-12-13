@@ -560,8 +560,10 @@ class LiveLiteralsService private constructor(private val project: Project,
     // Some elements, like directories do not have a containingFile and are safe to ignore.
     val containingFile = element.containingFile ?: return false
     val literalReference = LiteralsManager.getLiteralReference(element) ?: return false
-    val literalReferencePath = literalReference.containingFile.virtualFile?.path ?: return false
-    return containingFile.hasCompilerLiveLiteral(literalReferencePath, literalReference.initialTextRange.startOffset)
+    val literalReferencePath = literalReference.containingFile?.virtualFile?.path ?: return false
+    @Suppress("USELESS_ELVIS") // initialTextRange can be null under certain conditions
+    val initialTextRange = literalReference.initialTextRange ?: return false
+    return containingFile.hasCompilerLiveLiteral(literalReferencePath, initialTextRange.startOffset)
   }
 
   override fun dispose() {
