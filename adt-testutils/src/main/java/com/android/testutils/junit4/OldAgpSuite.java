@@ -49,13 +49,15 @@ public final class OldAgpSuite extends Suite {
 
   private static final String TEST_JAR_PATH = System.getProperty("test_jar_path");
 
+  private static final boolean IGNORE_OTHER_TESTS = System.getProperty("ignore_other_tests", "false").equalsIgnoreCase("true");
+
   public OldAgpSuite(Class<?> suiteClass, RunnerBuilder builder) throws InitializationError, IOException, ClassNotFoundException {
     super(suiteClass, filteredAgpTests(suiteClass, builder));
   }
 
   private static List<Runner> filteredAgpTests(Class<?> suiteClass, RunnerBuilder builder)
     throws IOException, ClassNotFoundException, InitializationError {
-    OldAgpFilter filter = new OldAgpFilter(GRADLE_VERSION, AGP_VERSION);
+    OldAgpFilter filter = new OldAgpFilter(GRADLE_VERSION, AGP_VERSION, IGNORE_OTHER_TESTS);
     List<Class<?>> testClasses = TestGroup.builder()
       .includeJUnit3()
       .build()

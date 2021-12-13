@@ -84,5 +84,6 @@ def local_old_agp_test(
         maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[agp_version],
         test_class = "com.android.tools.idea.OldAgpTests",
         timeout = "long",
+        ignore_other_tests = False,
         **kwargs
     )
