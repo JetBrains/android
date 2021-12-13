@@ -55,8 +55,6 @@ class NewKtsProjectTest {
    * 1. Create New Project, with language Java and "Use Kotlin script" checkbox checked
    * Verification
    * - "settings.gradle.kts" should have an entry -> include("app")
-   * - Project level build.gradle.kts should have "tasks.register("clean", Delete::class)"
-   * instead of "task clean(type: Delete)"
    * - "app/build.gradle.kts" should have versionCode(1)/versionName("1.0")/minifyEnabled=false instead of
    * "versionCode 1"/versionName "1.0"/"minifyEnabled false"
    */
@@ -64,7 +62,6 @@ class NewKtsProjectTest {
   fun createNewJavaKtsProject() {
     createNewMobileKtsProject(Language.Java)
 
-    assertThat(guiTest.getProjectFileText(FN_BUILD_GRADLE_KTS)).contains("""tasks.register("clean", Delete::class)""")
     assertThat(guiTest.getProjectFileText("app/$FN_BUILD_GRADLE_KTS")).apply {
       contains("plugins {")
       contains("""id("com.android.application")""")
@@ -90,7 +87,6 @@ class NewKtsProjectTest {
 
     guiTest.getProjectFileText(FN_BUILD_GRADLE_KTS).apply {
       assertThat(this).contains("val kotlin_version by extra(")
-      assertThat(this).contains("""tasks.register("clean", Delete::class)""")
     }
     assertThat(guiTest.getProjectFileText("app/$FN_BUILD_GRADLE_KTS")).apply {
       contains("""id("kotlin-android")""")

@@ -30,10 +30,6 @@ fun androidProjectBuildGradle(
         id 'com.android.library' version '$gradlePluginVersion' apply false
         ${renderIf(generateKotlin) { "id 'org.jetbrains.kotlin.android' version '$kotlinVersion' apply false" }}
     }
-
-    task clean (type: Delete) {
-        delete rootProject.buildDir
-    }
     """
 }
 
@@ -47,10 +43,6 @@ fun androidProjectBuildGradleKts(
         id("com.android.application") version "$gradlePluginVersion" apply false
         id("com.android.library") version "$gradlePluginVersion" apply false
         ${renderIf(generateKotlin) { "id(\"org.jetbrains.kotlin.android\") version \"$kotlinVersion\" apply false" }}
-    }
-
-    tasks.register("clean", Delete::class) {
-        delete(rootProject.buildDir)
     }
     """
 }
