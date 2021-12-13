@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.INFORMATION;
-
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -26,7 +23,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.intellij.ide.actions.RevealFileAction;
-import com.intellij.notification.EventLog;
+import com.intellij.notification.ActionCenter;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -39,18 +36,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkEvent;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
   public static final String ANALYZE = "analyze:";
@@ -226,12 +221,12 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   @VisibleForTesting
   static class OpenEventLogHyperlink extends NotificationHyperlink {
     OpenEventLogHyperlink() {
-      super("open.event.log", "Show APK path(s) in the 'Event Log' view");
+      super("open.event.log", "Show APK path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(EventLog.LOG_TOOL_WINDOW_ID);
+      ToolWindow tw = ActionCenter.getToolwindow(project);
       if (tw != null) {
         tw.activate(null, false);
       }
