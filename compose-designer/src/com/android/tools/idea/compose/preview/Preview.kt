@@ -1070,6 +1070,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       "",
       true
     )
+    Disposer.register(this, refreshProgressIndicator)
     val refreshJob = launchWithProgress(refreshProgressIndicator, uiThread) {
       requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", refreshTrigger)
 
@@ -1151,6 +1152,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
+      Disposer.dispose(refreshProgressIndicator)
       if (it is CancellationException) {
         composeWorkBench.onRefreshCancelledByTheUser()
       }
