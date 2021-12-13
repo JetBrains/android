@@ -50,22 +50,24 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
-    val toolbar = e.getData(DESIGN_SURFACE)?.let { surface -> DataManager.getDataProvider(surface) }
-      ?.let { provider -> ANIMATION_TOOLBAR.getData(provider) }
+    e.presentation.description = null
 
-    if (toolbar == null) {
-      e.presentation.isVisible = false
+    val surface = e.getData(DESIGN_SURFACE)
+    if (surface == null) {
+      e.presentation.isEnabledAndVisible = false
       return
     }
 
-    e.presentation.isVisible = true
-    if (toolbar is AnimatedSelectorToolbar && toolbar.isTransitionSelected()) {
-      e.presentation.isEnabled = false
-      e.presentation.description = "Cannot select the state when previewing a transition"
-    }
-    else {
-      e.presentation.isEnabled = true
-      e.presentation.description = null
+    val toolbar = DataManager.getDataProvider(surface)?.let { provider -> ANIMATION_TOOLBAR.getData(provider) }
+
+    when (toolbar) {
+      null -> e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
+      is AnimatedSelectorToolbar -> {
+        e.presentation.isVisible = true
+        e.presentation.isEnabled = !toolbar.isTransitionSelected()
+        e.presentation.description = if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition" else null
+      }
+      else -> e.presentation.isEnabledAndVisible = false
     }
   }
 
