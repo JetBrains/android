@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.actions.RevealFileAction;
-import com.intellij.notification.EventLog;
+import com.intellij.notification.ActionCenter;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -225,12 +225,12 @@ public class GoToApkLocationTask {
   @VisibleForTesting
   static class OpenEventLogHyperlink extends NotificationHyperlink {
     OpenEventLogHyperlink() {
-      super("open.event.log", "Show APK path(s) in the 'Event Log' view");
+      super("open.event.log", "Show APK path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(EventLog.LOG_TOOL_WINDOW_ID);
+      ToolWindow tw = ActionCenter.getToolwindow(project);
       if (tw != null) {
         tw.activate(null, false);
       }
