@@ -129,6 +129,20 @@ class AndroidModuleNode(
           }
           sourceType == AndroidSourceType.SHADERS && androidModuleModel == null -> {
           }
+          sourceType == AndroidSourceType.ASSETS -> {
+            result.add(
+              AndroidSourceTypeNode(
+                project,
+                facet,
+                object : ViewSettings by settings {
+                  override fun isFlattenPackages(): Boolean = false
+                  override fun isHideEmptyMiddlePackages(): Boolean = false
+                },
+                sourceType,
+                sourcesByType[sourceType]
+              )
+            )
+          }
           else -> {
             result.add(AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType[sourceType]))
           }
