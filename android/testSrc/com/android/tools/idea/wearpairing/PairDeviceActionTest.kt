@@ -20,7 +20,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
-import com.android.tools.idea.avdmanager.PairDeviceAction
+import com.android.tools.idea.devicemanager.legacy.PairDeviceAction
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito

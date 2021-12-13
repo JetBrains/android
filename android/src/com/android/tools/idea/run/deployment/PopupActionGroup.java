@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
+import com.android.tools.idea.wearpairing.actions.WearDevicePairingAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;

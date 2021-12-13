@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.devicemanager.legacy;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;

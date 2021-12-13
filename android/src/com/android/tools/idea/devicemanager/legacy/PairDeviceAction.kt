@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.devicemanager.legacy
 
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.wearpairing.WearPairingManager
+import com.android.tools.idea.avdmanager.AvdUiAction
+import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
-import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 
-internal class UnpairDeviceAction(
+internal class PairDeviceAction(
   avdInfoProvider: AvdInfoProvider,
   private val logDeviceManagerEvents: Boolean = false
 ) : AvdUiAction(
   avdInfoProvider,
-  "Unpair device",
-  "Forget existing connection",
+  "Pair device",
+  getDescription(avdInfoProvider.avdInfo),
   StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
 ) {
   override fun actionPerformed(actionEvent: ActionEvent) {
     if (logDeviceManagerEvents) {
       val deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION)
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_PAIR_DEVICE_ACTION)
         .build()
 
       val builder = AndroidStudioEvent.newBuilder()
@@ -48,20 +48,19 @@ internal class UnpairDeviceAction(
       UsageTracker.log(builder)
     }
 
-    val deviceID = avdInfo?.name ?: return
-
-    if (WearPairingManager.isPaired(deviceID)) {
-      GlobalScope.launch(AndroidDispatchers.ioThread) {
-        WearPairingManager.removePairedDevices(deviceID)
-      }
-    }
-    else {
-      Messages.showMessageDialog(project, "Not paired yet. Please pair device first.", "Unpair Device", Messages.getInformationIcon())
-    }
+    val avdInfo = avdInfo ?: return
+    WearDevicePairingWizard().show(project, avdInfo.name)
   }
 
-  override fun isEnabled(): Boolean {
-    val deviceID = avdInfo?.name ?: return false
-    return WearPairingManager.isPaired(deviceID)
+  override fun isEnabled() = Actions.isPairingActionEnabled(avdInfo)
+}
+
+private fun getDescription(avdInfo: AvdInfo?): String {
+  avdInfo ?: return ""
+  val isWearDevice = avdInfo.tag == SystemImage.WEAR_TAG
+  return when {
+    !isWearDevice && avdInfo.androidVersion.apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
+    !isWearDevice && !avdInfo.hasPlayStore() -> message("wear.assistant.device.list.tooltip.requires.play")
+    else -> message("wear.assistant.device.list.tooltip.ok")
   }
 }

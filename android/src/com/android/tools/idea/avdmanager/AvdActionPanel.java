@@ -25,6 +25,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.devicemanager.legacy.PairDeviceAction;
+import com.android.tools.idea.devicemanager.legacy.UnpairDeviceAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;

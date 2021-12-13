@@ -21,6 +21,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.wearpairing.actions.WearDevicePairingAction;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
