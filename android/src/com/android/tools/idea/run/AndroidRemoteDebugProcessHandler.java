@@ -21,6 +21,7 @@ import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
+import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -40,11 +41,12 @@ import org.jetbrains.annotations.Nullable;
  * We use this instead of {@link com.intellij.debugger.engine.RemoteDebugProcessHandler} to retain
  * {@link AndroidProcessHandler}'s termination semantics when debugging Android processes.
  */
-public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements SwappableProcessHandler {
+public class AndroidRemoteDebugProcessHandler extends RemoteDebugProcessHandler implements SwappableProcessHandler {
 
   private final Project myProject;
 
   public AndroidRemoteDebugProcessHandler(Project project) {
+    super(project);
     myProject = project;
 
     putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);

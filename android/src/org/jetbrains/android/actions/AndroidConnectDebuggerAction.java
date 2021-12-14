@@ -5,9 +5,10 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
@@ -53,9 +54,15 @@ public class AndroidConnectDebuggerAction extends AnAction {
   public static void closeOldSessionAndRun(@NotNull Project project,
                                             @NotNull AndroidDebugger androidDebugger,
                                             @NotNull Client client,
-                                            @Nullable RunConfiguration configuration) {
+                                            @Nullable RunConfigurationWithDebugger configuration) {
     terminateRunSessions(project, client);
-    androidDebugger.attachToClient(project, client, configuration);
+    AndroidDebuggerState state;
+    if (configuration != null) {
+      state = configuration.getAndroidDebuggerContext().getAndroidDebuggerState();
+    } else {
+      state = androidDebugger.createState();
+    }
+    androidDebugger.attachToClient(project, client, state);
   }
 
   // Disconnect any active run sessions to the same client

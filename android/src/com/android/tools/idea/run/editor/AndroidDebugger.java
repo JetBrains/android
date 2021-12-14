@@ -119,11 +119,8 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * An alternative entry point of starting a debugger. This is used for attaching a debugger to an arbitrary
    * running Android processes without associated run configuration and run action. When you attach a debugger
    * through debug run action, {@link #getConnectDebuggerTask} is used instead.
-   *
-   * <p>Note: the config object is passed into this method is optional. If the caller passes a config, then the
-   * settings (e.g., debugger settings) in that config object should be used. Otherwise, default settings should be used.
-   */
-  void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable RunConfiguration config);
+   **/
+  void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable S debugState);
 
   /**
    * Indicates whether this debugger should be the default.

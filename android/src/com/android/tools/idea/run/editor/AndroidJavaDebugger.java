@@ -116,7 +116,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @Slow
   @Override
-  public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable RunConfiguration config) {
+  public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable AndroidDebuggerState debugState) {
     String debugPort = getClientDebugPort(client);
     String runConfigName = getRunConfigurationName(debugPort);
 
