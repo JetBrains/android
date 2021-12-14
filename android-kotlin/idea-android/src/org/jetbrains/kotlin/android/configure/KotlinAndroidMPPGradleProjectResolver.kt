@@ -13,12 +13,15 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinAndroidSourceSetData
-import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
+import org.jetbrains.kotlin.idea.gradleJava.configuration.utils.calculateRunTasks
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -48,13 +51,17 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         if (!isAndroidProject) return
 
         val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
-
+        val sourceSetToRunTasks = calculateRunTasks(mppModel, gradleModule, resolverCtx)
         val androidSourceSets = mppModel
             .targets
             .asSequence()
             .flatMap { it.compilations.asSequence() }
             .filter { it.platform == KotlinPlatform.ANDROID }
-            .mapNotNull { KotlinMPPGradleProjectResolver.createSourceSetInfo(it, gradleModule, resolverCtx) }
+            .mapNotNull { compilation: KotlinCompilation ->
+                val sourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(compilation, gradleModule, resolverCtx) ?: return@mapNotNull null
+                val runTasks = compilation.declaredSourceSets.firstNotNullResult { sourceSetToRunTasks[it] } ?: emptyList()
+                sourceSetInfo.apply { externalSystemRunTasks = runTasks }
+            }
             .toList()
         mainModuleData.createChild(KotlinAndroidSourceSetData.KEY, KotlinAndroidSourceSetData(androidSourceSets))
     }
