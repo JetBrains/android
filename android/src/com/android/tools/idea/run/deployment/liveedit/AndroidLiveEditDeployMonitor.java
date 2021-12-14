@@ -165,7 +165,9 @@ public class AndroidLiveEditDeployMonitor {
                                                        (className, methodName, methodDesc, classData, supportClasses) -> {
               // TODO: Don't fire off one update per class file.
               LiveUpdateDeployer.UpdateLiveEditsParam param =
-                new LiveUpdateDeployer.UpdateLiveEditsParam(className, methodName, methodDesc, classData, supportClasses);
+                new LiveUpdateDeployer.UpdateLiveEditsParam(
+                  // TODO: Actually set the value of isComposable based on the frontend analysis.
+                  className, methodName, methodDesc, false, -1, -1, classData, supportClasses);
 
               List<LiveUpdateDeployer.UpdateLiveEditError> results = deployer.updateLiveEdit(installer, adb, packageName, param);
               for (LiveUpdateDeployer.UpdateLiveEditError result : results ) {
