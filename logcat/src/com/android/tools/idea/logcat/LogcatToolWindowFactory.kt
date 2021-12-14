@@ -18,14 +18,15 @@ package com.android.tools.idea.logcat
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.messages.LogcatColors
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.text.UniqueNameGenerator
-import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
-
   private val logcatColors: LogcatColors = LogcatColors()
 
   override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
@@ -33,6 +34,14 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
-  override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?): JComponent =
-    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState))
+  override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?) =
+    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState)).also {
+      logcatPresenters.add(it)
+      Disposer.register(it) { logcatPresenters.remove(it) }
+    }
+
+  companion object {
+    @VisibleForTesting
+    internal val logcatPresenters = mutableListOf<LogcatPresenter>()
+  }
 }

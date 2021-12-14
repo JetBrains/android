@@ -46,6 +46,12 @@
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterCompletionContributor"
     />
 
+    <applicationConfigurable
+        parentId="tools"
+        provider="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
+        id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.logcat.settings.LogcatSettings"/>
 
   </extensions>
 </idea-plugin>

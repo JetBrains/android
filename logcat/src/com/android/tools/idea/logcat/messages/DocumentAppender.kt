@@ -28,8 +28,8 @@ import kotlin.math.max
 
 internal val LOGCAT_HINT_KEY = Key.create<String>("LogcatHint")
 
-internal class DocumentAppender(project: Project, private val document: DocumentEx, private val maxDocumentSize: Int) {
-  private val markupModel = DocumentMarkupModel.forDocument(document, project, /* create= */ true)
+internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
+  private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
 
   /**
    * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
@@ -70,6 +70,10 @@ internal class DocumentAppender(project: Project, private val document: Document
     }
   }
 
+  fun setMaxDocumentSize(size: Int) {
+    maxDocumentSize = size
+    trimToSize()
+  }
   /**
    * Trim the document to size at a line boundary (Based on Document.trimToSize).
    */

@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.settings.LogcatSettings
 
 /*
  * Copyright (C) 2021 The Android Open Source Project
@@ -65,6 +66,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   }
 
   override fun isAttachedToDevice() = attachedToDevice
+
+  override fun applyLogcatSettings(logcatSettings: LogcatSettings) {
+    TODO("Not yet implemented")
+  }
 
   override fun getTags(): Set<String> {
     TODO("Not yet implemented")

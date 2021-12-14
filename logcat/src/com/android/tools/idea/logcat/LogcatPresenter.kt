@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.messages.TextAccumulator
+import com.android.tools.idea.logcat.settings.LogcatSettings
 import com.intellij.openapi.Disposable
 
 /**
@@ -68,4 +69,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Disposa
    * Returns `true` if panel is attached to a device
    */
   fun isAttachedToDevice(): Boolean
+
+  fun applyLogcatSettings(logcatSettings: LogcatSettings)
 }

@@ -34,6 +34,7 @@ import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.android.tools.idea.logcat.settings.LogcatSettings
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -112,15 +113,15 @@ class LogcatMainPanelTest {
 
   @Test
   fun setsDocumentCyclicBuffer() = runBlocking {
-    // Set a buffer of 1k
-    System.setProperty("idea.cycle.buffer.size", "1")
-    val logcatMainPanel = runInEdtAndGet(this@LogcatMainPanelTest::logcatMainPanel)
+    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = LogcatSettings(bufferSize = 1024)) }
     val document = logcatMainPanel.editor.document as DocumentImpl
+    val logCatMessage = logCatMessage()
 
     // Insert 20 log lines
-    logcatMainPanel.messageProcessor.appendMessages(List(20) { logCatMessage() })
-
-    assertThat(document.text.length).isAtMost(1024)
+    logcatMainPanel.messageProcessor.appendMessages(List(20) { logCatMessage })
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(document.text.length).isAtMost(1024 + logCatMessage.length())
+    }
   }
 
   /**
@@ -321,9 +322,8 @@ class LogcatMainPanelTest {
    */
   @Test
   fun hyperlinks_rangeWithCyclicBuffer() = runBlocking {
-    System.setProperty("idea.cycle.buffer.size", "1")
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector)
+      logcatMainPanel(hyperlinkDetector = myMockHyperlinkDetector, logcatSettings = LogcatSettings(bufferSize = 1024))
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -362,9 +362,8 @@ class LogcatMainPanelTest {
    */
   @Test
   fun foldings_rangeWithCyclicBuffer() = runBlocking {
-    System.setProperty("idea.cycle.buffer.size", "1")
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(foldingDetector = mockFoldingDetector)
+      logcatMainPanel(foldingDetector = mockFoldingDetector, logcatSettings = LogcatSettings(bufferSize = 1024))
     }
     val longMessage = "message".padStart(1000, '-')
 
@@ -460,11 +459,29 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.getPackageNames()).containsExactly("app1", "pid-1")
   }
 
+  @Test
+  fun applyLogcatSettings_bufferSize() = runBlocking {
+    val logcatMainPanel = runInEdtAndGet { logcatMainPanel(logcatSettings = LogcatSettings(bufferSize = 1024000)) }
+    val document = logcatMainPanel.editor.document as DocumentImpl
+    val logCatMessage = logCatMessage(message = "foo".padStart(97, ' ')) // Make the message part exactly 100 chars long
+    // Insert 20 log lines
+    logcatMainPanel.processMessages(List(20) { logCatMessage })
+    val logcatSettings = LogcatSettings(bufferSize = 1024)
+
+    logcatMainPanel.applyLogcatSettings(logcatSettings)
+
+    logcatMainPanel.messageProcessor.onIdle {
+      assertThat(document.text.length).isAtMost(1024 + logCatMessage.length())
+      // backlog trims by message length
+      assertThat(logcatMainPanel.messageBacklog.get().messages.sumOf { it.message.length }).isLessThan(1024)
+    }
+  }
 
   private fun logcatMainPanel(
     popupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
     state: LogcatPanelConfig? = null,
+    logcatSettings: LogcatSettings = LogcatSettings(),
     hyperlinkDetector: HyperlinkDetector? = null,
     foldingDetector: FoldingDetector? = null,
     packageNamesProvider: PackageNamesProvider = FakePackageNamesProvider(),
@@ -475,6 +492,7 @@ class LogcatMainPanelTest {
       popupActionGroup,
       logcatColors,
       state,
+      logcatSettings,
       hyperlinkDetector,
       foldingDetector,
       packageNamesProvider,
@@ -483,3 +501,5 @@ class LogcatMainPanelTest {
       Disposer.register(projectRule.project, it)
     }
 }
+
+private fun LogCatMessage.length() = FormattingOptions().getHeaderWidth() + message.length

@@ -31,7 +31,7 @@ import java.util.Collections
  *
  * TODO(aalbert): Maybe pass in the current formatting options setting and calculate the size more accurately.
  */
-internal class MessageBacklog(private val maxSize: Int) {
+internal class MessageBacklog(private var maxSize: Int) {
 
   // The internal messages collection is exposed as a read-only list
   private val _messages = ArrayDeque<LogCatMessage>()
@@ -68,6 +68,16 @@ internal class MessageBacklog(private val maxSize: Int) {
       }
       _messages.addAll(collection)
     }
+  }
+
+  fun setMaxSize(newSize: Int) {
+    if (newSize < maxSize) {
+      while (size > newSize) {
+        size -= _messages.removeFirst().message.length
+      }
+    }
+    maxSize = newSize
+
   }
 
   fun clear() {
