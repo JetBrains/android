@@ -68,8 +68,6 @@ class ComposePreviewSettingsEditor(private val project: Project, private val con
 
   private fun createDebuggerTab(): AndroidDebuggerPanel? {
     val debuggerContext = config.androidDebuggerContext
-    val module = modulesComboBox.selectedModule
-    modulesComboBox.addActionListener { debuggerContext.setDebuggeeModuleProvider { module } }
     return if (debuggerContext.androidDebuggers.size > 1) AndroidDebuggerPanel(config, debuggerContext) else null
   }
 

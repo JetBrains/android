@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
-  @NotNull Supplier<@Nullable Module> myDebuggeeModuleProvider = () -> null;
 
   @NotNull
   public List<ValidationError> validate(@NotNull AndroidFacet facet, @Nullable Executor executor) {
@@ -47,14 +46,5 @@ public class AndroidDebuggerState implements JDOMExternalizable {
   @Override
   public void writeExternal(Element element) throws WriteExternalException {
     DefaultJDOMExternalizer.writeExternal(this, element);
-  }
-
-  public void setDebuggeeModuleProvider(@NotNull Supplier<@Nullable Module> moduleProvider) {
-    myDebuggeeModuleProvider = moduleProvider;
-  }
-
-  @Nullable
-  public Module getDebuggeeModule() {
-    return myDebuggeeModuleProvider.get();
   }
 }

@@ -435,7 +435,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     myDeployTargetContext.readExternal(element);
     myAndroidDebuggerContext.readExternal(element);
-    myAndroidDebuggerContext.setDebuggeeModuleProvider(() -> getConfigurationModule().getModule());
 
     Element profilersElement = element.getChild(PROFILERS_ELEMENT_NAME);
     if (profilersElement != null) {

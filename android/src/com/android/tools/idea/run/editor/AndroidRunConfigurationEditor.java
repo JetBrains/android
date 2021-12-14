@@ -129,13 +129,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
-    myModulesComboBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        Module module = myModulesComboBox.getSelectedModule();
-        androidDebuggerContext.setDebuggeeModuleProvider(() -> module);
-      }
-    });
 
     if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
       myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);

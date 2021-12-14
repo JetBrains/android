@@ -109,12 +109,6 @@ public class AndroidDebuggerContext implements JDOMExternalizable {
     return getAndroidDebuggerState(DEBUGGER_TYPE);
   }
 
-  public void setDebuggeeModuleProvider(@NotNull Supplier<@Nullable Module> moduleProvider) {
-    for (AndroidDebuggerState state : myAndroidDebuggerStates.values()) {
-      state.setDebuggeeModuleProvider(moduleProvider);
-    }
-  }
-
   @NotNull
   protected String getDefaultAndroidDebuggerType() {
     for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
