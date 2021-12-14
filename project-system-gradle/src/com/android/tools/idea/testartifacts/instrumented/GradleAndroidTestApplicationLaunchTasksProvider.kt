@@ -168,8 +168,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
         myEnv,
         myApplicationIdProvider,
         myFacet,
-        androidDebuggerState,
-        myRunConfig.type.id
+        androidDebuggerState
       ).apply {
         timeoutSeconds = -1  // No timeout.
       }

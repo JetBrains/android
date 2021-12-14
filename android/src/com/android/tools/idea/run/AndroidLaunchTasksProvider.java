@@ -262,8 +262,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return debugger.getConnectDebuggerTask(myEnv,
                                              myApplicationIdProvider,
                                              myFacet,
-                                             androidDebuggerState,
-                                             myRunConfig.getType().getId());
+                                             androidDebuggerState);
     }
 
     return null;

@@ -90,8 +90,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   public ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
                                                     @NotNull ApplicationIdProvider applicationIdProvider,
                                                     @NotNull AndroidFacet facet,
-                                                    @NotNull AndroidDebuggerState state,
-                                                    @NotNull String runConfigTypeId) {
+                                                    @NotNull AndroidDebuggerState state) {
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIdProvider, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);

@@ -98,15 +98,13 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @param env an execution environment of a debugee process is running
    * @param applicationIdProvider provides the Android application IDs for the targets to be debugged
    * @param state an Android debugger state and configuration to be used to start the debugger
-   * @param runConfigTypeId a run configuration type ID of a debugee process
    * @return a task which starts a debugger and attach to target processes
    */
   @NotNull
   ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
                                              @NotNull ApplicationIdProvider applicationIdProvider,
                                              @NotNull AndroidFacet facet,
-                                             @NotNull S state,
-                                             @NotNull String runConfigTypeId);
+                                             @NotNull S state);
 
   /**
    * Returns true if this debugger supports a given {@code project}.
