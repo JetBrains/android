@@ -29,33 +29,14 @@ import java.util.List;
 
 public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProvider {
 
-  @Nullable private final AndroidDebugger myAndroidDebugger;
-  @Nullable private final AndroidDebuggerState myAndroidDebuggerState;
-  @NotNull private final ProfilerState myProfilerState;
   private final boolean myWaitForDebugger;
   @NotNull private final String myExtraFlags;
-  private final Project myProject;
 
-  public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
-                                           @Nullable AndroidDebuggerState androidDebuggerState,
-                                           @NotNull Project project,
-                                           boolean waitForDebugger,
-                                           @NotNull String extraFlags) {
-    this(androidDebugger, androidDebuggerState, new ProfilerState(), project, waitForDebugger, extraFlags);
-  }
 
-  public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
-                                           @Nullable AndroidDebuggerState androidDebuggerState,
-                                           @NotNull ProfilerState profilerState,
-                                           @NotNull Project project,
-                                           boolean waitForDebugger,
+  public DefaultStartActivityFlagsProvider(boolean waitForDebugger,
                                            @NotNull String extraFlags) {
-    myAndroidDebugger = androidDebugger;
-    myAndroidDebuggerState = androidDebuggerState;
-    myProfilerState = profilerState;
     myWaitForDebugger = waitForDebugger;
     myExtraFlags = extraFlags;
-    myProject = project;
   }
 
   @Override
@@ -67,12 +48,6 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
     }
     if (!myExtraFlags.isEmpty()) {
       flags.add(myExtraFlags);
-    }
-    if (myWaitForDebugger && myAndroidDebugger != null) {
-      String extraOptions = "";
-      if (!extraOptions.isEmpty()) {
-        flags.add(extraOptions);
-      }
     }
 
     return StringUtil.join(flags, " ");
