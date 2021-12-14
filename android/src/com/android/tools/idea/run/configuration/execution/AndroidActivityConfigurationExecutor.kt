@@ -90,14 +90,6 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
 
     amStartOptions.appendWithSpace(configuration.ACTIVITY_EXTRA_FLAGS)
 
-    val androidDebuggerContext = configuration.androidDebuggerContext
-    val debugger = androidDebuggerContext.androidDebugger
-    val debuggerState: AndroidDebuggerState? = androidDebuggerContext.getAndroidDebuggerState()
-    if (environment.executor.isDebug && debugger != null && debuggerState != null) {
-      val debuggerOptions = debugger.getAmStartOptions(debuggerState, project, device.version)
-      amStartOptions.appendWithSpace(debuggerOptions)
-    }
-
     return amStartOptions.toString()
   }
 

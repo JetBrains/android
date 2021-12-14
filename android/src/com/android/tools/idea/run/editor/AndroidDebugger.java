@@ -131,10 +131,4 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @return true if it should be the default.
    */
   boolean shouldBeDefault();
-
-  /**
-   * Returns additional options to be passed into "am start" command to start an debugee Android application process.
-   */
-  @NotNull
-  String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version);
 }

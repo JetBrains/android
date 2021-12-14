@@ -72,11 +72,4 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   public boolean shouldBeDefault() {
     return false;
   }
-
-  @Override
-  @NotNull
-  public String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version) {
-
-    return "";
-  }
 }

@@ -69,7 +69,7 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
       flags.add(myExtraFlags);
     }
     if (myWaitForDebugger && myAndroidDebugger != null) {
-      String extraOptions = myAndroidDebugger.getAmStartOptions(myAndroidDebuggerState, myProject, device.getVersion());
+      String extraOptions = "";
       if (!extraOptions.isEmpty()) {
         flags.add(extraOptions);
       }
