@@ -1882,7 +1882,7 @@ MODULE                        : project
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               :
+    externalProject               : project
         externalSystemId              : GRADLE
         id                            : project
         name                          : project

@@ -1877,7 +1877,7 @@ MODULE                        : project
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    externalProject               :
+    externalProject               : project
         externalSystemId              : GRADLE
         id                            : project
         name                          : project

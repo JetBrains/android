@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
+import com.google.common.collect.Sets
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -129,6 +130,8 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   object {
+    val seenExternalProjects = Sets.newIdentityHashSet<ExternalProject>()
+
     fun dump(ideAndroidModel: IdeAndroidProject) {
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
@@ -721,8 +724,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    fun dump(externalProject: ExternalProject, name: String = "") {
-      head("externalProject") { name }
+    fun dump(externalProject: ExternalProject, name: String? = null) {
+      val seen = !seenExternalProjects.add(externalProject)
+      head("externalProject") { (name ?: externalProject.name) + (if (seen) " (*seen*)" else "") }
+      if (seen) return
       nest {
         prop("externalSystemId") { externalProject.externalSystemId }
         prop("id") { externalProject.id }
@@ -795,13 +800,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     fun dump(dependency: ExternalDependency) {
       head("externalDependency") { dependency.id.toString().replaceKnownPaths() }
       nest {
-        prop("group") {dependency.group }
-        prop("name") {dependency.name.replaceKnownPaths() }
-        prop("version") {dependency.version }
-        prop("scope") {dependency.scope }
-        prop("packaging") {dependency.packaging }
-        prop("classifier") {dependency.classifier }
-        prop("selectionReason") {dependency.selectionReason }
+        prop("group") { dependency.group }
+        prop("name") { dependency.name.replaceKnownPaths() }
+        prop("version") { dependency.version }
+        prop("scope") { dependency.scope }
+        prop("packaging") { dependency.packaging }
+        prop("classifier") { dependency.classifier }
+        prop("selectionReason") { dependency.selectionReason }
         prop("classpathOrder") { dependency.classpathOrder.takeIf { it != 0 }?.toString() }
         prop("exported") { dependency.exported.takeIf { it }?.toString() }
         dependency.dependencies.forEach { dump(it) }
