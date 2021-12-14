@@ -55,6 +55,8 @@
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
 
     <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
+
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
   </extensions>
 
   <actions>
