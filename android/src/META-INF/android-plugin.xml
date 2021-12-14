@@ -418,8 +418,6 @@
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
                         serviceImplementation="com.android.tools.idea.run.NonGradleAndroidArtifactResolver$Dummy"/>
 
-    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
-
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
               fieldName="INSTANCE"

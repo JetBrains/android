@@ -48,6 +48,8 @@
 
     <statusBarWidgetFactory id="UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.PositiveUserSentimentWidgetFactory"/>
     <statusBarWidgetFactory id="UserSentimentPanelNegative" order="after UserSentimentPanelPositive" implementation="com.android.tools.idea.stats.NegativeUserSentimentWidgetFactory"/>
+
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
   </extensions>
 
   <actions>
