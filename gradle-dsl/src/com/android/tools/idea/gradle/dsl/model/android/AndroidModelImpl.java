@@ -370,9 +370,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
   @Override
   public void removeSigningConfig(@NotNull String configName) {
-    SigningConfigsDslElement signingConfig = myDslElement.getPropertyElement(SIGNING_CONFIGS);
-    if (signingConfig != null) {
-      signingConfig.removeProperty(configName);
+    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS);
+    if (signingConfigs != null) {
+      signingConfigs.removeProperty(configName);
     }
   }
 

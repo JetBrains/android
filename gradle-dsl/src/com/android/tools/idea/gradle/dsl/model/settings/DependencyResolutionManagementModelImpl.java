@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.model.settings;
 
+import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogDslElement.VERSION_CATALOG;
+import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsDslElement.VERSION_CATALOGS;
+
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
+import com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogDslElement;
+import com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsDslElement;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel implements DependencyResolutionManagementModel {
@@ -33,5 +41,26 @@ public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel
   public @NotNull RepositoriesModel repositories() {
     RepositoriesDslElement repositoriesElement = myDslElement.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES);
     return new RepositoriesModelImpl(repositoriesElement);
+  }
+
+  @Override
+  public @NotNull List<VersionCatalogModel> versionCatalogs() {
+    VersionCatalogsDslElement versionCatalogs = myDslElement.ensurePropertyElement(VERSION_CATALOGS);
+    return versionCatalogs.get();
+  }
+
+  @Override
+  public @NotNull VersionCatalogModel addVersionCatalog(@NotNull String name) {
+    VersionCatalogsDslElement versionCatalogs = myDslElement.ensurePropertyElement(VERSION_CATALOGS);
+    VersionCatalogDslElement versionCatalog = versionCatalogs.ensureNamedPropertyElement(VERSION_CATALOG, GradleNameElement.create(name));
+    return new VersionCatalogModelImpl(versionCatalog);
+  }
+
+  @Override
+  public void removeVersionCatalog(@NotNull String name) {
+    VersionCatalogsDslElement versionCatalogs = myDslElement.getPropertyElement(VERSION_CATALOGS);
+    if (versionCatalogs != null) {
+      versionCatalogs.removeProperty(name);
+    }
   }
 }

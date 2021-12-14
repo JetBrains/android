@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.api.settings;
 
-import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public interface DependencyResolutionManagementModel extends GradleBlockModel {
-  @NotNull
-  RepositoriesModel repositories();
+public interface VersionCatalogModel extends GradleBlockModel {
+  @NotNull String getName();
 
-  @NotNull List<VersionCatalogModel> versionCatalogs();
-
-  @NotNull VersionCatalogModel addVersionCatalog(@NotNull String name);
-
-  void removeVersionCatalog(@NotNull String name);
+  /**
+   * Strictly speaking, from() takes a Dependency, rather than (as currently modelled) a string specification within a call to
+   * `files()`.  At some point this interface method may change its signature to reflect that.
+   *
+   * @return a resolved property model
+   */
+  @NotNull ResolvedPropertyModel from();
 }
