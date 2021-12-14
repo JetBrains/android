@@ -49,7 +49,8 @@ int CreateAndConnectSocket(const char* socket_name) {
 
 }  // namespace
 
-Agent::Agent(const vector<string>& args) {
+Agent::Agent(const vector<string>& args)
+    : max_video_resolution_(std::numeric_limits<int32_t>::max()) {
   assert(instance_ == nullptr);
   instance_ = this;
   if (args.size() > 1 && args[1] == "--log=debug") {
@@ -59,24 +60,30 @@ Agent::Agent(const vector<string>& args) {
 
 Agent::~Agent() {
   Log::I("Screen sharing agent is stopping");
-  StopActivity();
+  delete display_streamer_;
 }
 
 void Agent::Run() {
-  CreateAndConnectSocket(SOCKET_NAME);
-  // TODO: Implement.
+  display_streamer_ = new DisplayStreamer(display_id_, max_video_resolution_, CreateAndConnectSocket(SOCKET_NAME));
+  display_streamer_->Run();
 }
 
-void Agent::Stop() {
+void Agent::OnVideoOrientationChanged(int32_t orientation) {
   if (instance_ != nullptr) {
-    instance_->StopActivity();
+    instance_->display_streamer_->OnVideoOrientationChanged(orientation);
   }
-  Log::I("Screen sharing agent is stopping");
-  exit(EXIT_SUCCESS);
 }
 
-void Agent::StopActivity() {
-  // TODO: Implement.
+void Agent::Shutdown() {
+  if (instance_ != nullptr) {
+    instance_->ShutdownInternal();
+  }
+}
+
+void Agent::ShutdownInternal() {
+  if (display_streamer_ != nullptr) {
+    display_streamer_->Shutdown();
+  }
 }
 
 Agent* Agent::instance_ = nullptr;

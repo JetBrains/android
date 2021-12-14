@@ -14,40 +14,20 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "video_packet_header.h"
 
-#include <string>
-#include <vector>
+#include <unistd.h>
+#include <sys/socket.h>
 
-#include "common.h"
-#include "display_streamer.h"
+#include "log.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
-public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
-
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-
-  static void Shutdown();
-
-private:
-  void ShutdownInternal();
-
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
-};
+std::string VideoPacketHeader::ToDebugString() const {
+  return StringPrintf("display_width:%d display_height:%d orientation:%d packet_size:%d"
+                      " frame_number:%" PRId64 " origination_timestamp_us:%" PRId64 " presentation_timestamp_us:%" PRId64,
+                      display_width, display_height, display_orientation, packet_size,
+                      frame_number, origination_timestamp_us, presentation_timestamp_us);
+}
 
 }  // namespace screensharing

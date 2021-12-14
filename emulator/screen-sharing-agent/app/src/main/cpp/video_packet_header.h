@@ -16,38 +16,24 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <inttypes.h>
 
-#include "common.h"
-#include "display_streamer.h"
+#include <cstdint>
+#include <string>
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
-public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
+// The header of a video packet.
+struct VideoPacketHeader {
+  int32_t display_width;
+  int32_t display_height;
+  int32_t display_orientation; // In quadrants.
+  int32_t packet_size;
+  int64_t frame_number;  // Starts from 1.
+  int64_t origination_timestamp_us;
+  int64_t presentation_timestamp_us;  // Zero means a config packet.
 
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-
-  static void Shutdown();
-
-private:
-  void ShutdownInternal();
-
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  std::string ToDebugString() const;
 };
 
 }  // namespace screensharing

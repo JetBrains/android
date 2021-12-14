@@ -16,38 +16,28 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
-#include <vector>
 
-#include "common.h"
-#include "display_streamer.h"
+#include "geom.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
-public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
+// Native code analogue of the android.view.DisplayInfo class.
+struct DisplayInfo {
+  DisplayInfo(int32_t logical_width, int32_t logical_height, int32_t rotation, int32_t layer_stack, int32_t flags);
 
-  void Run();
+  // Returns the display dimensions in the canonical orientation.
+  Size NaturalSize() const {
+    return logical_size.Rotated(-rotation);
+  }
 
-  static void OnVideoOrientationChanged(int32_t orientation);
+  std::string ToDebugString() const;
 
-  static void Shutdown();
-
-private:
-  void ShutdownInternal();
-
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  Size logical_size;
+  int32_t rotation;
+  int32_t layer_stack;
+  int32_t flags;
 };
 
 }  // namespace screensharing

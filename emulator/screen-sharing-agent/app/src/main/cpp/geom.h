@@ -16,38 +16,41 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <android/rect.h>
 
-#include "common.h"
-#include "display_streamer.h"
+#include <cstdint>
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
-public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
+struct Size {
+  Size(int32_t width, int32_t height) : width(width), height(height) {}
 
-  void Run();
+  Size Rotated(int32_t rotation) const {
+    return rotation % 2 == 0 ? *this : Size(height, width);
+  }
 
-  static void OnVideoOrientationChanged(int32_t orientation);
+  static Size ofRect(const ARect& rect) {
+    return Size(rect.right - rect.left, rect.bottom - rect.top);
+  }
 
-  static void Shutdown();
+  ARect toRect() const {
+    return ARect { 0, 0, width, height };
+  }
 
-private:
-  void ShutdownInternal();
-
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  int32_t width;
+  int32_t height;
 };
+
+struct Point {
+  Point(int32_t x, int32_t y) : x(x), y(y) {}
+
+  int32_t x;
+  int32_t y;
+};
+
+// Converts the rotation value to the canonical [0, 3] range.
+inline int32_t NormalizeRotation(int32_t rotation) {
+  return rotation & 0x03;
+}
 
 }  // namespace screensharing

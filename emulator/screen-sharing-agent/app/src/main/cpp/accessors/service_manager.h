@@ -16,38 +16,25 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "common.h"
-#include "display_streamer.h"
+#include "jvm.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
+// Provides access to the android.os.ServiceManager.getService method.
+class ServiceManager {
 public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
-
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-
-  static void Shutdown();
+  static JObject GetServiceAsInterface(Jni jni, const char* name, const char* type);
 
 private:
-  void ShutdownInternal();
+  ServiceManager(Jni jni);
+  static ServiceManager& GetInstance(Jni jni);
 
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
+  static ServiceManager* instance_;
+  JClass service_manager_class_;
+  jmethodID get_service_method_;
 
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  DISALLOW_COPY_AND_ASSIGN(ServiceManager);
 };
 
 }  // namespace screensharing

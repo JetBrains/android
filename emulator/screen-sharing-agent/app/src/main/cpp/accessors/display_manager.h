@@ -16,38 +16,33 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "common.h"
-#include "display_streamer.h"
+#include "display_info.h"
+#include "jvm.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
+constexpr int32_t DEFAULT_DISPLAY = 0; // See android.view.Display.DEFAULT_DISPLAY
+
+// Provides access to the android.hardware.display.IDisplayManager.getDisplayInfo method.
+class DisplayManager {
 public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
-
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-
-  static void Shutdown();
+  static DisplayInfo GetDisplayInfo(Jni jni, int32_t display_id);
 
 private:
-  void ShutdownInternal();
+  DisplayManager(Jni jni);
+  static DisplayManager& GetInstance(Jni jni);
 
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
+  static DisplayManager* instance_;
 
-  static Agent* instance_;
+  JObject display_manager_;
+  jmethodID get_display_info_method_;
+  jfieldID logical_width_field_;
+  jfieldID logical_height_field_;
+  jfieldID rotation_field_;
+  jfieldID layer_stack_field_;
+  jfieldID flags_field_;
 
-  int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
-  DisplayStreamer* display_streamer_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  DISALLOW_COPY_AND_ASSIGN(DisplayManager);
 };
 
 }  // namespace screensharing
