@@ -21,6 +21,7 @@
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -34,6 +35,16 @@
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
+    <orderEntry type="module-library">
+      <library name="utp-core-proto" type="repository">
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha07" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha07/core-proto-0.0.8-alpha07.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module-library">
       <library name="pepk">
         <CLASSES>
