@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ fun findTestLibrariesVersions(artifact: IdeBaseArtifact): TestLibraries {
 fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifact) {
   val dependencies = artifact.level2Dependencies
 
-  for (lib in (Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries))) {
+  for (lib in Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries)) {
     val coordinate = GradleCoordinate.parseCoordinateString(lib.artifactAddress) ?: continue
-    val groupId = coordinate.groupId ?: continue
-    val artifactId = coordinate.artifactId ?: continue
+    val groupId = coordinate.groupId
+    val artifactId = coordinate.artifactId
     val version = coordinate.version?.toString() ?: continue
     builder.recordTestLibrary(groupId, artifactId, version)
   }

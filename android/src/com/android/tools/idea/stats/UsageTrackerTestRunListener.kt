@@ -18,10 +18,11 @@ package com.android.tools.idea.stats
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeTestOptions.Execution
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.model.TestExecutionOption
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 
 fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
@@ -34,15 +35,21 @@ fun Execution?.toProtoValue(): TestRun.TestExecution = when (this) {
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
  */
 class UsageTrackerTestRunListener constructor(
-    private val artifact: IdeAndroidArtifact?,
-    private val device: IDevice) : ITestRunListener {
+  testLibrariesInUse: TestLibraries?,
+  testExecutionOption: TestExecutionOption?,
+  private val device: IDevice) : ITestRunListener {
 
   private val testRun: TestRun.Builder = TestRun.newBuilder().apply {
     testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_TEST
     testKind = TestRun.TestKind.INSTRUMENTATION_TEST
-    testExecution = artifact?.testOptions?.execution.toProtoValue()
+    testExecution = when (testExecutionOption) {
+      TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR -> TestRun.TestExecution.ANDROID_TEST_ORCHESTRATOR
+      TestExecutionOption.HOST -> TestRun.TestExecution.HOST
+      null -> TestRun.TestExecution.HOST
+    }
 
-    artifact?.let(::findTestLibrariesVersions)?.let { testLibraries = it }
+    testLibrariesInUse?.let { testLibraries = it }
   }
 
   override fun testRunStarted(runName: String?, testCount: Int) {

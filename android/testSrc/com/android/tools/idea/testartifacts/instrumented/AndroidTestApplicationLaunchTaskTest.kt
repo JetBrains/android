@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
@@ -47,7 +46,6 @@ class AndroidTestApplicationLaunchTaskTest {
 
   @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
   @Mock lateinit var mockProcessHandler: AndroidProcessHandler
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockITestRunListener: ITestRunListener
@@ -66,7 +64,7 @@ class AndroidTestApplicationLaunchTaskTest {
     return AndroidTestApplicationLaunchTask(
       "instrumentationTestRunner",
       "testApplicationId",
-      mockAndroidArtifact,
+      null,
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
       listOf(mockITestRunListener),

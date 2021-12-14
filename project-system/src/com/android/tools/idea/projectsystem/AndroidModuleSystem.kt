@@ -24,13 +24,13 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.annotations.NotNull
 import java.lang.UnsupportedOperationException
 import java.nio.file.Path
 
@@ -336,6 +336,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    */
   @JvmDefault
   val testRClassConstantIds: Boolean get() = true
+
+  @JvmDefault
+  fun getTestLibrariesInUse(): TestLibraries? = null
 }
 
 /**

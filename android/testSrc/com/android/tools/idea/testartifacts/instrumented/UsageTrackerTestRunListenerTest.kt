@@ -22,7 +22,8 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.stats.toProtoValue
@@ -57,7 +58,9 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
       val module = project.gradleModule(":moduleName")
       TestCase.assertNotNull(module)
 
-      val listener = UsageTrackerTestRunListener(GradleAndroidModel.get(module!!)?.mainArtifact,
+      val listener = UsageTrackerTestRunListener(
+        module!!.getModuleSystem().getTestLibrariesInUse(),
+        AndroidModel.get(module)!!.testExecutionOption,
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }

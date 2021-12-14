@@ -21,8 +21,7 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
@@ -38,6 +37,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -51,7 +51,7 @@ import java.util.concurrent.Future
 class AndroidTestApplicationLaunchTask(
   private val myInstrumentationTestRunner: String,
   private val myTestApplicationId: String,
-  private val myArtifact: IdeAndroidArtifact?,
+  private val myExecutionOption: TestExecutionOption?,
   private val myWaitForDebugger: Boolean,
   private val myInstrumentationOptions: String,
   private val myTestListeners: List<ITestRunListener>,
@@ -71,17 +71,18 @@ class AndroidTestApplicationLaunchTask(
       testApplicationId: String,
       waitForDebugger: Boolean,
       instrumentationOptions: String,
-      artifact: IdeAndroidArtifact?,
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
         instrumentationTestRunner,
         testApplicationId,
-        artifact,
+        testExecutionOption,
         waitForDebugger,
         instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, artifact)) {}
+        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) {}
     }
 
     /**
@@ -93,7 +94,8 @@ class AndroidTestApplicationLaunchTask(
       testApplicationId: String,
       waitForDebugger: Boolean,
       instrumentationOptions: String,
-      artifact: IdeAndroidArtifact?,
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
@@ -101,10 +103,10 @@ class AndroidTestApplicationLaunchTask(
       return AndroidTestApplicationLaunchTask(
         instrumentationTestRunner,
         testApplicationId,
-        artifact,
+        testExecutionOption,
         waitForDebugger,
         instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, artifact)) { runner -> runner.setTestPackageName(packageName) }
+        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner -> runner.setTestPackageName(packageName) }
     }
 
     /**
@@ -116,7 +118,8 @@ class AndroidTestApplicationLaunchTask(
       testApplicationId: String,
       waitForDebugger: Boolean,
       instrumentationOptions: String,
-      artifact: IdeAndroidArtifact?,
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
@@ -124,10 +127,10 @@ class AndroidTestApplicationLaunchTask(
       return AndroidTestApplicationLaunchTask(
         instrumentationTestRunner,
         testApplicationId,
-        artifact,
+        testExecutionOption,
         waitForDebugger,
         instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, artifact)) { runner -> runner.setClassName(testClassName) }
+        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner -> runner.setClassName(testClassName) }
     }
 
     /**
@@ -139,7 +142,8 @@ class AndroidTestApplicationLaunchTask(
       testApplicationId: String,
       waitForDebugger: Boolean,
       instrumentationOptions: String,
-      artifact: IdeAndroidArtifact?,
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
@@ -148,19 +152,24 @@ class AndroidTestApplicationLaunchTask(
       return AndroidTestApplicationLaunchTask(
         instrumentationTestRunner,
         testApplicationId,
-        artifact,
+        testExecutionOption,
         waitForDebugger,
         instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, artifact)) { runner ->
+        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner ->
           runner.setMethodName(testClassName, testMethodName)
         }
     }
 
-    private fun createRunListeners(processHandler: ProcessHandler, printer: ConsolePrinter,
-                                   device: IDevice, artifact: IdeAndroidArtifact?): List<ITestRunListener> {
+    private fun createRunListeners(
+      processHandler: ProcessHandler,
+      printer: ConsolePrinter,
+      device: IDevice,
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?
+    ): List<ITestRunListener> {
       return listOf(
         createTestListener(processHandler, printer, device),
-        createUsageTrackerTestRunListener(artifact, device)
+        createUsageTrackerTestRunListener(testLibrariesInUse, testExecutionOption, device)
       )
     }
 
@@ -176,8 +185,12 @@ class AndroidTestApplicationLaunchTask(
       }
     }
 
-    private fun createUsageTrackerTestRunListener(artifact: IdeAndroidArtifact?, device: IDevice): ITestRunListener {
-      return UsageTrackerTestRunListener(artifact, device)
+    private fun createUsageTrackerTestRunListener(
+      testLibrariesInUse: TestLibraries?,
+      testExecutionOption: TestExecutionOption?,
+      device: IDevice
+    ): ITestRunListener {
+      return UsageTrackerTestRunListener(testLibrariesInUse, testExecutionOption, device)
     }
   }
 
@@ -260,15 +273,15 @@ class AndroidTestApplicationLaunchTask(
    * Creates a [RemoteAndroidTestRunner] for a given [device].
    */
   fun createRemoteAndroidTestRunner(device: IDevice): RemoteAndroidTestRunner {
-    return when (myArtifact?.testOptions?.execution) {
-      IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR ->
+    return when (myExecutionOption) {
+      TestExecutionOption.ANDROID_TEST_ORCHESTRATOR ->
         AndroidTestOrchestratorRemoteAndroidTestRunner(
           myTestApplicationId,
           myInstrumentationTestRunner,
           device,
           false
         )
-      IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR ->
+      TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR ->
         AndroidTestOrchestratorRemoteAndroidTestRunner(
           myTestApplicationId,
           myInstrumentationTestRunner,

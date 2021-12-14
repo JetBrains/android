@@ -54,8 +54,10 @@ import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
+import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -366,6 +368,11 @@ class GradleModuleSystem(
     }
 
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
+
+  override fun getTestLibrariesInUse(): TestLibraries? {
+    val androidTestArtifact = GradleAndroidModel.get(module)?.selectedVariant?.androidTestArtifact ?: return null
+    return TestLibraries.newBuilder().also { recordTestLibraries(it, androidTestArtifact) }.build()
+  }
 
   override fun getDynamicFeatureModules(): List<Module> {
     val project = AndroidModuleModel.get(module)?.androidProject ?: return emptyList()

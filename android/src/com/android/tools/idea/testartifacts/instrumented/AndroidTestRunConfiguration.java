@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -47,6 +49,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.JUnitBundle;
@@ -355,19 +358,19 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    AndroidModuleModel moduleModel = AndroidModuleModel.get(facet);
-    IdeAndroidArtifact testArtifact = null;
-    if (moduleModel != null) {
-      testArtifact = moduleModel.getArtifactForAndroidTest();
-    }
+    AndroidModel moduleModel = AndroidModel.get(facet);
 
+    AndroidModuleSystem moduleSystem = getModuleSystem(facet);
+    TestLibraries testLibrariesInUse = moduleSystem.getTestLibrariesInUse();
+    TestExecutionOption testExecutionOption = moduleModel != null ? moduleModel.getTestExecutionOption() : null;
     switch (TESTING_TYPE) {
       case TEST_ALL_IN_MODULE:
         return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
                                                                 testAppId,
                                                                 waitForDebugger,
                                                                 instrumentationOptions,
-                                                                testArtifact,
+                                                                testLibrariesInUse,
+                                                                testExecutionOption,
                                                                 launchStatus.getProcessHandler(),
                                                                 consolePrinter,
                                                                 device);
@@ -377,7 +380,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                  testAppId,
                                                                  waitForDebugger,
                                                                  instrumentationOptions,
-                                                                 testArtifact,
+                                                                 testLibrariesInUse,
+                                                                 testExecutionOption,
                                                                  launchStatus.getProcessHandler(),
                                                                  consolePrinter,
                                                                  device,
@@ -388,7 +392,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           testAppId,
                                                           waitForDebugger,
                                                           instrumentationOptions,
-                                                          testArtifact,
+                                                          testLibrariesInUse,
+                                                          testExecutionOption,
                                                           launchStatus.getProcessHandler(),
                                                           consolePrinter,
                                                           device,
@@ -399,7 +404,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            testAppId,
                                                            waitForDebugger,
                                                            instrumentationOptions,
-                                                           testArtifact,
+                                                           testLibrariesInUse,
+                                                           testExecutionOption,
                                                            launchStatus.getProcessHandler(),
                                                            consolePrinter,
                                                            device,
