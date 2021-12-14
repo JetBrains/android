@@ -311,7 +311,7 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   override fun loadClass(fqcn: String): ByteArray? {
     if (Disposer.isDisposed(this)) {
-      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Throwable(Disposer.getDisposalTrace(this)))
+      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Disposer.getDisposalTrace(this))
       return null
     }
 

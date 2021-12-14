@@ -64,7 +64,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.UUID
 import java.util.function.BiFunction
 
@@ -97,8 +96,7 @@ private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_M
 /**
  * Creates a [NlDesignSurface] setup for the Compose preview.
  */
-@VisibleForTesting
-fun createPreviewDesignSurface(
+internal fun createPreviewDesignSurface(
   project: Project,
   navigationHandler: NlDesignSurface.NavigationHandler,
   delegateInteractionHandler: DelegateInteractionHandler,
