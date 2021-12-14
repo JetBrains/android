@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.devicemanager.IconButton;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.JTable;
@@ -23,14 +22,14 @@ import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class IconButtonTableCellRenderer implements TableCellRenderer {
-  final @NotNull IconButton myButton;
+public class IconButtonTableCellRenderer implements TableCellRenderer {
+  protected final @NotNull IconButton myButton;
 
-  IconButtonTableCellRenderer(@NotNull Icon icon) {
+  public IconButtonTableCellRenderer(@NotNull Icon icon) {
     this(icon, null);
   }
 
-  IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
+  protected IconButtonTableCellRenderer(@NotNull Icon icon, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
     myButton.setToolTipText(tooltipText);
   }

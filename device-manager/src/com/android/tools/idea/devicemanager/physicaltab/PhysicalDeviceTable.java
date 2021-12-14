@@ -19,6 +19,7 @@ import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;

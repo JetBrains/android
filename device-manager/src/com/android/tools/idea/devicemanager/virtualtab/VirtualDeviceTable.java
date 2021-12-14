@@ -27,6 +27,7 @@ import com.android.tools.idea.devicemanager.legacy.AvdActionPanel.AvdRefreshProv
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.openapi.project.Project;
@@ -78,23 +79,30 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     model.addTableModelListener(event -> sizeWidthsToFit());
 
-    setDefaultEditor(Actions.class, new ActionsTableCell(this));
+    if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      setDefaultEditor(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellEditor(panel.getProject()));
+      setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
+    }
+    else {
+      setDefaultEditor(Actions.class, new ActionsTableCell(this));
+      setDefaultRenderer(Actions.class, new ActionsTableCell(this));
+    }
 
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
-    setDefaultRenderer(Actions.class, new ActionsTableCell(this));
-
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
-    ActionMap map = getActionMap();
+    if (!VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
+      ActionMap map = getActionMap();
 
-    map.put("selectNextColumn", new SelectNextColumnAction());
-    map.put("selectNextColumnCell", new SelectNextColumnCellAction());
-    map.put("selectNextRow", new SelectNextRowAction());
-    map.put("selectPreviousColumn", new SelectPreviousColumnAction());
-    map.put("selectPreviousColumnCell", new SelectPreviousColumnCellAction());
-    map.put("selectPreviousRow", new SelectPreviousRowAction());
+      map.put("selectNextColumn", new SelectNextColumnAction());
+      map.put("selectNextColumnCell", new SelectNextColumnCellAction());
+      map.put("selectNextRow", new SelectNextRowAction());
+      map.put("selectPreviousColumn", new SelectPreviousColumnAction());
+      map.put("selectPreviousColumnCell", new SelectPreviousColumnCellAction());
+      map.put("selectPreviousRow", new SelectPreviousRowAction());
+    }
 
     // noinspection DialogTitleCapitalization
     getEmptyText()

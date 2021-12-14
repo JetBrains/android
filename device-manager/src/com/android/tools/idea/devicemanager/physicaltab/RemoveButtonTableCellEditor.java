@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;

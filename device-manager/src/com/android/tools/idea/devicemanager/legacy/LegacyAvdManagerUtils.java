@@ -22,9 +22,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class LegacyAvdManagerUtils {
-  @NotNull
-  static FutureCallback<IDevice> newCallback(@Nullable Project project) {
+public final class LegacyAvdManagerUtils {
+  public static @NotNull FutureCallback<@NotNull IDevice> newCallback(@Nullable Project project) {
     String name = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? "Device Manager" : "AVD Manager";
     return new ShowErrorDialogCallback<>(name,
                                          "There was an unspecified error in the " + name +

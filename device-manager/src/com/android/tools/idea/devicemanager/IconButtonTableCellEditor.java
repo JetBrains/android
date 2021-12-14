@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.devicemanager.IconButton;
 import java.awt.Component;
 import javax.swing.AbstractCellEditor;
 import javax.swing.Icon;
@@ -24,15 +23,15 @@ import javax.swing.table.TableCellEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class IconButtonTableCellEditor extends AbstractCellEditor implements TableCellEditor {
-  final @NotNull IconButton myButton;
+public class IconButtonTableCellEditor extends AbstractCellEditor implements TableCellEditor {
+  protected final @NotNull IconButton myButton;
   private final @NotNull Object myValue;
 
-  IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value) {
+  protected IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value) {
     this(icon, value, null);
   }
 
-  IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value, @Nullable String tooltipText) {
+  protected IconButtonTableCellEditor(@NotNull Icon icon, @NotNull Object value, @Nullable String tooltipText) {
     myButton = new IconButton(icon);
 
     myButton.setOpaque(true);

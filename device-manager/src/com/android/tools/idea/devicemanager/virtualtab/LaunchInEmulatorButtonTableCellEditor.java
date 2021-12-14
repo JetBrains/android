@@ -13,33 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager.virtualtab;
 
-import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
-import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceExplorerViewServiceInvokeLater;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.legacy.LegacyAvdManagerUtils;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.EdtExecutorService;
+import icons.StudioIcons;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class ActivateDeviceFileExplorerWindowButtonTableCellEditor extends IconButtonTableCellEditor {
-  private Device myDevice;
+final class LaunchInEmulatorButtonTableCellEditor extends IconButtonTableCellEditor {
+  private VirtualDevice myDevice;
 
-  ActivateDeviceFileExplorerWindowButtonTableCellEditor(@NotNull Project project) {
-    super(AllIcons.Actions.MenuOpen, ActivateDeviceFileExplorerWindowValue.INSTANCE, "Open this device in the Device File Explorer.");
+  LaunchInEmulatorButtonTableCellEditor(@Nullable Project project) {
+    super(StudioIcons.Avd.RUN, LaunchInEmulatorValue.INSTANCE, "Launch this AVD in the emulator");
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION)
+        .setKind(DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION)
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
-      new DeviceExplorerViewServiceInvokeLater(project).openAndShowDevice(myDevice.getKey().toString());
+
+      ListenableFuture<IDevice> future = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myDevice.getAvdInfo());
+      Futures.addCallback(future, LegacyAvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
     });
   }
 
@@ -51,8 +59,8 @@ final class ActivateDeviceFileExplorerWindowButtonTableCellEditor extends IconBu
                                                         int viewColumnIndex) {
     super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
 
-    myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
-    myButton.setEnabled(myDevice.isOnline());
+    myDevice = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
+    myButton.setEnabled(myDevice.getAvdInfo().getStatus().equals(AvdStatus.OK));
 
     return myButton;
   }

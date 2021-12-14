@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
-import com.intellij.icons.AllIcons;
+import icons.StudioIcons;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-final class RemoveButtonTableCellRenderer extends IconButtonTableCellRenderer {
-  RemoveButtonTableCellRenderer() {
-    super(AllIcons.Actions.GC);
+final class LaunchInEmulatorButtonTableCellRenderer extends IconButtonTableCellRenderer {
+  LaunchInEmulatorButtonTableCellRenderer() {
+    super(StudioIcons.Avd.RUN, "Launch this AVD in the emulator");
   }
 
   @Override
@@ -34,10 +35,7 @@ final class RemoveButtonTableCellRenderer extends IconButtonTableCellRenderer {
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
     super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
-    boolean online = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex).isOnline();
-
-    myButton.setEnabled(!online);
-    myButton.setToolTipText(online ? "Connected devices can not be removed from the list." : "Remove this offline device from the list.");
+    myButton.setEnabled(((VirtualDeviceTable)table).getDeviceAt(viewRowIndex).getAvdInfo().getStatus().equals(AvdStatus.OK));
 
     return myButton;
   }
