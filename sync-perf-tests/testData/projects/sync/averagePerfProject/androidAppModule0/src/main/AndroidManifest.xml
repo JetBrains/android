@@ -5,7 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
 <application>
-         <activity android:name=".Activity0">
+         <activity android:name=".Activity0"
+                   android:exported="true"
+         >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
