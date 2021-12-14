@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -25,7 +25,6 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * An interface to implement Android debugger.
@@ -104,7 +103,6 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    */
   @NotNull
   ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                             @Nullable AndroidVersion version,
                                              @NotNull ApplicationIdProvider applicationIdProvider,
                                              @NotNull AndroidFacet facet,
                                              @NotNull S state,

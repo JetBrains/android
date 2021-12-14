@@ -164,12 +164,13 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     logger.info("Using debugger: " + debugger.id)
     val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
     return if (androidDebuggerState != null) {
-      debugger.getConnectDebuggerTask(myEnv,
-                                      version,
-                                      myApplicationIdProvider,
-                                      myFacet,
-                                      androidDebuggerState,
-                                      myRunConfig.type.id).apply {
+      debugger.getConnectDebuggerTask(
+        myEnv,
+        myApplicationIdProvider,
+        myFacet,
+        androidDebuggerState,
+        myRunConfig.type.id
+      ).apply {
         timeoutSeconds = -1  // No timeout.
       }
     }

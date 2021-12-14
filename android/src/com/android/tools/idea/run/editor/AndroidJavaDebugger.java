@@ -19,12 +19,11 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
+import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionException;
@@ -89,7 +88,6 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @NotNull
   @Override
   public ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                                    @Nullable AndroidVersion version,
                                                     @NotNull ApplicationIdProvider applicationIdProvider,
                                                     @NotNull AndroidFacet facet,
                                                     @NotNull AndroidDebuggerState state,

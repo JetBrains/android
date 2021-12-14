@@ -260,7 +260,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (androidDebuggerState != null) {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv,
-                                             version,
                                              myApplicationIdProvider,
                                              myFacet,
                                              androidDebuggerState,
