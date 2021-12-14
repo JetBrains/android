@@ -88,7 +88,7 @@ public class SourceProviderStub extends BaseStub implements SourceProvider {
         myShadersDirectories = Lists.newArrayList(shadersDirectory);
         myMlModelsDirectories = Lists.newArrayList(mlMlModelsDirectory);
         myCustomDirectories = Lists.newArrayList(
-          new CustomSourceDirectory("custom", customDirectory)
+          new CustomSourceDirectoryStub("custom", customDirectory)
         );
     }
 
