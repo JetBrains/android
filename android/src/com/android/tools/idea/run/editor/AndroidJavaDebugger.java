@@ -92,7 +92,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                     @NotNull AndroidFacet facet,
                                                     @NotNull AndroidDebuggerState state) {
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
-      applicationIdProvider, this, env.getProject(),
+      applicationIdProvider, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
     TestExecutionOption executionType = Optional.ofNullable(AndroidModel.get(facet))
       .map(AndroidModel::getTestExecutionOption)

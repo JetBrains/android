@@ -28,8 +28,6 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.editor.AndroidDebugger;
-import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.intellij.execution.process.ProcessHandler;
@@ -243,7 +241,6 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
   @NotNull
   private TestConnectDebuggerTask getConnectDebuggerTask(boolean attachToRunningProcess, @NotNull Tickable onTick) {
     return new TestConnectDebuggerTask(myApplicationIdProvider,
-                                       new AndroidJavaDebugger(),
                                        getProject(),
                                        attachToRunningProcess,
                                        onTick);
@@ -256,11 +253,10 @@ public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
     @NotNull private final Tickable myOnTick;
 
     public TestConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                   @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
                                    boolean attachToRunningProcess,
                                    @NotNull Tickable onTick) {
-      super(applicationIdProvider, debugger, project, attachToRunningProcess);
+      super(applicationIdProvider, project, attachToRunningProcess);
       myOnTick = onTick;
     }
 

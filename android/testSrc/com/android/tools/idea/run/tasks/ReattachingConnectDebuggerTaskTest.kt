@@ -24,7 +24,6 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchInfo
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter
-import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessHandler
@@ -124,10 +123,7 @@ class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 }
 
 class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
-  : ConnectDebuggerTaskBase(applicationIdProvider,
-                                                                                mock(AndroidDebugger::class.java),
-                                                                                mock(Project::class.java),
-                                                                                false) {
+  : ConnectDebuggerTaskBase(applicationIdProvider, mock(Project::class.java), false) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,

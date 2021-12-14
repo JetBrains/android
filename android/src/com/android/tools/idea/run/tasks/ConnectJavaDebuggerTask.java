@@ -38,7 +38,6 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ApplicationLogListener;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
-import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
 import com.google.common.base.Preconditions;
@@ -69,10 +68,9 @@ import org.jetbrains.annotations.NotNull;
 public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
   public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider, //Set<String> applicationIds,
-                                 @NotNull AndroidDebugger debugger,
                                  @NotNull Project project,
                                  boolean attachToRunningProcess) {
-    super(applicationIdProvider, debugger, project, attachToRunningProcess);
+    super(applicationIdProvider, project, attachToRunningProcess);
   }
 
   @Override
