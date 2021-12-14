@@ -25,26 +25,30 @@ import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
-class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExtension() {
+class CapturePlatformModelsProjectResolverExtension : AbstractProjectResolverExtension() {
   companion object {
     private val kotlinModels = mutableMapOf<String, KotlinGradleModel>()
     private val kaptModels = mutableMapOf<String, KaptGradleModel>()
+    private val externalProjectModels = mutableMapOf<String, ExternalProject>()
 
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[module.name]
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[module.name]
+    fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[module.name]
 
     fun reset() {
       kotlinModels.clear()
       kaptModels.clear()
+      externalProjectModels.clear()
     }
 
     fun registerTestHelperProjectResolver(disposable: Disposable) {
       ApplicationManager.getApplication().registerExtension(
         @Suppress("UnstableApiUsage")
         EP_NAME,
-        CaptureKotlinModelsProjectResolverExtension(), // Note: a new instance is created by the external system.
+        CapturePlatformModelsProjectResolverExtension(), // Note: a new instance is created by the external system.
         disposable
       )
       Disposer.register(disposable, object : Disposable {
@@ -64,6 +68,9 @@ class CaptureKotlinModelsProjectResolverExtension : AbstractProjectResolverExten
       it.kaptGradleModel?.let { kaptModel ->
         kaptModels[ideModule.data.internalName] = kaptModel
       }
+    }
+    resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)?.let {
+      externalProjectModels[ideModule.data.internalName] = it
     }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }

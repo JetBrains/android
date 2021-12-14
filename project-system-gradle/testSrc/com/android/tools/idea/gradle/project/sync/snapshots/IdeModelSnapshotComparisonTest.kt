@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -144,13 +144,14 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
         null,
         agpVersion.legacyAgpVersion
       )
-      CaptureKotlinModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
+      CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
       openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
         val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper ->
           projectDumper.dumpAndroidIdeModel(
             project,
-            kotlinModels = { CaptureKotlinModelsProjectResolverExtension.getKotlinModel(it) },
-            kaptModels = { CaptureKotlinModelsProjectResolverExtension.getKaptModel(it) }
+            kotlinModels = { CapturePlatformModelsProjectResolverExtension.getKotlinModel(it) },
+            kaptModels = { CapturePlatformModelsProjectResolverExtension.getKaptModel(it) },
+            externalProjects = { CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) }
           )
         }
         assertIsEqualToSnapshot(dump)

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKaptModel
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.getKotlinModel
-import com.android.tools.idea.gradle.project.sync.CaptureKotlinModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKaptModel
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.getKotlinModel
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension.Companion.registerTestHelperProjectResolver
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths

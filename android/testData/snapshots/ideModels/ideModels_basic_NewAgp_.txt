@@ -1882,6 +1882,126 @@ MODULE                        : project
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <M2>/org/jacoco/org.jacoco.agent/0.8.7/org.jacoco.agent-0.8.7-runtime.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    externalProject               :
+        externalSystemId              : GRADLE
+        id                            : project
+        name                          : project
+        qName                         : project
+        group                         :
+        version                       : unspecified
+        sourceCompatibility           : 11
+        targetCompatibility           : 11
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        configurationArtifacts        : androidApis
+        configurationArtifacts        : androidJacocoAnt
+        configurationArtifacts        : androidJdkImage
+        configurationArtifacts        : androidTestAnnotationProcessor
+        configurationArtifacts        : androidTestCompileOnly
+        configurationArtifacts        : androidTestDebugAnnotationProcessor
+        configurationArtifacts        : androidTestDebugCompileOnly
+        configurationArtifacts        : androidTestDebugImplementation
+        configurationArtifacts        : androidTestDebugRuntimeOnly
+        configurationArtifacts        : androidTestDebugWearApp
+        configurationArtifacts        : androidTestImplementation
+        configurationArtifacts        : androidTestReleaseAnnotationProcessor
+        configurationArtifacts        : androidTestReleaseCompileOnly
+        configurationArtifacts        : androidTestReleaseImplementation
+        configurationArtifacts        : androidTestReleaseRuntimeOnly
+        configurationArtifacts        : androidTestReleaseWearApp
+        configurationArtifacts        : androidTestRuntimeOnly
+        configurationArtifacts        : androidTestUtil
+        configurationArtifacts        : androidTestWearApp
+        configurationArtifacts        : annotationProcessor
+        configurationArtifacts        : api
+        configurationArtifacts        : archives
+        configurationArtifacts        : compileOnly
+        configurationArtifacts        : coreLibraryDesugaring
+        configurationArtifacts        : debugAabPublication
+            -                             : <ROOT>/build/outputs/bundle/debug/project-debug.aab [-]
+        configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
+        configurationArtifacts        : debugAndroidTestCompileClasspath
+        configurationArtifacts        : debugAndroidTestRuntimeClasspath
+        configurationArtifacts        : debugAnnotationProcessor
+        configurationArtifacts        : debugAnnotationProcessorClasspath
+        configurationArtifacts        : debugApi
+        configurationArtifacts        : debugApiElements
+        configurationArtifacts        : debugApkPublication
+            -                             : <ROOT>/build/outputs/apk-zips/debug/apks.zip [-]
+        configurationArtifacts        : debugCompileClasspath
+        configurationArtifacts        : debugCompileOnly
+        configurationArtifacts        : debugImplementation
+        configurationArtifacts        : debugReverseMetadataValues
+        configurationArtifacts        : debugRuntimeClasspath
+        configurationArtifacts        : debugRuntimeElements
+        configurationArtifacts        : debugRuntimeOnly
+        configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
+        configurationArtifacts        : debugUnitTestCompileClasspath
+        configurationArtifacts        : debugUnitTestRuntimeClasspath
+        configurationArtifacts        : debugWearApp
+        configurationArtifacts        : debugWearBundling
+        configurationArtifacts        : default
+        configurationArtifacts        : implementation
+        configurationArtifacts        : jacocoAgent
+        configurationArtifacts        : jacocoAnt
+        configurationArtifacts        : lintChecks
+        configurationArtifacts        : lintPublish
+        configurationArtifacts        : releaseAabPublication
+            -                             : <ROOT>/build/outputs/bundle/release/project-release.aab [-]
+        configurationArtifacts        : releaseAnnotationProcessor
+        configurationArtifacts        : releaseAnnotationProcessorClasspath
+        configurationArtifacts        : releaseApi
+        configurationArtifacts        : releaseApiElements
+        configurationArtifacts        : releaseApkPublication
+            -                             : <ROOT>/build/outputs/apk-zips/release/apks.zip [-]
+        configurationArtifacts        : releaseCompileClasspath
+        configurationArtifacts        : releaseCompileOnly
+        configurationArtifacts        : releaseImplementation
+        configurationArtifacts        : releaseReverseMetadataValues
+        configurationArtifacts        : releaseRuntimeClasspath
+        configurationArtifacts        : releaseRuntimeElements
+        configurationArtifacts        : releaseRuntimeOnly
+        configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
+        configurationArtifacts        : releaseUnitTestCompileClasspath
+        configurationArtifacts        : releaseUnitTestRuntimeClasspath
+        configurationArtifacts        : releaseWearApp
+        configurationArtifacts        : releaseWearBundling
+        configurationArtifacts        : runtimeOnly
+        configurationArtifacts        : testAnnotationProcessor
+        configurationArtifacts        : testCompileOnly
+        configurationArtifacts        : testDebugAnnotationProcessor
+        configurationArtifacts        : testDebugCompileOnly
+        configurationArtifacts        : testDebugImplementation
+        configurationArtifacts        : testDebugRuntimeOnly
+        configurationArtifacts        : testDebugWearApp
+        configurationArtifacts        : testFixturesAnnotationProcessor
+        configurationArtifacts        : testFixturesApi
+        configurationArtifacts        : testFixturesCompileOnly
+        configurationArtifacts        : testFixturesDebugAnnotationProcessor
+        configurationArtifacts        : testFixturesDebugApi
+        configurationArtifacts        : testFixturesDebugCompileOnly
+        configurationArtifacts        : testFixturesDebugImplementation
+        configurationArtifacts        : testFixturesDebugRuntimeOnly
+        configurationArtifacts        : testFixturesDebugWearApp
+        configurationArtifacts        : testFixturesImplementation
+        configurationArtifacts        : testFixturesReleaseAnnotationProcessor
+        configurationArtifacts        : testFixturesReleaseApi
+        configurationArtifacts        : testFixturesReleaseCompileOnly
+        configurationArtifacts        : testFixturesReleaseImplementation
+        configurationArtifacts        : testFixturesReleaseRuntimeOnly
+        configurationArtifacts        : testFixturesReleaseWearApp
+        configurationArtifacts        : testFixturesRuntimeOnly
+        configurationArtifacts        : testFixturesWearApp
+        configurationArtifacts        : testImplementation
+        configurationArtifacts        : testReleaseAnnotationProcessor
+        configurationArtifacts        : testReleaseCompileOnly
+        configurationArtifacts        : testReleaseImplementation
+        configurationArtifacts        : testReleaseRuntimeOnly
+        configurationArtifacts        : testReleaseWearApp
+        configurationArtifacts        : testRuntimeOnly
+        configurationArtifacts        : testWearApp
+        configurationArtifacts        : wearApp
 MODULE                        : project.androidTest
 MODULE                        : project.main
 MODULE                        : project.unitTest

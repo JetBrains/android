@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -58,12 +59,15 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
+import org.jetbrains.plugins.gradle.model.ExternalDependency
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
 
 fun ProjectDumper.dumpAndroidIdeModel(
   project: Project,
   kotlinModels: (com.intellij.openapi.module.Module) -> KotlinGradleModel?,
-  kaptModels: (com.intellij.openapi.module.Module) -> KaptGradleModel?
+  kaptModels: (com.intellij.openapi.module.Module) -> KaptGradleModel?,
+  externalProjects: (com.intellij.openapi.module.Module) -> ExternalProject?
 ) {
   nest(File(project.basePath!!), "PROJECT") {
     with(ideModelDumper(this)) {
@@ -93,6 +97,10 @@ fun ProjectDumper.dumpAndroidIdeModel(
           }
 
           kaptModels(module)?.let {
+            dump(it)
+          }
+
+          externalProjects(module)?.let {
             dump(it)
           }
         }
@@ -712,7 +720,99 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         }
       }
     }
+
+    fun dump(externalProject: ExternalProject, name: String = "") {
+      head("externalProject") { name }
+      nest {
+        prop("externalSystemId") { externalProject.externalSystemId }
+        prop("id") { externalProject.id }
+        prop("name") { externalProject.name }
+        prop("qName") { externalProject.qName }
+        prop("description") { externalProject.description }
+        prop("group") { externalProject.group }
+        prop("version") { externalProject.version }
+        prop("sourceCompatibility") { externalProject.sourceCompatibility }
+        prop("targetCompatibility") { externalProject.targetCompatibility }
+        prop("projectDir") { externalProject.projectDir.path.toPrintablePath() }
+        prop("buildDir") { externalProject.buildDir.path.toPrintablePath() }
+        prop("buildFile") { externalProject.buildFile?.path?.toPrintablePath() }
+        externalProject.artifacts.forEach { prop(" - artifact") { it.path.toPrintablePath() } }
+        externalProject.artifactsByConfiguration.entries.sortedBy { it.key }
+          .forEach { (configuration, artifacts) ->
+            head("configurationArtifacts") { configuration }
+            nest {
+              artifacts.map { it.path.toPrintablePath() }.sorted().forEach { prop("-") { it } }
+            }
+          }
+        externalProject.tasks.entries.sortedBy { it.key }
+          .forEach { (name, task) ->
+            head("task") { name }
+            nest {
+              prop("name") { task.name }
+              prop("qName") { task.qName }
+              prop("description") { task.description }
+              prop("group") { task.group }
+              prop("type") { task.type }
+              prop("test") { task.isTest.takeIf { it }?.toString() }
+            }
+          }
+
+        externalProject.sourceSets.entries.sortedBy { it.key }
+          .forEach { (name, sourceset) ->
+            head("externalSourceSet") { name }
+            nest {
+              prop("name") { sourceset.name }
+              prop("sourceCompatibility") { sourceset.sourceCompatibility }
+              prop("isPreview") { sourceset.isPreview.takeIf { it }?.toString() }
+              prop("targetCompatibility") { sourceset.targetCompatibility }
+              sourceset.artifacts.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - artifact") { it } }
+              sourceset.sources.entries.sortedBy { it.key.toDescription() }
+                .forEach { (type, sources) ->
+                  head("sources") { type.toDescription() }
+                  nest {
+                    prop("name") { sources.name }
+                    sources.srcDirs.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - srcDir") { it } }
+                    prop("outputDir") { sources.outputDir.path.toPrintablePath() }
+                    sources.gradleOutputDirs.map { it.path.toPrintablePath() }.sorted().forEach { prop(" - gradleOutputDir") { it } }
+                    prop("isCompilerOutputPathInherited") { sources.isCompilerOutputPathInherited.takeIf { it }?.toString() }
+                    sources.excludes.sorted().forEach { prop(" - exclude") { it } }
+                    sources.includes.sorted().forEach { prop(" - include") { it } }
+                    sources.patterns.includes.sorted().forEach { prop(" - patterns.include") { it.toString() } }
+                    sources.patterns.excludes.sorted().forEach { prop(" - patterns.exclude") { it.toString() } }
+                    sources.filters.map { it.toString() }.sorted().forEach { prop(" - filter") { it } }
+                  }
+                }
+              sourceset.dependencies.sortedBy { it.id.toString().replaceKnownPaths() }.forEach { dump(it) }
+            }
+          }
+
+        externalProject.childProjects.entries.sortedBy { it.key }.forEach { (key, project) ->
+          dump(project, key)
+        }
+      }
+    }
+
+    fun dump(dependency: ExternalDependency) {
+      head("externalDependency") { dependency.id.toString().replaceKnownPaths() }
+      nest {
+        prop("group") {dependency.group }
+        prop("name") {dependency.name.replaceKnownPaths() }
+        prop("version") {dependency.version }
+        prop("scope") {dependency.scope }
+        prop("packaging") {dependency.packaging }
+        prop("classifier") {dependency.classifier }
+        prop("selectionReason") {dependency.selectionReason }
+        prop("classpathOrder") { dependency.classpathOrder.takeIf { it != 0 }?.toString() }
+        prop("exported") { dependency.exported.takeIf { it }?.toString() }
+        dependency.dependencies.forEach { dump(it) }
+      }
+    }
   }
+}
+
+private fun IExternalSystemSourceType.toDescription(): String {
+  fun Boolean.to(name: String) = if (this) name else ""
+  return "${isExcluded.to("/excluded")}${isGenerated.to("/generated")}${isResource.to("/resource")}${isTest.to("/test")}"
 }
 
 
@@ -720,7 +820,7 @@ class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val dumper = ProjectDumper()
-    dumper.dumpAndroidIdeModel(project, { null }, { null })
+    dumper.dumpAndroidIdeModel(project, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
     outputFile.writeText(dump)

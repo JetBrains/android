@@ -1,4 +1,208 @@
 MODULE                        : project
+    externalProject               :
+        externalSystemId              : GRADLE
+        id                            : project
+        name                          : project
+        qName                         : project
+        group                         :
+        version                       : unspecified
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalProject               : app
+            externalSystemId              : GRADLE
+            id                            : :app
+            name                          : app
+            qName                         : :app
+            group                         : project
+            version                       : unspecified
+            sourceCompatibility           : 11
+            targetCompatibility           : 11
+            projectDir                    : <ROOT>/app
+            buildDir                      : <ROOT>/app/build [-]
+            buildFile                     : <ROOT>/app/build.gradle
+            configurationArtifacts        : androidApis
+            configurationArtifacts        : androidJacocoAnt
+            configurationArtifacts        : androidJdkImage
+            configurationArtifacts        : androidTestAnnotationProcessor
+            configurationArtifacts        : androidTestCompileOnly
+            configurationArtifacts        : androidTestDebugAnnotationProcessor
+            configurationArtifacts        : androidTestDebugCompileOnly
+            configurationArtifacts        : androidTestDebugImplementation
+            configurationArtifacts        : androidTestDebugRuntimeOnly
+            configurationArtifacts        : androidTestDebugWearApp
+            configurationArtifacts        : androidTestImplementation
+            configurationArtifacts        : androidTestReleaseAnnotationProcessor
+            configurationArtifacts        : androidTestReleaseCompileOnly
+            configurationArtifacts        : androidTestReleaseImplementation
+            configurationArtifacts        : androidTestReleaseRuntimeOnly
+            configurationArtifacts        : androidTestReleaseWearApp
+            configurationArtifacts        : androidTestRuntimeOnly
+            configurationArtifacts        : androidTestUtil
+            configurationArtifacts        : androidTestWearApp
+            configurationArtifacts        : annotationProcessor
+            configurationArtifacts        : api
+            configurationArtifacts        : archives
+            configurationArtifacts        : compileOnly
+            configurationArtifacts        : coreLibraryDesugaring
+            configurationArtifacts        : debugAabPublication
+                -                             : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+            configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
+            configurationArtifacts        : debugAndroidTestCompileClasspath
+            configurationArtifacts        : debugAndroidTestRuntimeClasspath
+            configurationArtifacts        : debugAnnotationProcessor
+            configurationArtifacts        : debugAnnotationProcessorClasspath
+            configurationArtifacts        : debugApi
+            configurationArtifacts        : debugApiElements
+            configurationArtifacts        : debugApkPublication
+                -                             : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+            configurationArtifacts        : debugCompileClasspath
+            configurationArtifacts        : debugCompileOnly
+            configurationArtifacts        : debugImplementation
+            configurationArtifacts        : debugReverseMetadataValues
+            configurationArtifacts        : debugRuntimeClasspath
+            configurationArtifacts        : debugRuntimeElements
+            configurationArtifacts        : debugRuntimeOnly
+            configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
+            configurationArtifacts        : debugUnitTestCompileClasspath
+            configurationArtifacts        : debugUnitTestRuntimeClasspath
+            configurationArtifacts        : debugWearApp
+            configurationArtifacts        : debugWearBundling
+            configurationArtifacts        : default
+            configurationArtifacts        : implementation
+            configurationArtifacts        : lintChecks
+            configurationArtifacts        : lintPublish
+            configurationArtifacts        : releaseAabPublication
+                -                             : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+            configurationArtifacts        : releaseAnnotationProcessor
+            configurationArtifacts        : releaseAnnotationProcessorClasspath
+            configurationArtifacts        : releaseApi
+            configurationArtifacts        : releaseApiElements
+            configurationArtifacts        : releaseApkPublication
+                -                             : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+            configurationArtifacts        : releaseCompileClasspath
+            configurationArtifacts        : releaseCompileOnly
+            configurationArtifacts        : releaseImplementation
+            configurationArtifacts        : releaseReverseMetadataValues
+            configurationArtifacts        : releaseRuntimeClasspath
+            configurationArtifacts        : releaseRuntimeElements
+            configurationArtifacts        : releaseRuntimeOnly
+            configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
+            configurationArtifacts        : releaseUnitTestCompileClasspath
+            configurationArtifacts        : releaseUnitTestRuntimeClasspath
+            configurationArtifacts        : releaseWearApp
+            configurationArtifacts        : releaseWearBundling
+            configurationArtifacts        : runtimeOnly
+            configurationArtifacts        : testAnnotationProcessor
+            configurationArtifacts        : testCompileOnly
+            configurationArtifacts        : testDebugAnnotationProcessor
+            configurationArtifacts        : testDebugCompileOnly
+            configurationArtifacts        : testDebugImplementation
+            configurationArtifacts        : testDebugRuntimeOnly
+            configurationArtifacts        : testDebugWearApp
+            configurationArtifacts        : testFixturesAnnotationProcessor
+            configurationArtifacts        : testFixturesApi
+            configurationArtifacts        : testFixturesCompileOnly
+            configurationArtifacts        : testFixturesDebugAnnotationProcessor
+            configurationArtifacts        : testFixturesDebugApi
+            configurationArtifacts        : testFixturesDebugCompileOnly
+            configurationArtifacts        : testFixturesDebugImplementation
+            configurationArtifacts        : testFixturesDebugRuntimeOnly
+            configurationArtifacts        : testFixturesDebugWearApp
+            configurationArtifacts        : testFixturesImplementation
+            configurationArtifacts        : testFixturesReleaseAnnotationProcessor
+            configurationArtifacts        : testFixturesReleaseApi
+            configurationArtifacts        : testFixturesReleaseCompileOnly
+            configurationArtifacts        : testFixturesReleaseImplementation
+            configurationArtifacts        : testFixturesReleaseRuntimeOnly
+            configurationArtifacts        : testFixturesReleaseWearApp
+            configurationArtifacts        : testFixturesRuntimeOnly
+            configurationArtifacts        : testFixturesWearApp
+            configurationArtifacts        : testImplementation
+            configurationArtifacts        : testReleaseAnnotationProcessor
+            configurationArtifacts        : testReleaseCompileOnly
+            configurationArtifacts        : testReleaseImplementation
+            configurationArtifacts        : testReleaseRuntimeOnly
+            configurationArtifacts        : testReleaseWearApp
+            configurationArtifacts        : testRuntimeOnly
+            configurationArtifacts        : testWearApp
+            configurationArtifacts        : wearApp
+        externalProject               : test
+            externalSystemId              : GRADLE
+            id                            : :test
+            name                          : test
+            qName                         : :test
+            group                         : project
+            version                       : unspecified
+            sourceCompatibility           : 11
+            targetCompatibility           : 11
+            projectDir                    : <ROOT>/test
+            buildDir                      : <ROOT>/test/build [-]
+            buildFile                     : <ROOT>/test/build.gradle
+            configurationArtifacts        : androidApis
+            configurationArtifacts        : androidJacocoAnt
+            configurationArtifacts        : androidJdkImage
+            configurationArtifacts        : androidTestUtil
+            configurationArtifacts        : annotationProcessor
+            configurationArtifacts        : api
+            configurationArtifacts        : archives
+            configurationArtifacts        : compileOnly
+            configurationArtifacts        : coreLibraryDesugaring
+            configurationArtifacts        : debugAnnotationProcessor
+            configurationArtifacts        : debugAnnotationProcessorClasspath
+            configurationArtifacts        : debugApi
+            configurationArtifacts        : debugCompileClasspath
+            configurationArtifacts        : debugCompileOnly
+            configurationArtifacts        : debugImplementation
+            configurationArtifacts        : debugRuntimeClasspath
+            configurationArtifacts        : debugRuntimeOnly
+            configurationArtifacts        : debugTestedApks
+            configurationArtifacts        : debugWearApp
+            configurationArtifacts        : default
+            configurationArtifacts        : implementation
+            configurationArtifacts        : lintChecks
+            configurationArtifacts        : lintPublish
+            configurationArtifacts        : runtimeOnly
+            configurationArtifacts        : testedApks
+            configurationArtifacts        : wearApp
+        externalProject               : test2
+            externalSystemId              : GRADLE
+            id                            : :test2
+            name                          : test2
+            qName                         : :test2
+            group                         : project
+            version                       : unspecified
+            sourceCompatibility           : 11
+            targetCompatibility           : 11
+            projectDir                    : <ROOT>/test2
+            buildDir                      : <ROOT>/test2/build [-]
+            buildFile                     : <ROOT>/test2/build.gradle
+            configurationArtifacts        : androidApis
+            configurationArtifacts        : androidJacocoAnt
+            configurationArtifacts        : androidJdkImage
+            configurationArtifacts        : androidTestUtil
+            configurationArtifacts        : annotationProcessor
+            configurationArtifacts        : api
+            configurationArtifacts        : archives
+            configurationArtifacts        : compileOnly
+            configurationArtifacts        : coreLibraryDesugaring
+            configurationArtifacts        : debugAnnotationProcessor
+            configurationArtifacts        : debugAnnotationProcessorClasspath
+            configurationArtifacts        : debugApi
+            configurationArtifacts        : debugCompileClasspath
+            configurationArtifacts        : debugCompileOnly
+            configurationArtifacts        : debugImplementation
+            configurationArtifacts        : debugRuntimeClasspath
+            configurationArtifacts        : debugRuntimeOnly
+            configurationArtifacts        : debugTestedApks
+            configurationArtifacts        : debugWearApp
+            configurationArtifacts        : default
+            configurationArtifacts        : implementation
+            configurationArtifacts        : lintChecks
+            configurationArtifacts        : lintPublish
+            configurationArtifacts        : runtimeOnly
+            configurationArtifacts        : testedApks
+            configurationArtifacts        : wearApp
 MODULE                        : project.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -317,6 +521,124 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    externalProject               :
+        externalSystemId              : GRADLE
+        id                            : :app
+        name                          : app
+        qName                         : :app
+        group                         : project
+        version                       : unspecified
+        sourceCompatibility           : 11
+        targetCompatibility           : 11
+        projectDir                    : <ROOT>/app
+        buildDir                      : <ROOT>/app/build [-]
+        buildFile                     : <ROOT>/app/build.gradle
+        configurationArtifacts        : androidApis
+        configurationArtifacts        : androidJacocoAnt
+        configurationArtifacts        : androidJdkImage
+        configurationArtifacts        : androidTestAnnotationProcessor
+        configurationArtifacts        : androidTestCompileOnly
+        configurationArtifacts        : androidTestDebugAnnotationProcessor
+        configurationArtifacts        : androidTestDebugCompileOnly
+        configurationArtifacts        : androidTestDebugImplementation
+        configurationArtifacts        : androidTestDebugRuntimeOnly
+        configurationArtifacts        : androidTestDebugWearApp
+        configurationArtifacts        : androidTestImplementation
+        configurationArtifacts        : androidTestReleaseAnnotationProcessor
+        configurationArtifacts        : androidTestReleaseCompileOnly
+        configurationArtifacts        : androidTestReleaseImplementation
+        configurationArtifacts        : androidTestReleaseRuntimeOnly
+        configurationArtifacts        : androidTestReleaseWearApp
+        configurationArtifacts        : androidTestRuntimeOnly
+        configurationArtifacts        : androidTestUtil
+        configurationArtifacts        : androidTestWearApp
+        configurationArtifacts        : annotationProcessor
+        configurationArtifacts        : api
+        configurationArtifacts        : archives
+        configurationArtifacts        : compileOnly
+        configurationArtifacts        : coreLibraryDesugaring
+        configurationArtifacts        : debugAabPublication
+            -                             : <ROOT>/app/build/outputs/bundle/debug/app-debug.aab [-]
+        configurationArtifacts        : debugAndroidTestAnnotationProcessorClasspath
+        configurationArtifacts        : debugAndroidTestCompileClasspath
+        configurationArtifacts        : debugAndroidTestRuntimeClasspath
+        configurationArtifacts        : debugAnnotationProcessor
+        configurationArtifacts        : debugAnnotationProcessorClasspath
+        configurationArtifacts        : debugApi
+        configurationArtifacts        : debugApiElements
+        configurationArtifacts        : debugApkPublication
+            -                             : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
+        configurationArtifacts        : debugCompileClasspath
+        configurationArtifacts        : debugCompileOnly
+        configurationArtifacts        : debugImplementation
+        configurationArtifacts        : debugReverseMetadataValues
+        configurationArtifacts        : debugRuntimeClasspath
+        configurationArtifacts        : debugRuntimeElements
+        configurationArtifacts        : debugRuntimeOnly
+        configurationArtifacts        : debugUnitTestAnnotationProcessorClasspath
+        configurationArtifacts        : debugUnitTestCompileClasspath
+        configurationArtifacts        : debugUnitTestRuntimeClasspath
+        configurationArtifacts        : debugWearApp
+        configurationArtifacts        : debugWearBundling
+        configurationArtifacts        : default
+        configurationArtifacts        : implementation
+        configurationArtifacts        : lintChecks
+        configurationArtifacts        : lintPublish
+        configurationArtifacts        : releaseAabPublication
+            -                             : <ROOT>/app/build/outputs/bundle/release/app-release.aab [-]
+        configurationArtifacts        : releaseAnnotationProcessor
+        configurationArtifacts        : releaseAnnotationProcessorClasspath
+        configurationArtifacts        : releaseApi
+        configurationArtifacts        : releaseApiElements
+        configurationArtifacts        : releaseApkPublication
+            -                             : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
+        configurationArtifacts        : releaseCompileClasspath
+        configurationArtifacts        : releaseCompileOnly
+        configurationArtifacts        : releaseImplementation
+        configurationArtifacts        : releaseReverseMetadataValues
+        configurationArtifacts        : releaseRuntimeClasspath
+        configurationArtifacts        : releaseRuntimeElements
+        configurationArtifacts        : releaseRuntimeOnly
+        configurationArtifacts        : releaseUnitTestAnnotationProcessorClasspath
+        configurationArtifacts        : releaseUnitTestCompileClasspath
+        configurationArtifacts        : releaseUnitTestRuntimeClasspath
+        configurationArtifacts        : releaseWearApp
+        configurationArtifacts        : releaseWearBundling
+        configurationArtifacts        : runtimeOnly
+        configurationArtifacts        : testAnnotationProcessor
+        configurationArtifacts        : testCompileOnly
+        configurationArtifacts        : testDebugAnnotationProcessor
+        configurationArtifacts        : testDebugCompileOnly
+        configurationArtifacts        : testDebugImplementation
+        configurationArtifacts        : testDebugRuntimeOnly
+        configurationArtifacts        : testDebugWearApp
+        configurationArtifacts        : testFixturesAnnotationProcessor
+        configurationArtifacts        : testFixturesApi
+        configurationArtifacts        : testFixturesCompileOnly
+        configurationArtifacts        : testFixturesDebugAnnotationProcessor
+        configurationArtifacts        : testFixturesDebugApi
+        configurationArtifacts        : testFixturesDebugCompileOnly
+        configurationArtifacts        : testFixturesDebugImplementation
+        configurationArtifacts        : testFixturesDebugRuntimeOnly
+        configurationArtifacts        : testFixturesDebugWearApp
+        configurationArtifacts        : testFixturesImplementation
+        configurationArtifacts        : testFixturesReleaseAnnotationProcessor
+        configurationArtifacts        : testFixturesReleaseApi
+        configurationArtifacts        : testFixturesReleaseCompileOnly
+        configurationArtifacts        : testFixturesReleaseImplementation
+        configurationArtifacts        : testFixturesReleaseRuntimeOnly
+        configurationArtifacts        : testFixturesReleaseWearApp
+        configurationArtifacts        : testFixturesRuntimeOnly
+        configurationArtifacts        : testFixturesWearApp
+        configurationArtifacts        : testImplementation
+        configurationArtifacts        : testReleaseAnnotationProcessor
+        configurationArtifacts        : testReleaseCompileOnly
+        configurationArtifacts        : testReleaseImplementation
+        configurationArtifacts        : testReleaseRuntimeOnly
+        configurationArtifacts        : testReleaseWearApp
+        configurationArtifacts        : testRuntimeOnly
+        configurationArtifacts        : testWearApp
+        configurationArtifacts        : wearApp
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
@@ -1065,6 +1387,44 @@ MODULE                        : project.test
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+    externalProject               :
+        externalSystemId              : GRADLE
+        id                            : :test
+        name                          : test
+        qName                         : :test
+        group                         : project
+        version                       : unspecified
+        sourceCompatibility           : 11
+        targetCompatibility           : 11
+        projectDir                    : <ROOT>/test
+        buildDir                      : <ROOT>/test/build [-]
+        buildFile                     : <ROOT>/test/build.gradle
+        configurationArtifacts        : androidApis
+        configurationArtifacts        : androidJacocoAnt
+        configurationArtifacts        : androidJdkImage
+        configurationArtifacts        : androidTestUtil
+        configurationArtifacts        : annotationProcessor
+        configurationArtifacts        : api
+        configurationArtifacts        : archives
+        configurationArtifacts        : compileOnly
+        configurationArtifacts        : coreLibraryDesugaring
+        configurationArtifacts        : debugAnnotationProcessor
+        configurationArtifacts        : debugAnnotationProcessorClasspath
+        configurationArtifacts        : debugApi
+        configurationArtifacts        : debugCompileClasspath
+        configurationArtifacts        : debugCompileOnly
+        configurationArtifacts        : debugImplementation
+        configurationArtifacts        : debugRuntimeClasspath
+        configurationArtifacts        : debugRuntimeOnly
+        configurationArtifacts        : debugTestedApks
+        configurationArtifacts        : debugWearApp
+        configurationArtifacts        : default
+        configurationArtifacts        : implementation
+        configurationArtifacts        : lintChecks
+        configurationArtifacts        : lintPublish
+        configurationArtifacts        : runtimeOnly
+        configurationArtifacts        : testedApks
+        configurationArtifacts        : wearApp
 MODULE                        : project.test.main
 MODULE                        : project.test2
     ModelVersion                  : <AGP_VERSION>
@@ -1809,4 +2169,42 @@ MODULE                        : project.test2
             TestedTargetVariants
                 TargetProjectPath             : :app
                 TargetVariant                 : debug
+    externalProject               :
+        externalSystemId              : GRADLE
+        id                            : :test2
+        name                          : test2
+        qName                         : :test2
+        group                         : project
+        version                       : unspecified
+        sourceCompatibility           : 11
+        targetCompatibility           : 11
+        projectDir                    : <ROOT>/test2
+        buildDir                      : <ROOT>/test2/build [-]
+        buildFile                     : <ROOT>/test2/build.gradle
+        configurationArtifacts        : androidApis
+        configurationArtifacts        : androidJacocoAnt
+        configurationArtifacts        : androidJdkImage
+        configurationArtifacts        : androidTestUtil
+        configurationArtifacts        : annotationProcessor
+        configurationArtifacts        : api
+        configurationArtifacts        : archives
+        configurationArtifacts        : compileOnly
+        configurationArtifacts        : coreLibraryDesugaring
+        configurationArtifacts        : debugAnnotationProcessor
+        configurationArtifacts        : debugAnnotationProcessorClasspath
+        configurationArtifacts        : debugApi
+        configurationArtifacts        : debugCompileClasspath
+        configurationArtifacts        : debugCompileOnly
+        configurationArtifacts        : debugImplementation
+        configurationArtifacts        : debugRuntimeClasspath
+        configurationArtifacts        : debugRuntimeOnly
+        configurationArtifacts        : debugTestedApks
+        configurationArtifacts        : debugWearApp
+        configurationArtifacts        : default
+        configurationArtifacts        : implementation
+        configurationArtifacts        : lintChecks
+        configurationArtifacts        : lintPublish
+        configurationArtifacts        : runtimeOnly
+        configurationArtifacts        : testedApks
+        configurationArtifacts        : wearApp
 MODULE                        : project.test2.main
