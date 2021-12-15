@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
@@ -343,7 +344,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     myLibrariesByManifestDir =
       Arrays.stream(ModuleManager.getInstance(myManifest.getModule().getProject()).getModules())
         .flatMap(module -> getModuleSystem(module)
-          .getAndroidLibraryDependencies()
+          .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
           .stream()
           .filter(it -> it.getManifestFile() != null)
         )

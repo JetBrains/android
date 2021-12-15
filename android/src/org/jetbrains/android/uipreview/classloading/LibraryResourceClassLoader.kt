@@ -20,6 +20,7 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
@@ -123,7 +124,7 @@ private fun registerResources(module: Module) {
                                repositoryManager.namespace)
     }
 
-  module.getModuleSystem().getAndroidLibraryDependencies()
+  module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
     .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
 }

@@ -168,7 +168,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
   @JvmDefault
-  fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> = getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+  fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> =
+    throw UnsupportedOperationException("Use getAndroidLibraryDependencies(scope: DependencyScopeType)");
   fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary>
 
   /**

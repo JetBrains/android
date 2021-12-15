@@ -205,7 +205,7 @@ public class AssetRepositoryImpl extends AssetRepository {
 
     Stream<VirtualFile> libraryDepAars = Stream.empty();
     if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
-      libraryDepAars = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies().stream()
+      libraryDepAars = getModuleSystem(facet.getModule()).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
         .map(ExternalAndroidLibrary::getLocation)
         .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
         .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))

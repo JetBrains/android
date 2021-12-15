@@ -101,7 +101,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
       val moduleSystem = project
         .getProjectSystem()
         .getModuleSystem(project.gradleModule(":app")!!)
-      val libraries = moduleSystem.getAndroidLibraryDependencies()
+      val libraries = moduleSystem.getAndroidLibraryDependencies(DependencyScopeType.MAIN)
 
       val appcompat = libraries
         .first { library -> library.address.startsWith("com.android.support:support-compat") }
