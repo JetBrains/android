@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Component;
@@ -115,29 +114,28 @@ public final class Tables {
     }
   }
 
-  public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex) {
-    sizeWidthToFit(table, viewColumnIndex, JBUIScale.scale(65));
-  }
-
-  public static void sizeWidthToFit(@NotNull JTable table, int viewColumnIndex, int minWidth) {
-    TableColumn column = table.getColumnModel().getColumn(viewColumnIndex);
-    int width = getPreferredColumnWidth(table, viewColumnIndex, minWidth);
-
+  public static void setWidths(@NotNull TableColumn column, int width) {
     column.setMinWidth(width);
     column.setMaxWidth(width);
     column.setPreferredWidth(width);
   }
 
-  private static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex, int minWidth) {
+  public static void setWidths(@NotNull TableColumn column, int width, int minWidth) {
+    column.setMinWidth(minWidth);
+    column.setMaxWidth(width);
+    column.setPreferredWidth(width);
+  }
+
+  public static int getPreferredColumnWidth(@NotNull JTable table, int viewColumnIndex, int minPreferredWidth) {
     OptionalInt width = IntStream.range(-1, table.getRowCount())
       .map(viewRowIndex -> getPreferredCellWidth(table, viewRowIndex, viewColumnIndex))
       .max();
 
     if (!width.isPresent()) {
-      return minWidth;
+      return minPreferredWidth;
     }
 
-    return Math.max(width.getAsInt(), minWidth);
+    return Math.max(width.getAsInt(), minPreferredWidth);
   }
 
   private static int getPreferredCellWidth(@NotNull JTable table, int viewRowIndex, int viewColumnIndex) {

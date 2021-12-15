@@ -25,6 +25,7 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.scale.JBUIScale;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,12 +78,24 @@ final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
 
   private void sizeApiTypeAndActionsColumnWidthsToFit() {
     getRowSorter().allRowsChanged();
+    columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(65));
 
-    Tables.sizeWidthToFit(this, apiViewColumnIndex());
-    Tables.sizeWidthToFit(this, typeViewColumnIndex());
-    Tables.sizeWidthToFit(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0);
-    Tables.sizeWidthToFit(this, removeViewColumnIndex(), 0);
-    Tables.sizeWidthToFit(this, popUpMenuViewColumnIndex(), 0);
+    Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, apiViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(typeViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, typeViewColumnIndex(), JBUIScale.scale(65)),
+                     JBUIScale.scale(20));
+
+    Tables.setWidths(columnModel.getColumn(activateDeviceFileExplorerWindowViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, activateDeviceFileExplorerWindowViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(removeViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, removeViewColumnIndex(), 0));
+
+    Tables.setWidths(columnModel.getColumn(popUpMenuViewColumnIndex()),
+                     Tables.getPreferredColumnWidth(this, popUpMenuViewColumnIndex(), 0));
   }
 
   private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
