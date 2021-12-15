@@ -21,7 +21,6 @@ import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -203,13 +202,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       if (targetPluginModel == null) {
         pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
       }
-      else {
-        val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
-        val existingVersion = GradleVersion.parse(targetPluginModel.version().toString())
-        if (toBeAddedVersion > existingVersion) {
-          targetPluginModel.version().setValue(resolvedVersion)
-        }
-      }
     }
   }
 
@@ -235,13 +227,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     if (targetDependencyModel == null) {
       buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
-    }
-    else {
-      val toBeAddedVersion = GradleVersion.parse(toBeAddedDependency.version ?: "")
-      val existingVersion = GradleVersion.parse(targetDependencyModel.version().toString())
-      if (toBeAddedVersion > existingVersion) {
-        targetDependencyModel.version().setValue(toBeAddedDependency.version ?: "")
-      }
     }
   }
 
