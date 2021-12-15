@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.actions
 
-import com.android.tools.idea.actions.AndroidAssetStudioAction
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep
 import com.android.tools.idea.npw.toUrl
