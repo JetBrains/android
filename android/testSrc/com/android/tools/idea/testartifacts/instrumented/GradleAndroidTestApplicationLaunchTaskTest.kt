@@ -17,7 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.util.LaunchStatus
@@ -49,7 +49,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockLaunchStatus: LaunchStatus
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
+  @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
   @Mock lateinit var mockIndicator: ProgressIndicator

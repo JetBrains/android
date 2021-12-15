@@ -17,7 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvisionException
@@ -91,7 +91,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_ALL_IN_MODULE -> {
         allInModuleTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
@@ -103,7 +103,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
@@ -116,7 +116,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
       TEST_CLASS -> {
         classTest(
           myProject,
-          requireNotNull(AndroidModuleModel.get(myFacet)),
+          requireNotNull(GradleAndroidModel.get(myFacet)),
           testAppId,
           myLaunchOptions.isDebug,
           launchStatus.processHandler,
@@ -129,7 +129,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
      TEST_METHOD -> {
        methodTest(
          myProject,
-         requireNotNull(AndroidModuleModel.get(myFacet)),
+         requireNotNull(GradleAndroidModel.get(myFacet)),
          testAppId,
          myLaunchOptions.isDebug,
          launchStatus.processHandler,

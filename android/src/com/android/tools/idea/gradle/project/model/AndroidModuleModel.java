@@ -49,10 +49,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
 
   String getSelectedVariantName();
 
-  @NotNull ImmutableList<IdeVariant> getVariants();
-
-  @Nullable IdeAndroidArtifact getArtifactForAndroidTest();
-
   @Nullable
   static AndroidModuleModel get(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);

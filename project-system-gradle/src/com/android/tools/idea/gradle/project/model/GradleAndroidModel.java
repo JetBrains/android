@@ -474,7 +474,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * @return a list of synced build variants.
    */
-  @Override
   @NotNull
   public ImmutableList<IdeVariant> getVariants() {
     return ImmutableList.copyOf(myCachedVariantsByName.values());
@@ -572,7 +571,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
    *
    * <p>For test-only modules this is the main artifact.
    */
-  @Override
   @Nullable
   public IdeAndroidArtifact getArtifactForAndroidTest() {
     return getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST ?

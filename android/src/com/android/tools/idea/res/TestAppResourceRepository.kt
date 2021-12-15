@@ -16,12 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.util.PathString
-import com.android.projectmodel.ExternalLibraryImpl
-import com.android.projectmodel.RecursiveResourceFolder
 import com.android.resources.aar.AarResourceRepository
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getModuleSystem

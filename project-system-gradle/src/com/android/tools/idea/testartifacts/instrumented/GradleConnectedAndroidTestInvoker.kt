@@ -22,7 +22,7 @@ import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
@@ -93,7 +93,7 @@ class GradleConnectedAndroidTestInvoker(
                taskId: String,
                processHandler: ProcessHandler,
                consolePrinter: ConsolePrinter,
-               androidModuleModel: AndroidModuleModel,
+               androidModuleModel: GradleAndroidModel,
                waitForDebugger: Boolean,
                testPackageName: String,
                testClassName: String,
@@ -123,7 +123,7 @@ class GradleConnectedAndroidTestInvoker(
     taskId: String,
     processHandler: ProcessHandler,
     consolePrinter: ConsolePrinter,
-    androidModuleModel: AndroidModuleModel,
+    androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -312,7 +312,7 @@ class GradleConnectedAndroidTestInvoker(
     }
   }
 
-  private fun getTaskNames(androidModuleModel: AndroidModuleModel): List<String> {
+  private fun getTaskNames(androidModuleModel: GradleAndroidModel): List<String> {
     return listOf(
       "${moduleData.id}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
     )

@@ -23,7 +23,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
@@ -72,7 +72,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
   @Mock lateinit var mockAndroidTestResultListener: AndroidTestResultListener
-  @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
+  @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   @Mock lateinit var mockModuleData: ModuleData
   @Mock lateinit var mockBuildToolWindow: ToolWindow

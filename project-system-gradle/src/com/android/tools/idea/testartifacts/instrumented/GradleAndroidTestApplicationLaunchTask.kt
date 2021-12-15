@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
  */
 class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
-  private val androidModuleModel: AndroidModuleModel,
+  private val androidModuleModel: GradleAndroidModel,
   private val taskId: String,
   private val waitForDebugger: Boolean,
   private val processHandler: ProcessHandler,
@@ -49,7 +49,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInModuleTest(
       project: Project,
-      androidModuleModel: AndroidModuleModel,
+      androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -68,7 +68,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInPackageTest(
       project: Project,
-      androidModuleModel: AndroidModuleModel,
+      androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -89,7 +89,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun classTest(
       project: Project,
-      androidModuleModel: AndroidModuleModel,
+      androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -110,7 +110,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun methodTest(
       project: Project,
-      androidModuleModel: AndroidModuleModel,
+      androidModuleModel: GradleAndroidModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
