@@ -60,7 +60,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
 
       val listener = UsageTrackerTestRunListener(
         module!!.getModuleSystem().getTestLibrariesInUse(),
-        AndroidModel.get(module)!!.testExecutionOption,
+        AndroidModel.get(module)!!.testOptions!!.executionOption,
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }

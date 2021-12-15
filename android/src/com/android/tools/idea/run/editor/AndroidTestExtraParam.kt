@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestOptions
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -102,10 +103,10 @@ fun Sequence<AndroidTestExtraParam>.merge(params: Sequence<AndroidTestExtraParam
 }
 
 /**
- * Retrieves [AndroidTestExtraParam]s from a given [AndroidModuleModel].
+ * Retrieves [AndroidTestExtraParam]s from a given [TestOptions].
  */
-fun AndroidModuleModel?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
-  return this?.selectedVariant?.testInstrumentationRunnerArguments?.asSequence()?.map { (key, value) ->
+fun TestOptions?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
+  return this?.instrumentationRunnerArguments?.asSequence()?.map { (key, value) ->
     AndroidTestExtraParam(key, value, value, AndroidTestExtraParamSource.GRADLE)
   } ?: emptySequence()
 }
@@ -114,5 +115,5 @@ fun AndroidModuleModel?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraPa
  * Retrieves [AndroidTestExtraParam]s from a given [AndroidFacet].
  */
 fun AndroidFacet?.getAndroidTestExtraParams(): Sequence<AndroidTestExtraParam> {
-  return this?.let { AndroidModuleModel.get(it).getAndroidTestExtraParams() } ?: emptySequence()
+  return this?.let { AndroidModel.get(it)?.testOptions?.getAndroidTestExtraParams() } ?: emptySequence()
 }

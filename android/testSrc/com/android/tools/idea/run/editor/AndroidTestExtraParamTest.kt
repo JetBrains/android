@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -99,14 +98,14 @@ class AndroidTestExtraParamTest : AndroidGradleTestCase() {
   @Test
   fun testGetAndroidTestExtraParamsFromAndroidModuleModel() {
     loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS)
-    assertThat(AndroidModuleModel.get(myAndroidFacet).getAndroidTestExtraParams().toList()).containsExactly(
+    assertThat(myAndroidFacet.getAndroidTestExtraParams().toList()).containsExactly(
       AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
       AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
   }
 
   @Test
   fun testGetAndroidTestExtraParamsFromAndroidModuleModelOfNullPointer() {
-    assertThat((null as AndroidModuleModel?).getAndroidTestExtraParams().toList()).isEmpty()
+    assertThat((null as AndroidFacet?).getAndroidTestExtraParams().toList()).isEmpty()
   }
 
   @Test

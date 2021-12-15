@@ -55,6 +55,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.model.TestOptions;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -701,22 +702,39 @@ public class GradleAndroidModel implements AndroidModuleModel {
   }
 
   @Override
-  public @Nullable TestExecutionOption getTestExecutionOption() {
-    IdeAndroidArtifact testArtifact = getSelectedVariant().getAndroidTestArtifact();
-    if (testArtifact == null) return null;
+  public @NotNull TestOptions getTestOptions() {
+    @Nullable IdeAndroidArtifact testArtifact = getSelectedVariant().getAndroidTestArtifact();
+    @Nullable IdeTestOptions testOptions = testArtifact != null ? testArtifact.getTestOptions() : null;
+    @Nullable IdeTestOptions.Execution execution = testOptions != null ? testOptions.getExecution() : null;
 
-    IdeTestOptions testOptions = testArtifact.getTestOptions();
-    if (testOptions == null) return null;
-
-    IdeTestOptions.Execution execution = testOptions.getExecution();
-    if (execution == null) return null;
-
-    switch (execution) {
-      case ANDROID_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROID_TEST_ORCHESTRATOR;
-      case ANDROIDX_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR;
-      case HOST: return TestExecutionOption.HOST;
-      default: throw new IllegalStateException("Unknown option: " + execution);
+    TestExecutionOption executionOption;
+    if (execution != null) {
+      switch (execution) {
+        case ANDROID_TEST_ORCHESTRATOR:
+          executionOption = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR;
+          break;
+        case ANDROIDX_TEST_ORCHESTRATOR:
+          executionOption = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR;
+          break;
+        case HOST:
+          executionOption = TestExecutionOption.HOST;
+          break;
+        default:
+          throw new IllegalStateException("Unknown option: " + execution);
+      }
     }
+    else {
+      executionOption = null;
+    }
+
+    boolean animationsDisabled = testOptions != null && testOptions.getAnimationsDisabled();
+
+    return new TestOptions(
+      executionOption,
+      animationsDisabled,
+      getSelectedVariant().getTestInstrumentationRunner(),
+      getSelectedVariant().getTestInstrumentationRunnerArguments()
+    );
   }
 
   @Override

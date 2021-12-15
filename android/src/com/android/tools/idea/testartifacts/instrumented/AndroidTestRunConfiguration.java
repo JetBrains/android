@@ -22,12 +22,10 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
+import com.android.tools.idea.model.TestOptions;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -342,8 +340,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
       return null;
     }
-
-    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(facet));
+    @Nullable AndroidModel androidModel = AndroidModel.get(facet);
+    @Nullable TestOptions testOptions = androidModel != null ? androidModel.getTestOptions() : null;
+    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(testOptions));
 
     String testAppId;
     try {
@@ -358,11 +357,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    AndroidModel moduleModel = AndroidModel.get(facet);
-
     AndroidModuleSystem moduleSystem = getModuleSystem(facet);
     TestLibraries testLibrariesInUse = moduleSystem.getTestLibrariesInUse();
-    TestExecutionOption testExecutionOption = moduleModel != null ? moduleModel.getTestExecutionOption() : null;
+    TestExecutionOption testExecutionOption = testOptions != null ? testOptions.getExecutionOption() : null;
     switch (TESTING_TYPE) {
       case TEST_ALL_IN_MODULE:
         return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
@@ -426,12 +423,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (facet == null) {
       return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
     }
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       // When a project is a gradle based project, instrumentation runner is always specified
       // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
       // these values are always overwritten by AGP).
-      String runner = androidModel.getSelectedVariant().getTestInstrumentationRunner();
+      String runner = androidModel.getTestOptions().getInstrumentationRunner();
       if (isEmptyOrSpaces(runner)) {
         return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
       }
@@ -484,18 +481,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   /**
    * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
    *
-   * @param facet a facet to retrieve instrumentation options
    * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
    */
   @NotNull
-  public String getInstrumentationOptions(@Nullable AndroidFacet facet) {
+  public String getInstrumentationOptions(@Nullable TestOptions testOptions) {
     ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-    boolean isAnimationDisabled = Optional.ofNullable(facet)
-      .map(AndroidModuleModel::get)
-      .map(AndroidModuleModel::getArtifactForAndroidTest)
-      .map(IdeAndroidArtifact::getTestOptions)
-      .map(IdeTestOptions::getAnimationsDisabled)
-      .orElse(false);
+    boolean isAnimationDisabled = testOptions != null ? testOptions.getAnimationsDisabled() : false;
     if (isAnimationDisabled) {
       builder.add("--no-window-animation");
     }
@@ -627,7 +618,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public TestExecutionOption getTestExecutionOption(@Nullable AndroidFacet facet) {
     return Optional.ofNullable(facet)
       .map(AndroidModel::get)
-      .map(AndroidModel::getTestExecutionOption)
+      .map(AndroidModel::getTestOptions)
+      .map(TestOptions::getExecutionOption)
       .orElse(TestExecutionOption.HOST);
   }
 }

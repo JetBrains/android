@@ -165,8 +165,13 @@ public interface AndroidModel {
     return Collections.emptyMap();
   }
 
+  @NotNull
+  default TestOptions getTestOptions() { return TestOptions.DEFAULT; }
+
   @Nullable
-  default TestExecutionOption getTestExecutionOption() { return null; }
+  default TestExecutionOption getTestExecutionOption() {
+    return getTestOptions().getExecutionOption();
+  }
 
   /**
    * Returns the resource prefix to use, if any. This is an optional prefix which can be set and
