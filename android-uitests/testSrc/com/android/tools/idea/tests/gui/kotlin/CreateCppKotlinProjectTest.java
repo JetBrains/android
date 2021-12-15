@@ -50,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -109,6 +110,7 @@ public class CreateCppKotlinProjectTest {
    *   files of the project match the files of the pre-created project "CppKotlin".
    * </p>
    */
+  @Ignore("b/210474709")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createCppKotlinProject() throws Exception {

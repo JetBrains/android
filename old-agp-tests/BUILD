@@ -168,6 +168,7 @@ local_old_agp_test(
     shard_count = 4,
     tags = [
         "block-network",
+        "manual",  # TODO(b/203803107): Re-enable this test when fixed.
         "no_test_mac",
         "no_test_windows",
     ],

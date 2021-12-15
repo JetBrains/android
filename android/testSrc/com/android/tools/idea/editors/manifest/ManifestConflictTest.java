@@ -42,7 +42,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
-  public void testResolveMinSdkConflict() throws Exception {
+  public void ignoreTestResolveMinSdkConflict() throws Exception { // TODO(b/205623011): Re-enable this test when fixed.
     loadProject(MANIFEST_CONFLICT_MIN_SDK);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);

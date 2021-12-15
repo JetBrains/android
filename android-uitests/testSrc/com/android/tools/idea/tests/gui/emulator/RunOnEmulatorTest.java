@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,6 +109,7 @@ public class RunOnEmulatorTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
+  @Ignore("b/205851170")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void runOnEmulator() throws Exception {
