@@ -112,11 +112,11 @@ class ResourceFileTrafficLightRender(val file: PsiFile, val editor: Editor) : Tr
     }
   }
 
-  override fun getErrorCount(): IntArray {
+  override fun getErrorCounts(): IntArray {
     if (hasVariants && includeQualifierVariants) {
       return errorCountArray
     }
-    return super.getErrorCount()
+    return super.getErrorCounts()
   }
 
   override fun getStatus(): AnalyzerStatus {
