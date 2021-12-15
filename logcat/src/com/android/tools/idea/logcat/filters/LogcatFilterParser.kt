@@ -82,7 +82,7 @@ internal class LogcatFilterParser(
     }
     catch (e: LogcatFilterParseException) {
       // Any error in parsing results in a filter that matches the raw string with the entire line.
-      StringFilter(string, LINE)
+      StringFilter(string, IMPLICIT_LINE)
     }
   }
 

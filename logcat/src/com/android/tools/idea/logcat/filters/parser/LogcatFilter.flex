@@ -75,7 +75,7 @@ AND = "&"
 LPAREN = "("
 RPAREN = ")"
 
-UNQUOTED_VALUE      = ([^\s()] | "\\ ")+
+UNQUOTED_VALUE      = [^'\"\s()] ([^\s()] | "\\ ")+
 SINGLE_QUOTED_VALUE = ' ([^'] | \\')* '
 DOUBLE_QUOTED_VALUE = \" ([^\"] | \\\")* \"
 STRING_VALUE        = {UNQUOTED_VALUE} | {SINGLE_QUOTED_VALUE} | {DOUBLE_QUOTED_VALUE}

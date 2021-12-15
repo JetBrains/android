@@ -170,6 +170,50 @@ class LogcatFilterCompletionContributorTest {
       assertThat(fixture.lookupElementStrings).named("$key with whitespace").containsExactlyElementsIn(setOf("package1 ", "package2 "))
     }
   }
+
+  @Test
+  fun complete_insideQuotes() {
+    listOf("'foo $caret'", "\"foo $caret\"").forEach {
+      fixture.configure(it)
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named(it).isEmpty()
+    }
+  }
+
+  @Test
+  fun complete_insideUnterminatedQuotes() {
+    listOf("'foo $caret", "\"foo $caret").forEach {
+      fixture.configure(it)
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named(it).isEmpty()
+    }
+  }
+
+  @Test
+  fun complete_afterClosingQuoteOrParen() {
+    listOf("'foo'$caret", "\"foo\"$caret", "(foo)$caret").forEach {
+      fixture.configure(it)
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named(it).isEmpty()
+    }
+  }
+
+  @Test
+  fun complete_afterClosingQuoteOrParenFollowedBySpace() {
+    listOf("'foo' $caret", "\"foo\" $caret", "(foo) $caret").forEach {
+      fixture.configure(it)
+
+      fixture.completeBasic()
+
+      assertThat(fixture.lookupElementStrings).named(it).containsExactlyElementsIn(KEYS)
+    }
+  }
 }
 
 /**

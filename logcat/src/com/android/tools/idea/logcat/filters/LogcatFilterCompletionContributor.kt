@@ -26,9 +26,11 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.psi.TokenType.ERROR_ELEMENT
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -62,6 +64,9 @@ private val KEYS_LOOKUP_BUILDERS = KEYS.map(String::toLookupElement)
 
 private val LEVEL_LOOKUPS = Log.LogLevel.values().map { it.name.toLookupElement(suffix = " ") }
 
+// Do not complete a key if previous char is one of these
+private const val NON_KEY_MARKER = "'\")"
+
 /**
  * A [CompletionContributor] for the Logcat Filter Language.
  */
@@ -70,6 +75,27 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
     extend(CompletionType.BASIC, psiElement(LogcatFilterTypes.VALUE),
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+               // We have to exclude a few special cases where we do not want to complete.
+
+               val text = parameters.position.text
+               if (text.startsWith('"') || text.startsWith('\'')) {
+                 // Do not complete keys inside a quoted text.
+                 return
+               }
+               if (PsiTreeUtil.findSiblingBackward(parameters.position, ERROR_ELEMENT, null) != null) {
+                 // Do not complete a key if there is an error in the current level of the tree. This happens when we are in an
+                 // unterminated quoted string.
+                 return
+               }
+               // Offset of beginning of the current psi element.
+               val pos = parameters.offset - parameters.getRealTextLength()
+               if (pos > 0) {
+                 // Do not complete a key right after certain chars.
+                 val c = parameters.originalFile.text[pos - 1]
+                 if (NON_KEY_MARKER.contains(c)) {
+                   return
+                 }
+               }
                result.addAllElements(KEYS_LOOKUP_BUILDERS)
              }
            })
@@ -106,3 +132,9 @@ private fun CompletionParameters.getTags() =
 
 private fun CompletionParameters.getPackageNames() =
   editor.getUserData(PACKAGE_NAMES_PROVIDER_KEY)?.getPackageNames() ?: throw IllegalStateException("Missing PackageNamesProvider")
+
+private fun CompletionParameters.getRealTextLength(): Int {
+  val text = position.text
+  val len = text.indexOf(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+  return if (len < 0) text.length else len
+}

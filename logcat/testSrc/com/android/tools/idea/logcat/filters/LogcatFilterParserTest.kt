@@ -112,12 +112,12 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_invalidRegex() {
-    assertThat(logcatFilterParser().parse("""tag~:\""")).isEqualTo(StringFilter("""tag~:\""", LINE))
+    assertThat(logcatFilterParser().parse("""tag~:\""")).isEqualTo(StringFilter("""tag~:\""", IMPLICIT_LINE))
   }
 
   @Test
   fun parse_invalidNegatedRegex() {
-    assertThat(logcatFilterParser().parse("""-tag~:\""")).isEqualTo(StringFilter("""-tag~:\""", LINE))
+    assertThat(logcatFilterParser().parse("""-tag~:\""")).isEqualTo(StringFilter("""-tag~:\""", IMPLICIT_LINE))
   }
 
   @Test
@@ -136,7 +136,7 @@ class LogcatFilterParserTest {
       for (logLevel in Log.LogLevel.values()) {
         val query = "${key}: Invalid"
 
-        assertThat(logcatFilterParser().parse(query) as StringFilter).isEqualTo(StringFilter(query, LINE))
+        assertThat(logcatFilterParser().parse(query) as StringFilter).isEqualTo(StringFilter(query, IMPLICIT_LINE))
       }
     }
   }
@@ -155,7 +155,7 @@ class LogcatFilterParserTest {
     for (age in INVALID_AGES) {
       val query = "age: $age"
 
-      assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, LINE))
+      assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE))
     }
   }
 
