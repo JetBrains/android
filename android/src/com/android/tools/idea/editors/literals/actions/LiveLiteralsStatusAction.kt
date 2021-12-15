@@ -19,6 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.icons.AllIcons
@@ -61,13 +62,17 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
   override fun displayTextInToolbar(): Boolean = true
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> {
+    val liveEdit = !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get() && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()
+    val enabled = if (liveEdit) "Live Edit: ON" else AndroidBundle.message("live.literals.is.enabled")
+    val disabled = if (liveEdit) "Live Edit: OFF" else AndroidBundle.message("live.literals.is.disabled")
+
     return when {
       // Disabled state if the project is not Compose, or no device is running with LL.
       !project.isCompose() ||
-      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() -> AndroidBundle.message("live.literals.is.disabled") to null
-      !liveLiteralsService.isAvailable -> AndroidBundle.message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
-      liveLiteralsDeploymentReportService.hasProblems -> AndroidBundle.message("live.literals.is.enabled") to ERROR_ICON
-      else -> AndroidBundle.message("live.literals.is.enabled") to AVAILABLE_ICON
+      !liveLiteralsDeploymentReportService.hasDeviceOrEmulatorRunning() -> disabled to null
+      !liveLiteralsService.isAvailable -> disabled to NOT_AVAILABLE_ICON
+      liveLiteralsDeploymentReportService.hasProblems -> enabled to ERROR_ICON
+      else -> enabled to AVAILABLE_ICON
     }
   }
 

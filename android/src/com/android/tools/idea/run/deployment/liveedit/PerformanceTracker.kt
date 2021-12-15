@@ -23,7 +23,13 @@ class PerformanceTracker {
 
   fun <T> record(action: ()->T, key: String): T {
     val returnValue: T;
-    map[key] = measureTimeMillis { returnValue = action() }
+    map[key] = measureTimeMillis {
+      try {
+        returnValue = action()
+      } catch (e : LiveEditUpdateException) {
+        throw e
+      }
+    }
     return returnValue
   }
 }

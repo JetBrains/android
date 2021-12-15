@@ -26,7 +26,11 @@ private val log = Logger.getInstance(AndroidLiveEditDeployMonitor::class.java)
 
 fun reportLiveEditError(exception: LiveEditUpdateException) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
-  report("E: Live Edit ${exception.error.message}: \n ${exception.details} \n")
+  report("E: Live Edit " + errorMessage(exception))
+}
+
+fun errorMessage(exception: LiveEditUpdateException) : String {
+  return "${exception.error.message}: \n ${exception.details} \n"
 }
 
 /**

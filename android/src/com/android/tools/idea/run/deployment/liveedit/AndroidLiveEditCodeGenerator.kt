@@ -68,7 +68,7 @@ class AndroidLiveEditCodeGenerator {
    * Compile a given set of MethodReferences to Java .class files and invoke a callback upon completion.
    */
   @Trace
-  fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback) {
+  fun compile(project: Project, methods: List<LiveEditService.MethodReference>, callback: CodeGenCallback, errorCallBack: (String) -> Unit) {
     val tracker = PerformanceTracker()
 
     // If we (or the user) ended up setting the update time intervals to be long. It is very possible that
@@ -107,6 +107,7 @@ class AndroidLiveEditCodeGenerator {
           // TODO: We need to make deployLiveEditToDevice() atomic when there are multiple functions getting
           //       update even thought that's probably a very unlikely scenario.
           reportLiveEditError(e)
+          errorCallBack(errorMessage(e))
         } finally {
           compiled.add(root)
         }
@@ -129,25 +130,32 @@ class AndroidLiveEditCodeGenerator {
    * This function needs to be done in a read action.
    */
   fun analyze(input: List<KtFile>, resolution: ResolutionFacade) : BindingContext {
-    val analysisResult = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks").use {
-      resolution.analyzeWithAllCompilerChecks(input) {
+    var trace = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks")
+    try {
+      var exception : LiveEditUpdateException? = null
+      val analysisResult = resolution.analyzeWithAllCompilerChecks(input) {
         if (it.severity== Severity.ERROR) {
-          throw LiveEditUpdateException.analysisError("Analyze Error. $it")
+          exception = LiveEditUpdateException.analysisError("Analyze Error. $it")
         }
       }
-    }
-
-    if (analysisResult.isError()) {
-      throw LiveEditUpdateException.analysisError(analysisResult.error.message?:"No Error message")
-    }
-
-    for (diagnostic in analysisResult.bindingContext.diagnostics) {
-      if (diagnostic.severity == Severity.ERROR) {
-        throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
+      if (exception != null) {
+        throw exception!!
       }
-    }
 
-    return analysisResult.bindingContext
+      if (analysisResult.isError()) {
+        throw LiveEditUpdateException.analysisError(analysisResult.error.message?:"No Error message")
+      }
+
+      for (diagnostic in analysisResult.bindingContext.diagnostics) {
+        if (diagnostic.severity == Severity.ERROR) {
+          throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic")
+        }
+      }
+
+      return analysisResult.bindingContext
+    } finally {
+      trace.close()
+    }
   }
 
   /**

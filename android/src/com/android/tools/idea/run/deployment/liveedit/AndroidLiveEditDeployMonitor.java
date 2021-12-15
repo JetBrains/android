@@ -22,10 +22,13 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
+import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
+import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.AndroidSessionInfo;
@@ -41,9 +44,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,6 +100,9 @@ public class AndroidLiveEditDeployMonitor {
   public static Runnable getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
 
+    // TODO: Don't use Live Literal's reporting
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
+
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
     if (StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
@@ -126,7 +134,17 @@ public class AndroidLiveEditDeployMonitor {
         }
       }
 
+      LiveLiteralsMonitorHandler.DeviceType deviceType;
+      if (device.isEmulator()) {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+      }
+      else {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+      }
+
       ACTIVE_DEVICES.put(project, deviceId);
+
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
     };
   }
 
@@ -161,23 +179,52 @@ public class AndroidLiveEditDeployMonitor {
             Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
             LiveUpdateDeployer deployer = new LiveUpdateDeployer();
 
-            new AndroidLiveEditCodeGenerator().compile(project, changes,
-                                                       (className, methodName, methodDesc, classData, supportClasses) -> {
+            new AndroidLiveEditCodeGenerator().compile(
+              project, changes,
+              (className, methodName, methodDesc, classData, supportClasses) -> {
               // TODO: Don't fire off one update per class file.
-              LiveUpdateDeployer.UpdateLiveEditsParam param =
-                new LiveUpdateDeployer.UpdateLiveEditsParam(
-                  // TODO: Actually set the value of isComposable based on the frontend analysis.
-                  className, methodName, methodDesc, false, -1, -1, classData, supportClasses);
-
-              List<LiveUpdateDeployer.UpdateLiveEditError> results = deployer.updateLiveEdit(installer, adb, packageName, param);
-              for (LiveUpdateDeployer.UpdateLiveEditError result : results ) {
-                reportDeployerError(result);
-              }
+                onCompileSuccessCallBack(project, adb, packageName, "" + changes.hashCode(), deployer, installer,
+                                         className, methodName, methodDesc, classData, supportClasses);
+              },
+              (message) -> {
+              onCompileFailCallBack(project, adb, packageName, "" + changes.hashCode(), message);
+              return Unit.INSTANCE;
             });
           }
         }
       }
     });
+  }
+
+  private static void onCompileSuccessCallBack(
+    Project project, AdbClient adb, String packageName, String deployEventKey, LiveUpdateDeployer deployer, Installer installer,
+    String className, String methodName, String methodDesc, byte[] classData, Map<String, byte[]> supportClasses) {
+    LiveUpdateDeployer.UpdateLiveEditsParam param =
+      new LiveUpdateDeployer.UpdateLiveEditsParam(
+        // TODO: Actually set the value of isComposable based on the frontend analysis.
+        className, methodName, methodDesc, false, -1, -1, classData, supportClasses);
+
+    String deviceId = adb.getSerial() + "#" + packageName;
+    LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, deployEventKey);
+
+    List<LiveUpdateDeployer.UpdateLiveEditError> results = deployer.updateLiveEdit(installer, adb, packageName, param);
+    for (LiveUpdateDeployer.UpdateLiveEditError result : results ) {
+      reportDeployerError(result);
+    }
+
+    LiveLiteralsService.getInstance(project).liveLiteralPushed(
+      deviceId, deployEventKey,results.stream().map(
+        r -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, r.msg))
+        .collect(Collectors.toList()));
+  }
+
+  private static void onCompileFailCallBack(
+    Project project, AdbClient adb, String packageName, String deployEventKey, String errorMessage) {
+    String deviceId = adb.getSerial() + "#" + packageName;
+    LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, deployEventKey);
+    List< LiveLiteralsMonitorHandler.Problem> e = new ArrayList<>();
+    e.add(new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, errorMessage));
+    LiveLiteralsService.getInstance(project).liveLiteralPushed(deviceId, deployEventKey, e);
   }
 
   private static boolean supportLiveEdits(IDevice device) {

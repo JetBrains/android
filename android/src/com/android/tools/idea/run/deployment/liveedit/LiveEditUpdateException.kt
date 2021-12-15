@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-public class LiveEditUpdateException(val error: Error, val details: String = "") : Exception() {
+public class LiveEditUpdateException(val error: Error, val details: String = "") : RuntimeException() {
 
   /**
    * @param message Short description

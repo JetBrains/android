@@ -64,21 +64,21 @@ class BasicCompileTest {
     val done = CountDownLatch(1)
     var output = ByteArray(0)
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(
-      LiveEditService.MethodReference(file, function))) {
+      LiveEditService.MethodReference(file, function)), {
       _: String, _: String, _: String, bytes: ByteArray, _: Map<String, ByteArray> ->
       output = bytes
       done.countDown()
-    }
+    }, {})
     done.await()
     return output
   }
 
   private fun compileFail(file: PsiFile, function: KtNamedFunction) {
     AndroidLiveEditCodeGenerator().compile(myProject, listOf(
-      LiveEditService.MethodReference(file, function))) {
+      LiveEditService.MethodReference(file, function)), {
       _: String, _: String, _: String, _: ByteArray, _: Map<String, ByteArray> ->
       fail("Compilation should fail without this callback being invoked.")
-    }
+    }, {})
   }
   /**
    * Look for the first named function with a given name.
