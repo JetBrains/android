@@ -18,13 +18,13 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.table.JBTable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,14 +45,14 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
-final class PhysicalDeviceTable extends JBTable {
+final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
     this(panel, new PhysicalDeviceTableModel());
   }
 
   @VisibleForTesting
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
-    super(model);
+    super(model, PhysicalDevice.class, PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
     model.addTableModelListener(event -> sizeApiTypeAndActionsColumnWidthsToFit());
 
     Project project = panel.getProject();
@@ -109,10 +109,6 @@ final class PhysicalDeviceTable extends JBTable {
     return Optional.of(getDeviceAt(viewRowIndex));
   }
 
-  @NotNull PhysicalDevice getDeviceAt(int viewRowIndex) {
-    return (PhysicalDevice)getValueAt(viewRowIndex, deviceViewColumnIndex());
-  }
-
   @VisibleForTesting
   @NotNull Object getData() {
     return IntStream.range(0, getRowCount())
@@ -150,10 +146,6 @@ final class PhysicalDeviceTable extends JBTable {
     header.setResizingAllowed(false);
 
     return header;
-  }
-
-  private int deviceViewColumnIndex() {
-    return convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
   }
 
   private int apiViewColumnIndex() {

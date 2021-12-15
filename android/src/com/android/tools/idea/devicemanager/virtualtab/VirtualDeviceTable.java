@@ -23,6 +23,7 @@ import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.Actions;
@@ -30,7 +31,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.table.JBTable;
 import java.awt.Point;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,7 +51,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvider, AvdInfoProvider {
+final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
   private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
@@ -69,7 +69,7 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
                      @NotNull VirtualDeviceTableModel model,
                      @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds,
                      @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
-    super(model);
+    super(model, VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
     myPanel = panel;
     myGetAvds = getAvds;
@@ -169,14 +169,6 @@ final class VirtualDeviceTable extends JBTable implements Table, AvdRefreshProvi
     }
 
     return Optional.of(getDeviceAt(viewRowIndex));
-  }
-
-  @NotNull VirtualDevice getDeviceAt(int viewRowIndex) {
-    return (VirtualDevice)getValueAt(viewRowIndex, deviceViewColumnIndex());
-  }
-
-  int deviceViewColumnIndex() {
-    return convertColumnIndexToView(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
   }
 
   private int apiViewColumnIndex() {
