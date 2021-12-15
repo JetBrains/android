@@ -15,6 +15,8 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationDescriptor
@@ -138,4 +140,10 @@ fun createProjectConfigurationFinishEventStub(
   `when`(projectConfigurationFinishEvent.descriptor).thenReturn(descriptor)
   `when`(projectConfigurationFinishEvent.result).thenReturn(result)
   return projectConfigurationFinishEvent
+}
+
+fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): GradleInvocationResult {
+  val invocationResult = invokeTasks(tasks = tasks)
+  invocationResult.buildError?.let { throw it }
+  return invocationResult
 }

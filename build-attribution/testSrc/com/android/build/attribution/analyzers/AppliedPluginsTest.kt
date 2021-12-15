@@ -52,7 +52,7 @@ class AppliedPluginsTest {
   fun testAppliedPlugins() {
     setUpProject()
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 

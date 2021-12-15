@@ -223,8 +223,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   private fun runBuildAndGetAnalyzerResult(): ConfigurationCachingCompatibilityProjectResult {
-    val invocationResult = myProjectRule.invokeTasks("assembleDebug")
-    assertThat(invocationResult.isBuildSuccessful).isTrue()
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     return (myProjectRule.project.getService(
       BuildAttributionManager::class.java

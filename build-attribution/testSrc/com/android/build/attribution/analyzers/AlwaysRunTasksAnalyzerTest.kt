@@ -74,7 +74,8 @@ class AlwaysRunTasksAnalyzerTest {
   fun testAlwaysRunTasksAnalyzer() {
     setUpProject()
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
+
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -100,7 +101,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressAlwaysRunTaskWarning("SampleTask", "SamplePlugin")
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -173,7 +174,7 @@ class AlwaysRunTasksAnalyzerTest {
       }
     """.trimIndent())
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -196,7 +197,7 @@ class AlwaysRunTasksAnalyzerTest {
       task sampleDelete(type: Delete) { }
     """.trimIndent())
 
-    myProjectRule.invokeTasks("sampleDelete")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 

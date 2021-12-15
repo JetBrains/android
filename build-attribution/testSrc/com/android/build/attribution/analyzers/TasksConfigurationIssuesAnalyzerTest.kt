@@ -71,7 +71,7 @@ class TasksConfigurationIssuesAnalyzerTest {
   fun testTasksConfigurationIssuesAnalyzer() {
     setUpProject()
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 

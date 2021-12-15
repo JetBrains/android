@@ -53,7 +53,7 @@ class AnnotationProcessorsAnalyzerTest {
   fun testNonIncrementalAnnotationProcessorsAnalyzer() {
     setUpProject()
 
-    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
+    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -79,7 +79,7 @@ class AnnotationProcessorsAnalyzerTest {
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
       "com.google.auto.value.processor.AutoValueProcessor")
 
-    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
+    myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -109,7 +109,7 @@ class AnnotationProcessorsAnalyzerTest {
       apply plugin: 'kotlin-kapt'
     """.trimIndent())
 
-    myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
+    val result = myProjectRule.invokeTasksRethrowingErrors(":app:compileDebugJavaWithJavac")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 

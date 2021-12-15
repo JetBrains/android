@@ -60,7 +60,7 @@ class NoncacheableTasksAnalyzerTest {
   fun testNoncacheableTasksAnalyzer() {
     setUpProject()
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
@@ -80,7 +80,7 @@ class NoncacheableTasksAnalyzerTest {
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",
                                                                                                       ":app:build.gradle")
 
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 

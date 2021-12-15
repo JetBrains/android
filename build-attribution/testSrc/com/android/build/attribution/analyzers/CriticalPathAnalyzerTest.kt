@@ -188,8 +188,8 @@ class CriticalPathAnalyzerTest {
   @Test
   fun testCriticalPathAnalyzerOnNoOpBuild() {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-    myProjectRule.invokeTasks("assembleDebug")
-    myProjectRule.invokeTasks("assembleDebug")
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
+    myProjectRule.invokeTasksRethrowingErrors("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
     val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getTasksDeterminingBuildDuration()).isEmpty()
