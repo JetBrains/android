@@ -13,23 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTable;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTable;
 import javax.swing.plaf.ColorUIResource;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
-final class PhysicalDeviceTables {
-  private PhysicalDeviceTables() {
+public final class DeviceTables {
+  private DeviceTables() {
   }
 
-  static @NotNull PhysicalDeviceTable mock(@NotNull PhysicalDevice device) {
-    PhysicalDeviceTable table = Mockito.mock(PhysicalDeviceTable.class);
+  public static @NotNull VirtualDeviceTable mock(@NotNull VirtualDevice device) {
+    VirtualDeviceTable table = Mockito.mock(VirtualDeviceTable.class);
+    stubCalls(table, device);
 
+    return table;
+  }
+
+  public static @NotNull PhysicalDeviceTable mock(@NotNull PhysicalDevice device) {
+    PhysicalDeviceTable table = Mockito.mock(PhysicalDeviceTable.class);
+    stubCalls(table, device);
+
+    return table;
+  }
+
+  private static <D> void stubCalls(@NotNull DeviceTable<@NotNull D> table, @NotNull D device) {
     Mockito.when(table.getDeviceAt(0)).thenReturn(device);
     Mockito.when(table.getSelectionBackground()).thenReturn(new ColorUIResource(47, 101, 202));
     Mockito.when(table.getSelectionForeground()).thenReturn(new ColorUIResource(187, 187, 187));
-
-    return table;
   }
 }

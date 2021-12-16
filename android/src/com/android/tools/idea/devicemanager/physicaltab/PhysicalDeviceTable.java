@@ -46,7 +46,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
-final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
+public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
     this(panel, new PhysicalDeviceTableModel());
   }

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
+import com.android.tools.idea.devicemanager.DeviceTables;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
 import javax.swing.JTable;
@@ -35,7 +36,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditorTest {
   @Test
   public void getTableCellEditorComponentDeviceOnline() {
     // Arrange
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
 
     // Act
     Component component = myEditor.getTableCellEditorComponent(table, ActivateDeviceFileExplorerWindowValue.INSTANCE, false, 0, 3);
@@ -47,7 +48,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditorTest {
   @Test
   public void getTableCellEditorComponent() {
     // Arrange
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Act
     Component component = myEditor.getTableCellEditorComponent(table, ActivateDeviceFileExplorerWindowValue.INSTANCE, false, 0, 3);

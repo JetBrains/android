@@ -24,7 +24,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevice extends Device {
+public final class VirtualDevice extends Device {
   private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final @NotNull AvdInfo myAvdInfo;

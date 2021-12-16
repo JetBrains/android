@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.intellij.openapi.project.Project;
 import javax.swing.AbstractButton;
@@ -45,7 +46,7 @@ public final class RemoveButtonTableCellEditorTest {
     RemoveButtonTableCellEditor editor = new RemoveButtonTableCellEditor(myPanel, (device, project) -> false);
     editor.addCellEditorListener(listener);
 
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
     AbstractButton component = (AbstractButton)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
 
     // Act
@@ -60,7 +61,7 @@ public final class RemoveButtonTableCellEditorTest {
     // Arrange
     PhysicalDeviceTableModel model = Mockito.mock(PhysicalDeviceTableModel.class);
 
-    PhysicalDeviceTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    PhysicalDeviceTable table = DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
     Mockito.when(table.getModel()).thenReturn(model);
 
     Mockito.when(myPanel.getProject()).thenReturn(Mockito.mock(Project.class));
@@ -85,7 +86,7 @@ public final class RemoveButtonTableCellEditorTest {
   public void getTableCellEditorComponentNotOnline() {
     // Arrange
     TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Act
     JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);
@@ -99,7 +100,7 @@ public final class RemoveButtonTableCellEditorTest {
   public void getTableCellEditorComponentOnline() {
     // Arrange
     TableCellEditor editor = new RemoveButtonTableCellEditor(myPanel);
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
 
     // Act
     JComponent component = (JComponent)editor.getTableCellEditorComponent(table, RemoveValue.INSTANCE, false, 0, 4);

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import java.util.List;
 import javax.swing.JComponent;
@@ -40,7 +41,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
   @Test
   public void newPairDeviceItemPhoneAndOnline() {
     // Arrange
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
+    JTable table = DeviceTables.mock(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3);
     myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 5);
 
     // Act
@@ -56,8 +57,7 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
   @Test
   public void newPairDeviceItemPhone() {
     // Arrange
-    JTable table = PhysicalDeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3);
-    myEditor.getTableCellEditorComponent(table, PopUpMenuValue.INSTANCE, false, 0, 5);
+    myEditor.getTableCellEditorComponent(DeviceTables.mock(TestPhysicalDevices.GOOGLE_PIXEL_3), PopUpMenuValue.INSTANCE, false, 0, 5);
 
     // Act
     List<JComponent> items = myEditor.newItems();

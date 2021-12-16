@@ -52,7 +52,7 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
+public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
   private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
