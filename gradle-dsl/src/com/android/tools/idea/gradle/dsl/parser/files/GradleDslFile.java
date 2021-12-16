@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import com.android.tools.idea.gradle.dsl.GradleUtil;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslConverterFactory;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
@@ -79,23 +80,10 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
 
-  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
-    {"android", AndroidDslElement.ANDROID},
-    {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
-    {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
-    {"crashlytics", CrashlyticsDslElement.CRASHLYTICS},
-    {"dependencies", DependenciesDslElement.DEPENDENCIES},
-    {"ext", ExtDslElement.EXT},
-    {"java", JavaDslElement.JAVA},
-    {"repositories", RepositoriesDslElement.REPOSITORIES},
-    {"subprojects", SubProjectsDslElement.SUBPROJECTS},
-    {"plugins", PluginsDslElement.PLUGINS}
-  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
-
   @NotNull
   @Override
   protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
-    return CHILD_PROPERTIES_ELEMENTS_MAP;
+    return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
   }
 
   protected GradleDslFile(@NotNull VirtualFile file,

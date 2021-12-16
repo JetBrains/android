@@ -416,6 +416,10 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED("dependenciesInfoModel/editAndApplyExpected"),
   DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY("dependenciesInfoModel/removeAndApply"),
   DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED("dependenciesInfoModel/removeAndApplyExpected"),
+  PLUGGABLE_BLOCK("pluggableBlock/pluggableBlock"),
+  PLUGGABLE_BLOCK_RESOLVED("pluggableBlock/pluggableBlockResolved"),
+  PLUGGABLE_BLOCK_WRITE_EXPECTED("pluggableBlock/pluggableBlockWriteExpected"),
+  PLUGGABLE_BLOCK_NESTED("pluggableBlock/pluggableBlockNested"),
 
   ;
 

@@ -15,14 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
-import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS;
-import static com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
-import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 
@@ -39,31 +32,19 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
-import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl;
-import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
-import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
-import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -197,7 +178,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     if (applyDslElement != null) {
       PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
     }
-
   }
 
   @Nullable
@@ -219,66 +199,54 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public AndroidModel android() {
-    AndroidDslElement androidDslElement = myGradleDslFile.ensurePropertyElement(ANDROID);
-    return new AndroidModelImpl(androidDslElement);
+    return getModel(AndroidModel.class);
   }
 
   @NotNull
   @Override
   public BuildScriptModel buildscript() {
-    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.ensurePropertyElement(BUILDSCRIPT);
-    return new BuildScriptModelImpl(buildScriptDslElement);
+    return getModel(BuildScriptModel.class);
   }
 
   @NotNull
   @Override
   public ConfigurationsModel configurations() {
-    ConfigurationsDslElement configurationsDslElement =
-      myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS, DependenciesDslElement.class);
-    return new ConfigurationsModelImpl(configurationsDslElement);
+    return getModel(ConfigurationsModel.class);
   }
 
   @NotNull
   @Override
   public CrashlyticsModel crashlytics() {
-    CrashlyticsDslElement crashlyticsDslElement = myGradleDslFile.ensurePropertyElement(CRASHLYTICS);
-    return new CrashlyticsModelImpl(crashlyticsDslElement);
+    return getModel(CrashlyticsModel.class);
   }
 
   @NotNull
   @Override
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myGradleDslFile.ensurePropertyElement(DEPENDENCIES);
-    return new DependenciesModelImpl(dependenciesDslElement);
+    return getModel(DependenciesModel.class);
   }
 
   @Override
   @NotNull
   public ExtModel ext() {
-    int at = 0;
-    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
-    if (!elements.isEmpty()) {
-      GradleDslElement firstElement = elements.get(0);
-      if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
-        at += 1;
-      }
-    }
-    ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
-    return new ExtModelImpl(extDslElement);
+    return getModel(ExtModel.class);
   }
 
   @NotNull
   @Override
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.ensurePropertyElement(JAVA);
-    return new JavaModelImpl(javaDslElement);
+    return getModel(JavaModel.class);
   }
 
   @NotNull
   @Override
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.ensurePropertyElement(REPOSITORIES);
-    return new RepositoriesModelImpl(repositoriesDslElement);
+    return getModel(RepositoriesModel.class);
+  }
+
+  @Override
+  public <T extends GradleDslModel> @NotNull T getModel(Class<T> klass) {
+    return GradleBlockModelMap.get(myGradleDslFile, GradleBuildModel.class, klass);
   }
 
   @Override

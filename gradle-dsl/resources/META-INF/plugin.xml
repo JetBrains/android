@@ -12,13 +12,20 @@
   <depends optional="true" config-file="gradle-dsl-kotlin-support.xml">org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" serviceImplementation="com.android.tools.idea.gradle.dsl.GradleModelSource" />
+    <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
+                        serviceImplementation="com.android.tools.idea.gradle.dsl.GradleModelSource"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
+    <blockModel implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
   </extensions>
 
   <extensionPoints>
     <extensionPoint interface="com.android.tools.idea.gradle.dsl.parser.GradleDslConverterFactory" dynamic="true" name="parserFactory"/>
+    <extensionPoint interface="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap$BlockModelProvider" dynamic="true"
+                    name="blockModel"/>
   </extensionPoints>
-
 
 
 </idea-plugin>
