@@ -696,7 +696,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
-    "This allows the IDE to fetch models in parallel (if supported by Gralde and enabled via org.gradle.parallel=true).", false);
+    "This allows the IDE to fetch models in parallel (if supported by Gradle and enabled via org.gradle.parallel=true).", false);
 
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.prefetch.variants", "Enables speculative syncing of current variants",
