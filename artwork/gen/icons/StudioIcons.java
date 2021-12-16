@@ -267,6 +267,7 @@ public class StudioIcons {
       public static final Icon BUTTON_1 = load("/studio/icons/emulator/wear/button-1.svg"); // 16x16
       public static final Icon BUTTON_2 = load("/studio/icons/emulator/wear/button-2.svg"); // 16x16
       public static final Icon PALM = load("/studio/icons/emulator/wear/palm.svg"); // 16x16
+      public static final Icon TILT = load("/studio/icons/emulator/wear/tilt.svg"); // 16x16
     }
   }
 
