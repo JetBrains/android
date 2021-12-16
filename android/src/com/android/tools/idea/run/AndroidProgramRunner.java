@@ -16,15 +16,15 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
-import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.openapi.project.Project;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A common base class for ProgramRunners that deal with local Android devices.
@@ -32,31 +32,40 @@ import org.jetbrains.annotations.NotNull;
  * at the moment, and may be changed as needed.
  */
 public abstract class AndroidProgramRunner extends GenericProgramRunner<RunnerSettings> {
-  final @NotNull Function<@NotNull Project, @NotNull ExecutionTarget> myGetActiveTarget;
+  final private @NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @Nullable AndroidExecutionTarget> myGetAndroidTarget;
 
   public AndroidProgramRunner() {
-    this(ExecutionTargetManager::getActiveTarget);
+    this(AndroidProgramRunner::getAvailableAndroidTarget);
   }
 
   // @VisibleForTesting
-  AndroidProgramRunner(@NotNull Function<@NotNull Project, @NotNull ExecutionTarget> getActiveTarget) {
-    myGetActiveTarget = getActiveTarget;
+  AndroidProgramRunner(@NotNull BiFunction<@NotNull Project, @NotNull RunConfiguration, @Nullable AndroidExecutionTarget> getTarget) {
+    myGetAndroidTarget = getTarget;
   }
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
     if (profile instanceof RunConfiguration) {
       Project project = ((RunConfiguration)profile).getProject();
-      ExecutionTarget target = myGetActiveTarget.apply(project);
-      if (!(target instanceof AndroidExecutionTarget)) {
+      AndroidExecutionTarget target = myGetAndroidTarget.apply(project, (RunConfiguration)profile);
+      if (target == null) {
         return false;
       }
-      if (((AndroidExecutionTarget)target).getAvailableDeviceCount() <= 1) {
+      if (target.getAvailableDeviceCount() <= 1) {
         return true;
       }
       return canRunWithMultipleDevices(executorId);
     }
-    return true;
+    return false;
+  }
+
+  @Nullable
+  private static AndroidExecutionTarget getAvailableAndroidTarget(Project project, RunConfiguration profile) {
+    return ExecutionTargetManager.getInstance(project).getTargetsFor(profile).stream()
+      .filter(AndroidExecutionTarget.class::isInstance)
+      .map(AndroidExecutionTarget.class::cast)
+      .findFirst()
+      .orElse(null);
   }
 
   protected abstract boolean canRunWithMultipleDevices(@NotNull String executorId);

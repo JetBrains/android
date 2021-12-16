@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.run;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfile;
-import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.command.impl.DummyProject;
@@ -53,7 +48,7 @@ public class DefaultStudioProgramRunnerTest {
 
   @Before
   public void newDefaultStudioProgramRunner() {
-    myRunner = new DefaultStudioProgramRunner(project -> syncState, project -> target);
+    myRunner = new DefaultStudioProgramRunner(project -> syncState, (project, profile) -> target);
   }
 
   /**
@@ -93,44 +88,6 @@ public class DefaultStudioProgramRunnerTest {
     Mockito.when(syncState.isSyncInProgress()).thenReturn(true);
     Mockito.when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
     Assert.assertFalse(myRunner.canRun(DefaultRunExecutor.EXECUTOR_ID, runConfig));
-  }
-
-  @Test
-  public void doExecuteCaseDebug() {
-    // Arrange
-    Mockito.when(target.getAvailableDeviceCount()).thenReturn(2);
-
-    RunProfileState state = Mockito.mock(RunProfileState.class);
-    ExecutionEnvironment environment = mockEnvironment("Debug");
-
-    // Act
-    try {
-      myRunner.doExecute(state, environment);
-      fail();
-    }
-    // Assert
-    catch (ExecutionException exception) {
-      assertEquals("Debugging is not supported on multiple devices", exception.getMessage());
-    }
-  }
-
-  @Test
-  public void doExecuteDefault() {
-    // Arrange
-    Mockito.when(target.getAvailableDeviceCount()).thenReturn(2);
-
-    RunProfileState state = Mockito.mock(RunProfileState.class);
-    ExecutionEnvironment environment = mockEnvironment("Android Profiler");
-
-    // Act
-    try {
-      myRunner.doExecute(state, environment);
-      fail();
-    }
-    // Assert
-    catch (ExecutionException exception) {
-      assertEquals("The Android Profiler executor is not supported on multiple devices", exception.getMessage());
-    }
   }
 
   private static @NotNull ExecutionEnvironment mockEnvironment(@NotNull String executorId) {

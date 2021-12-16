@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 
 public class AndroidProgramRunnerTest {
   private final FakeExecutionTarget target = new FakeExecutionTarget();
-  private final AndroidProgramRunner runner = new AndroidProgramRunner(project -> target) {
+  private final AndroidProgramRunner runner = new AndroidProgramRunner((project, progileState) -> target) {
     @Override
     protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
       return false;
