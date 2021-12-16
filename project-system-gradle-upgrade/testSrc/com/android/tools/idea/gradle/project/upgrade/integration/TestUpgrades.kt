@@ -33,6 +33,7 @@ package com.android.tools.idea.gradle.project.upgrade.integration
 import com.android.testutils.junit4.OldAgpTest
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.Contract
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -108,5 +109,20 @@ class ProjectFullUpgradeTest : ProjectsUpgradeTestBase() {
   @Test
   fun testFullProjectUpgrade() {
     doTestFullUpgrade(testCase!!.from, testCase!!.to)
+  }
+}
+
+@RunsInEdt
+@Ignore
+class ManualUtilityTest : ProjectsUpgradeTestBase() {
+
+  @Test
+  fun testProjectUpgrade() {
+    doTestMinimalUpgrade(AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN, AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN)
+  }
+
+  @Test
+  fun testProjectSyncs() {
+    loadAUATestProject(AUATestProjectState.ALL_DEPRECATIONS_DEV_MIN)
   }
 }

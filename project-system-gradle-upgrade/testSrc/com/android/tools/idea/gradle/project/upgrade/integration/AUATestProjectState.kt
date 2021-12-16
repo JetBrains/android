@@ -30,10 +30,10 @@
  */
 package com.android.tools.idea.gradle.project.upgrade.integration
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.*
+import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.BASIC
 import com.android.utils.FileUtils
 
@@ -45,7 +45,8 @@ import com.android.utils.FileUtils
 enum class TestProject(
   val path: String
 ){
-  BASIC("Basic")
+  BASIC("Basic"),
+  ALL_DEPRECATIONS("AllDeprecations")
 }
 
 /**
@@ -87,7 +88,15 @@ enum class AUATestProjectState(
   BASIC_4_2(BASIC, V_4_2, minimalState = true, basePath = "4.0.0", patchPath = "4.2.0"),
   BASIC_7_0(BASIC, V_7_0, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   BASIC_DEV_MIN(BASIC, LATEST, minimalState = true, basePath = "4.0.0", patchPath = "dev-minimal"),
-  BASIC_DEV_FULL(BASIC, LATEST, minimalState = false, basePath = "4.0.0", patchPath = "dev-upgraded");
+  BASIC_DEV_FULL(BASIC, LATEST, minimalState = false, basePath = "4.0.0", patchPath = "dev-upgraded"),
+
+  ALL_DEPRECATIONS_4_2_MIN(ALL_DEPRECATIONS, V_4_2, minimalState = true, basePath = "4.2.0-base"),
+  ALL_DEPRECATIONS_4_2_FULL(ALL_DEPRECATIONS, V_4_2, minimalState = false, basePath = "4.2.0-base", patchPath = "4.2.0-upgraded"),
+  ALL_DEPRECATIONS_7_0_MIN(ALL_DEPRECATIONS, V_7_0, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
+  ALL_DEPRECATIONS_7_0_FULL(ALL_DEPRECATIONS, V_7_0, minimalState = false, basePath = "4.2.0-base", patchPath = "7.0.0-upgraded"),
+  ALL_DEPRECATIONS_DEV_MIN(ALL_DEPRECATIONS, LATEST, minimalState = true, basePath = "4.2.0-base", patchPath = "dev-minimal"),
+  ALL_DEPRECATIONS_DEV_FULL(ALL_DEPRECATIONS, LATEST, minimalState = false, basePath = "4.2.0-base", patchPath = "dev-upgraded"),
+  ;
 
   fun projectBasePath() = FileUtils.join(project.path, basePath)
   fun projectPatchPath() = patchPath?.let { FileUtils.join(project.path, it) }
