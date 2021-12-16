@@ -118,7 +118,7 @@ internal class SingleFileCompileAction :
             if (isSuccess) {
               ModuleClassLoaderOverlays.getInstance(contextModule).overlayPath = File(outputAbsolutePath).toPath()
               if (refreshAfterBuild) {
-                (previewManager as ComposePreviewRepresentation).forceRefresh()
+                (previewManager as ComposePreviewRepresentation).requestRefresh()
               }
             }
           }.asCompletableFuture().join()

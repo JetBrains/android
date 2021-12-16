@@ -44,16 +44,21 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -339,3 +344,79 @@ suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFil
   val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@runReadAction null
   return@runReadAction if (psiFile.isValid) psiFile else null
 }
+
+/**
+ * Scope passed to the runnable in [disposableCallbackFlow].
+ */
+interface CallbackFlowWithDisposableScope<T>: CoroutineScope {
+  /**
+   * This disposable will be disposed if the [CoroutineScope] is cancelled or if the optional `parentDisposable` in
+   * [disposableCallbackFlow] is disposed.
+   */
+  val disposable: Disposable
+
+  /**
+   * Equivalent to [kotlinx.coroutines.channels.ProducerScope.trySend].
+   */
+  fun trySend(e: T)
+}
+
+/**
+ * Similar to [callbackFlow] but allows to use a [Disposable] as part of the callback.
+ *
+ * The [runnable] will be called with a [CallbackFlowWithDisposableScope] that contains a [Disposable]. The [Disposable] will be disposed if:
+ *  - The [parentDisposable] is disposed, if not null.
+ *  - The flow is closed.
+ *
+ * This allow for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T> disposableCallbackFlow(debugName: String, logger: Logger? = null, parentDisposable: Disposable? = null, runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+  logger?.debug("$debugName start")
+
+  val disposable = parentDisposable?.let {
+    // If there is a parent disposable, cancel the flow when it's disposed.
+    Disposer.register(it) { cancel("parentDisposable was disposed") }
+    Disposer.newDisposable(it, debugName)
+  } ?: Disposer.newDisposable(debugName)
+
+  val scope = object : CallbackFlowWithDisposableScope<T> {
+    override val coroutineContext: CoroutineContext
+      get() = this@callbackFlow.coroutineContext
+    override val disposable: Disposable
+      get() = disposable
+
+    override fun trySend(e: T) {
+      this@callbackFlow.trySend(e)
+    }
+  }
+
+  scope.runnable()
+
+  awaitClose {
+    logger?.debug("$debugName shutdown")
+    Disposer.dispose(disposable)
+  }
+}
+
+/**
+ * A [callbackFlow] that produces an element when the [project] moves into smart mode. The [onConnected] listener will be
+ * called in the context of a worker thread.
+ */
+@VisibleForTesting
+fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
+  disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
+  project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+    override fun exitDumbMode() {
+      trySend(Unit)
+    }
+  })
+
+  onConnected?.let { launch(workerThread) { it() } }
+}
+
+/**
+ * A [callbackFlow] that produces an element when the [project] moves into smart mode.
+ */
+fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
+  smartModeFlow(project, parentDisposable, logger, null)

@@ -46,8 +46,10 @@ import com.android.tools.idea.compose.preview.util.toDisplayString
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
+import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.setupChangeListener
@@ -83,7 +85,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -102,7 +103,15 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.ui.EditorNotifications
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -220,11 +229,6 @@ fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager,
 private const val SELECTED_GROUP_KEY = "selectedGroup"
 
 /**
- * Key for the persistent build on save state for the Compose Preview.
- */
-private const val BUILD_ON_SAVE_KEY = "buildOnSave"
-
-/**
  * Key for persisting the selected layout manager.
  */
 private const val LAYOUT_KEY = "previewLayout"
@@ -258,7 +262,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val previewDeviceId = "Preview#${UUID.randomUUID()}"
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val module = psiFile.module
+  private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
   private val projectBuildStatusManager = ProjectBuildStatusManager.create(this, psiFile, LiveLiteralsPsiFileSnapshotFilter(this, psiFile))
@@ -280,7 +284,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       fpsCounter.resetAndStart()
 
       // When getting out of power save mode, request a refresh
-      if (!isInPowerSaveMode) refresh()
+      if (!isInPowerSaveMode) requestRefresh()
     })
   }
 
@@ -303,17 +307,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
   private val previewElementProvider = PreviewFilters(memoizedElementsProvider)
 
-  /**
-   * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
-   */
-  private val uniqueRefreshLauncher = UniqueTaskCoroutineLauncher(this, "Compose Preview refresh")
-
   override var groupFilter: PreviewGroup by Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
       previewElementProvider.groupNameFilter = newValue
       // Force refresh to ensure the new preview elements are picked up
-      forceRefresh()
+      invalidate()
+      requestRefresh()
     }
   }
 
@@ -454,21 +454,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Counter used to generate unique push ids.
    */
   private val pushIdCounter = AtomicLong()
-  private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
-    addOnLiteralsChangedListener(this@ComposePreviewRepresentation) {
-      // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
-      val pushId = pushIdCounter.getAndIncrement().toString(16)
-      LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
-      surface.layoutlibSceneManagers.forEach { sceneManager ->
-        launch {
-          sceneManager.invalidateCompositions(forceLayout = animationInspection.get())
-          sceneManager.executeCallbacks()
-          sceneManager.render()
-          LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
-        }
-      }
-    }
-  }
+  private val liveLiteralsManager = LiveLiteralsService.getInstance(project)
 
   override var hasLiveLiterals: Boolean = false
     private set(value) {
@@ -478,7 +464,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
 
   override val isLiveLiteralsEnabled: Boolean
-    get() = liveLiteralsManager.isAvailable
+    get() = liveLiteralsManager.isEnabled
 
   override val hasDesignInfoProviders: Boolean
     get() = module?.let { hasDesignInfoProviders(it) } ?: false
@@ -486,7 +472,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var showDebugBoundaries: Boolean = false
     set(value) {
       field = value
-      forceRefresh()
+      invalidate()
+      requestRefresh()
     }
 
   override val previewedFile: PsiFile?
@@ -527,11 +514,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * List of [PreviewElement] being rendered by this editor
    */
-  private var previewElements: List<PreviewElement> = emptyList()
+  private var renderedElements: List<PreviewElement> = emptyList()
+
+  /**
+   * Whether the preview needs a full refresh or not.
+   */
+  private val invalidated = AtomicBoolean(true)
 
   /**
    * Counts the current number of simultaneous executions of [refresh] method. Being inside the [refresh] indicates that the this preview
-   * is being refreshed. Even though [uniqueRefreshLauncher] guarantees that only at most a single refresh happens at any point in time,
+   * is being refreshed. Even though [requestRefresh] guarantees that only at most a single refresh happens at any point in time,
    * there might be several simultaneous calls to [refresh] method and therefore we need a counter instead of boolean flag.
    */
   private val refreshCallsCount = AtomicInteger(0)
@@ -556,12 +548,20 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                             }
                                           }, Duration.ofMillis(5))
 
+  private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
+
   // region Lifecycle handling
+
   /**
-   * True if the preview has received a [refresh] call while it was deactivated from, for example, a build listener.
-   * When the preview becomes active again, a refresh will be issued.
+   * [CoroutineScope] that is valid while this preview is active. The scope will be cancelled as soon as the preview becomes
+   * inactive. Use this scope to launch tasks that only make sense while the preview is visible to the user.
+   *
+   * Certain things might make sense to run at the preview level scope and not this one. For example, the [refreshFlow] must keep listening
+   * for calls that require to refresh the preview after it becomes active again.
    */
-  private val refreshedWhileDeactivated = AtomicBoolean(false)
+  @get:Synchronized
+  @set:Synchronized
+  private var activationScope: CoroutineScope? = null
 
   /**
    * Lock used during the [onActivate]/[onDeactivate]/[onDeactivationTimeout] to avoid activations happening in the middle.
@@ -588,6 +588,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override val component: JComponent
     get() = composeWorkBench.component
 
+  private data class RefreshRequest(val quickRefresh: Boolean) {
+    val requestId = UUID.randomUUID().toString().substring(0, 5)
+  }
   // region Lifecycle handling
   /**
    * Lock used when processing events that affect the need of refreshing previews.
@@ -687,7 +690,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         if (needsRefresh) {
-          forceRefresh()
+          invalidate()
+          requestRefresh()
         }
         // Force updating toolbar icons when build starts
         ActivityTracker.getInstance().inc()
@@ -747,52 +751,103 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     }, this, allowMultipleSubscriptionsPerProject = true)
 
-    if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-      setupOnSaveListener(project, psiFile,
-                          {
-                            if (isBuildOnSaveEnabled
-                                && isActive.get()
-                                && !hasSyntaxErrors()) {
-                                  if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
-                                    SingleFileCompileAction.compile(this)
-                                  }
-                                  else {
-                                    requestBuildForSurface(surface, false)
-                                  }
-                            }
-                          }, this)
-    }
-
-    setupChangeListener(
-      project,
-      psiFile,
-      {
-        ApplicationManager.getApplication().invokeLater {
-          LOG.debug("changeListener triggered")
-          // Only refresh when in static and not in power save mode
-          if (!isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) refresh()
-        }
-      },
-      this)
-
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, {
-      refresh()
+      requestRefresh()
     })
+  }
 
-    project.messageBus.connect(this).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
-      override fun exitDumbMode() {
-        if (!DumbService.getInstance(project).isDumb) refresh()
-      }
-    })
+  /**
+   * Initializes the flows that will listen to different events and will call [requestRefresh].
+   */
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private fun initializeFlows() = activationLock.withLock {
+    activationScope?.cancel()
+    with(createChildScope(true)) {
+      activationScope = this
+      // Launch all the listeners that are bound to the current activation.
 
-    if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      val listener = PinnedPreviewElementManager.Listener {
-        refresh()
+      // Flow to collate and process requestRefresh requests.
+      launch(workerThread) {
+        refreshFlow.collectLatest {
+          refreshFlow.resetReplayCache() // Do not keep re-playing after we have received the element.
+          refresh(it).join()
+        }
       }
-      PinnedPreviewElementManager.getInstance(project).addListener(listener)
-      Disposer.register(this) {
-        PinnedPreviewElementManager.getInstance(project).removeListener(listener)
+
+      launch(workerThread) {
+        flowOf(
+          // Flow handling switch to smart mode.
+          smartModeFlow(project, this@ComposePreviewRepresentation, LOG),
+
+          // Flow handling pinned elements updates.
+          if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+            disposableCallbackFlow("PinnedPreviewsFlow", LOG, this@ComposePreviewRepresentation) {
+              val listener = PinnedPreviewElementManager.Listener { trySend(Unit) }
+              PinnedPreviewElementManager.getInstance(project).addListener(listener)
+              Disposer.register(disposable) {
+                PinnedPreviewElementManager.getInstance(project).removeListener(listener)
+              }
+            }
+          } else emptyFlow(),
+        ).collectLatest {
+          requestRefresh()
+        }
+      }
+
+      // Flow handling live literals updates.
+      if (StudioFlags.COMPOSE_LIVE_LITERALS.get()) {
+        launch(workerThread) {
+          disposableCallbackFlow<Unit>("LiveLiteralsFlow", LOG, this@ComposePreviewRepresentation) {
+            if (hasLiveLiterals) {
+              LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+            }
+
+            liveLiteralsManager.addOnLiteralsChangedListener(disposable) { if (isLiveLiteralsEnabled) { trySend(Unit) } }
+          }.collectLatest {
+            // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
+            val pushId = pushIdCounter.getAndIncrement().toString(16)
+            activationScope?.launch {
+              LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
+              surface.layoutlibSceneManagers.forEach { sceneManager ->
+                sceneManager.invalidateCompositions(forceLayout = animationInspection.get())
+                sceneManager.executeCallbacks()
+                sceneManager.render()
+                LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+              }
+            }
+          }
+        }
+      }
+
+      // Flow handling file changes.
+      launch(workerThread) {
+        val psiFile = psiFilePointer.element ?: return@launch
+        disposableCallbackFlow<Unit>("ChangeListenerFlow", LOG, this@ComposePreviewRepresentation) {
+          setupChangeListener(project, psiFile, { trySend(Unit) }, disposable)
+        }.collectLatest {
+          if (!isInPowerSaveMode && interactiveMode.isStoppingOrDisabled() && !animationInspection.get()) requestRefresh()
+        }
+      }
+
+      // Flow handling save requests.
+      if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+        launch(workerThread) {
+          val psiFile = psiFilePointer.element ?: return@launch
+          disposableCallbackFlow<Unit>("OnSaveListenerFlow", LOG, this@ComposePreviewRepresentation) {
+            setupOnSaveListener(project, psiFile, { trySend(Unit) }, disposable)
+          }.collectLatest {
+            if (isBuildOnSaveEnabled && !hasSyntaxErrors()) {
+              if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+                SingleFileCompileAction.compile(this@ComposePreviewRepresentation)
+              }
+              else {
+                requestBuildForSurface(surface, false)
+              }
+            }
+          }
+
+        }
       }
     }
   }
@@ -801,9 +856,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     activationLock.withLock {
       LOG.debug("onActivate")
 
-      if (hasLiveLiterals) {
-        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
-      }
+      initializeFlows()
 
       isActive.set(true)
       if (isFirstActivation) {
@@ -814,12 +867,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       if (interactiveMode.isStartingOrReady()) {
         resumeInteractivePreview()
-      }
-
-      if (refreshedWhileDeactivated.getAndSet(false)) {
-        // Refresh has been called while we were deactivated, issue a refresh on activation.
-        LOG.debug("Pending refresh")
-        refresh()
       }
     }
   }
@@ -841,10 +888,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onDeactivate() {
     activationLock.withLock {
       LOG.debug("onDeactivate")
+      activationScope?.cancel()
+      activationScope = null
       if (interactiveMode.isStartingOrReady()) {
         pauseInteractivePreview()
       }
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
       isActive.set(false)
 
       if  (isInPowerSaveMode) {
@@ -867,7 +915,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
 
-    launch(uiThread) {
+    activationScope?.launch(uiThread) {
       val filePreviewElements = withContext(workerThread) {
         memoizedElementsProvider.previewElements()
       }
@@ -900,7 +948,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private var lastPinsModificationCount = -1L
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
-    previewElements.isNotEmpty() &&
+    renderedElements.isNotEmpty() &&
     (!hasRenderedAtLeastOnce.get() || surface.layoutlibSceneManagers.any { it.renderResult.isComposeErrorResult() })
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
@@ -991,13 +1039,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     } ?: return
 
-    // The surface might have been deactivated while we waited for the read lock, check again.
-    if (!isActive.get()) {
-      refreshedWhileDeactivated.set(true)
-      return
-    }
-    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
-
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups()
 
@@ -1044,7 +1085,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
-      previewElements = filePreviewElements
+      renderedElements = filePreviewElements
     }
     else {
       // Some preview elements did not result in model creations. This could be because of failed PreviewElements instantiation.
@@ -1053,13 +1094,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
+  fun requestRefresh(quickRefresh: Boolean = false) = launch(workerThread) {
+    refreshFlow.emit(RefreshRequest(quickRefresh))
+  }
+
   /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  private fun refresh(quickRefresh: Boolean = false): Job {
-    val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to UUID.randomUUID().toString().substring(0, 5)))
-    requestLogger.debug("Refresh triggered. quickRefresh: $quickRefresh")
+  private fun refresh(refreshRequest: RefreshRequest): Job {
+    val requestLogger = LoggerWithFixedInfo(LOG, mapOf("requestId" to refreshRequest.requestId))
+    requestLogger.debug("Refresh triggered. quickRefresh: ${refreshRequest.quickRefresh}")
     val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling processFinish() if returning early.
@@ -1071,14 +1116,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       true
     )
     Disposer.register(this, refreshProgressIndicator)
+    // This is not launched in the activation scope to avoid cancelling the refresh mid-way when the user changes tabs.
     val refreshJob = launchWithProgress(refreshProgressIndicator, uiThread) {
       requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", refreshTrigger)
-
-      if (!isActive.get()) {
-        requestLogger.debug("Refresh, the preview is not active, scheduling for later.")
-        refreshedWhileDeactivated.set(true)
-        return@launchWithProgress
-      }
 
       if (DumbService.isDumb(project)) {
         requestLogger.debug("Project is in dumb mode, not able to refresh")
@@ -1086,7 +1126,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
-        composeWorkBench.handleLayoutlibNativeCrash { refresh() }
+        composeWorkBench.handleLayoutlibNativeCrash { requestRefresh() }
         return@launchWithProgress
       }
 
@@ -1111,7 +1151,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         } else emptyList()
 
-        val needsFullRefresh = filePreviewElements != previewElements ||
+        val needsFullRefresh = invalidated.getAndSet(false) ||
+                               renderedElements != filePreviewElements ||
                                PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
 
         composeWorkBench.hasContent = filePreviewElements.isNotEmpty() || pinnedPreviewElements.isNotEmpty()
@@ -1121,25 +1162,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // configured and that we are showing the right size for components. For example, if the user switches on/off
           // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
           refreshProgressIndicator.text = message("refresh.progress.indicator.reusing.existing.previews")
-          uniqueRefreshLauncher.launch {
-            surface.refreshExistingPreviewElements(refreshProgressIndicator) { previewElement, sceneManager ->
-              // When showing decorations, show the full device size
-              configureLayoutlibSceneManager(sceneManager,
-                                             showDecorations = previewElement.displaySettings.showDecoration,
-                                             isInteractive = interactiveMode.isStartingOrReady(),
-                                             requestPrivateClassLoader = usePrivateClassLoader(),
-                                             isLiveLiteralsEnabled = isLiveLiteralsEnabled,
-                                             onLiveLiteralsFound = { hasLiveLiterals = true },
-                                             resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
-            }
+          surface.refreshExistingPreviewElements(refreshProgressIndicator) { previewElement, sceneManager ->
+            // When showing decorations, show the full device size
+            configureLayoutlibSceneManager(sceneManager,
+                                           showDecorations = previewElement.displaySettings.showDecoration,
+                                           isInteractive = interactiveMode.isStartingOrReady(),
+                                           requestPrivateClassLoader = usePrivateClassLoader(),
+                                           isLiveLiteralsEnabled = isLiveLiteralsEnabled,
+                                           onLiveLiteralsFound = { hasLiveLiterals = true },
+                                           resetLiveLiteralsFound = { hasLiveLiterals = isLiveLiteralsEnabled })
           }
         }
         else {
           refreshProgressIndicator.text = message("refresh.progress.indicator.refreshing.all.previews")
-          uniqueRefreshLauncher.launch {
-            composeWorkBench.updateProgress(message("panel.initializing"))
-            doRefreshSync(filePreviewElements, quickRefresh, refreshProgressIndicator)
-          }?.join()
+          composeWorkBench.updateProgress(message("panel.initializing"))
+          doRefreshSync(filePreviewElements, refreshRequest.quickRefresh, refreshProgressIndicator)
         }
       }
       catch (t: Throwable) {
@@ -1207,9 +1244,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
+  private fun invalidate() {
+    invalidated.set(true)
+  }
+
   internal fun forceRefresh(quickRefresh: Boolean = false): Job {
-    previewElements = emptyList() // This will just force a refresh
-    return refresh(quickRefresh)
+    invalidate()
+    return refresh(RefreshRequest(quickRefresh))
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
@@ -1221,5 +1262,5 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * When live literals is enabled, we want to try to preserve the same class loader as much as possible.
    */
   private fun shouldQuickRefresh() =
-    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && previewElements.count() == 1
+    !isLiveLiteralsEnabled && StudioFlags.COMPOSE_QUICK_ANIMATED_PREVIEW.get() && renderedElements.count() == 1
 }
