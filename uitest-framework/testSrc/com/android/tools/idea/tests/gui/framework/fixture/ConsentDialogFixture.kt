@@ -16,11 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.ui.DialogWrapper
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.JCheckBoxFixture
-import javax.swing.JCheckBox
 
 /**
  * Test fixture for the consent dialog
@@ -28,19 +25,12 @@ import javax.swing.JCheckBox
 class ConsentDialogFixture(robot: Robot, dialogAndWrapper: DialogAndWrapper<DialogWrapper>) :
   IdeaDialogFixture<DialogWrapper>(robot, dialogAndWrapper) {
 
-  private fun getCheckboxFixture() : JCheckBoxFixture {
-    val checkbox = robot().finder().find(Matchers.byType(JCheckBox::class.java))
-    return JCheckBoxFixture(robot(), checkbox)
-  }
-
   fun optIn() {
-    getCheckboxFixture().select()
-    GuiTests.findAndClickOkButton(this)
+    GuiTests.findAndClickButton(this, "Send usage statistics to Google")
   }
 
   fun decline() {
-    getCheckboxFixture().deselect()
-    GuiTests.findAndClickOkButton(this)
+    GuiTests.findAndClickButton(this, "Don't send")
   }
 
   companion object {
