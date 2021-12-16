@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -28,7 +27,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.invokeLater
 import java.nio.file.Path
 
 /**
@@ -39,7 +37,7 @@ class LegacyClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
-  stats: SessionStatistics,
+  private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
 ) : AbstractInspectorClient(process, isInstantlyAutoConnected, parentDisposable) {
@@ -53,7 +51,6 @@ class LegacyClient(
 
   private var loggedInitialRender = false
 
-  private val metrics = LayoutInspectorMetrics(model.project, process, stats)
   private val composeWarning = ComposeWarning(model.project)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {

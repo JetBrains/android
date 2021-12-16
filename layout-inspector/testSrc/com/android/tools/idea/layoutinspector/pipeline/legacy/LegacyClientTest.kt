@@ -21,15 +21,12 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
@@ -41,7 +38,6 @@ import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -51,17 +47,15 @@ class LegacyClientTest {
   private val disposableRule = DisposableRule()
   private val scheduler = VirtualTimeScheduler()
 
-  private val legacyClientProvider = object : InspectorClientProvider {
-    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-      val loader = mock(LegacyTreeLoader::class.java)
-      doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
-      val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
-      client.launchMonitor = InspectorClientLaunchMonitor(scheduler)
-      return client
-    }
+  private val legacyClientProvider = InspectorClientProvider { params, inspector ->
+    val loader = mock(LegacyTreeLoader::class.java)
+    doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
+    val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
+    client.launchMonitor = InspectorClientLaunchMonitor(scheduler)
+    client
   }
 
-  private val inspectorRule = LayoutInspectorRule(legacyClientProvider)
+  private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider))
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
 

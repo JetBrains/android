@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.android.tools.idea.layoutinspector
-
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
@@ -24,6 +23,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -102,23 +102,22 @@ fun DeviceDescriptor.createProcess(
  *
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
-interface InspectorClientProvider {
+fun interface InspectorClientProvider {
   fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient?
 }
 
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
-class LegacyClientProvider(
-  private val parentDisposable: Disposable,
-  private val treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
+fun LegacyClientProvider(
+  parentDisposable: Disposable,
+  treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
     Mockito.`when`(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
   }
-) : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
-    return LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel, inspector.stats,
-                        parentDisposable, treeLoaderOverride)
-  }
+) = InspectorClientProvider { params, inspector ->
+  LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
+               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process, inspector.stats),
+               parentDisposable, treeLoaderOverride)
 }
 
 /**
@@ -138,7 +137,7 @@ class LegacyClientProvider(
  *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
  */
 class LayoutInspectorRule(
-  private val clientProvider: InspectorClientProvider,
+  private val clientProviders: List<InspectorClientProvider>,
   val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk(),
   isPreferredProcess: (ProcessDescriptor) -> Boolean = { false }
 ) : TestRule {
@@ -221,10 +220,10 @@ class LayoutInspectorRule(
 
     inspectorModel = InspectorModel(projectRule.project)
     launcher = InspectorClientLauncher(processes,
-                                       listOf { params -> clientProvider.create(params, inspector) },
+                                       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
                                        project,
                                        launcherDisposable,
-                                       launcherExecutor)
+                                       executor = launcherExecutor)
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
 

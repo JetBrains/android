@@ -103,7 +103,7 @@ class DeviceViewPanelWithFullInspectorTest {
   private val disposableRule = DisposableRule()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
-    clientProvider = appInspectorRule.createInspectorClientProvider(),
+    clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
     isPreferredProcess =  { it.name == MODERN_PROCESS.name }
   )
 
@@ -450,7 +450,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
     `when`(stats.rotation).thenReturn(mock())
@@ -494,7 +494,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val stats: SessionStatistics = mock()
     `when`(stats.rotation).thenReturn(mock())
@@ -525,7 +525,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -563,7 +563,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -603,7 +603,7 @@ class DeviceViewPanelTest {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessDiscovery())
     val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           MoreExecutors.directExecutor())
+                                           executor = MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
@@ -698,7 +698,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
   val edtRule = EdtRule()
 
   private val disposableRule = DisposableRule()
-  private val inspectorRule = LayoutInspectorRule(LegacyClientProvider(disposableRule.disposable))
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
@@ -851,12 +851,10 @@ class DeviceViewPanelWithNoClientsTest {
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
   private val inspectorRule = LayoutInspectorRule(
-    clientProvider = object: InspectorClientProvider {
-      override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient? {
+    clientProviders = listOf(InspectorClientProvider { _, _ ->
         postCreateLatch.await()
-        return null
-      }
-    },
+        null
+      }),
     isPreferredProcess = { it.name == MODERN_PROCESS.name }
   )
 

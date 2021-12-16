@@ -105,7 +105,7 @@ class AppInspectionInspectorClientTest {
 
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(monitor)) { it == preferredProcess}
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) { it == preferredProcess}
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
@@ -694,7 +694,7 @@ class AppInspectionInspectorClientTest {
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val disposableRule = DisposableRule()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(mock()) { false }
+  private val inspectorRule = LayoutInspectorRule(listOf(mock())) { false }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!
@@ -858,7 +858,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     `when`(it.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)).thenThrow(RuntimeException("expected"))
   }
 
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(monitor)) {
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider(monitor))) {
     it.name == MODERN_PROCESS.name
   }
 

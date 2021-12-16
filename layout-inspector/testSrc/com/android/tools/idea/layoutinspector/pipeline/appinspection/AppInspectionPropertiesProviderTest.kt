@@ -70,7 +70,7 @@ class AppInspectionPropertiesProviderTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider(), projectRule) {
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider()), projectRule) {
     it.name == MODERN_PROCESS.name
   }
 

@@ -30,7 +30,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -87,14 +86,12 @@ const val MIN_API_29_AOSP_SYSIMG_REV = 8
  *
  * @param apiServices App inspection services used for initializing and shutting down app
  *     inspection-based inspectors.
- * @param scope App inspection APIs use coroutines, while this class's interface does not, so this
- *     coroutine scope is used to handle the bridge between the two approaches.
  */
 class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
-  private val stats: SessionStatistics,
+  private val metrics: LayoutInspectorMetrics,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
@@ -129,8 +126,6 @@ class AppInspectionInspectorClient(
 
   private val debugViewAttributes = DebugViewAttributes(model.project, process)
   private var debugViewAttributesChanged = false
-
-  private val metrics = LayoutInspectorMetrics(model.project, process, stats)
 
   override val capabilities =
     EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
@@ -222,7 +217,7 @@ class AppInspectionInspectorClient(
     }.asCompletableFuture()
 
   private suspend fun startFetchingInternal() {
-    stats.live.toggledToLive()
+    metrics.stats?.live?.toggledToLive()
     viewInspector?.startFetching(continuous = true)
   }
 
@@ -235,7 +230,7 @@ class AppInspectionInspectorClient(
       else {
         viewInspector?.updateScreenshotType(null, 1.0f)
       }
-      stats.live.toggledToRefresh()
+      metrics.stats?.live?.toggledToRefresh()
       viewInspector?.stopFetching()
     }.asCompletableFuture()
 
@@ -246,7 +241,7 @@ class AppInspectionInspectorClient(
   }
 
   private suspend fun refreshInternal() {
-    stats.live.toggledToRefresh()
+    metrics.stats?.live?.toggledToRefresh()
     viewInspector?.startFetching(continuous = false)
   }
 
@@ -266,7 +261,7 @@ class AppInspectionInspectorClient(
     val metadata = viewInspector?.saveSnapshot(path)
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = metadata)
+    val saveMetrics = LayoutInspectorMetrics(model.project, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
 

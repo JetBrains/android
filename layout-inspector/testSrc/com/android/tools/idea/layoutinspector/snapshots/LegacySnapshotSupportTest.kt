@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -132,8 +133,9 @@ DONE.
     val model = model(project = projectRule.project) {}
     val treeSettings = FakeTreeSettings()
     val stats = SessionStatistics(model, treeSettings)
-    val legacyClient = LegacyClient(LEGACY_DEVICE.createProcess(), isInstantlyAutoConnected = true, model, stats,
-                                    disposableRule.disposable).apply {
+    val process = LEGACY_DEVICE.createProcess()
+    val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
+                                    LayoutInspectorMetrics(projectRule.project, process, stats), disposableRule.disposable).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners

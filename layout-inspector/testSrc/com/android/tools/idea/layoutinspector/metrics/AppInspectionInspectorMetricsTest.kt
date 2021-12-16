@@ -56,7 +56,7 @@ class AppInspectionInspectorMetricsTest {
   val disposableRule = DisposableRule()
 
   private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(inspectionRule.createInspectorClientProvider()) { it.name == MODERN_PROCESS.name }
+  private val inspectorRule = LayoutInspectorRule(listOf(inspectionRule.createInspectorClientProvider())) { it.name == MODERN_PROCESS.name }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule).around(disposableRule)!!

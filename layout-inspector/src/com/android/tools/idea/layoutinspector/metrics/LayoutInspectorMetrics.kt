@@ -28,18 +28,26 @@ import com.intellij.openapi.project.Project
 
 class LayoutInspectorMetrics(
   private val project: Project?,
-  private val process: ProcessDescriptor? = null,
-  private val stats: SessionStatistics? = null,
+  private var process: ProcessDescriptor? = null,
+  val stats: SessionStatistics? = null,
   private val snapshotMetadata: SnapshotMetadata? = null
 ) {
 
   private var loggedInitialRender = false
+  private var loggedInitialConnect = false
+
+  fun setProcess(process: ProcessDescriptor) {
+    this.process = process
+    loggedInitialConnect = false
+  }
 
   fun logEvent(eventType: DynamicLayoutInspectorEventType, errorState: AttachErrorState? = null) {
     when(eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> if (loggedInitialRender) return else loggedInitialRender = true
+      DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+      DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST -> if (loggedInitialConnect) return else loggedInitialConnect = true
       else -> {} // continue
     }
     val builder = AndroidStudioEvent.newBuilder().apply {
@@ -56,9 +64,7 @@ class LayoutInspectorMetrics(
           }
         }
       }
-      if (process != null) {
-        deviceInfo = process.device.toDeviceInfo()
-      }
+      process?.let { deviceInfo = it.device.toDeviceInfo() }
     }.withProjectId(project)
 
     UsageTracker.log(builder)

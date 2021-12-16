@@ -58,7 +58,7 @@ class AppInspectionSnapshotSupportTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { it.name == PROCESS.name }
+  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) { it.name == PROCESS.name }
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(disposableRule)!!
