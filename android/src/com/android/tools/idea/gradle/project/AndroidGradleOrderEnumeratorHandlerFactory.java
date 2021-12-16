@@ -1,29 +1,32 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.util.io.FileUtil.join;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeJavaArtifact;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.io.FilePaths;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderRootType;
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
+import org.jetbrains.kotlin.idea.facet.KotlinFacet;
+import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.FactoryImpl;
-import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
 
 /**
@@ -37,12 +40,6 @@ import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
  * Which can lead to unexpected runtime classpath and performance degradation.
  */
 public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
-  @NotNull private static final String CLASSES_FOLDER_NAME = "classes";
-  @NotNull private static final String RESOURCES_FOLDER_NAME = "resources";
-  @NotNull private static final String MAIN_FOLDER_NAME = "main";
-  @NotNull private static final String TEST_FOLDER_NAME = "test";
-  @NotNull private static final String KOTLIN_FOLDER_NAME = "kotlin";
-
   @Override
   public boolean isApplicable(@NotNull Module module) {
     return IdeInfo.getInstance().isAndroidStudio() || AndroidModuleModel.get(module) != null;
@@ -96,15 +93,11 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
           return true;
         }
 
-        JavaModuleModel javaModel = JavaModuleModel.get(rootModel.getModule());
-        if (javaModel != null) {
-          super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
-          getJavaAndKotlinCompilerOutputFolders(javaModel, includeProduction, includeTests).stream()
-            .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
-          return true;
-        }
+        super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
+        getJavaAndKotlinCompilerOutputFolders(rootModel.getModule(), includeProduction, includeTests).stream()
+          .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
 
-        return super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
+        return true;
       }
     };
   }
@@ -155,86 +148,36 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   }
 
   @NotNull
-  private static Collection<String> getJavaAndKotlinCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
-                                                                          boolean includeProduction,
-                                                                          boolean includeTests) {
-    Collection<String> toAdd = new LinkedList<>();
-    File mainClassesFolderPath = null;
-    File mainResourcesFolderPath = null;
-    File testClassesFolderPath = null;
-    File testResourcesFolderPath = null;
-    File mainKotlinClassesFolderPath = null;
-    File testKotlinClassesFolderPath = null;
+  public static Collection<String> getJavaAndKotlinCompilerOutputFolders(@NotNull Module module,
+                                                                         boolean includeProduction,
+                                                                         boolean includeTests) {
+    Collection<String> results = new LinkedList<>();
 
-    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
-    if (compilerOutput != null) {
-      mainClassesFolderPath = compilerOutput.getMainClassesDir();
-      mainResourcesFolderPath = compilerOutput.getMainResourcesDir();
-      testClassesFolderPath = compilerOutput.getTestClassesDir();
-      testResourcesFolderPath = compilerOutput.getTestResourcesDir();
-    }
-
-    File buildFolderPath = javaModel.getBuildFolderPath();
-    if (javaModel.isBuildable()) {
-      if (mainClassesFolderPath == null) {
-        // Guess default output folder
-        mainClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, MAIN_FOLDER_NAME));
+    CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
+    if (moduleExtension != null) {
+      String javaCompilerOutput = moduleExtension.getCompilerOutputUrl();
+      if (includeProduction && javaCompilerOutput != null) {
+        results.add(javaCompilerOutput);
       }
-      if (mainResourcesFolderPath == null) {
-        // Guess default output folder
-        mainResourcesFolderPath = new File(buildFolderPath, join(RESOURCES_FOLDER_NAME, MAIN_FOLDER_NAME));
-      }
-      if (testClassesFolderPath == null) {
-        // Guess default output folder
-        testClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, TEST_FOLDER_NAME));
-      }
-      if (testResourcesFolderPath == null) {
-        // Guess default output folder
-        testResourcesFolderPath = new File(buildFolderPath, join(RESOURCES_FOLDER_NAME, TEST_FOLDER_NAME));
+      String javaTestCompilerOutput = moduleExtension.getCompilerOutputUrlForTests();
+      if (includeTests && javaTestCompilerOutput != null) {
+        results.add(javaTestCompilerOutput);
       }
     }
 
-    // For Kotlin models it is possible that the javaModel#isBuildable returns false since no javaCompile task exists.
-    // As a result we always need to try and look for Kotlin output folder.
-    if (buildFolderPath != null) {
-      // We try to guess Kotlin output folders (Gradle default), since we cannot obtain that from Kotlin model for now.
-      File kotlinClasses = buildFolderPath.toPath().resolve(CLASSES_FOLDER_NAME).resolve(KOTLIN_FOLDER_NAME).toFile();
-      // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
-      // is multiple definitions of the same class existed in both the test and the main artifact.
-      if (includeTests) {
-        testKotlinClassesFolderPath = new File(kotlinClasses, TEST_FOLDER_NAME);
-      }
-      if (includeProduction) {
-        mainKotlinClassesFolderPath = new File(kotlinClasses, MAIN_FOLDER_NAME);
+    KotlinFacet kotlinFacet = FacetManager.getInstance(module).getFacetByType(KotlinFacetType.Companion.getTYPE_ID());
+    if (kotlinFacet != null) {
+      boolean isTestModule = kotlinFacet.getConfiguration().getSettings().isTestModule();
+      CommonCompilerArguments compilerArgs = kotlinFacet.getConfiguration().getSettings().getCompilerArguments() ;
+      if (compilerArgs instanceof K2JVMCompilerArguments) {
+        K2JVMCompilerArguments jvmCompilerArguments = (K2JVMCompilerArguments)compilerArgs;
+        String kotlinCompileOutput = jvmCompilerArguments.getDestination();
+        if (kotlinCompileOutput != null && ((isTestModule && includeTests) || (!isTestModule && includeProduction)) ) {
+          results.add(kotlinCompileOutput);
+        }
       }
     }
 
-    // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
-    // is multiple definitions of the same class existed in both the test and the main artifact.
-    if (includeTests) {
-      if (testClassesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(testClassesFolderPath));
-      }
-      if (testKotlinClassesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(testKotlinClassesFolderPath));
-      }
-      if (testResourcesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(testResourcesFolderPath));
-      }
-    }
-
-    if (includeProduction) {
-      if (mainClassesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(mainClassesFolderPath));
-      }
-      if (mainKotlinClassesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(mainKotlinClassesFolderPath));
-      }
-      if (mainResourcesFolderPath != null) {
-        toAdd.add(pathToIdeaUrl(mainResourcesFolderPath));
-      }
-    }
-
-    return toAdd;
+    return results;
   }
 }

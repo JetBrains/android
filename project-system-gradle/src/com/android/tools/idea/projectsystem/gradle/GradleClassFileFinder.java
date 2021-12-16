@@ -15,27 +15,24 @@
  */
 package com.android.tools.idea.projectsystem.gradle;
 
-import static com.intellij.openapi.util.io.FileUtil.join;
-
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 
 public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
   @NotNull private static final String CLASSES_FOLDER_NAME = "classes";
@@ -100,91 +97,6 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     return compilerOutputs.build();
   }
 
-  // This method is obtained from AndroidGradleOrderEnumeratorHandlerFactory#getJavaAndKotlinCompileOutputFolders
-  @NotNull
-  private static Collection<File> getJavaAndKotlinCompilerOutputFolders(@NotNull JavaModuleModel javaModel,
-                                                                        boolean includeProduction,
-                                                                        boolean includeTests) {
-    Collection<File> toAdd = new LinkedList<>();
-    File mainClassesFolderPath = null;
-    File mainResourcesFolderPath = null;
-    File testClassesFolderPath = null;
-    File testResourcesFolderPath = null;
-    File mainKotlinClassesFolderPath = null;
-    File testKotlinClassesFolderPath = null;
-
-    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
-    if (compilerOutput != null) {
-      mainClassesFolderPath = compilerOutput.getMainClassesDir();
-      mainResourcesFolderPath = compilerOutput.getMainResourcesDir();
-      testClassesFolderPath = compilerOutput.getTestClassesDir();
-      testResourcesFolderPath = compilerOutput.getTestResourcesDir();
-    }
-
-    File buildFolderPath = javaModel.getBuildFolderPath();
-    if (javaModel.isBuildable()) {
-      if (mainClassesFolderPath == null) {
-        // Guess default output folder
-        mainClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, MAIN_FOLDER_NAME));
-      }
-      if (mainResourcesFolderPath == null) {
-        // Guess default output folder
-        mainResourcesFolderPath = new File(buildFolderPath, join(RESOURCES_FOLDER_NAME, MAIN_FOLDER_NAME));
-      }
-      if (testClassesFolderPath == null) {
-        // Guess default output folder
-        testClassesFolderPath = new File(buildFolderPath, join(CLASSES_FOLDER_NAME, TEST_FOLDER_NAME));
-      }
-      if (testResourcesFolderPath == null) {
-        // Guess default output folder
-        testResourcesFolderPath = new File(buildFolderPath, join(RESOURCES_FOLDER_NAME, TEST_FOLDER_NAME));
-      }
-    }
-
-    // For Kotlin models it is possible that the javaModel#isBuildable returns false since no javaCompile task exists.
-    // As a result we always need to try and look for Kotlin output folder.
-    if (buildFolderPath != null) {
-      // We try to guess Kotlin output folders (Gradle default), since we cannot obtain that from Kotlin model for now.
-      File kotlinClasses = buildFolderPath.toPath().resolve(CLASSES_FOLDER_NAME).resolve(KOTLIN_FOLDER_NAME).toFile();
-      // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
-      // is multiple definitions of the same class existed in both the test and the main artifact.
-      if (includeTests) {
-        testKotlinClassesFolderPath = new File(kotlinClasses, TEST_FOLDER_NAME);
-      }
-      if (includeProduction) {
-        mainKotlinClassesFolderPath = new File(kotlinClasses, MAIN_FOLDER_NAME);
-      }
-    }
-
-    // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
-    // is multiple definitions of the same class existed in both the test and the main artifact.
-    if (includeTests) {
-      if (testClassesFolderPath != null) {
-        toAdd.add(testClassesFolderPath);
-      }
-      if (testKotlinClassesFolderPath != null) {
-        toAdd.add(testKotlinClassesFolderPath);
-      }
-      if (testResourcesFolderPath != null) {
-        toAdd.add(testResourcesFolderPath);
-      }
-    }
-
-    if (includeProduction) {
-      if (mainClassesFolderPath != null) {
-        toAdd.add(mainClassesFolderPath);
-      }
-      if (mainKotlinClassesFolderPath != null) {
-        toAdd.add(mainKotlinClassesFolderPath);
-      }
-      if (mainResourcesFolderPath != null) {
-        toAdd.add(mainResourcesFolderPath);
-      }
-    }
-
-    return toAdd;
-  }
-
   @NotNull
   private Collection<VirtualFile> getModuleCompileOutputs(@NotNull Module module) {
     GradleAndroidModel androidModel = GradleAndroidModel.get(module);
@@ -193,14 +105,10 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     }
 
     // The module is not an Android module. Check for regular Java outputs.
-    JavaModuleModel javaModel = JavaModuleModel.get(module);
-    if (javaModel != null) {
-      return getJavaAndKotlinCompilerOutputFolders(javaModel, true, false).stream()
-        .map(path -> VfsUtil.findFileByIoFile(path, true))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-    }
-
-    return ImmutableList.of();
+    Module[] modules = {module};
+    return Stream.of(CompilerPaths.getOutputPaths(modules))
+      .map(path -> VfsUtil.findFileByIoFile(new File(path), true))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
   }
 }
