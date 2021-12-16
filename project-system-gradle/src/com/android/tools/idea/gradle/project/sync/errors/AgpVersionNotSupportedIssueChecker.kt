@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
@@ -62,12 +63,16 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
 
     logMetrics(issueData.projectPath)
 
-    fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project ->
-      updateAndRequestSync(project, version)
+    val buildIssueComposer = BuildIssueComposer(userMessage)
+
+    if (!AndroidGradleProjectResolver.shouldDisableForceUpgrades()) {
+      fetchIdeaProjectForGradleProject(issueData.projectPath)?.let { project ->
+        updateAndRequestSync(project, version)
+      }
+      buildIssueComposer.addQuickFix(AgpUpgradeQuickFix(version))
     }
 
-    return BuildIssueComposer(userMessage).apply {
-      addQuickFix(AgpUpgradeQuickFix(version))
+    return buildIssueComposer.apply {
       addQuickFix(
         "See Android Studio & AGP compatibility options.",
         OpenLinkQuickFix("https://android.devsite.corp.google.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")

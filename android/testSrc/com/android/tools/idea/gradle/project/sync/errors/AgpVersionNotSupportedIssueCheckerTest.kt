@@ -44,10 +44,9 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   @Test
@@ -60,10 +59,9 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   @Test
@@ -77,10 +75,9 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(2)
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(AgpUpgradeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
   @Test

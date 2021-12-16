@@ -281,12 +281,13 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun checkAgpVersionCompatibility(agpVersionString: String?, syncOptions: SyncActionOptions) {
-    if (syncOptions.flags.studioFlagDisableForcedUpgrades) return
     val agpVersion = if (agpVersionString != null) GradleVersion.parse(agpVersionString) else return
     val latestKnown = GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
     when (computeForcePluginUpgradeReason(agpVersion, latestKnown)) {
+      // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,
+      // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.
       MINIMUM -> throw AgpVersionTooOld(agpVersion)
-      PREVIEW -> throw AgpVersionIncompatible(agpVersion)
+      PREVIEW -> if (!syncOptions.flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion)
       NO_FORCE -> Unit
     }
   }
