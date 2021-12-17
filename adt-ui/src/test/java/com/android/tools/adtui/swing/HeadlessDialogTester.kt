@@ -370,7 +370,7 @@ private class HeadlessDialogWrapperPeer(
     UIUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
-      ToolbarUtil.setCustomTitleBar(window, rootPane) { runnable: Runnable ->
+      ToolbarUtil.setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
         Disposer.register(wrapper.disposable, runnable::run)
       }
     }
