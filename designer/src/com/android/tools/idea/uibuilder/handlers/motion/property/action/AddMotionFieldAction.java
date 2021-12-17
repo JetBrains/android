@@ -27,12 +27,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class AddMotionFieldAction extends AnAction {
+  private static final String ADD_ATTRIBUTE = "Add attribute";
   private final NlNewPropertyItem myNewProperty;
   private TableLineModel myLineModel;
 
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
                               @NotNull PropertiesTable<NlPropertyItem> properties) {
-    super(null, "Add attribute", AllIcons.General.Add);
+    super(ADD_ATTRIBUTE, ADD_ATTRIBUTE, AllIcons.General.Add);
     myNewProperty = new NlNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 

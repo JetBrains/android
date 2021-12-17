@@ -25,13 +25,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class AddCustomFieldAction extends AnAction {
+  private static final String ADD_CUSTOM_ATTRIBUTE = "Add custom attribute";
   private final MotionLayoutAttributesModel myModel;
   private final MotionSelection mySelection;
   private TableLineModel myLineModel;
   private NewCustomAttributePanel myDialog;
 
   public AddCustomFieldAction(@NotNull MotionLayoutAttributesModel model, @NotNull MotionSelection selection) {
-    super(null, "Add custom attribute", AllIcons.General.Add);
+    super(ADD_CUSTOM_ATTRIBUTE, ADD_CUSTOM_ATTRIBUTE, AllIcons.General.Add);
     myModel = model;
     mySelection = selection;
   }

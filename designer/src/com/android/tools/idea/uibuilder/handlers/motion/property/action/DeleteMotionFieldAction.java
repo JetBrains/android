@@ -20,19 +20,20 @@ import static com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.ptable.PTableItem;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import icons.StudioIcons;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeleteMotionFieldAction extends AnAction {
+  private static final String REMOVE_ATTRIBUTE = "Remove selected attribute";
   private TableLineModel myLineModel;
 
   public DeleteMotionFieldAction() {
-    super(null, "Remove selected attribute", StudioIcons.Common.REMOVE);
+    super(REMOVE_ATTRIBUTE, REMOVE_ATTRIBUTE, AllIcons.General.Remove);
     ActionManager manager = ActionManager.getInstance();
     setShortcutSet(manager.getAction(ACTION_DELETE).getShortcutSet());
   }
