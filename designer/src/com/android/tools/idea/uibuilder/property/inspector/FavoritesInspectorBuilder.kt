@@ -37,12 +37,12 @@ import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
+import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
-import icons.StudioIcons
 
 private const val ADD_ATTRIBUTE_ACTION_TITLE = "Add favorite"
 private const val DELETE_ROW_ACTION_TITLE = "Remove selected favorite"
@@ -164,7 +164,7 @@ class FavoritesInspectorBuilder(
     newPropertyItem.model.firePropertyValueChangeIfNeeded()
   }
 
-  private fun insertNewItem(name: String, value: String): NlPropertyItem? {
+  private fun insertNewItem(name: String, @Suppress("UNUSED_PARAMETER") value: String): NlPropertyItem? {
     val newPropertyInstance =  NlNewPropertyItem(model, model.properties, { true })
     newPropertyInstance.name = name
     return addToFavorites(newPropertyInstance)
@@ -192,7 +192,7 @@ class FavoritesInspectorBuilder(
 
   private class AddNewRowAction(
     val newProperty: NlNewPropertyItem
-  ) : AnAction(null, ADD_ATTRIBUTE_ACTION_TITLE, StudioIcons.Common.ADD) {
+  ) : AnAction(ADD_ATTRIBUTE_ACTION_TITLE, ADD_ATTRIBUTE_ACTION_TITLE, AllIcons.General.Add) {
 
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
@@ -205,7 +205,7 @@ class FavoritesInspectorBuilder(
     }
   }
 
-  private inner class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
+  private inner class DeleteRowAction: AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 

@@ -32,11 +32,11 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable.PTableItem
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
-import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
 private const val ADD_PROPERTY_ACTION_TITLE = "Add attribute"
@@ -91,7 +91,7 @@ class DeclaredAttributesInspectorBuilder(
 
   private class AddNewRowAction(
     val newProperty: NlNewPropertyItem
-  ) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
+  ) : AnAction(ADD_PROPERTY_ACTION_TITLE, ADD_PROPERTY_ACTION_TITLE, AllIcons.General.Add) {
 
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
@@ -104,7 +104,7 @@ class DeclaredAttributesInspectorBuilder(
     }
   }
 
-  private class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
+  private class DeleteRowAction: AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 

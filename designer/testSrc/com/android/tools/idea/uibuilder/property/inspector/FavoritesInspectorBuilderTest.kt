@@ -40,10 +40,10 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,7 +114,7 @@ class FavoritesInspectorBuilderTest {
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    util.performAction(0, 0, StudioIcons.Common.ADD)
+    util.performAction(0, 0, AllIcons.General.Add)
 
     // Check that there are 3 attributes (one placeholder)
     val lineModel = util.checkTable(1)
@@ -131,7 +131,7 @@ class FavoritesInspectorBuilderTest {
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    util.performAction(0, 0, StudioIcons.Common.ADD)
+    util.performAction(0, 0, AllIcons.General.Add)
     val newItem = util.checkTable(1).tableModel.items[2] as NlNewPropertyItem
 
     // Select a new favorite property:
@@ -154,7 +154,7 @@ class FavoritesInspectorBuilderTest {
     util.addProperty(AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF, NlPropertyType.ID)
     util.addProperty(AUTO_URI, ATTR_LAYOUT_TOP_TO_TOP_OF, NlPropertyType.ID)
     builder.attachToInspector(util.inspector, util.properties)
-    util.performAction(0, 0, StudioIcons.Common.ADD)
+    util.performAction(0, 0, AllIcons.General.Add)
     val newItem = util.checkTable(1).tableModel.items[2] as NlNewPropertyItem
 
     // Select a new favorite property:
@@ -178,7 +178,7 @@ class FavoritesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     val lineModel = util.checkTable(1)
     lineModel.selectedItem = lineModel.tableModel.items[0] // select ATTR_ALPHA
-    util.performAction(0, 1, StudioIcons.Common.REMOVE)
+    util.performAction(0, 1, AllIcons.General.Remove)
     lineModel.checkItem(0, ANDROID_URI, ATTR_VISIBILITY)
     lineModel.checkItemCount(1)
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;")
