@@ -217,9 +217,6 @@ class FavoritesInspectorBuilder(
     override fun update(event: AnActionEvent) {
       val enabled = lineModel?.tableModel?.items?.isNotEmpty() ?: false
       event.presentation.isEnabled = enabled
-
-      // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
-      templatePresentation.isEnabled = enabled
     }
 
     override fun actionPerformed(event: AnActionEvent) {

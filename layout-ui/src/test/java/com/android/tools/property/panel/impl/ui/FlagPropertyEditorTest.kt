@@ -36,18 +36,14 @@ import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.ptable.impl.PTableImpl
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.IdeActions
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import javax.swing.JScrollPane
 
 class FlagPropertyEditorTest {
@@ -58,7 +54,6 @@ class FlagPropertyEditorTest {
   @Before
   fun setUp() {
     `when`(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
-    `when`(DataManager.getInstance().getDataContext(ArgumentMatchers.any())).thenReturn(mock(DataContext::class.java))
   }
 
   @Test
