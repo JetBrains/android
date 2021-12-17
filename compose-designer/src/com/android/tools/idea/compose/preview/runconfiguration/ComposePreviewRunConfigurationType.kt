@@ -30,7 +30,7 @@ class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePrevi
                                                                    }) {
   init {
     if (!isComposeRunConfigurationEnabled()) {
-      throw ExtensionNotApplicableException.INSTANCE
+      throw ExtensionNotApplicableException.create()
     }
   }
 
