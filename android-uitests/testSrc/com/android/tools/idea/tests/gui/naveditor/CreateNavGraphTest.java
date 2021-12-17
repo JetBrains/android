@@ -73,6 +73,6 @@ public class CreateNavGraphTest {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("android.arch.navigation:navigation-fragment");
+    assertThat(contents).contains("androidx.navigation:navigation-fragment");
   }
 }

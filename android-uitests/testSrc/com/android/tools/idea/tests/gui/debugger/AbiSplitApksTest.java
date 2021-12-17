@@ -74,7 +74,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       "Google",
       "Nexus 5X",
       "8.1",
-      "27",
+      "31",
       DeviceState.HostConnectionType.LOCAL
     ).get();
     device.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
