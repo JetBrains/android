@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
-@VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 10L
+@VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
 
 class InspectorClientLaunchMonitor(
   @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
