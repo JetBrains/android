@@ -51,6 +51,7 @@ public class IdeaTestSuiteBase {
   private static void setProperties() throws IOException {
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
+    System.setProperty("idea.force.use.core.classloader", "true");
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
     System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
