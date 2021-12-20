@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -181,6 +182,11 @@ class InspectorClientLauncher(
 
             // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
             latch.await(1, TimeUnit.MINUTES)
+            // The current selected process changed out from under us, abort the whole thing.
+            if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
+              metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED)
+              return
+            }
             // This client didn't work, try the next
             if (validClientConnected) {
               break
@@ -189,14 +195,11 @@ class InspectorClientLauncher(
               // Disconnect to clean up any partial connection or leftover process
               client.disconnect()
             }
-            // The current selected process changed out from under us, abort the whole thing.
-            if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
-              return
-            }
           }
           catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process
             client.disconnect()
+            metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED)
             throw cancellationException
           }
           catch (ignored: Exception) {
