@@ -1333,7 +1333,7 @@ public final class StudioFlags {
     "paired.devices.tab.enabled",
     "Enable the Paired devices tab",
     "Enable the Paired devices tab in the details panel",
-    false);
+    true);
   // endregion
 
   //region DDMLIB

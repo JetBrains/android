@@ -260,6 +260,6 @@ public final class PhysicalDevicePanelTest {
   }
 
   private static @NotNull DetailsPanel newPhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device) {
-    return new PhysicalDeviceDetailsPanel(device, Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    return new PhysicalDeviceDetailsPanel(device, Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3), false);
   }
 }

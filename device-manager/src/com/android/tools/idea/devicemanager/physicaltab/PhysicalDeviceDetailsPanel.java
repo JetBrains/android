@@ -129,12 +129,12 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   }
 
   PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @Nullable Project project) {
-    this(device, new AsyncDetailsBuilder(project, device).buildAsync());
+    this(device, new AsyncDetailsBuilder(project, device).buildAsync(), true);
   }
 
   @VisibleForTesting
-  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future) {
-    this(device, future, SummarySectionCallback::new, DeviceSectionCallback::new, WearPairingManager.INSTANCE);
+  PhysicalDeviceDetailsPanel(@NotNull PhysicalDevice device, @NotNull ListenableFuture<@NotNull PhysicalDevice> future, boolean addPairedDevices) {
+    this(device, future, SummarySectionCallback::new, DeviceSectionCallback::new, WearPairingManager.INSTANCE, addPairedDevices);
   }
 
   @VisibleForTesting
@@ -142,7 +142,8 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
                              @NotNull ListenableFuture<@NotNull PhysicalDevice> future,
                              @NotNull NewInfoSectionCallback<@NotNull SummarySection> newSummarySectionCallback,
                              @NotNull NewInfoSectionCallback<@NotNull DeviceSection> newDeviceSectionCallback,
-                             @NotNull WearPairingManager manager) {
+                             @NotNull WearPairingManager manager,
+                             boolean addPairedDevices) {
     super(device.getName());
     myOnline = device.isOnline();
 
@@ -160,7 +161,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
       // myInfoSections.add(myDeviceSection);
 
-      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+      if (addPairedDevices && StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
         myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this);
       }
     }

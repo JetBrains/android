@@ -54,11 +54,11 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device) {
-    this(device, WearPairingManager.INSTANCE);
+    this(device, WearPairingManager.INSTANCE, true);
   }
 
   @VisibleForTesting
-  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @NotNull WearPairingManager manager) {
+  VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @NotNull WearPairingManager manager, boolean addPairedDevices) {
     super(device.getName());
     myDevice = device;
 
@@ -68,7 +68,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     myInfoSections.add(mySummarySection);
     InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+    if (addPairedDevices && StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
       switch (device.getType()) {
         case PHONE:
         case WEAR_OS:
