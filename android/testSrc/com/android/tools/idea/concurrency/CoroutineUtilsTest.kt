@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
@@ -37,23 +36,19 @@ import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import junit.framework.Assert.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,7 +56,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
@@ -559,68 +553,5 @@ class CoroutineUtilsTest {
 
     coroutineCompleted.await()
     assertFalse(progressIndicator.isRunning)
-  }
-
-  private interface TestCallback {
-    fun send()
-  }
-
-  @Test
-  fun `disposable callback flow`() {
-    val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
-    val callbackDeferred = CompletableDeferred<TestCallback>()
-    val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
-      callbackDeferred.complete(object: TestCallback {
-        override fun send() {
-          this@disposableCallbackFlow.trySend(Unit)
-        }
-      })
-    }
-
-    val flowReceiverCount = AtomicInteger(0)
-    runBlocking {
-      val collectJob = launch(workerThread) {
-        disposableFlow.collect {
-          flowReceiverCount.incrementAndGet()
-        }
-      }
-
-      val callback = callbackDeferred.await()
-      repeat(10) { callback.send() }
-      Disposer.dispose(parentDisposable) // This will stop the flow collect call
-      collectJob.join()
-      // These callbacks will be ignored since they happened after the collect cancellation.
-      repeat(10) { callback.send() }
-
-      assertEquals(10, flowReceiverCount.get())
-    }
-  }
-
-  @DelicateCoroutinesApi
-  @Test
-  fun `smart mode flow reports changes in status`() {
-    val project = projectRule.project
-    val disposable = Disposer.newDisposable(projectRule.testRootDisposable, "TestDisposable")
-    val connected = CompletableDeferred<Unit>()
-    val smartModeFlow = smartModeFlow(project, disposable, null) { connected.complete(Unit) }
-
-    val flowReceiverCount = AtomicInteger(0)
-    val job = GlobalScope.launch(workerThread) {
-      smartModeFlow.collect { flowReceiverCount.incrementAndGet() }
-    }
-
-    runBlocking { connected.await() }
-
-    val isDumb = arrayOf(true, true, false, true, false, true)
-    isDumb.forEach {
-      runInEdtAndWait { DumbServiceImpl.getInstance(project).isDumb = it }
-    }
-
-    // We should see two switches to smart mode.
-    runBlocking {
-      job.cancel()
-      job.join()
-      assertEquals(2, flowReceiverCount.get())
-    }
   }
 }
