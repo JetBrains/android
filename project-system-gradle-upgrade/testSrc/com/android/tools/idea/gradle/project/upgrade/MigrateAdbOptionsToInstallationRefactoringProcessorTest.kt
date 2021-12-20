@@ -35,8 +35,8 @@ class MigrateAdbOptionsToInstallationRefactoringProcessorTest: UpgradeGradleFile
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
       ("4.1.0" to "4.2.0") to IRRELEVANT_FUTURE,
-      ("4.2.0" to "7.0.0") to OPTIONAL_CODEPENDENT,
-      ("7.0.0" to "7.1.0") to OPTIONAL_INDEPENDENT,
+      ("4.2.0" to "7.0.2") to OPTIONAL_CODEPENDENT,
+      ("7.0.2" to "7.1.0") to OPTIONAL_INDEPENDENT,
       ("7.1.0" to "8.0.0") to MANDATORY_INDEPENDENT,
       ("4.2.0" to "8.0.0") to MANDATORY_CODEPENDENT,
       ("8.0.0" to "8.1.0") to IRRELEVANT_PAST
