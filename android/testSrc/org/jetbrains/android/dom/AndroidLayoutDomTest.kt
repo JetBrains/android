@@ -1208,13 +1208,13 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.assertPreferredCompletionItems(0, "EditText", "ExpandableListView", "android.inputmethodservice.ExtractEditText")
   }
 
-  fun ignoreTestTagNameCompletion3() { // TODO(b/205623011): Re-enable this test when fixed.
+  fun testTagNameCompletion3() {
     doTestCompletionVariants("tn3.xml", "ActionMenuView", "AdapterViewFlipper", "AutoCompleteTextView", "CalendarView", "CheckedTextView",
                              "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
                              "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
                              "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
                              "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
-                             "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView")
+                             "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView", "android.window.SplashScreenView")
   }
 
   /*public void testTagNameCompletion4() throws Throwable {

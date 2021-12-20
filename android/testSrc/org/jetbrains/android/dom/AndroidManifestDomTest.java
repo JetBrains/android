@@ -687,8 +687,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   /**
    * Test that "path" attribute prefix inside "data" tag leads to correct completion results
    */
-  public void ignoreTestDataAttributeCompletion() throws Throwable { // TODO(b/205623011): Re-enable this test when fixed.
-    doTestCompletionVariants("dataAttributeCompletion.xml", "android:path", "android:pathPrefix", "android:pathPattern");
+  public void testDataAttributeCompletion() throws Throwable {
+    doTestCompletionVariants("dataAttributeCompletion.xml", "android:path", "android:pathPrefix", "android:pathPattern",
+                             "android:pathSuffix", "android:pathAdvancedPattern");
   }
 
   public void testCompletionInManifestTag() throws Throwable {
