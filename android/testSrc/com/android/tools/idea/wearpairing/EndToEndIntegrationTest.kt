@@ -82,7 +82,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
         when {
           request == "cat /proc/uptime" -> "500"
           request.contains("grep versionName") -> "versionName=1.0.0"
-          request.contains("grep versionCode") -> "versionCode=1"
+          request.contains("grep versionCode") -> "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
           request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
           else -> "Unknown executeShellCommand request $request"
         }

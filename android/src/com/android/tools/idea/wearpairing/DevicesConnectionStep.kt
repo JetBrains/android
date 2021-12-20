@@ -151,9 +151,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
       if (isFirstStage) {
         phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
-        if (!phoneIDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING)) {
-          killNonSelectedRunningWearEmulators()
-        }
         wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded()
         secondStageStep!!.phoneIDevice = phoneIDevice
         secondStageStep.wearIDevice = wearIDevice
@@ -172,8 +169,14 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
+    if (!phoneDevice.hasPairingFeature(PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING)) {
+      showDeviceGmscoreNeedsUpdate(phonePairingDevice.displayName)
+      phoneDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
+      showEmbeddedEmulator(phoneDevice)
+      return
+    }
     if (!wearDevice.hasPairingFeature(PairingFeature.REVERSE_PORT_FORWARD)) {
-      showDeviceGmscoreNeedsUpdate()
+      showDeviceGmscoreNeedsUpdate(wearPairingDevice.displayName)
       wearDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=com.google.android.gms'")
       showEmbeddedEmulator(wearDevice)
       return
@@ -222,9 +225,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
-  private fun showDeviceGmscoreNeedsUpdate() {
+  private fun showDeviceGmscoreNeedsUpdate(deviceName: String) {
     GlobalScope.launch(ioThread) {
-      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error"), StudioIcons.Common.ERROR)
+      val body = createWarningPanel(message("wear.assistant.device.connection.gmscore.error", deviceName), StudioIcons.Common.ERROR)
       body.add(
         LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ ->
           wizardAction.restart(project)
@@ -375,24 +378,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       )
       throw RuntimeException(ex)
     }
-  }
-
-  private suspend fun killNonSelectedRunningWearEmulators() {
-    model.getNonSelectedRunningWearEmulators().apply {
-      if (isNotEmpty()) {
-        showUiLaunchingDevice(model.selectedWearDevice.valueOrNull?.displayName ?: "")
-      }
-      forEach {
-        // Remove pairing, in case we need to kill a paired device and that would show a toast
-        WearPairingManager.removePairedDevices(it.deviceID)
-        val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-        avdManager.findAvd(it.deviceID)?.apply {
-          avdManager.stopAvd(this)
-        }
-      }
-    }
-
-    waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { model.getNonSelectedRunningWearEmulators().isEmpty() }
   }
 
   private suspend fun showUI(

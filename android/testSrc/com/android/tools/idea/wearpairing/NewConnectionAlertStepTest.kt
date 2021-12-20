@@ -64,16 +64,6 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun shouldShowIfMoreThanOneWearIsRunning() {
-    model.wearList.set(listOf(
-      wearDevice.copy(deviceID = "id3", displayName = "My Watch"),
-    ))
-
-    val fakeUi = createNewConnectionAlertStepUi()
-    fakeUi.waitForText("Shutting down other Wear OS emulators")
-  }
-
-  @Test
   fun shouldShowIfPreviousPairingIsActive() {
     val previousPairedWear = wearDevice.copy(deviceID = "id3")
     val iDevice = Mockito.mock(IDevice::class.java)
