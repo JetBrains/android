@@ -1,0 +1,2 @@
+<div class='definition'><pre>p1.p2<br>public static final class <b>string</b>
+extends <a href="psi_element://java.lang.Object"><code>Object</code></a></pre></div><table class='sections'></table>

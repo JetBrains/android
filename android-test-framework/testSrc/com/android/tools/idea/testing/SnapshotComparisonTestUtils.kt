@@ -46,6 +46,7 @@ interface SnapshotComparisonTest {
   /**
    * The name of the property which should be set to activate "update snapshots" test execution mode.
    */
+  @JvmDefault
   val updateSnapshotsJvmProperty: String get() = "UPDATE_TEST_SNAPSHOTS"
 
   /**
@@ -56,6 +57,7 @@ interface SnapshotComparisonTest {
   /**
    * The list of file name suffixes applicable to the currently running test.
    */
+  @JvmDefault
   val snapshotSuffixes: List<String> get() = listOf("")
 
   /**

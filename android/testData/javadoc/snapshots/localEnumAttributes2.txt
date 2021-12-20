@@ -1,0 +1,1 @@
+The widget will scroll horizontally.

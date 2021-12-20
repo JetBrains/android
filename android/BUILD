@@ -597,6 +597,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData:javadoc",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
         "//tools/base/build-system:studio_repo",

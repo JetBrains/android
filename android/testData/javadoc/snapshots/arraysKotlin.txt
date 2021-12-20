@@ -1,0 +1,12 @@
+<html>
+<body>
+<table><tr><th valign="top">Configuration</th><th valign="top">Value</th></tr>
+<tr><td valign="top">Default</td>
+<td valign="top">red, orange, yellow, green</td>
+</tr>
+<tr><td valign="top">no</td>
+<td valign="top">rød, oransj, gul, grønn</td>
+</tr>
+</table>
+</body>
+</html>

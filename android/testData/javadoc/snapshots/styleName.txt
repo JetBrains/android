@@ -1,0 +1,7 @@
+<html>
+<body>
+<B>android:textStyle</B><br/>Default text typeface style.<br/><hr/><BR/>
+@android:attr/textStyle<BR/>
+<BR/>
+</body>
+</html>

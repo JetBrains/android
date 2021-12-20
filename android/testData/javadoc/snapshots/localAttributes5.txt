@@ -1,0 +1,4 @@
+<html>
+<body>
+Formats: boolean, integer<br><br>my attr 1 global docs</body>
+</html>

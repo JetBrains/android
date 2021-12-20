@@ -1,0 +1,7 @@
+<html>
+<body>
+<B>actionBarDivider</B><br/>Custom divider drawable to use for elements in the action bar.<br/><hr/><BR/>
+@attr/actionBarDivider<BR/>
+<BR/>
+</body>
+</html>

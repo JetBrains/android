@@ -1,0 +1,15 @@
+<html>
+<body>
+<table><tr><th valign="top">Configuration</th><th valign="top">Value</th></tr>
+<tr><td valign="top">Default</td>
+<td valign="top">Cancel</td>
+</tr>
+<tr><td valign="top">ta</td>
+<td valign="top">ரத்து</td>
+</tr>
+<tr><td valign="top">zh-rTW</td>
+<td valign="top">取消</td>
+</tr>
+</table>
+</body>
+</html>
