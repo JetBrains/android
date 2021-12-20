@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.collect.Streams;
@@ -84,6 +85,9 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device,
                                                                                @NotNull WearPairingManager manager) {
+    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+      return Optional.empty();
+    }
     String key = device.getKey().toString();
     PhoneWearPair pair = manager.getPairedDevices(key);
 
