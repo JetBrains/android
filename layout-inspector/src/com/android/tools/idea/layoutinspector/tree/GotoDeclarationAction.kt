@@ -15,30 +15,35 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.pom.Navigatable
+import org.jetbrains.kotlin.idea.debugger.readAction
 
 /**
  * Action for navigating to the currently selected node in the layout inspector.
  */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
+
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
-    inspector.stats.gotoSourceFromTreeActionMenu(event)
-    findNavigatable(event)?.navigate(true)
-  }
-
-  override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = findNavigatable(event) != null
+    executeOnPooledThread {
+      readAction {
+        inspector.stats.gotoSourceFromTreeActionMenu(event)
+        findNavigatable(event)?.navigate(true)
+      }
+    }
   }
 
   private fun findNavigatable(event: AnActionEvent): Navigatable? =
     LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
 
+  @Slow
   fun findNavigatable(model: InspectorModel): Navigatable? {
     val resourceLookup = model.resourceLookup
     val node = model.selection ?: return null

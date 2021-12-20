@@ -140,6 +140,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the source navigatable of a composable function.
    */
+  @Slow
   fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
     composeResolver.findComposableNavigatable(composable)
 

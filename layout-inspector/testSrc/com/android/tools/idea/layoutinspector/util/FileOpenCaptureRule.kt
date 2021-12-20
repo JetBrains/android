@@ -29,6 +29,9 @@ import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.timeout
+
+private const val TIMEOUT = 200L // milli seconds
 
 class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : ExternalResource() {
   private var componentStack: ComponentStack? = null
@@ -47,7 +50,7 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
     Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
