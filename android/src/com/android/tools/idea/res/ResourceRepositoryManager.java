@@ -475,12 +475,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
-    // For disposal, the newly created test module repository ends up owned by the repository manager
-    // if returned from this method or the TestAppResourceRepository if passed to it. This is slightly
-    // different to the main module repository, which is always owned by the manager and stored in
-    // myModuleResources.
     LocalResourceRepository moduleTestResources = getTestModuleResources();
-
     return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
