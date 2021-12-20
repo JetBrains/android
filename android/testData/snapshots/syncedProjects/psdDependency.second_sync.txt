@@ -478,9 +478,9 @@ PROJECT                       : testPsdDependency
         LinkedProjectPath             : <PROJECT>/jModuleK
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependency.jModuleK [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependency.jModuleK [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependency.jModuleK.iml
         ModuleTypeName                : JAVA_MODULE
@@ -572,9 +572,9 @@ PROJECT                       : testPsdDependency
         LinkedProjectPath             : <PROJECT>/jModuleL
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependency.jModuleL [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependency.jModuleL [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependency.jModuleL.iml
         ModuleTypeName                : JAVA_MODULE
@@ -642,9 +642,9 @@ PROJECT                       : testPsdDependency
         LinkedProjectPath             : <PROJECT>/jModuleM
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependency.jModuleM [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependency.jModuleM [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependency.jModuleM.iml
         ModuleTypeName                : JAVA_MODULE
@@ -712,9 +712,9 @@ PROJECT                       : testPsdDependency
         LinkedProjectPath             : <PROJECT>/jModuleZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependency.jModuleZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependency.jModuleZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependency.jModuleZ.iml
         ModuleTypeName                : JAVA_MODULE
@@ -781,9 +781,9 @@ PROJECT                       : testPsdDependency
         LinkedProjectPath             : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependency.jModuleZ.nestedZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependency.jModuleZ.nestedZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependency.jModuleZ.nestedZ.iml
         ModuleTypeName                : JAVA_MODULE

@@ -478,9 +478,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>/jModuleK
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack.jModuleK [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.jModuleK [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.iml
         ModuleTypeName                : JAVA_MODULE
@@ -572,9 +572,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>/jModuleL
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack.jModuleL [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.jModuleL [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.iml
         ModuleTypeName                : JAVA_MODULE
@@ -642,9 +642,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>/jModuleM
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack.jModuleM [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.jModuleM [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.iml
         ModuleTypeName                : JAVA_MODULE
@@ -712,9 +712,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>/jModuleZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.iml
         ModuleTypeName                : JAVA_MODULE
@@ -781,9 +781,9 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.iml
         ModuleTypeName                : JAVA_MODULE

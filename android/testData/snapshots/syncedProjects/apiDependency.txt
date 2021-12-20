@@ -456,9 +456,9 @@ PROJECT                       : testApiDependency
         LinkedProjectPath             : <PROJECT>/jlib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.iml
         ModuleTypeName                : JAVA_MODULE
@@ -526,9 +526,9 @@ PROJECT                       : testApiDependency
         LinkedProjectPath             : <PROJECT>/jlib0
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib0 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib0 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.iml
         ModuleTypeName                : JAVA_MODULE

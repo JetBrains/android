@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.ArtifactsByConfigurationModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CompilerOutputModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.JavaFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleModel> {
   public JavaModuleSetup() {
-    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep());
+    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep());
   }
 
   @VisibleForTesting

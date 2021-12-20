@@ -815,9 +815,9 @@ PROJECT                       : testPsdSampleRenamingModule
         LinkedProjectPath             : <PROJECT>/jav
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.jav [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.jav [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.iml
         ModuleTypeName                : JAVA_MODULE

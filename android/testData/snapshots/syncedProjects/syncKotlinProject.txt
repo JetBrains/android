@@ -1158,9 +1158,9 @@ PROJECT                       : testSyncKotlinProject
         LinkedProjectPath             : <PROJECT>/contentLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/contentLib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/contentLib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject.contentLib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject.contentLib [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.iml
         ModuleTypeName                : JAVA_MODULE

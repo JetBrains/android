@@ -460,9 +460,9 @@ PROJECT                       : testWithBuildSrc
         LinkedProjectPath             : <PROJECT>/buildSrc
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithBuildSrc.buildSrc.iml
         ModuleTypeName                : JAVA_MODULE
@@ -485,9 +485,9 @@ PROJECT                       : testWithBuildSrc
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib1 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib1/testWithBuildSrc.buildSrc.lib1.iml
         ModuleTypeName                : JAVA_MODULE
@@ -553,9 +553,9 @@ PROJECT                       : testWithBuildSrc
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
-            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib2 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib2/testWithBuildSrc.buildSrc.lib2.iml
         ModuleTypeName                : JAVA_MODULE

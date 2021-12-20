@@ -469,9 +469,9 @@ PROJECT                       : testTransitiveDependencies
         LinkedProjectPath             : <PROJECT>/javalib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/javalib1/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/javalib1/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.javalib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.javalib1 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/javalib1/testTransitiveDependencies.javalib1.iml
         ModuleTypeName                : JAVA_MODULE
@@ -547,9 +547,9 @@ PROJECT                       : testTransitiveDependencies
         LinkedProjectPath             : <PROJECT>/javalib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/javalib2/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/javalib2/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies.javalib2 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies.javalib2 [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/javalib2/testTransitiveDependencies.javalib2.iml
         ModuleTypeName                : JAVA_MODULE

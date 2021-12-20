@@ -1424,9 +1424,9 @@ PROJECT                       : AS36
         LinkedProjectPath             : <PROJECT>/libs/java_lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs.java_lib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.java_lib [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.iml
         ModuleTypeName                : JAVA_MODULE

@@ -478,9 +478,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>/jModuleK
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleK [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleK [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.iml
         ModuleTypeName                : JAVA_MODULE
@@ -572,9 +572,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>/jModuleL
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleL [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleL [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.iml
         ModuleTypeName                : JAVA_MODULE
@@ -642,9 +642,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>/jModuleM
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleM [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleM [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.iml
         ModuleTypeName                : JAVA_MODULE
@@ -712,9 +712,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>/jModuleZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.iml
         ModuleTypeName                : JAVA_MODULE
@@ -781,9 +781,9 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.iml
         ModuleTypeName                : JAVA_MODULE

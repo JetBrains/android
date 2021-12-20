@@ -539,9 +539,9 @@ PROJECT                       : MainActivity
         LinkedProjectPath             : <PROJECT>/javaLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/javaLib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/javaLib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MainActivity.javaLib [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MainActivity.javaLib [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/javaLib/MainActivity.javaLib.iml
         ModuleTypeName                : JAVA_MODULE

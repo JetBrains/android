@@ -478,9 +478,9 @@ PROJECT                       : testPsdDependencyDeleteModule
         LinkedProjectPath             : <PROJECT>/jModuleK
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleK [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleK [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.iml
         ModuleTypeName                : JAVA_MODULE
@@ -572,9 +572,9 @@ PROJECT                       : testPsdDependencyDeleteModule
         LinkedProjectPath             : <PROJECT>/jModuleL
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleL [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleL [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.iml
         ModuleTypeName                : JAVA_MODULE
@@ -642,9 +642,9 @@ PROJECT                       : testPsdDependencyDeleteModule
         LinkedProjectPath             : <PROJECT>/jModuleM
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleM [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleM [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.iml
         ModuleTypeName                : JAVA_MODULE
@@ -712,9 +712,9 @@ PROJECT                       : testPsdDependencyDeleteModule
         LinkedProjectPath             : <PROJECT>/jModuleZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.iml
         ModuleTypeName                : JAVA_MODULE
@@ -781,9 +781,9 @@ PROJECT                       : testPsdDependencyDeleteModule
         LinkedProjectPath             : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.nestedZ [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.nestedZ [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.iml
         ModuleTypeName                : JAVA_MODULE

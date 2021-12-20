@@ -8,9 +8,9 @@ PROJECT                       : testNestedModule
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/java/test [-]
-            isCompilerPathInherited       : false
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testNestedModule [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testNestedModule [-]
+            isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testNestedModule.iml
         ModuleTypeName                : JAVA_MODULE
