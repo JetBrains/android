@@ -21,7 +21,6 @@
   <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
   <vendor url="http://www.android.com">Android</vendor>
 
-  <idea-version since-build="191.5109.14"/>
   <depends>org.jetbrains.android</depends>
   <depends>org.jetbrains.kotlin</depends>
 
