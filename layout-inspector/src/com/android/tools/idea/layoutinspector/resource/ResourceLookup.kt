@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
@@ -165,6 +166,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Is this attribute a dimension according to the resource manager.
    */
+  @Slow
   fun isDimension(view: ViewNode, attributeName: String): Boolean =
     ReadAction.compute<Boolean, Nothing> { resolver?.isDimension(view, attributeName) ?: false }
 }

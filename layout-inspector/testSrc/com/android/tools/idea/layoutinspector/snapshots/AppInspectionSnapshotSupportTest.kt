@@ -235,7 +235,7 @@ class AppInspectionSnapshotSupportTest {
       assertThat(item.type).isEqualTo(INT32)
       checkedProperties = true
     }
-    snapshotLoader.propertiesProvider.requestProperties(newModel[VIEW2]!!)
+    snapshotLoader.propertiesProvider.requestProperties(newModel[VIEW2]!!).get()
     assertThat(checkedProperties).isTrue()
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -51,7 +52,7 @@ class AppInspectionPropertiesProvider(
     val future = CompletableFuture<Unit>()
     val self = this
 
-    CoroutineScope(Dispatchers.Unconfined).launch {
+    CoroutineScope(Dispatchers.IO).launch {
       var propertiesTable: PropertiesTable<InspectorPropertyItem>? = null
       if (view !is ComposeViewNode) {
         val viewData = propertiesCache.getDataFor(view)
@@ -87,13 +88,12 @@ class AppInspectionPropertiesProvider(
    * - Add a call location to all known object types where the className is known.
    * - Create resolution stack items based on the resolution stack received from the agent.
    */
+  @Slow // may use index for resolveDimension
   private fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
     val properties = propertiesData.properties
     if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    if (view !is ComposeViewNode) {
-      properties.values.forEach { it.resolveDimensionType(view) }
-    }
+    properties.values.forEach { it.resolveDimensionType(view) }
 
     runReadAction {
       propertiesData.classNames.cellSet().mapNotNull { cell ->
