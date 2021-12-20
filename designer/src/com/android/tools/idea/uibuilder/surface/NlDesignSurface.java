@@ -47,9 +47,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -61,7 +59,6 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.lint.VisualLintService;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -90,7 +87,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
@@ -873,7 +869,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       "",
       false
     );
-    return forceRefresh().whenComplete((r, t) -> refreshProgressIndicator.processFinish());
+    return requestSequentialRender(manager -> {
+      LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
+      layoutlibSceneManager.forceReinflate();
+      return layoutlibSceneManager.requestUserInitiatedRenderAsync();
+    }).whenComplete((r, t) -> refreshProgressIndicator.processFinish());
   }
 
   @NotNull
