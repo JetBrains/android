@@ -37,7 +37,6 @@ import java.util.Collection;
 import org.junit.Assert;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_FIXTURES;
@@ -185,20 +184,8 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
                            pathToIdeaUrl(new File(baseDir, join("build", "resources", "main"))),
                            pathToIdeaUrl(new File(baseDir, join("build", "tmp", "kapt3", "classes", "main")))
     );
-  }
 
-  public void testJavaProjectWithTestOutputCorrect() throws Exception {
-    if (SystemInfoRt.isWindows) {
-      return; // TODO(b/162746378) failing on windows
-    }
-    loadProject(KOTLIN_KAPT);
-    Module module = getModule("javaLib");
-    List<String> result = getAmendedPaths(module, true);
-
-    VirtualFile baseFile = ProjectUtil.guessModuleDir(module);
-    assertNotNull(baseFile);
-    String baseDir = baseFile.getPath();
-
+    result = getAmendedPaths(module, true);
     assertSize(8, result);
     assertContainsElements(result,
                            pathToIdeaUrl(new File(baseDir, join("build", "classes", "java", "main"))),
