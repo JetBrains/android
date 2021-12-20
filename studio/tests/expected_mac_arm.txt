@@ -1933,9 +1933,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
 Android Studio Preview.app/Contents/plugins/android/lib/artwork.jar
-Android Studio Preview.app/Contents/plugins/android/lib/asm-7.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/asm-analysis-7.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-7.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/asm-9.1.jar
+Android Studio Preview.app/Contents/plugins/android/lib/asm-analysis-9.1.jar
+Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-9.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/auto-common-0.10.jar
 Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.2.4.jar
