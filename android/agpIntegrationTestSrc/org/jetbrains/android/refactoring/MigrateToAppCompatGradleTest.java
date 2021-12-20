@@ -150,7 +150,6 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "}\n",
                  getTextForFile("app/src/main/java/com/example/google/migrate2appcompat/CustomView.java"));
 
-/* b/146019491
     assertEquals("package com.example.google.migrate2appcompat;\n" +
                  "\n" +
                  "import android.app.Activity;\n" +
@@ -236,7 +235,6 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "    }\n" +
                  "}\n",
                  getTextForFile("mylibrarybase/src/main/java/com/example/appandmodules/mylibarybase/SpecialLibraryUtility.java"));
-b/146019491 */
   }
 
   /**
