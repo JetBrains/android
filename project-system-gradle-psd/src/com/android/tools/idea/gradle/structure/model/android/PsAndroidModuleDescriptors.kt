@@ -17,13 +17,16 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 
-object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidProject, AndroidModel> {
-  override fun getResolved(model: PsAndroidModule): IdeAndroidProject? = model.resolvedModel?.androidProject
+data class AndroidModuleResolvedModels(val android: IdeAndroidProject?, val ndk: NdkModel?)
+object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModuleResolvedModels, AndroidModel> {
+  override fun getResolved(model: PsAndroidModule): AndroidModuleResolvedModels =
+    AndroidModuleResolvedModels(android = model.resolvedModel?.androidProject, model.resolvedNativeModel?.ndkModel)
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 
@@ -36,7 +39,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val compileSdkVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Compile Sdk Version",
     preferredVariableName = { "compileSdkVersion" },
-    resolvedValueGetter = { compileTarget },
+    resolvedValueGetter = { android?.compileTarget },
     parsedPropertyGetter = { compileSdkVersion() },
     getter = { asString() },
     setter = { setValue(it.toIntOrNull() ?: it) },
@@ -48,7 +51,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val buildToolsVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Build Tools Version",
     preferredVariableName = { "buildToolsVersion" },
-    resolvedValueGetter = { buildToolsVersion },
+    resolvedValueGetter = { android?.buildToolsVersion },
     parsedPropertyGetter = { buildToolsVersion() },
     getter = { asString() },
     setter = { setValue(it) },
@@ -74,7 +77,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Source Compatibility",
     preferredVariableName = { "sourceCompatibility" },
-    resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
+    resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.sourceCompatibility) },
     parsedPropertyGetter = { compileOptions().sourceCompatibility() },
     getter = { asLanguageLevel() },
     setter = { setLanguageLevel(it) },
@@ -86,7 +89,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val targetCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Target Compatibility",
     preferredVariableName = { "targetCompatibility" },
-    resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
+    resolvedValueGetter = { LanguageLevel.parse(android?.javaCompileOptions?.targetCompatibility) },
     parsedPropertyGetter = { compileOptions().targetCompatibility() },
     getter = { asLanguageLevel() },
     setter = { setLanguageLevel(it) },
@@ -98,7 +101,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> = property(
     "Enable View Binding",
     preferredVariableName = { "viewBindingEnabled" },
-    resolvedValueGetter = { viewBindingOptions?.enabled },
+    resolvedValueGetter = { android?.viewBindingOptions?.enabled },
     parsedPropertyGetter = { viewBinding().enabled() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -109,7 +112,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val includeDependenciesInfoInApk: SimpleProperty<PsAndroidModule, Boolean> = property(
     "Retain information about dependencies in the apk",
     preferredVariableName = { "includeInApk" },
-    resolvedValueGetter = { dependenciesInfo?.includeInApk },
+    resolvedValueGetter = { android?.dependenciesInfo?.includeInApk },
     parsedPropertyGetter = { dependenciesInfo().includeInApk() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -120,7 +123,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val includeDependenciesInfoInBundle: SimpleProperty<PsAndroidModule, Boolean> = property(
     "Retain information about dependencies in the bundle",
     preferredVariableName = { "includeInBundle" },
-    resolvedValueGetter = { dependenciesInfo?.includeInBundle },
+    resolvedValueGetter = { android?.dependenciesInfo?.includeInBundle },
     parsedPropertyGetter = { dependenciesInfo().includeInBundle() },
     getter = { asBoolean() },
     setter = { setValue(it) },
