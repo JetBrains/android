@@ -52,14 +52,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -312,74 +308,27 @@ public class AndroidJavaDocRenderer {
       int rank = 0;
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
-        // TODO: b/22927607
-        AndroidModuleModel androidModel = AndroidModuleModel.get(reachableFacet);
-        if (androidModel != null) {
-          hasGradleModel = true;
-          String facetModuleName = reachableFacet.getHolderModule().getName();
-          assert AndroidModel.isRequired(reachableFacet);
-          IdeAndroidProject androidProject = androidModel.getAndroidProject();
-          IdeVariant selectedVariant = androidModel.getSelectedVariant();
-          Set<IdeSourceProvider> selectedProviders = new HashSet<>();
-
-          IdeBuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
-          assert buildType != null;
-          IdeSourceProvider sourceProvider = buildType.getSourceProvider();
-          String buildTypeName = selectedVariant.getName();
-          addItemsFromSourceSet(buildTypeName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
+        String facetModuleName = reachableFacet.getHolderModule().getName();
+        SourceProviders sourceProviders = SourceProviders.getInstance(reachableFacet);
+        Set<NamedIdeaSourceProvider> selectedProviders = new HashSet<>();
+        for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentSourceProviders()).reverse()) {
+          addItemsFromSourceSet(sourceProvider.getName() + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
                                 resourceName, results, reachableFacet);
           selectedProviders.add(sourceProvider);
-
-          List<String> productFlavors = selectedVariant.getProductFlavors();
-          // Iterate in *reverse* order
-          for (int i = productFlavors.size() - 1; i >= 0; i--) {
-            String flavorName = productFlavors.get(i);
-            IdeProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
-            assert productFlavor != null;
-            IdeSourceProvider provider = productFlavor.getSourceProvider();
-            addItemsFromSourceSet(flavorName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName,
-                                  results, reachableFacet);
-            selectedProviders.add(provider);
-          }
-
-          IdeSourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
-          addItemsFromSourceSet("main" + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results,
-                                reachableFacet);
-          selectedProviders.add(main);
-
-          // Next display any source sets that are *not* in the selected flavors or build types!
-          Collection<IdeBuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-          for (IdeBuildTypeContainer container : buildTypes) {
-            IdeSourceProvider provider = container.getSourceProvider();
-            if (!selectedProviders.contains(provider)) {
-              addItemsFromSourceSet(container.getBuildType().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider, type,
-                                    resourceName, results, reachableFacet);
-              selectedProviders.add(provider);
-            }
-          }
-
-          Collection<IdeProductFlavorContainer> flavors = androidProject.getProductFlavors();
-          for (IdeProductFlavorContainer container : flavors) {
-            IdeSourceProvider provider = container.getSourceProvider();
-            if (!selectedProviders.contains(provider)) {
-              addItemsFromSourceSet(container.getProductFlavor().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider,
-                                    type, resourceName, results, reachableFacet);
-              selectedProviders.add(provider);
-            }
+        }
+        for (NamedIdeaSourceProvider sourceProvider : ImmutableList.copyOf(sourceProviders.getCurrentAndSomeFrequentlyUsedInactiveSourceProviders()).reverse()) {
+          if (!selectedProviders.contains(sourceProvider)) {
+            addItemsFromSourceSet(sourceProvider.getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, sourceProvider, type,
+                                  resourceName, results, reachableFacet);
+            selectedProviders.add(sourceProvider);
           }
         }
       }
 
       if (resources != null) {
-        if (hasGradleModel) {
-          // Go through all the binary libraries and look for additional resources there
-          for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
-            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
-          }
-        }
-        else {
-          // If we do not have any gradle model, get the resources from the app repository
-          addItemsFromRepository(null, MASK_NORMAL, 0, resources, false, type, resourceName, results);
+        // Go through all the binary libraries and look for additional resources there
+        for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
+          addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
         }
       }
 
@@ -389,19 +338,15 @@ public class AndroidJavaDocRenderer {
     private static void addItemsFromSourceSet(@Nullable String flavor,
                                               int mask,
                                               int rank,
-                                              @NotNull IdeSourceProvider sourceProvider,
+                                              @NotNull NamedIdeaSourceProvider sourceProvider,
                                               @NotNull ResourceType type,
                                               @NotNull String name,
                                               @NotNull List<ItemInfo> results,
                                               @NotNull AndroidFacet facet) {
-      Collection<File> resDirectories = sourceProvider.getResDirectories();
-      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-      for (File dir : resDirectories) {
-        VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
-        if (virtualFile != null) {
-          ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile);
-          addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
-        }
+      Iterable<VirtualFile> resDirectories = sourceProvider.getResDirectories();
+      for (VirtualFile dir : resDirectories) {
+        ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, dir);
+        addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
       }
     }
 

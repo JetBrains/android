@@ -39,8 +39,6 @@ public interface AndroidModuleModel extends AndroidModel, ModuleModel {
 
   @Nullable IdeBuildTypeContainer findBuildType(@NotNull String name);
 
-  @Nullable IdeProductFlavorContainer findProductFlavor(@NotNull String name);
-
   @NotNull File getRootDirPath();
 
   @NotNull IdeAndroidProject getAndroidProject();

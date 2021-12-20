@@ -412,7 +412,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return myProductFlavorsByName.keySet();
   }
 
-  @Override
   @Nullable
   public IdeProductFlavorContainer findProductFlavor(@NotNull String name) {
     return myProductFlavorsByName.get(name);
