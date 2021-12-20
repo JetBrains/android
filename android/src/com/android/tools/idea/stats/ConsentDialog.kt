@@ -42,9 +42,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
-private const val LABEL_TEXT =
-  "<html>Help make Android Studio better by automatically sending usage statistics and crash reports to Google</html>"
-
 class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createActions(): Array<Action> {
     val decline = object : DialogWrapperAction("Don't send") {
@@ -112,11 +109,16 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
 
     add(message, constraints)
 
-    val hint = JLabel().apply {
-      val menuName = ShowSettingsUtil.getSettingsMenuName()
-      text = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
+    val menuName = ShowSettingsUtil.getSettingsMenuName()
+    val text = "You can always change this behavior in $menuName | Appearance & Behavior | System Settings | Data Sharing."
+
+    val hint = JEditorPane("text/html", text).apply {
+      isEditable = false
+      background = Color(0, 0, 0, 0)
       foreground = Color.GRAY
       font = Font(font.name, Font.PLAIN, title.font.size - 4)
+      putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+      preferredSize = Dimension(420, 35)
     }
 
     constraints.apply {
