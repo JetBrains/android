@@ -64,16 +64,6 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun shouldShowIfPreviousPairingIsActive() {
-    val previousPairedWear = wearDevice.copy(deviceID = "id3")
-    val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
-
-    val fakeUi = createNewConnectionAlertStepUi()
-    fakeUi.waitForText("Shutting down other Wear virtual device")
-  }
-
-  @Test
   fun shouldShowIfWearMayNeedFactoryReset() {
     val previousPairedPhone = phoneDevice.copy(deviceID = "id4")
     val iDevice = Mockito.mock(IDevice::class.java)
@@ -96,6 +86,6 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
 
   // The UI loads on asynchronous coroutine, we need to wait
   private fun FakeUi.waitForText(text: String) = waitForCondition(5, TimeUnit.SECONDS) {
-    findComponent<JBLabel> { println(">>> ${it.text}"); it.text == text } != null
+    findComponent<JBLabel> { it.text == text } != null
   }
 }

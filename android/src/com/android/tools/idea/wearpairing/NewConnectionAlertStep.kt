@@ -56,16 +56,6 @@ class NewConnectionAlertStep(
       return true
     }
 
-    // Check if this phone is already paired
-    val phoneWearPair = WearPairingManager.getPairedDevices(selectedPhone.deviceID)
-    if (phoneWearPair != null && phoneWearPair.wear.deviceID != selectedWear.deviceID) {
-      errorTitle = message("wear.assistant.connection.alert.disconnect.pairing.title")
-      errorBody = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",
-                          selectedWear.displayName, selectedPhone.displayName,
-                          phoneWearPair.wear.displayName)
-      return true
-    }
-
     return false
   }
 
