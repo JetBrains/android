@@ -2,29 +2,21 @@ package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.io.FilePaths;
-import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderRootType;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
-import org.jetbrains.kotlin.idea.facet.KotlinFacet;
-import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.FactoryImpl;
 import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
@@ -42,7 +34,7 @@ import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
 public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   @Override
   public boolean isApplicable(@NotNull Module module) {
-    return IdeInfo.getInstance().isAndroidStudio() || AndroidModuleModel.get(module) != null;
+    return AndroidModuleModel.get(module) != null;
   }
 
   @NotNull
@@ -81,22 +73,18 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
                                           @NotNull Collection<String> result,
                                           boolean includeProduction,
                                           boolean includeTests) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(rootModel.getModule());
+        if (androidModel == null) {
+          return super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
+        }
+
         if (!type.equals(OrderRootType.CLASSES)) {
           return false;
         }
 
-        AndroidModuleModel androidModel = AndroidModuleModel.get(rootModel.getModule());
-        if (androidModel != null) {
-          super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
-          getAndroidCompilerOutputFolders(androidModel, includeProduction, includeTests).stream()
-            .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
-          return true;
-        }
-
         super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
-        getJavaAndKotlinCompilerOutputFolders(rootModel.getModule(), includeProduction, includeTests).stream()
-          .filter((root) -> !result.contains(root)).forEachOrdered(result::add);
-
+        getAndroidCompilerOutputFolders(androidModel, includeProduction, includeTests).stream().filter((root) -> !result.contains(root))
+          .forEachOrdered(result::add);
         return true;
       }
     };
@@ -145,39 +133,5 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
       .filter(Objects::nonNull)
       .map(FilePaths::pathToIdeaUrl)
       .forEach(toAdd::add);
-  }
-
-  @NotNull
-  public static Collection<String> getJavaAndKotlinCompilerOutputFolders(@NotNull Module module,
-                                                                         boolean includeProduction,
-                                                                         boolean includeTests) {
-    Collection<String> results = new LinkedList<>();
-
-    CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
-    if (moduleExtension != null) {
-      String javaCompilerOutput = moduleExtension.getCompilerOutputUrl();
-      if (includeProduction && javaCompilerOutput != null) {
-        results.add(javaCompilerOutput);
-      }
-      String javaTestCompilerOutput = moduleExtension.getCompilerOutputUrlForTests();
-      if (includeTests && javaTestCompilerOutput != null) {
-        results.add(javaTestCompilerOutput);
-      }
-    }
-
-    KotlinFacet kotlinFacet = FacetManager.getInstance(module).getFacetByType(KotlinFacetType.Companion.getTYPE_ID());
-    if (kotlinFacet != null) {
-      boolean isTestModule = kotlinFacet.getConfiguration().getSettings().isTestModule();
-      CommonCompilerArguments compilerArgs = kotlinFacet.getConfiguration().getSettings().getCompilerArguments() ;
-      if (compilerArgs instanceof K2JVMCompilerArguments) {
-        K2JVMCompilerArguments jvmCompilerArguments = (K2JVMCompilerArguments)compilerArgs;
-        String kotlinCompileOutput = jvmCompilerArguments.getDestination();
-        if (kotlinCompileOutput != null && ((isTestModule && includeTests) || (!isTestModule && includeProduction)) ) {
-          results.add(kotlinCompileOutput);
-        }
-      }
-    }
-
-    return results;
   }
 }
