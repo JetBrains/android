@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -139,7 +140,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       @Override
       public void run() {
         String configurationName =
-          GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(project), false);
+          GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project), false);
         buildModel.dependencies().addArtifact(configurationName, newDependency);
         buildModel.applyChanges();
       }

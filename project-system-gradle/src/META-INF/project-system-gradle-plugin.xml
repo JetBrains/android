@@ -87,6 +87,10 @@
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
+      <category>Android</category>
+    </intentionAction>
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"

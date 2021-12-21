@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.DataContext
@@ -54,7 +54,8 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
     val runnable = Runnable {
       AndroidExecutors.getInstance().ioThreadExecutor.execute {
         var changesDone = false
-        val currentAgpVersion = GradleUtil.getAndroidGradleModelVersionInUse(project)
+        val currentAgpVersion =
+          GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
         if (currentAgpVersion == null) {
           val updater = AndroidPluginVersionUpdater.getInstance(project)
           if (updater.updatePluginVersion(agpVersion, gradleVersion)) {

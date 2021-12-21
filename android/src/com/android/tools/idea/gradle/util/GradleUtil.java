@@ -51,7 +51,6 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -63,7 +62,6 @@ import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
@@ -437,42 +435,6 @@ public final class GradleUtil {
       return children == null || children.length > 0;
     }
     return false;
-  }
-
-  /**
-   * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
-   * modules in the project or if the last sync has failed.
-   */
-  @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
-    Set<String> foundInLibraries = Sets.newHashSet();
-    Set<String> foundInApps = Sets.newHashSet();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        String modelVersion = androidProject.getAgpVersion();
-        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
-          foundInApps.add(modelVersion);
-        }
-        else {
-          foundInLibraries.add(modelVersion);
-        }
-      }
-    }
-
-    String found = null;
-
-    // Prefer the version in app.
-    if (foundInApps.size() == 1) {
-      found = getOnlyElement(foundInApps);
-    }
-    else if (foundInApps.isEmpty() && foundInLibraries.size() == 1) {
-      found = getOnlyElement(foundInLibraries);
-    }
-
-    return found != null ? GradleVersion.tryParse(found) : null;
   }
 
   @Nullable

@@ -38,7 +38,7 @@ import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
 import com.android.tools.idea.gradle.ui.SdkUiUtils;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -153,7 +153,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     boolean supportsSideBySideNdk = true;
     if (myProject != null) {
-      GradleVersion gradleModelNumber = GradleUtil.getAndroidGradleModelVersionInUse(project);
+      GradleVersion gradleModelNumber = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
       if (gradleModelNumber != null) {
         supportsSideBySideNdk = supportsSideBySideNdk(gradleModelNumber);
       }

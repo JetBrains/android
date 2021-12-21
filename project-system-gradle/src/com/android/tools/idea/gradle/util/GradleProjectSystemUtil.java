@@ -18,18 +18,25 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.google.common.collect.Iterables.getOnlyElement;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,7 +120,7 @@ public class GradleProjectSystemUtil {
    * @return true if we should use compatibility configuration names
    */
   public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
-    return useCompatibilityConfigurationNames(GradleUtil.getAndroidGradleModelVersionInUse(project));
+    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
   }
 
   /**
@@ -125,5 +132,41 @@ public class GradleProjectSystemUtil {
    */
   public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
     return gradleVersion != null && gradleVersion.getMajor() < 3;
+  }
+
+  /**
+   * Determines version of the Android gradle plugin (and model) used by the project. The result can be absent if there are no android
+   * modules in the project or if the last sync has failed.
+   */
+  @Nullable
+  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
+    Set<String> foundInLibraries = Sets.newHashSet();
+    Set<String> foundInApps = Sets.newHashSet();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (androidModel != null) {
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
+        String modelVersion = androidProject.getAgpVersion();
+        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
+          foundInApps.add(modelVersion);
+        }
+        else {
+          foundInLibraries.add(modelVersion);
+        }
+      }
+    }
+
+    String found = null;
+
+    // Prefer the version in app.
+    if (foundInApps.size() == 1) {
+      found = getOnlyElement(foundInApps);
+    }
+    else if (foundInApps.isEmpty() && foundInLibraries.size() == 1) {
+      found = getOnlyElement(foundInLibraries);
+    }
+
+    return found != null ? GradleVersion.tryParse(found) : null;
   }
 }

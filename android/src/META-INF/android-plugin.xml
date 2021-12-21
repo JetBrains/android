@@ -507,11 +507,6 @@
       <category>Android</category>
     </intentionAction>
 
-    <intentionAction>
-      <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
-      <category>Android</category>
-    </intentionAction>
-
     <daemon.intentionActionFilter implementation="org.jetbrains.android.intentions.AndroidIntentionActionFilter" />
 
     <localInspection language="JAVA" shortName="AndroidNonConstantResIdsInSwitch" bundle="messages.AndroidBundle"
