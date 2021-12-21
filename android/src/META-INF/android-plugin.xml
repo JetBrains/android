@@ -533,11 +533,6 @@
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
-    <facet.toolWindow id="Device Manager"
-                      anchor="right"
-                      icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
-                      factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"
-                      facetIdList="android,apk"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerImpl"/>

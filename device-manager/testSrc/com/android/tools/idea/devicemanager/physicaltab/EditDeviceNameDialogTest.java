@@ -15,39 +15,22 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import static org.junit.Assert.assertEquals;
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.fixtures.BareTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import org.junit.After;
-import org.junit.Before;
+import com.intellij.testFramework.LightPlatform4TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public final class EditDeviceNameDialogTest {
-  private BareTestFixture myFixture;
+public final class EditDeviceNameDialogTest extends LightPlatform4TestCase {
   private EditDeviceNameDialog myDialog;
-
-  @Before
-  public void setUpFixture() throws Exception {
-    myFixture = IdeaTestFixtureFactory.getFixtureFactory().createBareFixture();
-    myFixture.setUp();
-  }
-
-  @After
-  public void tearDownFixture() throws Exception {
-    myFixture.tearDown();
-  }
 
   @Test
   public void clickLink() {
     // Arrange
     ApplicationManager.getApplication().invokeAndWait(() -> myDialog = new EditDeviceNameDialog(null, "", "Google Pixel 3"));
-    Disposer.register(myFixture.getTestRootDisposable(), myDialog.getDisposable());
+    Disposer.register(getTestRootDisposable(), myDialog.getDisposable());
 
     // Act
     myDialog.getTextField().setText("Google Pixel 5");

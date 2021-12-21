@@ -42,7 +42,7 @@ import java.net.URL
 // Keep an instance, so if the wizard is already running, just bring it to the front
 private var wizardDialog: ModelWizardDialog? = null
 
-internal class WearDevicePairingWizard {
+class WearDevicePairingWizard {
   @Synchronized
   private fun show(project: Project?, selectedDevice: PairingDevice?) {
     wizardDialog?.apply {

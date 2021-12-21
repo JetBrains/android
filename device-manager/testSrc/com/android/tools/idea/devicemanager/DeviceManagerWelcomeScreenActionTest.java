@@ -15,25 +15,16 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.android.annotations.Nullable;
+import com.intellij.testFramework.LightPlatform4TestCase;
 import com.intellij.testFramework.TestActionEvent;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public final class DeviceManagerWelcomeScreenActionTest {
+public final class DeviceManagerWelcomeScreenActionTest extends LightPlatform4TestCase {
   private @Nullable DeviceManagerWelcomeScreenAction myAction;
-
-  @Before
-  public void setUpFixture() throws Exception {
-    IdeaTestFixtureFactory.getFixtureFactory().createBareFixture().setUp();
-  }
 
   @Test
   public void deviceManagerEnabled() {

@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import com.android.tools.idea.devicemanager.legacy.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 
 final class PopupActionGroup extends DefaultActionGroup {
@@ -52,7 +51,8 @@ final class PopupActionGroup extends DefaultActionGroup {
     add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     add(manager.getAction(WearDevicePairingAction.ID));
-    add(manager.getAction(RunAndroidAvdManagerAction.ID));
+    // Action Id is from com.android.tools.idea.devicemanager.legacy.actions.Android.RunAndroidAvdManager.
+    add(manager.getAction("Android.RunAndroidAvdManager"));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
 

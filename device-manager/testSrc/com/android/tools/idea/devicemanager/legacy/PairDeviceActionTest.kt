@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearpairing
+package com.android.tools.idea.devicemanager.legacy
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider
-import com.android.tools.idea.devicemanager.legacy.PairDeviceAction
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
