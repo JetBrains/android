@@ -27,7 +27,7 @@ public class StartJfr extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    getTemplatePresentation().setEnabled(JfrUtilsKt.isJfrAvailable() && !ApplicationManager.getApplication().getService(Jfr.class).isProfilerActive());
+    e.getPresentation().setEnabled(JfrUtilsKt.isJfrAvailable() && !ApplicationManager.getApplication().getService(Jfr.class).isProfilerActive());
   }
 
   @Override
