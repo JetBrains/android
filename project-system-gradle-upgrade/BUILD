@@ -122,6 +122,7 @@ maven_repository(
     ],
 )
 
+# Tests can't currently run on windows because full jar path is passed by the rule instead of just jar name like in iml rule.
 old_agp_test(
     name = "ProjectUpgradeTests_From",
     timeout = "long",
@@ -140,6 +141,10 @@ old_agp_test(
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:4.0.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )
@@ -163,6 +168,10 @@ old_agp_test(
         "//tools/base/build-system/previous-versions:4.1.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
+    tags = [
+        "block-network",
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )
 
@@ -184,6 +193,10 @@ old_agp_test(
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:4.2.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )
@@ -207,6 +220,10 @@ old_agp_test(
         "//tools/base/build-system/previous-versions:7.0.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
+    tags = [
+        "block-network",
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )
 
@@ -227,6 +244,10 @@ old_agp_test(
         ":test_deps",
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_windows",
     ],
     test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
 )
