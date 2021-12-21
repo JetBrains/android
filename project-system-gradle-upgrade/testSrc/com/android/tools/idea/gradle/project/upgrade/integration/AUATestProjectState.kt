@@ -118,7 +118,7 @@ fun generateAllTestCases(): List<UpgradeTestCase> {
   val baseProjects = allBaseProjectsForCurrentRunner()
   // For each base need to find all same project higher versions.
   val result = arrayListOf<UpgradeTestCase>()
-  baseProjects.forEach { base ->
+  baseProjects.filter { it.minimalState }.forEach { base ->
     AUATestProjectState.values()
       .filter { it.project == base.project }
       // Includes upgrades to same version, even if there is nothing to be done.
