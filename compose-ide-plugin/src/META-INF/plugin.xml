@@ -31,6 +31,8 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
+
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
 
     <annotator
