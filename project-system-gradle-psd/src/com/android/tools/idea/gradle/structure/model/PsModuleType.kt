@@ -18,15 +18,16 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 
-enum class PsModuleType(val androidModuleType: IdeAndroidProjectType? = null) {
+enum class PsModuleType(val androidModuleType: AndroidModuleSystem.Type? = null) {
   UNKNOWN,
-  ANDROID_APP(IdeAndroidProjectType.PROJECT_TYPE_APP),
-  ANDROID_LIBRARY(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
-  ANDROID_INSTANTAPP(IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
-  ANDROID_FEATURE(IdeAndroidProjectType.PROJECT_TYPE_FEATURE),
-  ANDROID_DYNAMIC_FEATURE(IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE),
-  ANDROID_TEST(IdeAndroidProjectType.PROJECT_TYPE_TEST),
+  ANDROID_APP(AndroidModuleSystem.Type.TYPE_APP),
+  ANDROID_LIBRARY(AndroidModuleSystem.Type.TYPE_LIBRARY),
+  ANDROID_INSTANTAPP(AndroidModuleSystem.Type.TYPE_INSTANTAPP),
+  ANDROID_FEATURE(AndroidModuleSystem.Type.TYPE_FEATURE),
+  ANDROID_DYNAMIC_FEATURE(AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE),
+  ANDROID_TEST(AndroidModuleSystem.Type.TYPE_TEST),
   JAVA,
 }
 

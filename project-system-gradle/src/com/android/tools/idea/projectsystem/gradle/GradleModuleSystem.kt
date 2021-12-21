@@ -103,6 +103,18 @@ class GradleModuleSystem(
 ) : AndroidModuleSystem,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
+  override val type: AndroidModuleSystem.Type
+    get() = when(GradleAndroidModel.get(module)?.androidProject?.projectType) {
+      IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidModuleSystem.Type.TYPE_APP
+      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidModuleSystem.Type.TYPE_ATOM
+      IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidModuleSystem.Type.TYPE_FEATURE
+      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidModuleSystem.Type.TYPE_INSTANTAPP
+      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidModuleSystem.Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidModuleSystem.Type.TYPE_TEST
+      null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
+    }
+
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder(module)
   private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder(module, true)
 

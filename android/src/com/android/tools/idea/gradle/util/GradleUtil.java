@@ -27,6 +27,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
@@ -55,6 +56,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.utils.BuildScriptUtil;
 import com.android.utils.SdkUtils;
@@ -118,8 +120,7 @@ public final class GradleUtil {
   @NotNull
   public static Icon getModuleIcon(@NotNull Module module) {
     if (ModuleSystemUtil.isHolderModule(module) || ModuleSystemUtil.isMainModule(module)) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      return androidModuleModel != null ? getAndroidModuleIcon(androidModuleModel) : AllIcons.Nodes.Module;
+      return getAndroidModuleIcon(getModuleSystem(module));
     } else if (ModuleSystemUtil.isAndroidTestModule(module)) {
       return ANDROID_MODULE;
     }
@@ -129,23 +130,25 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
-    return getAndroidModuleIcon(androidModuleModel.getAndroidProject().getProjectType());
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem androidModuleSystem) {
+    return getAndroidModuleIcon(androidModuleSystem.getType());
   }
 
   @NotNull
-  public static Icon getAndroidModuleIcon(@NotNull IdeAndroidProjectType androidProjectType) {
+  public static Icon getAndroidModuleIcon(@NotNull AndroidModuleSystem.Type androidProjectType) {
     switch (androidProjectType) {
-      case PROJECT_TYPE_APP:
+      case TYPE_NON_ANDROID:
+        return AllIcons.Nodes.Module;
+      case TYPE_APP:
         return ANDROID_MODULE;
-      case PROJECT_TYPE_FEATURE:
-      case PROJECT_TYPE_DYNAMIC_FEATURE:
+      case TYPE_FEATURE:
+      case TYPE_DYNAMIC_FEATURE:
         return FEATURE_MODULE;
-      case PROJECT_TYPE_INSTANTAPP:
+      case TYPE_INSTANTAPP:
         return INSTANT_APPS;
-      case PROJECT_TYPE_LIBRARY:
+      case TYPE_LIBRARY:
         return LIBRARY_MODULE;
-      case PROJECT_TYPE_TEST:
+      case TYPE_TEST:
         return ANDROID_TEST_ROOT;
       default:
         return ANDROID_MODULE;

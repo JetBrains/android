@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.AndroidProjectTypes
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -24,6 +25,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -31,7 +33,6 @@ import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import java.lang.UnsupportedOperationException
 import java.nio.file.Path
 
 /**
@@ -39,6 +40,32 @@ import java.nio.file.Path
  * contain methods that apply to a specific [Module].
  */
 interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
+
+  enum class Type {
+    TYPE_NON_ANDROID,
+    TYPE_APP,
+    TYPE_LIBRARY,
+    TYPE_TEST,
+    TYPE_ATOM,
+    TYPE_INSTANTAPP,
+    TYPE_FEATURE,
+    TYPE_DYNAMIC_FEATURE
+
+  }
+
+  @JvmDefault
+  val type: Type
+    get() = when (module.androidFacet?.properties?.PROJECT_TYPE) {
+      AndroidProjectTypes.PROJECT_TYPE_APP -> Type.TYPE_APP
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
+      AndroidProjectTypes.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      AndroidProjectTypes.PROJECT_TYPE_ATOM -> Type.TYPE_ATOM
+      AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> Type.TYPE_INSTANTAPP
+      AndroidProjectTypes.PROJECT_TYPE_FEATURE -> Type.TYPE_FEATURE
+      AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> Type.TYPE_DYNAMIC_FEATURE
+      null -> Type.TYPE_NON_ANDROID
+      else -> Type.TYPE_NON_ANDROID
+    }
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
@@ -443,3 +470,8 @@ fun Module.getTestFixturesModule() = getUserData(CommonAndroidUtil.LINKED_ANDROI
  * holder module used as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null
+
+/**
+ * Returns the type of Android project this module represents.
+ */
+fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type

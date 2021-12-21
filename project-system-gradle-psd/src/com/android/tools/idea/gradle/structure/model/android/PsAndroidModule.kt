@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
 import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.utils.combineAsCamelCase
 import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
@@ -91,7 +92,7 @@ class PsAndroidModule(
     projectType =
       moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
       ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
-    isLibrary = projectType.androidModuleType != IdeAndroidProjectType.PROJECT_TYPE_APP
+    isLibrary = projectType.androidModuleType != AndroidModuleSystem.Type.TYPE_APP
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
     icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
 
