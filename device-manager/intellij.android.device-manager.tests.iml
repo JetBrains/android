@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
   </component>
 </module>

@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
 import com.android.tools.idea.explorer.DeviceExplorerViewService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -26,6 +28,18 @@ public final class DeviceExplorerViewServiceInvokeLater implements DeviceExplore
 
   public DeviceExplorerViewServiceInvokeLater(@NotNull Project project) {
     myProject = project;
+  }
+
+  void openAndShowDevice(@NotNull Device device) {
+    if (device instanceof VirtualDevice) {
+      openAndShowDevice(((VirtualDevice)device).getAvdInfo());
+    }
+    else if (device instanceof PhysicalDevice) {
+      openAndShowDevice(device.getKey().toString());
+    }
+    else {
+      assert false;
+    }
   }
 
   @Override

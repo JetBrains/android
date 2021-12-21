@@ -18,11 +18,11 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import org.jetbrains.annotations.NotNull;
 
-final class TestVirtualDevices {
+public final class TestVirtualDevices {
   private TestVirtualDevices() {
   }
 
-  static @NotNull VirtualDevice pixel5Api31(@NotNull AvdInfo avd) {
+  public static @NotNull VirtualDevice pixel5Api31(@NotNull AvdInfo avd) {
     return new VirtualDevice.Builder()
       .setKey(new VirtualDeviceName("Pixel_5_API_31"))
       .setName("Pixel 5 API 31")

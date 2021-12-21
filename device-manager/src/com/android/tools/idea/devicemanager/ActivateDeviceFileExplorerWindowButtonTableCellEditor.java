@@ -13,33 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
-import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceExplorerViewServiceInvokeLater;
-import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
-import com.android.tools.idea.devicemanager.IconButtonTableCellEditor;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class ActivateDeviceFileExplorerWindowButtonTableCellEditor extends IconButtonTableCellEditor {
+public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D extends Device> extends IconButtonTableCellEditor {
   private Device myDevice;
 
-  ActivateDeviceFileExplorerWindowButtonTableCellEditor(@NotNull Project project) {
+  private final @Nullable Object myProject;
+  private final @NotNull DeviceTable<@NotNull D> myTable;
+
+  public ActivateDeviceFileExplorerWindowButtonTableCellEditor(@Nullable Project project,
+                                                               @NotNull DeviceTable<@NotNull D> table,
+                                                               @NotNull EventKind kind) {
     super(AllIcons.Actions.MenuOpen, ActivateDeviceFileExplorerWindowValue.INSTANCE, "Open this device in the Device File Explorer.");
+
+    myProject = project;
+    myTable = table;
 
     myButton.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
-        .setKind(DeviceManagerEvent.EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION)
+        .setKind(kind)
         .build();
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
-      new DeviceExplorerViewServiceInvokeLater(project).openAndShowDevice(myDevice.getKey().toString());
+
+      assert project != null;
+      new DeviceExplorerViewServiceInvokeLater(project).openAndShowDevice(myDevice);
     });
   }
 
@@ -51,8 +58,13 @@ final class ActivateDeviceFileExplorerWindowButtonTableCellEditor extends IconBu
                                                         int viewColumnIndex) {
     super.getTableCellEditorComponent(table, value, selected, viewRowIndex, viewColumnIndex);
 
-    myDevice = ((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex);
-    myButton.setEnabled(myDevice.isOnline());
+    if (myProject == null) {
+      myButton.setEnabled(false);
+    }
+    else {
+      myDevice = myTable.getDeviceAt(viewRowIndex);
+      myButton.setEnabled(myDevice.isOnline());
+    }
 
     return myButton;
   }

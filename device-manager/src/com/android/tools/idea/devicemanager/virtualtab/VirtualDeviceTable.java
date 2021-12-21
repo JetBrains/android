@@ -18,6 +18,9 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
@@ -30,6 +33,7 @@ import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.A
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.LaunchInEmulatorValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.scale.JBUIScale;
@@ -72,8 +76,19 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     model.addTableModelListener(event -> sizeWidthsToFit());
 
     if (VirtualDeviceTableModel.SPLIT_ACTIONS_ENABLED) {
-      setDefaultEditor(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellEditor(panel.getProject()));
+      Project project = panel.getProject();
+
+      setDefaultEditor(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellEditor(project));
+
+      setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
+                       new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
+                                                                                   this,
+                                                                                   EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
+
       setDefaultRenderer(LaunchInEmulatorValue.class, new LaunchInEmulatorButtonTableCellRenderer());
+
+      setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
+                         new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
     }
     else {
       setDefaultEditor(Actions.class, new ActionsTableCell(this));
@@ -201,7 +216,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     getModel().setDevices(devices);
 
     DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
-      .setKind(DeviceManagerEvent.EventKind.VIRTUAL_DEVICE_COUNT)
+      .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
       .setVirtualDeviceCount(devices.size())
       .build();
 

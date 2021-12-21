@@ -110,7 +110,7 @@ public final class VirtualDevice extends Device {
     return AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(myAvdInfo);
   }
 
-  @NotNull AvdInfo getAvdInfo() {
+  public @NotNull AvdInfo getAvdInfo() {
     return myAvdInfo;
   }
 }

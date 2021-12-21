@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class ActivateDeviceFileExplorerWindowButtonTableCellRenderer extends IconButtonTableCellRenderer {
-  ActivateDeviceFileExplorerWindowButtonTableCellRenderer() {
+public final class ActivateDeviceFileExplorerWindowButtonTableCellRenderer<D extends Device> extends IconButtonTableCellRenderer {
+  private final @Nullable Object myProject;
+  private final @NotNull DeviceTable<@NotNull D> myTable;
+
+  public ActivateDeviceFileExplorerWindowButtonTableCellRenderer(@Nullable Project project, @NotNull DeviceTable<@NotNull D> table) {
     super(AllIcons.Actions.MenuOpen, "Open this device in the Device File Explorer.");
+
+    myProject = project;
+    myTable = table;
   }
 
   @Override
@@ -34,7 +41,7 @@ final class ActivateDeviceFileExplorerWindowButtonTableCellRenderer extends Icon
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
     super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
-    myButton.setEnabled(((PhysicalDeviceTable)table).getDeviceAt(viewRowIndex).isOnline());
+    myButton.setEnabled(myProject != null && myTable.getDeviceAt(viewRowIndex).isOnline());
 
     return myButton;
   }

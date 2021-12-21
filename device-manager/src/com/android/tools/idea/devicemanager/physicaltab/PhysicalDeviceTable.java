@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.avdmanager.ApiLevelComparator;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
+import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceTable;
@@ -24,6 +26,7 @@ import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.scale.JBUIScale;
@@ -60,13 +63,20 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     Project project = panel.getProject();
     assert project != null;
 
-    setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellEditor(project));
+    setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
+                     new ActivateDeviceFileExplorerWindowButtonTableCellEditor<>(project,
+                                                                                 this,
+                                                                                 EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION));
+
     setDefaultEditor(RemoveValue.class, new RemoveButtonTableCellEditor(panel));
     setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel));
 
     setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
     setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
-    setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class, new ActivateDeviceFileExplorerWindowButtonTableCellRenderer());
+
+    setDefaultRenderer(ActivateDeviceFileExplorerWindowValue.class,
+                       new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
+
     setDefaultRenderer(RemoveValue.class, new RemoveButtonTableCellRenderer());
     setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
 
