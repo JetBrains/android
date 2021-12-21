@@ -24,12 +24,12 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurface<?>> {
+public class NlLegacyComponentTreeDefinition extends ToolWindowDefinition<DesignSurface<?>> {
 
-  public NlComponentTreeDefinition(@NotNull Project project,
-                                   @NotNull Side side,
-                                   @NotNull Split split,
-                                   @NotNull AutoHide autoHide) {
+  public NlLegacyComponentTreeDefinition(@NotNull Project project,
+                                         @NotNull Side side,
+                                         @NotNull Split split,
+                                         @NotNull AutoHide autoHide) {
     // TODO: Get a new 13x13 icon for this tool window...
     super("Component Tree", AllIcons.Toolwindows.WebToolWindow, "COMPONENT_TREE", side, split, autoHide,
           (disposable) -> new NlComponentTreePanel(project, disposable));

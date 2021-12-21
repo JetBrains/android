@@ -29,13 +29,16 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentReference;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
 import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.DataFlavor;
@@ -43,6 +46,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -116,6 +120,20 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
       draggedIds.add(NlComponentHelperKt.ensureLiveId(component));
     }
     addReferencesIds(receiver, draggedIds, null);
+  }
+
+  @Override
+  public boolean holdsReferences() {
+    return true;
+  }
+
+  public void removeReference(@NotNull NlComponent component, @NotNull String id) {
+    deleteReferences(component, ImmutableList.of(id));
+  }
+
+  @Override
+  public void addReferences(@NotNull NlComponent component, @NotNull List<String> ids, @Nullable String before) {
+    addReferencesIds(component, ids, before);
   }
 
   private static void addReferencesIds(@NotNull NlComponent receiver,
@@ -231,7 +249,8 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           String[] list = ids.split(",");
-          return list[i];
+          return StudioFlags.NELE_NEW_COMPONENT_TREE.get() &&
+                 StudioFlags.USE_COMPONENT_TREE_TABLE.get() ? new NlComponentReference(component, list[i]) : list[i];
         }
       }
       return component.getChild(i);
@@ -239,18 +258,37 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
     return null;
   }
 
+  @Override
+  public List<?> getComponentTreeChildren(@NotNull Object element) {
+    if (element instanceof NlComponent) {
+      NlComponent component = (NlComponent)element;
+      if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+        String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
+        if (ids != null) {
+          List<String> list = Arrays.asList(ids.split(","));
+          if (!StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
+            return list;
+          }
+          return list.stream().map(id -> new NlComponentReference(component, id)).collect(Collectors.toList());
+        }
+      }
+      return component.getChildren();
+    }
+    return Collections.emptyList();
+  }
+
   /**
-   * Delete the given reference in the component
+   * Delete the given references in the component
    *
    * @param component the component we need to update
-   * @param id        the reference to remove
+   * @param ids        the reference to remove
    */
-  public void deleteReference(@NotNull NlComponent component, @NotNull String id) {
-    String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
-    if (ids != null) {
-      ids = removeIds(ids, Collections.singletonList(id));
+  private void deleteReferences(@NotNull NlComponent component, @NotNull List<String> ids) {
+    String refs = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
+    if (refs != null) {
+      refs = removeIds(refs, ids);
       AttributesTransaction transaction = component.startAttributeTransaction();
-      writeIds(component, transaction, ids);
+      writeIds(component, transaction, refs);
     }
   }
 
@@ -283,7 +321,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
   private void handleDeletion(@NotNull DelegatedTreeEvent event, @NotNull NlComponent constraintHelper) {
     for (Object last : event.getSelected()) {
       if (last instanceof String) {
-        deleteReference(constraintHelper, (String)last);
+        deleteReferences(constraintHelper, ImmutableList.of((String)last));
       }
     }
   }

@@ -52,6 +52,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
@@ -647,6 +648,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testNonNlComponentDrop() throws Exception {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get() && StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      return;
+    }
     SyncNlModel model = createModelWithBarriers();
     NlComponentTree tree = createTree(model);
     assertNull(tree.getSelectionPaths());
@@ -696,6 +700,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testDeleteBarrier() throws Exception {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get() && StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
+      return;
+    }
     SyncNlModel model = createModelWithBarriers();
     NlComponentTree tree = createTree(model);
     assertNull(tree.getSelectionPaths());

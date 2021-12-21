@@ -303,6 +303,11 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
+  public List<?> getComponentTreeChildren(@NotNull Object component) {
+    return myHandler.getComponentTreeChildren(component);
+  }
+
+  @Override
   public Object getComponentTreeChild(@NotNull Object component, int i) {
     return myHandler.getComponentTreeChild(component, i);
   }

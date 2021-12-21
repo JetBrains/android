@@ -390,6 +390,11 @@ public final class StudioFlags {
     NELE, "dp.sized.preview", "Use dp size instead of px size for previews",
     "If enabled, the size of previews will be proportional to screen dp size instead of screen px size.",
     true);
+
+  public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
+    NELE, "use.component.tree.builder", "Use the Component Tree builder",
+    "If enabled, use the Component Tree builder for the Nele component tree",
+    false);
   //endregion
 
   //region Navigation Editor
