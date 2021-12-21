@@ -547,7 +547,6 @@ PROJECT                       : MultiFlavor
     LIBRARY_TABLE
         LIBRARY                       : Gradle: androidx.activity:activity:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0
             *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/
@@ -564,7 +563,6 @@ PROJECT                       : MultiFlavor
             *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
@@ -581,91 +579,70 @@ PROJECT                       : MultiFlavor
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.1.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.1.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.1.0
             *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/

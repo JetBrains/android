@@ -282,6 +282,3 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         Module                        : lib
     LIBRARY_TABLE
         LIBRARY                       : Gradle: com.example:library:1.0
-            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/manifest.xml [-]
-            *CLASSES                      : file://<TEMP>/.gradle/libraryFolder/res [-]
-            *CLASSES                      : jar://<TEMP>/.gradle/libraryFolder/api.jar!/ [-]

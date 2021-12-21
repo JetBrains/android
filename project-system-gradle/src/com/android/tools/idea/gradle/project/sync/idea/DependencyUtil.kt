@@ -56,6 +56,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
+import org.codehaus.plexus.util.FileUtils
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
@@ -265,11 +266,16 @@ private class AndroidDependenciesSetupContext(
   private inner class AndroidLibraryWorkItem(library: IdeAndroidLibrary) : LibraryWorkItem<IdeAndroidLibrary>(library) {
     override fun setupTarget() {
       library.compileJarFiles.forEach { compileJar ->
-        libraryData.addPath(BINARY, compileJar)
+        if (FileUtils.fileExists(compileJar)) {
+          libraryData.addPath(BINARY, compileJar)
+        }
       }
-      libraryData.addPath(BINARY, library.resFolder)
-      // TODO: Should this be binary? Do we need the platform to allow custom types here?
-      libraryData.addPath(BINARY, library.manifest)
+      if (FileUtils.fileExists(library.resFolder)) {
+        libraryData.addPath(BINARY, library.resFolder)
+      }
+      if (FileUtils.fileExists(library.manifest)) {
+        libraryData.addPath(BINARY, library.manifest)
+      }
       setupAnnotationsFrom(libraryData, libraryName, library)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }
