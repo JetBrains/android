@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.NullableNotNullManager
 import org.jetbrains.android.AndroidTestCase
@@ -56,15 +56,15 @@ public class TestNullity {
   fun testSupportLibAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertThat(myNullityManager.defaultNullable).isEqualTo("android.support.annotation.Nullable")
-    assertThat(myNullityManager.defaultNotNull).isEqualTo("android.support.annotation.NonNull")
+    Truth.assertThat(myNullityManager.defaultNullable).isEqualTo("android.support.annotation.Nullable")
+    Truth.assertThat(myNullityManager.defaultNotNull).isEqualTo("android.support.annotation.NonNull")
   }
 
   fun testAndroidxAnnotations() {
     myProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS, myModule, GradleVersion(1, 1))
     runInferNullityAction()
-    assertThat(myNullityManager.defaultNullable).isEqualTo("androidx.annotation.Nullable")
-    assertThat(myNullityManager.defaultNotNull).isEqualTo("androidx.annotation.NonNull")
+    Truth.assertThat(myNullityManager.defaultNullable).isEqualTo("androidx.annotation.Nullable")
+    Truth.assertThat(myNullityManager.defaultNotNull).isEqualTo("androidx.annotation.NonNull")
   }
 
   // TODO: Make this finish without error
@@ -78,7 +78,7 @@ public class TestNullity {
     catch (e: RuntimeException) {
       // Having set a JPS project without the annotations library, we're going to end up here.
       // But that is ok since currently the tests only check what the default annotations are, and don't rely on the analysis succeeding.
-      assertThat(e.message).contains("JetBrains annotations")
+      Truth.assertThat(e.message).contains("JetBrains annotations")
     }
   }
 }

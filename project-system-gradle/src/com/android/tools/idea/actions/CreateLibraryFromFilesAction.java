@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -201,7 +201,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
         }
 
         Set<String> addedRoots = new HashSet<>();
-        String scope = GradleUtil.useCompatibilityConfigurationNames(myProject) ? "compile" : "implementation";
+        String scope = GradleProjectSystemUtil.useCompatibilityConfigurationNames(myProject) ? "compile" : "implementation";
         for (OrderRoot root : myRoots) {
           VirtualFile local = JarFileSystem.getInstance().getVirtualFileForJar(root.getFile());
           if (local == null) {

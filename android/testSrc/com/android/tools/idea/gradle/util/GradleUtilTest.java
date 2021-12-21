@@ -138,15 +138,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void useCompatibilityConfigurationNames() {
-    assertTrue(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("2.3.2")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames((GradleVersion)null));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0-alpha1")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0")));
-    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("4.0.0")));
-  }
-
-  @Test
   public void isAaptGeneratedSourceFolder() {
     myTempDir = createTempDir();
 

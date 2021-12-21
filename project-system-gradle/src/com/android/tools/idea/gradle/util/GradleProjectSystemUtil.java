@@ -19,17 +19,20 @@ import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleProjectSystemUtil {
   /**
@@ -100,5 +103,27 @@ public class GradleProjectSystemUtil {
       return gradleProjectPath + taskName;
     }
     return gradleProjectPath + GRADLE_PATH_SEPARATOR + taskName;
+  }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given project
+   *
+   * @param project the project to consult
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
+    return useCompatibilityConfigurationNames(GradleUtil.getAndroidGradleModelVersionInUse(project));
+  }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
+   *
+   * @param gradleVersion the Gradle plugin version to check
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
+    return gradleVersion != null && gradleVersion.getMajor() < 3;
   }
 }

@@ -622,28 +622,6 @@ public final class GradleUtil {
     return configuration;
   }
 
-  /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given project
-   *
-   * @param project the project to consult
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
-    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
-  }
-
-  /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
-   *
-   * @param gradleVersion the Gradle plugin version to check
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
-    return gradleVersion != null && gradleVersion.getMajor() < 3;
-  }
-
 
   /**
    * Replaces the given suffix in the string, preserving the case in the string, e.g.
