@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.sdk.IdeSdks
@@ -280,7 +280,7 @@ private class DaemonRegistry(
  */
 private fun defaultCompileClassPathLocator(module: Module): List<String> {
   // Build classpath
-  val mainArtifact = AndroidModuleModel.get(module)
+  val mainArtifact = GradleAndroidModel.get(module)
     ?.selectedVariant
     ?.mainArtifact
   val modulePath = listOfNotNull(

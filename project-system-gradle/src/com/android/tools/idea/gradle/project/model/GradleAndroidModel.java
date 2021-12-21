@@ -396,7 +396,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
     return myProjectSystemId;
   }
 
-  @Override
   @Nullable
   public IdeBuildTypeContainer findBuildType(@NotNull String name) {
     return myBuildTypesByName.get(name);
@@ -427,7 +426,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
    * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
    * the build.gradle file.
    */
-  @Override
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;
@@ -465,7 +463,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * Returns the selected variant name
    */
-  @Override
   public String getSelectedVariantName() {
     return mySelectedVariantName;
   }

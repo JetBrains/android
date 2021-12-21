@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.build.invoker.getArtifacts
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -52,7 +52,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Pair<Module, Boole
   fun createBuildTasks(module: Module, fromAndroidTestFile: Boolean): List<String>? {
     if (module.isDisposed) return null
     val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
-    val currentVariant = AndroidModuleModel.get(module)?.selectedVariant ?: return null
+    val currentVariant = GradleAndroidModel.get(module)?.selectedVariant ?: return null
 
     if (fromAndroidTestFile) {
       return TestCompileType.ANDROID_TESTS.getArtifacts(currentVariant)

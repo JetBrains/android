@@ -22,7 +22,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.switchTest
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.project.SyncTimestampUtil;
@@ -487,9 +487,9 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   }
 
   @NotNull
-  private AndroidModuleModel androidModuleModel(@NotNull String gradlePath) {
+  private GradleAndroidModel androidModuleModel(@NotNull String gradlePath) {
     Module module = module(gradlePath);
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModuleModel = GradleAndroidModel.get(module);
     if (androidModuleModel == null) {
       throw new AssertionError(String.format("Module '%s' (Gradle path: '%s') is not an Android module", module.getName(), gradlePath));
     }
