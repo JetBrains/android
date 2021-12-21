@@ -34,7 +34,7 @@ public final class VirtualDeviceTableTest {
   @Test
   public void emptyTable() {
     VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.emptyList());
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList, device -> false);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList);
 
     assertFalse(table.getSelectedDevice().isPresent());
   }
@@ -47,8 +47,8 @@ public final class VirtualDeviceTableTest {
                                  Mockito.mock(SystemImage.class),
                                  null);
 
-    VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.singletonList(VirtualDevices.build(device, d -> false)));
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList, d -> false);
+    VirtualDeviceTableModel model = new VirtualDeviceTableModel(Collections.singletonList(VirtualDevices.build(device)));
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, model, Collections::emptyList);
 
     assertFalse(table.getSelectedDevice().isPresent());
   }

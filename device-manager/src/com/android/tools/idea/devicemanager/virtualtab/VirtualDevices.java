@@ -22,7 +22,6 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.Targets;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +29,7 @@ final class VirtualDevices {
   private VirtualDevices() {
   }
 
-  static @NotNull VirtualDevice build(@NotNull AvdInfo device, @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+  static @NotNull VirtualDevice build(@NotNull AvdInfo device) {
     IdDisplay tag = device.getTag();
     AndroidVersion version = device.getAndroidVersion();
 
@@ -39,7 +38,6 @@ final class VirtualDevices {
       .setCpuArchitecture(device.getCpuArch())
       .setType(getType(tag))
       .setName(device.getDisplayName())
-      .setOnline(isAvdRunning.test(device))
       .setTarget(Targets.toString(version, tag))
       .setApi(Integer.toString(version.getApiLevel()))
       .setResolution(getResolution(device))

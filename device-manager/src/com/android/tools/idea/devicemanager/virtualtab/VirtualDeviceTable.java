@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.ActionMap;
@@ -56,26 +55,19 @@ import org.jetbrains.annotations.Nullable;
 public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> implements Table, AvdRefreshProvider, AvdInfoProvider {
   private final @NotNull VirtualDevicePanel myPanel;
   private final @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> myGetAvds;
-  private final @NotNull Predicate<@NotNull AvdInfo> myIsAvdRunning;
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel,
-         new VirtualDeviceTableModel(),
-         () -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true),
-         AvdManagerConnection.getDefaultAvdManagerConnection()::isAvdRunning
-    );
+    this(panel, new VirtualDeviceTableModel(), () -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
   }
 
   @VisibleForTesting
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
                      @NotNull VirtualDeviceTableModel model,
-                     @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds,
-                     @NotNull Predicate<@NotNull AvdInfo> isAvdRunning) {
+                     @NotNull Supplier<@NotNull List<@NotNull AvdInfo>> getAvds) {
     super(model, VirtualDevice.class, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
     myPanel = panel;
     myGetAvds = getAvds;
-    myIsAvdRunning = isAvdRunning;
 
     model.addTableModelListener(event -> sizeWidthsToFit());
 
@@ -203,7 +195,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   @Override
   public void refreshAvds() {
     List<VirtualDevice> devices = myGetAvds.get().stream()
-      .map(avdInfo -> VirtualDevices.build(avdInfo, myIsAvdRunning))
+      .map(VirtualDevices::build)
       .collect(Collectors.toList());
 
     getModel().setDevices(devices);

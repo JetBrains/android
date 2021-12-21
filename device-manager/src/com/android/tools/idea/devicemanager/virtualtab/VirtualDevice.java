@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Resolution;
@@ -25,12 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
-  private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
-    private boolean myOnline;
     private @Nullable String myCpuArchitecture;
     private @Nullable AvdInfo myAvdInfo;
 
@@ -51,11 +50,6 @@ public final class VirtualDevice extends Device {
 
     @NotNull Builder setName(@NotNull String name) {
       myName = name;
-      return this;
-    }
-
-    @NotNull Builder setOnline(boolean online) {
-      myOnline = online;
       return this;
     }
 
@@ -92,7 +86,6 @@ public final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
-    myOnline = builder.myOnline;
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
@@ -112,7 +105,9 @@ public final class VirtualDevice extends Device {
 
   @Override
   public boolean isOnline() {
-    return myOnline;
+    // TODO online should be a boolean property. Notify the Virtual tab of devices that come online in a way similar to
+    //  PhysicalDeviceChangeListener.
+    return AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(myAvdInfo);
   }
 
   @NotNull AvdInfo getAvdInfo() {
