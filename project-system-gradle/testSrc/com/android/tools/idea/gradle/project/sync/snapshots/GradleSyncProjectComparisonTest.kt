@@ -170,14 +170,9 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
-    fun testTestFixturesWithModulePerSourceSetEnabled() {
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-      try {
-        val text = importSyncAndDumpProject(TEST_FIXTURES)
-        assertIsEqualToSnapshot(text)
-      } finally {
-        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
-      }
+    fun testTestFixtures() {
+      val text = importSyncAndDumpProject(TEST_FIXTURES)
+      assertIsEqualToSnapshot(text)
     }
 
     @Test
@@ -386,18 +381,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
-    fun testKmp_mpss() {
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-      try {
-        val text = importSyncAndDumpProject(KOTLIN_MULTIPLATFORM)
-        assertIsEqualToSnapshot(text)
-      }
-      finally {
-        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
-      }
-    }
-
-    @Test
     fun testKapt() {
       importSyncAndDumpProject(KOTLIN_KAPT) { project ->
         val debugBefore = project.saveAndDump()
@@ -501,39 +484,21 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
-    fun testModulePerSourceSet() {
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-      try {
-        val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
-        assertIsEqualToSnapshot(text)
-      }
-      finally {
-        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
-      }
-    }
-
-    @Test
     fun testModulePerSourceSetReopen() {
-      StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
-      try {
-        prepareGradleProject(PSD_SAMPLE_GROOVY, "project")
-        val before = openPreparedProject("project") { project: Project ->
-          project.saveAndDump()
-        }
-        val after = openPreparedProject("project") { project ->
-          project.saveAndDump()
-        }
-        assertAreEqualToSnapshots(
-          before to ".same",
-          after to ".same"
-        )
+      prepareGradleProject(PSD_SAMPLE_GROOVY, "project")
+      val before = openPreparedProject("project") { project: Project ->
+        project.saveAndDump()
       }
-      finally {
-        StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
+      val after = openPreparedProject("project") { project ->
+        project.saveAndDump()
       }
+      assertAreEqualToSnapshots(
+        before to ".same",
+        after to ".same"
+      )
     }
-
   }
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
