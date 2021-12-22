@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class CompileServerClasspathTest extends BareTestFixtureTestCase {
+  @org.junit.Ignore("b/214269581")
   @Test
   public void testCompileServerClasspath() {
     Set<String> libs = getBuildProcessClasspath();
