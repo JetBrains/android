@@ -348,7 +348,7 @@ public class IssueView extends JPanel {
 
     public StyleSheet createStyleSheet() {
       StyleSheet style = new StyleSheet();
-      style.addStyleSheet(StyleSheetUtil.createJBDefaultStyleSheet());
+      style.addStyleSheet(StyleSheetUtil.getDefaultStyleSheet());
       style.addRule("body { font-family: Sans-Serif; }");
       style.addRule("code { font-size: 100%; font-family: monospace; }"); // small by Swing's default
       style.addRule("small { font-size: small; }"); // x-small by Swing's default
