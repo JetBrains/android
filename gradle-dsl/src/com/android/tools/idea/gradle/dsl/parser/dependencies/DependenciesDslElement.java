@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
@@ -23,9 +24,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class DependenciesDslElement extends GradleDslBlockElement {
+public class DependenciesDslElement extends GradleDslBlockElement implements DescribedGradlePropertiesDslElement<DependenciesDslElement> {
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
+
+  @Override
+  public @NotNull PropertiesElementDescription<DependenciesDslElement> getDescription() {
+    return DEPENDENCIES;
+  }
 
   public static final Set<String> KTS_KNOWN_CONFIGURATIONS = new HashSet<>(
     Arrays.asList(
