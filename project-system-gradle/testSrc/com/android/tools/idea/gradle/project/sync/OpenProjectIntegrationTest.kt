@@ -69,19 +69,23 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
   @Test
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
   fun testReopenKaptProject() {
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
@@ -89,16 +93,17 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
     val root = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     val buildFile = VfsUtil.findFileByIoFile(root.resolve("app/build.gradle"), true)!!
 
-    val lastSyncFinishedTimestamp = openPreparedProject("project") { project ->
+    val (snapshots, lastSyncFinishedTimestamp) = openPreparedProject("project") { project ->
+      val initial = project.saveAndDump()
       runWriteAction {
         buildFile.setBinaryContent("*bad*".toByteArray())
       }
       syncProject(project, GradleSyncInvoker.Request.testRequest())
       assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-      GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
+      (initial to project.saveAndDump()) to GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
     }
-
-    openPreparedProject(
+    val (initial, before) = snapshots
+    val after = openPreparedProject(
       "project",
       options = OpenPreparedProjectOptions(
         verifyOpened = { project ->
@@ -108,16 +113,21 @@ class OpenProjectIntegrationTest : GradleIntegrationTest {
     ) { project ->
       // Make sure we tried to sync.
       assertThat(GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp).isNotEqualTo(lastSyncFinishedTimestamp)
+      project.saveAndDump()
     }
+    assertThat(before).isEqualTo(initial)
+    // TODO(b/211782178): assertThat(after).isEqualTo(before)
   }
 
   @Test
   fun testReopenCompositeBuildProject() {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { }
-    openPreparedProject("project") { project ->
+    val before = openPreparedProject("project") { project -> project.saveAndDump() }
+    val after = openPreparedProject("project") { project ->
       verifySyncSkipped(project, projectRule.fixture.testRootDisposable)
+      project.saveAndDump()
     }
+    assertThat(after).isEqualTo(before)
   }
 
   @Test
