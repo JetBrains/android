@@ -63,17 +63,7 @@ public final class LaunchInEmulatorButtonTableCellEditorTest {
   public void getTableCellEditorComponent() {
     // Arrange
     Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
-
-    VirtualDevice device = new VirtualDevice.Builder()
-      .setKey(new VirtualDeviceName("Pixel_5_API_31"))
-      .setName("Pixel 5 API 31")
-      .setTarget("Android 12.0 Google APIs")
-      .setCpuArchitecture("x86_64")
-      .setApi("31")
-      .setAvdInfo(myAvd)
-      .build();
-
-    JTable table = DeviceTables.mock(device);
+    JTable table = DeviceTables.mock(TestVirtualDevices.pixel5Api31(myAvd));
 
     // Act
     Component component = myEditor.getTableCellEditorComponent(table, LaunchInEmulatorValue.INSTANCE, false, 0, 3);
