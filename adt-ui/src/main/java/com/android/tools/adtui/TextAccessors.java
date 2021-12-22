@@ -121,7 +121,7 @@ public final class TextAccessors {
 
     @Override
     public void setText(String text) {
-      myComponent.getAction().getTemplatePresentation().setText(text);
+      throw new UnsupportedOperationException("Setting ActionButton text via TextAccessor isn't supported.");
     }
   }
 }

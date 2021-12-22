@@ -32,7 +32,6 @@ abstract public class SetZoomAction extends AnAction {
 
   public SetZoomAction(@NotNull ZoomType type) {
     myType = type;
-    getTemplatePresentation().setIcon(type.getIcon());
   }
 
   @Override
@@ -50,6 +49,9 @@ abstract public class SetZoomAction extends AnAction {
       // Use floating set of icons for zoom actions on the Design Surface. To make the distinction from the usual editor toolbars, we check
       // for 'Surface' in the place to cover for expected names like 'NlSurfaceLayoutToolbar' instead of 'NlLayoutToolbar'.
       e.getPresentation().setIcon(myType.getFloatingIcon());
+    }
+    else {
+      e.getPresentation().setIcon(myType.getIcon());
     }
   }
 }
