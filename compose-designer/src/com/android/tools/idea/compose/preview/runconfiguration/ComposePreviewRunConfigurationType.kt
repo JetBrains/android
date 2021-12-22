@@ -25,7 +25,7 @@ import icons.StudioIcons
 class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePreviewRunConfiguration",
                                                                    "Compose Preview",
                                                                    "Compose Preview Run Configuration Type",
-                                                                   NotNullLazyValue.createValue {
+                                                                   NotNullLazyValue.lazy {
                                                                      StudioIcons.Compose.Toolbar.RUN_CONFIGURATION
                                                                    }) {
   init {

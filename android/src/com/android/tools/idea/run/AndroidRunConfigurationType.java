@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.help.AndroidWebHelpProvider;
@@ -19,7 +19,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     super(ID,
           AndroidBundle.message("android.run.configuration.type.name"),
           AndroidBundle.message("android.run.configuration.type.description"),
-          NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
+          NotNullLazyValue.lazy(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
     addFactory(new AndroidRunConfigurationFactory());
   }
