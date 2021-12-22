@@ -651,6 +651,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       """.trimIndent()
     )
 
+/* b/214263460
     assertEquals(
       """
       AndroidManifest.xml:8:
@@ -666,6 +667,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
         .filter { it.isNotEmpty() }
         .joinToString(separator = "\n")
     )
+b/214263460 */
   }
 
   protected fun getDeclarationsFrom(file: VirtualFile): Array<PsiElement> {
