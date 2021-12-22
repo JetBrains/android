@@ -121,7 +121,9 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
   }
 
   public void checkString3(String sourcePath, String targetPath) {
+/* b/214263458
     checkStrings(sourcePath, targetPath);
+b/214263458 */
   }
 
   public void testDimensionsJava() {
