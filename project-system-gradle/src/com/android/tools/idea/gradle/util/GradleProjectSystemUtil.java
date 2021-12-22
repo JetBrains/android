@@ -167,6 +167,6 @@ public class GradleProjectSystemUtil {
       found = getOnlyElement(foundInLibraries);
     }
 
-    return found != null ? GradleVersion.tryParse(found) : null;
+    return found != null ? GradleVersion.tryParseAndroidGradlePluginVersion(found) : null;
   }
 }
