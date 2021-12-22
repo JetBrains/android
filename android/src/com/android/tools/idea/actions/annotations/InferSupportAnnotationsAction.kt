@@ -15,25 +15,20 @@
  */
 package com.android.tools.idea.actions.annotations
 
-import com.android.SdkConstants
 import com.android.tools.idea.actions.annotations.InferSupportAnnotations.Companion.apply
 import com.android.tools.idea.actions.annotations.InferSupportAnnotations.Companion.generateReport
 import com.android.tools.idea.actions.annotations.InferSupportAnnotations.Companion.nothingFoundMessage
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager.Companion.get
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
+import com.android.tools.idea.util.dependsOn
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisAction
-import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.history.LocalHistory
@@ -42,7 +37,6 @@ import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -50,7 +44,6 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.calcRelativeToProjectPath
-import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Factory
@@ -76,11 +69,9 @@ import com.intellij.util.Processor
 import com.intellij.util.SequentialModalProgressTask
 import com.intellij.util.SequentialTask
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.annotations.NonNls
-import java.util.Locale
-import javax.swing.JComponent
+import java.nio.file.FileSystems
 
 /** Analyze support annotations */
 class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", INFER_SUPPORT_ANNOTATIONS) {
@@ -96,16 +87,9 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
       return
     }
     super.update(event)
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      val presentation = event.presentation
-      presentation.isEnabled = false
-    }
   }
 
   override fun analyze(project: Project, scope: AnalysisScope) {
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      return
-    }
     val fileCount = intArrayOf(0)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     val usageInfos = findUsages(project, scope, fileCount[0]) ?: return
@@ -120,58 +104,14 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
     }
   }
 
-  // For Android we need to check SDK version and possibly update the gradle project file
+  // See whether we need to add the androidx annotations library to the dependency graph
   private fun checkModules(
     project: Project,
     scope: AnalysisScope,
     modules: Map<Module, PsiFile>
   ): Boolean {
-    val modulesWithoutAnnotations: MutableSet<Module> = HashSet()
-    val modulesWithLowVersion: MutableSet<Module> = HashSet()
-    for (module in modules.keys) {
-      val info = AndroidModuleInfo.getInstance(module)
-      if (info != null && info.buildSdkVersion != null && info.buildSdkVersion!!.featureLevel < MIN_SDK_WITH_NULLABLE) {
-        modulesWithLowVersion.add(module)
-      }
-      val buildModel = GradleBuildModel.get(module)
-      if (buildModel == null) {
-        Logger.getInstance(InferSupportAnnotationsAction::class.java)
-          .warn("Unable to find Gradle build model for module " + AndroidRootUtil.getModuleDirPath(module))
-        continue
-      }
-      var dependencyFound = false
-      val dependenciesModel = buildModel.dependencies()
-      val configurationName =
-        GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
-      for (dependency in dependenciesModel.artifacts(configurationName)) {
-        val notation = dependency.compactNotation()
-        if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
-          notation.startsWith(SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT) ||
-          notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
-          notation.startsWith(SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT) ||
-          notation.startsWith(SdkConstants.ANDROIDX_ANNOTATIONS_ARTIFACT) ||
-          notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)
-        ) {
-          dependencyFound = true
-          break
-        }
-      }
-      if (!dependencyFound) {
-        modulesWithoutAnnotations.add(module)
-      }
-    }
-    if (modulesWithLowVersion.isNotEmpty()) {
-      Messages.showErrorDialog(
-        project,
-        String.format(
-          Locale.US,
-          "Infer Support Annotations requires the project sdk level be set to %1\$d or greater.",
-          MIN_SDK_WITH_NULLABLE
-        ),
-        "Infer Support Annotations"
-      )
-      return false
-    }
+    val artifact = getAnnotationsMavenArtifact(project)
+    val modulesWithoutAnnotations = modules.keys.filter { module -> !module.dependsOn(artifact) }.toSet()
     if (modulesWithoutAnnotations.isEmpty()) {
       return true
     }
@@ -198,26 +138,24 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
         Messages.getErrorIcon()
       ) == Messages.OK
     ) {
-      val action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY)
-      try {
-        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run<RuntimeException> {
-          val manager = get()
-          val annotation =
-            if (project.isAndroidx()) GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS else GoogleMavenArtifactId.SUPPORT_ANNOTATIONS
-          val annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true)
-          if (annotationsLibraryCoordinate != null) {
-            for (module in modulesWithoutAnnotations) {
-              addDependency(module, annotationsLibraryCoordinate)
+        val manager = get()
+        val revision = manager.getLibraryRevision(artifact.mavenGroupId, artifact.mavenArtifactId, null, false, FileSystems.getDefault())
+        if (revision != null) {
+          val coordinates = listOf(artifact.getCoordinate(revision))
+          for (module in modulesWithoutAnnotations) {
+            val added = module.addDependenciesWithUiConfirmation(coordinates, false, requestSync = false)
+            if (added.isEmpty()) {
+              break // user canceled or some other problem; don't resume with other modules
             }
           }
           syncAndRestartAnalysis(project, scope)
         }
-      } finally {
-        action.finish()
-      }
     }
     return false
   }
+
+  private fun getAnnotationsMavenArtifact(project: Project) =
+    if (project.isAndroidx()) GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS else GoogleMavenArtifactId.SUPPORT_ANNOTATIONS
 
   private fun syncAndRestartAnalysis(project: Project, scope: AnalysisScope) {
     assert(ApplicationManager.getApplication().isDispatchThread)
@@ -242,13 +180,6 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
 
   private fun restartAnalysis(project: Project, scope: AnalysisScope) {
     ApplicationManager.getApplication().invokeLater { analyze(project, scope) }
-  }
-
-  /* Android nullable annotations do not support annotations on local variables. */
-  override fun getAdditionalActionSettings(project: Project, dialog: BaseAnalysisActionDialog): JComponent? {
-    return if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-      super.getAdditionalActionSettings(project, dialog)
-    } else null
   }
 
   private class AnnotateTask(
@@ -300,8 +231,6 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
     const val MAX_PASSES = 3
     private const val INFER_SUPPORT_ANNOTATIONS: @NonNls String = "Infer Support Annotations"
     private const val MAX_ANNOTATIONS_WITHOUT_PREVIEW = 5
-    private const val ADD_DEPENDENCY = "Add Support Dependency"
-    private const val MIN_SDK_WITH_NULLABLE = 19
     private fun findModulesFromUsage(infos: Array<UsageInfo>): Map<Module, PsiFile> {
       // We need 1 file from each module that requires changes (the file may be overwritten below):
       val modules: MutableMap<Module, PsiFile> = HashMap()
@@ -451,20 +380,6 @@ class InferSupportAnnotationsAction : BaseAnalysisAction("Infer Support Annotati
 
           override fun generate(processor: Processor<in Usage>) {
             processUsages(processor, project)
-          }
-        }
-      }
-    }
-
-    private fun addDependency(module: Module, libraryCoordinate: String) {
-      if (StringUtil.isNotEmpty(libraryCoordinate)) {
-        ModuleRootModificationUtil.updateModel(module) {
-          val buildModel = GradleBuildModel.get(module)
-          if (buildModel != null) {
-            val name =
-              GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false)
-            buildModel.dependencies().addArtifact(name, libraryCoordinate)
-            buildModel.applyChanges()
           }
         }
       }
