@@ -58,10 +58,6 @@ class DesignerAnalyticsManagerTest : AndroidTestBase() {
     type = ZoomType.FIT
     myAnalyticsManager.trackZoom(type)
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
-
-    type = ZoomType.FIT_INTO
-    myAnalyticsManager.trackZoom(type)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
   }
 
   fun testIssuePanelTracking() {

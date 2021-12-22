@@ -38,10 +38,10 @@ internal class EmulatorZoomToolbarProvider private constructor(
   override fun getActionGroups() = object : EditorActionsToolbarActionGroups {
     override val zoomControlsGroup: ActionGroup
       get() = DefaultActionGroup().apply {
-        add(ZoomInAction.getInstance())
-        add(ZoomOutAction.getInstance())
-        add(ZoomActualAction.getInstance())
-        add(ZoomToFitAction.getInstance())
+        add(ZoomInAction)
+        add(ZoomOutAction)
+        add(ZoomActualAction)
+        add(ZoomToFitAction)
       }
   }
 

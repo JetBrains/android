@@ -17,25 +17,11 @@ package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * TODO(b/149212539): make constructor private after resolving failed test cases.
- */
-class ZoomOutAction : SetZoomAction(ZoomType.OUT) {
-
-  companion object {
-    @JvmStatic
-    fun getInstance() = ActionManager.getInstance().getAction(AdtuiActions.ZOOM_OUT_ACTION) as ZoomOutAction
-  }
-
+object ZoomOutAction : SetZoomAction(ZoomType.OUT) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomOut() ?: false
-    if (event.place.contains("Surface")) {
-      // Use different icon when it is in floating action bar.
-      event.presentation.icon = AllIcons.General.Remove
-    }
   }
 }

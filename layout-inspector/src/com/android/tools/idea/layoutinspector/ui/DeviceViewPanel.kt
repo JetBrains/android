@@ -415,9 +415,7 @@ class DeviceViewPanel(
       val root = layoutInspector.layoutInspectorModel.root
       viewportLayoutManager.currentZoomOperation = type
       when (type) {
-        ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-          newZoom = getFitZoom(root)
-        }
+        ZoomType.FIT -> newZoom = getFitZoom(root)
         ZoomType.ACTUAL -> newZoom = 100
         ZoomType.IN -> newZoom += 10
         ZoomType.OUT -> newZoom -= 10
@@ -574,7 +572,7 @@ class MyViewportLayoutManager(
       }
       currentZoomOperation != null -> {
         viewport.viewPosition = when (currentZoomOperation) {
-          ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+          ZoomType.FIT -> {
             origLayout.layoutContainer(parent)
             val bounds = viewport.extentSize
             val size = viewport.view.preferredSize

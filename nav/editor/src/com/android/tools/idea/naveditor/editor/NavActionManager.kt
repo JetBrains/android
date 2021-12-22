@@ -62,9 +62,9 @@ import javax.swing.KeyStroke
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
   private val autoArrangeAction: AnAction = AutoArrangeAction.instance
-  private val zoomInAction: AnAction = ZoomInAction.getInstance()
-  private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
-  private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
+  private val zoomInAction: AnAction = ZoomInAction
+  private val zoomOutAction: AnAction = ZoomOutAction
+  private val zoomToFitAction: AnAction = ZoomToFitAction
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)

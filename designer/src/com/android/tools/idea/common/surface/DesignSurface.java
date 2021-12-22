@@ -1014,11 +1014,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         scaled = setScale(1d / getScreenScalingFactor());
         break;
       case FIT:
-      case FIT_INTO:
-        scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
+        scaled = setScale(getFitScale(false));
         break;
       default:
-      case SCREEN:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
 
@@ -1040,7 +1038,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
    *
    * @param size    dimension to fit into the view
-   * @param fitInto {@link ZoomType#FIT_INTO}
+   * @param fitInto If true, don't scale to more than 100%
    * @return The scale to make the content fit the design surface
    * @see {@link #getScreenScalingFactor()}
    */
@@ -1916,7 +1914,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   abstract public List<NlComponent> getSelectableComponents();
 
   /**
-   * Sets the maximum zoom level allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
+   * Sets the maximum zoom level allowed for {@link ZoomType#FIT}. By default there is no maximum value.
    */
   public void setMaxFitIntoZoomLevel(@SurfaceZoomLevel double maxFitIntoZoomLevel) {
     myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
