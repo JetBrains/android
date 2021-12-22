@@ -35,6 +35,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_T
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.NEW_SYNC_KOTLIN_TEST
@@ -380,7 +381,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testKmp() {
-      val text = importSyncAndDumpProject("../projects/testArtifacts/kotlinMultiplatform")
+      val text = importSyncAndDumpProject(KOTLIN_MULTIPLATFORM)
       assertIsEqualToSnapshot(text)
     }
 
@@ -388,7 +389,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     fun testKmp_mpss() {
       StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
       try {
-        val text = importSyncAndDumpProject("../projects/testArtifacts/kotlinMultiplatform")
+        val text = importSyncAndDumpProject(KOTLIN_MULTIPLATFORM)
         assertIsEqualToSnapshot(text)
       }
       finally {
