@@ -206,7 +206,9 @@ class LintIdeTest : UsefulTestCase() {
 
   fun testDisabledTestsEnabledOnTheFly() {
     // If this changes test no longer applies; pick different disabled issue
+/* b/214265385
     assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
+b/214265385 */
     myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
     doGlobalInspectionTest(AndroidLintStopShipInspection())
   }
