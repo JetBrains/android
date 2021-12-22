@@ -24,9 +24,9 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
-import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.scene.draw.PreviewType
@@ -42,24 +42,41 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.awt.Color
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 /**
  * Tests for the nav editor Scene.
  */
-class NavSceneTest : NavTestCase() {
+@RunsInEdt
+class NavSceneTest {
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val navEditorRule = NavEditorRule(projectRule)
+
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(navEditorRule)
+
+  @Test
   fun testDisplayList() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "nested")
@@ -101,8 +118,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testInclude() {
-    val model = model("nav2.xml") {
+    val model = navEditorRule.model("nav2.xml") {
       navigation("root") {
         fragment("fragment1") {
           action("action1", destination = "nav")
@@ -129,8 +147,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testNegativePositions() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main")
         fragment("fragment2", layout = "activity_main")
@@ -157,8 +176,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component3, 650f, 600f, 76.5f, 128f)
   }
 
+  @Test
   fun testVeryPositivePositions() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main")
         fragment("fragment2", layout = "activity_main")
@@ -185,10 +205,11 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component3, 650f, 600f, 76.5f, 128f)
   }
 
+  @Test
   fun testAddComponent() {
     lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
 
-    val modelBuilder = modelBuilder("nav.xml") {
+    val modelBuilder = navEditorRule.modelBuilder("nav.xml") {
       navigation("root", startDestination = "fragment2") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "fragment2")
@@ -220,8 +241,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component3, 580f, 400f, 76.5f, 128f)
   }
 
+  @Test
   fun testRemoveComponent() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment2") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "fragment2")
@@ -229,7 +251,7 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment2", layout = "activity_main2")
       }
     }
-    val editor = TestNavEditor(model.virtualFile, project)
+    val editor = TestNavEditor(model.virtualFile, projectRule.project)
 
     val scene = model.surface.scene!!
     val component1 = scene.getSceneComponent("fragment1")!!
@@ -246,9 +268,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component1, 400f, 400f, 76.5f, 128f)
     assertThat(scene.getSceneComponent("fragment2")).isNull()
 
-    val undoManager = UndoManager.getInstance(project)
+    val undoManager = UndoManager.getInstance(projectRule.project)
     undoManager.undo(editor)
-    PsiDocumentManager.getInstance(project).commitAllDocuments()
+    PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
     model.surface.sceneManager!!.update()
     scene.layout(0, sceneView.context)
@@ -258,8 +280,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component2, 400f, 400f, 76.5f, 128f)
   }
 
+  @Test
   fun testNestedGraph() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment2") {
         fragment("fragment1") {
           action("action1", destination = "fragment2")
@@ -309,8 +332,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component4, 400f, 400f, 76.5f, 128f)
   }
 
+  @Test
   fun testNonexistentLayout() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1", layout = "activity_nonexistent")
       }
@@ -325,8 +349,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testSelectedNlComponentSelectedInScene() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "nested")
@@ -336,7 +361,7 @@ class NavSceneTest : NavTestCase() {
     }
     val surface = model.surface
     val rootComponent = model.components[0]
-    WriteCommandAction.runWriteCommandAction(project) {
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
       surface.model!!
       val newComponent = rootComponent.createChild("fragment", true, null, null)!!
       surface.selectionModel.setSelection(ImmutableList.of(newComponent))
@@ -346,11 +371,12 @@ class NavSceneTest : NavTestCase() {
     manager.update()
     val scene = manager.scene
 
-    assertTrue(scene.getSceneComponent("myId")!!.isSelected)
+    assertThat(scene.getSceneComponent("myId")!!.isSelected).isTrue()
   }
 
+  @Test
   fun testSelfAction() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "fragment1")
@@ -380,8 +406,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testDeepLinks() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
           deeplink("deepLink", "https://www.android.com/")
@@ -398,8 +425,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testSelectedComponent() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         action("a1", destination = "fragment1")
         fragment("fragment1")
@@ -459,8 +487,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testHoveredComponent() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1") {
           action("a1", destination = "nested")
@@ -519,8 +548,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testHoveredHandle() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
       }
@@ -544,8 +574,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testHoverDuringDrag() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1") {
           action("a1", destination = "nested")
@@ -590,7 +621,7 @@ class NavSceneTest : NavTestCase() {
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
   fun disabledTestDevices() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
       }
@@ -615,8 +646,9 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
   }
 
+  @Test
   fun testGlobalActions() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         action("action1", destination = "fragment1")
         action("action2", destination = "fragment2")
@@ -653,8 +685,9 @@ class NavSceneTest : NavTestCase() {
     assertThat(scene.getSceneComponent("action7")).isNull()
   }
 
+  @Test
   fun testPopToDestination() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation {
         fragment("fragment1")
         fragment("fragment2") {
@@ -681,8 +714,9 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testExitActions() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1")
         navigation("nav1") {
@@ -735,8 +769,9 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, scene.getSceneComponent("action8")!!, 570.5f, 602f, 12f, 6f)
   }
 
+  @Test
   fun testHoverMarksComponent() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
         fragment("fragment2")
@@ -756,30 +791,31 @@ class NavSceneTest : NavTestCase() {
     fragment2.setSize(100, 100)
     fragment2.layout(transform, 0)
 
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
+    assertThat(fragment1.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
+    assertThat(fragment2.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
     var version = scene.displayListVersion
 
     scene.mouseHover(transform, 150, 150, 0)
-    assertEquals(SceneComponent.DrawState.HOVER, fragment1.drawState)
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
-    assertTrue(version < scene.displayListVersion)
+    assertThat(fragment1.drawState).isEqualTo(SceneComponent.DrawState.HOVER)
+    assertThat(fragment2.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
+    assertThat(version).isLessThan(scene.displayListVersion)
     version = scene.displayListVersion
 
     scene.mouseHover(transform, 1050, 1050, 0)
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
-    assertEquals(SceneComponent.DrawState.HOVER, fragment2.drawState)
-    assertTrue(version < scene.displayListVersion)
+    assertThat(fragment1.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
+    assertThat(fragment2.drawState).isEqualTo(SceneComponent.DrawState.HOVER)
+    assertThat(version).isLessThan(scene.displayListVersion)
     version = scene.displayListVersion
 
     scene.mouseHover(transform, 0, 0, 0)
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
-    assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
-    assertTrue(version < scene.displayListVersion)
+    assertThat(fragment1.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
+    assertThat(fragment2.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
+    assertThat(version).isLessThan(scene.displayListVersion)
   }
 
+  @Test
   fun testHoverGlobalAction() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation("root") {
         action("a1", destination = "fragment1")
         fragment("fragment1")
@@ -793,18 +829,19 @@ class NavSceneTest : NavTestCase() {
     val action1 = scene.getSceneComponent("a1")!!
 
     scene.mouseHover(transform, -8, 125, 0)
-    assertEquals(SceneComponent.DrawState.NORMAL, action1.drawState)
+    assertThat(action1.drawState).isEqualTo(SceneComponent.DrawState.NORMAL)
 
-    WriteCommandAction.runWriteCommandAction(project) {
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
       action1.nlComponent.popUpTo = "fragment1"
     }
 
     scene.mouseHover(transform, -8, 125, 0)
-    assertEquals(SceneComponent.DrawState.HOVER, action1.drawState)
+    assertThat(action1.drawState).isEqualTo(SceneComponent.DrawState.HOVER)
   }
 
+  @Test
   fun testRegularActions() {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation {
         fragment("fragment1") {
           action("a1", destination = "fragment2")
@@ -850,10 +887,11 @@ class NavSceneTest : NavTestCase() {
     }
   }
 
+  @Test
   fun testEmptyDesigner() {
     var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
 
-    val modelBuilder = modelBuilder("nav.xml") {
+    val modelBuilder = navEditorRule.modelBuilder("nav.xml") {
       navigation("root") {
         action("action1", destination = "root")
       }.also { root = it }
@@ -867,7 +905,7 @@ class NavSceneTest : NavTestCase() {
 
     val sceneManager = scene.sceneManager as NavSceneManager
 
-    assertTrue(sceneManager.isEmpty)
+    assertThat(sceneManager.isEmpty).isTrue()
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
     }
@@ -882,7 +920,7 @@ class NavSceneTest : NavTestCase() {
       verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
       verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
     }
-    assertFalse(sceneManager.isEmpty)
+    assertThat(sceneManager.isEmpty).isFalse()
 
     model.delete(listOf(model.find("fragment1")!!))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
@@ -890,23 +928,26 @@ class NavSceneTest : NavTestCase() {
     verifyScene(model.surface) { inOrder, g ->
       verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
     }
-    assertTrue(sceneManager.isEmpty)
+    assertThat(sceneManager.isEmpty).isTrue()
   }
 
+  @Test
   fun testZoomIn() {
     zoomTest(3.0, 2400f, 2400f, 459f, 768f)
   }
 
+  @Test
   fun testZoomOut() {
     zoomTest(0.25, 200f, 200f, 38.25f, 64f)
   }
 
+  @Test
   fun testZoomToFit() {
     zoomTest(1.0, 800f, 800f, 153f, 256f)
   }
 
   private fun zoomTest(newScale: Double, x: Float, y: Float, width: Float, height: Float) {
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation {
         fragment("fragment1")
       }
@@ -927,6 +968,7 @@ class NavSceneTest : NavTestCase() {
     assertDrawRectEquals(sceneView, component1, x, y, width, height)
   }
 
+  @Test
   fun testCustomDestination() {
     val relativePath = "src/mytest/navtest/MyTestNavigator.java"
     val fileText = """
@@ -939,9 +981,9 @@ class NavSceneTest : NavTestCase() {
       }
       """
 
-    myFixture.addFileToProject(relativePath, fileText)
+    projectRule.fixture.addFileToProject(relativePath, fileText)
 
-    val model = model("nav.xml") {
+    val model = navEditorRule.model("nav.xml") {
       navigation {
         custom("customComponent")
       }

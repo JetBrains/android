@@ -147,6 +147,7 @@ public class ModelBuilder {
     return this;
   }
 
+  @NotNull
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();

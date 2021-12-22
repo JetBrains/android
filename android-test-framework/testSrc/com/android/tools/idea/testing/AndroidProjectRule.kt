@@ -199,8 +199,8 @@ class AndroidProjectRule private constructor(
   fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
     project.registerExtension(epName, extension, fixture.projectDisposable)
 
-  fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
-    return if (type.isInstance(fixture)) fixture as T else null
+  inline fun <reified T: CodeInsightTestFixture> getTypedFixture(): T? {
+    return fixture as? T
   }
 
   override fun before(description: Description) {

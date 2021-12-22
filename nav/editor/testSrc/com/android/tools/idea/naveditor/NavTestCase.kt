@@ -36,6 +36,7 @@ import org.jetbrains.android.AndroidTestCase
 import java.io.File
 import java.nio.file.Paths
 
+@Deprecated("Use NavTestRule instead")
 abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDITOR_BASIC) : AndroidTestCase() {
   // The normal test root disposable is disposed after Timer leak checking is done, which can cause problems.
   // We'll dispose this one first, so it should be used instead of getTestRootDisposable().
@@ -73,7 +74,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
       myFixture.testDataPath = testDataPath
     }
 
-    TestableThumbnailManager.register(myFacet, myRootDisposable)
+    TestableThumbnailManager.register(myFacet)
   }
 
   override fun tearDown() {

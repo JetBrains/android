@@ -15,21 +15,40 @@
  */
 package com.android.tools.idea.naveditor.dom
 
-import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.addDynamicFeatureModule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.intellij.lang.annotations.Language
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class AndroidDynamicFeatureNavTest : NavTestCase() {
+@RunsInEdt
+class AndroidDynamicFeatureNavTest {
   private val DYNAMIC_FEATURE_MODULE_NAME = "dynamicfeaturemodule"
 
-  override fun setUp() {
-    super.setUp()
-    addDynamicFeatureModule(DYNAMIC_FEATURE_MODULE_NAME, myModule, myFixture)
+  @get:Rule
+  val edtRule = EdtRule()
+  private val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(NavEditorRule(projectRule))
+
+  val myFixture: JavaCodeInsightTestFixture
+    get() = projectRule.getTypedFixture()!!
+
+  @Before
+  fun setUp() {
+    addDynamicFeatureModule(DYNAMIC_FEATURE_MODULE_NAME, projectRule.module, myFixture)
     addFragment("fragment1", null)
     addFragment("fragment2", null)
     addFragment("fragment3", null)
@@ -38,6 +57,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
     addActivity("dynamicActivity", DYNAMIC_FEATURE_MODULE_NAME)
   }
 
+  @Test
   fun testToolsLayoutFragmentCompletion() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -50,11 +70,11 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
               android:label="Blank"
               tools:layout="@layo${caret}" />
       </navigation>""".trimIndent()
-    val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
-    waitForResourceRepositoryUpdates()
-    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsExactly(
+    val psiFile = projectRule.fixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
+    waitForResourceRepositoryUpdates(projectRule.module)
+    projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    projectRule.fixture.completeBasic()
+    assertThat(projectRule.fixture.lookupElementStrings).containsExactly(
       "@layout/activity1",
       "@layout/dynamicActivity",
       "@layout/activity_main",
@@ -65,6 +85,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
       "@layout/fragment_blank")
   }
 
+  @Test
   fun testToolsLayoutFragmentGotoDeclaration() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -85,6 +106,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
     assertThat((targetElements[0] as XmlFile).name).isEqualTo("dynamicFragment.xml")
   }
 
+  @Test
   fun testFragmentCompletion() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -93,7 +115,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
           app:startDestination="@id/blankFragment">
           <fragment
               android:id="@+id/blankFragment"
-              android:name="${caret}"
+              android:name="$caret"
               android:label="Blank"
               tools:layout="@layout/fragment_blank" />
       </navigation>""".trimIndent()
@@ -108,6 +130,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
       "mytest.navtest.dynamicFragment")
   }
 
+  @Test
   fun testFragmentGotoDeclaration() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -126,6 +149,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
     assertThat((targetElements[0] as PsiClass).qualifiedName).isEqualTo("mytest.navtest.dynamicFragment")
   }
 
+  @Test
   fun testActivityCompletion() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -133,7 +157,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
           app:startDestination="@id/blankActivity">
           <activity
               android:id="@+id/blankActivity"
-              android:name="${caret}"
+              android:name="$caret"
               android:label="Blank" />
       </navigation>""".trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph4.xml", navGraph)
@@ -145,6 +169,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
     )
   }
 
+  @Test
   fun testActivityGotoDeclaration() {
     @Language("XML") val navGraph = """
       <navigation xmlns:app="http://schemas.android.com/apk/res-auto"

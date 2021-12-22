@@ -56,13 +56,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ThumbnailManagerTest extends NavTestCase {
 
-  private NavDesignSurface mySurface;
-
   @Override
   public void setUp() {
     super.setUp();
-    TestableThumbnailManager.register(myFacet, myRootDisposable);
-    mySurface = new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
+    TestableThumbnailManager.register(myFacet);
+    new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
   }
 
   public void testCaching() throws Exception {

@@ -38,10 +38,9 @@ public class TestableThumbnailManager extends ThumbnailManager {
     myPreviousManager = previousManager;
   }
 
-  public static void register(@NotNull AndroidFacet facet, @NotNull Disposable parentDisposable) {
+  public static void register(@NotNull AndroidFacet facet) {
     ThumbnailManager newInstance = new TestableThumbnailManager(facet, ThumbnailManager.getInstance(facet));
     ThumbnailManager.setInstance(facet, newInstance);
-    Disposer.register(parentDisposable, newInstance);
   }
 
   @Override
