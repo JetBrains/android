@@ -15,6 +15,7 @@
  */
 package com.android.tools.componenttree.api
 
+import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -48,8 +49,11 @@ interface BadgeItem {
 
   /**
    * Perform this action when the icon is clicked on.
+   * @param item the item that the icon belongs to
+   * @param component the Swing component presenting the icon
+   * @param bounds the bounds of the icon relative to [component]
    */
-  fun performAction(item: Any)
+  fun performAction(item: Any, component: JComponent, bounds: Rectangle)
 
   /**
    * Show an (optional) popup after a right click on the icon.

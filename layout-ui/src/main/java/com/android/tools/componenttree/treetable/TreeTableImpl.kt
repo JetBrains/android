@@ -29,7 +29,6 @@ import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
-import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Component
 import java.awt.Graphics
@@ -119,9 +118,10 @@ class TreeTableImpl(
   }
 
   private fun initBadgeColumns() {
-    val badgeWidth = EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(2)
-    for (index in 1 + extraColumns.size until columnCount) {
-      setColumnWidth(index, badgeWidth)
+    val columnOffset = 1 + extraColumns.size
+    badgeRenderers.forEachIndexed { index, renderer ->
+      val component = renderer.getTableCellRendererComponent(this, null, isSelected = false, hasFocus = false, 0, columnOffset + index)
+      setColumnWidth(columnOffset + index, component.preferredSize.width)
     }
   }
 
@@ -314,7 +314,10 @@ class TreeTableImpl(
         val item = getValueAt(cell.row, cell.column)
         when {
           cell.column == 0 && event.clickCount == 2 -> doubleClick()
-          cell.column > extraColumns.size && event.clickCount == 1 -> badgeItems[cell.column - 1 - extraColumns.size].performAction(item)
+          cell.column > extraColumns.size && event.clickCount == 1 -> {
+            val bounds = getCellRect(cell.row, cell.column, true)
+            badgeItems[cell.column - 1 - extraColumns.size].performAction(item, this@TreeTableImpl, bounds)
+          }
         }
       }
     }

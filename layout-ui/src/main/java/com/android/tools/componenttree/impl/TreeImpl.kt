@@ -245,9 +245,14 @@ class TreeImpl(
         event.button == BUTTON1 &&
         (event.modifiers.and(InputEvent.SHIFT_MASK.or(InputEvent.CTRL_MASK))) == 0) {
       if (event.clickCount == 1) {
-        val (component, item) = lookupRenderComponentAt(event.x, event.y) ?: return
+        val (component, item, row) = lookupRenderComponentAt(event.x, event.y) ?: return
         val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
-        badge?.performAction(item)
+        if (badge != null) {
+          val bounds = getRowBounds(row)
+          bounds.x = width - EmptyIcon.ICON_16.iconWidth
+          bounds.width = EmptyIcon.ICON_16.iconWidth
+          badge.performAction(item, this, bounds)
+        }
       }
       else if (event.clickCount == 2) {
         doubleClick()
@@ -256,7 +261,7 @@ class TreeImpl(
   }
 
   private fun invokePopup(x: Int, y: Int) {
-    val (component, item) = lookupRenderComponentAt(x, y) ?: return
+    val (component, item, _) = lookupRenderComponentAt(x, y) ?: return
     val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
     if (badge != null) {
       badge.showPopup(item, this, x, y)
@@ -299,7 +304,7 @@ class TreeImpl(
   // region Support for Badges
 
   override fun getToolTipText(event: MouseEvent): String? {
-    val (component, _) = lookupRenderComponentAt(event.x, event.y) ?: return toolTipText
+    val (component, _, _) = lookupRenderComponentAt(event.x, event.y) ?: return toolTipText
     return component.toolTipText ?: toolTipText
   }
 
@@ -310,7 +315,7 @@ class TreeImpl(
    * There are other cases where it would be nice to have access to these components.
    * Examples: tooltips, context menus, mouse clicks etc.
    */
-  private fun lookupRenderComponentAt(x: Int, y: Int): Pair<JComponent, Any>? {
+  private fun lookupRenderComponentAt(x: Int, y: Int): Triple<JComponent, Any, Int>? {
     val renderer = getCellRenderer() ?: return null
     val path = getClosestPathForLocation(x, y) ?: return null
     val row = getRowForPath(path)
@@ -324,7 +329,7 @@ class TreeImpl(
     // TODO(b/171255033): It is possible that with the presence of a peer this can be replaced by: renderComponent.revalidate()
     TreeWalker(renderComponent).descendantStream().forEach { component: Component -> component.doLayout() }
     val component = SwingUtilities.getDeepestComponentAt(renderComponent, x - bounds.x, y - bounds.y) as JComponent? ?: return null
-    return Pair(component, item)
+    return Triple(component, item, row)
   }
   // endregion
 }

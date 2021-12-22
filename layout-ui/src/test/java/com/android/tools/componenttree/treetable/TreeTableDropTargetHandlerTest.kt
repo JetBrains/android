@@ -50,6 +50,7 @@ import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTarget
@@ -82,7 +83,7 @@ class TreeTableDropTargetHandlerTest {
     }
 
     override fun getTooltipText(item: Any?): String = ""
-    override fun performAction(item: Any) {}
+    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {}
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}
   }
 

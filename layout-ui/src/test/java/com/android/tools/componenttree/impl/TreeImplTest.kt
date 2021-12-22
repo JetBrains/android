@@ -80,6 +80,8 @@ class TreeImplTest {
   }
   private val badgeItem = object : BadgeItem {
     var lastActionItem: Any? = null
+    var lastActionComponent: JComponent? = null
+    var lastActionBounds: Rectangle? = null
     var lastPopupItem: Any? = null
 
     override fun getIcon(item: Any): Icon? = when (item) {
@@ -96,8 +98,10 @@ class TreeImplTest {
       else -> ""
     }
 
-    override fun performAction(item: Any) {
+    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       lastActionItem = item
+      lastActionComponent = component
+      lastActionBounds = bounds
     }
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
@@ -165,23 +169,27 @@ class TreeImplTest {
     val ui = FakeUi(tree)
     tree.expandRow(0)
     tree.expandRow(1)
+    val bounds = tree.getRowBounds(1)
     ui.mouse.click(390, 30)
     assertThat(badgeItem.lastActionItem).isEqualTo(item2)
+    assertThat(badgeItem.lastActionComponent).isSameAs(tree)
+    assertThat(badgeItem.lastActionBounds).isEqualTo(Rectangle(384, bounds.y, 16, bounds.height))
   }
 
   @RunsInEdt
   @Test
   fun testClickOnBadgeWhenScrolled() {
     val tree = createTree()
-    val scrollPane = setScrollPaneSize(tree, 20, 20)
+    val scrollPane = setScrollPaneSize(tree, 300, 20)
     val ui = FakeUi(tree)
     val bounds = tree.getRowBounds(tree.rowCount - 1)
-    val right = bounds.maxX.toInt()
     val bottom = bounds.maxY.toInt()
-    scrollPane.viewport.viewPosition = Point(right - 20, bottom - 20)
+    scrollPane.viewport.viewPosition = Point(0, bottom - 20)
     UIUtil.dispatchAllInvocationEvents()
-    ui.mouse.click(right - 10, bottom - 10)
+    ui.mouse.click(290, bottom - 10)
     assertThat(badgeItem.lastActionItem).isEqualTo(item3)
+    assertThat(badgeItem.lastActionComponent).isSameAs(tree)
+    assertThat(badgeItem.lastActionBounds).isEqualTo(Rectangle(284, bounds.y, 16, bounds.height))
   }
 
   @RunsInEdt

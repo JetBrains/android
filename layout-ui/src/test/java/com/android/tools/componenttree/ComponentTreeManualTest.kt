@@ -51,6 +51,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Rectangle
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -254,7 +255,7 @@ private class ComponentTreeTest {
 
     override fun getTooltipText(item: Any?) = "Tooltip for $item"
 
-    override fun performAction(item: Any) {
+    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (getIcon(item) != null) {
         JOptionPane.showMessageDialog(frame, "Badge: $context for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
       }

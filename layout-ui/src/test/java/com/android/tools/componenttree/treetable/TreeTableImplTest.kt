@@ -40,6 +40,8 @@ import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.After
@@ -52,6 +54,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -89,7 +92,11 @@ class TreeTableImplTest {
   }
   private val badgeItem = object : BadgeItem {
     var lastActionItem: Any? = null
+    var lastActionComponent: JComponent? = null
+    var lastActionBounds: Rectangle? = null
     var lastPopupItem: Any? = null
+
+    override var leftDivider: Boolean = false
 
     override fun getIcon(item: Any): Icon? = when (item) {
       item1 -> StudioIcons.Common.ERROR
@@ -111,8 +118,10 @@ class TreeTableImplTest {
       else -> ""
     }
 
-    override fun performAction(item: Any) {
+    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       lastActionItem = item
+      lastActionComponent = component
+      lastActionBounds = bounds
     }
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
@@ -169,7 +178,7 @@ class TreeTableImplTest {
     val table = createTreeTable()
     table.tree.expandRow(0)
     table.tree.expandRow(1)
-    val badgeCell = table.getCellRect(3, table.columnCount - 1, true)
+    val badgeCell = table.getCellRect(3, 3, true)
     val scrollPane = setScrollPaneSize(table, 400, 20)
     scrollPane.viewport.viewPosition = Point(0, badgeCell.bottom - 20)
     UIUtil.dispatchAllInvocationEvents()
@@ -191,6 +200,8 @@ class TreeTableImplTest {
     table.tree.expandRow(1)
     ui.mouse.click(390, 30)
     assertThat(badgeItem.lastActionItem).isEqualTo(item2)
+    assertThat(badgeItem.lastActionComponent).isSameAs(table)
+    assertThat(badgeItem.lastActionBounds).isEqualTo(table.getCellRect(1, 3, true))
   }
 
   @RunsInEdt
@@ -199,13 +210,15 @@ class TreeTableImplTest {
     val table = createTreeTable()
     table.tree.expandRow(0)
     table.tree.expandRow(1)
-    val badgeCell = table.getCellRect(3, table.columnCount - 1, true)
+    val badgeCell = table.getCellRect(3, 3, true)
     val scrollPane = setScrollPaneSize(table, 400, 20)
     scrollPane.viewport.viewPosition = Point(0, badgeCell.bottom - 20)
     UIUtil.dispatchAllInvocationEvents()
     val ui = FakeUi(table)
     ui.mouse.click(395, badgeCell.y + 5)
     assertThat(badgeItem.lastActionItem).isEqualTo(item3)
+    assertThat(badgeItem.lastActionComponent).isSameAs(table)
+    assertThat(badgeItem.lastActionBounds).isEqualTo(table.getCellRect(3, 3, true))
   }
 
   @RunsInEdt
@@ -339,7 +352,7 @@ class TreeTableImplTest {
     ui.mouse.moveTo(badge3.centerX.toInt(), badge3.centerY.toInt())
     assertThat(table.hoverCell?.equalTo(2, 3)).isTrue()
     verifyNoInteractions(manager) // badge in row 3 (style1) doesn't have a hoverIcon
-    assertThat(table.badgeIconOf(2, 3)).isNull()
+    assertThat(table.badgeIconOf(2, 3)).isSameAs(EmptyIcon.ICON_16)
 
     // move mouse over the badge column for item1 (row 0)
     ui.mouse.moveTo(badge1.centerX.toInt(), badge1.centerY.toInt())
@@ -362,6 +375,45 @@ class TreeTableImplTest {
     verify(manager, times(2)).addDirtyRegion(table, badge2.x, badge2.y, badge2.width, badge2.height)
     assertThat(table.badgeIconOf(0, 3)).isSameAs(StudioIcons.Common.ERROR)
     assertThat(table.badgeIconOf(1, 3)).isSameAs(StudioIcons.Common.FILTER)
+  }
+
+  @Test
+  fun testPreferredBadgeSize() {
+    val table = createTreeTable()
+    val renderer = table.getCellRenderer(0, 3)
+    val component = renderer.getTableCellRendererComponent(table, item1, true, true, 0, 3)
+    assertThat(component.preferredSize.width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
+    assertThat(table.columnModel.getColumn(3).width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
+  }
+
+  @Test
+  fun testPreferredBadgeSizeWithBadgeDivider() {
+    badgeItem.leftDivider = true
+    val table = createTreeTable()
+    val renderer = table.getCellRenderer(0, 3)
+    val component = renderer.getTableCellRendererComponent(table, item1, true, true, 0, 3)
+    assertThat(component.preferredSize.width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
+    assertThat(table.columnModel.getColumn(3).width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
+  }
+
+  @RunsInEdt
+  @Test
+  fun testTooltipText() {
+    val table = createTreeTable()
+    setScrollPaneSize(table, 400, 700)
+    assertThat(tooltipTextAt(table, 0, 0)).isEqualTo("LinearLayout")
+    assertThat(tooltipTextAt(table, 0, 1)).isEqualTo("LinearLayout")
+    assertThat(tooltipTextAt(table, 0, 3)).isEqualTo("LinearLayout tip")
+    assertThat(tooltipTextAt(table, 1, 0)).isEqualTo("TextView")
+    assertThat(tooltipTextAt(table, 1, 1)).isEqualTo("TextView")
+    assertThat(tooltipTextAt(table, 1, 3)).isEqualTo("TextView tip")
+  }
+
+  private fun tooltipTextAt(table: TreeTableImpl, row: Int, column: Int): String? {
+    val cell = table.getCellRect(row, column, true)
+    val event = MouseEvent(table, MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, cell.centerX.toInt(), cell.centerY.toInt(),
+                           0, false)
+    return table.getToolTipText(event)
   }
 
   private fun setScrollPaneSize(table: TreeTableImpl, width: Int, height: Int): JScrollPane {
