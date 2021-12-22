@@ -45,6 +45,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PSD_SAMPLE_REPO
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_FIXTURES
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_ONLY_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
@@ -176,6 +177,12 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       } finally {
         StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
       }
+    }
+
+    @Test
+    fun testTestOnlyModule() {
+      val text = importSyncAndDumpProject(TEST_ONLY_MODULE)
+      assertIsEqualToSnapshot(text)
     }
 
     @Test
