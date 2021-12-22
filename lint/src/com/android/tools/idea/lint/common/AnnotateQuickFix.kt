@@ -20,6 +20,7 @@ import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
@@ -38,13 +39,11 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 class AnnotateQuickFix(
-  private val displayName: String?,
-  private val familyName: String?,
+  displayName: String?,
+  familyName: String?,
   private val annotationSource: String,
   private val replace: Boolean
-) : LintIdeQuickFix {
-  override fun getName(): String = displayName!!
-  override fun getFamilyName(): String = familyName!!
+) : DefaultLintQuickFix(displayName ?: "Annotate", familyName) {
 
   private fun findContainer(element: PsiElement): PsiElement? {
     return when (element.language) {
@@ -114,11 +113,11 @@ fun KtElement.isNewLineNeededForAnnotation(): Boolean {
 
 fun findJavaAnnotationTarget(element: PsiElement?): PsiModifierListOwner? {
   val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, true)
-  return if (modifier !is PsiClassInitializer) {
-    modifier
+  return if (modifier is PsiClassInitializer || modifier is PsiAnonymousClass) {
+    findJavaAnnotationTarget(modifier)
   }
   else {
-    findJavaAnnotationTarget(modifier)
+    modifier
   }
 }
 

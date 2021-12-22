@@ -26,11 +26,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Changes the attribute name.
  */
-public class RenameAttributeQuickFix implements LintIdeQuickFix {
+public class RenameAttributeQuickFix extends DefaultLintQuickFix {
   private final String myNamespace;
   private final String myLocalName;
 
   public RenameAttributeQuickFix(@Nullable String namespace, @NotNull String localName) {
+    super("Use " + localName);
     myNamespace = namespace;
     myLocalName = localName;
   }
@@ -65,11 +66,5 @@ public class RenameAttributeQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return "Use " + myLocalName;
   }
 }

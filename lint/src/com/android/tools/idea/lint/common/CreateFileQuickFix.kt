@@ -38,9 +38,9 @@ class CreateFileQuickFix(
   private val myBinary: ByteArray?,
   private val mySelectPattern: String?,
   private val myFormat: Boolean,
-  private val myDisplayName: String,
-  private val myFamilyName: String?
-) : LintIdeQuickFix {
+  name: String,
+  familyName: String?
+) : DefaultLintQuickFix(name, familyName) {
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
@@ -120,6 +120,4 @@ class CreateFileQuickFix(
   }
 
   override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
-  override fun getName(): String = myDisplayName
-  override fun getFamilyName(): String? = myFamilyName
 }

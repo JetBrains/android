@@ -22,15 +22,16 @@ import static com.android.SdkConstants.XMLNS;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
-public class ConvertNamespaceQuickFix implements LintIdeQuickFix {
+public class ConvertNamespaceQuickFix extends DefaultLintQuickFix {
   public ConvertNamespaceQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.replace.namespace"));
   }
 
   @Override
@@ -55,11 +56,5 @@ public class ConvertNamespaceQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return PsiTreeUtil.getParentOfType(startElement, XmlTag.class) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.replace.namespace");
   }
 }

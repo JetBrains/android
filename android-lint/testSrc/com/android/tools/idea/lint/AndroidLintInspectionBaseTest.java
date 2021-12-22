@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidLintUnknownNullnessInspection;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.inspections.AndroidLintHardcodedTextInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspection;
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
+import com.intellij.codeInsight.intention.PriorityAction.Priority;
+import com.intellij.psi.PsiFile;
 import java.util.Collections;
 import java.util.List;
-import junit.framework.TestCase;
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidLintInspectionBaseTest extends TestCase {
+public class AndroidLintInspectionBaseTest extends LightJavaCodeInsightFixtureAdtTestCase {
   public void testGroup() {
     AndroidLintInspectionBase inspection;
 
@@ -61,7 +65,7 @@ public class AndroidLintInspectionBaseTest extends TestCase {
       desc);
 
     // Verify what it would look like for a third party check
-    IssueRegistry registry = new IssueRegistry() {
+    @SuppressWarnings("LintImplUseKotlin") IssueRegistry registry = new IssueRegistry() {
       @NotNull
       @Override
       public List<Issue> getIssues() {
@@ -124,5 +128,23 @@ public class AndroidLintInspectionBaseTest extends TestCase {
       "<br><br>" +
       "<a href=\"https://developer.android.com/kotlin/interop#nullability_annotations\">https://developer.android.com/kotlin/interop#nullability_annotations</a></body></html>",
       desc);
+  }
+
+  public void testSortingPriority() {
+    PsiFile file = myFixture.configureByText("UserDao.java", "package test.pkg;\nclass Test {\n}");
+    LintFix first = LintFix.create().name("First Alphabetically").replace().text("Test").with("1").build();
+    LintFix second = LintFix.create().name("Second Alphabetically").replace().text("Test").with("1").build();
+    LintFix third = LintFix.create().name("Third Alphabetically").replace().text("Test").with("1").build();
+    LintFix group1 = LintFix.create().alternatives(first, second, third);
+
+    LintIdeQuickFix[] fixes = AndroidLintInspectionBase.createFixes(file, group1);
+    assertEquals("First Alphabetically", fixes[0].getName());
+    assertEquals(Priority.TOP, fixes[0].getPriority());
+    assertEquals("Second Alphabetically", fixes[1].getName());
+    assertEquals(Priority.HIGH, fixes[1].getPriority());
+    assertEquals("Third Alphabetically", fixes[2].getName());
+    // Ideally we'd use NORMAL here but all intention actions have to be HIGH or above, otherwise they'll
+    // filter below other random IntelliJ generic actions (like Git rollback changes on current line etc)
+    assertEquals(Priority.HIGH, fixes[2].getPriority());
   }
 }

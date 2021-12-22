@@ -21,7 +21,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.res.ensureNamespaceImported
@@ -56,7 +56,7 @@ import java.util.Locale
 class AddTargetApiQuickFix(private val api: Int,
                            private val requiresApi: Boolean,
                            private val element: PsiElement,
-                           private val requireClass: Boolean = false) : LintIdeQuickFix {
+                           private val requireClass: Boolean = false) : DefaultLintQuickFix("") { // overriding getName() below
 
   private fun getAnnotationValue(fullyQualified: Boolean): String {
     return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)

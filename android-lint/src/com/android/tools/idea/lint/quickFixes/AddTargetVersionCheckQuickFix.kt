@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.quickFixes
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder
 import com.intellij.codeInspection.JavaSuppressionUtil
@@ -57,11 +57,9 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /** Fix which surrounds an API warning with a version check  */
-class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
-
-  override fun getName(): String {
-    return "Surround with if (VERSION.SDK_INT >= VERSION_CODES.${getVersionField(api, false)}) { ... }"
-  }
+class AddTargetVersionCheckQuickFix(private val api: Int) : DefaultLintQuickFix(
+  "Surround with if (VERSION.SDK_INT >= VERSION_CODES.${getVersionField(api, false)}) { ... }"
+) {
 
   override fun isApplicable(startElement: PsiElement,
                             endElement: PsiElement,
@@ -95,7 +93,7 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
 
   private fun handleKotlin(element: PsiElement) {
     val targetExpression = getKotlinTargetExpression(element) ?: return
-    val project = targetExpression.project ?: return
+    val project = targetExpression.project
     val editor = targetExpression.findExistingEditor() ?: return
     val file = targetExpression.containingFile
     val documentManager = PsiDocumentManager.getInstance(project)

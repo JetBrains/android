@@ -17,8 +17,8 @@ package com.android.tools.idea.lint.quickFixes;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
@@ -31,8 +31,12 @@ import com.intellij.xml.XmlNamespaceHelper;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
-public class AddMissingPrefixQuickFix implements LintIdeQuickFix {
+public class AddMissingPrefixQuickFix extends DefaultLintQuickFix {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AddMissingPrefixQuickFix");
+
+  public AddMissingPrefixQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.add.android.prefix"));
+  }
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
@@ -79,11 +83,5 @@ public class AddMissingPrefixQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.add.android.prefix");
   }
 }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.lint.quickFixes;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.lint.checks.UselessViewDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -26,10 +26,11 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
-public class RemoveUselessViewQuickFix implements LintIdeQuickFix {
+public class RemoveUselessViewQuickFix extends DefaultLintQuickFix {
   private final Issue myIssue;
 
   public RemoveUselessViewQuickFix(@NotNull Issue issue) {
+    super(AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view"));
     myIssue = issue;
   }
 
@@ -63,11 +64,5 @@ public class RemoveUselessViewQuickFix implements LintIdeQuickFix {
       return false;
     }
     return tag.getParentTag() != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view");
   }
 }

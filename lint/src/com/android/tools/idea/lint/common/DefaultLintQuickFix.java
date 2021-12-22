@@ -59,4 +59,16 @@ public class DefaultLintQuickFix implements LintIdeQuickFix {
   public String getFamilyName() {
     return myFamilyName;
   }
+
+  private Priority priority = Priority.HIGH;
+
+  @Override
+  public @NotNull Priority getPriority() {
+    return priority;
+  }
+
+  @Override
+  public void setPriority(@NotNull Priority priority) {
+    this.priority = priority;
+  }
 }

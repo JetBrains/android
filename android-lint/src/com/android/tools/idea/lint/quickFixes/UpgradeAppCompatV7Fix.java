@@ -19,7 +19,7 @@ import static com.android.tools.lint.checks.FontDetector.MIN_APPSUPPORT_VERSION;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
@@ -31,7 +31,11 @@ import org.jetbrains.annotations.Nullable;
  * which is the minimum for downloadable font support
  * (and also installs it in the local maven repository if necessary)
  */
-public class UpgradeAppCompatV7Fix implements LintIdeQuickFix {
+public class UpgradeAppCompatV7Fix extends DefaultLintQuickFix {
+  public UpgradeAppCompatV7Fix() {
+    super("Upgrade appcompat-v7 to recommended version");
+  }
+
   @Override
   public void apply(@NotNull PsiElement startElement,
                     @NotNull PsiElement endElement,
@@ -51,11 +55,5 @@ public class UpgradeAppCompatV7Fix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return true;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return "Upgrade appcompat-v7 to recommended version";
   }
 }

@@ -24,11 +24,12 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.lint.quickFixes.RemoveSdkCheckFix;
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.quickFixes.RemoveSdkCheckFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -116,7 +117,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
    * <p>
    * TODO: Consider adding this as a refactoring action, or a context menu action on resource folders
    */
-  private static class MergeResourceFolderFix implements LintIdeQuickFix {
+  private static class MergeResourceFolderFix extends DefaultLintQuickFix {
     private final AndroidFacet facet;
     private final VirtualFile dir;
     private final String destFolderName;
@@ -125,6 +126,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
     MergeResourceFolderFix(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull String destFolderName,
                            AndroidVersion minSdkVersion) {
+      super(""); // getName overridden
       this.facet = facet;
       this.dir = dir;
       this.destFolderName = destFolderName;
@@ -177,7 +179,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
         }
 
         // Sort numerically, not alphabetically
-        Collections.sort(folders, (f1, f2) -> {
+        folders.sort((f1, f2) -> {
           FolderConfiguration configuration1 = FolderConfiguration.getConfigForFolder(f1.getName());
           FolderConfiguration configuration2 = FolderConfiguration.getConfigForFolder(f2.getName());
           assert configuration1 != null; // because otherwise it wouldn't have made it into the folders list above

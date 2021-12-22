@@ -25,7 +25,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.ReformatUtil
 import com.intellij.openapi.command.WriteCommandAction
@@ -49,9 +49,7 @@ import java.io.IOException
  * <li>Set the layoutDescription attribute on the MotionLayout. </li>
  * </ul>
  */
-class GenerateMotionSceneFix(val url: ResourceUrl) : LintIdeQuickFix {
-  override fun getName() = "Generate MotionScene file"
-
+class GenerateMotionSceneFix(val url: ResourceUrl) : DefaultLintQuickFix("Generate MotionScene file") {
   override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
     val facet = AndroidFacet.getInstance(startElement) ?: return false
     val appResources = ResourceRepositoryManager.getAppResources(facet)

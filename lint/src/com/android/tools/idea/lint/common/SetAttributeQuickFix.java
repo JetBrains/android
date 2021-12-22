@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint.common;
 
-import com.android.SdkConstants;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.Computable;
@@ -30,25 +29,19 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SetAttributeQuickFix implements LintIdeQuickFix {
+public class SetAttributeQuickFix extends DefaultLintQuickFix {
 
-  private final String myName;
-  private final String myFamilyName;
   private final String myAttributeName;
   private final String myValue;
   private final String myNamespace;
   private final int myDot;
   private final int myMark;
 
-  // 'null' value means asking
-  public SetAttributeQuickFix(@NotNull String name, String familyName, @NotNull String attributeName, @Nullable String value) {
-    this(name, familyName, attributeName, SdkConstants.ANDROID_URI, value);
-  }
-
   public SetAttributeQuickFix(@NotNull String name,
                               @Nullable String familyName,
                               @NotNull String attributeName,
                               @Nullable String namespace,
+                              // 'null' value means asking
                               @Nullable String value) {
     this(name, familyName, attributeName, namespace, value,
          // The default was to select the whole text range
@@ -63,9 +56,7 @@ public class SetAttributeQuickFix implements LintIdeQuickFix {
                               @Nullable String value,
                               int dot,
                               int mark) {
-    super();
-    myName = name;
-    myFamilyName = familyName;
+    super(name, familyName);
     myAttributeName = attributeName;
     myValue = value;
     myNamespace = namespace;

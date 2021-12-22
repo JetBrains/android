@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
 import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.detector.api.DefaultPosition;

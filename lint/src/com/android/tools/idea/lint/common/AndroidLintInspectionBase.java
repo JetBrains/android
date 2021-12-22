@@ -50,6 +50,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.PriorityAction;
 import com.intellij.codeInspection.BatchSuppressManager;
 import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -110,6 +111,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
+// TODO: autofix should be the default, and if not set, the first one
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   static {
     LintClient.setClientName(CLIENT_STUDIO);
@@ -410,7 +412,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return issue;
   }
 
-  @SuppressWarnings("rawtypes")
   private static @NotNull List<InspectionToolWrapper<?, ?>> getInspectionTools(@NotNull Project project) {
     InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
     try {
@@ -778,8 +779,25 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       switch (group.getType()) {
         case COMPOSITE:
           return new LintIdeQuickFix[]{new CompositeLintFix(lintFix.getDisplayName(), lintFix.getFamilyName(), fixes)};
-        case ALTERNATIVES:
+        case ALTERNATIVES: {
+          if (fixes.length > 1) {
+            // IntelliJ will sort fixes alphabetically -- it will NOT preserve the order fixes are registered in.
+            // The only way to work around this is to arrange for the labels have the same alphabetical ordering
+            // as their priorities, which can be tricky.
+            //
+            // However, IntelliJ later introduced a PriorityAction interface. Unfortunately, it is NOT a general
+            // priority where we can just assign priorities as ordinals; instead, there are a few enums. So we'll
+            // use these priorities to at a minimum force the first (presumably default) option to have the highest
+            // priority.
+            //
+            // We don't use the full complement of priorities because we don't want these actions to be sorted
+            // lower than some of the fallback/default intention actions, such as suppression, and it turns out
+            // these actions are already using HIGH priority so the best we can do is to boost one of them up
+            // to TOP.
+            fixes[0].setPriority(PriorityAction.Priority.TOP);
+          }
           return fixes;
+        }
       }
     }
     else if (lintFix instanceof ShowUrl) {
@@ -788,14 +806,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return LintIdeQuickFix.EMPTY_ARRAY;
   }
 
-  static class CompositeLintFix implements LintIdeQuickFix {
-    private final String myDisplayName;
-    private final String myFamilyName;
+  static class CompositeLintFix extends DefaultLintQuickFix {
     private final LintIdeQuickFix[] myFixes;
 
     CompositeLintFix(String displayName, String familyName, LintIdeQuickFix[] myFixes) {
-      myDisplayName = displayName;
-      myFamilyName = familyName;
+      super(displayName != null ? displayName : "Fix", familyName);
       this.myFixes = myFixes;
     }
 
@@ -817,24 +832,13 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       }
       return true;
     }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myDisplayName != null ? myDisplayName : "Fix";
-    }
-
-    @Nullable
-    @Override
-    public String getFamilyName() {
-      return myFamilyName;
-    }
   }
 
-  static class RemoteAttributeFix implements LintIdeQuickFix {
+  static class RemoteAttributeFix extends DefaultLintQuickFix {
     private final SetAttribute myData;
 
     RemoteAttributeFix(SetAttribute data) {
+      super(data.getDisplayName(), data.getFamilyName());
       myData = data;
     }
 
@@ -866,18 +870,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       return myData.getNamespace() != null ? tag.getAttribute(myData.getAttribute(), myData.getNamespace()) :
              tag.getAttribute(myData.getAttribute());
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return myData.getDisplayName();
-    }
-
-    @Nullable
-    @Override
-    public String getFamilyName() {
-      return myData.getFamilyName();
     }
   }
 

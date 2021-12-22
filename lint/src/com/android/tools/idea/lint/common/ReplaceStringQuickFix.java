@@ -49,9 +49,7 @@ import org.jetbrains.kotlin.psi.KtElement;
  * in which case the entire text range is replaced (this is used where lint's error range corresponds exactly to
  * the portion we want to replace.)
  */
-public class ReplaceStringQuickFix implements LintIdeQuickFix {
-  private final String myName;
-  private final String myFamilyName;
+public class ReplaceStringQuickFix extends DefaultLintQuickFix {
   @RegExp private final String myRegexp;
   private final String myNewValue;
   private boolean myShortenNames;
@@ -63,7 +61,7 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
   /**
    * Creates a new lint quickfix which can replace string contents at the given PSI element
    *
-   * @param name       the quickfix description, which is optional (if not specified, it will be Replace with X)
+   * @param name       the quickfix description, which is optional (if not specified, it will be replaced with X)
    * @param familyName the name to use for this fix <b>if</b> it is safe to apply along with all other fixes of the same family name
    * @param regexp     the regular expression, or {@link ReplaceString#INSERT_BEGINNING} or {@link ReplaceString#INSERT_END}
    * @param newValue   the value to write into the document
@@ -72,8 +70,7 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
                                @Nullable String familyName,
                                @Nullable @RegExp String regexp,
                                @NotNull String newValue) {
-    myName = name;
-    myFamilyName = familyName;
+    super(name, familyName);
     myNewValue = newValue;
     if (regexp != null && regexp.indexOf('(') == -1 && !regexp.equals(INSERT_BEGINNING) && !regexp.equals(INSERT_END)) {
       regexp = "(" + Pattern.quote(regexp) + ")";

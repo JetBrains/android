@@ -35,6 +35,7 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.codeInspection.LocalQuickFix
@@ -352,6 +353,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
     override fun toString(): String {
       return text
+    }
+
+    override fun getPriority(): PriorityAction.Priority {
+      return myQuickFix.priority
     }
   }
 

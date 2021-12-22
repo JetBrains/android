@@ -20,6 +20,7 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
 import com.android.tools.lint.checks.GradleDetector
@@ -49,16 +50,16 @@ class AndroidLintAndroidGradlePluginVersionInspection : AndroidLintInspectionBas
     return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY)
   }
 
-  class InvokeAGPUpgradeAssistantQuickFix(private val agpVersion: GradleVersion?) : LintIdeQuickFix {
+  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: GradleVersion?) : DefaultLintQuickFix(
+    if (agpVersion == null)
+      "Invoke Upgrade Assistant"
+    else
+      "Invoke Upgrade Assistant for upgrade to $agpVersion"
+  ) {
     override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
       get().updateAgpToLatest(startElement.project)
     }
 
     override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
-
-    override fun getName(): String = if (agpVersion == null)
-      "Invoke Upgrade Assistant"
-    else
-      "Invoke Upgrade Assistant for upgrade to $agpVersion"
   }
 }

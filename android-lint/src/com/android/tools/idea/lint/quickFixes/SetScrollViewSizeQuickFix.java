@@ -17,14 +17,18 @@ package com.android.tools.idea.lint.quickFixes;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.lint.AndroidLintBundle;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
-public class SetScrollViewSizeQuickFix implements LintIdeQuickFix {
+public class SetScrollViewSizeQuickFix extends DefaultLintQuickFix {
+  public SetScrollViewSizeQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.set.to.wrap.content"));
+  }
+
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class);
@@ -53,11 +57,5 @@ public class SetScrollViewSizeQuickFix implements LintIdeQuickFix {
       return false;
     }
     return tag.getParentTag() != null;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.set.to.wrap.content");
   }
 }

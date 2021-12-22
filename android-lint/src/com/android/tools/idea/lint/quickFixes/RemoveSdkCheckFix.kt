@@ -16,7 +16,7 @@
 package com.android.tools.idea.lint.quickFixes
 
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
-import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
@@ -32,7 +32,10 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
  * Removes an obsolete if-SDK_INT check. This is only handling Kotlin code since for Java
  * we reuse the builtin SimplifyBooleanExpressionFix check.
  */
-class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
+class RemoveSdkCheckFix(var removeThen: Boolean) : DefaultLintQuickFix(
+  "Remove obsolete SDK version check",
+  "Remove obsolete SDK version checks"
+) {
 
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
     val condition = findSdkConditional(startElement) ?: return
@@ -101,13 +104,5 @@ class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
                             endElement: PsiElement,
                             contextType: AndroidQuickfixContexts.ContextType): Boolean {
     return true
-  }
-
-  override fun getName(): String {
-    return "Remove obsolete SDK version check"
-  }
-
-  override fun getFamilyName(): String {
-    return "Remove obsolete SDK version checks"
   }
 }

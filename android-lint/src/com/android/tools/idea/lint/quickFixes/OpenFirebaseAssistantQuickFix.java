@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.quickFixes;
 
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.PluginManagerConfigurable;
@@ -32,7 +32,11 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenFirebaseAssistantQuickFix implements LintIdeQuickFix {
+public class OpenFirebaseAssistantQuickFix extends DefaultLintQuickFix {
+  public OpenFirebaseAssistantQuickFix() {
+    super(AndroidLintBundle.message("android.lint.fix.open.firebase.assistant"));
+  }
+
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     DataManager.getInstance()
@@ -68,11 +72,5 @@ public class OpenFirebaseAssistantQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return startElement.getText().startsWith("'com.google.android.gms:play-services:");
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidLintBundle.message("android.lint.fix.open.firebase.assistant");
   }
 }

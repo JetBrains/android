@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.lint.quickFixes;
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import org.jetbrains.android.refactoring.UnusedResourcesHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UnusedResourcesQuickFix implements LintIdeQuickFix {
+public class UnusedResourcesQuickFix extends DefaultLintQuickFix {
   private final String myResource;
 
   public UnusedResourcesQuickFix(@Nullable String resource) {
+    super(resource != null ? "Remove Declarations for " + resource : "Remove All Unused Resources");
     myResource = resource;
   }
 
@@ -41,12 +42,6 @@ public class UnusedResourcesQuickFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return true;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myResource != null ? "Remove Declarations for " + myResource : "Remove All Unused Resources";
   }
 
   @Override

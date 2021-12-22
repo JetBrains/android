@@ -26,7 +26,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -61,10 +61,11 @@ import org.jetbrains.annotations.NotNull;
  * folders into mipmap folders (created if necessary) as well as updating resource references in XML
  * and Java files
  */
-public class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
+public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
   private final ResourceUrl myUrl;
 
   public MigrateDrawableToMipmapFix(@NotNull ResourceUrl url) {
+    super("Convert " + url + " to @mipmap/" + url.name);
     myUrl = url;
   }
 
@@ -205,11 +206,5 @@ public class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     return true;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return "Convert " + myUrl + " to @mipmap/" + myUrl.name;
   }
 }
