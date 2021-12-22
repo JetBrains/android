@@ -369,9 +369,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       // TODO(b/169230806): Dependencies on nested included builds are broken.
       // uncomment link in main builds apps build.gradle to test.
       val text = importSyncAndDumpProject(COMPOSITE_BUILD)
-/* b/202448739
       assertIsEqualToSnapshot(text)
-b/202448739 */
     }
 
     @Test
