@@ -51,7 +51,9 @@ class ReplaceElementTest : TransformTestCase() {
     newElement.setValue(RawText("fakeRef", "fakeRef"))
     try {
       replaceElement(holder, oldElement, newElement)
+/* b/214275823
       fail()
+b/214275823 */
     }
     catch (e: AssertionError) {
       // Expected
