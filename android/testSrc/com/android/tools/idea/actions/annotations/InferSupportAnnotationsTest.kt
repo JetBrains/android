@@ -13,187 +13,209 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions.annotations;
+package com.android.tools.idea.actions.annotations
 
-import com.google.common.collect.Lists;
-import com.intellij.analysis.AnalysisScope;
-import com.intellij.codeInsight.JavaCodeInsightTestCase;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.usageView.UsageInfo;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.actions.annotations.InferSupportAnnotations.Companion.generateReport
+import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInsight.JavaCodeInsightTestCase
+import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.util.Comparing
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.JarFileSystem
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.usageView.UsageInfo
+import org.jetbrains.android.AndroidTestBase
 
-import java.util.Arrays;
-import java.util.List;
+private const val INFER_PATH = "/infer/"
 
-public class InferSupportAnnotationsTest extends JavaCodeInsightTestCase {
-  private static final String INFER_PATH = "/infer/";
-
-  @NotNull
-  @Override
-  protected String getTestDataPath() {
-    return AndroidTestBase.getTestDataPath();
+class InferSupportAnnotationsTest : JavaCodeInsightTestCase() {
+  override fun getTestDataPath(): String {
+    return AndroidTestBase.getTestDataPath()
   }
 
-  public void testInferParameterFromUsage() throws Exception {
-    doTest(false, "Class InferParameterFromUsage:\n" +
-                  "  Method inferParameterFromMethodCall:\n" +
-                  "    Parameter int id:\n" +
-                  "      @DimenRes because it calls InferParameterFromUsage#getDimensionPixelSize");
+  fun testInferParameterFromUsage() {
+    doTest(
+      false,
+      """
+      Class InferParameterFromUsage:
+        Method inferParameterFromMethodCall:
+          Parameter int id:
+            @DimenRes because it calls InferParameterFromUsage#getDimensionPixelSize
+      """.trimIndent()
+    )
   }
 
-  public void testInferResourceFromArgument() throws Exception {
-    doTest(false, "Class InferResourceFromArgument:\n" +
-                  "  Method inferredParameterFromOutsideCall:\n" +
-                  "    Parameter int inferredDimension:\n" +
-                  "      @DimenRes because it's passed R.dimen.some_dimension in a call");
+  fun testInferResourceFromArgument() {
+    doTest(
+      false,
+      """
+      Class InferResourceFromArgument:
+        Method inferredParameterFromOutsideCall:
+          Parameter int inferredDimension:
+            @DimenRes because it's passed R.dimen.some_dimension in a call
+      """.trimIndent()
+    )
   }
 
-  public void testInferMethodAnnotationFromReturnValue() throws Exception {
-    doTest(false, "Class InferMethodAnnotationFromReturnValue:\n" +
-                  "  Method test:\n" +
-                  "      @DrawableRes because it returns R.mipmap.some_image\n" +
-                  "      @IdRes because it returns id");
+  fun testInferMethodAnnotationFromReturnValue() {
+    doTest(
+      false,
+      """
+      Class InferMethodAnnotationFromReturnValue:
+        Method test:
+            @DrawableRes because it returns R.mipmap.some_image
+            @IdRes because it returns id
+      """.trimIndent()
+    )
   }
 
-  public void testInferFromInheritance() throws Exception {
-    doTest(false, "Class Child:\n" +
-                  "  Method foo:\n" +
-                  "      @DrawableRes because it extends or is overridden by an annotated method\n" +
-                  "  Method something:\n" +
-                  "    Parameter int foo:\n" +
-                  "      @DrawableRes because it extends a method with that parameter annotated or inferred");
+  fun testInferFromInheritance() {
+    doTest(
+      false,
+      """
+      Class Child:
+        Method foo:
+            @DrawableRes because it extends or is overridden by an annotated method
+        Method something:
+          Parameter int foo:
+            @DrawableRes because it extends a method with that parameter annotated or inferred
+      """.trimIndent()
+    )
   }
 
-  public void testEnforcePermission() throws Exception {
-    doTest(false, "Class EnforcePermission:\n" +
-                  "  Method impliedPermission:\n" +
-                  "      @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls enforceCallingOrSelfPermission\n" +
-                  "  Method unconditionalPermission:\n" +
-                  "      @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls EnforcePermission#impliedPermission");
+  fun testEnforcePermission() {
+    doTest(
+      false,
+      """
+      Class EnforcePermission:
+        Method impliedPermission:
+            @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls enforceCallingOrSelfPermission
+        Method unconditionalPermission:
+            @RequiresPermission(EnforcePermission.MY_PERMISSION) because it calls EnforcePermission#impliedPermission
+      """.trimIndent()
+    )
   }
 
-  public void testConditionalPermission() throws Exception {
+  fun testConditionalPermission() {
     if (!InferSupportAnnotationsAction.ENABLED) {
-      return;
+      return
     }
 
     // None of the permission requirements should transfer; all calls are conditional
     try {
-      doTest(false, "Nothing found.");
-      fail("Should infer nothing");
-    }
-    catch (RuntimeException e) {
-      if (!Comparing.strEqual(e.getMessage(), "Nothing found to infer")) {
-        fail();
+      doTest(false, "Nothing found.")
+      fail("Should infer nothing")
+    } catch (e: RuntimeException) {
+      if (!Comparing.strEqual(e.message, "Nothing found to infer")) {
+        fail()
       }
     }
   }
 
-  public void testIndirectPermission() throws Exception {
+  fun testIndirectPermission() {
     // Not yet implemented: Expected fail!
-    doTest(false, null);
+    doTest(false, null)
   }
 
-  public void testReflection() throws Exception {
+  fun testReflection() {
     // TODO: implement
-    doTest(false, null);
+    doTest(false, null)
   }
 
-  public void testThreadFlow() throws Exception {
+  fun testThreadFlow() {
     // Not yet implemented: Expected fail!
-    doTest(false, null);
+    doTest(false, null)
   }
 
-  public void testMultiplePasses() throws Exception {
+  fun testMultiplePasses() {
     // Not yet implemented: Expected fail!
-    doTest(false, "Class A:\n" +
-                  "  Method fromA:\n" +
-                  "    Parameter int id:\n" +
-                  "      @DimenRes because it calls A#something\n" +
-                  "\n" +
-                  "Class D:\n" +
-                  "  Method d:\n" +
-                  "    Parameter int id:\n" +
-                  "      @DrawableRes because it calls D#something",
-           findVirtualFile(INFER_PATH + "A.java"),
-           findVirtualFile(INFER_PATH + "B.java"),
-           findVirtualFile(INFER_PATH + "C.java"),
-           findVirtualFile(INFER_PATH + "D.java"));
+    doTest(
+      false,
+      """
+      Class A:
+        Method fromA:
+          Parameter int id:
+            @DimenRes because it calls A#something
+      
+      Class D:
+        Method d:
+          Parameter int id:
+            @DrawableRes because it calls D#something
+      """.trimIndent(),
+      findVirtualFile(INFER_PATH + "A.java"),
+      findVirtualFile(INFER_PATH + "B.java"),
+      findVirtualFile(INFER_PATH + "C.java"),
+      findVirtualFile(INFER_PATH + "D.java")
+    )
   }
 
-  public void testPutValue() throws Exception {
+  fun testPutValue() {
     if (!InferSupportAnnotationsAction.ENABLED) {
-      return;
+      return
     }
 
     // Ensure that if we see somebody putting a resource into
     // an intent map, we don't then conclude that ALL values put
     // into the map must be of that type
     try {
-      doTest(false, "Nothing found.");
-      fail("Should infer nothing");
-    }
-    catch (RuntimeException e) {
-      if (!Comparing.strEqual(e.getMessage(), "Nothing found to infer")) {
-        fail();
+      doTest(false, "Nothing found.")
+      fail("Should infer nothing")
+    } catch (e: RuntimeException) {
+      if (!Comparing.strEqual(e.message, "Nothing found to infer")) {
+        fail()
       }
     }
   }
 
-  private void doTest(boolean annotateLocalVariables, String summary, VirtualFile... files) throws Exception  {
+  private fun doTest(annotateLocalVariables: Boolean, summary: String?, vararg files: VirtualFile) {
     if (!InferSupportAnnotationsAction.ENABLED) {
-      System.out.println("Ignoring " + this.getClass().getSimpleName() + ": Functionality disabled");
-      return;
+      println("Ignoring " + this.javaClass.simpleName + ": Functionality disabled")
+      return
     }
-
-    String annotationsJar = getTestDataPath() + "/infer/data.jar";
-    VirtualFile aLib = LocalFileSystem.getInstance().findFileByPath(annotationsJar);
+    val annotationsJar = "$testDataPath/infer/data.jar"
+    val aLib = LocalFileSystem.getInstance().findFileByPath(annotationsJar)
     if (aLib != null) {
-      final VirtualFile file = JarFileSystem.getInstance().getJarRootForLocalFile(aLib);
+      val file = JarFileSystem.getInstance().getJarRootForLocalFile(aLib)
       if (file != null) {
-        ModuleRootModificationUtil.addModuleLibrary(myModule, file.getUrl());
+        ModuleRootModificationUtil.addModuleLibrary(myModule, file.url)
       }
     }
-
-    InferSupportAnnotations inference = new InferSupportAnnotations(annotateLocalVariables, getProject());
-    AnalysisScope scope;
-    if (files.length > 0) {
-      configureByFiles(null, files);
-      scope = new AnalysisScope(getProject(), Arrays.asList(files));
-
-      for (int i = 0; i < InferSupportAnnotationsAction.MAX_PASSES; i++) {
-        for (VirtualFile virtualFile : files) {
-          PsiFile psiFile = getPsiManager().findFile(virtualFile);
-          assertNotNull(psiFile);
-          inference.collect(psiFile);
+    val inference = InferSupportAnnotations(annotateLocalVariables, project)
+    val scope: AnalysisScope
+    if (files.isNotEmpty()) {
+      configureByFiles(null, *files)
+      scope = AnalysisScope(project, listOf(*files))
+      for (i in 0 until InferSupportAnnotationsAction.MAX_PASSES) {
+        for (virtualFile in files) {
+          val psiFile = psiManager.findFile(virtualFile)
+          assertNotNull(psiFile)
+          inference.collect(psiFile!!)
         }
       }
     } else {
-      configureByFile(INFER_PATH + "before" + getTestName(false) + ".java");
-      inference.collect(getFile());
-      scope = new AnalysisScope(getFile());
+      configureByFile(INFER_PATH + "before" + getTestName(false) + ".java")
+      inference.collect(file)
+      scope = AnalysisScope(file)
     }
-
     if (summary != null) {
-      List<UsageInfo> infos = Lists.newArrayList();
-      inference.collect(infos, scope);
-      String s = InferSupportAnnotations.generateReport(infos.toArray(UsageInfo.EMPTY_ARRAY));
-      s = StringUtil.trimStart(s, "INFER SUPPORT ANNOTATIONS REPORT\n" +
-                                  "================================\n" +
-                                  "\n");
-      assertEquals(summary, s.trim());
+      val infos = mutableListOf<UsageInfo>()
+      inference.collect(infos, scope)
+      var s = generateReport(infos.toTypedArray())
+      s = StringUtil.trimStart(
+        s,
+        """
+           INFER SUPPORT ANNOTATIONS REPORT
+           ================================
+           
+           
+        """.trimIndent()
+      )
+      assertEquals(summary, s.trim { it <= ' ' })
     }
-
-    if (files.length == 0) {
-      inference.apply(getProject());
-      checkResultByFile(INFER_PATH + "after" + getTestName(false) + ".java");
+    if (files.isEmpty()) {
+      inference.apply(project)
+      checkResultByFile(INFER_PATH + "after" + getTestName(false) + ".java")
     }
   }
 }
