@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -41,7 +40,7 @@ private fun getModuleGradlePaths(modules: List<Module>): Set<String> {
   val gradlePaths = mutableSetOf<String>()
   modules.mapNotNullTo(gradlePaths) { GradleUtil.getGradlePath(it) }
   modules
-    .mapNotNull { it to (AndroidModuleModel.get(it) ?: return@mapNotNull null) }
+    .mapNotNull { it to (GradleAndroidModel.get(it) ?: return@mapNotNull null) }
     .forEach { (androidModule, androidModel) ->
       val androidProject = androidModel.androidProject
       when (androidProject.projectType) {

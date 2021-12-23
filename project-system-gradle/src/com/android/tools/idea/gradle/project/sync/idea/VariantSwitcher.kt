@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.toGradleProjectPath
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -44,10 +43,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAllRecursively
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.inspections.gradle.findAll
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.util.ArrayDeque
 
 class VariantProjectDataNodes {
@@ -272,7 +268,7 @@ private fun createVariantSelectionChange(
   targetVariant: VariantAndAbi,
   cachedVariants: VariantProjectDataNodes,
 ): VariantSelectionChange? {
-  val sourceAndroidModuleModel = AndroidModuleModel.get(updatedModule) ?: return null
+  val sourceAndroidModuleModel = GradleAndroidModel.get(updatedModule) ?: return null
   val sourceNdkModuleModel = NdkModuleModel.get(updatedModule)
   // Find any cached variant with the [updatedModule] configured for [targetVariantName] and build the diff if found. We only need it to
   // deconstruct the target variant name without guessing.

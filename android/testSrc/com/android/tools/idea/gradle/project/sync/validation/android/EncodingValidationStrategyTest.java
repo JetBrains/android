@@ -27,7 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -57,7 +57,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   public void testValidate() {
     String modelEncoding = "UTF-8";
 
-    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
+    GradleAndroidModel androidModel = mock(GradleAndroidModel.class);
     when(androidModel.getAgpVersion()).thenReturn(GradleVersion.parse("1.2.0"));
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");

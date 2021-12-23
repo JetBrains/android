@@ -25,8 +25,6 @@ import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -40,7 +38,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -203,45 +200,8 @@ public class GradleProjectInfo {
     });
   }
 
-  /**
-   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
-   * <p/>
-   * This method will return {@code null} if the file is "excluded" or if the module the file belongs to is not an Android module.
-   *
-   * @param file the given file.
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
-   * module the file belongs to is not an Android module.
-   */
   @Nullable
-  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file) {
-    return findAndroidModelInModule(file, true /* ignore "excluded files */);
-  }
-
-  /**
-   * Attempts to retrieve the {@link AndroidModuleModel} for the module containing the given file.
-   *
-   * @param file           the given file.
-   * @param honorExclusion if {@code true}, this method will return {@code null} if the given file is "excluded".
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
-   * module.
-   */
-  @Nullable
-  public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file, boolean honorExclusion) {
-    Module module = findModuleForFile(file, honorExclusion);
-    if (module == null) {
-      return null;
-    }
-
-    if (module.isDisposed()) {
-      getLog().warn("Attempted to get an Android Facet from a disposed module");
-      return null;
-    }
-
-    return AndroidModuleModel.get(module);
-  }
-
-  @Nullable
-  private Module findModuleForFile(@NotNull VirtualFile file, boolean honorExclusion) {
+  public Module findModuleForFile(@NotNull VirtualFile file, boolean honorExclusion) {
     return myProjectFileIndex.getModuleForFile(file, honorExclusion);
   }
 
@@ -323,10 +283,5 @@ public class GradleProjectInfo {
     }
     String basePath = module.getProject().getBasePath();
     return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
-  }
-
-  @NotNull
-  private Logger getLog() {
-    return Logger.getInstance(getClass());
   }
 }

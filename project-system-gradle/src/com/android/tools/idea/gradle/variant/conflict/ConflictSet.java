@@ -16,25 +16,21 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
-import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.toGradleProjectPath;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.util.AndroidGradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -71,7 +67,7 @@ public class ConflictSet {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel currentAndroidModel = GradleAndroidModel.get(module);
       if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
         continue;
       }
@@ -85,7 +81,7 @@ public class ConflictSet {
       List<Module> dependentModules =
         ApplicationManager.getApplication().runReadAction((Computable<List<Module>>)() -> getAllDependentModules(module));
       for (Module dependent : dependentModules) {
-        AndroidModuleModel dependentAndroidModel = AndroidModuleModel.get(dependent);
+        GradleAndroidModel dependentAndroidModel = GradleAndroidModel.get(dependent);
         if (dependentAndroidModel == null) {
           continue;
         }
@@ -122,7 +118,7 @@ public class ConflictSet {
   }
 
   @Nullable
-  private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull GradleProjectPath dependencyGradlePath) {
+  private static String getExpectedVariant(@NotNull GradleAndroidModel dependentAndroidModel, @NotNull GradleProjectPath dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
     for (IdeModuleLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {

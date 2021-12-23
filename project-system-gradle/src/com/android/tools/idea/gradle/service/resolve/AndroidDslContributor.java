@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.resolve;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.annotations.VisibleForTesting;
@@ -421,7 +422,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // 2 - If we found it, check the type of the module
     if (found != null) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(found);
+      GradleAndroidModel androidModuleModel = GradleAndroidModel.get(found);
       if (androidModuleModel != null) {
         if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           return ANDROID_FQCN;

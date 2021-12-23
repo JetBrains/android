@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -93,7 +94,7 @@ public class ProjectStructure {
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
           pluginVersionsInProject.add(gradlePath, androidModel);
-          if (isApp(androidModel)) {
+          if (isApp(module)) {
             appModules.add(module);
           }
         }
@@ -133,9 +134,9 @@ public class ProjectStructure {
     return facet != null && facet.getConfiguration().isAppOrFeature();
   }
 
-  private static boolean isApp(@NotNull AndroidModuleModel androidModel) {
-    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
-    return projectType == IdeAndroidProjectType.PROJECT_TYPE_APP || projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP;
+  private static boolean isApp(@NotNull Module module) {
+    AndroidModuleSystem.Type projectType = getModuleSystem(module).getType();
+    return projectType == AndroidModuleSystem.Type.TYPE_APP || projectType == AndroidModuleSystem.Type.TYPE_INSTANTAPP;
   }
 
   @NotNull

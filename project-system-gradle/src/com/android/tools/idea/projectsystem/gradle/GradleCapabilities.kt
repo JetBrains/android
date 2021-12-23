@@ -16,7 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.CapabilityUpgradeRequired
@@ -28,7 +28,7 @@ val MIN_PNG_GENERATION_VERSION = GradleVersion(1, 4, 0)
  * Returns the gradle plugin version for the given module or null if the model is unknown
  */
 fun Module.getGradleVersion(): GradleVersion? {
-  return AndroidModuleModel.get(this)?.let { GradleVersion.parse(it.androidProject.agpVersion) }
+  return GradleAndroidModel.get(this)?.let { GradleVersion.parse(it.androidProject.agpVersion) }
 }
 
 fun Module.isGradleVersionAtLeast(version: GradleVersion, default: Boolean, ignoreQualifier: Boolean = true): Boolean {

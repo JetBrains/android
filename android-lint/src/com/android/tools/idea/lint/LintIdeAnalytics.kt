@@ -20,7 +20,7 @@ import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.lint.client.api.LintDriver
@@ -165,7 +165,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     }
 
     if (severityModule != null) {
-      val model = AndroidModuleModel.get(severityModule)
+      val model = GradleAndroidModel.get(severityModule)
       if (model != null) {
         try {
           val gradleModel = model.androidProject
@@ -215,7 +215,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
 
     val moduleManager = ModuleManager.getInstance(project)
     for (module in moduleManager.modules) {
-      val androidModel = AndroidModuleModel.get(module)
+      val androidModel = GradleAndroidModel.get(module)
       if (androidModel != null) {
         if (androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           return androidModel.applicationId

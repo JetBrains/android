@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.intellij.facet.ProjectFacetManager
@@ -34,7 +34,7 @@ class SelectedVariantCollector(project: Project) {
 
   private fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
     val moduleId = module.getModuleId() ?: return null
-    val androidModuleModel = AndroidModuleModel.get(this)
+    val androidModuleModel = GradleAndroidModel.get(this)
     val ndkModuleModel = NdkModuleModel.get(module)
     val variantDetails = androidModuleModel?.let { getSelectedVariantDetails(androidModuleModel, ndkModuleModel) }
     val ndkFacet = NdkFacet.getInstance(module)
@@ -47,7 +47,7 @@ class SelectedVariantCollector(project: Project) {
   }
 }
 
-fun getSelectedVariantDetails(androidModel: AndroidModuleModel, ndkModel: NdkModuleModel?): VariantDetails? {
+fun getSelectedVariantDetails(androidModel: GradleAndroidModel, ndkModel: NdkModuleModel?): VariantDetails? {
   val selectedVariant = try {
     androidModel.selectedVariant
   }

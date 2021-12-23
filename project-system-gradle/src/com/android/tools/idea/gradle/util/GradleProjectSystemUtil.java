@@ -26,8 +26,9 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -42,6 +43,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -105,7 +107,7 @@ public class GradleProjectSystemUtil {
    * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
-  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
+  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull GradleAndroidModel model) {
     File buildFolder = model.getAndroidProject().getBuildFolder();
     return artifact.getGeneratedSourceFolders()
       .stream()
@@ -156,7 +158,7 @@ public class GradleProjectSystemUtil {
     Set<String> foundInApps = Sets.newHashSet();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
 
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
       if (androidModel != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getAgpVersion();
@@ -184,7 +186,7 @@ public class GradleProjectSystemUtil {
 
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
       IdeAndroidProject androidProject = androidModel.getAndroidProject();
       return GradleVersion.tryParse(androidProject.getAgpVersion());
@@ -208,7 +210,7 @@ public class GradleProjectSystemUtil {
    */
   @NotNull
   public static List<Module> getDependentFeatureModulesForBase(@NotNull Module module) {
-    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
+    GradleAndroidModel androidModule = GradleAndroidModel.get(module);
     if (androidModule == null) {
       return ImmutableList.of();
     }
@@ -274,5 +276,42 @@ public class GradleProjectSystemUtil {
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(GradleProjectSystemUtil.class);
+  }
+
+  /**
+   * Attempts to retrieve the {@link GradleAndroidModel} for the module containing the given file.
+   *
+   * @param file           the given file.
+   * @param honorExclusion if {@code true}, this method will return {@code null} if the given file is "excluded".
+   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
+   * module.
+   */
+  @Nullable
+  public static GradleAndroidModel findAndroidModelInModule(GradleProjectInfo info, @NotNull VirtualFile file, boolean honorExclusion) {
+    Module module = info.findModuleForFile(file, honorExclusion);
+    if (module == null) {
+      return null;
+    }
+
+    if (module.isDisposed()) {
+      getLogger().warn("Attempted to get an Android Facet from a disposed module");
+      return null;
+    }
+
+    return GradleAndroidModel.get(module);
+  }
+
+  /**
+   * Attempts to retrieve the {@link GradleAndroidModel} for the module containing the given file.
+   * <p/>
+   * This method will return {@code null} if the file is "excluded" or if the module the file belongs to is not an Android module.
+   *
+   * @param file the given file.
+   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
+   * module the file belongs to is not an Android module.
+   */
+  @Nullable
+  public static GradleAndroidModel findAndroidModelInModule(GradleProjectInfo info, @NotNull VirtualFile file) {
+    return findAndroidModelInModule(info, file, true /* ignore "excluded files */);
   }
 }

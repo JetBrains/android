@@ -60,7 +60,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -259,7 +259,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     loadSimpleApplication();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
     assertNotNull(androidModel);
 
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
@@ -647,7 +647,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be false.
-    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
+    assertFalse(GradleAndroidModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
 
     // Change the option in the build file and re-sync
     File appBuildFile = getBuildFilePath("app");
@@ -655,7 +655,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     requestSyncAndWait();
 
     // Check that the new option is visible from the IDE.
-    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
+    assertTrue(GradleAndroidModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
   }
 
   public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -663,16 +663,16 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be true (at least at the moment)
-    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
-    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+    assertTrue(GradleAndroidModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertTrue(GradleAndroidModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
 
     // explicitly set the option
     File appBuildFile = getBuildFilePath("app");
     appendToFile(appBuildFile, "\nandroid { dependenciesInfo { includeInApk false\nincludeInBundle false } }");
     requestSyncAndWait();
 
-    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
-    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+    assertFalse(GradleAndroidModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertFalse(GradleAndroidModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
   }
 
   public void testKaptIsEnabled() throws Exception {

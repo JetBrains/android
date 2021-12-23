@@ -17,7 +17,8 @@
 package com.android.tools.idea.gradle.notification;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
@@ -56,10 +57,19 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    AndroidModuleModel androidModel = myProjectInfo.findAndroidModelInModule(file, false /* include excluded files */);
+    GradleAndroidModel androidModel =
+      GradleProjectSystemUtil.findAndroidModelInModule(myProjectInfo, file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
+    return createNotificationPanel(file, fileEditor, androidModel);
+  }
+
+  @Nullable
+  @VisibleForTesting
+  public MyEditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                            @NotNull FileEditor fileEditor,
+                                                            @NotNull GradleAndroidModel androidModel) {
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }

@@ -21,7 +21,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
@@ -80,7 +80,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
-    val model = AndroidModuleModel.get(module) ?: return null
+    val model = GradleAndroidModel.get(module) ?: return null
     val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions
@@ -103,7 +103,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun getSeverityOverrides(module: Module): Map<String, Int>? {
-    val model = AndroidModuleModel.get(module) ?: return null
+    val model = GradleAndroidModel.get(module) ?: return null
     val version = model.agpVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
       val options = model.androidProject.lintOptions

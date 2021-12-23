@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -29,13 +29,13 @@ public class ModuleTypeComparator implements Comparator<Module> {
 
   @Override
   public int compare(Module m1, Module m2) {
-    AndroidModuleModel gm1 = AndroidModuleModel.get(m1);
-    AndroidModuleModel gm2 = AndroidModuleModel.get(m2);
+    GradleAndroidModel gm1 = GradleAndroidModel.get(m1);
+    GradleAndroidModel gm2 = GradleAndroidModel.get(m2);
     return compareModules(m1, m2, gm1, gm2);
   }
 
   @VisibleForTesting
-  static int compareModules(@NotNull Module m1, @NotNull Module m2, @Nullable AndroidModuleModel gm1, @Nullable AndroidModuleModel gm2) {
+  static int compareModules(@NotNull Module m1, @NotNull Module m2, @Nullable GradleAndroidModel gm1, @Nullable GradleAndroidModel gm2) {
     if ((gm1 == null && gm2 == null) ||
         (gm1 != null && gm2 != null && gm1.getAndroidProject().getProjectType() == gm2.getAndroidProject().getProjectType())) {
       return Collator.getInstance().compare(m1.getName(), m2.getName());

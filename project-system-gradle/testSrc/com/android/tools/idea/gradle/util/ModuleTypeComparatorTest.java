@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.intellij.openapi.module.Module;
 import junit.framework.TestCase;
 import org.mockito.Mock;
@@ -32,8 +32,8 @@ public class ModuleTypeComparatorTest extends TestCase {
   @Mock private Module myModule1;
   @Mock private Module myModule2;
 
-  @Mock private AndroidModuleModel myGradleModel1;
-  @Mock private AndroidModuleModel myGradleModel2;
+  @Mock private GradleAndroidModel myGradleModel1;
+  @Mock private GradleAndroidModel myGradleModel2;
 
   @Mock private IdeAndroidProject myAndroidProject1;
   @Mock private IdeAndroidProject myAndroidProject2;

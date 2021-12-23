@@ -443,7 +443,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * @return the imported Android-Gradle project.
    */
-  @Override
   @NotNull
   public IdeAndroidProject getAndroidProject() {
     return myAndroidProject;

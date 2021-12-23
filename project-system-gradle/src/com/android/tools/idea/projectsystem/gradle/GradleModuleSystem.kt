@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -189,7 +188,7 @@ class GradleModuleSystem(
   }
 
   private fun getDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
-    val gradleModel = AndroidModuleModel.get(module) ?: return null
+    val gradleModel = GradleAndroidModel.get(module) ?: return null
 
     return when (scope) {
              DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
@@ -289,7 +288,7 @@ class GradleModuleSystem(
 
   override fun getManifestPlaceholders(): Map<String, String> {
     val facet = AndroidFacet.getInstance(module)
-    val androidModel = facet?.let(AndroidModuleModel::get) ?: return emptyMap()
+    val androidModel = facet?.let(GradleAndroidModel::get) ?: return emptyMap()
     return androidModel.selectedVariant.manifestPlaceholders
   }
 
@@ -305,7 +304,7 @@ class GradleModuleSystem(
     )
   }
 
-  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel): String? {
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: GradleAndroidModel): String? {
     val variant = gradleModel.selectedVariant
     val versionNameWithSuffix = variant.versionNameWithSuffix
     val versionNameSuffix = variant.versionNameSuffix
@@ -318,12 +317,12 @@ class GradleModuleSystem(
 
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    return AndroidModuleModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
+    return GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
   }
 
   override fun getTestPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val androidModuleModel = AndroidModuleModel.get(facet)
+    val androidModuleModel = GradleAndroidModel.get(facet)
     val testPackage = androidModuleModel?.androidProject?.testNamespace
     if (testPackage != null) {
       return testPackage
@@ -367,13 +366,13 @@ class GradleModuleSystem(
   override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
   private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
-    return AndroidModuleModel.get(module)?.androidProject?.agpFlags?.let(read)
+    return GradleAndroidModel.get(module)?.androidProject?.agpFlags?.let(read)
   }
 
   override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
 
   override val codeShrinker: CodeShrinker?
-    get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
+    get() = when (GradleAndroidModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
       com.android.tools.idea.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
       com.android.tools.idea.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
       null -> null
@@ -387,13 +386,13 @@ class GradleModuleSystem(
   }
 
   override fun getDynamicFeatureModules(): List<Module> {
-    val project = AndroidModuleModel.get(module)?.androidProject ?: return emptyList()
+    val project = GradleAndroidModel.get(module)?.androidProject ?: return emptyList()
     return GradleProjectSystemUtil.getDependentFeatureModulesForBase(module.project, project)
   }
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
 
-  override val isViewBindingEnabled: Boolean get() = AndroidModuleModel.get(module)?.androidProject?.viewBindingOptions?.enabled ?: false
+  override val isViewBindingEnabled: Boolean get() = GradleAndroidModel.get(module)?.androidProject?.viewBindingOptions?.enabled ?: false
 
   override val applicationRClassConstantIds: Boolean get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true
 

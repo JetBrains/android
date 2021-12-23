@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
@@ -30,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AndroidModuleModel extends AndroidModel, ModuleModel {
   @NotNull GradleVersion getAgpVersion();
-
-  @NotNull IdeAndroidProject getAndroidProject();
 
   @NotNull IdeVariant getSelectedVariant();
 
