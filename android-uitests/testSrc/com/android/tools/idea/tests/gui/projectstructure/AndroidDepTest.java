@@ -92,9 +92,8 @@ public class AndroidDepTest {
 
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, APP_NAME, "app");
-
-    ideFrame.invokeMenuPath("Open Module Settings");
+      .clickPath(RIGHT_BUTTON, APP_NAME, "app")
+      .waitAndInvokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =

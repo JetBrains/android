@@ -342,7 +342,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
-    waitAndInvokeMenuPath(10, path);
+    waitAndInvokeMenuPath(20, path);
     return this;
   }
 
@@ -380,7 +380,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       Project project = getProject();
       actions.accept(this);
 
-      (wait != null ? wait : Wait.seconds(60))
+      (wait != null ? wait : Wait.seconds(90))
         .expecting("build '" + project.getName() + "' to finish")
         .until(() -> gradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
