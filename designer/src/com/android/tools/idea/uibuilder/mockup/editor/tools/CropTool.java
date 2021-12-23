@@ -124,7 +124,6 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    * Set if the action in myBottomActionGroup are enabled or not
    */
   private void setCropActionsEnabled(boolean enabled) {
-    myMatchComponentRatioAction.getTemplatePresentation().setEnabled(enabled);
     myMatchComponentRatioAction.setSelected(false);
   }
 
@@ -133,7 +132,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private class ToggleCrop extends ToggleAction {
     public ToggleCrop() {
-      getTemplatePresentation().setIcon(StudioIcons.Common.CROP);
+      super((String)null, null, StudioIcons.Common.CROP);
     }
 
     @Override

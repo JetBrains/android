@@ -71,6 +71,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   };
 
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
+    // TODO(b/215726556) Use the super constructor that takes title, description, icon after the merge of IJ2022.1.1
     super(title, true);
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription(description);

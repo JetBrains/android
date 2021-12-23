@@ -46,14 +46,12 @@ public class DeviceMenuAction extends DropDownAction {
     super("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
     myDeviceChangeListener = deviceChangeListener;
-    Presentation presentation = getTemplatePresentation();
-    updatePresentation(presentation);
   }
 
   @Override
-  public void update(@NotNull AnActionEvent e) {
-    super.update(e);
-    updatePresentation(e.getPresentation());
+  public void update(@NotNull AnActionEvent event) {
+    super.update(event);
+    updatePresentation(event.getPresentation());
   }
 
   @Override
@@ -344,8 +342,9 @@ public class DeviceMenuAction extends DropDownAction {
 
     DeviceAction(@NotNull ConfigurationHolder renderContext,
                  @Nullable String title,
-                 @NotNull Consumer<Presentation> updatePresentationCallback) {
-      super(renderContext, title);
+                 @NotNull Consumer<Presentation> updatePresentationCallback,
+                 @Nullable Icon icon) {
+      super(renderContext, title, icon);
       myUpdatePresentationCallback = updatePresentationCallback;
     }
 
@@ -362,6 +361,8 @@ public class DeviceMenuAction extends DropDownAction {
   public static class SetDeviceAction extends DeviceAction {
     @NotNull protected final DeviceChangeListener myDeviceChangeListener;
     @NotNull protected final Device myDevice;
+    @NotNull private final String myTitle;
+    private boolean mySelected;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
@@ -370,20 +371,29 @@ public class DeviceMenuAction extends DropDownAction {
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
                            final boolean select) {
-      super(renderContext, null, updatePresentationCallback);
+      super(renderContext, null, updatePresentationCallback, getBestIcon(title, defaultIcon));
       myDeviceChangeListener = deviceChangeListener;
       myDevice = device;
+      myTitle = title;
+      mySelected = select;
+    }
+
+    @Nullable
+    private static Icon getBestIcon(@NotNull String title, @Nullable Icon defaultIcon) {
+      if (ConfigurationAction.isBetterMatchLabel(title)) {
+        return ConfigurationAction.getBetterMatchIcon();
+      }
+      return defaultIcon;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      super.update(event);
+      Presentation presentation = event.getPresentation();
+      Toggleable.setSelected(presentation, mySelected);
+
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
-      getTemplatePresentation().setText(title, false);
-      if (select) {
-        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
-      }
-      else if (ConfigurationAction.isBetterMatchLabel(title)) {
-        getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
-      }
-      else if (defaultIcon != null) {
-        getTemplatePresentation().setIcon(defaultIcon);
-      }
+      presentation.setText(myTitle, false);
     }
 
     @Override
@@ -497,11 +507,14 @@ public class DeviceMenuAction extends DropDownAction {
     public SetCustomDeviceAction(@NotNull ConfigurationHolder renderContext,
                                  @NotNull Consumer<Presentation> updatePresentationCallback,
                                  @Nullable Device device) {
-      super(renderContext, CUSTOM_DEVICE_NAME, updatePresentationCallback);
+      super(renderContext, CUSTOM_DEVICE_NAME, updatePresentationCallback, null);
       myDevice = device;
-      if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
-        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
-      }
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      super.update(event);
+      Toggleable.setSelected(event.getPresentation(), myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId()));
     }
 
     @Override
@@ -526,6 +539,7 @@ public class DeviceMenuAction extends DropDownAction {
   static class SetAvdAction extends ConfigurationAction {
     @Nullable private final Consumer<Presentation> myUpdatePresentationCallback;
     @NotNull private final Device myAvdDevice;
+    private final boolean mySelected;
 
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
                         @Nullable Consumer<Presentation> updatePresentationCallback,
@@ -535,7 +549,13 @@ public class DeviceMenuAction extends DropDownAction {
       super(renderContext, displayName);
       myUpdatePresentationCallback = updatePresentationCallback;
       myAvdDevice = avdDevice;
-      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
+      mySelected = select;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      super.update(event);
+      Toggleable.setSelected(event.getPresentation(), mySelected);
     }
 
     @Override

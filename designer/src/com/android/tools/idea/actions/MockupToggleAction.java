@@ -42,16 +42,13 @@ public class MockupToggleAction extends ToggleAction {
   private final static String HIDE_ACTION_TITLE = "Hide Mockup Editor";
 
   public MockupToggleAction(@NotNull NlDesignSurface surface) {
+    super(null, getDescription(surface), getDesignIcon());
     mySurface = surface;
-    Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(getDesignIcon());
-    presentation.setDescription(getDescription());
   }
 
-
   @NotNull
-  private String getDescription() {
-    return mySurface.isCanvasResizing() ? HIDE_ACTION_TITLE : SHOW_ACTION_TITLE;
+  private static String getDescription(@NotNull NlDesignSurface surface) {
+    return surface.isCanvasResizing() ? HIDE_ACTION_TITLE : SHOW_ACTION_TITLE;
   }
 
   private static Icon getDesignIcon() {
@@ -66,7 +63,7 @@ public class MockupToggleAction extends ToggleAction {
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    getTemplatePresentation().setEnabled(state);
+    e.getPresentation().setEnabled(state);
     mySurface.setMockupVisible(state);
     final MockupEditor mockupEditor = mySurface.getMockupEditor();
     if (mockupEditor != null) {
@@ -90,10 +87,6 @@ public class MockupToggleAction extends ToggleAction {
     Presentation presentation = event.getPresentation();
     if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       presentation.setEnabledAndVisible(false);
-      return;
     }
-
-    event.getPresentation().setIcon(getDesignIcon());
-    event.getPresentation().setDescription(getDescription());
   }
 }

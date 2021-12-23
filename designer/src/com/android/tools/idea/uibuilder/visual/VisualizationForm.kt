@@ -695,16 +695,12 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   /**
    * A disabled action for displaying text in action toolbar. It does nothing.
    */
-  private class TextLabelAction(text: String) : AnAction(null as String?) {
-
-    init {
-      templatePresentation.setText(text, false)
-      templatePresentation.isEnabled = false
-    }
+  private class TextLabelAction(private val text: String) : AnAction(null as String?) {
 
     override fun actionPerformed(e: AnActionEvent) = Unit
 
     override fun update(e: AnActionEvent) {
+      e.presentation.setText(text, false)
       e.presentation.isEnabled = false
     }
 

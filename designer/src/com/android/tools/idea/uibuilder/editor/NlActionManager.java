@@ -163,9 +163,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     private final AnAction myRefactoringAction;
 
     private AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
-      super(text, null, null);
+      super(text, refactoringAction.getTemplatePresentation().getDescription(), null);
       myRefactoringAction = refactoringAction;
-      getTemplatePresentation().setDescription(refactoringAction.getTemplatePresentation().getDescription());
     }
 
     @Override
@@ -469,14 +468,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                     @NotNull ViewHandler handler,
                                     @NotNull NlComponent component,
                                     @NotNull List<NlComponent> selectedChildren) {
+      super(action.getLabel(), action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getIcon());
-      presentation.setText(action.getLabel());
     }
 
     @Override
@@ -570,14 +567,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                     @NotNull ViewHandler handler,
                                     @NotNull NlComponent component,
                                     @NotNull List<NlComponent> selectedChildren) {
+      super(action.getUnselectedLabel(), action.getUnselectedLabel(), action.getUnselectedIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setText(action.getUnselectedLabel());
-      presentation.setIcon(action.getUnselectedIcon());
     }
 
     @Override
@@ -665,15 +660,13 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                   @NotNull ViewHandler handler,
                                   @NotNull NlComponent component,
                                   @NotNull List<NlComponent> selectedChildren) {
-      super(action.getLabel(), true);
+      super(action.getLabel(), action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getIcon());
-      presentation.setText(action.getLabel());
+      setPopup(true);
     }
 
     @Override
@@ -739,9 +732,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       myHandler = handler;
       myComponent = component;
       mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getIcon());
-      presentation.setDescription(action.getLabel());
     }
 
     @Override

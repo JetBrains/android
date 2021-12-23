@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
@@ -62,13 +63,6 @@ public class ThemeMenuAction extends DropDownAction {
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
-
-      // The tests only have access to the template presentation and not the actual presentation of the
-      // ActionButtonWithText that is create for this action
-      // This is a little hack since the text displayed is taken from the a Presentation that might no be the same as template one.
-      // The order is also important. If the text is set on the template presentation after the current presentation,
-      // the button disappear (Intellij Actions magic)
-      getTemplatePresentation().setText(brief, false);
       presentation.setText(brief, false);
     }
     if (visible != presentation.isVisible()) {
@@ -231,6 +225,7 @@ public class ThemeMenuAction extends DropDownAction {
 
   private class SetThemeAction extends ConfigurationAction {
     private final String myTheme;
+    private final boolean mySelected;
 
     public SetThemeAction(@NotNull final ConfigurationHolder configurationHolder,
                           @NotNull final String theme,
@@ -238,9 +233,13 @@ public class ThemeMenuAction extends DropDownAction {
                           final boolean selected) {
       super(configurationHolder, themeDisplayName);
       myTheme = theme;
-      if (selected) {
-        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
-      }
+      mySelected = selected;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      Toggleable.setSelected(presentation, mySelected);
     }
 
     @Override
