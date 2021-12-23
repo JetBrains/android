@@ -32,11 +32,6 @@ public class GradleProjectSystemUpgradeTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle-upgrade/test_deps.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.0.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.1.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.2.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/7.0.0.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/kgp1.3.72.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
   }
 }
