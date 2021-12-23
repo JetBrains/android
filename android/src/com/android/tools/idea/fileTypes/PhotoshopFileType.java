@@ -18,13 +18,11 @@ package com.android.tools.idea.fileTypes;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.ImagesIcons;
+import javax.swing.*;
+import org.intellij.images.ImagesIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public final class PhotoshopFileType implements FileType {
   public static final String EXTENSION = SdkConstants.DOT_PSD.substring(1);
