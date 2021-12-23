@@ -23,6 +23,8 @@ import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.treetable.UpperRightCorner
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.designer.componentTree.ComponentTreeBuilder
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
@@ -65,6 +67,7 @@ class ComponentTreeBuilder {
   private var showRootHandles = false
   private var horizontalScrollbar = false
   private var autoScroll = false
+  private var dataProvider: DataProvider? = null
   private var dndSupport = false
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
@@ -129,6 +132,11 @@ class ComponentTreeBuilder {
     if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) apply { columns.add(badge) } else apply { badges.add(badge) }
 
   /**
+   * Add Copy, Cut, Paste & Delete support (works of the current selection)
+   */
+  fun withDataProvider(dataProvider: DataProvider) = apply { this.dataProvider = dataProvider }
+
+  /**
    * Add Drag and Drop support.
    */
   fun withDnD() = apply { dndSupport = true }
@@ -185,6 +193,7 @@ class ComponentTreeBuilder {
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
+    dataProvider?.let { DataManager.registerDataProvider(tree, it) }
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()
@@ -199,6 +208,7 @@ class ComponentTreeBuilder {
     if (dndSupport && !GraphicsEnvironment.isHeadless()) {
       table.enableDnD()
     }
+    dataProvider?.let { DataManager.registerDataProvider(table, it) }
     val tree = table.tree
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
