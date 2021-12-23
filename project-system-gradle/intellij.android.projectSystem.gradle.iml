@@ -57,5 +57,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>
 </module>
