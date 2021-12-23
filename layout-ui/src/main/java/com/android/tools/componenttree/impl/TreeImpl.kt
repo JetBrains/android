@@ -255,7 +255,8 @@ class TreeImpl(
         }
       }
       else if (event.clickCount == 2) {
-        doubleClick()
+        val path = getClosestPathForLocation(x, y) ?: return
+        doubleClick(path.lastPathComponent)
       }
     }
   }

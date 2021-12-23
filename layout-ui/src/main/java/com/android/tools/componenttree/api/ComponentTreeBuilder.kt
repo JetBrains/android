@@ -43,7 +43,7 @@ import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
  * A Handler which will display a context popup menu.
  */
 typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
-typealias DoubleClickHandler = () -> Unit
+typealias DoubleClickHandler = (Any) -> Unit
 
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.

@@ -241,7 +241,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
   }
 
-  private fun doubleClick() {
+  @Suppress("UNUSED_PARAMETER")
+  private fun doubleClick(item: Any) {
     val model = inspectorModel ?: return
     layoutInspector?.currentClient?.stats?.gotoSourceFromDoubleClick()
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)

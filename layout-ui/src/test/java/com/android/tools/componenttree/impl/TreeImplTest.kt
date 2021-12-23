@@ -84,9 +84,11 @@ class TreeImplTest {
   private val doubleClickHandler = object : DoubleClickHandler {
     var clickCount = 0
       private set
+    var lastItem: Any? = null
 
-    override fun invoke() {
+    override fun invoke(item: Any) {
       clickCount++
+      lastItem = item
     }
   }
   private val badgeItem = object : IconColumn("Badge") {
@@ -210,6 +212,7 @@ class TreeImplTest {
     val ui = FakeUi(tree)
     ui.mouse.doubleClick(10, 10)
     assertThat(doubleClickHandler.clickCount).isEqualTo(1)
+    assertThat(doubleClickHandler.lastItem).isSameAs(item1)
   }
 
   @RunsInEdt

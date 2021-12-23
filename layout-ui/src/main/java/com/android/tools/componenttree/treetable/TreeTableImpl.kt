@@ -338,7 +338,7 @@ class TreeTableImpl(
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          cell.column == 0 && event.clickCount == 2 -> doubleClick()
+          cell.column == 0 && event.clickCount == 2 -> doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)
