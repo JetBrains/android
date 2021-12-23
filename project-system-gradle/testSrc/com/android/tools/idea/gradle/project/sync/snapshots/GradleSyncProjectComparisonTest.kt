@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -49,7 +48,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_FIXTURES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TEST_ONLY_MODULE
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.WITH_GRADLE_METADATA
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -231,19 +229,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
-    fun testPsdDependency() {
-      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
-        val firstSync = project.saveAndDump()
-        val secondSync = project.syncAndDumpProject()
-        // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
-        assertAreEqualToSnapshots(
-          firstSync to "",
-          secondSync to ".second_sync"
-        )
-      }
-    }
-
-    @Test
     fun testPsdDependencyDeleteModule() {
       importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
         val beforeDelete = project.saveAndDump()
@@ -382,83 +367,8 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testKapt() {
-      importSyncAndDumpProject(KOTLIN_KAPT) { project ->
-        val debugBefore = project.saveAndDump()
-        switchVariant(project, ":app", "release")
-        val release = project.saveAndDump()
-        switchVariant(project, ":app", "debug")
-        val debugAfter = project.saveAndDump()
-        assertAreEqualToSnapshots(
-          debugBefore to ".debug.before",
-          release to ".release",
-          debugAfter to ".debug.before"
-        )
-      }
-    }
-
-    @Test
-    fun testSwitchingVariants_simpleApplication() {
-      importSyncAndDumpProject(SIMPLE_APPLICATION) { project ->
-        val debugBefore = project.saveAndDump()
-        switchVariant(project, ":app", "release")
-        val release = project.saveAndDump()
-        switchVariant(project, ":app", "debug")
-        val debugAfter = project.saveAndDump()
-        assertAreEqualToSnapshots(
-          debugBefore to ".debug",
-          release to ".release",
-          debugAfter to ".debug"
-        )
-      }
-    }
-
-    @Test
-    fun testReimportSimpleApplication() {
-      val root = prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val before = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      FileUtil.delete(File(root, ".idea"))
-      val after = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        before to ".same",
-        after to ".same"
-      )
-    }
-
-    @Test
-    fun testReopenSimpleApplication() {
-      val root = prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val before = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val after = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        before to ".same",
-        after to ".same"
-      )
-    }
-
-    @Test
-    fun testSwitchingVariants_variantSpecificDependencies() {
-      importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES) { project ->
-        val freeDebugBefore = project.saveAndDump()
-        switchVariant(project, ":app", "paidDebug")
-        val paidDebug = project.saveAndDump()
-
-        switchVariant(project, ":app", "freeDebug")
-        val freeDebugAfter = project.saveAndDump()
-
-        assertAreEqualToSnapshots(
-          freeDebugBefore to ".freeDebug",
-          paidDebug to ".paidDebug",
-          freeDebugAfter to ".freeDebug"
-        )
-      }
+      val text = importSyncAndDumpProject(KOTLIN_KAPT)
+      assertIsEqualToSnapshot(text)
     }
 
     @Test
@@ -481,21 +391,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     fun testApiDependency() {
       val text = importSyncAndDumpProject(projectDir = API_DEPENDENCY)
       assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testModulePerSourceSetReopen() {
-      prepareGradleProject(PSD_SAMPLE_GROOVY, "project")
-      val before = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val after = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        before to ".same",
-        after to ".same"
-      )
     }
   }
 
