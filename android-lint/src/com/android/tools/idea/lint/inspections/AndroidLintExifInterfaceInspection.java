@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -23,12 +23,11 @@ import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -107,8 +106,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                 ModuleRootModificationUtil.updateModel(module, model -> {
                   GradleBuildModel buildModel2 = GradleBuildModel.get(module);
                   if (buildModel2 != null) {
-                    String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-                    buildModel2.dependencies().addArtifact(name, libraryCoordinate);
+                    buildModel2.dependencies().addArtifact(IMPLEMENTATION, libraryCoordinate);
                     buildModel2.applyChanges();
                   }
                 });

@@ -50,10 +50,8 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -435,17 +433,6 @@ public final class GradleUtil {
       return children == null || children.length > 0;
     }
     return false;
-  }
-
-  @Nullable
-  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    if (androidModel != null) {
-      IdeAndroidProject androidProject = androidModel.getAndroidProject();
-      return GradleVersion.tryParse(androidProject.getAgpVersion());
-    }
-
-    return null;
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {

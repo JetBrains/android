@@ -169,4 +169,15 @@ public class GradleProjectSystemUtil {
 
     return found != null ? GradleVersion.tryParseAndroidGradlePluginVersion(found) : null;
   }
+
+  @Nullable
+  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel != null) {
+      IdeAndroidProject androidProject = androidModel.getAndroidProject();
+      return GradleVersion.tryParse(androidProject.getAgpVersion());
+    }
+
+    return null;
+  }
 }

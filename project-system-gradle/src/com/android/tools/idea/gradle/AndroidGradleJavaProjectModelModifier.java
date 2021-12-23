@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
@@ -31,7 +31,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -48,7 +47,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
@@ -237,23 +235,17 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
-    return GradleUtil.mapConfigurationName(
-      getLegacyConfigurationName(module, scope, openedFile), GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-  }
-
-  @NotNull
-  private static String getLegacyConfigurationName(@NotNull Module module,
+  private static String getConfigurationName(@NotNull Module module,
                                                    @NotNull DependencyScope scope,
                                                    @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
       if (testScopes != null && openedFile != null) {
-        return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_COMPILE : TEST_COMPILE;
+        return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_IMPLEMENTATION : TEST_IMPLEMENTATION;
       }
     }
-    return COMPILE;
+    return IMPLEMENTATION;
   }
 
   @Nullable

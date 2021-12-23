@@ -24,8 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.collect.ImmutableCollection;
@@ -139,9 +137,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override
       public void run() {
-        String configurationName =
-          GradleUtil.mapConfigurationName(CommonConfigurationNames.COMPILE, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project), false);
-        buildModel.dependencies().addArtifact(configurationName, newDependency);
+        buildModel.dependencies().addArtifact(CommonConfigurationNames.IMPLEMENTATION, newDependency);
         buildModel.applyChanges();
       }
     });

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -168,20 +167,16 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
       boolean dependencyFound = false;
       DependenciesModel dependenciesModel = buildModel.dependencies();
-      if (dependenciesModel != null) {
-        String configurationName =
-          GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
-          String notation = dependency.compactNotation();
-          if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
-              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
-              notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||
-              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4.toString()) ||
-              notation.startsWith(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.toString()) ||
-              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.toString())) {
-            dependencyFound = true;
-            break;
-          }
+      for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(IMPLEMENTATION)) {
+        String notation = dependency.compactNotation();
+        if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.toString()) ||
+            notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.toString())) {
+          dependencyFound = true;
+          break;
         }
       }
       if (!dependencyFound) {
@@ -350,8 +345,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       ModuleRootModificationUtil.updateModel(module, model -> {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
-          String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-          buildModel.dependencies().addArtifact(name, libraryCoordinate);
+          buildModel.dependencies().addArtifact(IMPLEMENTATION, libraryCoordinate);
           buildModel.applyChanges();
         }
       });
