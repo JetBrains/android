@@ -40,14 +40,6 @@ class ApplicationRunParametersTest : AndroidGradleTestCase() {
   }
 
   @Test
-  fun testModuleChangedWithoutAndroidModuleModel() {
-    `when`(myModuleSelector.module).thenReturn(myModule)
-    // Disposed module causes AndroidModuleModel to return null.
-    `when`(myModule.isDisposed).thenReturn(true)
-    myApplicationRunParameters.onModuleChanged()
-  }
-
-  @Test
   fun testToggleInstantAppWithNullModule() {
     `when`(myModuleSelector.module).thenReturn(null)
     val myInstantAppDeployCheckbox = ApplicationRunParameters::class.java.getDeclaredField("myInstantAppDeployCheckBox")

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModel;
@@ -180,7 +182,7 @@ public class DynamicFeaturesParameters {
 
     myTableModel.clear();
     addBaseModule(module);
-    java.util.List<Module> features = DynamicAppUtils.getDependentFeatureModulesForBase(module);
+    java.util.List<Module> features = getModuleSystem(module).getDynamicFeatureModules();
     if (features.isEmpty()) {
       disable();
       return;

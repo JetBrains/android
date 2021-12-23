@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -46,7 +46,7 @@ public class BuildApkAction extends DumbAwareAction {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       List<Module> appModules = ProjectStructure.getInstance(project).getAppModules().stream()
-        .flatMap(module -> DynamicAppUtils.getModulesToBuild(module).stream())
+        .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
         .collect(Collectors.toList());
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);

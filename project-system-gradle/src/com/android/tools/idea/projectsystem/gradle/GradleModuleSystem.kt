@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -388,7 +388,7 @@ class GradleModuleSystem(
 
   override fun getDynamicFeatureModules(): List<Module> {
     val project = AndroidModuleModel.get(module)?.androidProject ?: return emptyList()
-    return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
+    return GradleProjectSystemUtil.getDependentFeatureModulesForBase(module.project, project)
   }
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false

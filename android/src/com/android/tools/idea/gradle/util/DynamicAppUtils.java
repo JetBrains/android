@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -34,12 +31,10 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
 import java.util.Map;
@@ -55,58 +50,17 @@ import org.jetbrains.annotations.Nullable;
  * of dynamic apps.
  */
 public class DynamicAppUtils {
-  /**
-   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
-   */
-  @NotNull
-  public static List<Module> getDependentFeatureModulesForBase(@NotNull Module module) {
-    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
-    if (androidModule == null) {
-      return ImmutableList.of();
-    }
-    return getDependentFeatureModulesForBase(module.getProject(), androidModule.getAndroidProject());
-  }
 
   /**
    * Returns the Base Module of the specified dynamic feature {@link Module module}, or null if none is found.
    */
   @Nullable
   public static Module getBaseFeature(@NotNull Module module) {
-    String gradlePath = getGradlePath(module);
-    if (gradlePath == null) {
-      return null;
-    }
-
     return ProjectSystemUtil.getAndroidFacets(module.getProject()).stream()
-      .filter(facet -> {
-        AndroidModuleModel baseModel = AndroidModuleModel.get(facet);
-        return baseModel != null && baseModel.getAndroidProject().getDynamicFeatures().contains(gradlePath);
-      })
+      .filter(facet -> getModuleSystem(facet).getDynamicFeatureModules().contains(getHolderModule(module)))
       .findFirst()
       .map(AndroidFacet::getHolderModule)
       .orElse(null);
-  }
-
-  /**
-   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
-   */
-  @NotNull
-  public static List<Module> getDependentFeatureModulesForBase(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
-    Map<String, Module> featureMap = getDynamicFeaturesMap(project);
-    return androidProject.getDynamicFeatures().stream()
-      .map(featurePath -> featureMap.get(featurePath))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-  }
-
-  /**
-   * Returns the list of {@link Module modules} to build for a given base module.
-   */
-  @NotNull
-  public static List<Module> getModulesToBuild(@NotNull Module module) {
-    return Stream
-      .concat(Stream.of(module), getDependentFeatureModulesForBase(module).stream())
-      .collect(Collectors.toList());
   }
 
   /**
@@ -150,7 +104,7 @@ public class DynamicAppUtils {
 
   @NotNull
   public static Stream<Module> removeModulesIntheSameGradleProject(@NotNull Stream<Module> modules, @NotNull Module moduleOfProjectToRemove) {
-    return modules.filter(m -> ModuleSystemUtil.getHolderModule(m) != ModuleSystemUtil.getHolderModule(moduleOfProjectToRemove));
+    return modules.filter(m -> getHolderModule(m) != getHolderModule(moduleOfProjectToRemove));
   }
 
   /**
@@ -214,7 +168,7 @@ public class DynamicAppUtils {
     }
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
     if (minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
-        !getDependentFeatureModulesForBase(module).isEmpty()) {
+        !getModuleSystem(module).getDynamicFeatureModules().isEmpty()) {
       return true;
     }
 
@@ -251,23 +205,14 @@ public class DynamicAppUtils {
    */
   @NotNull
   public static List<Module> getDependentInstantFeatureModules(@NotNull Module module) {
-    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
-    if (androidModule == null) {
-      return ImmutableList.of();
-    }
-    return getDependentInstantFeatureModules(module.getProject(), androidModule.getAndroidProject());
-  }
-
-  /**
-   * Returns the list of dynamic feature {@link Module modules} that depend on this base module and are instant app compatible.
-   */
-  @NotNull
-  public static List<Module> getDependentInstantFeatureModules(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
-    Map<String, Module> featureMap = getDynamicFeaturesMap(project);
-    return androidProject.getDynamicFeatures().stream()
-      .map(featurePath -> featureMap.get(featurePath))
-      .filter(Objects::nonNull)
-      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().getInstantAppCompatible())
+    return getModuleSystem(module)
+      .getDynamicFeatureModules()
+      .stream()
+      .filter(it -> {
+                AndroidModel model = AndroidModel.get(it);
+                return model != null && model.isInstantAppCompatible();
+              }
+      )
       .collect(Collectors.toList());
   }
 
@@ -277,26 +222,6 @@ public class DynamicAppUtils {
 
   public static boolean featureNameEquals(@NotNull ApkFileUnit apkFileUnit, @NotNull String featureName) {
     return StringUtil.equals(featureName.replace('-', '_'), apkFileUnit.getModuleName());
-  }
-
-  @NotNull
-  private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
-    return ProjectSystemUtil.getAndroidFacets(project).stream()
-      .map(facet -> {
-        AndroidModuleSystem moduleSystem = getModuleSystem(facet);
-        AndroidModuleSystem.Type type = moduleSystem.getType();
-        // Check the module is a "dynamic feature"
-        if (type != AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE) {
-          return null;
-        }
-        String gradlePath = getGradlePath(facet.getHolderModule());
-        if (gradlePath == null) {
-          return null;
-        }
-        return Pair.create(gradlePath, facet.getHolderModule());
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toMap(p -> p.first, p -> p.second, DynamicAppUtils::handleModuleAmbiguity));
   }
 
   /**
@@ -311,34 +236,5 @@ public class DynamicAppUtils {
       return type == AndroidModuleSystem.Type.TYPE_FEATURE || // Legacy
              type == AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE;
     }).collect(Collectors.toList());
-  }
-
-  /**
-   * Find the gradle path of the module
-   *
-   * @return The path of the specified module, or null if it can't retrieve it.
-   */
-  @Nullable
-  private static String getGradlePath(@NotNull Module module) {
-    GradleFacet facet = GradleFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    GradleModuleModel gradleModel = facet.getGradleModuleModel();
-    if (gradleModel == null) {
-      return null;
-    }
-    return gradleModel.getGradlePath();
-  }
-
-  @NotNull
-  private static Module handleModuleAmbiguity(@NotNull Module m1, @NotNull Module m2) {
-    getLogger().warn(String.format("Unexpected ambiguity processing modules: %s - %s", m1.getName(), m2.getName()));
-    return m1;
-  }
-
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(DynamicAppUtils.class);
   }
 }

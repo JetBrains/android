@@ -53,6 +53,7 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
@@ -238,7 +239,7 @@ public class GradleApkProvider implements ApkProvider {
                                                          @NotNull List<String> deviceAbis,
                                                          @NotNull AndroidVersion deviceVersion) {
     IdeAndroidProject project = androidModel.getAndroidProject();
-    return DynamicAppUtils.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
+    return GradleProjectSystemUtil.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
       .stream()
       .map(module -> {
         // Find the output APK of the module

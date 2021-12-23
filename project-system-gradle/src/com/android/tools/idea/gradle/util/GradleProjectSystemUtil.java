@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
 import com.android.ide.common.repository.GradleVersion;
@@ -25,19 +26,30 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,5 +191,88 @@ public class GradleProjectSystemUtil {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the list of {@link Module modules} to build for a given base module.
+   */
+  @NotNull
+  public static List<Module> getModulesToBuild(@NotNull Module module) {
+    return Stream
+      .concat(Stream.of(module), getDependentFeatureModulesForBase(module).stream())
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
+   */
+  @NotNull
+  public static List<Module> getDependentFeatureModulesForBase(@NotNull Module module) {
+    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
+    if (androidModule == null) {
+      return ImmutableList.of();
+    }
+    return getDependentFeatureModulesForBase(module.getProject(), androidModule.getAndroidProject());
+  }
+
+  /**
+   * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
+   */
+  @NotNull
+  public static List<Module> getDependentFeatureModulesForBase(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
+    Map<String, Module> featureMap = getDynamicFeaturesMap(project);
+    return androidProject.getDynamicFeatures().stream()
+      .map(featurePath -> featureMap.get(featurePath))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
+    return ProjectSystemUtil.getAndroidFacets(project).stream()
+      .map(facet -> {
+        AndroidModuleSystem moduleSystem = getModuleSystem(facet);
+        AndroidModuleSystem.Type type = moduleSystem.getType();
+        // Check the module is a "dynamic feature"
+        if (type != AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE) {
+          return null;
+        }
+        String gradlePath = getGradlePath(facet.getHolderModule());
+        if (gradlePath == null) {
+          return null;
+        }
+        return Pair.create(gradlePath, facet.getHolderModule());
+      })
+      .filter(Objects::nonNull)
+      .collect(Collectors.toMap(p -> p.first, p -> p.second, GradleProjectSystemUtil::handleModuleAmbiguity));
+  }
+
+  /**
+   * Find the gradle path of the module
+   *
+   * @return The path of the specified module, or null if it can't retrieve it.
+   */
+  @Nullable
+  static String getGradlePath(@NotNull Module module) {
+    GradleFacet facet = GradleFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    GradleModuleModel gradleModel = facet.getGradleModuleModel();
+    if (gradleModel == null) {
+      return null;
+    }
+    return gradleModel.getGradlePath();
+  }
+
+  @NotNull
+  private static Module handleModuleAmbiguity(@NotNull Module m1, @NotNull Module m2) {
+    getLogger().warn(String.format("Unexpected ambiguity processing modules: %s - %s", m1.getName(), m2.getName()));
+    return m1;
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(GradleProjectSystemUtil.class);
   }
 }

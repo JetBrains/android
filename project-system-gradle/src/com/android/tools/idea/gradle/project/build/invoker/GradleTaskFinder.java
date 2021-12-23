@@ -109,7 +109,7 @@ public class GradleTaskFinder {
 
     Set<Module> allModules = new LinkedHashSet<>();
     for (Module module : modules) {
-      allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
+      allModules.addAll(GradleProjectSystemUtil.getModulesToBuild(module));
     }
 
     // Instrumented test support for Dynamic Features: base-app module should be added explicitly for gradle tasks

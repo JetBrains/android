@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -480,7 +481,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                                                      @NotNull AndroidRunConfiguration configuration) {
     Set<String> disabledFeatures = new HashSet<>(configuration.getDisabledDynamicFeatures());
     return Arrays.stream(modules)
-      .flatMap(module -> DynamicAppUtils.getDependentFeatureModulesForBase(module).stream())
+      .flatMap(module -> GradleProjectSystemUtil.getDependentFeatureModulesForBase(module).stream())
       .map(Module::getName)
       .filter(name -> !disabledFeatures.contains(name))
       .map(moduleName -> {
