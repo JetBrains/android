@@ -16,3 +16,22 @@ To avoid copying all unrelated files over for each version, copy only the files 
 In project descriptor (AUATestProjectState) there is a 'projectBasePath' and 'projectChangesPath'.
 The former should be the state with all project files present, the latter is the state with only
 the changed files which are copied over the base state on load.
+
+To add new version:
+ 1) Generate files for new state (e.g. using manual upgrade) and verify files are as expected. Add changed files to a state folder.
+ 2) Add new states to AUATestProjectState.kt
+   - Add new agp and gradle pair to TestAGPVersion enum.
+   - Add new states to AUATestProjectState enum.
+ 3) Add new old_agp_test targets for new versions to BUILD. Each entry of TestAGPVersion should have a corresponding old_agp_test target.
+    This will likely adding require new dependencies to prebuilts.
+ 4) Add new gradle version to prebuilts:
+   - Add new gradle binary file in grade/
+   - Add new entry in tools/external/gradle/BUILD.
+   - Add new entry in tools/base/build-system/BUILD.
+ 5) Add new agp version if not yet added:
+   - Add new version to prebuilts following guidance in tools/base/bazel/README.md.
+   - Add entry in tools/base/build-system/previous-versions/BUILD.bazel.
+ 6) Check new tests are working:
+   - Quick check run from idea using ManualUtilityTest.
+   - Check new target from bazel:
+     bazel test --cache_test_results=false --config=rcache //tools/adt/idea/project-system-gradle-upgrade:ProjectUpgradeTests_From_gradle_<gradle_version>_agp_<agp_version>

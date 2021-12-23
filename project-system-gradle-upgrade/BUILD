@@ -230,6 +230,32 @@ old_agp_test(
 old_agp_test(
     name = "ProjectUpgradeTests_From",
     timeout = "long",
+    agp_version = "7.1.0-beta01",
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-7.2",
+    ],
+    gradle_version = "7.2",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:7.1.0-beta01",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
     agp_version = "LATEST",
     data = [
         "//prebuilts/studio/sdk:build-tools/latest",

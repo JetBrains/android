@@ -63,7 +63,7 @@ enum class TestAGPVersion(
   V_4_1("4.1.0", CompatibleGradleVersion.VERSION_6_5),
   V_4_2("4.2.0", CompatibleGradleVersion.VERSION_6_7_1),
   V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2),
-  //V_7_1("4.1.0", CompatibleGradleVersion.VERSION_6_5)
+  V_7_1("7.1.0-beta01", CompatibleGradleVersion.VERSION_7_2),
   LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV),
 }
 
@@ -87,6 +87,8 @@ enum class AUATestProjectState(
   BASIC_4_1(BASIC, V_4_1, minimalState = true, basePath = "4.0.0", patchPath = "4.1.0"),
   BASIC_4_2(BASIC, V_4_2, minimalState = true, basePath = "4.0.0", patchPath = "4.2.0"),
   BASIC_7_0(BASIC, V_7_0, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
+  // No changes from 7.0 apart from versions so reuse the same files.
+  BASIC_7_1(BASIC, V_7_1, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   BASIC_DEV_MIN(BASIC, LATEST, minimalState = true, basePath = "4.0.0", patchPath = "dev-minimal"),
   BASIC_DEV_FULL(BASIC, LATEST, minimalState = false, basePath = "4.0.0", patchPath = "dev-upgraded"),
 
@@ -94,6 +96,8 @@ enum class AUATestProjectState(
   ALL_DEPRECATIONS_4_2_FULL(ALL_DEPRECATIONS, V_4_2, minimalState = false, basePath = "4.2.0-base", patchPath = "4.2.0-upgraded"),
   ALL_DEPRECATIONS_7_0_MIN(ALL_DEPRECATIONS, V_7_0, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
   ALL_DEPRECATIONS_7_0_FULL(ALL_DEPRECATIONS, V_7_0, minimalState = false, basePath = "4.2.0-base", patchPath = "7.0.0-upgraded"),
+  // No changes from 7.0 apart from versions so reuse the same files.
+  ALL_DEPRECATIONS_7_1_MIN(ALL_DEPRECATIONS, V_7_1, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
   ALL_DEPRECATIONS_DEV_MIN(ALL_DEPRECATIONS, LATEST, minimalState = true, basePath = "4.2.0-base", patchPath = "dev-minimal"),
   ALL_DEPRECATIONS_DEV_FULL(ALL_DEPRECATIONS, LATEST, minimalState = false, basePath = "4.2.0-base", patchPath = "dev-upgraded"),
   ;
