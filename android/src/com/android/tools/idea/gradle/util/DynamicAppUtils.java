@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.sdklib.AndroidVersion;
@@ -23,6 +25,8 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -216,11 +220,10 @@ public class DynamicAppUtils {
 
     // Instrumented test support for Dynamic Features
     if (deployForTests) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel != null) {
-        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
-          return true;
-        }
+      AndroidModuleSystem moduleSystem = getModuleSystem(module);
+      AndroidModuleSystem.Type type = moduleSystem.getType();
+      if (type == AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE) {
+        return true;
       }
     }
     return false;
@@ -280,12 +283,10 @@ public class DynamicAppUtils {
   private static Map<String, Module> getDynamicFeaturesMap(@NotNull Project project) {
     return ProjectSystemUtil.getAndroidFacets(project).stream()
       .map(facet -> {
+        AndroidModuleSystem moduleSystem = getModuleSystem(facet);
+        AndroidModuleSystem.Type type = moduleSystem.getType();
         // Check the module is a "dynamic feature"
-        AndroidModuleModel model = AndroidModuleModel.get(facet);
-        if (model == null) {
-          return null;
-        }
-        if (model.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        if (type != AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE) {
           return null;
         }
         String gradlePath = getGradlePath(facet.getHolderModule());
@@ -305,13 +306,10 @@ public class DynamicAppUtils {
   @NotNull
   private static List<Module> selectFeatureModules(Stream<Module> moduleStream) {
     return moduleStream.map(ModuleSystemUtil::getHolderModule).distinct().filter(module -> {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel == null) {
-        return false;
-      }
-      IdeAndroidProjectType type = androidModuleModel.getAndroidProject().getProjectType();
-      return type == IdeAndroidProjectType.PROJECT_TYPE_FEATURE || // Legacy
-             type == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE;
+      AndroidModuleSystem moduleSystem = getModuleSystem(module);
+      AndroidModuleSystem.Type type = moduleSystem.getType();
+      return type == AndroidModuleSystem.Type.TYPE_FEATURE || // Legacy
+             type == AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE;
     }).collect(Collectors.toList());
   }
 
