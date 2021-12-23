@@ -807,6 +807,18 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Device Mirroring
+  private static final FlagGroup DEVICE_MIRRORING = new FlagGroup(FLAGS, "device.mirroring", "Device Mirroring");
+  public static final Flag<Boolean> DEVICE_MIRRORING_ENABLED = Flag.create(
+    DEVICE_MIRRORING, "enabled", "Enable Mirroring of Physical Devices",
+    "Mirrors displays of connected physical devices",
+    false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_STANDALONE_EMULATORS = Flag.create(
+    DEVICE_MIRRORING, "allow.standalone.emulators", "Allow Mirroring of Standalone Emulators",
+    "Treats standalone emulators the same as physical devices for the purpose of display mirroring",
+    false);
+  //endregion
+
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
 

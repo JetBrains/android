@@ -17,6 +17,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup
 import com.intellij.openapi.actionSystem.DataKey
@@ -25,8 +26,14 @@ import com.intellij.openapi.actionSystem.DataKey
 
 const val EMULATOR_TOOL_WINDOW_ID = "Android Emulator"
 
-val EMULATOR_TOOL_WINDOW_TITLE
-  get() = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
+val EMULATOR_TOOL_WINDOW_TITLE: String
+  get() {
+    return when {
+      StudioFlags.DEVICE_MIRRORING_ENABLED.get() -> "Running Devices"
+      IdeInfo.getInstance().isAndroidStudio -> "Emulator"
+      else -> "Android Emulator"
+    }
+  }
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 

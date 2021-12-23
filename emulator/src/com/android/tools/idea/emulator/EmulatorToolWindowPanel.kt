@@ -33,7 +33,6 @@ import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -64,12 +63,12 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 /**
- * Represents contents of the Emulator tool window for a single Emulator instance.
+ * Provides view of one AVD in the Running Devices tool window.
  */
 class EmulatorToolWindowPanel(
   private val project: Project,
   val emulator: EmulatorController
-) : BorderLayoutPanel(), DataProvider, ConnectionStateListener {
+) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId)), ConnectionStateListener {
 
   private val mainToolbar: ActionToolbar
   private val centerPanel = BorderLayoutPanel()
@@ -81,7 +80,7 @@ class EmulatorToolWindowPanel(
   private var primaryEmulatorView: EmulatorView? = null
   private val multiDisplayStateStorage = MultiDisplayStateStorage.getInstance(project)
   private val multiDisplayStateUpdater = Runnable {
-    multiDisplayStateStorage.setMultiDisplayState(id.avdFolder, displayConfigurator.getMultiDisplayState())
+    multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdFolder, displayConfigurator.getMultiDisplayState())
   }
 
   private val focusOwnerListener = PropertyChangeListener { event ->
@@ -101,19 +100,21 @@ class EmulatorToolWindowPanel(
     }
   }
 
-  val id
+  private val emulatorId
     get() = emulator.emulatorId
 
-  val title
-    get() = emulator.emulatorId.avdName
+  override val title
+    get() = emulatorId.avdName
 
-  val icon
+  override val icon
     get() = ICON
 
-  val component: JComponent
-    get() = this
+  override val isClosable = true
 
-  var zoomToolbarVisible = false
+  override val preferredFocusableComponent: JComponent
+    get() = primaryEmulatorView ?: this
+
+  override var zoomToolbarVisible = false
     set(value) {
       field = value
       for (panel in displayPanels.values) {
@@ -124,8 +125,8 @@ class EmulatorToolWindowPanel(
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
 
-  @TestOnly
-  var lastUiState: UiState? = null
+  @get:TestOnly
+  var lastUiState: EmulatorUiState? = null
 
   init {
     background = primaryPanelBackground
@@ -149,11 +150,7 @@ class EmulatorToolWindowPanel(
     }
   }
 
-  fun getPreferredFocusableComponent(): JComponent {
-    return primaryEmulatorView ?: this
-  }
-
-  fun setDeviceFrameVisible(visible: Boolean) {
+  override fun setDeviceFrameVisible(visible: Boolean) {
     primaryEmulatorView?.deviceFrameVisible = visible
   }
 
@@ -171,7 +168,7 @@ class EmulatorToolWindowPanel(
   /**
    * Populates the emulator panel with content.
    */
-  fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null) {
+  override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     try {
       lastUiState = null
       val disposable = Disposer.newDisposable()
@@ -193,7 +190,7 @@ class EmulatorToolWindowPanel(
       emulatorView.addDisplayConfigurationListener(displayConfigurator)
       emulator.addConnectionStateListener(this)
 
-      val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(id.avdFolder)
+      val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
       if (multiDisplayState == null) {
         centerPanel.addToCenter(primaryDisplayPanel)
       }
@@ -208,7 +205,7 @@ class EmulatorToolWindowPanel(
         }
       }
 
-      val uiState = savedUiState ?: UiState()
+      val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
       val zoomScrollState = uiState.zoomScrollState
       for (panel in displayPanels.values) {
         zoomScrollState[panel.displayId]?.let { panel.zoomScrollState = it }
@@ -236,11 +233,11 @@ class EmulatorToolWindowPanel(
   /**
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
-  fun destroyContent(): UiState {
+  override fun destroyContent(): UiState {
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
-    val uiState = UiState()
+    val uiState = EmulatorUiState()
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
     }
@@ -425,7 +422,7 @@ class EmulatorToolWindowPanel(
     }
   }
 
-  class UiState {
+  class EmulatorUiState : UiState {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
     var multiDisplayState: MultiDisplayState? = null

@@ -15,22 +15,36 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.adblib.AdbLibSession
+import com.android.adblib.DeviceInfo
+import com.android.adblib.DeviceList
+import com.android.adblib.DeviceSelector
+import com.android.adblib.DeviceState
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adblib.utils.getprop
 import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.device.DeviceToolWindowPanel
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.emulator.RunningDevicePanel.UiState
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -47,6 +61,8 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.awt.EventQueue
 import java.text.Collator
 import java.time.Duration
@@ -58,12 +74,13 @@ import java.time.Duration
 internal class EmulatorToolWindowManager private constructor(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
 
   private var contentCreated = false
-  private val panels = arrayListOf<EmulatorToolWindowPanel>()
-  private var selectedPanel: EmulatorToolWindowPanel? = null
+  private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
+  private val panels = arrayListOf<RunningDevicePanel>()
+  private var selectedPanel: RunningDevicePanel? = null
   /** When the tool window is hidden, the ID of the last selected Emulator, otherwise null. */
-  private var lastSelectedEmulatorId: EmulatorId? = null
+  private var lastSelectedDeviceId: DeviceId? = null
   /** When the tool window is hidden, the state of the UI for all emulators, otherwise empty. */
-  private val savedUiState = hashMapOf<EmulatorId, EmulatorToolWindowPanel.UiState>()
+  private val savedUiState = hashMapOf<DeviceId, UiState>()
   private val emulators = hashSetOf<EmulatorController>()
   private val properties = PropertiesComponent.getInstance(project)
   // IDs of recently launched AVDs keyed by themselves.
@@ -78,11 +95,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     @UiThread
     override fun contentRemoved(event: ContentManagerEvent) {
-      val panel = event.content.component as? EmulatorToolWindowPanel ?: return
-      panel.emulator.shutdown()
+      val panel = event.content.component as? RunningDevicePanel ?: return
+      if (panel is EmulatorToolWindowPanel) {
+        panel.emulator.shutdown()
+      }
 
       panels.remove(panel)
-      savedUiState.remove(panel.emulator.emulatorId)
+      savedUiState.remove(panel.id)
       if (panels.isEmpty()) {
         createPlaceholderPanel()
         hideLiveIndicator(getToolWindow())
@@ -199,7 +218,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
     else if (selectedPanel != panel) {
       val contentManager = toolWindow.contentManager
-      val content = contentManager.getContent(panel.component)
+      val content = contentManager.getContent(panel)
       contentManager.setSelectedContent(content)
     }
   }
@@ -223,7 +242,9 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     // Create the panel for the last selected Emulator before other panels so that it becomes selected
     // unless a recently launched Emulator takes over.
-    val activeEmulator = lastSelectedEmulatorId?.let { emulators.find { it.emulatorId == lastSelectedEmulatorId } }
+    val activeEmulator = (lastSelectedDeviceId as? DeviceId.EmulatorDeviceId)?.let { lastSelected ->
+      emulators.find { it.emulatorId == lastSelected.emulatorId }
+    }
     if (activeEmulator != null && !activeEmulator.isShuttingDown) {
       addEmulatorPanel(activeEmulator)
     }
@@ -233,8 +254,12 @@ internal class EmulatorToolWindowManager private constructor(private val project
       }
     }
 
+    if (StudioFlags.DEVICE_MIRRORING_ENABLED.get()) {
+      physicalDeviceWatcher = PhysicalDeviceWatcher()
+    }
+
     // Not maintained when the tool window is visible.
-    lastSelectedEmulatorId = null
+    lastSelectedDeviceId = null
 
     val contentManager = toolWindow.contentManager
     if (contentManager.contentCount == 0) {
@@ -250,8 +275,10 @@ internal class EmulatorToolWindowManager private constructor(private val project
       return
     }
     contentCreated = false
+    physicalDeviceWatcher?.let { Disposer.dispose(it) }
+    physicalDeviceWatcher = null
 
-    lastSelectedEmulatorId = selectedPanel?.id
+    lastSelectedDeviceId = selectedPanel?.id
 
     RunningEmulatorCatalog.getInstance().removeListener(this)
     for (emulator in emulators) {
@@ -259,7 +286,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
     emulators.clear()
     selectedPanel?.let {
-      savedUiState[it.emulator.emulatorId] = it.destroyContent()
+      savedUiState[it.id] = it.destroyContent()
     }
     selectedPanel = null
     panels.clear()
@@ -271,8 +298,14 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
+    addPanel(EmulatorToolWindowPanel(project, emulator))
+  }
 
-    val panel = EmulatorToolWindowPanel(project, emulator)
+  private fun addPhysicalDevicePanel(serialNumber: String, abi: String, title: String) {
+    addPanel(DeviceToolWindowPanel(project, serialNumber, abi, title))
+  }
+
+  private fun addPanel(panel: RunningDevicePanel) {
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
     if (panels.isEmpty()) {
@@ -281,14 +314,14 @@ internal class EmulatorToolWindowManager private constructor(private val project
     }
 
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(panel.component, panel.title, false).apply {
+    val content = contentFactory.createContent(panel, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-      isCloseable = true
+      isCloseable = panel.isClosable
       tabName = panel.title
       icon = panel.icon
       popupIcon = panel.icon
+      setPreferredFocusedComponent(panel::preferredFocusableComponent)
       putUserData(ID_KEY, panel.id)
-      setPreferredFocusedComponent { panel.getPreferredFocusableComponent() }
     }
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
@@ -302,10 +335,13 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
       if (selectedPanel != panel) {
         // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
-        val avdId = panel.id.avdId
-        if (recentLaunches.getIfPresent(panel.id.avdId) != null) {
-          recentLaunches.invalidate(avdId)
-          contentManager.setSelectedContent(content)
+        val deviceId = panel.id
+        if (deviceId is DeviceId.EmulatorDeviceId) {
+          val avdId = deviceId.emulatorId.avdId
+          if (recentLaunches.getIfPresent(avdId) != null) {
+            recentLaunches.invalidate(avdId)
+            contentManager.setSelectedContent(content)
+          }
         }
       }
     }
@@ -314,11 +350,19 @@ internal class EmulatorToolWindowManager private constructor(private val project
   private fun removeEmulatorPanel(emulator: EmulatorController) {
     emulator.removeConnectionStateListener(connectionStateListener)
 
-    val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort) ?: return
+    val panel = findPanelByEmulatorId(emulator.emulatorId) ?: return
+    removePanel(panel)
+  }
 
+  private fun removePhysicalDevicePanel(serialNumber: String) {
+    val panel = findPanelBySerialNumber(serialNumber) ?: return
+    removePanel(panel)
+  }
+
+  private fun removePanel(panel: RunningDevicePanel) {
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
-    val content = contentManager.getContent(panel.component)
+    val content = contentManager.getContent(panel)
     contentManager.removeContent(content, true)
   }
 
@@ -345,19 +389,61 @@ internal class EmulatorToolWindowManager private constructor(private val project
       }
 
       if (id != null) {
-        selectedPanel = findPanelByGrpcPort(id.grpcPort)
+        selectedPanel = findPanelByDeviceId(id)
         selectedPanel?.createContent(deviceFrameVisible, savedUiState.remove(id))
         ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
       }
     }
   }
 
-  private fun findPanelByGrpcPort(grpcPort: Int): EmulatorToolWindowPanel? {
-    return panels.firstOrNull { it.id.grpcPort == grpcPort }
+  @AnyThread
+  private suspend fun physicalDeviceConnected(deviceSerialNumber: String, adbSession: AdbLibSession) {
+    try {
+      val properties = adbSession.deviceServices.getprop(DeviceSelector.fromSerialNumber(deviceSerialNumber))
+      var title = properties.find { it.name == "ro.kernel.qemu.avd_name" }?.value?.replace('_', ' ')
+      if (title == null) {
+        title = properties.find { it.name == "ro.product.model" }?.value ?: deviceSerialNumber
+        val manufacturer = properties.find { it.name == "ro.product.manufacturer" }?.value
+        if (!manufacturer.isNullOrBlank()) {
+          title = "$manufacturer $title"
+        }
+      }
+      val deviceAbi = properties.find { it.name == "ro.product.cpu.abi" }?.value
+      if (deviceAbi == null) {
+        thisLogger().warn("Unable to determine ABI of $title")
+        return
+      }
+
+      EventQueue.invokeLater {
+        addPhysicalDevicePanel(deviceSerialNumber, deviceAbi, title)
+      }
+    }
+    catch (e: Exception) {
+      thisLogger().warn(e)
+    }
   }
 
-  private fun findPanelByAvdId(avdId: String): EmulatorToolWindowPanel? {
-    return panels.firstOrNull { it.id.avdId == avdId }
+  @AnyThread
+  private fun physicalDeviceDisconnected(deviceSerialNumber: String) {
+    EventQueue.invokeLater {
+      removePhysicalDevicePanel(deviceSerialNumber)
+    }
+  }
+
+  private fun findPanelByDeviceId(deviceId: DeviceId): RunningDevicePanel? {
+    return panels.firstOrNull { it.id == deviceId }
+  }
+
+  private fun findPanelByEmulatorId(emulatorId: EmulatorId): RunningDevicePanel? {
+    return panels.firstOrNull { it.id is DeviceId.EmulatorDeviceId && it.id.emulatorId == emulatorId }
+  }
+
+  private fun findPanelByAvdId(avdId: String): RunningDevicePanel? {
+    return panels.firstOrNull { it.id is DeviceId.EmulatorDeviceId && it.id.emulatorId.avdId == avdId }
+  }
+
+  private fun findPanelBySerialNumber(serialNumber: String): RunningDevicePanel? {
+    return panels.firstOrNull { it.id.serialNumber == serialNumber }
   }
 
   private fun getContentManager(): ContentManager {
@@ -380,18 +466,22 @@ internal class EmulatorToolWindowManager private constructor(private val project
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
-      invokeLaterInAnyModalityState {
+      EventQueue.invokeLater {
         if (contentCreated && emulators.add(emulator)) {
           addEmulatorPanel(emulator)
         }
       }
+    }
+    else if (StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
+      val deviceWatcher = physicalDeviceWatcher ?: return
+      deviceWatcher.startMirroringIfOnline(emulator.emulatorId)
     }
   }
 
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
     if (emulator.emulatorId.isEmbedded) {
-      invokeLaterInAnyModalityState {
+      EventQueue.invokeLater {
         if (contentCreated && emulators.remove(emulator)) {
           removeEmulatorPanel(emulator)
         }
@@ -438,7 +528,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
 
     @JvmStatic
-    private val ID_KEY = Key.create<EmulatorId>("emulator-id")
+    private val ID_KEY = Key.create<DeviceId>("device-id")
 
     @JvmStatic
     private val LAUNCH_INFO_EXPIRATION = Duration.ofSeconds(30)
@@ -447,7 +537,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
     private val COLLATOR = Collator.getInstance()
 
     @JvmStatic
-    private val PANEL_COMPARATOR = compareBy<EmulatorToolWindowPanel, Any?>(COLLATOR) { it.title }.thenBy { it.id.grpcPort }
+    private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { it.title }.thenBy { it.id }
 
     @JvmStatic
     private val registeredProjects: MutableSet<Project> = hashSetOf()
@@ -467,5 +557,81 @@ internal class EmulatorToolWindowManager private constructor(private val project
     @JvmStatic
     private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
       commandLine.parametersList.parameters.contains("-qt-hide-window")
+  }
+
+  private inner class PhysicalDeviceWatcher : Disposable {
+    @GuardedBy("this")
+    private var devices = listOf<DeviceInfo>()
+    @GuardedBy("this")
+    private var mirroredDevices = setOf<String>()
+    private val coroutineScope = AndroidCoroutineScope(this)
+
+    init {
+      coroutineScope.launch {
+        val adbSession = AdbLibService.getSession(project)
+        adbSession.hostServices.trackDevices().collect { deviceList ->
+          onDeviceListChanged(deviceList, adbSession)
+        }
+      }
+    }
+
+    fun startMirroringIfOnline(emulatorId: EmulatorId) {
+      val serialNumber = emulatorId.serialNumber
+      if (addToMirroredDevices(serialNumber)) {
+        coroutineScope.launch {
+          physicalDeviceConnected(serialNumber, AdbLibService.getSession(project))
+        }
+      }
+    }
+
+    private fun addToMirroredDevices(serialNumber: String): Boolean {
+      synchronized(this) {
+        if (devices.find { it.serialNumber == serialNumber } == null) {
+          return false // Unable to mirror because the device is not yet discovered by adb.
+        }
+
+        val devices = mirroredDevices.plus(serialNumber)
+        if (devices.size == mirroredDevices.size) {
+          return false // The device is already being mirrored.
+        }
+        mirroredDevices = devices
+      }
+      return true
+    }
+
+    private suspend fun onDeviceListChanged(deviceList: DeviceList, adbSession: AdbLibSession) {
+      val added: Set<String>
+      val removed: Set<String>
+      synchronized(this) {
+        val oldDevices = mirroredDevices
+        devices = deviceList.devices.filter { it.deviceState == DeviceState.ONLINE }
+        val newDevices = devices.map(DeviceInfo::serialNumber).filter(::isMirrorable).toSortedSet()
+        added = newDevices.minus(oldDevices)
+        removed = oldDevices.minus(newDevices)
+        mirroredDevices = newDevices
+      }
+
+      for (device in added) {
+        physicalDeviceConnected(device, adbSession)
+      }
+      for (device in removed) {
+        physicalDeviceDisconnected(device)
+      }
+    }
+
+    private fun isMirrorable(deviceSerialNumber: String): Boolean {
+      if (deviceSerialNumber.startsWith("emulator-")) {
+        if (StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
+          val emulators = RunningEmulatorCatalog.getInstance().emulators
+          val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber}
+          return emulator != null && !emulator.emulatorId.isEmbedded
+        }
+        return false
+      }
+      return true
+    }
+
+    override fun dispose() {
+    }
   }
 }

@@ -25,9 +25,9 @@ data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcT
                       val serialPort: Int, val adbPort: Int, val commandLine: List<String>,
                       val registrationFileName: String) {
 
-  override fun toString(): String {
-    return "$avdId @ $grpcPort"
-  }
+  override fun toString(): String = "$avdId @ $grpcPort"
+
+  val serialNumber = "emulator-$serialPort"
 
   val isEmbedded: Boolean
     get() = commandLine.contains("-qt-hide-window")
