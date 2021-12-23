@@ -1,4 +1,4 @@
-import android.support.annotation.UiThread;
+import androidx.annotation.UiThread;
 
 public class ThreadFlow {
     @UiThread

@@ -1,4 +1,4 @@
-import android.support.annotation.DimenRes;
+import androidx.annotation.DimenRes;
 
 @SuppressWarnings("WeakerAccess")
 public class A {

@@ -1,4 +1,4 @@
-import android.support.annotation.RequiresPermission;
+import androidx.annotation.RequiresPermission;
 
 @SuppressWarnings({"WeakerAccess", "unused", "SpellCheckingInspection"})
 public class ConditionalPermission {

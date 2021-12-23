@@ -1,5 +1,5 @@
 import android.content.Context;
-import android.support.annotation.RequiresPermission;
+import androidx.annotation.RequiresPermission;
 
 @SuppressWarnings({"unused", "SpellCheckingInspection", "WeakerAccess"})
 public class IndirectPermission {

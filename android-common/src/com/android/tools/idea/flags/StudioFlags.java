@@ -827,6 +827,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
     "If enabled, show the action in the refactoring menu", true);
+
+  public static final Flag<Boolean> INFER_ANNOTATIONS_REFACTORING_ENABLED = Flag.create(
+    REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
+    "If enabled, show the action in the refactoring menu", false);
   //endregion
 
   //region NDK

@@ -1,5 +1,5 @@
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IdRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IdRes;
 
 public class InferMethodAnnotationFromReturnValue {
     @DrawableRes

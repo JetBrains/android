@@ -1,4 +1,4 @@
-import android.support.annotation.DimenRes;
+import androidx.annotation.DimenRes;
 
 public class InferResourceFromArgument {
     public void inferredParameterFromOutsideCall(boolean dummy, @DimenRes int inferredDimension) {

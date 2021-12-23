@@ -1,4 +1,4 @@
-import android.support.annotation.DrawableRes;
+import androidx.annotation.DrawableRes;
 
 public class InferFromInheritance {
     public interface Interface {

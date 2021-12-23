@@ -104,7 +104,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       for (ResourceType resourceType : ((ResourceTypeAllowedValues)allowedValues).types) {
         // We should *not* offer completion for non-resource type resource types such as "public"; these
         // are markers for @ColorInt and @Px
-        if (resourceType == COLOR_INT_MARKER_TYPE || resourceType == DIMENSION_MARKER_TYPE) {
+        if (resourceType.isSynthetic()) {
           continue;
         }
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());

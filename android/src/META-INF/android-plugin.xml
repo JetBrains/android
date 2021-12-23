@@ -207,7 +207,7 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
-    <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
+    <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
     <action

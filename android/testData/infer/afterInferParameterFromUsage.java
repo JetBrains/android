@@ -1,4 +1,4 @@
-import android.support.annotation.DimenRes;
+import androidx.annotation.DimenRes;
 
 public class InferParameterFromUsage {
     public void inferParameterFromMethodCall(int dummy, @DimenRes int id) {

@@ -1,4 +1,4 @@
-import android.support.annotation.IdRes;
+import androidx.annotation.IdRes;
 
 public class InferMethodAnnotationFromReturnValue {
     public int test(@IdRes int id, boolean useMipmap) {
