@@ -109,7 +109,6 @@ public class RunOnEmulatorTest {
    *   Project builds successfully and runs on the emulator
    *   </pre>
    */
-  @Ignore("b/205851170")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void runOnEmulator() throws Exception {
