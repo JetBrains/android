@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -67,7 +68,7 @@ public class GradleAndroidTestApplicationLaunchTasksProviderTest extends Android
   private void loadProject() throws Exception {
     super.loadProject(DYNAMIC_APP);
     // Run build task for main variant.
-    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    String taskName = GradleAndroidModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
     invokeGradleTasks(getProject(), taskName);
   }
 

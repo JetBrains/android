@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -38,7 +39,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
   public void testGetPackageForPath() throws Exception {
     loadProject(SIMPLE_APPLICATION);
     // Run assemble task to generate output listing file.
-    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    String taskName = GradleAndroidModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
     invokeGradleTasks(getProject(), taskName);
 
     File javaSrcDir = new File(AndroidRootUtil.findModuleRootFolderPath(myAndroidFacet.getModule()), "src/main/java");

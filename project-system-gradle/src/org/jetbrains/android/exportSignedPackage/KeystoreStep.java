@@ -6,7 +6,7 @@ import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualF
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
@@ -202,7 +202,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }
 
     if (mySelection == null) return true;
-    return DynamicAppUtils.supportsBundleTask(mySelection.getModule());
+    return GradleProjectSystemUtil.supportsBundleTask(mySelection.getModule());
   }
 
   private void showGradleError(boolean showError) {

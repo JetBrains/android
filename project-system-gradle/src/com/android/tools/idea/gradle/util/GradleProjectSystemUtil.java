@@ -27,7 +27,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -43,6 +45,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
@@ -313,5 +316,25 @@ public class GradleProjectSystemUtil {
   @Nullable
   public static GradleAndroidModel findAndroidModelInModule(GradleProjectInfo info, @NotNull VirtualFile file) {
     return findAndroidModelInModule(info, file, true /* ignore "excluded files */);
+  }
+
+  @NotNull
+  public static List<Module> getModulesSupportingBundleTask(@NotNull Project project) {
+    return ProjectStructure.getInstance(project).getAppModules().stream()
+      .filter(module -> supportsBundleTask(module))
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns {@code true} if the module supports the "bundle" task, i.e. if the Gradle
+   * plugin associated to the module is of high enough version number and supports
+   * the "Bundle" tool.
+   */
+  public static boolean supportsBundleTask(@NotNull Module module) {
+    GradleAndroidModel androidModule = GradleAndroidModel.get(module);
+    if (androidModule == null) {
+      return false;
+    }
+    return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName());
   }
 }

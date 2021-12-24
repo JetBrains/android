@@ -43,7 +43,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -319,7 +319,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     ArtifactDependencySpec result = null;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
       if (androidModel != null && findLibrary(module, library.getName()) != null) {
         result = findNewExternalDependency(library, androidModel.getSelectedVariant());
         break;

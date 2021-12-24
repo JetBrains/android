@@ -451,7 +451,6 @@ public class GradleAndroidModel implements AndroidModuleModel {
   /**
    * @return the selected build variant.
    */
-  @Override
   @NotNull
   public IdeVariant getSelectedVariant() {
     IdeVariant selected = myCachedVariantsByName.get(mySelectedVariantName);

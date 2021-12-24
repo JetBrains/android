@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
@@ -37,8 +37,8 @@ class ConflictResolutionTest : ConflictsTestCase() {
     val appModule = project.findAppModule()
     val libModule = project.findModule("lib")
 
-    assertThat(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
-    assertThat(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")
+    assertThat(GradleAndroidModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(GradleAndroidModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")
 
     var conflicts = ConflictSet.findConflicts(project).selectionConflicts
     assertThat(conflicts).hasSize(1)
@@ -60,8 +60,8 @@ class ConflictResolutionTest : ConflictsTestCase() {
     assertThat(ConflictResolution.solveSelectionConflict(conflict)).isTrue()
 
     // After fixing the conflict, the selected variants match.
-    assertThat(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
-    assertThat(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(GradleAndroidModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
+    assertThat(GradleAndroidModel.get(libModule)!!.selectedVariant.name).isEqualTo("release")
 
     // After fixing the conflict, there are no more conflicts left.
     conflicts = ConflictSet.findConflicts(project).selectionConflicts
