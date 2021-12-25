@@ -21,10 +21,9 @@ import com.intellij.framework.detection.FileContentPattern;
 import com.intellij.framework.detection.FrameworkDetectionContext;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -50,9 +49,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<AndroidFacet, AndroidFacetConfiguration> {
-  private static final NotificationGroup ANDROID_MODULE_IMPORTING_NOTIFICATION =
-    NotificationGroup.balloonGroup("Android Module Importing", PluginId.getId("org.jetbrains.android"));
-
   public AndroidFrameworkDetector() {
     super("android");
   }
@@ -140,7 +136,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
   @NotNull
   public static Notification showDexOptionNotification(@NotNull Module module, @NotNull String propertyName) {
     Project project = module.getProject();
-    Notification notification = ANDROID_MODULE_IMPORTING_NOTIFICATION.createNotification(
+    Notification notification = NotificationGroupManager.getInstance().getNotificationGroup("Android Module Importing").createNotification(
       AndroidBundle.message("android.facet.importing.title", module.getName()),
       "'" + propertyName +
       "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
