@@ -21,14 +21,13 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-
 import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
@@ -233,7 +232,7 @@ public class MarginPopup extends JPanel {
     });
     gc.fill = GridBagConstraints.HORIZONTAL;
     myTextField.addActionListener(myTextListener);
-    Insets margin = JBUI.emptyInsets();
+    Insets margin = JBInsets.emptyInsets();
     for (int i = 0; i < 4; i++) {
       JButton b = new JButton(String.valueOf(myDefaultValues[i]));
       b.setMargin(margin);

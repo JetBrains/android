@@ -48,13 +48,13 @@ import com.intellij.ui.EditorTextFieldProvider
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
-import java.util.ArrayList
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
@@ -119,7 +119,7 @@ class SqliteEvaluatorViewImpl(
     controlsPanel.background = primaryContentBackground
 
     controlsPanel.add(databaseComboBox)
-    controlsPanel.add(Box.createRigidArea(JBUI.size(Dimension(5, 0))))
+    controlsPanel.add(Box.createRigidArea(JBDimension.size(Dimension(5, 0))))
     controlsPanel.add(queryHistoryButton)
     controlsPanel.add(Box.createHorizontalGlue())
     controlsPanel.add(runButton)

@@ -17,7 +17,7 @@ package com.android.tools.idea.common.surface.layout
 
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBInsets
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -29,7 +29,7 @@ class TestPositionableContent(override var x: Int = 0,
                               val width: Int,
                               val height: Int,
                               val scale: Double = 1.0,
-                              override val margin: Insets = JBUI.emptyInsets()) : PositionableContent() {
+                              override val margin: Insets = JBInsets.emptyInsets()) : PositionableContent() {
   private val dimension = Dimension(width, height)
 
   override fun setLocation(x: Int, y: Int) {

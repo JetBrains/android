@@ -22,7 +22,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBViewport
 import com.intellij.util.ui.JBEmptyBorder
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBInsets
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -36,7 +36,7 @@ class CpuListScrollPaneTest {
     val scrollPane = CpuListScrollPane(JBList<Any>(), JPanel())
     assertThat(scrollPane.border).isInstanceOf(JBEmptyBorder::class.java)
     val border = scrollPane.border as JBEmptyBorder
-    assertThat(border.borderInsets).isEqualTo(JBUI.emptyInsets())
+    assertThat(border.borderInsets).isEqualTo(JBInsets.emptyInsets())
   }
 
   @Test

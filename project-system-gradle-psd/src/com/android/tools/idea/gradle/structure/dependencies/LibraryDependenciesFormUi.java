@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
-
 import javax.swing.*;
 
 class LibraryDependenciesFormUi {
@@ -29,7 +28,7 @@ class LibraryDependenciesFormUi {
 
   LibraryDependenciesFormUi() {
     myLibraryLabel.setBorder(UIUtil.getTextFieldBorder());
-    myLibraryLabel.setIpad(JBUI.emptyInsets());
+    myLibraryLabel.setIpad(JBInsets.emptyInsets());
     myLibraryLabel.clear();
   }
 }

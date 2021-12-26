@@ -22,7 +22,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.text.nullize
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Font
@@ -103,7 +103,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     init {
       font = UIUtil.getLabelFont()
-      ipad = JBUI.emptyInsets()
+      ipad = JBInsets.emptyInsets()
     }
 
     /**

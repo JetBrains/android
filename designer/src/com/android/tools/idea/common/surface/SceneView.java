@@ -35,7 +35,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBInsets;
 import java.awt.*;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -173,7 +173,7 @@ public abstract class SceneView implements Disposable {
    */
   @NotNull
   public Insets getMargin() {
-    return JBUI.emptyInsets();
+    return JBInsets.emptyInsets();
   }
 
   @NotNull
