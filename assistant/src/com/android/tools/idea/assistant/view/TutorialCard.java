@@ -28,6 +28,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -224,7 +225,7 @@ public class TutorialCard extends CardViewPanel {
 
     if (!myHideChooserAndNavigationBar) {
       // remove insets for footer.
-      c.insets = JBUI.emptyInsets();
+      c.insets = JBInsets.emptyInsets();
       contents.add(new FooterNav(), c);
     }
 

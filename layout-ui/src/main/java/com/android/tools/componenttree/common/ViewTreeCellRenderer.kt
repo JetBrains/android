@@ -28,7 +28,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
 import com.intellij.ui.treeStructure.treetable.TreeTableTree
 import com.intellij.util.text.nullize
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -113,7 +113,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     init {
       font = StartupUiUtil.getLabelFont()
-      ipad = JBUI.emptyInsets()
+      ipad = JBInsets.emptyInsets()
     }
 
     /**

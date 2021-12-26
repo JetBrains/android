@@ -23,6 +23,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.GraphicsUtil
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
@@ -112,7 +113,7 @@ class TimeDistributionTreeChart(
     addMouseMotionListener(mouseListener)
   }
 
-  private fun Dimension.makeFullWidth() = JBUI.size(this)
+  private fun Dimension.makeFullWidth() = JBDimension.size(this)
     .withWidth(FULL_WIDTH_PX)
 
   override fun getPreferredSize(): Dimension = tree.getPreferredSize().makeFullWidth()

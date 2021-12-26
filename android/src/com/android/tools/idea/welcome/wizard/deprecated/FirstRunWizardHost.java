@@ -37,6 +37,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -251,7 +252,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
-    final Insets insets = SystemInfo.isMac ? JBUI.emptyInsets() : JBUI.insetsTop(8);
+    final Insets insets = SystemInfo.isMac ? JBInsets.emptyInsets() : JBUI.insetsTop(8);
 
     if (actions.length > 0) {
       int gridX = 0;

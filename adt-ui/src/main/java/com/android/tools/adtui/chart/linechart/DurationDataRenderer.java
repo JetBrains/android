@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBInsets;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -544,7 +544,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
-    @NotNull private Insets myHostInsets = JBUI.emptyInsets();
+    @NotNull private Insets myHostInsets = JBInsets.emptyInsets();
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
     private boolean myBackgroundClickable = false;
