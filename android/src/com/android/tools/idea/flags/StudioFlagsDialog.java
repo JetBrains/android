@@ -51,34 +51,18 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.LightColors;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Window;
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
@@ -204,13 +188,13 @@ public final class StudioFlagsDialog extends DialogWrapper {
           }
 
           JBLabel name = new JBLabel(flag.getDisplayName());
-          name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+          name.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
           JBLabel id = new JBLabel("(" + flag.getId() + ")");
           id.setFont(EditorUtil.getEditorFont());
 
           JTextArea description = new JTextArea(flag.getDescription());
-          description.setFont(UIUtil.getLabelFont());
+          description.setFont(StartupUiUtil.getLabelFont());
           description.setLineWrap(true);
           description.setWrapStyleWord(true);
           description.setEditable(false);

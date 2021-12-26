@@ -41,8 +41,8 @@ import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.StatusText
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
@@ -254,7 +254,7 @@ class DeviceViewContentPanel(
       val bounds = Rectangle()
       hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
-        val font = UIUtil.getLabelFont().deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
+        val font = StartupUiUtil.getLabelFont().deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
         val fontMetrics = getFontMetrics(font)
         val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
         val labelHeight = JBUIScale.scale(DRAW_NODE_LABEL_HEIGHT).toInt()

@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.adtui.ui.ClickableLabel;
@@ -848,7 +848,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       // 1 added for rounding up the division, so that all the rectangles will fill the entire width of the component
       int colorCellWidth = width / myContrastColorSet.size() + 1;
       Rectangle drawingRectangle = new Rectangle(clipRectangle.x, clipRectangle.y, colorCellWidth, clipRectangle.height);
-      Font defaultFont = UIUtil.getLabelFont();
+      Font defaultFont = StartupUiUtil.getLabelFont();
       Font textFont = defaultFont.deriveFont(defaultFont.getSize() * FONT_SIZE_RATIO);
 
       for (Color color : myContrastColorSet) {

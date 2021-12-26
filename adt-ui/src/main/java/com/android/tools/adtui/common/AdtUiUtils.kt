@@ -28,8 +28,8 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.JdkConstants
 import org.intellij.lang.annotations.MagicConstant
 import java.awt.Color
@@ -41,7 +41,6 @@ import java.awt.GridBagConstraints
 import java.awt.Insets
 import java.awt.Point
 import java.awt.event.InputEvent
-import java.util.function.BiFunction
 import java.util.function.Predicate
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -229,7 +228,7 @@ object AdtUiUtils {
   @JvmStatic
   fun getActionKeyText(): String {
     if (SystemInfo.isMac) {
-      val labelFont = UIUtil.getLabelFont()
+      val labelFont = StartupUiUtil.getLabelFont()
       return if (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) MacKeymapUtil.COMMAND else "Cmd"
     }
     return "Ctrl"

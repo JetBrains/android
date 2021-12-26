@@ -23,6 +23,7 @@ import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBInsets
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Font
@@ -95,14 +96,14 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var treeIcon: Icon? = null
     var enabledValue = true
 
-    private val baseFontMetrics = getFontMetrics(UIUtil.getLabelFont())
-    private val boldFontMetrics = getFontMetrics(deriveFont(UIUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
+    private val baseFontMetrics = getFontMetrics(StartupUiUtil.getLabelFont())
+    private val boldFontMetrics = getFontMetrics(deriveFont(StartupUiUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
 
     // Do not make the SimpleColoredRenderer paint the background
     override fun shouldPaintBackground() = false
 
     init {
-      font = UIUtil.getLabelFont()
+      font = StartupUiUtil.getLabelFont()
       ipad = JBInsets.emptyInsets()
     }
 

@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.StyleSheetUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.text.Element;
@@ -37,10 +39,8 @@ import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Representation of a {@link Issue} in the {@link IssuePanel}
@@ -109,8 +109,8 @@ public class IssueView extends JPanel {
       mySelectedBorder.setColor(UIUtil.getTreeSelectionBorderColor());
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-      myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
-      mySuggestedFixLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+      myErrorTitle.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
+      mySuggestedFixLabel.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
     }
   }
 

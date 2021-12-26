@@ -31,6 +31,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.net.URL;
@@ -40,7 +41,6 @@ import java.util.function.Supplier;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,7 +119,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getJdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
 
     StringBuilder builder = new StringBuilder("<html><head>");
-    builder.append(UIUtil.getCssFontDeclaration(UIUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
+    builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null)).append("</head><body>");
 
     for (Section section : sections) {
       if (!section.isEmpty()) {

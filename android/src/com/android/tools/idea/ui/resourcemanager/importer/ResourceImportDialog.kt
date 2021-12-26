@@ -16,12 +16,12 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.help.AndroidWebHelpProvider
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
+import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ide.wizard.AbstractWizard
@@ -48,6 +48,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -59,7 +60,7 @@ import java.awt.event.ItemEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
-import java.util.IdentityHashMap
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.BorderFactory
@@ -224,7 +225,7 @@ class ResourceImportDialog(
    */
   private inner class DesignAssetSetView(private var assetSet: ResourceAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBTextField(assetSet.name, 20).apply {
-      this.font = UIUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
+      this.font = StartupUiUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
       document.addDocumentListener(object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           performRename(e.document.getText(0, document.length))

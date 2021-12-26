@@ -20,7 +20,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.StartupUiUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.BasicStroke
 import java.awt.Color
@@ -495,7 +495,7 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
     isEnabled = true
     isEditable = true
 
-    val labelFont = UIUtil.getLabelFont()
+    val labelFont = StartupUiUtil.getLabelFont()
     font = labelFont.deriveFont(labelFont.size * 0.9f)
 
     addFocusListener(object : FocusAdapter() {

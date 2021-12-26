@@ -15,29 +15,28 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.WeakHashMap;
-
-import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSETS;
-import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>Base class for wizard steps that have a description label in the bottom.
@@ -72,7 +71,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   }
 
   protected static CompoundBorder createBodyBorder() {
-    int fontSize = UIUtil.getLabelFont().getSize();
+    int fontSize = StartupUiUtil.getLabelFont().getSize();
     Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
     return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(JBColor.border()), insetBorder);
   }

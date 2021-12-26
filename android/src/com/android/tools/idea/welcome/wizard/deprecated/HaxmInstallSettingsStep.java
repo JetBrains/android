@@ -29,19 +29,11 @@ import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.StartupUiUtil;
-import java.awt.Font;
+import java.awt.*;
 import java.util.Hashtable;
 import java.util.Locale;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeListener;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,7 +116,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   @NotNull
   private static JLabel createRecommendedSizeLabel(int memorySize, Storage.Unit displayUnit) {
     String labelText = String.format("<html><center>%s<br>(Recommended)<center></html>", getMemoryLabel(memorySize, displayUnit));
-    final Font boldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
+    final Font boldLabelFont = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD);
     // This is the only way as JSlider resets label font.
     return new JLabel(labelText) {
       @Override

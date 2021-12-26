@@ -47,6 +47,7 @@ import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -300,7 +301,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           panel.setForeground(table.getForeground());
         }
         panel.setOpaque(true);
-        Font labelFont = UIUtil.getLabelFont();
+        Font labelFont = StartupUiUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }

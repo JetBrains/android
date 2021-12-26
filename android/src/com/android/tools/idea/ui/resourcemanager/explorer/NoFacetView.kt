@@ -27,6 +27,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import java.awt.Cursor
@@ -73,7 +74,7 @@ class NoFacetView(val project: Project)
         it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
       }
       border = JBUI.Borders.empty(32)
-      font = UIUtil.getLabelFont()
+      font = StartupUiUtil.getLabelFont()
       cursor = Cursor.getDefaultCursor()
       text = "<html><center>$NO_FACET_TEXT<center></html>"
       isEditable = false

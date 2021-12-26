@@ -24,9 +24,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.util.Locale
+import java.util.*
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -72,7 +73,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
 
   private fun createText(): String {
     val actionText = addAction.templatePresentation.description.toLowerCase(Locale.getDefault())
-    val font = UIUtil.getLabelFont()
+    val font = StartupUiUtil.getLabelFont()
     val color = UIUtil.getLabelForeground()
     val disabled = JBUI.CurrentTheme.Label.disabledForeground()
     val style = "<head><style>" +

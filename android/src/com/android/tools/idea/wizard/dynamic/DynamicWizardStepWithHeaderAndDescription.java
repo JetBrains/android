@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.util.ui.StartupUiUtil;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
-
-import static com.android.tools.idea.wizard.WizardConstants.STUDIO_WIZARD_INSET_SIZE;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for wizard pages with title and description labels underneath
@@ -57,7 +56,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myHeaderPane.setBorder(new EmptyBorder(topSegmentInsets));
     Font font = myTitleLabel.getFont();
     if (font == null) {
-      font = UIUtil.getLabelFont();
+      font = StartupUiUtil.getLabelFont();
     }
     font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
     myTitleLabel.setFont(font);

@@ -20,16 +20,14 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.html.HTMLDocument;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static com.intellij.util.ui.UIUtil.getLabelFont;
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLDocument;
+import org.jetbrains.annotations.NotNull;
 
 public class HtmlLabel extends JEditorPane {
 
@@ -55,7 +53,7 @@ public class HtmlLabel extends JEditorPane {
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane) {
-    setUpAsHtmlLabel(editorPane, getLabelFont());
+    setUpAsHtmlLabel(editorPane, StartupUiUtil.getLabelFont());
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {

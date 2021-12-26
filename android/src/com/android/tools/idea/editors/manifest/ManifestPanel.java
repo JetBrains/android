@@ -23,7 +23,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -87,7 +87,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -434,7 +434,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   public void updateDetails(@Nullable ManifestTreeNode node) {
     HtmlBuilder sb = new HtmlBuilder();
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");

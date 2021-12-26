@@ -23,6 +23,7 @@ import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -82,8 +83,8 @@ private val ROW_CELL_BORDER_UNFOCUSED get() = BorderFactory.createCompoundBorder
 
 private val BOTTOM_PANEL_BORDER get()  = JBUI.Borders.empty(5, 8, 10, 10)
 
-private val PRIMARY_FONT get() = UIUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
-                                                                              TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
+private val PRIMARY_FONT get() = StartupUiUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
+                                                                               TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
 
 private val SECONDARY_FONT_SIZE get() = JBUI.scaleFontSize(12f).toFloat()
 
