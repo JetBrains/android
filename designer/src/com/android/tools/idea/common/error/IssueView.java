@@ -24,6 +24,7 @@ import com.intellij.util.ui.JBHtmlEditorKit;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.util.List;
@@ -115,7 +116,7 @@ public class IssueView extends JPanel {
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
       myErrorDescriptionContent = updateImageSize(myErrorDescriptionContent, (int)UIUtil.getFontSize(UIUtil.FontSize.NORMAL));
-      myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+      myErrorTitle.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
       setExpanded(myIsExpanded);
     }
   }

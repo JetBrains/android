@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.picker.ColorPipetteBase
 import com.intellij.ui.picker.MacColorPipette
 import com.intellij.util.Alarm
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -271,7 +272,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
         // Ignore alpha value since it is always 0xFF when picking color on the screen.
         val colorValueString = String.format("#%06X", (pickedColor.rgb and 0x00FFFFFF))
 
-        val font = UIUtil.getLabelFont().deriveFont(COLOR_VALUE_FONT_SIZE)
+        val font = StartupUiUtil.getLabelFont().deriveFont(COLOR_VALUE_FONT_SIZE)
         val tracking = 0.08
         graphics.font = font.deriveFont(mapOf(TextAttribute.TRACKING to tracking))
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)

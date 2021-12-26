@@ -28,8 +28,8 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.JdkConstants
 import org.intellij.lang.annotations.MagicConstant
 import java.awt.Color
@@ -229,7 +229,7 @@ object AdtUiUtils {
   @JvmStatic
   fun getActionKeyText(): String {
     if (SystemInfo.isMac) {
-      val labelFont = UIUtil.getLabelFont()
+      val labelFont = StartupUiUtil.getLabelFont()
       return if (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) MacKeymapUtil.COMMAND else "Cmd"
     }
     return "Ctrl"

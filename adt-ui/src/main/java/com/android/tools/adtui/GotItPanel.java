@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import com.intellij.ide.IdeTooltipManager;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,6 +45,6 @@ public class GotItPanel {
     };
 
     myMessage = IdeTooltipManager.initPane("", new HintHint().setAwtTooltip(true), null);
-    myMessage.setFont(UIUtil.getLabelFont().deriveFont(UIUtil.getLabelFont().getSize() + 2f));
+    myMessage.setFont(StartupUiUtil.getLabelFont().deriveFont(StartupUiUtil.getLabelFont().getSize() + 2f));
   }
 }

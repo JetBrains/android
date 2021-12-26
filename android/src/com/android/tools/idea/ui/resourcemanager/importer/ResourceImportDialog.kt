@@ -48,6 +48,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -224,7 +225,7 @@ class ResourceImportDialog(
    */
   private inner class DesignAssetSetView(private var assetSet: ResourceAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBTextField(assetSet.name, 20).apply {
-      this.font = UIUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
+      this.font = StartupUiUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
       document.addDocumentListener(object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           performRename(e.document.getText(0, document.length))

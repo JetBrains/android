@@ -31,7 +31,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -217,7 +217,7 @@ public class SystemImagePreview {
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
-    Font f = UIUtil.getLabelFont();
+    Font f = StartupUiUtil.getLabelFont();
     Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUI.scale(100));
     g.setColor(JBColor.background());
     g.fillRect(0, 0, size, size);

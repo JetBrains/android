@@ -33,7 +33,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
@@ -103,7 +103,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     myRootPanel.add(splitter, BorderLayout.CENTER);
     myRootPanel.add(optionsPanel, BorderLayout.SOUTH);
 
-    myLicenseTextField.setFont(UIUtil.getLabelFont());
+    myLicenseTextField.setFont(StartupUiUtil.getLabelFont());
   }
 
   private void initUI() {

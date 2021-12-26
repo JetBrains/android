@@ -35,6 +35,7 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -334,7 +335,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   private void updateTitlebarStyle() {
     // If there are new errors and the panel is minimized, set the title to bold
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     if (!hasUserSeenNewErrors && isMinimized()) {
       font = font.deriveFont(Font.BOLD);
     }

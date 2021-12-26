@@ -56,6 +56,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -204,13 +205,13 @@ public final class StudioFlagsDialog extends DialogWrapper {
           }
 
           JBLabel name = new JBLabel(flag.getDisplayName());
-          name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+          name.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
           JBLabel id = new JBLabel("(" + flag.getId() + ")");
           id.setFont(EditorUtil.getEditorFont());
 
           JTextArea description = new JTextArea(flag.getDescription());
-          description.setFont(UIUtil.getLabelFont());
+          description.setFont(StartupUiUtil.getLabelFont());
           description.setLineWrap(true);
           description.setWrapStyleWord(true);
           description.setEditable(false);

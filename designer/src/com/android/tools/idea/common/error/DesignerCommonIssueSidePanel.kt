@@ -28,6 +28,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBHtmlEditorKit
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Font
@@ -109,7 +110,7 @@ private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout
   }
 
   private fun setupTitle() {
-    errorTitle.font = UIUtil.getLabelFont().deriveFont(Font.BOLD)
+    errorTitle.font = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD)
   }
 
   private fun setupDescriptionPanel(issue: Issue) {

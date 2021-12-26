@@ -29,7 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -48,7 +48,7 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
   public AdtImportLocationStep(WizardContext context) {
     super(context);
 
-    myDestinationLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+    myDestinationLabel.setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
 
 
     String prev = context.getProjectFileDirectory();

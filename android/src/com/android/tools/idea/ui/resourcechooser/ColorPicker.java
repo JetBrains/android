@@ -30,6 +30,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
@@ -835,7 +836,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       // 1 added for rounding up the division, so that all the rectangles will fill the entire width of the component
       int colorCellWidth = width / myContrastColorSet.size() + 1;
       Rectangle drawingRectangle = new Rectangle(clipRectangle.x, clipRectangle.y, colorCellWidth, clipRectangle.height);
-      Font defaultFont = UIUtil.getLabelFont();
+      Font defaultFont = StartupUiUtil.getLabelFont();
       Font textFont = defaultFont.deriveFont(defaultFont.getSize() * FONT_SIZE_RATIO);
 
       for (Color color : myContrastColorSet) {
@@ -1507,7 +1508,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
           .setPreferredPosition(Balloon.Position.above)
           .setBorderColor(Color.BLACK)
           .setAwtTooltip(true)
-          .setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD))
+          .setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD))
           .setTextBg(HintUtil.getInformationColor())
           .setShowImmediately(true);
 

@@ -88,6 +88,7 @@ import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.BorderLayout;
@@ -553,7 +554,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private void prepareReportHeader(@NotNull HtmlBuilder sb) {
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");

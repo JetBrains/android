@@ -19,6 +19,7 @@ import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,8 +29,6 @@ import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public class HtmlLabel extends JEditorPane {
 
@@ -55,7 +54,7 @@ public class HtmlLabel extends JEditorPane {
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane) {
-    setUpAsHtmlLabel(editorPane, getLabelFont());
+    setUpAsHtmlLabel(editorPane, StartupUiUtil.getLabelFont());
   }
 
   public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {

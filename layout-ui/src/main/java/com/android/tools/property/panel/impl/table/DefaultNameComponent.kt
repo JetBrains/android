@@ -29,6 +29,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Graphics
@@ -202,7 +203,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
     val label = JBLabel("M")
     label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     val height = label.preferredSize.height
-    label.font = UIUtil.getLabelFont()
+    label.font = StartupUiUtil.getLabelFont()
     label.border = DarculaTextBorder()
     return (label.preferredSize.height - height) / 2
   }

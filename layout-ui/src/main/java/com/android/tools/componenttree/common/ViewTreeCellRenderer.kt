@@ -29,6 +29,7 @@ import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
 import com.intellij.ui.treeStructure.treetable.TreeTableTree
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.Font
@@ -102,8 +103,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var enabledValue = true
     var deEmphasized = false
 
-    private val baseFontMetrics = getFontMetrics(UIUtil.getLabelFont())
-    private val boldFontMetrics = getFontMetrics(deriveFont(UIUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
+    private val baseFontMetrics = getFontMetrics(StartupUiUtil.getLabelFont())
+    private val boldFontMetrics = getFontMetrics(deriveFont(StartupUiUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
     private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
     private val boldStrikeout = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
 
@@ -111,7 +112,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     override fun shouldPaintBackground() = false
 
     init {
-      font = UIUtil.getLabelFont()
+      font = StartupUiUtil.getLabelFont()
       ipad = JBUI.emptyInsets()
     }
 
