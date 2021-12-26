@@ -42,7 +42,6 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
@@ -61,6 +60,7 @@ import java.awt.font.FontRenderContext;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
@@ -681,11 +681,11 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static class HeaderLabel extends JBLabel {
-    private static final Color CONTRAST_BORDER_COLOR = new JBColor(new NotNullProducer<Color>() {
+    private static final Color CONTRAST_BORDER_COLOR = JBColor.lazy(new Supplier<Color>() {
       final Color color = new JBColor(0x9b9b9b, 0x4b4b4b);
       @NotNull
       @Override
-      public Color produce() {
+      public Color get() {
         if (SystemInfo.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
           return Gray.xC9;
         }
