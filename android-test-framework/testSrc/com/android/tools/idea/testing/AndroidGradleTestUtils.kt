@@ -66,6 +66,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
@@ -1099,7 +1100,7 @@ private fun setupTestProjectFromAndroidModelCore(
   )
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-  val androidModels = mutableListOf<GradleAndroidModel>()
+  val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
     val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
@@ -1540,7 +1541,7 @@ private fun Project.verifyModelsAttached() {
       // Java facets are not created for modules without GradleFacet even if there is a JavaModuleModel.
       module.verifyModel(JavaFacet::getInstance, JavaFacet::getJavaModuleModel)
     }
-    module.verifyModel(AndroidFacet::getInstance, GradleAndroidModel::get)
+    module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
     module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
 }
@@ -1550,12 +1551,12 @@ fun Project.requestSyncAndWait() {
 }
 
 /**
- * Set up data nodes that are normally created by the project resolver when processing [GradleAndroidModel]s.
+ * Set up data nodes that are normally created by the project resolver when processing [AndroidModuleModel]s.
  */
 private fun setupDataNodesForSelectedVariant(
   project: Project,
   buildId: String,
-  androidModuleModels: List<GradleAndroidModel>,
+  androidModuleModels: List<AndroidModuleModel>,
   projectDataNode: DataNode<ProjectData>
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)

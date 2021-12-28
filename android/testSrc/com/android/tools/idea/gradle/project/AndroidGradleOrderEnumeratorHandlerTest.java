@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.module.Module;
@@ -24,6 +24,7 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +51,7 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     Module module = getModule("app");
     Collection<String> result = getAmendedPaths(module, false);
 
-    GradleAndroidModel model = GradleAndroidModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
@@ -92,7 +93,7 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
       Module module = getModule("lib");
       Set<String> result = new HashSet<>(getAmendedPaths(module, true));
 
-      GradleAndroidModel model = GradleAndroidModel.get(module);
+      AndroidModuleModel model = AndroidModuleModel.get(module);
 
       Set<String> expected = new HashSet<>();
       // Unit test
@@ -133,7 +134,7 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     Module module = getModule("app");
     Set<String> result = new HashSet<>(getAmendedPaths(module, true));
 
-    GradleAndroidModel model = GradleAndroidModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     Set<String> expected = new HashSet<>();
     // Unit test
     expected.add(pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));

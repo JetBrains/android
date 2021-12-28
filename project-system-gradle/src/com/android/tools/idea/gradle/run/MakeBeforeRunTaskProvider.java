@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -286,7 +286,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // If the project has native modules, and there are any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
-      GradleAndroidModel androidModel = GradleAndroidModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (ndkModel != null && androidModel != null) {
         String selectedVariantName = androidModel.getSelectedVariant().getName();
         Set<String> availableAbis = ndkModel.getSyncedVariantAbis().stream()

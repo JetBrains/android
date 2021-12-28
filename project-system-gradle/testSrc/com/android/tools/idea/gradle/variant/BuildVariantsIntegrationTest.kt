@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.variant
 import com.android.SdkConstants
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
@@ -553,7 +553,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
-private fun Module.selectedModelVariant(): String? = GradleAndroidModel.get(this)?.selectedVariant?.name
+private fun Module.selectedModelVariant(): String? = AndroidModuleModel.get(this)?.selectedVariant?.name
 private fun Module.selectedNdkModelVariant(): String? = NdkModuleModel.get(this)?.selectedVariant
 private fun Module.selectedNdkModelAbi(): String? = NdkModuleModel.get(this)?.selectedAbi
 private fun Module.selectedFacetVariant(): String? = AndroidFacet.getInstance(this)?.properties?.SELECTED_BUILD_VARIANT

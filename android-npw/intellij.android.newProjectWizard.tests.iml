@@ -33,6 +33,5 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
   </component>
 </module>

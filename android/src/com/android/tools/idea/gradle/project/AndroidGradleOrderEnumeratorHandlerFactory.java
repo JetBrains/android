@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -20,7 +5,7 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeJavaArtifact;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.io.FilePaths;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -49,7 +34,7 @@ import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
 public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   @Override
   public boolean isApplicable(@NotNull Module module) {
-    return GradleAndroidModel.get(module) != null;
+    return AndroidModuleModel.get(module) != null;
   }
 
   @NotNull
@@ -57,7 +42,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   public GradleOrderEnumeratorHandler createHandler(@NotNull Module module) {
     String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
     // Always recurse for Android modules.
-    boolean shouldRecurse = GradleAndroidModel.get(module) != null;
+    boolean shouldRecurse = AndroidModuleModel.get(module) != null;
     if (rootProjectPath != null && !shouldRecurse) {
       // Only recurse when the Gradle version is less than 2.5. This is taken from the GradleOrderEnumeratorHandler to make sure that
       // for non-android modules we return a consistent value.
@@ -88,7 +73,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
                                           @NotNull Collection<String> result,
                                           boolean includeProduction,
                                           boolean includeTests) {
-        GradleAndroidModel androidModel = GradleAndroidModel.get(rootModel.getModule());
+        AndroidModuleModel androidModel = AndroidModuleModel.get(rootModel.getModule());
         if (androidModel == null) {
           return super.addCustomModuleRoots(type, rootModel, result, includeProduction, includeTests);
         }
@@ -106,7 +91,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   }
 
   @NotNull
-  private static List<String> getAndroidCompilerOutputFolders(@NotNull GradleAndroidModel androidModel,
+  private static List<String> getAndroidCompilerOutputFolders(@NotNull AndroidModuleModel androidModel,
                                                               boolean includeProduction,
                                                               boolean includeTests) {
     List<String> toAdd = new LinkedList<>();

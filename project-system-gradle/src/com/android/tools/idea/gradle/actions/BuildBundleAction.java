@@ -20,7 +20,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -49,7 +49,7 @@ public class BuildBundleAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (isProjectBuildWithGradle(project)) {
-      List<Module> appModules = GradleProjectSystemUtil.getModulesSupportingBundleTask(project);
+      List<Module> appModules = DynamicAppUtils.getModulesSupportingBundleTask(project);
       if (appModules.size() > 0) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
