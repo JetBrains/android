@@ -64,6 +64,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchComm
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
 private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
@@ -154,10 +155,10 @@ class ViewLayoutInspectorClient(
   private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
 
-  var lastData: MutableMap<Long, Data> = mutableMapOf()
-  private var lastProperties: MutableMap<Long, PropertiesEvent> = mutableMapOf()
-  var lastComposeParameters: MutableMap<Long, GetAllParametersResponse> = mutableMapOf()
-  private val recentLayouts = mutableMapOf<Long, LayoutEvent>() // Map of root IDs to their layout
+  private var lastData = ConcurrentHashMap<Long, Data>()
+  private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
+  private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
+  private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
 
   init {
     scope.launch {
@@ -325,7 +326,12 @@ class ViewLayoutInspectorClient(
     catch (ignore: CancellationException) {
       return
     }
-    saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata, model.foldInfo)
+    // There could be a synchronization issue here, if we get an update just as these maps are being copied. However, since we only get
+    // here in non-live mode, we shouldn't be getting any unexpected updates.
+    val data = HashMap(lastData)
+    val properties = HashMap(lastProperties)
+    val composeParameters = HashMap(lastComposeParameters)
+    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
