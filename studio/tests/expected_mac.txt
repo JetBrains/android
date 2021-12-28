@@ -2527,6 +2527,11 @@ Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgro
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Orange_Sunset.webp
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Stream.webp
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Yosemite_Tree.webp
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/arm64-v8a/libscreen-sharing-agent.so
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/armeabi-v7a/libscreen-sharing-agent.so
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/x86/libscreen-sharing-agent.so
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/x86_64/libscreen-sharing-agent.so
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/arm64-v8a/simpleperf
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/armeabi-v7a/simpleperf
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/darwin-x86_64/libsimpleperf_report.dylib

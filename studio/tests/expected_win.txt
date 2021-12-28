@@ -1955,6 +1955,11 @@ android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Open_Sky.
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Orange_Sunset.webp
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Stream.webp
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Yosemite_Tree.webp
+android-studio/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
+android-studio/plugins/android/resources/screen-sharing-agent/arm64-v8a/libscreen-sharing-agent.so
+android-studio/plugins/android/resources/screen-sharing-agent/armeabi-v7a/libscreen-sharing-agent.so
+android-studio/plugins/android/resources/screen-sharing-agent/x86/libscreen-sharing-agent.so
+android-studio/plugins/android/resources/screen-sharing-agent/x86_64/libscreen-sharing-agent.so
 android-studio/plugins/android/resources/simpleperf/arm64-v8a/simpleperf
 android-studio/plugins/android/resources/simpleperf/armeabi-v7a/simpleperf
 android-studio/plugins/android/resources/simpleperf/windows-x86_64/libsimpleperf_report.dll
