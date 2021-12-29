@@ -252,6 +252,9 @@ studio_plugin(
         ],
     },
     resources = {
+        "lib": [
+            "//prebuilts/tools/common/m2:ffmpeg-platform-bundle",
+        ],
         "resources": [
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar

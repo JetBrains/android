@@ -2177,6 +2177,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.2.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-4.4-1.5.6.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-platform-4.4-1.5.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/flatbuffers-java-1.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
@@ -2185,7 +2186,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library
 Android Studio Preview.app/Contents/plugins/android/lib/inspectors-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.6-macosx-arm64.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.6.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
