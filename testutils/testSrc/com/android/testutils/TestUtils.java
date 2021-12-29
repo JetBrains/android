@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
 
 /**
  * Utility methods to deal with loading the test data.
@@ -118,13 +119,12 @@ public class TestUtils {
   @NonNull
   public static synchronized Path getWorkspaceRoot() {
     if (workspaceRoot == null) {
-      workspaceRoot = Paths.get(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk");
+      workspaceRoot = AndroidSdkDownloader.downloadSdk(new BuildDependenciesCommunityRoot(Paths.get(PathManager.getCommunityHomePath())));
     }
 
     llDownloader.makeSureComponentIsInPlace();
     profilerDownloader.makeSureComponentIsInPlace();
 
-    assert Files.exists(workspaceRoot): "Please invoke 'cd community/build/dependencies && ./gradlew setupAndroidSdk'";
     return workspaceRoot;
   }
 
