@@ -58,7 +58,7 @@ public class AdbShellCommandsUtil {
     executeCommandImpl(device, fullCommand, new MultiLineReceiver() {
       @Override
       public void processNewLines(@NotNull String[] lines) {
-        Collections.addAll(commandOutput, lines);
+        Arrays.stream(lines).forEach(commandOutput::add);
       }
 
       @Override
