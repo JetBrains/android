@@ -45,6 +45,8 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.TabsListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -63,11 +65,8 @@ import java.util.Hashtable
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JSlider
-import javax.swing.JTabbedPane
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.border.MatteBorder
-import javax.swing.event.ChangeEvent
-import javax.swing.event.ChangeListener
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -133,16 +132,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   @VisibleForTesting
-  val tabbedPane = JTabbedPane().apply {
-    addChangeListener(TabChangeListener())
-    tabLayoutPolicy = JTabbedPane.SCROLL_TAB_LAYOUT
+  val tabbedPane = AnimationTabs(surface).apply {
+    addListener(TabChangeListener())
   }
 
-  private inner class TabChangeListener : ChangeListener {
-    private var oldSelection: AnimationTab? = null
-    override fun stateChanged(e: ChangeEvent) {
-      val tab = tabbedPane.selectedComponent as? AnimationTab ?: return
-      if (tab == oldSelection) return
+  private inner class TabChangeListener : TabsListener {
+    override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+      val tab = tabbedPane.selectedInfo?.component as? AnimationTab ?: return
+      if (newSelection == oldSelection) return
       // Load animation when first tab was just created or transition has changed.
       tab.loadTransitionFromCacheOrLib()
       tab.updateProperties()
@@ -155,7 +152,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Set the clock time when changing tabs to update the current tab's transition properties panel.
         timeline.setClockTime(timeline.cachedVal)
       }
-      oldSelection = tab
     }
   }
 
@@ -301,7 +297,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Remove all tabs from [tabbedPane], replace it with [noAnimationsPanel], and clears the cached animations.
    */
   internal fun invalidatePanel() {
-    tabbedPane.removeAll()
+    tabbedPane.removeAllTabs()
     animationTabs.clear()
     showNoAnimationsPanel()
   }
@@ -310,7 +306,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Replaces the [tabbedPane] with [noAnimationsPanel].
    */
   private fun showNoAnimationsPanel() {
-    remove(tabbedPane)
+    remove(tabbedPane.component)
     noAnimationsPanel.startLoading()
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
@@ -330,12 +326,14 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val animationTab = animationTabs[animation] ?: return
 
     val isAddingFirstTab = tabbedPane.tabCount == 0
-    tabbedPane.addTab(animationTab.tabTitle, animationTab)
+    tabbedPane.addTab(TabInfo(animationTab).apply {
+      text = animationTab.tabTitle
+    })
     if (isAddingFirstTab) {
       // There are no tabs and we're about to add one. Replace the placeholder panel with the TabbedPane.
       noAnimationsPanel.stopLoading()
       remove(noAnimationsPanel)
-      add(tabbedPane, TabularLayout.Constraint(1, 0, 2))
+      add(tabbedPane.component, TabularLayout.Constraint(1, 0, 2))
     }
   }
 
@@ -366,7 +364,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Removes the [AnimationTab] corresponding to the given [animation] from [tabbedPane].
    */
   internal fun removeTab(animation: ComposeAnimation) {
-    tabbedPane.components.find { (it as? AnimationTab)?.animation === animation }?.let { tabbedPane.remove(it) }
+    tabbedPane.tabs.find { (it.component as? AnimationTab)?.animation === animation }?.let { tabbedPane.removeTab(it) }
     animationTabs.remove(animation)
 
     if (tabbedPane.tabCount == 0) {
@@ -394,7 +392,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val stateComboBox: InspectorPainter.StateComboBox
 
     private val timelinePanelWithCurves = JBScrollPane().apply {
-      border = MatteBorder(1,1,0,0, JBColor.border())
+      border = MatteBorder(1, 1, 0, 0, JBColor.border())
     }
     private val timelinePanelNoCurves = JPanel(BorderLayout())
     private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
