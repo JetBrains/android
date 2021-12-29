@@ -46,6 +46,7 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -57,6 +58,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
@@ -153,11 +155,12 @@ class GradleConnectedAndroidTestInvoker(
         }
       })
 
-      var testRunIsCancelled = false
+      val testRunIsCancelled = AtomicBoolean(false)
+      val onEndIsCalled = AtomicBoolean(false)
 
       override fun onCancel(id: ExternalSystemTaskId) {
         super.onCancel(id)
-        testRunIsCancelled = true
+        testRunIsCancelled.set(true)
       }
 
       override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
@@ -170,6 +173,10 @@ class GradleConnectedAndroidTestInvoker(
       }
 
       override fun onEnd(id: ExternalSystemTaskId) {
+        if (onEndIsCalled.getAndSet(true)) {
+          return
+        }
+
         super.onEnd(id)
 
         val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
@@ -219,7 +226,7 @@ class GradleConnectedAndroidTestInvoker(
         } else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
-          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled) {
+          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
             ApplicationManager.getApplication().invokeLater({
               val toolWindow = buildToolWindowProvider(project)
               if (toolWindow.isAvailable && !toolWindow.isVisible) {
@@ -245,13 +252,26 @@ class GradleConnectedAndroidTestInvoker(
       project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration)
 
     backgroundTaskExecutor {
-      gradleTaskManagerFactory().executeTasks(
-        externalTaskId,
-        taskNames,
-        path.path,
-        gradleExecutionSettings,
-        null,
-        listener)
+      try {
+        gradleTaskManagerFactory().executeTasks(
+          externalTaskId,
+          taskNames,
+          path.path,
+          gradleExecutionSettings,
+          null,
+          listener)
+      } catch (e: ExternalSystemException) {
+        // No-op.
+        // If there is a failing test case, the test task finished in failed state
+        // that ends up with ExternalSystemException to be thrown on Windows.
+        // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
+        // for failed task and it calls listener.onFailure() callback instead.
+      } finally {
+        // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
+        // an ExternalSystemException without calling onEnd() or onFailure() callback.
+        // This often happens on Windows.
+        listener.onEnd(externalTaskId)
+      }
     }
   }
 
