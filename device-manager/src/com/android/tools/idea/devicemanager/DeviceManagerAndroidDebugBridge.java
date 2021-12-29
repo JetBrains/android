@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
@@ -34,9 +34,9 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceManagerAndroidDebugBridge {
+public final class DeviceManagerAndroidDebugBridge {
   @UiThread
-  @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getDevices(@Nullable Project project) {
+  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getDevices(@Nullable Project project) {
     ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
 
     // noinspection UnstableApiUsage
@@ -67,12 +67,12 @@ final class DeviceManagerAndroidDebugBridge {
   }
 
   @UiThread
-  void addDeviceChangeListener(@NotNull IDeviceChangeListener listener) {
+  public void addDeviceChangeListener(@NotNull IDeviceChangeListener listener) {
     AndroidDebugBridge.addDeviceChangeListener(listener);
   }
 
   @UiThread
-  void removeDeviceChangeListener(@NotNull IDeviceChangeListener listener) {
+  public void removeDeviceChangeListener(@NotNull IDeviceChangeListener listener) {
     AndroidDebugBridge.removeDeviceChangeListener(listener);
   }
 }

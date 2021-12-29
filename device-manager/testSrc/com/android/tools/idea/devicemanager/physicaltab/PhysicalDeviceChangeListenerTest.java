@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceChangeListener.AddOrSet;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

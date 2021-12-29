@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
 import com.google.common.util.concurrent.Futures;
 import java.util.Arrays;

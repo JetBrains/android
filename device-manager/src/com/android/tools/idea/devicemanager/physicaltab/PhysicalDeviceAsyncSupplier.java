@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.internal.DeviceMonitor;
+import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.FutureCallback;
