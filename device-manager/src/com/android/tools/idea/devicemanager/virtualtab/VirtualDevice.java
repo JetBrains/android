@@ -27,10 +27,12 @@ import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevice extends Device {
   private final @NotNull String myCpuArchitecture;
+  private final long mySizeOnDisk;
   private final @NotNull AvdInfo myAvdInfo;
 
   static final class Builder extends Device.Builder {
     private @Nullable String myCpuArchitecture;
+    private long mySizeOnDisk;
     private @Nullable AvdInfo myAvdInfo;
 
     @NotNull Builder setKey(@NotNull Key key) {
@@ -63,6 +65,11 @@ public final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setSizeOnDisk(long sizeOnDisk) {
+      mySizeOnDisk = sizeOnDisk;
+      return this;
+    }
+
     @NotNull Builder setResolution(@Nullable Resolution resolution) {
       myResolution = resolution;
       return this;
@@ -90,6 +97,8 @@ public final class VirtualDevice extends Device {
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
 
+    mySizeOnDisk = builder.mySizeOnDisk;
+
     assert builder.myAvdInfo != null;
     myAvdInfo = builder.myAvdInfo;
   }
@@ -108,6 +117,10 @@ public final class VirtualDevice extends Device {
     // TODO online should be a boolean property. Notify the Virtual tab of devices that come online in a way similar to
     //  PhysicalDeviceChangeListener.
     return AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(myAvdInfo);
+  }
+
+  long getSizeOnDisk() {
+    return mySizeOnDisk;
   }
 
   public @NotNull AvdInfo getAvdInfo() {

@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice.HardwareFeature;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
@@ -32,9 +33,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 final class AsyncPhysicalDeviceBuilder {
@@ -96,11 +94,11 @@ final class AsyncPhysicalDeviceBuilder {
 
   @UiThread
   private @NotNull PhysicalDevice build() {
-    AndroidVersion version = getDoneOrElse(myVersionFuture, AndroidVersion.DEFAULT);
+    AndroidVersion version = DeviceManagerFutures.getDoneOrElse(myVersionFuture, AndroidVersion.DEFAULT);
 
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
       .setKey(myKey)
-      .setType(getDoneOrElse(myTypeFuture, DeviceType.PHONE))
+      .setType(DeviceManagerFutures.getDoneOrElse(myTypeFuture, DeviceType.PHONE))
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(myModelFuture), FutureUtils.getDoneOrNull(myManufacturerFuture)))
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString());
@@ -110,21 +108,5 @@ final class AsyncPhysicalDeviceBuilder {
     }
 
     return builder.build();
-  }
-
-  @UiThread
-  private static <V> @NotNull V getDoneOrElse(@NotNull Future<@NotNull V> future, @NotNull V defaultValue) {
-    assert future.isDone();
-
-    try {
-      return future.get();
-    }
-    catch (CancellationException | ExecutionException exception) {
-      return defaultValue;
-    }
-    catch (InterruptedException exception) {
-      Thread.currentThread().interrupt();
-      throw new AssertionError(exception);
-    }
   }
 }
