@@ -670,9 +670,9 @@ public class ResourceNotificationManager {
      * @see ResourceNotificationManager#addListener(ResourceChangeListener, AndroidFacet, VirtualFile, Configuration)
      */
     private boolean isRelevantFile(PsiTreeChangeEvent event) {
-      if (!myFileToObserverMap.isEmpty()) {
-        PsiFile file = event.getFile();
-        synchronized (myObserverLock) {
+      synchronized (myObserverLock) {
+        if (!myFileToObserverMap.isEmpty()) {
+          PsiFile file = event.getFile();
           if (file != null && myFileToObserverMap.containsKey(file.getVirtualFile())) {
             return true;
           }
