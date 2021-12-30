@@ -20,8 +20,6 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -37,8 +35,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -112,34 +108,14 @@ public class DynamicAppUtils {
    */
   public static boolean baseIsInstantEnabled(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleModel model = AndroidModuleModel.get(module);
+      AndroidModel model = AndroidModel.get(module);
       if (model != null && model.isBaseSplit()) {
-        if (model.getSelectedVariant().getInstantAppCompatible()) {
+        if (model.isInstantAppCompatible()) {
           return true;
         }
       }
     }
     return false;
-  }
-
-  @NotNull
-  public static List<Module> getModulesSupportingBundleTask(@NotNull Project project) {
-    return ProjectStructure.getInstance(project).getAppModules().stream()
-      .filter(module -> supportsBundleTask(module))
-      .collect(Collectors.toList());
-  }
-
-  /**
-   * Returns {@code true} if the module supports the "bundle" task, i.e. if the Gradle
-   * plugin associated to the module is of high enough version number and supports
-   * the "Bundle" tool.
-   */
-  public static boolean supportsBundleTask(@NotNull Module module) {
-    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
-    if (androidModule == null) {
-      return false;
-    }
-    return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName());
   }
 
   /**
