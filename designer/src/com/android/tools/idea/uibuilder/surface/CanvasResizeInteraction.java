@@ -43,7 +43,7 @@ import com.google.common.collect.Maps;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.*;
@@ -56,7 +56,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.*;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -465,7 +464,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         myOrientationImage = image;
       }
-      UIUtil.drawImage(g2d, image, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, image);
     }
 
     public synchronized void reset() {
@@ -544,7 +543,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         buckets.put(screenSizeBucket, new SoftReference<>(bucket));
       }
-      UIUtil.drawImage(g2d, bucket, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, bucket);
     }
 
     @NotNull
