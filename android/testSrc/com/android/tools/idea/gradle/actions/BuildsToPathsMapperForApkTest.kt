@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.BuildMode
@@ -78,7 +78,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromPostBuildModelForApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
-    val androidModel = AndroidModuleModel.get(myModule)
+    val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
@@ -95,7 +95,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
     TestCase.assertEquals(output1.parentFile, output2.parentFile)
-    val androidModel = AndroidModuleModel.get(myModule)
+    val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createPostBuildModel(Lists.newArrayList(output1, output2), buildVariant).toTestAssembleResult(),
@@ -140,7 +140,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   fun testSingleOutputFromInstantAppPostBuildModel() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP)
     val output = File("path/to/bundle")
-    val androidModel = AndroidModuleModel.get(myModule)
+    val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
@@ -169,7 +169,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
-      createAppBundleBuildModel(output, AndroidModuleModel.get(myModule)!!.selectedVariant.name).toTestAssembleResult(),
+      createAppBundleBuildModel(output, GradleAndroidModel.get(myModule)!!.selectedVariant.name).toTestAssembleResult(),
       emptyList(),
       setOf(myModule),
       true
