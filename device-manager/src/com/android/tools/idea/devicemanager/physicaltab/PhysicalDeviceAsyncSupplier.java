@@ -18,16 +18,14 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
+import com.android.tools.idea.devicemanager.DeviceManagerFutures;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -67,22 +65,6 @@ final class PhysicalDeviceAsyncSupplier {
       .map(service::build)
       .collect(Collectors.toList());
 
-    Executor executor = EdtExecutorService.getInstance();
-
-    // noinspection UnstableApiUsage
-    return Futures.transform(Futures.successfulAsList(futures), PhysicalDeviceAsyncSupplier::filterSuccessful, executor);
-  }
-
-  @UiThread
-  private static @NotNull List<@NotNull PhysicalDevice> filterSuccessful(@NotNull Collection<@Nullable PhysicalDevice> devices) {
-    List<PhysicalDevice> filteredDevices = devices.stream()
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-
-    if (filteredDevices.size() != devices.size()) {
-      Logger.getInstance(PhysicalDeviceAsyncSupplier.class).warn("Some of the physical devices were not successfully built");
-    }
-
-    return filteredDevices;
+    return DeviceManagerFutures.successfulAsList(futures, EdtExecutorService.getInstance());
   }
 }

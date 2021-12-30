@@ -27,9 +27,8 @@ import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +39,9 @@ final class AsyncVirtualDeviceBuilder {
   private final @NotNull ListenableFuture<@NotNull Long> mySizeOnDiskFuture;
 
   @UiThread
-  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device) {
+  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListeningExecutorService service) {
     myDevice = device;
-    mySizeOnDiskFuture = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(this::recursiveSize);
+    mySizeOnDiskFuture = service.submit(this::recursiveSize);
   }
 
   private long recursiveSize() {

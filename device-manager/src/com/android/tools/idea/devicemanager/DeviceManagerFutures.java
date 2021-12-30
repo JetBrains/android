@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class DeviceManagerFutures {
   private DeviceManagerFutures() {
@@ -37,5 +46,23 @@ public final class DeviceManagerFutures {
       Thread.currentThread().interrupt();
       throw new AssertionError(exception);
     }
+  }
+
+  public static <V> @NotNull ListenableFuture<@NotNull List<@NotNull V>> successfulAsList(@NotNull Iterable<@NotNull ListenableFuture<@NotNull V>> futures,
+                                                                                          @NotNull Executor executor) {
+    // noinspection UnstableApiUsage
+    return Futures.transform(Futures.successfulAsList(futures), DeviceManagerFutures::filterSuccessful, executor);
+  }
+
+  private static <V> @NotNull List<@NotNull V> filterSuccessful(@NotNull Collection<@Nullable V> values) {
+    List<V> nonnullValues = values.stream()
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+
+    if (nonnullValues.size() != values.size()) {
+      Logger.getInstance(DeviceManagerFutures.class).warn("Some of the input futures failed");
+    }
+
+    return nonnullValues;
   }
 }
