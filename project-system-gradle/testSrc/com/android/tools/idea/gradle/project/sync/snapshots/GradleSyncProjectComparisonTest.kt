@@ -56,7 +56,6 @@ import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
-import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -280,62 +279,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     fun testPsdSample() {
       val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       assertIsEqualToSnapshot(text)
-    }
-
-    @Test
-    fun testPsdSampleRenamingModule() {
-      importSyncAndDumpProject(PSD_SAMPLE_GROOVY) { project ->
-        val beforeRename = project.saveAndDump()
-        PsProjectImpl(project).let { projectModel ->
-          projectModel.removeModule(":nested1")
-          projectModel.removeModule(":nested1:deep")
-          with(projectModel.parsedModel.projectSettingsModel!!) {
-            addModulePath(":container1")
-            addModulePath(":container1:deep")
-          }
-          projectModel.applyChanges()
-        }
-        run<Throwable> {
-          project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
-        }
-        ApplicationManager.getApplication().saveAll()
-        val afterRename = project.syncAndDumpProject()
-        assertAreEqualToSnapshots(
-          beforeRename to "",
-          afterRename to ".after_rename"
-        )
-      }
-    }
-
-    @Test
-    fun testPsdDependencyUpgradeLibraryModule() {
-      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
-        val beforeLibUpgrade = project.saveAndDump()
-        PsProjectImpl(project).let { projectModel ->
-          projectModel
-            .findModuleByGradlePath(":modulePlus")!!
-            .dependencies
-            .findLibraryDependencies("com.example.libs", "lib1")
-            .forEach { it.version = "1.0".asParsed() }
-          projectModel
-            .findModuleByGradlePath(":mainModule")!!
-            .dependencies
-            .findLibraryDependencies("com.example.libs", "lib1")
-            .forEach { it.version = "0.9.1".asParsed() }
-          projectModel
-            .findModuleByGradlePath(":mainModule")!!
-            .dependencies
-            .findLibraryDependencies("com.example.jlib", "lib3")
-            .single().version = "0.9.1".asParsed()
-          projectModel.applyChanges()
-        }
-        val afterLibUpgrade = project.syncAndDumpProject()
-        // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
-        assertAreEqualToSnapshots(
-          beforeLibUpgrade to ".before_lib_upgrade",
-          afterLibUpgrade to ".after_lib_upgrade"
-        )
-      }
     }
 
     @Test

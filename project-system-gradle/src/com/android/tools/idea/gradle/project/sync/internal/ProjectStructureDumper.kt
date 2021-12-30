@@ -89,7 +89,7 @@ fun ProjectDumper.dumpProject(project: Project) {
   }
 }
 
-private fun ProjectDumper.dump(module: Module) {
+fun ProjectDumper.dump(module: Module) {
   val moduleFile = module.moduleFilePath.toPrintablePath()
   head("MODULE") { module.name }
   nest {
