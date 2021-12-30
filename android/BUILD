@@ -125,7 +125,7 @@ iml_module(
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         "gradle": {
-            "shard_count": 10,
+            "shard_count": 6,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.gradle",
         },
