@@ -17,27 +17,25 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.testutils.file.createInMemoryFileSystem
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.FutureResult
-import org.junit.After
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
-import java.util.concurrent.Future
 
 /**
  * Tests for the local repository utility class
  */
 class RepositoryUrlManagerCachingTest {
 
-  private lateinit var disposable: Disposable
-  private lateinit var mockApplication: TestMockApplication
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
   private val repositoryUrlManager = RepositoryUrlManager(networkRepo, localRepo, true /* force repository checks */)
@@ -77,61 +75,25 @@ class RepositoryUrlManagerCachingTest {
     override fun error(throwable: Throwable, message: String?) = Unit
   }
 
-  private class TestMockApplication(parentDisposable: Disposable) : MockApplication(parentDisposable) {
-
-    private var isDispatchThread: Boolean = false
-
-    fun setDispatchThread(isDispatchThread: Boolean) {
-      this.isDispatchThread = isDispatchThread
-    }
-
-    override fun isDispatchThread(): Boolean = isDispatchThread
-
-    override fun executeOnPooledThread(action: Runnable): Future<*> {
-      // For this test we want to run on the same thread. We are just checking the method is called.
-      action.run()
-      return FutureResult<Any>()
-    }
-  }
-
-  @Before
-  fun setUp() {
-    disposable = Disposer.newDisposable()
-    mockApplication = TestMockApplication(disposable)
-    val oldApplication = ApplicationManager.getApplication()
-    ApplicationManager.setApplication(mockApplication, disposable)
-
-    // If there was no previous application,
-    // ApplicationManager leaves the MockApplication in place, which can break future tests.
-    if (oldApplication == null) {
-      Disposer.register(disposable) {
-        object : ApplicationManager() {
-          init {
-            ourApplication = null
-          }
-        }
-      }
-    }
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
-  }
-
   @Test
+  @RunsInEdt
   fun calledFromDispatchThread() {
-    mockApplication.isDispatchThread = true
+    ApplicationManager.getApplication().assertIsDispatchThread();
     repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the dispatch thread, we return the dependency value from the local cache and post a network request on background.
     assertEquals(2, localRepo.requestCount.toLong())
+    var counter = 100
+    while (networkRepo.requestCount != 2) {
+      counter --
+      Thread.sleep(10)
+    }
     assertEquals(2, networkRepo.requestCount.toLong())
   }
 
   @Test
   fun calledFromWorkerThread() {
-    mockApplication.isDispatchThread = false
+    ApplicationManager.getApplication().assertIsNonDispatchThread();
     repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the worker thread, we return the dependency value from the network only.
