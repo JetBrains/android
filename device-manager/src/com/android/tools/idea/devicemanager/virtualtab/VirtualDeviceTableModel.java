@@ -33,7 +33,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 @UiThread
 final class VirtualDeviceTableModel extends AbstractTableModel {
   static final boolean SPLIT_ACTIONS_ENABLED = false;
-  private static final boolean VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED = false;
+  static final boolean VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED = false;
 
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   static final int API_MODEL_COLUMN_INDEX = 1;
@@ -237,6 +237,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return myDevices.get(modelRowIndex).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
+          // TODO: display this as a string in MB/GB/etc
           return myDevices.get(modelRowIndex).getSizeOnDisk();
         }
         else {
