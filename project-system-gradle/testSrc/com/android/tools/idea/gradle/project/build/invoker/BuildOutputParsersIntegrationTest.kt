@@ -34,18 +34,12 @@ import java.io.File
 class BuildOutputParsersIntegrationTest : PlatformTestCase() {
   private lateinit var myTaskId: ExternalSystemTaskId
 
-  private lateinit var myBuildInvoker: GradleBuildInvokerImpl
   private lateinit var scheduler: VirtualTimeScheduler
   private lateinit var myTracker: TestUsageTracker
   private lateinit var myRequest: GradleBuildInvoker.Request
 
   @Mock
   private lateinit var myFileDocumentManager: FileDocumentManager
-
-  private val myTasksExecutor = FakeGradleTaskExecutor()
-
-  @Mock
-  private lateinit var myDebugSessionFinder: NativeDebugSessionFinder
 
   override fun setUp() {
     super.setUp()
@@ -56,10 +50,6 @@ class BuildOutputParsersIntegrationTest : PlatformTestCase() {
 
     myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
 
-    myBuildInvoker = GradleBuildInvokerImpl(myProject,
-                                            myFileDocumentManager,
-                                            myTasksExecutor,
-                                            myDebugSessionFinder)
     myRequest = GradleBuildInvoker.Request.builder(myProject, File(myProject.basePath)).setTaskId(myTaskId).build()
   }
 
@@ -83,7 +73,13 @@ class BuildOutputParsersIntegrationTest : PlatformTestCase() {
 
   @Test
   fun testAndroidGradlePluginErrors() {
-    val buildListener = myBuildInvoker.temporaryCreateBuildTaskListenerForTests(myRequest, "")
+    val buildListener =
+      GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
+        project,
+        myFileDocumentManager,
+        myRequest,
+        ""
+      )
     val path = tempDir.newPath("styles.xml")
     val absolutePath = StringUtil.escapeBackSlashes(path.toAbsolutePath().toString())
     val output = """
@@ -160,7 +156,13 @@ class BuildOutputParsersIntegrationTest : PlatformTestCase() {
 
   @Test
   fun testXmlParsingError() {
-    val buildListener = myBuildInvoker.temporaryCreateBuildTaskListenerForTests(myRequest, "")
+    val buildListener =
+      GradleBuildInvokerImpl.Companion.createBuildTaskListenerForTests(
+        project,
+        myFileDocumentManager,
+        myRequest,
+        ""
+      )
     val file = tempDir.createVirtualFile("AndroidManifest.xml")
     val path = file.toNioPath()
     val output = """Executing tasks: [clean, :app:assembleDebug]

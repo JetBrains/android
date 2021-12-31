@@ -27,7 +27,7 @@ import com.intellij.openapi.module.Module
  * Creates BuildAction based on AndroidModelFeatures.
  * Use [OutputBuildAction] to obtain post build sync models if isPostBuildSyncSupported is true for all modules.
  */
-fun create(modules: List<Module>): OutputBuildAction? {
+fun createOutputBuildAction(modules: List<Module>): OutputBuildAction? {
   val usePostBuildSync = modules.mapNotNull { GradleAndroidModel.get(it)?.features }.all { it.isPostBuildSyncSupported }
   return if (usePostBuildSync) OutputBuildAction(getModuleGradlePaths(modules)) else null
 }
