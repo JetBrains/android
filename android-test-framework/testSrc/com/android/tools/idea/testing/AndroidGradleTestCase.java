@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -38,7 +39,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
@@ -153,7 +153,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // To ensure that application IDs are loaded from the listing file as needed, we must register the required listeners.
       // This is normally done within an AndroidStartupActivity but these are not run in tests.
       // TODO(b/159600848)
-      GradleBuildOutputUtil.emulateStartupActivityForTest(getProject());
+      emulateStartupActivityForTest(getProject());
     }
 
     // Use per-project code style settings so we never modify the IDE defaults.

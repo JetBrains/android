@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModelUtilKt.classFieldsToDynamicResourceValues;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.loadBuildOutputListingFile;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.variantOutputInformation;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.loadBuildOutputListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.variantOutputInformation;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;

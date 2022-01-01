@@ -17,8 +17,8 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFile;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static java.util.Collections.emptyList;
@@ -51,8 +51,8 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
@@ -555,7 +555,7 @@ public class GradleApkProvider implements ApkProvider {
 
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      String outputListingFile = GradleBuildOutputUtil
+      String outputListingFile = BuildOutputUtil
         .getOutputListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
                               OutputType.ApkFromBundle);
       apkFiles = outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFile;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFileOrLogError;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputFilesFromListingFile;
+import static com.android.tools.idea.gradle.util.BuildOutputUtil.getOutputListingFileOrLogError;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.build.OutputFile;
