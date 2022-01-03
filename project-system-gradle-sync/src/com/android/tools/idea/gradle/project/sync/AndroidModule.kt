@@ -41,6 +41,7 @@ import java.io.File
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
+  abstract val variantNameResolver: VariantNameResolver
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
 
@@ -71,6 +72,8 @@ class JavaModule(
       kaptGradleModel?.deliver()
     }
   }
+
+  override val variantNameResolver: VariantNameResolver = fun(_: String?, _: (dimension: String) -> String): String? = null
 }
 
 /**
@@ -90,6 +93,7 @@ class AndroidModule constructor(
   // The list of partial IdeVariant models populated from V2 models only.
   val v2Variants: List<IdeVariantImpl>?,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
+  override val variantNameResolver: VariantNameResolver,
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?
@@ -159,7 +163,7 @@ class AndroidModule constructor(
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
 
 @UsedInBuildAction
-class  NativeVariantsAndroidModule private constructor(
+class NativeVariantsAndroidModule private constructor(
   gradleProject: BasicGradleProject,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
 ) : GradleModule(gradleProject) {
@@ -174,6 +178,8 @@ class  NativeVariantsAndroidModule private constructor(
       IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues.orEmpty()).deliver()
     }
   }
+
+  override val variantNameResolver: VariantNameResolver = fun(_: String?, _: (String) -> String?): String? = null
 }
 
 @UsedInBuildAction

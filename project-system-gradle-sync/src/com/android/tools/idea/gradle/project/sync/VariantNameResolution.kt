@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeVariant
+
 typealias VariantNameResolver = (buildType: String?, productFlavors: (dimension: String) ->  String) -> String?
 
-fun AndroidModule.buildVariantNameResolver(): VariantNameResolver {
+fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariant>): VariantNameResolver {
   val moduleName = androidProject.name
   val availableDimensions = androidProject.productFlavors.mapNotNull { it.productFlavor.dimension }.toSet()
   val dimensions = androidProject.flavorDimensions.filter { availableDimensions.contains(it) }
-  val map = v2Variants.orEmpty()
+  val map = v2Variants
     .associate { variant ->
       variant.productFlavors.toList() + listOfNotNull(variant.buildType) to variant.name
     }

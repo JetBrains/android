@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
@@ -87,20 +86,7 @@ class VariantNameResolutionTest {
     val (androidProject, variants, ndkModel) =
       projectModelBuilder("projectName", PROJECT_ROOT, APP_MODULE_ROOT, "99.99.99-agp-version")
 
-    val module = AndroidModule(
-      modelVersion = GradleVersion(99, 99),
-      buildName = "rootBuild",
-      buildNameMap = mapOf("rootBuild" to PROJECT_ROOT),
-      gradleProject = APP_BASIC_GRADLE_PROJECT,
-      androidProject = androidProject,
-      allVariantNames = variants.map { it.name }.toSet(),
-      defaultVariantName = variants.map { it.name }.first(),
-      v2Variants = variants.toList(),
-      nativeAndroidProject = null,
-      nativeModule = ndkModel?.nativeModule
-    )
-
-    val resolver = module.buildVariantNameResolver()
+    val resolver = buildVariantNameResolver(androidProject, variants)
     Truth.assertThat(
       resolver(
         "debug"

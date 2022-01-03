@@ -123,6 +123,7 @@ internal class AndroidExtraModelProviderWorker(
       override val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
                                                  ?: allVariantNames.getDefaultOrFirstItem("debug")
       override val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") safeGet(androidProject::getSyncIssues, null)
+      override val variantNameResolver: VariantNameResolver = fun(_: String?, _: (String) -> String?): String? = null
       val ndkVersion: String = safeGet(androidProject::getNdkVersion, "")
     }
 
@@ -157,6 +158,7 @@ internal class AndroidExtraModelProviderWorker(
         // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
         basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
       override val syncIssues: Collection<SyncIssue>? = null
+      override val variantNameResolver: VariantNameResolver = buildVariantNameResolver(ideAndroidProject, v2Variants)
     }
 
     abstract val buildName: String?
@@ -165,6 +167,7 @@ internal class AndroidExtraModelProviderWorker(
     abstract val allVariantNames: Set<String>
     abstract val defaultVariantName: String?
     abstract val syncIssues: Collection<SyncIssue>?
+    abstract val variantNameResolver: VariantNameResolver
   }
 
   private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
@@ -283,10 +286,8 @@ internal class AndroidExtraModelProviderWorker(
 
     modules.filterIsInstance<AndroidModule>().forEach { androidModulesById[it.id] = it }
 
-    val variantNameResolvers = modules.filterIsInstance<AndroidModule>()
-      .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to it.buildVariantNameResolver() } +
-      modules.filterIsInstance<JavaModule>()
-      .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to {_, _ -> null} }
+    val variantNameResolvers = modules
+      .associate { (it.gradleProject.projectIdentifier.buildIdentifier.rootDir to it.gradleProject.path) to it.variantNameResolver }
 
     fun getVariantNameResolver(buildId: File, projectPath: String): VariantNameResolver =
       variantNameResolvers.getOrElse(buildId to projectPath) {
@@ -960,6 +961,7 @@ private fun createAndroidModule(
     allVariantNames = allVariantNames,
     defaultVariantName = defaultVariantName,
     v2Variants = (androidProjectResult as? AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project)?.v2Variants,
+    variantNameResolver = androidProjectResult.variantNameResolver,
     nativeAndroidProject = ideNativeAndroidProject,
     nativeModule = ideNativeModule
   )
