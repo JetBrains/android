@@ -377,18 +377,12 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // If the library is an android module dependency, use projectId:projectPath::variant as unique identifier.
     // MavenCoordinates cannot be used because it doesn't contain variant information, which results
     // in the same MavenCoordinates for different variants of the same module.
-    try {
       if (library.project != null && library is AndroidLibrary) {
         return ((copyNewProperty(library::getBuildId)).orEmpty()
                 + library.getProject()
                 + "::"
                 + library.projectVariant)
       }
-    }
-    catch (ex: UnsupportedOperationException) {
-      // getProject() isn't available for pre-2.0 plugins. Proceed with MavenCoordinates.
-      // Anyway pre-2.0 plugins don't have variant information for module dependency.
-    }
     val coordinate: IdeMavenCoordinates = computeResolvedCoordinate(library)
     var artifactId = coordinate.artifactId
     if (artifactId.startsWith(":")) {
@@ -543,15 +537,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       }
     }
 
-    fun getJavaDependencies(androidLibrary: AndroidLibrary): Collection<JavaLibrary> {
-      return try {
-        androidLibrary.javaDependencies
-      }
-      catch (e: UnsupportedOperationException) {
-        emptyList()
-      }
-    }
-
     fun populateJavaLibraries(
       javaLibraries: Collection<JavaLibrary>,
       visited: MutableSet<String>) {
@@ -560,7 +545,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         if (!visited.contains(address)) {
           visited.add(address)
           librariesById.computeIfAbsent(address) { libraryFrom(javaLibrary) }
-          populateJavaLibraries(javaLibrary.dependencies, visited)
+          if (javaLibrary.dependencies.isNotEmpty()) error("JavaLibrary.dependencies is expected to be empty")
         }
       }
     }
@@ -574,8 +559,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         if (!visited.contains(address)) {
           visited.add(address)
           librariesById.computeIfAbsent(address) { libraryFrom(androidLibrary) }
-          populateAndroidLibraries(androidLibrary.libraryDependencies, visited)
-          populateJavaLibraries(getJavaDependencies(androidLibrary), visited)
+          if (androidLibrary.libraryDependencies.isNotEmpty()) error("AndroidLibrary.libraryDependencies is expected to be empty")
+          if (androidLibrary.javaDependencies.isNotEmpty()) error("AndroidLibrary.javaDependencies is expected to be empty")
         }
       }
     }
