@@ -394,12 +394,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return ModelCache.create(false).androidProjectFrom(androidProject);
+    return ((ModelCache.V1)(ModelCache.create(false))).androidProjectFrom(androidProject);
   }
 
   @NotNull
   public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
-    ModelCache modelCache = ModelCache.create(false);
+    ModelCache.V1 modelCache = (ModelCache.V1)ModelCache.create(false);
     GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
     IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
     return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, new ModuleId("", "")));

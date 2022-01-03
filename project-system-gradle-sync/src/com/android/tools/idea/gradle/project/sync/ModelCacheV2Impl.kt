@@ -89,7 +89,6 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryCore
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -1131,14 +1130,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       agpFlags = agpFlags)
   }
 
-  return object : ModelCache {
-    override fun variantFrom(
-      androidProject: IdeAndroidProject,
-      variant: com.android.builder.model.Variant,
-      modelVersion: GradleVersion?,
-      androidModuleId: ModuleId
-    ): IdeVariantImpl = throw UnsupportedOperationException()
-
+  return object : ModelCache.V2 {
     override fun variantFrom(
       androidProject: IdeAndroidProject,
       basicVariant: BasicVariant,
@@ -1153,18 +1145,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       buildNameMap: Map<String, File>
     ): IdeVariantImpl = variantFrom(variant, variantDependencies, getVariantNameResolver, buildNameMap)
 
-    override fun androidProjectFrom(project: com.android.builder.model.AndroidProject): IdeAndroidProjectImpl =
-      throw UnsupportedOperationException()
-
     override fun androidProjectFrom(
       basicProject: BasicAndroidProject,
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl
     ): IdeAndroidProjectImpl = androidProjectFrom(basicProject, project, androidVersion, androidDsl)
-
-    override fun androidArtifactOutputFrom(output: com.android.build.OutputFile): IdeAndroidArtifactOutputImpl =
-      throw UnsupportedOperationException("OutputFile is deprecated for AGP 7.0+")
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
 

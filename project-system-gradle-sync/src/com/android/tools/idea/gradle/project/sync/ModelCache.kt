@@ -46,44 +46,48 @@ import java.io.File
 
 interface ModelCache {
 
-  fun variantFrom(
-    androidProject: IdeAndroidProject,
-    variant: Variant,
-    modelVersion: GradleVersion?,
-    androidModuleId: ModuleId
-  ): IdeVariantImpl
+  interface V1 : ModelCache {
+    fun variantFrom(
+      androidProject: IdeAndroidProject,
+      variant: Variant,
+      modelVersion: GradleVersion?,
+      androidModuleId: ModuleId
+    ): IdeVariantImpl
 
-  /**
-   * Converts V2's [BasicVariant] and [Variant] to an incomplete [IdeVariantImpl] instance which does not yet include
-   * dependency information.
-   */
-  fun variantFrom(
-    androidProject: IdeAndroidProject,
-    basicVariant: BasicVariant,
-    variant: com.android.builder.model.v2.ide.Variant,
-    modelVersion: GradleVersion?
-  ): IdeVariantImpl
+    fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
 
-  /**
-   * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
-   */
-  fun variantFrom(
-    variant: IdeVariantImpl,
-    variantDependencies: VariantDependencies,
-    variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
-    buildNameMap: Map<String, File>
-  ): IdeVariantImpl
+    fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
+  }
 
-  fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
+  interface V2 : ModelCache {
+    /**
+     * Converts V2's [BasicVariant] and [Variant] to an incomplete [IdeVariantImpl] instance which does not yet include
+     * dependency information.
+     */
+    fun variantFrom(
+      androidProject: IdeAndroidProject,
+      basicVariant: BasicVariant,
+      variant: com.android.builder.model.v2.ide.Variant,
+      modelVersion: GradleVersion?
+    ): IdeVariantImpl
 
-  fun androidProjectFrom(
-    basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
-    project: com.android.builder.model.v2.models.AndroidProject,
-    androidVersion: Versions,
-    androidDsl: AndroidDsl
-  ): IdeAndroidProjectImpl
+    /**
+     * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
+     */
+    fun variantFrom(
+      variant: IdeVariantImpl,
+      variantDependencies: VariantDependencies,
+      variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
+      buildNameMap: Map<String, File>
+    ): IdeVariantImpl
 
-  fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
+    fun androidProjectFrom(
+      basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
+      project: com.android.builder.model.v2.models.AndroidProject,
+      androidVersion: Versions,
+      androidDsl: AndroidDsl
+    ): IdeAndroidProjectImpl
+  }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl
   fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
@@ -93,7 +97,7 @@ interface ModelCache {
     const val LOCAL_AARS = "__local_aars__"
 
     @JvmStatic
-    fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache  {
+    fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache {
       if (useV2BuilderModels) {
         return modelCacheV2Impl(buildFolderPaths.buildRootDirectory)
       }
@@ -111,7 +115,7 @@ interface ModelCache {
     }
 
     @JvmStatic
-    fun create(): ModelCache {
+    fun create(): ModelCache.V1 {
       return modelCacheV1Impl(BuildFolderPaths())
     }
   }
@@ -120,9 +124,8 @@ interface ModelCache {
 data class ModuleId(val gradlePath: String, val buildId: String)
 
 
-
 @VisibleForTesting
-/** For older AGP versions pick a variant name based on a heuristic  */
+  /** For older AGP versions pick a variant name based on a heuristic  */
 fun getDefaultVariant(variantNames: Collection<String>): String? {
   // Corner case of variant filter accidentally removing all variants.
   if (variantNames.isEmpty()) {
@@ -144,7 +147,7 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {
+internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
   AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST

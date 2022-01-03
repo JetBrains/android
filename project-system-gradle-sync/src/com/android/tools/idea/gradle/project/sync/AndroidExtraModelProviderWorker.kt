@@ -115,7 +115,7 @@ internal class AndroidExtraModelProviderWorker(
   )
 
   sealed class AndroidProjectResult {
-    class V1Project(val modelCache: ModelCache, androidProject: AndroidProject) : AndroidProjectResult() {
+    class V1Project(val modelCache: ModelCache.V1, androidProject: AndroidProject) : AndroidProjectResult() {
       override val buildName: String? = null
       override val agpVersion: String = safeGet(androidProject::getModelVersion, "")
       override val ideAndroidProject: IdeAndroidProject = modelCache.androidProjectFrom(androidProject)
@@ -130,7 +130,7 @@ internal class AndroidExtraModelProviderWorker(
     }
 
     class V2Project(
-      val modelCache: ModelCache,
+      val modelCache: ModelCache.V2,
       basicAndroidProject: BasicAndroidProject,
       androidProject: V2AndroidProject,
       val modelVersions: Versions,
@@ -230,7 +230,7 @@ internal class AndroidExtraModelProviderWorker(
                 }
 
                 androidProjectResult =
-                  AndroidProjectResult.V2Project(modelCache, basicAndroidProject, androidProject, versions, androidDsl)
+                  AndroidProjectResult.V2Project(modelCache as ModelCache.V2, basicAndroidProject, androidProject, versions, androidDsl)
 
                 // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
                 val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = false)
@@ -263,7 +263,7 @@ internal class AndroidExtraModelProviderWorker(
               } else if (canFetchV2Models == true) {
                 error("Cannot initiate V1 models for Sync.")
               }
-              androidProjectResult = AndroidProjectResult.V1Project(modelCache, androidProject)
+              androidProjectResult = AndroidProjectResult.V1Project(modelCache as ModelCache.V1, androidProject)
 
               val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = false)
               val nativeAndroidProject: NativeAndroidProject? =
@@ -970,7 +970,7 @@ private fun BuildController.findVariantDependenciesV2Model(
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-fun v1VariantFetcher(modelCache: ModelCache): IdeVariantFetcher {
+fun v1VariantFetcher(modelCache: ModelCache.V1): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
@@ -985,7 +985,7 @@ fun v1VariantFetcher(modelCache: ModelCache): IdeVariantFetcher {
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-fun v2VariantFetcher(modelCache: ModelCache, v2Variants: List<IdeVariantImpl>): IdeVariantFetcher {
+fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantImpl>): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,

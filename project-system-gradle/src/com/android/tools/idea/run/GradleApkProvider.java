@@ -377,7 +377,7 @@ public class GradleApkProvider implements ApkProvider {
         String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
     }
 
-    ModelCache modelCache = ModelCache.create();
+    ModelCache.V1 modelCache = ModelCache.create();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {

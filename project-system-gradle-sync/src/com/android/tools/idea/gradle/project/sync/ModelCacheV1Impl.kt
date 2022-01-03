@@ -56,9 +56,6 @@ import com.android.builder.model.Variant
 import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
-import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.VariantDependencies
-import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -139,7 +136,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import java.io.File
 
-internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
+internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
   val strings: MutableMap<String, String> = HashMap()
   val androidLibraryCores: MutableMap<IdeAndroidLibraryCore, IdeAndroidLibraryCore> = HashMap()
@@ -377,12 +374,12 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // If the library is an android module dependency, use projectId:projectPath::variant as unique identifier.
     // MavenCoordinates cannot be used because it doesn't contain variant information, which results
     // in the same MavenCoordinates for different variants of the same module.
-      if (library.project != null && library is AndroidLibrary) {
-        return ((copyNewProperty(library::getBuildId)).orEmpty()
-                + library.getProject()
-                + "::"
-                + library.projectVariant)
-      }
+    if (library.project != null && library is AndroidLibrary) {
+      return ((copyNewProperty(library::getBuildId)).orEmpty()
+              + library.getProject()
+              + "::"
+              + library.projectVariant)
+    }
     val coordinate: IdeMavenCoordinates = computeResolvedCoordinate(library)
     var artifactId = coordinate.artifactId
     if (artifactId.startsWith(":")) {
@@ -526,11 +523,12 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
           computeAddress(identifier),
           identifier.buildId,
           if (androidModuleId != null &&
-              androidModuleId.gradlePath  == identifier.projectPath &&
+              androidModuleId.gradlePath == identifier.projectPath &&
               androidModuleId.buildId == identifier.buildId
           ) {
             variantName
-          } else{
+          }
+          else {
             null
           }
         )
@@ -785,7 +783,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
           // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
           // we only have one main artifact that is a test artifact, so we need to handle this as a special case.
           variantName = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) variant.name else null,
-          androidModuleId = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) androidModuleId else  null,
+          androidModuleId = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) androidModuleId else null,
           androidProject.agpFlags.mlModelBindingEnabled,
           androidProject.projectType
         )
@@ -795,7 +793,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       }.firstOrNull { it.isTestArtifact },
       androidTestArtifact =
       copy(variant::getExtraAndroidArtifacts) {
-        androidArtifactFrom(it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
+        androidArtifactFrom(it, modelVersion, variant.name, androidModuleId, androidProject.agpFlags.mlModelBindingEnabled,
+                            androidProject.projectType)
       }.firstOrNull { it.isTestArtifact },
       testFixturesArtifact = null,
       buildType = variant.buildType,
@@ -984,7 +983,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun ideVariantBuildInformationFrom(model: VariantBuildInformation, projectType: Int): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
+  fun ideVariantBuildInformationFrom(model: VariantBuildInformation,
+                                     projectType: Int): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
     variantName = model.variantName,
     buildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = model.assembleTaskName,
@@ -1019,8 +1019,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     includeInBundle = model.includeInBundle
   )
 
-  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getBooleanFlag(flag: AndroidGradlePluginProjectFlags.BooleanFlag): Boolean
-    = this[flag] ?: flag.legacyDefault
+  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getBooleanFlag(flag: AndroidGradlePluginProjectFlags.BooleanFlag): Boolean = this[flag]
+                                                                                                                                             ?: flag.legacyDefault
 
   fun createIdeAndroidGradlePluginProjectFlagsImpl(
     booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>
@@ -1137,34 +1137,15 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       agpFlags = agpFlags)
   }
 
-  return object : ModelCache {
-    override fun variantFrom(androidProject: IdeAndroidProject,
-                             variant: Variant,
-                             modelVersion: GradleVersion?,
-                             androidModuleId: ModuleId
-    ): IdeVariantImpl = variantFrom(androidProject, variant, modelVersion, androidModuleId)
-
+  return object : ModelCache.V1 {
     override fun variantFrom(
       androidProject: IdeAndroidProject,
-      basicVariant: com.android.builder.model.v2.ide.BasicVariant,
-      variant: com.android.builder.model.v2.ide.Variant,
-      modelVersion: GradleVersion?
-    ): IdeVariantImpl = throw UnsupportedOperationException()
-
-    override fun variantFrom(
-      variant: IdeVariantImpl,
-      variantDependencies: VariantDependencies,
-      getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver,
-      buildNameMap: Map<String, File>
-    ): IdeVariantImpl = throw UnsupportedOperationException()
+      variant: Variant,
+      modelVersion: GradleVersion?,
+      androidModuleId: ModuleId
+    ): IdeVariantImpl = variantFrom(androidProject, variant, modelVersion, androidModuleId)
 
     override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = androidProjectFrom(project)
-    override fun androidProjectFrom(
-      basicProject: com.android.builder.model.v2.models.BasicAndroidProject,
-      project: com.android.builder.model.v2.models.AndroidProject,
-      androidVersion: Versions,
-      androidDsl: AndroidDsl
-    ): IdeAndroidProjectImpl = throw UnsupportedOperationException()
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl = androidArtifactOutputFrom(output)
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
