@@ -42,6 +42,7 @@ import com.intellij.openapi.project.ProjectManager
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.onClosed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -80,7 +81,9 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       }
     }
 
-    updateDevicesChannel.offer(Unit)
+    updateDevicesChannel.trySend(Unit).onClosed {
+      throw IllegalStateException(it)
+    }
   }
 
   @Synchronized
@@ -128,19 +131,27 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       LOG.warn(ex)
     }
 
-    updateDevicesChannel.offer(Unit)
+    updateDevicesChannel.trySend(Unit).onClosed {
+      throw IllegalStateException(it)
+    }
   }
 
   override fun deviceConnected(device: IDevice) {
-    updateDevicesChannel.offer(Unit)
+    updateDevicesChannel.trySend(Unit).onClosed {
+      throw IllegalStateException(it)
+    }
   }
 
   override fun deviceDisconnected(device: IDevice) {
-    updateDevicesChannel.offer(Unit)
+    updateDevicesChannel.trySend(Unit).onClosed {
+      throw IllegalStateException(it)
+    }
   }
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    updateDevicesChannel.offer(Unit)
+    updateDevicesChannel.trySend(Unit).onClosed {
+      throw IllegalStateException(it)
+    }
   }
 
   @Slow
