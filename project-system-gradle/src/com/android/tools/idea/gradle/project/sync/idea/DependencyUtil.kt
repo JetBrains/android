@@ -23,14 +23,17 @@ import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
+import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeDependency
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
@@ -198,7 +201,7 @@ catch (e: UnsupportedMethodException) {
  *
  */
 fun computeModuleIdForLibraryTarget(
-  library: IdeModuleLibrary
+  library: IdeModuleDependency
 ): GradleProjectPath {
   val libraryBuildId = toSystemIndependentName(library.buildId)
   return GradleProjectPath(libraryBuildId, library.projectPath, library.sourceSet)
@@ -214,7 +217,7 @@ private class AndroidDependenciesSetupContext(
   private val project: Project?
 ) {
 
-  private abstract inner class WorkItem<T : IdeLibrary> {
+  private abstract inner class WorkItem<T : IdeDependency<*>> {
     abstract fun isAlreadyProcessed(): Boolean
     protected abstract fun setupTarget()
     protected abstract fun createDependencyData(scope: DependencyScope)
@@ -225,8 +228,8 @@ private class AndroidDependenciesSetupContext(
     }
   }
 
-  private abstract inner class LibraryWorkItem<T : IdeArtifactLibrary>(protected val library: T) : WorkItem<T>() {
-    protected val libraryName = library.name
+  private abstract inner class LibraryWorkItem<T : IdeArtifactDependency<*>>(protected val library: T) : WorkItem<T>() {
+    protected val libraryName = library.target.name
     protected val libraryData: LibraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
 
     final override fun isAlreadyProcessed(): Boolean = processedLibraries.containsKey(libraryName)
@@ -243,40 +246,41 @@ private class AndroidDependenciesSetupContext(
       // Work out the level of the library, if the library path is inside the module directory we treat
       // this as a Module level library. Otherwise we treat it as a Project level one.
       return when {
-        library.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath) -> LibraryLevel.MODULE
+        library.target.isModuleLevel(moduleDataNode.data.moduleFileDirectoryPath) -> LibraryLevel.MODULE
         !linkProjectLibrary(null, projectDataNode, libraryData) -> LibraryLevel.MODULE
         else -> LibraryLevel.PROJECT
       }
     }
   }
 
-  private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
+  private inner class JavaLibraryWorkItem(library: IdeJavaLibraryDependency) : LibraryWorkItem<IdeJavaLibraryDependency>(library) {
     override fun setupTarget() {
-      ArtifactDependencySpec.create(library.artifactAddress)?.also {
+      ArtifactDependencySpec.create(library.target.artifactAddress)?.also {
         libraryData.setGroup(it.group)
         libraryData.artifactId = it.name
         libraryData.version = it.version
       }
 
-      libraryData.addPath(BINARY, library.artifact.absolutePath)
+      libraryData.addPath(BINARY, library.target.artifact.absolutePath)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }
   }
 
-  private inner class AndroidLibraryWorkItem(library: IdeAndroidLibrary) : LibraryWorkItem<IdeAndroidLibrary>(library) {
+  private inner class AndroidLibraryWorkItem(library: IdeAndroidLibraryDependency) : LibraryWorkItem<IdeAndroidLibraryDependency>(library) {
     override fun setupTarget() {
-      library.compileJarFiles.forEach { compileJar ->
+      val target = library.target
+      target.compileJarFiles.forEach { compileJar ->
         if (FileUtils.fileExists(compileJar)) {
           libraryData.addPath(BINARY, compileJar)
         }
       }
-      if (FileUtils.fileExists(library.resFolder)) {
-        libraryData.addPath(BINARY, library.resFolder)
+      if (FileUtils.fileExists(target.resFolder)) {
+        libraryData.addPath(BINARY, target.resFolder)
       }
-      if (FileUtils.fileExists(library.manifest)) {
-        libraryData.addPath(BINARY, library.manifest)
+      if (FileUtils.fileExists(target.manifest)) {
+        libraryData.addPath(BINARY, target.manifest)
       }
-      setupAnnotationsFrom(libraryData, libraryName, library)
+      setupAnnotationsFrom(libraryData, libraryName, target)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }
   }
@@ -284,7 +288,7 @@ private class AndroidDependenciesSetupContext(
   private inner class ModuleLibraryWorkItem(
     val targetModuleGradlePath: GradleProjectPath,
     val targetData: ModuleData
-  ) : WorkItem<IdeModuleLibrary>() {
+  ) : WorkItem<IdeModuleDependency>() {
     override fun isAlreadyProcessed(): Boolean = processedModuleDependencies.containsKey(targetModuleGradlePath)
 
     override fun setupTarget() {
@@ -305,7 +309,7 @@ private class AndroidDependenciesSetupContext(
     }
   }
 
-  private fun createModuleLibraryWorkItem(library: IdeModuleLibrary): ModuleLibraryWorkItem? {
+  private fun createModuleLibraryWorkItem(library: IdeModuleDependency): ModuleLibraryWorkItem? {
     if (library.projectPath.isEmpty()) return null
     val targetModuleGradlePath = computeModuleIdForLibraryTarget(library)
     val targetData =

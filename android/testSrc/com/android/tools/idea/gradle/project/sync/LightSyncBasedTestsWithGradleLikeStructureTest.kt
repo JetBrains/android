@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -34,7 +35,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
@@ -217,24 +217,26 @@ private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
   )
 
 private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
-  IdeAndroidLibraryImpl(
-    artifactAddress = artifactAddress,
-    name = artifactAddress,
-    folder = gradleCacheRoot.resolve(File("libraryFolder")),
-    manifest = "manifest.xml",
-    compileJarFiles = listOf("api.jar"),
-    runtimeJarFiles = listOf("file.jar"),
-    resFolder = "res",
-    resStaticLibrary = File("libraryFolder/res.apk"),
-    assetsFolder = "assets",
-    jniFolder = "jni",
-    aidlFolder = "aidl",
-    renderscriptFolder = "renderscriptFolder",
-    proguardRules = "proguardRules",
-    lintJar = "lint.jar",
-    externalAnnotations = "externalAnnotations",
-    publicResources = "publicResources",
-    artifact = gradleCacheRoot.resolve(File("artifactFile")),
-    symbolFile = "symbolFile",
+  IdeAndroidLibraryDependencyImpl(
+    IdeAndroidLibraryImpl(
+      artifactAddress = artifactAddress,
+      name = artifactAddress,
+      folder = gradleCacheRoot.resolve(File("libraryFolder")),
+      manifest = "manifest.xml",
+      compileJarFiles = listOf("api.jar"),
+      runtimeJarFiles = listOf("file.jar"),
+      resFolder = "res",
+      resStaticLibrary = File("libraryFolder/res.apk"),
+      assetsFolder = "assets",
+      jniFolder = "jni",
+      aidlFolder = "aidl",
+      renderscriptFolder = "renderscriptFolder",
+      proguardRules = "proguardRules",
+      lintJar = "lint.jar",
+      externalAnnotations = "externalAnnotations",
+      publicResources = "publicResources",
+      artifact = gradleCacheRoot.resolve(File("artifactFile")),
+      symbolFile = "symbolFile"
+    ),
     isProvided = false
   )

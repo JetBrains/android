@@ -21,6 +21,7 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -130,15 +131,15 @@ class GradleModuleSystem(
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getDependenciesFor(module, scope)
       ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-      ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+      ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
       ?.find { it.matches(coordinate) }
   }
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getDependenciesFor(module, DependencyScopeType.MAIN)
       ?.let { dependencies ->
-        dependencies.androidLibraries.asSequence().map { it.artifactAddress to it.artifact } +
-        dependencies.javaLibraries.asSequence().map { it.artifactAddress to it.artifact }
+        dependencies.androidLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact } +
+        dependencies.javaLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact }
       }
       ?.find { GradleCoordinate.parseCoordinateString(it.first)?.matches(coordinate) ?: false }
       ?.second?.toPath()
@@ -164,7 +165,7 @@ class GradleModuleSystem(
     else {
       getDependenciesFor(module, DependencyScopeType.MAIN)
         ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) } ?: emptySequence()
+        ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) } ?: emptySequence()
     }
   }
 
@@ -184,7 +185,11 @@ class GradleModuleSystem(
 
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
-    return getDependenciesFor(module, scope)?.androidLibraries?.map(::convertLibraryToExternalLibrary) ?: emptyList()
+    return getDependenciesFor(module, scope)
+             ?.androidLibraries
+             ?.map(IdeAndroidLibraryDependency::target)
+             ?.map(::convertLibraryToExternalLibrary)
+           ?: emptyList()
   }
 
   private fun getDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
@@ -413,7 +418,7 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
         GradleAndroidModel.get(it)
           ?.selectedMainCompileLevel2Dependencies
           ?.androidLibraries
-          ?.mapNotNull { it.manifestFile() }
+          ?.mapNotNull { it.target.manifestFile() }
           .orEmpty()
       }
       .toSet()

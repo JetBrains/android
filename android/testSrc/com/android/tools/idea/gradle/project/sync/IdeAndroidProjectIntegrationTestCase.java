@@ -56,7 +56,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
       IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
-      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), IdeArtifactLibrary::getArtifactAddress);
+      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), it -> it.getTarget().getArtifactAddress());
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertTrue(androidLibraries.stream().anyMatch(it -> it.matches(expectedLibraryName)));
     });

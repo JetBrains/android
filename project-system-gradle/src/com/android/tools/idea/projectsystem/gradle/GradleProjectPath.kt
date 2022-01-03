@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.utils.FileUtils
@@ -43,4 +44,4 @@ fun GradleProjectPathFromCore.toGradleProjectPath(): GradleProjectPath =
     IdeModuleSourceSet.MAIN
   )
 fun Module.getGradleProjectPath(): GradleProjectPath? = getGradleProjectPathFromCore()?.toGradleProjectPath()
-fun IdeModuleLibrary.getGradleProjectPath(): GradleProjectPath = GradleProjectPath(buildId, projectPath, sourceSet)
+fun IdeModuleDependency.getGradleProjectPath(): GradleProjectPath = GradleProjectPath(buildId, projectPath, sourceSet)

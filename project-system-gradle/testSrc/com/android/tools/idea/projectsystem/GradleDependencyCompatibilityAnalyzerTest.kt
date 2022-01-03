@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -401,9 +402,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   private fun setupProject(
     appDependOnLibrary: Boolean = false,
     additionalAppDeclaredDependencies: String? = null,
-    additionalAppResolvedDependencies: List<IdeAndroidLibraryImpl> = emptyList(),
+    additionalAppResolvedDependencies: List<IdeAndroidLibraryDependencyImpl> = emptyList(),
     additionalLibrary1DeclaredDependencies: String? = null,
-    additionalLibrary1ResolvedDependencies: List<IdeAndroidLibraryImpl> = emptyList(),
+    additionalLibrary1ResolvedDependencies: List<IdeAndroidLibraryDependencyImpl> = emptyList(),
   ) {
 
     fun config(declaredDependencies: String?): String =
@@ -490,24 +491,26 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 }
 
 private fun ideAndroidLibrary(artifactAddress: String) =
-  IdeAndroidLibraryImpl(
-    artifactAddress = artifactAddress,
-    name = artifactAddress,
-    folder = File("libraryFolder"),
-    manifest = "manifest.xml",
-    compileJarFiles = listOf("file.jar"),
-    runtimeJarFiles = listOf("api.jar"),
-    resFolder = "res",
-    resStaticLibrary = File("libraryFolder/res.apk"),
-    assetsFolder = "assets",
-    jniFolder = "jni",
-    aidlFolder = "aidl",
-    renderscriptFolder = "renderscriptFolder",
-    proguardRules = "proguardRules",
-    lintJar = "lint.jar",
-    externalAnnotations = "externalAnnotations",
-    publicResources = "publicResources",
-    artifact = File("artifactFile"),
-    symbolFile = "symbolFile",
+  IdeAndroidLibraryDependencyImpl(
+    IdeAndroidLibraryImpl(
+      artifactAddress = artifactAddress,
+      name = artifactAddress,
+      folder = File("libraryFolder"),
+      manifest = "manifest.xml",
+      compileJarFiles = listOf("file.jar"),
+      runtimeJarFiles = listOf("api.jar"),
+      resFolder = "res",
+      resStaticLibrary = File("libraryFolder/res.apk"),
+      assetsFolder = "assets",
+      jniFolder = "jni",
+      aidlFolder = "aidl",
+      renderscriptFolder = "renderscriptFolder",
+      proguardRules = "proguardRules",
+      lintJar = "lint.jar",
+      externalAnnotations = "externalAnnotations",
+      publicResources = "publicResources",
+      artifact = File("artifactFile"),
+      symbolFile = "symbolFile"
+    ),
     isProvided = false
   )

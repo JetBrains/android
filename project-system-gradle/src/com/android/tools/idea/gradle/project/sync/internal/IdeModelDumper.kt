@@ -18,20 +18,20 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
-import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
+import com.android.tools.idea.gradle.model.IdeDependency
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.isHolderModule
@@ -274,8 +275,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
     }
 
-    private fun dump(androidLibrary: IdeAndroidLibrary) {
-      dump(androidLibrary as IdeLibrary)
+    private fun dump(androidLibraryDependency: IdeAndroidLibraryDependency) {
+      dump(androidLibraryDependency as IdeDependency<*>)
+      val androidLibrary = androidLibraryDependency.target
       prop("Folder") { androidLibrary.folder?.path?.toPrintablePath() }
       prop("Manifest") { androidLibrary.manifest.toPrintablePath() }
       androidLibrary.compileJarFiles.forEach { prop("CompileJarFiles") { it.toPrintablePath() } }
@@ -292,32 +294,32 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("SymbolFile") { androidLibrary.symbolFile.toPrintablePath() }
     }
 
-    private fun dump(ideLibrary: IdeLibrary) {
-      if (ideLibrary is IdeArtifactLibrary) {
+    private fun dump(ideDependency: IdeDependency<*>) {
+      if (ideDependency is IdeArtifactDependency<*>) {
         prop("ArtifactAddress") {
-          ideLibrary.artifactAddress
+          ideDependency.target.artifactAddress
             .toPrintablePath()
             .let { if (it.endsWith(" [-]")) it.substring(0, it.indexOf(" [-]")) else it }
             .replaceKnownPatterns()
         }
       }
-      prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
-      when (ideLibrary) {
-        is IdeAndroidLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
-        is IdeJavaLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
+      prop("LintJars") { ideDependency.target.lintJar?.toPrintablePath() }
+      when (ideDependency) {
+        is IdeAndroidLibraryDependency -> prop("IsProvided") { ideDependency.isProvided.toString() }
+        is IdeJavaLibraryDependency -> prop("IsProvided") { ideDependency.isProvided.toString() }
       }
-      when (ideLibrary) {
-        is IdeAndroidLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
-        is IdeJavaLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
+      when (ideDependency) {
+        is IdeAndroidLibraryDependency -> prop("Artifact") { ideDependency.target.artifact.path.toPrintablePath() }
+        is IdeJavaLibraryDependency -> prop("Artifact") { ideDependency.target.artifact.path.toPrintablePath() }
       }
     }
 
-    private fun dump(javaLibrary: IdeJavaLibrary) {
-      dump(javaLibrary as IdeLibrary)
+    private fun dump(javaLibrary: IdeJavaLibraryDependency) {
+      dump(javaLibrary as IdeDependency<*>)
     }
 
-    private fun dump(moduleLibrary: IdeModuleLibrary) {
-      dump(moduleLibrary as IdeLibrary)
+    private fun dump(moduleLibrary: IdeModuleDependency) {
+      dump(moduleLibrary as IdeDependency<*>)
       prop("ProjectPath") { moduleLibrary.projectPath }
       prop("Variant") { moduleLibrary.variant }
       prop("BuildId") { moduleLibrary.buildId?.toPrintablePath() }
@@ -364,8 +366,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       if (ideDependencies.androidLibraries.isNotEmpty()) {
         head("AndroidLibraries")
         nest {
-          ideDependencies.androidLibraries.sortedBy { it.name }.forEach {
-            head("AndroidLibrary") { it.name }
+          ideDependencies.androidLibraries.sortedBy { it.target.name }.forEach {
+            head("AndroidLibrary") { it.target.name }
             nest {
               dump(it)
             }
@@ -375,8 +377,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       if (ideDependencies.javaLibraries.isNotEmpty()) {
         head("JavaLibraries")
         nest {
-          ideDependencies.javaLibraries.sortedBy { it.name }.forEach {
-            head("JavaLibrary") { it.name.replaceKnownPatterns() }
+          ideDependencies.javaLibraries.sortedBy { it.target.name }.forEach {
+            head("JavaLibrary") { it.target.name.replaceKnownPatterns() }
             nest {
               dump(it)
             }
@@ -386,7 +388,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       if (ideDependencies.moduleDependencies.isNotEmpty()) {
         head("ModuleDependencies")
         nest {
-          ideDependencies.moduleDependencies.sortedWith(compareBy<IdeModuleLibrary> { it.projectPath }.thenBy { it.buildId }).forEach {
+          ideDependencies.moduleDependencies.sortedWith(compareBy<IdeModuleDependency> { it.projectPath }.thenBy { it.buildId }).forEach {
             head("ModuleDependency")
             nest {
               dump(it)

@@ -20,12 +20,16 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency;
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl;
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -56,11 +60,12 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    IdeJavaLibrary javaLibrary = new IdeJavaLibraryImpl(
-      new IdeJavaLibraryCore(
-        "guava", jarFile
-      ), "guava", false
-    );
+    IdeJavaLibraryDependency javaLibrary = new IdeJavaLibraryDependencyImpl(
+      new IdeJavaLibraryImpl(
+        new IdeJavaLibraryCore(
+          "guava", jarFile
+        ), "guava"
+      ), false);
 
     Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(
       new IdeDependenciesImpl(emptyList(), ImmutableList.of(javaLibrary), emptyList(), emptyList()),
@@ -85,27 +90,28 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-    IdeAndroidLibrary androidLibrary = new IdeAndroidLibraryImpl(
-      "com.android.support:support-core-ui:25.3.1@aar",
-      "com.android.support:support-core-ui:25.3.1@aar",
-      new File("libraryFolder"),
-      "manifest.xml",
-      ImmutableList.of(libCompileJar.getPath(), localJar.getPath()),
-      ImmutableList.of(libJar.getPath(), localJar.getPath()),
-      resFolder.getPath(),
-      new File("libraryFolder/res.apk"),
-      "assets",
-      "jni",
-      "aidl",
-      "renderscriptFolder",
-      "proguardRules",
-      "lint.jar",
-      "externalAnnotations",
-      "publicResources",
-      libAar,
-      "symbolFile",
-      false
-    );
+    IdeAndroidLibraryDependency androidLibrary = new IdeAndroidLibraryDependencyImpl(
+      new IdeAndroidLibraryImpl(
+        "com.android.support:support-core-ui:25.3.1@aar",
+        "com.android.support:support-core-ui:25.3.1@aar",
+        new File("libraryFolder"),
+        "manifest.xml",
+        ImmutableList.of(libCompileJar.getPath(), localJar.getPath()),
+        ImmutableList.of(libJar.getPath(), localJar.getPath()),
+        resFolder.getPath(),
+        new File("libraryFolder/res.apk"),
+        "assets",
+        "jni",
+        "aidl",
+        "renderscriptFolder",
+        "proguardRules",
+        "lint.jar",
+        "externalAnnotations",
+        "publicResources",
+        libAar,
+        "symbolFile"
+      ),
+      false);
 
     DependencySet dependencySet = myDependenciesExtractor.extractFrom(
       new IdeDependenciesImpl(
@@ -134,7 +140,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    IdeModuleLibraryImpl library = new IdeModuleLibraryImpl(gradlePath, "/tmp", null);
+    IdeModuleDependencyImpl library = new IdeModuleDependencyImpl(new IdeModuleLibraryImpl(gradlePath, "/tmp"));
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");

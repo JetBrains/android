@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
+import com.android.tools.idea.gradle.model.IdeModuleDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -55,20 +57,21 @@ public class DependenciesExtractor {
                                @NotNull IdeDependencies artifactDependencies,
                                @NotNull ModuleFinder moduleFinder) {
 
-    for (IdeJavaLibrary library : artifactDependencies.getJavaLibraries()) {
+    for (IdeJavaLibraryDependency library : artifactDependencies.getJavaLibraries()) {
+      IdeJavaLibrary libraryTarget = library.getTarget();
       LibraryDependency libraryDependency =
-        LibraryDependency.create(library.getArtifact(), ImmutableList.of(library.getArtifact()));
+        LibraryDependency.create(libraryTarget.getArtifact(), ImmutableList.of(libraryTarget.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
-    for (IdeAndroidLibrary library : artifactDependencies.getAndroidLibraries()) {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(library));
+    for (IdeAndroidLibraryDependency library : artifactDependencies.getAndroidLibraries()) {
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(library.getTarget()));
     }
 
-    for (IdeModuleLibrary library : artifactDependencies.getModuleDependencies()) {
+    for (IdeModuleDependency library : artifactDependencies.getModuleDependencies()) {
       String gradlePath = library.getProjectPath();
       if (isNotEmpty(gradlePath)) {
-        Module module = moduleFinder.findModuleFromLibrary(library);
+        Module module = moduleFinder.findModuleFromDependency(library);
         if (module != null) {
           ModuleDependency dependency = new ModuleDependency(ModuleSystemUtil.getMainModule(module));
           dependencies.add(dependency);

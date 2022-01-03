@@ -198,7 +198,7 @@ private fun collectIdentifiers(variants: Collection<IdeVariant>): List<ArtifactI
   return variants.asSequence()
     .flatMap { sequenceOf(it.mainArtifact, it.androidTestArtifact, it.unitTestArtifact, it.testFixturesArtifact).filterNotNull() }
     .flatMap { it.level2Dependencies.androidLibraries.asSequence() + it.level2Dependencies.javaLibraries.asSequence() }
-    .mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+    .mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
     .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }
     .distinct()
     .toList()

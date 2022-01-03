@@ -22,7 +22,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeModuleDependency;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -120,14 +120,14 @@ public class ConflictSet {
   @Nullable
   private static String getExpectedVariant(@NotNull GradleAndroidModel dependentAndroidModel, @NotNull GradleProjectPath dependencyGradlePath) {
     IdeVariant variant = dependentAndroidModel.getSelectedVariant();
-    for (IdeModuleLibrary dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
+    for (IdeModuleDependency dependency : variant.getMainArtifact().getLevel2Dependencies().getModuleDependencies()) {
       if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
         return dependency.getVariant();
       }
     }
 
     if (variant.getAndroidTestArtifact() != null) {
-      for (IdeModuleLibrary dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleDependency dependency : variant.getAndroidTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
           return dependency.getVariant();
         }
@@ -135,7 +135,7 @@ public class ConflictSet {
     }
 
     if (variant.getTestFixturesArtifact() != null) {
-      for (IdeModuleLibrary dependency : variant.getTestFixturesArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleDependency dependency : variant.getTestFixturesArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
           return dependency.getVariant();
         }
@@ -143,7 +143,7 @@ public class ConflictSet {
     }
 
     if (variant.getUnitTestArtifact() != null) {
-      for (IdeModuleLibrary dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
+      for (IdeModuleDependency dependency : variant.getUnitTestArtifact().getLevel2Dependencies().getModuleDependencies()) {
         if (dependencyGradlePath.equals(getGradleProjectPath(dependency))) {
           return dependency.getVariant();
         }

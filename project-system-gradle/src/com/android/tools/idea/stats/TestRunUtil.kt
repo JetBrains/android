@@ -40,7 +40,7 @@ fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifac
   val dependencies = artifact.level2Dependencies
 
   for (lib in Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries)) {
-    val coordinate = GradleCoordinate.parseCoordinateString(lib.artifactAddress) ?: continue
+    val coordinate = GradleCoordinate.parseCoordinateString(lib.target.artifactAddress) ?: continue
     val groupId = coordinate.groupId
     val artifactId = coordinate.artifactId
     val version = coordinate.version?.toString() ?: continue

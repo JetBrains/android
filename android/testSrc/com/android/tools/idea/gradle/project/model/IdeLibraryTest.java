@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
-import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryCore;
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.model.stubs.AndroidLibraryStub;
 import com.android.tools.idea.gradle.model.stubs.JavaLibraryStub;
@@ -117,23 +116,21 @@ public class IdeLibraryTest {
 
         String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
         IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates);
 
         String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
         IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates);
 
-        IdeModuleLibraryCore core1 = new IdeModuleLibraryCore(
+        IdeModuleLibraryImpl ideLibrary1 = new IdeModuleLibraryImpl(
           identifier1.getProjectPath(),
           identifier1.getBuildId()
         );
-        IdeModuleLibrary ideLibrary1 = new IdeModuleLibraryImpl(core1);
 
-        IdeModuleLibraryCore core2 = new IdeModuleLibraryCore(
+        IdeModuleLibraryImpl ideLibrary2 = new IdeModuleLibraryImpl(
           identifier2.getProjectPath(),
           identifier2.getBuildId()
         );
-        IdeModuleLibrary ideLibrary2 = new IdeModuleLibraryImpl(core2);
 
         assertThat(
                         ImmutableList.of(ideJavaLibraryA, ideJavaLibraryB).stream()
@@ -157,19 +154,19 @@ public class IdeLibraryTest {
 
         String aCoordinates = computeCoordinates(javaLibraryA.getResolvedCoordinates());
         IdeJavaLibraryCore coreA = new IdeJavaLibraryCore(aCoordinates, javaLibraryA.getJarFile());
-        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryA = new IdeJavaLibraryImpl(coreA, aCoordinates);
 
         String bCoordinates = computeCoordinates(javaLibraryB.getResolvedCoordinates());
         IdeJavaLibraryCore coreB = new IdeJavaLibraryCore(bCoordinates, javaLibraryB.getJarFile());
-        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryB = new IdeJavaLibraryImpl(coreB, bCoordinates);
 
         String cCoordinates = computeCoordinates(javaLibraryC.getResolvedCoordinates());
         IdeJavaLibraryCore coreC = new IdeJavaLibraryCore(cCoordinates, javaLibraryC.getJarFile());
-        IdeJavaLibrary ideJavaLibraryC = new IdeJavaLibraryImpl(coreC, cCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryC = new IdeJavaLibraryImpl(coreC, cCoordinates);
 
         String dCoordinates = computeCoordinates(javaLibraryD.getResolvedCoordinates());
         IdeJavaLibraryCore coreD = new IdeJavaLibraryCore(dCoordinates, javaLibraryD.getJarFile());
-        IdeJavaLibrary ideJavaLibraryD = new IdeJavaLibraryImpl(coreD, dCoordinates, false);
+        IdeJavaLibrary ideJavaLibraryD = new IdeJavaLibraryImpl(coreD, dCoordinates);
 
         assertThat(
           ImmutableList.of(ideJavaLibraryD, ideJavaLibraryB, ideJavaLibraryC, ideJavaLibraryA).stream()

@@ -17,32 +17,9 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.google.common.annotations.VisibleForTesting
 import java.io.Serializable
 
-/**
- * The implementation of IdeLibrary for modules.
- **/
 data class IdeModuleLibraryImpl(
-  val core: IdeModuleLibraryCore
-) : IdeModuleLibrary by core, Serializable {
-  @VisibleForTesting
-  constructor(
-    projectPath: String,
-    buildId: String,
-    variant: String? = null
-  ) : this(
-      IdeModuleLibraryCore(
-          projectPath = projectPath,
-          buildId = buildId,
-          variant = variant,
-          lintJar = null,
-          sourceSet = IdeModuleSourceSet.MAIN
-      )
-  )
-}
-
-data class IdeModuleLibraryCore(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,

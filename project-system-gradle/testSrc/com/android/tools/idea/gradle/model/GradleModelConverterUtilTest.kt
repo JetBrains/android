@@ -76,7 +76,6 @@ class GradleModelConverterUtilTest {
       publicResources = "publicResources",
       artifact = File("artifactFile"),
       symbolFile = "symbolFile",
-      isProvided = false
     )
     val result = convertLibraryToExternalLibrary(original)
 

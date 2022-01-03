@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
@@ -45,8 +45,9 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
@@ -256,7 +257,7 @@ interface AndroidProjectStubBuilder {
   fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl>
 
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
-  fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl>?
+  fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryDependencyImpl>?
   fun mainArtifact(variant: String): IdeAndroidArtifactImpl
   fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl
   fun unitTestArtifact(variant: String): IdeJavaArtifactImpl
@@ -275,7 +276,8 @@ interface AndroidProjectStubBuilder {
  * If a totally different is needed implement [AndroidProjectBuilderCore] directly.
  */
 data class AndroidProjectBuilder(
-  val buildId: AndroidProjectStubBuilder.() -> String = { toSystemIndependentName(rootProjectBasePath.path) }, //  buildId should not be assumed to be a path.
+  val buildId: AndroidProjectStubBuilder.() -> String = { toSystemIndependentName(rootProjectBasePath.path)
+ }, //  buildId should not be assumed to be a path.
   val projectType: AndroidProjectStubBuilder.() -> IdeAndroidProjectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
   val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
@@ -308,7 +310,7 @@ data class AndroidProjectBuilder(
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
     { variant -> buildTestFixturesArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
-  val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl> = { emptyList() },
+  val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryDependencyImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
   val ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel? = { null }
@@ -388,8 +390,9 @@ data class AndroidProjectBuilder(
   fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
     copy(androidModuleDependencyList = androidModuleDependencyList)
 
-  fun withAndroidLibraryDependencyList(androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl>) =
-    copy(androidLibraryDependencyList = androidLibraryDependencyList)
+  fun withAndroidLibraryDependencyList(
+    androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryDependencyImpl>
+  ) = copy(androidLibraryDependencyList = androidLibraryDependencyList)
 
   fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
     copy(androidProject = androidProject)
@@ -432,7 +435,8 @@ data class AndroidProjectBuilder(
         override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
         override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(dimension)
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
-        override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl> = androidLibraryDependencyList(variant)
+        override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryDependencyImpl> =
+          androidLibraryDependencyList(variant)
         override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
         override fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl = androidTestArtifactStub(variant)
         override fun unitTestArtifact(variant: String): IdeJavaArtifactImpl = unitTestArtifactStub(variant)
@@ -633,10 +637,14 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     libraries = androidLibraryDependencies,
     projects = androidModuleDependencies.map {
-      IdeModuleLibraryImpl(
-        projectPath = it.moduleGradlePath,
-        buildId = this.buildId,
-        variant = it.variant
+      IdeModuleDependencyImpl(
+        IdeModuleLibraryImpl(
+          projectPath = it.moduleGradlePath,
+          buildId = this.buildId,
+          variant = it.variant,
+          lintJar = null,
+          sourceSet = IdeModuleSourceSet.MAIN
+        )
       )
     }
   )
@@ -931,9 +939,9 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 }
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
-  libraries: List<IdeAndroidLibraryImpl> = listOf(),
-  javaLibraries: List<IdeJavaLibraryImpl> = listOf(),
-  projects: List<IdeModuleLibraryImpl> = listOf(),
+  libraries: List<IdeAndroidLibraryDependencyImpl> = listOf(),
+  javaLibraries: List<IdeJavaLibraryDependencyImpl> = listOf(),
+  projects: List<IdeModuleDependencyImpl> = listOf(),
   runtimeOnlyClasses: List<File> = listOf()
 ): IdeDependenciesImpl = IdeDependenciesImpl(libraries, javaLibraries, projects, runtimeOnlyClasses)
 

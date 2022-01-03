@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.model.IdeModuleLibrary
-import com.intellij.openapi.externalSystem.service.execution.NotSupportedException
+import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
+import com.android.tools.idea.gradle.model.IdeModuleDependency
 import java.io.File
 import java.io.Serializable
 
 data class IdeDependenciesImpl(
-  override val androidLibraries: Collection<IdeAndroidLibrary>,
-  override val javaLibraries: Collection<IdeJavaLibrary>,
-  override val moduleDependencies: Collection<IdeModuleLibrary>,
+  override val androidLibraries: Collection<IdeAndroidLibraryDependency>,
+  override val javaLibraries: Collection<IdeJavaLibraryDependency>,
+  override val moduleDependencies: Collection<IdeModuleDependency>,
   override val runtimeOnlyClasses: Collection<File>
 ) : IdeDependencies, Serializable
 
 class ThrowingIdeDependencies : IdeDependencies, Serializable {
-  override val androidLibraries: Collection<IdeAndroidLibrary> get() = throw NotImplementedError()
-  override val javaLibraries: Collection<IdeJavaLibrary> get() = throw NotImplementedError()
-  override val moduleDependencies: Collection<IdeModuleLibrary> get() = throw NotImplementedError()
+  override val androidLibraries: Collection<IdeAndroidLibraryDependency> get() = throw NotImplementedError()
+  override val javaLibraries: Collection<IdeJavaLibraryDependency> get() = throw NotImplementedError()
+  override val moduleDependencies: Collection<IdeModuleDependency> get() = throw NotImplementedError()
   override val runtimeOnlyClasses: Collection<File> get() = throw NotImplementedError()
 }

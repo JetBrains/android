@@ -22,7 +22,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toC
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeModuleDependency;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -122,7 +122,7 @@ public class ModuleFinder {
    * @return the module for module dependency library.
    */
   @Nullable
-  public Module findModuleFromLibrary(@NotNull IdeModuleLibrary library) {
+  public Module findModuleFromDependency(@NotNull IdeModuleDependency library) {
     String gradlePath = library.getProjectPath();
     if (isNotEmpty(gradlePath)) {
       Module module = null;
