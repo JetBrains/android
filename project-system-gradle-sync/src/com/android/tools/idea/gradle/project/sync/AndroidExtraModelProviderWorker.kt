@@ -23,26 +23,21 @@ import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.Variant
-import com.android.builder.model.v2.dsl.BuildType
-import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
-import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.VariantDependencies
-import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
+import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
-import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.NO_FORCE
 import com.android.tools.idea.gradle.project.upgrade.ForcePluginUpgradeReason.PREVIEW
@@ -61,6 +56,9 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.File
 import java.util.LinkedList
+import com.android.builder.model.v2.ide.Variant as V2Variant
+import com.android.builder.model.v2.models.AndroidProject as V2AndroidProject
+import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIssues
 
 internal class AndroidExtraModelProviderWorker(
   controller: BuildController,
@@ -924,42 +922,15 @@ private fun createAndroidModule(
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project -> basicVariants?.map { it.name }?.toSet()
   }
 
-  fun List<BasicVariant>.getDefaultVariant(
-    buildTypes: List<BuildType>,
-    productFlavors: List<ProductFlavor>,
-    flavorDimensions: Collection<String>
-  ) : String? {
-    // Get the default buildType or fall back to debug if none isDefault.
-    val defaultBuildTypeName = buildTypes.firstOrNull { it.isDefault == true } ?: "debug"
-
-    val defaultFlavors = mutableListOf<String>()
-    // Get the default product flavors in each dimension.
-    for (flavorDimension in flavorDimensions) {
-      val defaultProductFlavorName = productFlavors.firstOrNull { it.dimension == flavorDimension && it.isDefault == true }?.name ?:
-                                 // if no productFlavor is marked isDefault within the dimension, then we get the first one in an alphabetical order.
-                                 productFlavors.filter { it.dimension == flavorDimension }.minByOrNull { it.name }?.name
-
-      if (defaultProductFlavorName != null) defaultFlavors.add(defaultProductFlavorName)
-    }
-
-    // Get the variants with buildType marked as default.
-    val variants = this.filter { variant -> variant.buildType == defaultBuildTypeName }
-
-    // Find the variant for which all the the productFlavors are marked as default.
-    return variants.firstOrNull { variant -> defaultFlavors.containsAll(variant.productFlavors) }?.name
-  }
-
-
   val defaultVariantName: String? = when (androidProjectResult) {
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
       safeGet(androidProjectResult.androidProject::getDefaultVariant, null)
       ?: allVariantNames?.getDefaultOrFirstItem("debug")
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project -> {
-      val flavorDimensions = androidProjectResult.androidDsl.flavorDimensions
       val productFlavors = androidProjectResult.androidDsl.productFlavors
       val buildTypes = androidProjectResult.androidDsl.buildTypes
       // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
-      basicVariants?.getDefaultVariant(buildTypes, productFlavors, flavorDimensions) ?: allVariantNames?.getDefaultOrFirstItem("debug")
+      basicVariants?.getDefaultVariant(buildTypes, productFlavors)
     }
   }
 
