@@ -376,7 +376,7 @@ internal class AndroidExtraModelProviderWorker(
       androidModules.map { module ->
         fun(controller: BuildController) {
           val syncIssues = if (syncOptions.flags.studioFlagUseV2BuilderModels && (module is AndroidModule) &&
-                               canFetchV2Models(module.modelVersion)) {
+                               canFetchV2Models(module.agpVersion)) {
             // Request V2 sync issues.
             controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
           } else {
@@ -795,7 +795,7 @@ internal class AndroidExtraModelProviderWorker(
         val adjustedVariantName = module.adjustForTestFixturesSuffix(moduleConfiguration.variant)
         val variant = controller.findVariantModel(module, adjustedVariantName) ?: return null
         variantName = variant.name
-        ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion, androidModuleId)
+        ideVariant = modelCache.variantFrom(module.androidProject, variant, module.agpVersion, androidModuleId)
       }
 
       module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variantName)
@@ -932,7 +932,7 @@ private fun createAndroidModule(
   buildNameMap: Map<String, File>,
   modelCache: ModelCache
 ): AndroidModule {
-  val modelVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
+  val agpVersion: GradleVersion? = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectResult.agpVersion)
 
   val ideAndroidProject = androidProjectResult.ideAndroidProject
   val allVariantNames = androidProjectResult.allVariantNames
@@ -953,7 +953,7 @@ private fun createAndroidModule(
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
   val androidModule = AndroidModule(
-    modelVersion = modelVersion,
+    agpVersion = agpVersion,
     buildName = androidProjectResult.buildName,
     buildNameMap = buildNameMap,
     gradleProject = gradleProject,

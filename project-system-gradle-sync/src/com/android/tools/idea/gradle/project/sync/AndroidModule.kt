@@ -82,7 +82,7 @@ class JavaModule(
 @UsedInBuildAction
 @VisibleForTesting
 class AndroidModule constructor(
-  val modelVersion: GradleVersion?,
+  val agpVersion: GradleVersion?,
   val buildName: String?,
   val buildNameMap: Map<String, File>?,
   gradleProject: BasicGradleProject,

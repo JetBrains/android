@@ -30,7 +30,7 @@ internal fun getAdditionalClassifierArtifactsModel(
   actionRunner.runActions(
     inputModules.map { module ->
       fun(controller: BuildController) {
-        if (module.modelVersion?.isAtLeast(3, 5, 0) != true) return
+        if (module.agpVersion?.isAtLeast(3, 5, 0) != true) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
         val identifiers = module.getLibraryDependencies().filter {
