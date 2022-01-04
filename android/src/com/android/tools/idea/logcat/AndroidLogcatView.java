@@ -295,7 +295,7 @@ public class AndroidLogcatView {
         androidLogcatService.removeListener(myDevice, myLogcatReceiver);
       }
       // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
-      if (myLogConsole.getConsole() != null) {
+      if (myLogConsole.getConsole() != null && device != null && device.isOnline()) {
         myLogConsole.clear();
       }
 

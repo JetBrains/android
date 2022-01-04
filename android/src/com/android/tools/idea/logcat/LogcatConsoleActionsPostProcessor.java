@@ -148,6 +148,10 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
       if (myConsole.getOriginalDocument().length() == 0) {
         enabled = false;
       }
+      // Check for !isOnline() because isOffline() doesn't check for DISCONNECTED state.
+      if (myConsole.getSelectedDevice() == null || !myConsole.getSelectedDevice().isOnline()) {
+        enabled = false;
+      }
       e.getPresentation().setEnabled(enabled);
     }
 

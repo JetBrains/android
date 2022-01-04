@@ -39,6 +39,7 @@ import java.awt.Container;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AndroidLogConsole extends LogConsoleBase {
   private static final String ACTION_ID_PREFIX = AndroidLogConsole.class.getSimpleName() + ".";
@@ -127,6 +128,10 @@ public final class AndroidLogConsole extends LogConsoleBase {
   @Override
   public boolean isActive() {
     return myView.isActive();
+  }
+
+  public @Nullable IDevice getSelectedDevice() {
+    return myView.getSelectedDevice();
   }
 
   public void clearLogcat() {
