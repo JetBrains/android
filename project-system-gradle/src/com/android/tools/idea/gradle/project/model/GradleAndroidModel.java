@@ -69,9 +69,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -175,7 +173,7 @@ public class GradleAndroidModel implements AndroidModuleModel {
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
     myCachedVariantsByName = cachedVariantsByName;
-    mySelectedVariantName = findVariantToSelect(variantName);
+    setSelectedVariantName(variantName);
 
     myAgpVersion = GradleVersion.parseAndroidGradlePluginVersion(myAndroidProject.getAgpVersion()); // Fail sync if the reported version cannot be parsed.
     myFeatures = new AndroidModelFeatures(myAgpVersion);
@@ -485,27 +483,12 @@ public class GradleAndroidModel implements AndroidModuleModel {
    * @param name the new name.
    */
   public void setSelectedVariantName(@NotNull String name) {
-    mySelectedVariantName = findVariantToSelect(name);
+    if (findVariantByName(name) == null) throw new IllegalStateException("Unknown variant: " + name);
+    mySelectedVariantName = name;
 
     // force lazy recompute
     myOverridesManifestPackage = null;
     myMinSdkVersion = null;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  String findVariantToSelect(@NotNull String variantName) {
-    String newVariantName;
-    if (myCachedVariantsByName.containsKey(variantName)) {
-      newVariantName = variantName;
-    }
-    else {
-      List<String> sorted = new ArrayList<>(myCachedVariantsByName.keySet());
-      Collections.sort(sorted);
-      assert !myCachedVariantsByName.isEmpty() : "There is no variant model in GradleAndroidModel!";
-      newVariantName = sorted.get(0);
-    }
-    return newVariantName;
   }
 
   @NotNull

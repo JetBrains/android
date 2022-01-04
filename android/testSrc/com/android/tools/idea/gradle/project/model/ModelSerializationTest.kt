@@ -112,7 +112,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       Projects.getBaseDirPath(project),
       true,
       AndroidModuleModelBuilder(
-        ":moduleName", null, "3.6.0", "variantName", AndroidProjectBuilder())
+        ":moduleName", null, "3.6.0", "debug", AndroidProjectBuilder())
     )
 
     val module = project.gradleModule(":moduleName")
