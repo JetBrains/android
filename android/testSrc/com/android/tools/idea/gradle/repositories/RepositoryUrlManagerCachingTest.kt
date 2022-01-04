@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.ApplicationManager
@@ -27,6 +28,7 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
+import java.util.concurrent.TimeUnit
 
 /**
  * Tests for the local repository utility class
@@ -83,12 +85,7 @@ class RepositoryUrlManagerCachingTest {
 
     // When called on the dispatch thread, we return the dependency value from the local cache and post a network request on background.
     assertEquals(2, localRepo.requestCount.toLong())
-    var counter = 100
-    while (networkRepo.requestCount != 2) {
-      counter --
-      Thread.sleep(10)
-    }
-    assertEquals(2, networkRepo.requestCount.toLong())
+    waitForCondition(1, TimeUnit.SECONDS) { networkRepo.requestCount == 2 }
   }
 
   @Test
