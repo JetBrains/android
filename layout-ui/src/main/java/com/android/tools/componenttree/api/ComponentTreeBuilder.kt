@@ -31,6 +31,7 @@ import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import java.awt.GraphicsEnvironment
+import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -46,6 +47,11 @@ import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
  */
 typealias ContextPopupHandler = (item: Any, component: JComponent, x: Int, y: Int) -> Unit
 typealias DoubleClickHandler = (Any) -> Unit
+
+/**
+ * How to merge [Transferable]s when multiple items can be used for drag and drop.
+ */
+typealias DnDMerger = (Transferable, Transferable) -> Transferable
 
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.
@@ -69,6 +75,7 @@ class ComponentTreeBuilder {
   private var autoScroll = false
   private var dataProvider: DataProvider? = null
   private var dndSupport = false
+  private var dndMerger: DnDMerger? = null
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
@@ -138,8 +145,14 @@ class ComponentTreeBuilder {
 
   /**
    * Add Drag and Drop support.
+   *
+   * Optionally specify a merge operator for support of dragging multiple items.
+   * By default, only the 1st item will be dragged.
    */
-  fun withDnD() = apply { dndSupport = true }
+  fun withDnD(merger: DnDMerger? = null) = apply {
+    dndSupport = true
+    dndMerger = merger
+  }
 
   /**
    * Don't show the root node.
@@ -206,7 +219,7 @@ class ComponentTreeBuilder {
                               installTreeSearch, headerRenderer)
     table.name = componentName // For UI tests
     if (dndSupport && !GraphicsEnvironment.isHeadless()) {
-      table.enableDnD()
+      table.enableDnD(dndMerger)
     }
     dataProvider?.let { DataManager.registerDataProvider(table, it) }
     val tree = table.tree

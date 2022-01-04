@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ContextPopupHandler
+import com.android.tools.componenttree.api.DnDMerger
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
 import com.google.common.annotations.VisibleForTesting
@@ -163,11 +164,11 @@ class TreeTableImpl(
     }
   }
 
-  fun enableDnD() {
+  fun enableDnD(merger: DnDMerger?) {
     dragEnabled = true
-    val treeTransferHandler = TreeTableTransferHandler()
+    val treeTransferHandler = TreeTableTransferHandler(merger)
     transferHandler = treeTransferHandler
-    dropTargetHandler = TreeTableDropTargetHandler(this) { treeTransferHandler.draggedItem }
+    dropTargetHandler = TreeTableDropTargetHandler(this, treeTransferHandler.draggedItems)
     dropTarget = DropTarget(this, dropTargetHandler)
   }
 
@@ -272,15 +273,6 @@ class TreeTableImpl(
     return parentPath.parentPath == null && !tree.isRootVisible && !tree.showsRootHandles
   }
 
-  private val selectedItem: Any?
-    get() {
-      val selectedRow = selectedRow
-      if (selectedRow < 0) {
-        return null
-      }
-      return getValueAt(selectedRow, 0)
-    }
-
   private fun Int.toTableSelectionMode() = when(this) {
     TreeSelectionModel.SINGLE_TREE_SELECTION -> ListSelectionModel.SINGLE_SELECTION
     TreeSelectionModel.CONTIGUOUS_TREE_SELECTION -> ListSelectionModel.SINGLE_INTERVAL_SELECTION
@@ -381,29 +373,40 @@ class TreeTableImpl(
     }
   }
 
-  private inner class TreeTableTransferHandler : TransferHandler() {
-    var draggedItem: Any? = null
-      private set
+  private inner class TreeTableTransferHandler(private val dndMerger: DnDMerger?) : TransferHandler() {
+    val draggedItems = mutableListOf<Any>()
 
     fun resetDraggedItem() {
-      draggedItem = null
+      draggedItems.clear()
     }
 
     override fun getSourceActions(component: JComponent): Int = DnDConstants.ACTION_COPY_OR_MOVE
 
     override fun createTransferable(component: JComponent): Transferable? {
-      val item = selectedItem ?: return null
-      val transferable = tableModel.createTransferable(item) ?: return null
-      dragImage = tableModel.createDragImage(item)
-      draggedItem = item
-      return transferable
+      val rows = selectedRows
+      if (rows.isEmpty()) {
+        return null
+      }
+      var combinedTransferable: Transferable? = null
+      draggedItems.clear()
+      rows.forEach { row ->
+        if (combinedTransferable == null || dndMerger != null) {
+          val item = getValueAt(row, 0)
+          tableModel.createTransferable(item)?.let { transferable ->
+            combinedTransferable = combinedTransferable?.let { dndMerger?.invoke(it, transferable) } ?: transferable
+            draggedItems.add(item)
+          }
+        }
+      }
+      dragImage = draggedItems.singleOrNull()?.let { tableModel.createDragImage(it) }
+      return combinedTransferable
     }
 
     override fun exportDone(source: JComponent, data: Transferable, action: Int) {
       if (action == DnDConstants.ACTION_MOVE) {
-        draggedItem?.let { tableModel.delete(it) }
+        draggedItems.forEach { tableModel.delete(it) }
       }
-      draggedItem = null
+      draggedItems.clear()
     }
   }
 }

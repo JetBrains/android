@@ -16,7 +16,6 @@
 package com.android.tools.componenttree.treetable
 
 import java.awt.Component
-import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.TreeCellRenderer
 
@@ -26,7 +25,6 @@ import javax.swing.tree.TreeCellRenderer
  * This renderer facilitates the delegation to the proper node type renderer.
  */
 class TreeCellRendererImpl(private val treeTable: TreeTableImpl) : TreeCellRenderer {
-  private val empty = JPanel()
 
   override fun getTreeCellRendererComponent(
     tree: JTree,
@@ -37,7 +35,7 @@ class TreeCellRendererImpl(private val treeTable: TreeTableImpl) : TreeCellRende
     row: Int,
     hasFocus: Boolean
   ): Component {
-    val renderer = treeTable.tableModel.rendererOf(value) ?: return empty
-    return renderer.getTreeCellRendererComponent(tree, value, row == treeTable.selectedRow, expanded, leaf, row, treeTable.hasFocus())
+    val renderer = treeTable.tableModel.rendererOf(value)
+    return renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, treeTable.hasFocus())
   }
 }

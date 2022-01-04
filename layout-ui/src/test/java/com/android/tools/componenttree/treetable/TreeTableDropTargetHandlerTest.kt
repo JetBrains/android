@@ -117,7 +117,7 @@ class TreeTableDropTargetHandlerTest {
   @Test
   fun testDragEnter() {
     val table = createTreeTable()
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
     handler.dragEnter(event)
     checkPaint(table, handler, 0, 1)
@@ -128,7 +128,7 @@ class TreeTableDropTargetHandlerTest {
   @Test
   fun testDragExitResetsInsertionRow() {
     val table = createTreeTable()
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
     handler.dragEnter(event)
     checkPaint(table, handler, 0, 1)
@@ -144,7 +144,7 @@ class TreeTableDropTargetHandlerTest {
   @Test
   fun testDragOverBadgeResetsInsertionRow() {
     val table = createTreeTable()
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(10, table.rowHeight - 2))
     handler.dragEnter(event)
     checkPaint(table, handler, 0, 1)
@@ -163,7 +163,7 @@ class TreeTableDropTargetHandlerTest {
   fun testDragOverBottomOfItem5() {
     val table = createTreeTable()
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(10, 5 * rowHeight - 3))
     handler.dragOver(event)
     checkPaint(table, handler, 3, 5)
@@ -178,7 +178,7 @@ class TreeTableDropTargetHandlerTest {
     val depth3 = table.computeLeftOffset(3)
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
     handler.dragOver(event)
     checkPaint(table, handler, 3, 6)
@@ -208,7 +208,7 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
     handler.dragOver(event)
     checkNoPaint(handler)
@@ -221,7 +221,7 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { item2 }  // We are dragging item2 to the end
+    val handler = TreeTableDropTargetHandler(table, listOf(item2)) // We are dragging item2 to the end
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
 
     // Even though the drag location specify item3,
@@ -238,7 +238,7 @@ class TreeTableDropTargetHandlerTest {
     table.setSize(400, 800)
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
     handler.dragOver(event)
     checkPaint(table, handler, 3, 6)
@@ -249,7 +249,7 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
     handler.dragOver(event)
     checkPaint(table, handler, 3, 6)
@@ -270,7 +270,7 @@ class TreeTableDropTargetHandlerTest {
     val table = createTreeTable()
     val depth4 = table.computeLeftOffset(4)
     val rowHeight = table.rowHeight
-    val handler = TreeTableDropTargetHandler(table) { null }
+    val handler = TreeTableDropTargetHandler(table, emptyList())
     val event = createDropTargetDragEvent(table, Point(depth4 + 3, 6 * rowHeight - 3))
     handler.dragOver(event)
     checkPaint(table, handler, 3, 6)

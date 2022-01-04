@@ -33,7 +33,7 @@ import java.awt.dnd.DropTargetEvent
 import java.awt.dnd.DropTargetListener
 import javax.swing.tree.TreePath
 
-class TreeTableDropTargetHandler(private val table: TreeTableImpl, private val getDraggedItem: () -> Any?) : DropTargetListener {
+class TreeTableDropTargetHandler(private val table: TreeTableImpl, private val draggedItems: List<Any>) : DropTargetListener {
   private var lineColor = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(true), 10)
   private var dashedStroke = createDashStroke()
   private var insertionRow = -1
@@ -197,7 +197,8 @@ class TreeTableDropTargetHandler(private val table: TreeTableImpl, private val g
   }
 
   private fun canDropInto(receiver: Any, data: Transferable): Boolean =
-    getDraggedItem()?.let { dragged -> generateSequence(receiver) { table.tableModel.parent(it) }.none { it === dragged} } ?: true &&
+    // Do not allow any items to be dragged onto themselves or a child of themselves:
+    generateSequence(receiver) { table.tableModel.parent(it) }.none { draggedItems.any { dragged -> dragged === it } } &&
     table.tableModel.canInsert(receiver, data)
 
   private fun clearInsertionPoint() {
