@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependencies
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.VisibleForTesting
@@ -37,6 +38,13 @@ import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
+
+typealias IdeVariantFetcher = (
+  controller: BuildController,
+  variantNameResolvers: (buildId: File, projectPath: String) -> VariantNameResolver,
+  module: AndroidModule,
+  configuration: ModuleConfiguration
+) -> IdeVariantImpl?
 
 @UsedInBuildAction
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
@@ -90,8 +98,7 @@ class AndroidModule constructor(
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
-  // The list of partial IdeVariant models populated from V2 models only.
-  val v2Variants: List<IdeVariantImpl>?,
+  val variantFetcher: IdeVariantFetcher,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   override val variantNameResolver: VariantNameResolver,
   private val nativeAndroidProject: IdeNativeAndroidProject?,
@@ -125,8 +132,8 @@ class AndroidModule constructor(
 
   var unresolvedDependencies: List<IdeUnresolvedDependencies> = emptyList()
 
-  /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
-   * libraries other variants depend on.
+  /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
+   * libraries other variants depend on).
    **/
   fun getLibraryDependencies(): Collection<ArtifactIdentifier> {
     return collectIdentifiers(listOfNotNull(syncedVariant))
