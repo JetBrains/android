@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
@@ -54,7 +55,6 @@ import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.GridBagConstraints

@@ -18,11 +18,11 @@ package com.android.tools.idea.devicemanager.legacy
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 
 class PairDeviceAction(

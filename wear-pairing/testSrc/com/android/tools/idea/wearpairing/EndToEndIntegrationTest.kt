@@ -31,13 +31,13 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
-import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
 import org.mockito.Mockito
 import java.nio.file.Paths

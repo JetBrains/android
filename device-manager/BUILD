@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
     ],
 )
 
@@ -53,5 +54,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module, test]",
     ],
 )

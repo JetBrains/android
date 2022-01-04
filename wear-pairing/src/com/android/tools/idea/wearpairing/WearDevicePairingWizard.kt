@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
@@ -36,7 +37,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import org.jetbrains.android.util.AndroidBundle.message
 import java.net.URL
 
 // Keep an instance, so if the wizard is already running, just bring it to the front

@@ -34,6 +34,7 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.WearPairingEvent
@@ -56,7 +57,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
@@ -109,7 +109,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 
   @TestOnly
-  internal fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
+  fun setDataProviders(virtualDevices: () -> List<AvdInfo>, connectedDevices: () -> List<IDevice>) {
     virtualDevicesProvider = virtualDevices
     connectedDevicesProvider = connectedDevices
     pairedDevicesTable.clear()
@@ -143,7 +143,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     setDeviceListListener(WearDevicePairingModel(), wizardAction)
   }
 
-  internal fun loadSettings(pairedDevices: List<PairingDeviceState>, pairedDeviceConnections: List<PairingConnectionsState>) {
+  fun loadSettings(pairedDevices: List<PairingDeviceState>, pairedDeviceConnections: List<PairingConnectionsState>) {
     pairedDevicesTable.clear()
     val deviceMap = pairedDevices.associateBy { it.deviceID }
 

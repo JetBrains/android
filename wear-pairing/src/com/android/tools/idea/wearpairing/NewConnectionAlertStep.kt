@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.IconUtil
@@ -22,7 +23,6 @@ import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil.ComponentStyle.LARGE
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.GridBagConstraints
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.NONE

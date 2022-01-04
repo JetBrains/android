@@ -20,10 +20,10 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.devicemanager.legacy.AvdUiAction.AvdInfoProvider
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
-import org.jetbrains.android.util.AndroidBundle.message
 
 class PairDeviceActionTest {
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.concurrency
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
@@ -55,7 +54,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext

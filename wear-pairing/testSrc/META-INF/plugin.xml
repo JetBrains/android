@@ -1,0 +1,6 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <name>Android Wear Pairing Tests</name>
+  <id>intellij.android.wear-pairing.tests</id>
+  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/wear-pairing.xml" xpointer="xpointer(/idea-plugin/*)"/>
+</idea-plugin>

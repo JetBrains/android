@@ -21,7 +21,6 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.wearpairing.actions.WearDevicePairingAction;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -70,7 +69,7 @@ public final class PopupActionGroupTest {
     Object[] children = {
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -100,7 +99,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -140,7 +139,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -172,7 +171,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -200,7 +199,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -229,7 +228,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));
@@ -268,7 +267,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
+      myActionManager.getAction("Android.WearDevicePairing"),
       myActionManager.getAction("Android.RunAndroidAvdManager")};
 
     assertArrayEquals(children, group.getChildren(null));

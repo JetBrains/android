@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.legacy
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.devicemanager.legacy.AvdUiAction
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

@@ -73,7 +73,7 @@ class WearPairingSettings : PersistentStateComponent<WearPairingSettings> {
 /**
  * Pairing connection details. One phone can connect to one or more wear devices (if multiple wear connections are supported).
  */
-internal class PairingConnectionsState {
+class PairingConnectionsState {
   var phoneId: String = "?"
   /**
    * The list has at least one element (wear device ID)

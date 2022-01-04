@@ -19,7 +19,7 @@ package com.android.tools.idea.wearpairing
  * Used to persist Pairing Device State.
  * Class fields need default values to allow serialization.
  */
-internal data class PairingDeviceState(
+data class PairingDeviceState(
   var deviceID: String = "?",
   var displayName: String = "?",
   var apiLevel: Int = 0,
@@ -28,7 +28,7 @@ internal data class PairingDeviceState(
   var hasPlayStore: Boolean = false,
 )
 
-internal fun PairingDeviceState.toPairingDevice(connectionSate: ConnectionState): PairingDevice =
+fun PairingDeviceState.toPairingDevice(connectionSate: ConnectionState): PairingDevice =
   PairingDevice(
     deviceID = deviceID,
     displayName = displayName,
@@ -39,7 +39,7 @@ internal fun PairingDeviceState.toPairingDevice(connectionSate: ConnectionState)
     state = connectionSate
   )
 
-internal fun PairingDevice.toPairingDeviceState(): PairingDeviceState =
+fun PairingDevice.toPairingDeviceState(): PairingDeviceState =
   PairingDeviceState().apply {
     deviceID = this@toPairingDeviceState.deviceID
     displayName = this@toPairingDeviceState.displayName

@@ -85,11 +85,6 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <action id="Android.WearDevicePairing"
-            class="com.android.tools.idea.wearpairing.actions.WearDevicePairingAction"
-            icon="StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN"
-            text="Wear OS emulator pairing assistant"
-            description="Opens the Wear OS emulator pairing assistant" />
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager" class="com.android.tools.idea.devicemanager.legacy.actions.RunAndroidAvdManagerAction"/>
@@ -294,7 +289,6 @@
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
     <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.emulator.EmulatorSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.wearpairing.WearPairingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
     <applicationService serviceImplementation="com.android.tools.idea.ui.designer.overlays.OverlayPersistentStateService"/>
@@ -815,7 +809,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android">
-    <androidStartupActivity implementation="com.android.tools.idea.wearpairing.WearPairingManager" />
     <androidStartupActivity implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildCheck"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">

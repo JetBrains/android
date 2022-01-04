@@ -27,6 +27,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -60,7 +61,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.EventQueue
 import java.awt.GridBagConstraints.HORIZONTAL
