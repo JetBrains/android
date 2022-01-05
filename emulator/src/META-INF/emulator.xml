@@ -79,5 +79,7 @@
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
     </group>
+    <group id="DeviceToolbar">
+    </group>
   </actions>
 </idea-plugin>

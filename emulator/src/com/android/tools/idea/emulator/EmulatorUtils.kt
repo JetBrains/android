@@ -115,6 +115,13 @@ internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
 }
 
 /**
+ * Returns this [Dimension] rotated by [numQuadrants] quadrants.
+ */
+internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension {
+  return if (numQuadrants % 2 == 0) this else Dimension(height, width)
+}
+
+/**
  * Returns this [Point] rotated according to [rotation].
  */
 internal fun Point.rotated(rotation: SkinRotation): Point {
