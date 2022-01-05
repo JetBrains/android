@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.DevicePanel
+import com.android.tools.idea.logcat.filters.FilterTextComponent
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -44,7 +45,7 @@ internal class LogcatHeaderPanel(
   private val deviceComboBox: Component
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
-  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter)
+  private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
 
   init {
     // TODO(aalbert): DevicePanel uses the project as a disposable parent. This doesn't work well with multiple tabs/splitters where we
@@ -53,7 +54,7 @@ internal class LogcatHeaderPanel(
     val devicePanel = DevicePanel(project, deviceContext)
     deviceComboBox = devicePanel.deviceComboBox
 
-    filterTextField.apply {
+    filterComponent.apply {
       font = Font.getFont(Font.MONOSPACED)
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
@@ -69,7 +70,7 @@ internal class LogcatHeaderPanel(
     })
   }
 
-  fun getFilterText() = filterTextField.text
+  fun getFilterText() = filterComponent.text
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
@@ -82,12 +83,12 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout.createSequentialGroup()
         .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(filterTextField, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
+        .addComponent(filterComponent.component)
     )
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
-        .addComponent(filterTextField)
+        .addComponent(filterComponent.component)
     )
     return layout
   }
@@ -100,12 +101,12 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout.createParallelGroup()
         .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
+        .addGroup(layout.createSequentialGroup().addComponent(filterComponent.component))
     )
     layout.setVerticalGroup(
       layout.createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
+        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterComponent.component))
     )
     return layout
   }

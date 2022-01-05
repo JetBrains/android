@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat
+package com.android.tools.idea.logcat.filters
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -23,8 +23,12 @@ import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
-import com.android.tools.idea.logcat.FilterTextField.Companion.HISTORY_PROPERTY_NAME
-import com.android.tools.idea.logcat.filters.LogcatFilterParser
+import com.android.tools.idea.logcat.FakeLogcatPresenter
+import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
+import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
+import com.android.tools.idea.logcat.filters.FilterTextField.Companion.HISTORY_PROPERTY_NAME
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
 import com.google.common.truth.Truth.assertThat

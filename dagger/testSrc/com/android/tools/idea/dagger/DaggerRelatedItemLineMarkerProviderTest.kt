@@ -214,7 +214,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         @Module
         class MyModule {
           @Provides String provider() {
-            return "fff";
+            return "logcat.filter.save.button.tooltip";
           }
         }
       """.trimIndent()
@@ -280,7 +280,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         @Module
         public class MyModule {
           @Provides String provider() {
-            return "fff";
+            return "logcat.filter.save.button.tooltip";
           }
         }
       """.trimIndent()

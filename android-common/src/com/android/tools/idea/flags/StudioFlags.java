@@ -683,6 +683,14 @@ public final class StudioFlags {
     "Enables version 2 of the Logcat tool window",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_V2_NAMED_FILTERS_ENABLE = Flag.create(
+    RUNDEBUG,
+    "logcat.v2.named.filters.enable",
+    "Enable Logcat named filters feature",
+    "Enables the named filters feature in the Logcat tool window",
+    false
+  );
   //endregion
 
   //region Gradle Project System

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat
+package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.logcat.filters.LogcatFilterParser
+import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
+import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -39,6 +41,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Component
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
@@ -62,7 +65,7 @@ internal class FilterTextField(
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   private val maxHistorySize: Int = MAX_HISTORY_SIZE,
-) : BorderLayoutPanel() {
+) : BorderLayoutPanel(), FilterTextComponent {
   @TestOnly
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
   private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
@@ -71,17 +74,20 @@ internal class FilterTextField(
   private val historyButton = InlineButton(AllIcons.Actions.SearchWithHistory)
   private val clearButton = InlineButton(AllIcons.Actions.Close)
 
-  var text: String
+  override var text: String
     get() = textField.text
     set(value) {
       textField.text = value
     }
+
+  override val component: Component get() = this
 
   init {
     addToLeft(historyButton)
     addToCenter(textField)
     addToRight(clearButton)
 
+    // TODO(aalbert): Fix issue with double border.
     // Set a border around the text field and buttons. See EditorTextField#setBorder()
     border = BorderFactory.createCompoundBorder(UIUtil.getTextFieldBorder(),  JBUI.Borders.empty(2, 2, 2, 2))
 
@@ -139,7 +145,7 @@ internal class FilterTextField(
   }
 
   @UiThread
-  fun addDocumentListener(listener: DocumentListener) {
+  override fun addDocumentListener(listener: DocumentListener) {
     documentChangedListeners.add(listener)
   }
 
