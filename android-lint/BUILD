@@ -116,7 +116,7 @@ maven_repository(
         "@maven//:com.android.support.multidex-instrumentation_1.0.2",
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
-        "@maven//:com.android.tools.desugar_jdk_libs_1.0.5",
+        "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.1",
