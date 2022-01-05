@@ -50,7 +50,6 @@ import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
-import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
@@ -58,7 +57,6 @@ import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.IntFunction
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
@@ -134,10 +132,7 @@ class EmulatorToolWindowPanel(
     mainToolbar = createToolbar(EMULATOR_MAIN_TOOLBAR_ID, isToolbarHorizontal)
 
     addToCenter(centerPanel)
-    addToolbar()
-  }
 
-  private fun addToolbar() {
     if (isToolbarHorizontal) {
       mainToolbar.setOrientation(SwingConstants.HORIZONTAL)
       centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
@@ -169,64 +164,58 @@ class EmulatorToolWindowPanel(
    * Populates the emulator panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
-    try {
-      lastUiState = null
-      val disposable = Disposer.newDisposable()
-      contentDisposable = disposable
+    lastUiState = null
+    val disposable = Disposer.newDisposable()
+    contentDisposable = disposable
 
-      clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)
+    clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)
 
-      val primaryDisplayPanel =
-          EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
-      displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
-      val emulatorView = primaryDisplayPanel.displayView
-      primaryEmulatorView = emulatorView
-      mainToolbar.setTargetComponent(emulatorView)
-      emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
-        mainToolbar.updateActionsImmediately()
+    val primaryDisplayPanel =
+        EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
+    displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
+    val emulatorView = primaryDisplayPanel.displayView
+    primaryEmulatorView = emulatorView
+    mainToolbar.setTargetComponent(emulatorView)
+    emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
+      mainToolbar.updateActionsImmediately()
+    }
+    installFileDropHandler(this, emulatorView, project)
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
+    emulatorView.addDisplayConfigurationListener(displayConfigurator)
+    emulator.addConnectionStateListener(this)
+
+    val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
+    if (multiDisplayState == null) {
+      centerPanel.addToCenter(primaryDisplayPanel)
+    }
+    else {
+      try {
+        displayConfigurator.buildLayout(multiDisplayState)
       }
-      installFileDropHandler(this, emulatorView, project)
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
-      emulatorView.addDisplayConfigurationListener(displayConfigurator)
-      emulator.addConnectionStateListener(this)
-
-      val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
-      if (multiDisplayState == null) {
+      catch (e: RuntimeException) {
+        LOG.error("Corrupted multi-display state", e)
+        // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
-      else {
-        try {
-          displayConfigurator.buildLayout(multiDisplayState)
-        }
-        catch (e: RuntimeException) {
-          LOG.error("Corrupted multi-display state", e)
-          // Corrupted multi-display state. Start with a single display.
-          centerPanel.addToCenter(primaryDisplayPanel)
-        }
-      }
-
-      val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
-      val zoomScrollState = uiState.zoomScrollState
-      for (panel in displayPanels.values) {
-        zoomScrollState[panel.displayId]?.let { panel.zoomScrollState = it }
-      }
-
-      multiDisplayStateStorage.addUpdater(multiDisplayStateUpdater)
-
-      if (connected) {
-        displayConfigurator.refreshDisplayConfiguration()
-
-        if (uiState.manageSnapshotsDialogShown) {
-          showManageSnapshotsDialog(emulatorView, project)
-        }
-        if (uiState.extendedControlsShown) {
-          showExtendedControls(emulator, project)
-        }
-      }
     }
-    catch (e: Exception) {
-      val label = "Unable to create emulator view: $e"
-      add(JLabel(label), BorderLayout.CENTER)
+
+    val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
+    val zoomScrollState = uiState.zoomScrollState
+    for (panel in displayPanels.values) {
+      zoomScrollState[panel.displayId]?.let { panel.zoomScrollState = it }
+    }
+
+    multiDisplayStateStorage.addUpdater(multiDisplayStateUpdater)
+
+    if (connected) {
+      displayConfigurator.refreshDisplayConfiguration()
+
+      if (uiState.manageSnapshotsDialogShown) {
+        showManageSnapshotsDialog(emulatorView, project)
+      }
+      if (uiState.extendedControlsShown) {
+        showExtendedControls(emulator, project)
+      }
     }
   }
 
