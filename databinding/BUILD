@@ -85,8 +85,8 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.fragment.fragment_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-livedata_2.2.0",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.2.0",
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",
         "@maven//:com.android.support.support-v4_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.1",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
