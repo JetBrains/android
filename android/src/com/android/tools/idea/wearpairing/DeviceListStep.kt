@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.adtui.util.HelpTooltipForList
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -50,7 +51,6 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -345,7 +345,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project?, val w
                 if (cloudSyncIsEnabled == true) {
                   ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
-                GlobalScope.launch(ioThread) {
+                AndroidCoroutineScope(this@DeviceListStep).launch(ioThread) {
                   WearPairingManager.removePairedDevices(listDevice.deviceID)
                   // Update pairing icon
                   ApplicationManager.getApplication().invokeLater(
