@@ -44,12 +44,14 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.EdtRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
 
+@Ignore("b/213342293")
 @RunWith(Parameterized::class)
 class BuildTest(private val onlyKotlinBuildFlag: Boolean) {
   companion object {
