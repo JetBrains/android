@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.ide.DataManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -134,21 +135,23 @@ class IssuePanelService(private val project: Project) {
         }
         else {
           // Surface exists.
-          if (addSharedIssueTabToProblemsPanel()) {
-            // The tab was not in the tab before, setup it.
-            setShowIssuePanel(true, surface, false)
-          }
+          addSharedIssueTabToProblemsPanel()
+          setShowIssuePanel(true, surface, false)
         }
       }
     })
   }
 
   private fun getDesignSurface(editor: FileEditor?): DesignSurface? {
-    return (editor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface ?:
-      // Compose case.
-      // TODO: Having simple way to get the DesignSurface from Compose file editor.
-      (((((editor as? SplitEditor<*>)?.preview as? DesignFileEditor)?.component?.components?.getOrNull(1)) as? WorkBench<*>)
-        ?.components?.getOrNull(1) as? IssuePanelSplitter)?.surface
+    when (editor) {
+      is DesignToolsSplitEditor -> return editor.designerEditor.component.surface
+      is SplitEditor<*> -> {
+        // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
+        val component = (editor.preview as? SourceCodePreview)?.currentRepresentation?.component ?: return null
+        return DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
+      }
+      else -> return null
+    }
   }
 
   /**

@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
@@ -49,6 +50,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -106,7 +108,7 @@ class CustomViewPreviewRepresentation(
   psiFile: PsiFile,
   persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)},
   buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState) :
-  PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  PreviewRepresentation, CustomViewPreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, DataProvider {
 
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
@@ -412,5 +414,9 @@ class CustomViewPreviewRepresentation(
 
   override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+  }
+
+  override fun getData(dataId: String): Any? {
+    return if (DESIGN_SURFACE.`is`(dataId)) surface else null
   }
 }

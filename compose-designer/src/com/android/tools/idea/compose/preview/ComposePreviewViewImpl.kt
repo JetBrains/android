@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
@@ -241,7 +242,7 @@ private class PinnedLabelPanel(pinAction: AnAction) : JPanel() {
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build status and show/hide the correct loading
  *   message.
  * @param navigationHandler the [PreviewNavigationHandler] used to handle the source code navigation when user clicks a component.
- * @param dataProvider the [DataProvider] to be used by this panel.
+ * @param dataProvider the [DataProvider] to be used by the [pinnedSurface] and [mainSurface] panel.
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
  */
 internal class ComposePreviewViewImpl(private val project: Project,
@@ -252,7 +253,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       parentDisposable: Disposable,
                                       onPinFileAction: AnAction,
                                       onUnPinAction: AnAction) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0), ComposePreviewView, Pannable {
+  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable, 0),
+  ComposePreviewView, Pannable, DataProvider {
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -582,4 +584,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
       mainPanelSplitter.secondComponent = value
     }
     get() = mainPanelSplitter.secondComponent
+
+  override fun getData(dataId: String): Any? {
+    return if (DESIGN_SURFACE.`is`(dataId)) mainSurface else null
+  }
 }
