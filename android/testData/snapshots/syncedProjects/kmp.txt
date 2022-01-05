@@ -912,7 +912,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <DEV>/prebuilts/studio/intellij-sdk/AI-212/linux/android-studio/plugins/Kotlin/kotlinc
+            HomePath                      : <KOTLIN_PATH>/kotlinc
             VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : kotlinMultiPlatform.module2.commonTest
@@ -978,7 +978,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <DEV>/prebuilts/studio/intellij-sdk/AI-212/linux/android-studio/plugins/Kotlin/kotlinc
+            HomePath                      : <KOTLIN_PATH>/kotlinc
             VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain

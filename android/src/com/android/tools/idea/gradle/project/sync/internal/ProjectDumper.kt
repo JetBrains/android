@@ -23,14 +23,10 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.File
@@ -44,6 +40,8 @@ class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
   private val devBuildHome: File = File(PathManager.getCommunityHomePath()),
+  private val kotlinPlugin: File? =
+    PluginManager.getInstance().findEnabledPlugin(PluginId.findId("org.jetbrains.kotlin")!!)?.pluginPath?.toFile(),
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val gradleCache: File = getGradleCacheLocation()
@@ -53,6 +51,9 @@ class ProjectDumper(
   init {
     println("<DEV>         <== ${devBuildHome?.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
+    if (kotlinPlugin != null) {
+      println("<KOTLIN_PATH> <== ${kotlinPlugin.absolutePath}")
+    }
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
     offlineRepos.forEach {
@@ -168,6 +169,13 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
+      .let {
+        if (kotlinPlugin != null) {
+          it.replace(FileUtils.toSystemIndependentPath(kotlinPlugin.absolutePath), "<KOTLIN_PATH>", ignoreCase = false)
+        } else {
+          it
+        }
+      }
       .let {
         it.replaceAfter(
           "<ANDROID_SDK>",
