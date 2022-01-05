@@ -28,11 +28,8 @@ import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
 import javax.swing.GroupLayout
-import javax.swing.JCheckBox
 import javax.swing.JPanel
-import javax.swing.ToolTipManager
 
 /**
  * A header for the Logcat panel.
@@ -43,20 +40,10 @@ internal class LogcatHeaderPanel(
   deviceContext: DeviceContext,
   packageNamesProvider: PackageNamesProvider,
   filter: String,
-  showOnlyProjectApps: Boolean,
 ) : JPanel() {
   private val deviceComboBox: Component
   private val filterTextField = FilterTextField(project, logcatPresenter, filter)
 
-  // TODO(aalbert): This is a temp UX. Will probably be changed to something that can select individual apps from the project as well.
-  private val projectAppsCheckbox = object : JCheckBox(LogcatBundle.message("logcat.filter.project.apps")) {
-    init {
-      ToolTipManager.sharedInstance().registerComponent(this)
-    }
-
-    override fun getToolTipText(event: MouseEvent): String =
-      packageNamesProvider.getPackageNames().joinToString("<br/>", "<html>", "</html>")
-  }
   private val filterParser = LogcatFilterParser(project, packageNamesProvider)
 
   init {
@@ -74,10 +61,6 @@ internal class LogcatHeaderPanel(
         }
       })
     }
-    projectAppsCheckbox.apply {
-      isSelected = showOnlyProjectApps
-      addItemListener { logcatPresenter.setShowOnlyProjectApps(projectAppsCheckbox.isSelected) }
-    }
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(event: ComponentEvent) {
@@ -87,8 +70,6 @@ internal class LogcatHeaderPanel(
   }
 
   fun getFilterText() = filterTextField.text
-
-  fun isShowProjectApps() = projectAppsCheckbox.isSelected
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
@@ -102,13 +83,11 @@ internal class LogcatHeaderPanel(
       layout.createSequentialGroup()
         .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
         .addComponent(filterTextField, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(projectAppsCheckbox)
     )
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
         .addComponent(filterTextField)
-        .addComponent(projectAppsCheckbox)
     )
     return layout
   }
@@ -122,13 +101,11 @@ internal class LogcatHeaderPanel(
       layout.createParallelGroup()
         .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
         .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
-        .addGroup(layout.createSequentialGroup().addComponent(projectAppsCheckbox))
     )
     layout.setVerticalGroup(
       layout.createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
-        .addGroup(layout.createParallelGroup().addComponent(projectAppsCheckbox))
     )
     return layout
   }

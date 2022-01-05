@@ -170,31 +170,6 @@ class LogcatMainPanelTest {
   }
 
   @Test
-  fun applyFilter_appOnly() = runBlocking {
-    val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel(packageNamesProvider = FakePackageNamesProvider("app1", "app3"))
-    }
-    logcatMainPanel.processMessages(listOf(
-      LogCatMessage(LogCatHeader(WARN, 1, 2, "app1", "tag", Instant.ofEpochMilli(1000)), "message1"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app2", "tag", Instant.ofEpochMilli(1000)), "message2"),
-      LogCatMessage(LogCatHeader(INFO, 1, 2, "app3", "tag", Instant.ofEpochMilli(1000)), "message3"),
-    ))
-
-    logcatMainPanel.messageProcessor.onIdle {
-      logcatMainPanel.setShowOnlyProjectApps(true)
-    }
-
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.text).isEqualTo("""
-        1970-01-01 04:00:01.000     1-2     tag                     app1                                 W  message1
-        1970-01-01 04:00:01.000     1-2     tag                     app3                                 I  message3
-
-      """.trimIndent())
-    }
-  }
-
-  @Test
   fun appendMessages_disposedEditor() = runBlocking {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().also {
@@ -390,14 +365,12 @@ class LogcatMainPanelTest {
   @Test
   fun appliesState() {
     val logcatMainPanel = logcatMainPanel(
-      state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17)), "filter", showOnlyProjectApps = true))
+      state = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(17)), "filter"))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow initializing it.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
-    assertThat(logcatMainPanel.messageProcessor.showOnlyProjectApps).isTrue()
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
-    assertThat(logcatMainPanel.headerPanel.isShowProjectApps()).isTrue()
   }
 
   @Test

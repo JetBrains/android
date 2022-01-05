@@ -33,7 +33,6 @@ internal data class LogcatPanelConfig(
   var deviceSerial: String?,
   var formattingOptions: FormattingOptions,
   var filter: String,
-  var showOnlyProjectApps: Boolean,
 ) {
   companion object {
     /**

@@ -122,15 +122,13 @@ internal class LogcatMainPanel(
     logcatPresenter = this,
     deviceContext, packageNamesProvider,
     state?.filter ?: "",
-    state?.showOnlyProjectApps ?: true)
+  )
 
   @VisibleForTesting
   internal val messageProcessor = MessageProcessor(
     this,
     messageFormatter::formatMessages,
-    packageNamesProvider,
-    LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()),
-    headerPanel.isShowProjectApps())
+    LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()))
   private var logcatReader: LogcatReader? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
@@ -220,8 +218,7 @@ internal class LogcatMainPanel(
     LogcatPanelConfig(
       deviceContext.selectedDevice?.serialNumber,
       formattingOptions,
-      headerPanel.getFilterText(),
-      headerPanel.isShowProjectApps()))
+      headerPanel.getFilterText()))
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
     if (!isActive) {
@@ -260,12 +257,6 @@ internal class LogcatMainPanel(
   @UiThread
   override fun applyFilter(logcatFilter: LogcatFilter?) {
     messageProcessor.logcatFilter = logcatFilter
-    reloadMessages()
-  }
-
-  @UiThread
-  override fun setShowOnlyProjectApps(enabled: Boolean) {
-    messageProcessor.showOnlyProjectApps = enabled
     reloadMessages()
   }
 

@@ -19,11 +19,8 @@ import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatPresenter
-import com.android.tools.idea.logcat.PackageNamesProvider
-import com.android.tools.idea.logcat.filters.AndLogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
-import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -46,9 +43,7 @@ private val logger by lazy { Logger.getInstance(MessageProcessor::class.java) }
 internal class MessageProcessor @TestOnly constructor(
   private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
-  packageNamesProvider: PackageNamesProvider,
   var logcatFilter: LogcatFilter?,
-  var showOnlyProjectApps: Boolean,
   private val clock: Clock,
   private val maxTimePerBatchMs: Int,
   private val maxMessagesPerBatch: Int,
@@ -57,22 +52,17 @@ internal class MessageProcessor @TestOnly constructor(
   constructor(
     logcatPresenter: LogcatPresenter,
     formatMessagesInto: (TextAccumulator, List<LogCatMessage>) -> Unit,
-    packageNamesProvider: PackageNamesProvider,
     logcatFilter: LogcatFilter?,
-    showOnlyProjectApps: Boolean,
   ) : this(
     logcatPresenter,
     formatMessagesInto,
-    packageNamesProvider,
     logcatFilter,
-    showOnlyProjectApps,
     Clock.systemDefaultZone(),
     MAX_TIME_PER_BATCH_MS,
     MAX_MESSAGES_PER_BATCH,
     autoStart = true)
 
   private val messageChannel = Channel<List<LogCatMessage>>(CHANNEL_CAPACITY)
-  private val projectAppFilter = ProjectAppFilter(packageNamesProvider)
 
   init {
     if (autoStart) {
@@ -81,12 +71,7 @@ internal class MessageProcessor @TestOnly constructor(
   }
 
   internal suspend fun appendMessages(messages: List<LogCatMessage>) {
-    val filter = when {
-      showOnlyProjectApps && logcatFilter != null -> AndLogcatFilter(logcatFilter!!, projectAppFilter)
-      showOnlyProjectApps -> projectAppFilter
-      else -> logcatFilter
-    }
-    messageChannel.send(LogcatMasterFilter(filter).filter(messages))
+    messageChannel.send(LogcatMasterFilter(logcatFilter).filter(messages))
   }
 
   // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.

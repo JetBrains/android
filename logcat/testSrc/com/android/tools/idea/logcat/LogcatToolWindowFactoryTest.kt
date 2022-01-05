@@ -81,10 +81,10 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun createChildComponent_parsesState() {
-    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)), "filter", showOnlyProjectApps = true)
+    val logcatPanelConfig = LogcatPanelConfig("device", FormattingOptions(tagFormat = TagFormat(15)), "filter")
 
     val logcatMainPanel = LogcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = Gson().toJson(logcatPanelConfig)) as LogcatMainPanel
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = Gson().toJson(logcatPanelConfig))
 
     // It's enough to assert on just one field in the config. We test more thoroughly in LogcatMainPanelTest
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingOptions)
@@ -94,7 +94,7 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun createChildComponent_invalidState() {
     val logcatMainPanel = LogcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = "invalid state") as LogcatMainPanel
+      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     Disposer.dispose(logcatMainPanel)
