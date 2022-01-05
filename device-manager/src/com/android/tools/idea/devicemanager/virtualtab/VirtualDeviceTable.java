@@ -129,6 +129,8 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     }
 
     setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
+    setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
+
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);

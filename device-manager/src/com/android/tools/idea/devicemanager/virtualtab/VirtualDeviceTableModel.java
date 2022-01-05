@@ -177,8 +177,14 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         return Object.class;
+      case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
+        if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
+          return Long.class;
+        }
+        else {
+          return Object.class;
+        }
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.class;
       default:
@@ -216,7 +222,12 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         case API_MODEL_COLUMN_INDEX:
           return myDevices.get(modelRowIndex).getApi();
         case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
-          return getSizeOnDisk(myDevices.get(modelRowIndex));
+          if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
+            return myDevices.get(modelRowIndex).getSizeOnDisk();
+          }
+          else {
+            return getSizeOnDisk(myDevices.get(modelRowIndex));
+          }
         case LAUNCH_IN_EMULATOR_MODEL_COLUMN_INDEX:
           return LaunchInEmulatorValue.INSTANCE;
         case ACTIVATE_DEVICE_FILE_EXPLORER_WINDOW_MODEL_COLUMN_INDEX:
@@ -237,7 +248,6 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
         return myDevices.get(modelRowIndex).getApi();
       case SIZE_ON_DISK_MODEL_COLUMN_INDEX:
         if (VIRTUAL_DEVICE_SIZE_ON_DISK_ENABLED) {
-          // TODO: display this as a string in MB/GB/etc
           return myDevices.get(modelRowIndex).getSizeOnDisk();
         }
         else {
