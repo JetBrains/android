@@ -110,7 +110,6 @@ public class CreateCppKotlinProjectTest {
    *   files of the project match the files of the pre-created project "CppKotlin".
    * </p>
    */
-  @Ignore("b/210474709")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createCppKotlinProject() throws Exception {
