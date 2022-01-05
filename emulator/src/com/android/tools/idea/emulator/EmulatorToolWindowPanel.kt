@@ -179,7 +179,7 @@ class EmulatorToolWindowPanel(
       val primaryDisplayPanel =
           EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
       displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
-      val emulatorView = primaryDisplayPanel.emulatorView
+      val emulatorView = primaryDisplayPanel.displayView
       primaryEmulatorView = emulatorView
       mainToolbar.setTargetComponent(emulatorView)
       emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
@@ -426,7 +426,7 @@ class EmulatorToolWindowPanel(
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
     var multiDisplayState: MultiDisplayState? = null
-    val zoomScrollState = Int2ObjectRBTreeMap<EmulatorDisplayPanel.ZoomScrollState>()
+    val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
   }
 
   /**

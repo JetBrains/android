@@ -30,11 +30,8 @@ import com.android.emulator.control.Touch
 import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.ide.common.util.Cancelable
-import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
-import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorConfiguration.DisplayMode
@@ -68,13 +65,11 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.RadialGradientPaint
@@ -126,18 +121,12 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.nextDown
-import kotlin.math.round
 import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
@@ -155,12 +144,11 @@ import com.android.emulator.control.Notification as EmulatorNotification
 class EmulatorView(
   disposableParent: Disposable,
   val emulator: EmulatorController,
-  val displayId: Int,
+  displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean
-) : JPanel(BorderLayout()), ConnectionStateListener, Zoomable, Disposable {
+) : AbstractDisplayView(displayId), ConnectionStateListener, Disposable {
 
-  private var disconnectedStateLabel: JLabel
   private var lastScreenshot: Screenshot? = null
   private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
@@ -214,32 +202,6 @@ class EmulatorView(
 
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
-
-  private var screenScale = 0.0 // Scale factor of the host screen.
-    get() {
-      if (field == 0.0) {
-        field = graphicsConfiguration?.defaultTransform?.scaleX ?: 1.0
-      }
-      return field
-    }
-
-  /** Width in physical pixels. */
-  private val realWidth
-    get() = width.scaled(screenScale)
-
-  /** Height in physical pixels. */
-  private val realHeight
-    get() = height.scaled(screenScale)
-
-  /** Size in physical pixels. */
-  private val realSize
-    get() = Dimension(realWidth, realHeight)
-
-  override val screenScalingFactor
-    get() = screenScale
-
-  override val scale: Double
-    get() = computeScaleToFit(realSize, screenshotShape.rotation)
 
   /**
    * The size of the device including frame in device pixels.
@@ -310,15 +272,6 @@ class EmulatorView(
   init {
     Disposer.register(disposableParent, this)
 
-    background = primaryPanelBackground
-
-    disconnectedStateLabel = JLabel()
-    disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
-    disconnectedStateLabel.font = disconnectedStateLabel.font.deriveFont(disconnectedStateLabel.font.size * 1.2F)
-
-    isFocusable = true // Must be focusable to receive keyboard events.
-    focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the emulator.
-
     emulator.addConnectionStateListener(this)
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
@@ -337,6 +290,8 @@ class EmulatorView(
     addKeyListener(MyKeyListener())
 
     if (displayId == PRIMARY_DISPLAY_ID) {
+      showLongRunningOperationIndicator("Connecting to the Emulator")
+
       addFocusListener(object : FocusListener {
         override fun focusGained(event: FocusEvent) {
           if (virtualSceneCameraActive) {
@@ -375,81 +330,10 @@ class EmulatorView(
     displayConfigurationListeners.remove(listener)
   }
 
-  override fun zoom(type: ZoomType): Boolean {
-    val scaledSize = computeZoomedSize(type)
-    if (scaledSize == preferredSize) {
-      return false
-    }
-    preferredSize = scaledSize
-    revalidate()
-    return true
-  }
+  override fun canZoom(): Boolean = connected
 
-  override fun canZoomIn(): Boolean {
-    return connected && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
-  }
-
-  override fun canZoomOut(): Boolean {
-    return connected && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
-  }
-
-  override fun canZoomToActual(): Boolean {
-    return connected && computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize
-  }
-
-  override fun canZoomToFit(): Boolean {
-    return connected && isPreferredSizeSet
-  }
-
-  internal val explicitlySetPreferredSize: Dimension?
-    get() = if (isPreferredSizeSet) preferredSize else null
-
-  /**
-   * Computes the preferred size in virtual pixels after the given zoom operation.
-   * The preferred size is null for zoom to fit.
-   */
-  private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
-    val newScale = when (zoomType) {
-      ZoomType.IN -> {
-        min(ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, MAX_SCALE)
-      }
-      ZoomType.OUT -> {
-        max(ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0, computeScaleToFitInParent())
-      }
-      ZoomType.ACTUAL -> {
-        1.0
-      }
-      ZoomType.FIT -> {
-        return null
-      }
-      else -> throw IllegalArgumentException("Unsupported zoom type $zoomType")
-    }
-    val scaledSize = computeScaledSize(newScale, screenshotShape.rotation)
-    val availableSize = computeAvailableSize()
-    if (scaledSize.width <= availableSize.width && scaledSize.height <= availableSize.height) {
-      return null
-    }
-    return scaledSize.scaled(1 / screenScale)
-  }
-
-  private fun computeScaleToFitInParent() = computeScaleToFit(computeAvailableSize(), screenshotShape.rotation)
-
-  private fun computeAvailableSize(): Dimension {
-    return parent.sizeWithoutInsets.scaled(screenScale)
-  }
-
-  private fun computeScaleToFit(availableSize: Dimension, rotation: SkinRotation): Double {
-    return computeScaleToFit(computeActualSize(rotation), availableSize)
-  }
-
-  private fun computeScaleToFit(actualSize: Dimension, availableSize: Dimension): Double {
-    val scale = min(availableSize.width.toDouble() / actualSize.width, availableSize.height.toDouble() / actualSize.height)
-    return if (scale <= 1.0) scale else floor(scale)
-  }
-
-  private fun computeScaledSize(scale: Double, rotation: SkinRotation): Dimension {
-    return computeActualSize(rotation).scaled(scale)
-  }
+  override fun computeActualSize(): Dimension =
+    computeActualSize(screenshotShape.rotation)
 
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
@@ -466,21 +350,6 @@ class EmulatorView(
     super.setBounds(x, y, width, height)
     if (resized) {
       requestScreenshotFeed()
-    }
-  }
-
-  /**
-   * Processes a focus traversal key event by passing it to the keyboard focus manager.
-   */
-  private fun traverseFocusLocally(event: KeyEvent) {
-    if (!focusTraversalKeysEnabled) {
-      focusTraversalKeysEnabled = true
-      try {
-        getCurrentKeyboardFocusManager().processKeyEvent(this, event)
-      }
-      finally {
-        focusTraversalKeysEnabled = false
-      }
     }
   }
 
@@ -656,11 +525,6 @@ class EmulatorView(
     }
   }
 
-  /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
-  private fun roundScale(value: Double): Double {
-    return if (value >= 1) floor(value) else round(value * 128) / 128
-  }
-
   private fun requestScreenshotFeed() {
     if (connected) {
       requestScreenshotFeed(screenshotShape.rotation)
@@ -717,21 +581,6 @@ class EmulatorView(
     notificationReceiver = null
     notificationFeed?.cancel()
     notificationFeed = null
-  }
-
-  fun showLongRunningOperationIndicator(text: String) {
-    findLoadingPanel()?.apply {
-      setLoadingText(text)
-      startLoading()
-    }
-  }
-
-  fun hideLongRunningOperationIndicator() {
-    findLoadingPanel()?.stopLoading()
-  }
-
-  fun hideLongRunningOperationIndicatorInstantly() {
-    findLoadingPanel()?.stopLoadingInstantly()
   }
 
   private fun showVirtualSceneCameraPrompt() {
@@ -793,21 +642,6 @@ class EmulatorView(
 
   private val IdeGlassPane.rootPane
     get() = (this as IdeGlassPaneImpl).rootPane
-
-  private fun findLoadingPanel(): EmulatorLoadingPanel? = findContainingComponent()
-
-  private fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
-
-  private inline fun <reified T : JComponent> findContainingComponent(): T? {
-    var component = parent
-    while (component != null) {
-      if (component is T) {
-        return component
-      }
-      component = component.parent
-    }
-    return null
-  }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
 
@@ -1353,10 +1187,6 @@ private var emulatorOutOfDateNotificationShown = false
 
 private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
 private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * PI / 180
-
-private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
-
-private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
 private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24
