@@ -19,12 +19,12 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2021.2.01">
+    version="2021.3.01">
   <feature
-      name="What's New in 2021.2.01">
+      name="What's New in 2021.3.01">
     <tutorial
         key="whats-new"
-        label=" What's New in 2021.2.01"
+        label=" What's New in 2021.3.01"
         icon="preview/whats_new_icon.png"
         remoteLink="https://developer.android.com/studio/preview/features"
         remoteLinkLabel="Read in a browser">
@@ -41,7 +41,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 05/11/2021</em><br><br>
+              <br><em>Last updated 01/05/2022</em><br><br>
             ]]>
           </section>
         </stepElement>
