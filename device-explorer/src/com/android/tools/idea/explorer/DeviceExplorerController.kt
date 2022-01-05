@@ -286,7 +286,7 @@ class DeviceExplorerController(
       node.isUploading = true
     }
     if (myTransferringNodes.isEmpty()) {
-      myTransferringNodesAlarms.addRequest(MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis)
+      myTransferringNodesAlarms.addRequest(::repaintTransferringNodes, myTransferringNodeRepaintMillis)
     }
     myTransferringNodes.add(node)
   }
@@ -316,7 +316,7 @@ class DeviceExplorerController(
   private fun startLoadChildren(node: DeviceFileEntryNode) {
     myView.startTreeBusyIndicator()
     if (myLoadingChildren.isEmpty()) {
-      myLoadingChildrenAlarms.addRequest(MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis)
+      myLoadingChildrenAlarms.addRequest(::repaintLoadingChildren, myTransferringNodeRepaintMillis)
     }
     myLoadingChildren.add(node)
   }
@@ -1331,7 +1331,7 @@ class DeviceExplorerController(
       if (fileSystem != node.entry.fileSystem) {
         return
       }
-      val showLoadingNode = ShowLoadingNodeRequest(treeModel, node)
+      val showLoadingNode = Runnable { showLoadingNode(treeModel, node) }
       myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis)
       startLoadChildren(node)
       try {
@@ -1515,36 +1515,30 @@ class DeviceExplorerController(
     )
   }
 
-  private class ShowLoadingNodeRequest(private val myTreeModel: DefaultTreeModel, private val myNode: DeviceFileEntryNode) : Runnable {
-    override fun run() {
-      myNode.allowsChildren = true
-      myNode.add(MyLoadingNode(myNode.entry))
-      myTreeModel.nodeStructureChanged(myNode)
-    }
+  private fun showLoadingNode(treeModel: DefaultTreeModel, node: DeviceFileEntryNode) {
+    node.allowsChildren = true
+    node.add(MyLoadingNode(node.entry))
+    treeModel.nodeStructureChanged(node)
   }
 
-  private inner class MyTransferringNodesRepaint : Runnable {
-    override fun run() {
-      for (node in myTransferringNodes) {
-        node.incTransferringTick()
+  private fun repaintTransferringNodes() {
+    for (node in myTransferringNodes) {
+      node.incTransferringTick()
+      getTreeModel()?.nodeChanged(node)
+    }
+    myTransferringNodesAlarms.addRequest(::repaintTransferringNodes, myTransferringNodeRepaintMillis)
+  }
+
+  private fun repaintLoadingChildren() {
+    for (child in myLoadingChildren) {
+      if (child.childCount == 0) continue
+      val node = child.firstChild
+      if (node is MyLoadingNode) {
+        node.incTick()
         getTreeModel()?.nodeChanged(node)
       }
-      myTransferringNodesAlarms.addRequest(MyTransferringNodesRepaint(), myTransferringNodeRepaintMillis)
     }
-  }
-
-  private inner class MyLoadingChildrenRepaint : Runnable {
-    override fun run() {
-      for (child in myLoadingChildren) {
-        if (child.childCount == 0) continue
-        val node = child.firstChild
-        if (node is MyLoadingNode) {
-          node.incTick()
-          getTreeModel()?.nodeChanged(node)
-        }
-      }
-      myLoadingChildrenAlarms.addRequest(MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis)
-    }
+    myLoadingChildrenAlarms.addRequest(::repaintLoadingChildren, myTransferringNodeRepaintMillis)
   }
 
   @VisibleForTesting object NodeSorting {
