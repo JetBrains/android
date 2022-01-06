@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
-import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
@@ -97,7 +96,6 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       element,
       element.textRange,
       icon,
-      Pass.LINE_MARKERS,
       getTooltipProvider(parent, gotoTargets),
       { mouseEvent, elt ->
         elt.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(typeForMetrics)
@@ -109,7 +107,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
-      gotoTargets
+      { gotoTargets }
     )
     val calculationTime = System.currentTimeMillis() - startTimeMs
     element.project.service<DaggerAnalyticsTracker>().trackGutterWasDisplayed(typeForMetrics, calculationTime)

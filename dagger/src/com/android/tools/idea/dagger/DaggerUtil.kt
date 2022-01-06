@@ -183,12 +183,6 @@ private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiM
 }
 
 /**
- * True if PsiMethod belongs to a class annotated with @Module.
- */
-private val PsiMethod.isInDaggerModule: Boolean
-  get() = containingClass?.hasAnnotation(DAGGER_MODULE_ANNOTATION) == true
-
-/**
  * Returns all @Provide-annotated methods that return given [type] within [scope].
  */
 private fun getDaggerProvidesMethodsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
