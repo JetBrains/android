@@ -811,7 +811,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("group") { dependency.group }
         prop("name") { dependency.name.replaceKnownPaths() }
-        prop("version") { dependency.version }
+        prop("version") { replaceToolsVersion(dependency.id.toString(), dependency.version) }
         prop("scope") { dependency.scope }
         prop("packaging") { dependency.packaging }
         prop("classifier") { dependency.classifier }

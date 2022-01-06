@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
@@ -154,6 +155,7 @@ class ProjectDumper(
         else it
       }
       .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
@@ -201,6 +203,7 @@ class ProjectDumper(
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
       .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
@@ -208,6 +211,13 @@ class ProjectDumper(
         } ?: it
       }
       .removeAndroidVersionsFromPath()
+
+  fun replaceToolsVersion(id: String, version: String?): String? {
+    if (id.startsWith("com.android.tools")) {
+      return version?.replaceKnownPaths()
+    }
+    return version
+  }
 
   fun appendln(data: String) {
     output.append(currentNestingPrefix)
