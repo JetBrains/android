@@ -51,6 +51,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -78,6 +80,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
 
   private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
   private val pairingStatusListeners = CopyOnWriteArrayList<PairingStatusChangedListener>()
+  private val mutex = Mutex()
 
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
@@ -248,9 +251,11 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     phoneWearPair.hostPort = hostPort
     updatePairingStatus(phoneWearPair, PairingState.CONNECTING)
 
-    pairedDevicesTable[phone.deviceID] = phoneWearPair
-    pairedDevicesTable[wear.deviceID] = phoneWearPair
-    saveSettings()
+    mutex.withLock {
+      pairedDevicesTable[phone.deviceID] = phoneWearPair
+      pairedDevicesTable[wear.deviceID] = phoneWearPair
+      saveSettings()
+    }
 
     if (connect) {
       @Suppress("BlockingMethodInNonBlockingContext")
@@ -281,19 +286,22 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     return state
   }
 
-  @Synchronized
   suspend fun removePairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) {
     try {
       val phoneWearPair = pairedDevicesTable[deviceID]
       val phoneDeviceID = phoneWearPair?.phone?.deviceID ?: return
       val wearDeviceID = phoneWearPair.wear.deviceID
 
-      pairedDevicesTable.remove(phoneDeviceID)
-      pairedDevicesTable.remove(wearDeviceID)
+      mutex.withLock {
+        pairedDevicesTable.remove(phoneDeviceID)
+        pairedDevicesTable.remove(wearDeviceID)
+      }
       pairingStatusListeners.forEach {
         it.pairingDeviceRemoved(phoneWearPair)
       }
-      saveSettings()
+      mutex.withLock {
+        saveSettings()
+      }
 
       val connectedDevices = getConnectedDevices()
       connectedDevices[phoneDeviceID]?.apply {
