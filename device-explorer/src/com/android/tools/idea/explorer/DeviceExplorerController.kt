@@ -329,7 +329,8 @@ class DeviceExplorerController(
     }
   }
 
-  private fun checkLongRunningOperationAllowed(): Boolean {
+  @VisibleForTesting
+  fun checkLongRunningOperationAllowed(): Boolean {
     return myLongRunningOperationTracker == null
   }
 
@@ -558,11 +559,14 @@ class DeviceExplorerController(
       tracker.setIndeterminate(true)
       Disposer.register(myProject, tracker)
       myView.startTreeBusyIndicator()
-      prepareTransfer(tracker)
-      tracker.setIndeterminate(false)
-      performTransfer(tracker)
-      myView.stopTreeBusyIndicator()
-      Disposer.dispose(tracker)
+      try {
+        prepareTransfer(tracker)
+        tracker.setIndeterminate(false)
+        performTransfer(tracker)
+      } finally {
+        myView.stopTreeBusyIndicator()
+        Disposer.dispose(tracker)
+      }
       tracker.summary
     }
 

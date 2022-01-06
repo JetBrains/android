@@ -119,6 +119,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     myProgressListeners.remove(listener);
   }
 
+  public void cancelTransfer() {
+    for (DeviceExplorerViewProgressListener listener : myProgressListeners) {
+      listener.cancellationRequested();
+    }
+  }
+
   @Override
   public void setup() {
     myViewImpl.setup();

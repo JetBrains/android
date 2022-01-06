@@ -78,6 +78,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Arrays
@@ -1230,6 +1231,56 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     val fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).lastPathComponent)
     checkNotNull(fooNode)
     assertEquals(5, fooNode.childCount)
+  }
+
+  fun testFileSystemTree_ContextMenu_Upload_SingleFile_Cancellation_Works() {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
+    checkMockViewInitialState(controller, myDevice1)
+    expandEntry(myFoo)
+    myMockView.tree.selectionPath = getFileEntryPath(myFoo)
+    val actionGroup = myMockView.fileTreeActionGroup
+    val action = getActionByText(actionGroup, "Upload...")
+    checkNotNull(action)
+    val e = createContentMenuItemEvent()
+    action.update(e)
+
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    val tempFile = FileUtil.createTempFile("foo", "bar.txt")
+    Files.write(tempFile.toPath(), ByteArray(10000))
+    myDevice1.uploadChunkSize = 500
+    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
+      override fun createPathChooser(
+        descriptor: FileChooserDescriptor,
+        project: Project?,
+        parent: Component?
+      ): PathChooserDialog {
+        return PathChooserDialog { toSelect: VirtualFile?, callback: Consumer<in List<VirtualFile?>> ->
+          callback.consume(listOf(VirtualFileWrapper(tempFile).virtualFile))
+        }
+      }
+    }
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+
+    // Give ourselves time to cancel
+    myDevice1.uploadChunkIntervalMillis = 30_000
+
+    // Start the upload; verify that a long-running operation is present
+    myMockView.startTreeBusyIndicatorTacker.clear()
+    myMockView.stopTreeBusyIndicatorTacker.clear()
+    action.actionPerformed(e)
+    pumpEventsAndWaitForFuture(myMockView.startTreeBusyIndicatorTacker.consume())
+    assertThat(controller.checkLongRunningOperationAllowed()).isFalse()
+
+    // Cancel upload
+    myMockView.cancelTransfer();
+    pumpEventsAndWaitForFuture(myMockView.stopTreeBusyIndicatorTacker.consume())
+
+    // Verify that a long-running operation is no longer present
+    assertThat(controller.checkLongRunningOperationAllowed()).isTrue()
   }
 
   fun testFileSystemTree_DropFile_SingleFile_Works() {
