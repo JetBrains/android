@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
+import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.options.colors.ColorSettingsPages
@@ -30,7 +31,10 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
   init {
     if (isLogcatV2Enabled()) {
-      ColorSettingsPages.getInstance().registerPage(LogcatFilterColorSettingsPage())
+      ColorSettingsPages.getInstance().apply {
+        registerPage(LogcatColorSettingsPage())
+        registerPage(LogcatFilterColorSettingsPage())
+      }
     }
   }
 

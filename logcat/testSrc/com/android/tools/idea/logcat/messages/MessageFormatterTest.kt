@@ -328,12 +328,12 @@ class MessageFormatterTest {
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "V", logcatColors.getLogLevelColor(VERBOSE),
-      "D", logcatColors.getLogLevelColor(DEBUG),
-      "I", logcatColors.getLogLevelColor(INFO),
-      "W", logcatColors.getLogLevelColor(WARN),
-      "E", logcatColors.getLogLevelColor(ERROR),
-      "A", logcatColors.getLogLevelColor(ASSERT),
+      "V", logcatColors.getLogLevelKey(VERBOSE).toTextAttributes(),
+      "D", logcatColors.getLogLevelKey(DEBUG).toTextAttributes(),
+      "I", logcatColors.getLogLevelKey(INFO).toTextAttributes(),
+      "W", logcatColors.getLogLevelKey(WARN).toTextAttributes(),
+      "E", logcatColors.getLogLevelKey(ERROR).toTextAttributes(),
+      "A", logcatColors.getLogLevelKey(ASSERT).toTextAttributes(),
     )
   }
 
@@ -352,9 +352,12 @@ class MessageFormatterTest {
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "message-WARN", logcatColors.getMessageColor(WARN),
-      "message-ERROR", logcatColors.getMessageColor(ERROR),
-      "message-ASSERT", logcatColors.getMessageColor(ASSERT),
+      "message-VERBOSE", logcatColors.getMessageKey(VERBOSE).toTextAttributes(),
+      "message-DEBUG", logcatColors.getMessageKey(DEBUG).toTextAttributes(),
+      "message-INFO", logcatColors.getMessageKey(INFO).toTextAttributes(),
+      "message-WARN", logcatColors.getMessageKey(WARN).toTextAttributes(),
+      "message-ERROR", logcatColors.getMessageKey(ERROR).toTextAttributes(),
+      "message-ASSERT", logcatColors.getMessageKey(ASSERT).toTextAttributes(),
     )
   }
 
