@@ -26,7 +26,7 @@ internal class DefaultGradleBuilder(
   private val project: Project,
   private val assembledModules: Array<Module>,
   private val tasks: Map<Path, Collection<String>>,
-  private val buildMode: BuildMode?
+  private val buildMode: BuildMode
 ) : BeforeRunBuilder {
   override fun build(commandLineArguments: List<String>): AssembleInvocationResult? {
     if (tasks.values.flatten().isEmpty()) {

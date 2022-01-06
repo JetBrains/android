@@ -418,7 +418,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
             .distinct()
             .associate { Paths.get(it) to listOf(userGoal) }
 
-        return DefaultGradleBuilder(project, modules, tasks, null)
+        return DefaultGradleBuilder(project, modules, tasks, BuildMode.DEFAULT_BUILD_MODE)
       }
       val gradleTasksProvider = GradleModuleTasksProvider(modules)
       val testCompileType = when {

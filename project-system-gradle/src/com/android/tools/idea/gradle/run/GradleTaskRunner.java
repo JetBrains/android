@@ -31,14 +31,13 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class GradleTaskRunner {
   @WorkerThread
   public static AssembleInvocationResult run(@NotNull Project project,
                                              @NotNull Module[] assembledModules,
                                              @NotNull Map<Path, Collection<String>> tasks,
-                                             @Nullable BuildMode buildMode,
+                                             @NotNull BuildMode buildMode,
                                              @NotNull List<String> commandLineArguments) {
     assert !ApplicationManager.getApplication().isDispatchThread();
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
