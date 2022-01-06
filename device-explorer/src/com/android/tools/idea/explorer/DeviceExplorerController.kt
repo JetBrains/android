@@ -38,6 +38,7 @@ import com.google.common.primitives.Ints
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.CommonBundle
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationBundle
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
@@ -95,7 +96,7 @@ class DeviceExplorerController(
   private val myService: DeviceFileSystemService<out DeviceFileSystem>,
   private val fileManager: DeviceExplorerFileManager,
   private val myFileOpener: FileOpener
-) {
+) : Disposable {
 
   private val scope = myProject.coroutineScope + uiThread
   private var myShowLoadingNodeDelayMillis = 200
@@ -110,10 +111,13 @@ class DeviceExplorerController(
   private var myLongRunningOperationTracker: LongRunningOperationTracker? = null
 
   init {
+    Disposer.register(myProject, this)
     myService.addListener(ServiceListener())
     myView.addListener(ViewListener())
     myProject.putUserData(KEY, this)
   }
+
+  override fun dispose() {}
 
   private fun getTreeModel(): DefaultTreeModel? {
     return myModel.treeModel
@@ -557,7 +561,7 @@ class DeviceExplorerController(
       tracker.start()
       tracker.setCalculatingText(0, 0)
       tracker.setIndeterminate(true)
-      Disposer.register(myProject, tracker)
+      Disposer.register(this@DeviceExplorerController, tracker)
       myView.startTreeBusyIndicator()
       try {
         prepareTransfer(tracker)
