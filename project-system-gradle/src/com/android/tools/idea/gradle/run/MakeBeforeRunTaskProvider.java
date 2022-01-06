@@ -34,7 +34,6 @@ import static java.util.Collections.emptyList;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
@@ -361,7 +360,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getCommonVersion() : null;
     BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
-    BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
     AssembleInvocationResult buildResult = builder.build(cmdLineArgs);
 
     if (androidRunConfiguration != null && buildResult != null) {

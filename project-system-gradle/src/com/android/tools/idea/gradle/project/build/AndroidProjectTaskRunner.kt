@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.project.build
 
-import com.android.tools.idea.gradle.project.BuildSettings
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder

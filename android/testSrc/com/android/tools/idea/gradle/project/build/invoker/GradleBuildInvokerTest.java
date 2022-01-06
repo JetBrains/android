@@ -22,13 +22,11 @@ import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -67,7 +65,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
   private Module[] myModules;
-  @Mock private BuildSettings myBuildSettings;
   @Mock private GradleTaskFinder myTaskFinder;
 
   AutoCloseable myCloseable;
@@ -86,8 +83,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleTaskFinder.class, myTaskFinder,
                                           getTestRootDisposable());
     }
-    ServiceContainerUtil.replaceService(myProject, BuildSettings.class, myBuildSettings, getTestRootDisposable());
-
     return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
 
