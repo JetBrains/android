@@ -39,7 +39,7 @@
         language="LogcatFilter"
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterSyntaxHighlighterFactory"
     />
-    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>
+<!--    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>-->
 
     <completion.contributor
         language="LogcatFilter"

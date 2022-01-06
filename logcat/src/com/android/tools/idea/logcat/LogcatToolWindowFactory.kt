@@ -17,9 +17,10 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
 import com.android.tools.idea.logcat.messages.LogcatColors
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -27,9 +28,15 @@ import com.intellij.util.text.UniqueNameGenerator
 import org.jetbrains.annotations.VisibleForTesting
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
+  init {
+    if (isLogcatV2Enabled()) {
+      ColorSettingsPages.getInstance().registerPage(LogcatFilterColorSettingsPage())
+    }
+  }
+
   private val logcatColors: LogcatColors = LogcatColors()
 
-  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
+  override fun shouldBeAvailable(project: Project) = isLogcatV2Enabled()
 
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
@@ -44,4 +51,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     @VisibleForTesting
     internal val logcatPresenters = mutableListOf<LogcatPresenter>()
   }
+
 }
+
+private fun isLogcatV2Enabled() = StudioFlags.LOGCAT_V2_ENABLE.get()

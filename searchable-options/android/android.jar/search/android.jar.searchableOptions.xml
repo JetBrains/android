@@ -645,17 +645,6 @@
     <option name="decorations" hit="Literals decorations" />
     <option name="literals" hit="Literals decorations" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
-    <option name="filter" hit="Logcat Filter" />
-    <option name="logcat" hit="Logcat Filter" />
-    <option name="key" hit="Key" />
-    <option name="regex" hit="Regex value" />
-    <option name="value" hit="Regex value" />
-    <option name="string" hit="String value" />
-    <option name="value" hit="String value" />
-    <option name="text" hit="Text" />
-    <option name="value" hit="Value" />
-  </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
     <option name="adb" hit=" Existing ADB server port:" />
