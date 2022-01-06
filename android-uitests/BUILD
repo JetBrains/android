@@ -211,7 +211,13 @@ maven_repository(
 java_test(
     name = "LayoutEditorMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+    ] + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
         "very_flaky",
@@ -302,7 +308,13 @@ java_test(
 java_test(
     name = "NavEditorMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/Navigation/**"]),
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+    ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
         "very_flaky",
@@ -315,7 +327,13 @@ java_test(
 java_test(
     name = "VisualizationTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+    ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
     tags = COMMON_TAGS + [
         "very_flaky",
