@@ -206,6 +206,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+    UIUtil.dispatchAllInvocationEvents()
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
   }
