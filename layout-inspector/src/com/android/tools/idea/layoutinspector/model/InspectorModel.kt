@@ -248,7 +248,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
+    private val oldNodes = oldRoot.flatten().filter { it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }
 
     fun update(): Boolean {
       val modified = update(oldRoot, oldRoot.parent, newRoot)

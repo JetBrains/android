@@ -233,7 +233,6 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   private fun checkIfNameUnique(newName: String?): Boolean {
     var nameSeen = false
     return assetSetsToImport
-      .asSequence()
       .any {
         if (it.name == newName) {
           if (nameSeen) return@any true

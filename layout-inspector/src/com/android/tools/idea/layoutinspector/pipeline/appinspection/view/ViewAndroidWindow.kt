@@ -100,7 +100,7 @@ class ViewAndroidWindow(
     rootView: ViewNode,
     scale: Double
   ) {
-    val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
+    val allNodes = rootView.flatten().filter { it.drawId != 0L }
     val surfaceOriginX = rootView.x - event.rootOffset.x
     val surfaceOriginY = rootView.y - event.rootOffset.y
     val requestedNodeInfo = allNodes.mapNotNull {

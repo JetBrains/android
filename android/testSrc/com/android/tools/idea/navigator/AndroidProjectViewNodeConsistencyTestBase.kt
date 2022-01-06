@@ -157,7 +157,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForContains: Map<NodeWithParents, Set<VirtualFile>> =
-        nodes.asSequence().flatMap { node ->
+        nodes.flatMap { node ->
           node.node.representedFiles().asSequence().flatMap { file ->
             generateSequence(node) { it.parent }.map { parentNodeOrSelf -> parentNodeOrSelf to file }
           }
@@ -186,7 +186,7 @@ abstract class AndroidProjectViewNodeConsistencyTestBase : GradleIntegrationTest
       val nodes: Sequence<NodeWithParents> = rootElement.enumerateNodes()
 
       val expectedForCanRepresent =
-        nodes.asSequence().flatMap { node ->
+        nodes.flatMap { node ->
           node.node.representedFiles().asSequence().map { file -> node to file }
         }
           .groupBy({ it.first }, { it.second })

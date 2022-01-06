@@ -88,7 +88,7 @@ class TransportAndroidWindow(
     rootView: ViewNode,
     scale: Double
   ) {
-    val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
+    val allNodes = rootView.flatten().filter { it.drawId != 0L }
     val surfaceOriginX = rootView.x - tree.rootSurfaceOffsetX
     val surfaceOriginY = rootView.y - tree.rootSurfaceOffsetY
     val requestedNodeInfo = allNodes.mapNotNull {

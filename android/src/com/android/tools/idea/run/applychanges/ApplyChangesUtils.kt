@@ -36,7 +36,7 @@ import com.intellij.openapi.diagnostic.Logger
 fun findExistingSessionAndMaybeDetachForColdSwap(env: ExecutionEnvironment, devices: DeviceFutures): ExistingSession {
   val prevHandler = env.findExistingProcessHandler(devices) ?: return ExistingSession()
   val manager = RunContentManager.getInstance(env.project)
-  val descriptor = manager.allDescriptors.asSequence()
+  val descriptor = manager.allDescriptors
     .find { descriptor -> descriptor.processHandler === prevHandler }
   val swapInfo = env.getUserData(SwapInfo.SWAP_INFO_KEY)
   if (swapInfo == null) {
