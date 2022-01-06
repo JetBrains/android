@@ -27,7 +27,6 @@ private val DESCRIPTORS = arrayOf(
   AttributesDescriptor("String value", LogcatFilterTextAttributes.STRING_KVALUE.key),
   AttributesDescriptor("Regex value", LogcatFilterTextAttributes.REGEX_KVALUE.key),
   AttributesDescriptor("Text", LogcatFilterTextAttributes.VALUE.key),
-  AttributesDescriptor("My app", LogcatFilterTextAttributes.PROJECT_APP.key),
 )
 
 /**
@@ -41,7 +40,7 @@ internal class LogcatFilterColorSettingsPage : ColorSettingsPage {
   override fun getDemoText() = """
     // Note that the selected line does not show background color
 
-    tag:foo bar app! line~:Foo|Bar level:DEBUG
+    tag:foo bar line~:Foo|Bar level:DEBUG
   """.trimIndent()
 
   override fun getAttributeDescriptors() = DESCRIPTORS

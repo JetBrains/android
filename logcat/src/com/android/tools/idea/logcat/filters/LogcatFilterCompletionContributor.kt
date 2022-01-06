@@ -35,10 +35,19 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import org.jetbrains.annotations.VisibleForTesting
 
-private const val PACKAGE_KEY = "package"
+@VisibleForTesting
+internal const val MY_PACKAGE_VALUE = "mine"
+
+@VisibleForTesting
+internal const val PACKAGE_KEY = "package"
+
+@VisibleForTesting
+internal val MY_PACKAGE = "$PACKAGE_KEY:$MY_PACKAGE_VALUE "
+
 private val PACKAGE_KEYS = PACKAGE_KEY.getKeyVariants().toSet()
 
-private const val TAG_KEY = "tag"
+@VisibleForTesting
+internal const val TAG_KEY = "tag"
 private val TAG_KEYS = TAG_KEY.getKeyVariants().toSet()
 
 private val STRING_KEYS = listOf(
@@ -54,11 +63,10 @@ private val LEVEL_KEYS = listOf(
   "toLevel:",
 )
 
-private const val AGE_KEY = "age:"
+@VisibleForTesting
+internal const val AGE_KEY = "age:"
 
-private const val PROJECT_APP = "app! "
-
-private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEYS + AGE_KEY + PROJECT_APP
+private val KEYS = STRING_KEYS.map(String::getKeyVariants).flatten() + LEVEL_KEYS + AGE_KEY + MY_PACKAGE
 
 private val KEYS_LOOKUP_BUILDERS = KEYS.map(String::toLookupElement)
 
@@ -111,9 +119,12 @@ internal class LogcatFilterCompletionContributor : CompletionContributor() {
            object : CompletionProvider<CompletionParameters>() {
              override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                when (parameters.findPreviousText()) {
-                 in PACKAGE_KEYS -> result.addAllElements(parameters.getPackageNames().map { it.toLookupElement(suffix = " ") })
-                 in TAG_KEYS -> result.addAllElements(
-                   parameters.getTags().filter { it.isNotBlank() }.map { it.toLookupElement(suffix = " ") })
+                 "$PACKAGE_KEY:" ->
+                   result.addAllElements((parameters.getPackageNames() + MY_PACKAGE_VALUE).map { it.toLookupElement(suffix = " ") })
+                 in PACKAGE_KEYS ->
+                   result.addAllElements((parameters.getPackageNames()).map { it.toLookupElement(suffix = " ") })
+                 in TAG_KEYS ->
+                   result.addAllElements(parameters.getTags().filter(String::isNotBlank).map { it.toLookupElement(suffix = " ") })
                }
              }
            })

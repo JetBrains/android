@@ -94,8 +94,6 @@ KEY
   | "level"
   | "toLevel"
 
-PROJECT_APP = "app!"
-
 %state STRING_KVALUE_STATE
 %state REGEX_KVALUE_STATE
 %state KVALUE_STATE
@@ -106,7 +104,6 @@ PROJECT_APP = "app!"
   {MINUS}? {TEXT_KEY} {COLON}          { yybegin(STRING_KVALUE_STATE); return LogcatFilterTypes.STRING_KEY; }
   {MINUS}? {TEXT_KEY} {TILDE} {COLON}  { yybegin(REGEX_KVALUE_STATE); return LogcatFilterTypes.REGEX_KEY; }
   {KEY} {COLON}                        { yybegin(KVALUE_STATE); return LogcatFilterTypes.KEY; }
-  {PROJECT_APP}                        { return LogcatFilterTypes.PROJECT_APP; }
 
   {OR}                                 { return LogcatFilterTypes.OR; }
   {AND}                                { return LogcatFilterTypes.AND; }

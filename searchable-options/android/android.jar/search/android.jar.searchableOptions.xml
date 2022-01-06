@@ -649,8 +649,6 @@
     <option name="filter" hit="Logcat Filter" />
     <option name="logcat" hit="Logcat Filter" />
     <option name="key" hit="Key" />
-    <option name="app" hit="My app" />
-    <option name="my" hit="My app" />
     <option name="regex" hit="Regex value" />
     <option name="value" hit="Regex value" />
     <option name="string" hit="String value" />

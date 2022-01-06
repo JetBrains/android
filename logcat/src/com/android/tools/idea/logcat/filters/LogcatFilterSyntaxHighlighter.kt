@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexerAdapter
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KVALUE
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KVALUE
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
@@ -44,7 +43,6 @@ internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey) {
   STRING_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
   REGEX_KVALUE(DefaultLanguageHighlighterColors.KEYWORD),
   VALUE(HighlighterColors.TEXT),
-  PROJECT_APP(DefaultLanguageHighlighterColors.KEYWORD),
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   ;
 
@@ -63,7 +61,6 @@ internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
     KVALUE -> LogcatFilterTextAttributes.KVALUE.keys
     STRING_KVALUE -> LogcatFilterTextAttributes.STRING_KVALUE.keys
     REGEX_KVALUE -> LogcatFilterTextAttributes.REGEX_KVALUE.keys
-    PROJECT_APP -> LogcatFilterTextAttributes.PROJECT_APP.keys
     VALUE -> LogcatFilterTextAttributes.VALUE.keys
     TokenType.BAD_CHARACTER -> LogcatFilterTextAttributes.BAD_CHARACTER.keys
     else -> EMPTY_ARRAY

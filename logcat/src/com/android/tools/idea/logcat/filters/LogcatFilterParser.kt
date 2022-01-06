@@ -31,7 +31,6 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterLiteralExpressio
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterOrExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterParenExpression
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
@@ -151,13 +150,12 @@ internal class LogcatFilterParser(
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
       VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE)
-      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock)
-      PROJECT_APP -> ProjectAppFilter(packageNamesProvider)
+      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
 }
 
-private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock): LogcatFilter {
+private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock, packageNamesProvider: PackageNamesProvider): LogcatFilter {
   return when (val key = firstChild.text.trim(':', '-', '~')) {
     "level" -> LevelFilter(lastChild.asLogLevel())
     "fromLevel" -> FromLevelFilter(lastChild.asLogLevel())
@@ -182,6 +180,8 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(clock: Clock): LogcatFilte
         isNegated && isRegex -> NegatedRegexFilter(value, field)
         isNegated -> NegatedStringFilter(value, field)
         isRegex -> RegexFilter(value, field)
+        // TODO(aalbert): Consider adding a NegatedProjectAppFilter for "-package:mine"
+        key == "package" && value == "mine" -> ProjectAppFilter(packageNamesProvider)
         else -> StringFilter(value, field)
       }
     }

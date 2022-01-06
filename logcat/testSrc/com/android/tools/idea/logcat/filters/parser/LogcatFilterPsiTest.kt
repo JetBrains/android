@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.filters.parser
 
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.KEY
-import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.PROJECT_APP
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.REGEX_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.STRING_KEY
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
@@ -264,11 +263,6 @@ class LogcatFilterPsiTest {
   }
 
   @Test
-  fun parse_appFilter() {
-    assertThat(parse("app!").toFilter()).isEqualTo(AppFilter)
-  }
-
-  @Test
   fun parse_escapedColon() {
     assertThat(parse("tag\\:foo tag:foo").toFilter())
       .isEqualTo(
@@ -338,7 +332,6 @@ private fun LogcatFilterLiteralExpression.literalToFilter() =
   when (firstChild.elementType) {
     VALUE -> TopLevelFilter(firstChild.toText())
     KEY, STRING_KEY, REGEX_KEY -> KeyFilter(this)
-    PROJECT_APP -> AppFilter
     else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1)
   }
 
@@ -371,8 +364,6 @@ private data class KeyFilter(
     element.firstChild.text.endsWith("~:")
   )
 }
-
-private object AppFilter : Filter
 
 private data class AndFilter(val filters: List<Filter>) : Filter {
   constructor(vararg filters: Filter) : this(filters.asList())
