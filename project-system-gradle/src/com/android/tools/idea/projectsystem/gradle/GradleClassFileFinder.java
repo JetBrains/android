@@ -74,19 +74,8 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
     for (IdeAndroidArtifact artifactInfo : artifacts) {
-      File classesFolder = artifactInfo.getClassesFolder();
 
-      //noinspection ConstantConditions
-      if (classesFolder != null) {
-        if (classesFolder.exists()) {
-          VirtualFile file = VfsUtil.findFileByIoFile(classesFolder, true);
-          if (file != null) {
-            compilerOutputs.add(file);
-          }
-        }
-      }
-
-      for (File additionalFolder : artifactInfo.getAdditionalClassesFolders()) {
+      for (File additionalFolder : artifactInfo.getClassesFolder()) {
         VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
         if (file != null) {
           compilerOutputs.add(file);

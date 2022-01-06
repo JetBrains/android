@@ -278,14 +278,14 @@ MODULE                        : project
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/debug [-]
-                AdditionalClassesFolders      : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -816,14 +816,14 @@ MODULE                        : project
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar
@@ -1357,11 +1357,11 @@ MODULE                        : project
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : android.arch.core:runtime:1.1.1@aar

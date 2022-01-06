@@ -302,13 +302,14 @@ data class AndroidProjectBuilder(
     { flavor -> sourceProvider(flavor) },
   val productFlavorContainersStub:  AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorContainerImpl> =
     { dimension -> buildProductFlavorContainersStub(dimension) },
-  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
-  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
-    { variant -> buildAndroidTestArtifactStub(variant) },
-  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl =
-    { variant -> buildUnitTestArtifactStub(variant) },
-  val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
-    { variant -> buildTestFixturesArtifactStub(variant) },
+  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildAndroidTestArtifactStub(variant) },
+  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeJavaArtifactImpl = { variant -> buildUnitTestArtifactStub(variant) },
+  val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) ->
+  IdeAndroidArtifactImpl = { variant -> buildTestFixturesArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryDependencyImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
@@ -630,7 +631,6 @@ fun AndroidProjectStubBuilder.buildProductFlavorContainersStub(dimension: String
 }
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
   val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
@@ -653,8 +653,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     name = IdeArtifactName.MAIN,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("sources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/$variant/classes"),
-    additionalClassesFolders = classFolders,
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/$variant/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideSetupTask1", "ideSetupTask2"),
@@ -684,7 +683,6 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
 
 fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val dependenciesStub = buildDependenciesStub()
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
@@ -692,8 +690,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     name = IdeArtifactName.ANDROID_TEST,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
-    additionalClassesFolders = classFolders,
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
@@ -723,7 +720,6 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
 
 fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf(),
   dependencies: IdeDependenciesImpl = buildDependenciesStub(),
   mockablePlatformJar: File? = null
 ): IdeJavaArtifactImpl {
@@ -731,8 +727,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     name = IdeArtifactName.UNIT_TEST,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
     assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
-    additionalClassesFolders = classFolders,
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}UnitTest/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
@@ -746,7 +741,6 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
 
 fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   variant: String,
-  classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val dependenciesStub = buildDependenciesStub()
   val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("testFixtures")
@@ -754,8 +748,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     name = IdeArtifactName.TEST_FIXTURES,
     compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("testFixturesSources"),
     assembleTaskName = assembleTaskName,
-    classesFolder = buildPath.resolve("intermediates/javac/${variant}testFixtures/classes"),
-    additionalClassesFolders = classFolders,
+    classesFolder = listOf(buildPath.resolve("intermediates/javac/${variant}testFixtures/classes")),
     variantSourceProvider = null,
     multiFlavorSourceProvider = null,
     ideSetupTaskNames = setOf("ideTestFixturesSetupTask1", "ideTestFixturesSetupTask2"),

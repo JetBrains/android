@@ -654,13 +654,13 @@ MODULE                        : project.app
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -687,14 +687,14 @@ MODULE                        : project.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -726,10 +726,10 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -977,13 +977,13 @@ MODULE                        : project.lib
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -1002,14 +1002,14 @@ MODULE                        : project.lib
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -1037,10 +1037,10 @@ MODULE                        : project.lib
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -1284,13 +1284,13 @@ MODULE                        : project.otherlib
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
                 Level2Dependencies
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1303,14 +1303,14 @@ MODULE                        : project.otherlib
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -1333,10 +1333,10 @@ MODULE                        : project.otherlib
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency

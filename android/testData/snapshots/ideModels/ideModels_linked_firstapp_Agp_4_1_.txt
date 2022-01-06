@@ -702,15 +702,15 @@ MODULE                        : My_First_App.app
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/debug [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
@@ -1289,15 +1289,15 @@ MODULE                        : My_First_App.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
@@ -1879,12 +1879,12 @@ MODULE                        : My_First_App.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/firstapp/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
@@ -2964,15 +2964,15 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/debug [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
@@ -3517,15 +3517,15 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/source/buildConfig/androidTest/debug [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
@@ -4080,12 +4080,12 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/shared/mysharedlibrary/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                AdditionalClassesFolders      : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : androidx.appcompat:appcompat:1.0.2@aar

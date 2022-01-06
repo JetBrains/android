@@ -309,7 +309,7 @@ class LintModelFactory : LintModelModuleLoader {
           dependencies = getDependencies(artifact),
           generatedSourceFolders = artifact.generatedSourceFolders,
           generatedResourceFolders = artifact.generatedResourceFolders,
-          classOutputs = artifact.getClassFolders()
+          classOutputs = artifact.classesFolder.toList()
         )
     }
 
@@ -318,19 +318,8 @@ class LintModelFactory : LintModelModuleLoader {
     ): LintModelJavaArtifact {
         return DefaultLintModelJavaArtifact(
           dependencies = getDependencies(artifact),
-          classFolders = artifact.getClassFolders()
+          classFolders = artifact.classesFolder.toList()
         )
-    }
-
-    private fun IdeBaseArtifact.getClassFolders(): List<File> {
-        return if (additionalClassesFolders.isEmpty()) {
-            listOf(classesFolder)
-        } else {
-            val folders = ArrayList<File>(additionalClassesFolders.size + 1)
-            folders.add(classesFolder)
-            folders.addAll(additionalClassesFolders)
-            folders
-        }
     }
 
     private fun getBuildType(project: IdeAndroidProject, variant: IdeVariant): IdeBuildType {

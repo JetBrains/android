@@ -33,18 +33,12 @@ interface IdeBaseArtifact : Serializable {
    */
   val assembleTaskName: String
 
-  /*
+  /**
    * Returns the folder containing the class files. This is the output of the java compilation.
    *
    * @return a folder.
    */
-  val classesFolder: File
-
-  /**
-   * Folders or jars containing additional classes (e.g., R.jar or those registered by third-party
-   * plugins like Kotlin).
-   */
-  val additionalClassesFolders: Collection<File>
+  val classesFolder: Collection<File>
 
   /**
    * A SourceProvider specific to the variant. This can be null if there is no flavors as the

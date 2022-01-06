@@ -1042,14 +1042,14 @@ MODULE                        : MultiFlavor.app
                 Name                          : MAIN
                 CompileTaskName               : compileFirstAbcSecondAbcDebugSources
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebug
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
                 VariantSourceProvider
                     Name                          : firstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/firstAbcSecondAbcDebug/AndroidManifest.xml [-]
@@ -1515,14 +1515,14 @@ MODULE                        : MultiFlavor.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebugAndroidTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestFirstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/AndroidManifest.xml [-]
@@ -2137,11 +2137,11 @@ MODULE                        : MultiFlavor.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugUnitTestSources
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebugUnitTest
-                ClassFolder                   : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
-                AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
                 VariantSourceProvider
                     Name                          : testFirstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/testFirstAbcSecondAbcDebug/AndroidManifest.xml [-]

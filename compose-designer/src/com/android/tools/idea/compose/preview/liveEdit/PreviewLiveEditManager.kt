@@ -284,9 +284,8 @@ private fun defaultCompileClassPathLocator(module: Module): List<String> {
     ?.selectedVariant
     ?.mainArtifact
   val modulePath = listOfNotNull(
-    CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path,
-    mainArtifact?.classesFolder?.absolutePath
-  ) + (mainArtifact?.additionalClassesFolders?.map { it.absolutePath } ?: emptyList())
+    CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.path
+  ) + (mainArtifact?.classesFolder?.map { it.absolutePath } ?: emptyList())
 
   val libraryDeps = module.getLibraryDependenciesJars()
     .map { it.toString() }
