@@ -34,7 +34,7 @@ import org.junit.runners.model.Statement
 /**
  * Default Kotlin version used for Compose projects using this rule.
  */
-const val DEFAULT_KOTLIN_VERSION = "1.5.31"
+const val DEFAULT_KOTLIN_VERSION = "1.6.0"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
