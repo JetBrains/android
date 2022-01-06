@@ -668,7 +668,7 @@ class NlPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
+    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isUndoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
@@ -680,7 +680,7 @@ class NlPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
+    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
