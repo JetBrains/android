@@ -21,12 +21,12 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
-import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 
 public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
 
@@ -34,8 +34,8 @@ public class GradleModuleTasksProviderTest extends AndroidGradleTestCase {
     loadProject(JAVA_LIB);
     Module app = ModuleSystemUtil.getMainModule(TestModuleUtil.findAppModule(getProject()));
     GradleModuleTasksProvider gradleModuleTasksProvider = new GradleModuleTasksProvider(new Module[]{app});
-    ListMultimap<Path, String> tasksMultiMap = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
-    List<String> tasks = tasksMultiMap.get(Paths.get(ExternalSystemApiUtil.getExternalRootProjectPath(app)));
+    Map<Path, Collection<String>> tasksMultiMap = gradleModuleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA);
+    Collection<String> tasks = tasksMultiMap.get(Paths.get(ExternalSystemApiUtil.getExternalRootProjectPath(app)));
     assertDoesntContain(tasks, ":lib:testClasses");
     assertContainsElements(tasks, ":app:compileDebugUnitTestSources", ":app:compileDebugSources", ":lib:compileJava");
   }

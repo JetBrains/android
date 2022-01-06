@@ -293,6 +293,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
     verify(myFileDocumentManager).saveAllDocuments();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(1);
+    assertThat(Objects.requireNonNull(myGradleTaskExecutor.getLastRequest()).getMode()).isEqualTo(buildMode);
   }
 
   @NotNull

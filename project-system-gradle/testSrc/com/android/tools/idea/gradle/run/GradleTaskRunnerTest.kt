@@ -23,7 +23,6 @@ import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.truth.Expect
 import com.intellij.openapi.application.runWriteActionAndWait
 import org.junit.Rule
@@ -32,7 +31,6 @@ import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
-import java.nio.file.Path
 
 @RunWith(JUnit4::class)
 class GradleTaskRunnerTest : GradleIntegrationTest {
@@ -45,9 +43,8 @@ class GradleTaskRunnerTest : GradleIntegrationTest {
     val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
       val appModule = project.gradleModule(":app")!!
-      val tasksToRun = ArrayListMultimap.create<Path, String>().apply {
-        put(projectRoot.toPath(), ":app:assembleDebug")
-      }
+      val tasksToRun =
+        mapOf(projectRoot.toPath() to listOf(":app:assembleDebug"))
 
       expect.that(
         GradleTaskRunner.run(

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.util.BuildMode
-import com.google.common.collect.ListMultimap
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -26,11 +25,11 @@ import java.nio.file.Path
 internal class DefaultGradleBuilder(
   private val project: Project,
   private val assembledModules: Array<Module>,
-  private val tasks: ListMultimap<Path, String>,
+  private val tasks: Map<Path, Collection<String>>,
   private val buildMode: BuildMode?
 ) : BeforeRunBuilder {
   override fun build(commandLineArguments: List<String>): AssembleInvocationResult? {
-    if (tasks.isEmpty) {
+    if (tasks.values.flatten().isEmpty()) {
       Logger.getInstance(DefaultGradleBuilder::class.java).error("Unable to determine gradle tasks to execute")
       return null
     }

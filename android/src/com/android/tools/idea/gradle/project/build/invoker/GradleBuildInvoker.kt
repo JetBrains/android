@@ -79,7 +79,7 @@ interface GradleBuildInvoker {
       fun builder(
         project: Project,
         rootProjectPath: File,
-        gradleTasks: List<String>
+        gradleTasks: Collection<String>
       ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
 
       @JvmStatic
