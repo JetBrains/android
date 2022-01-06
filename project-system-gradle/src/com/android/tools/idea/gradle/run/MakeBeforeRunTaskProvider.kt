@@ -27,6 +27,7 @@ import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -244,8 +245,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         return false
       }
     val targetDeviceVersion = targetDeviceSpec?.commonVersion
-    val builder = createBuilder(modules, configuration, targetDeviceVersion, task.goal)
-    val buildResult = builder.build(cmdLineArgs)
+    val buildResult = build(modules, configuration, targetDeviceVersion, task.goal, cmdLineArgs)
     if (androidRunConfiguration != null && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
@@ -403,14 +403,25 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       return arguments
     }
 
-    private fun createBuilder(
+    private fun build(
       modules: Array<Module>,
       configuration: RunConfiguration,
       targetDeviceVersion: AndroidVersion?,
-      userGoal: String?
-    ): BeforeRunBuilder {
+      userGoal: String?,
+      commandLineArgs: List<String>
+    ): AssembleInvocationResult? {
+
       check(modules.isNotEmpty()) { "Unable to determine list of modules to build" }
       val project = configuration.project
+
+      fun doBuild(tasks: Map<Path, Collection<String>>, buildMode: BuildMode): AssembleInvocationResult? {
+        if (tasks.values.flatten().isEmpty()) {
+          log.error("Unable to determine gradle tasks to execute")
+          return null
+        }
+        return GradleTaskRunner.run(project, modules, tasks, buildMode, commandLineArgs)
+      }
+
       if (!userGoal.isNullOrEmpty()) {
         val tasks: Map<Path, List<String>> =
           modules
@@ -418,7 +429,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
             .distinct()
             .associate { Paths.get(it) to listOf(userGoal) }
 
-        return DefaultGradleBuilder(project, modules, tasks, BuildMode.DEFAULT_BUILD_MODE)
+        return doBuild(tasks, BuildMode.DEFAULT_BUILD_MODE)
       }
       val gradleTasksProvider = GradleModuleTasksProvider(modules)
       val testCompileType = when {
@@ -428,12 +439,7 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
       }
       return when {
         testCompileType === TestCompileType.UNIT_TESTS ->
-          DefaultGradleBuilder(
-            project,
-            modules,
-            gradleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA),
-            BuildMode.COMPILE_JAVA
-          )
+          doBuild(gradleTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA), BuildMode.COMPILE_JAVA)
         // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
         // Note: This is very ad-hoc, and it would be nice to have a better abstraction for this special case.
 
@@ -441,19 +447,9 @@ class MakeBeforeRunTaskProvider(private val project: Project) : BeforeRunTaskPro
         //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
         //       AndroidRunConfigurationBase.
         configuration is AndroidRunConfigurationBase && useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-          DefaultGradleBuilder(
-            project,
-            modules,
-            gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
-            BuildMode.APK_FROM_BUNDLE
-          )
+          doBuild(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType), BuildMode.APK_FROM_BUNDLE)
         else ->
-          DefaultGradleBuilder(
-            project,
-            modules,
-            gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType),
-            BuildMode.ASSEMBLE
-          )
+          doBuild(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE)
       }
     }
 
