@@ -61,9 +61,11 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
     // Reuses the IDE CopyAction, it makes the action component provides the data without exposing the internal implementation.
     if (contextMenuItem.equals(ContextMenuItem.COPY)) {
       popupGroup.add(new CopyAction() {
-        {
-          getTemplatePresentation().setText(contextMenuItem.getText());
-          getTemplatePresentation().setIcon(contextMenuItem.getIcon());
+        @Override
+        public void update(@NotNull AnActionEvent event) {
+          super.update(event);
+          event.getPresentation().setText(contextMenuItem.getText());
+          event.getPresentation().setIcon(contextMenuItem.getIcon());
           registerCustomShortcutSet(CommonShortcuts.getCopy(), component);
         }
       });
