@@ -17,7 +17,10 @@ package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.application.ModalityState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 /**
@@ -37,3 +40,12 @@ suspend fun <T> withWriteSafeContextWithCurrentModality(block: suspend Coroutine
   withContext(uiThread(ModalityState.any())) {
     withContext(uiThread, block)
   }
+
+/**
+ * Cancels the current coroutine, then throws CancellationException to immediately start
+ * unwinding execution.
+ */
+suspend fun cancelAndThrow(): Nothing = coroutineScope {
+  cancel()
+  throw CancellationException()
+}

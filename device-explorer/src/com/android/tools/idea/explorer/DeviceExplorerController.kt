@@ -500,7 +500,7 @@ class DeviceExplorerController(
       // a directory, not just a plain directory.
       return if (treeNode.entry.isDirectory || treeNode.isSymbolicLinkToDirectory) {
         // If single directory, choose the local directory path to download to, then download
-        val localDirectory = chooseSaveAsDirectoryPath(treeNode) ?: throw CancellationException()
+        val localDirectory = chooseSaveAsDirectoryPath(treeNode) ?: cancelAndThrow()
         wrapFileTransfer(
           { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
           { tracker: FileTransferOperationTracker -> downloadSingleDirectory(treeNode, localDirectory, tracker) },
@@ -508,7 +508,7 @@ class DeviceExplorerController(
       }
       else {
         // If single file, choose the local file path to download to, then download
-        val localFile = chooseSaveAsFilePath(treeNode) ?: throw CancellationException()
+        val localFile = chooseSaveAsFilePath(treeNode) ?: cancelAndThrow()
         wrapFileTransfer(
           { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNode) },
           { tracker: FileTransferOperationTracker -> downloadSingleFile(treeNode, localFile, tracker) },
@@ -524,7 +524,7 @@ class DeviceExplorerController(
 
       // For downloading multiple entries, choose a local directory path to download to, then download
       // each entry relative to the chosen path
-      val localDirectory = chooseSaveAsDirectoryPath(commonParentNode) ?: throw CancellationException()
+      val localDirectory = chooseSaveAsDirectoryPath(commonParentNode) ?: cancelAndThrow()
       return wrapFileTransfer(
         { tracker: FileTransferOperationTracker -> addDownloadOperationWork(tracker, treeNodes) },
         { tracker: FileTransferOperationTracker ->
@@ -648,7 +648,7 @@ class DeviceExplorerController(
     ) {
       assert(treeNode.entry.isDirectory || treeNode.isSymbolicLinkToDirectory)
       if (tracker.isCancelled) {
-        throw CancellationException()
+        cancelAndThrow()
       }
       tracker.processDirectory()
 
@@ -1000,7 +1000,7 @@ class DeviceExplorerController(
       tracker: FileTransferOperationTracker
     ) {
       if (tracker.isCancelled) {
-        throw CancellationException()
+        cancelAndThrow()
       }
       tracker.processDirectory()
       tracker.summary.addDirectoryCount(1)
@@ -1049,7 +1049,7 @@ class DeviceExplorerController(
       tracker: FileTransferOperationTracker
     ) {
       if (tracker.isCancelled) {
-        throw CancellationException()
+        cancelAndThrow()
       }
 
       tracker.processFile()
@@ -1229,7 +1229,7 @@ class DeviceExplorerController(
       val fileWrapper = withContext(uiThread) {
         val descriptor = FileSaverDescriptor("Save As", "")
         val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject)
-        saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: throw CancellationException()
+        saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: cancelAndThrow()
       }
       return fileWrapper.file.toPath()
     }
@@ -1262,7 +1262,7 @@ class DeviceExplorerController(
       tracker: FileTransferOperationTracker
     ): Long {
       if (tracker.isCancelled) {
-        throw CancellationException()
+        cancelAndThrow()
       }
       tracker.processFile()
       val entry = treeNode.entry

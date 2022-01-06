@@ -186,7 +186,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   override suspend fun openFile(localPath: Path) {
     val file = findFile(localPath)
     withContext(uiThread) {
-      FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject) ?: throw CancellationException("Operation cancelled by user")
+      FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject) ?: cancelAndThrow()
       OpenFileAction.openFile(file, myProject)
       myTemporaryEditorFiles.add(file)
     }

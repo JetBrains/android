@@ -22,6 +22,7 @@ import com.android.ddmlib.SyncService.ISyncProgressMonitor
 import com.android.tools.idea.adblib.ddmlibcompatibility.pullFile
 import com.android.tools.idea.adblib.ddmlibcompatibility.pushFile
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.explorer.cancelAndThrow
 import com.android.tools.idea.explorer.fs.FileTransferProgress
 import com.android.tools.idea.explorer.fs.ThrottledProgress
 import com.android.tools.idea.flags.StudioFlags
@@ -136,7 +137,7 @@ class AdbFileTransfer(
     } catch (syncError: SyncException) {
       if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        throw CancellationException()
+        cancelAndThrow()
       } else {
         LOGGER.info("Error pulling file from \"$remotePath\" to \"$localPath\"", syncError)
         throw syncError
@@ -174,7 +175,7 @@ class AdbFileTransfer(
     } catch (syncError: SyncException) {
       if (syncError.wasCanceled()) {
         // Simply forward cancellation as the cancelled exception
-        throw CancellationException()
+        cancelAndThrow()
       } else {
         LOGGER.info("Error pushing file from \"$localPath\" to \"$remotePath\"", syncError)
         throw syncError

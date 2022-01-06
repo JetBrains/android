@@ -90,7 +90,7 @@ class FileTransferWorkEstimator {
     progress: FileTransferWorkEstimatorProgress
   ) {
     if (progress.isCancelled) {
-      throw CancellationException()
+      cancelAndThrow()
     }
     reportProgress(estimate, progress)
     if (entry.isDirectory || isLinkToDirectory) {
@@ -127,7 +127,7 @@ class FileTransferWorkEstimator {
     progress: FileTransferWorkEstimatorProgress
   ) {
     if (progress.isCancelled) {
-      throw CancellationException()
+      cancelAndThrow()
     }
     reportProgress(estimate, progress)
     if (file.isDirectory) {
