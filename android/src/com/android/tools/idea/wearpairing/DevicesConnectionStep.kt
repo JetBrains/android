@@ -151,8 +151,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
 
       if (isFirstStage) {
-        phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
-        wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded()
+        phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded() ?: return@launch
+        wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded() ?: return@launch
         secondStageStep!!.phoneIDevice = phoneIDevice
         secondStageStep.wearIDevice = wearIDevice
         LOG.warn("Devices are online")
@@ -348,7 +348,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     canGoForward.set(true)
   }
 
-  private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice {
+  private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice? {
     try {
       showUiLaunchingDevice(value.displayName)
 
@@ -377,7 +377,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         header = message("wear.assistant.connection.alert.cant.start.device.title", value.displayName), description = " ",
         errorMessage = message("wear.assistant.connection.alert.cant.start.device.subtitle", value.displayName)
       )
-      throw RuntimeException(ex)
+      LOG.warn("Failed to launch device", ex)
+      return null
     }
   }
 
@@ -769,7 +770,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   private fun showGenericError(ex: Throwable) {
-    LOG.warn(ex)
+    LOG.warn("Error connecting devices", ex)
     showDeviceError(
       header = message("wear.assistant.connection.alert.cant.bridge.title"), description = " ",
       errorMessage = message("wear.assistant.connection.alert.cant.bridge.subtitle")

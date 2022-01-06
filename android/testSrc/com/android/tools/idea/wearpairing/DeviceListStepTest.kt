@@ -209,7 +209,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     fakeUi.getPhoneList().apply {
       // Assert that list was sorted. Enabled first, disabled last.
       arrayOf("id1", "id3", "id7", "id2", "id4", "id5", "id6").forEachIndexed { index, id ->
-        println(">> " + model.getElementAt(index).deviceID)
         assertThat(model.getElementAt(index).deviceID).isEqualTo(id)
       }
 

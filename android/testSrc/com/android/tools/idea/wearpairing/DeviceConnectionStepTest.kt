@@ -217,11 +217,13 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
 
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
     val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
+    Disposer.register(testRootDisposable, deviceConnectionStep)
+
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()
     Disposer.register(testRootDisposable, modelWizard)
-    invokeStrategy.updateAllSteps()
 
     modelWizard.contentPanel.size = Dimension(600, 400)
+    invokeStrategy.updateAllSteps()
 
     return Pair(FakeUi(modelWizard.contentPanel), modelWizard)
   }
