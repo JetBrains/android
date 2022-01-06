@@ -148,11 +148,39 @@ class FindEmulatorAndSetupRetentionTest {
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message
-    assertThat(emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
-    assertThat(emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
-    assertThat(emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName)
+    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+      .matches("android.emulation.control.SnapshotService/LoadSnapshot")
+  }
+
+  @Test
+  fun pushAndLoadFolder() {
+    snapshotFile = File(tempFolder.resolve("snapshot_folder").toUri())
+    snapshotFile.mkdir()
+    emulator.start()
+    val emulators = RunningEmulatorCatalog.getInstance().updateNow().get()
+    assertThat(emulators).hasSize(1)
+    val emulatorController = emulators.first()
+    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+
+    val anActionEvent = AnActionEvent(null, dataContext,
+                                      ActionPlaces.UNKNOWN, Presentation(),
+                                      ActionManager.getInstance(), 0)
+    val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
+      val mockAvdManager = mock<AvdManager>()
+      doReturn(mock<AvdInfo>()).`when`(mockAvdManager).getAvd(anyString(), anyBoolean())
+      doReturn(true).`when`(mockAvdManager).isAvdRunning(any(), any())
+      mockAvdManager
+    }
+    action.actionPerformed(anActionEvent)
+    retentionDoneSignal.await()
+    // It pushes a header message, followed by a content message
+    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
+      .matches("android.emulation.control.SnapshotService/PushSnapshot")
+    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/LoadSnapshot")
   }
 

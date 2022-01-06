@@ -478,74 +478,85 @@ private fun EmulatorController.deleteSnapshotSync(snapshotId: String): Boolean {
 @Slow
 @Throws(IOException::class)
 private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
-  snapshotFile.inputStream().use { inputStream ->
-    val fileSize = snapshotFile.length()
-    val format = if (snapshotFile.extension.toLowerCase() == "gz") {
-      SnapshotPackage.Format.TARGZ
-    } else {
-      SnapshotPackage.Format.TAR
-    }
-    var totalBytesSent = 0L
-    var succeeded = true
-    val doneSignal = CountDownLatch(1)
-    pushSnapshot(object : ClientResponseObserver<SnapshotPackage, SnapshotPackage> {
-      override fun onCompleted() {
-        doneSignal.countDown()
-      }
-
-      override fun onError(throwable: Throwable) {
-        succeeded = false
-        doneSignal.countDown()
-      }
-
-      override fun beforeStart(clientCallStreamObserver: ClientCallStreamObserver<SnapshotPackage>) {
-        var snapshotIdSent = false
-        var completionRequested = false
-        val bytes = ByteArray(2 * 1024 * 1024)
-        clientCallStreamObserver.setOnReadyHandler {
-          // https://grpc.github.io/grpc-java/javadoc/io/grpc/stub/CallStreamObserver.html#setOnReadyHandler-java.lang.Runnable-
-          // Get rid of "spurious" notifications first.
-          if (!clientCallStreamObserver.isReady) {
-            return@setOnReadyHandler
-          }
-          if (!snapshotIdSent) {
-            clientCallStreamObserver.onNext(SnapshotPackage
-                                              .newBuilder()
-                                              .setSnapshotId(snapshotId)
-                                              .setFormat(format)
-                                              .setPath(snapshotFile.absolutePath)
-                                              .build())
-            snapshotIdSent = true
-          }
-          var bytesRead = 0
-          while (clientCallStreamObserver.isReady) {
-            bytesRead = inputStream.read(bytes)
-            if (bytesRead <= 0) {
-              break
-            }
-            clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setPayload(ByteString.copyFrom(bytes, 0, bytesRead)).build())
-            totalBytesSent += bytesRead
-            indicator.fraction = totalBytesSent.toDouble() / fileSize * PUSH_SNAPSHOT_FRACTION
-          }
-          if (bytesRead < 0 && !completionRequested) {
-            completionRequested = true
-            clientCallStreamObserver.onCompleted()
-          }
-        }
-      }
-
-      override fun onNext(response: SnapshotPackage) {
-        if (!response.success) {
-          succeeded = false
-          showErrorMessage(null, "Snapshot push failed: " + response.err.toString(Charset.defaultCharset()))
-        }
-      }
-    })
-
-    // Slow
-    ProgressIndicatorUtils.awaitWithCheckCanceled(doneSignal)
-    return succeeded
+  val format = if (snapshotFile.isDirectory) {
+    SnapshotPackage.Format.DIRECTORY
+  } else if (snapshotFile.extension.toLowerCase() == "gz") {
+    SnapshotPackage.Format.TARGZ
+  } else {
+    SnapshotPackage.Format.TAR
   }
+  val snapshotFileStream = if (format == SnapshotPackage.Format.DIRECTORY) {
+    null
+  } else {
+    snapshotFile.inputStream()
+  }
+  val fileSize = if (format == SnapshotPackage.Format.DIRECTORY) {
+    0L
+  } else {
+    snapshotFile.length()
+  }
+  var totalBytesSent = 0L
+  var succeeded = true
+  val doneSignal = CountDownLatch(1)
+  pushSnapshot(object : ClientResponseObserver<SnapshotPackage, SnapshotPackage> {
+    override fun onCompleted() {
+      snapshotFileStream?.close()
+      doneSignal.countDown()
+    }
+
+    override fun onError(throwable: Throwable) {
+      succeeded = false
+      snapshotFileStream?.close()
+      doneSignal.countDown()
+    }
+
+    override fun beforeStart(clientCallStreamObserver: ClientCallStreamObserver<SnapshotPackage>) {
+      var snapshotIdSent = false
+      var completionRequested = false
+      val bytes = ByteArray(2 * 1024 * 1024)
+      clientCallStreamObserver.setOnReadyHandler {
+        // https://grpc.github.io/grpc-java/javadoc/io/grpc/stub/CallStreamObserver.html#setOnReadyHandler-java.lang.Runnable-
+        // Get rid of "spurious" notifications first.
+        if (!clientCallStreamObserver.isReady) {
+          return@setOnReadyHandler
+        }
+        if (!snapshotIdSent) {
+          clientCallStreamObserver.onNext(SnapshotPackage
+                                            .newBuilder()
+                                            .setSnapshotId(snapshotId)
+                                            .setFormat(format)
+                                            .setPath(snapshotFile.absolutePath)
+                                            .build())
+          snapshotIdSent = true
+        }
+        var bytesRead = 0
+        while (clientCallStreamObserver.isReady) {
+          bytesRead = snapshotFileStream?.read(bytes)?:-1
+          if (bytesRead <= 0) {
+            break
+          }
+          clientCallStreamObserver.onNext(SnapshotPackage.newBuilder().setPayload(ByteString.copyFrom(bytes, 0, bytesRead)).build())
+          totalBytesSent += bytesRead
+          indicator.fraction = totalBytesSent.toDouble() / fileSize * PUSH_SNAPSHOT_FRACTION
+        }
+        if (bytesRead < 0 && !completionRequested) {
+          completionRequested = true
+          clientCallStreamObserver.onCompleted()
+        }
+      }
+    }
+
+    override fun onNext(response: SnapshotPackage) {
+      if (!response.success) {
+        succeeded = false
+        showErrorMessage(null, "Snapshot push failed: " + response.err.toString(Charset.defaultCharset()))
+      }
+    }
+  })
+
+  // Slow
+  ProgressIndicatorUtils.awaitWithCheckCanceled(doneSignal)
+  return succeeded
 }
 
 private val LOG = logger<FindEmulatorAndSetupRetention>()

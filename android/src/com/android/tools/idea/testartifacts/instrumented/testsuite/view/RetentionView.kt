@@ -82,6 +82,7 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -105,9 +106,11 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
                     private val runtime: Runtime
                     = Runtime.getRuntime(),
                     private val usageLogReporter: UsageLogReporter
-                    = RetentionUsageLogReporterImpl) {
+                    = RetentionUsageLogReporterImpl,
+                    private val executor: Executor
+                    = AndroidExecutors.getInstance().ioThreadExecutor) {
   private inner class RetentionPanel : JPanel(), DataProvider {
-    private val retentionArtifactRegex = ".*-(failure[0-9]+).tar(.gz)?"
+    private val retentionArtifactRegex = ".*-(failure[0-9]+)(.tar(.gz)?)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
     private var snapshotFile: File? = null
     private var snapshotId = ""
@@ -319,7 +322,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     snapshotCheckLock.withLock {
       lastSnapshotCheck = snapshotCheck
     }
-    AndroidExecutors.getInstance().ioThreadExecutor.execute {
+    executor.execute {
       snapshotThreadLock.withLock {
         snapshotCheck.run()
       }
@@ -381,29 +384,51 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         return
       }
 
-      var inputStream: InputStream = FileInputStream(snapshotFile)
-      if (FileNameUtils.getExtension(
-          snapshotFile.name.toLowerCase(
-            Locale.getDefault())) == "gz") {
-        inputStream = GzipCompressorInputStream(
-          inputStream)
-      }
-      val tarInputStream = TarArchiveInputStream(
-        inputStream)
-      var entry: TarArchiveEntry?
       var snapshotProto: SnapshotOuterClass.Snapshot? = null
-      while (tarInputStream.nextTarEntry.also { entry = it } != null) {
-        if (isCancelled()) {
-          return
+      if (snapshotFile.isDirectory) {
+        try {
+          snapshotFile.resolve("snapshot.pb").inputStream().use {
+            snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(it)
+          }
+          snapshotFile.resolve("screenshot.png").inputStream().use {
+            val imageStream = ImageIO.read(it)
+            val image = ImageIcon(imageStream).image
+            this.image = image
+            updateSnapshotImage(image, image.getWidth(observer),
+                                image.getHeight(observer), isCancelled)
+          }
+        } catch (e: IOException) {
+          // No-op. Handle null snapshotProto later.
         }
-        if (entry!!.name == "screenshot.png") {
-          val imageStream = ImageIO.read(
-            tarInputStream)
-          image = ImageIcon(imageStream).image
-          updateSnapshotImage(image!!, image!!.getWidth(observer),
-                              image!!.getHeight(observer), isCancelled)
-        } else if (entry!!.name == "snapshot.pb") {
-          snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
+      } else {
+        FileInputStream(snapshotFile).use { inputStream ->
+          var gzipInputStream: InputStream? = null
+          if (FileNameUtils.getExtension(
+              snapshotFile.name.toLowerCase(
+                Locale.getDefault())) == "gz") {
+            gzipInputStream = GzipCompressorInputStream(
+              inputStream)
+          }
+          TarArchiveInputStream(
+            gzipInputStream ?: inputStream).use { tarInputStream ->
+            var entry: TarArchiveEntry?
+            while (tarInputStream.nextTarEntry.also { entry = it } != null) {
+              if (isCancelled()) {
+                return
+              }
+              if (entry!!.name == "screenshot.png") {
+                val imageStream = ImageIO.read(
+                  tarInputStream)
+                image = ImageIcon(imageStream).image
+                updateSnapshotImage(image!!, image!!.getWidth(observer),
+                                    image!!.getHeight(observer), isCancelled)
+              }
+              else if (entry!!.name == "snapshot.pb") {
+                snapshotProto = SnapshotOuterClass.Snapshot.parseFrom(tarInputStream)
+              }
+            }
+          }
+          gzipInputStream?.close()
         }
       }
       if (isCancelled()) {
@@ -436,8 +461,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }
         return
       }
-      if (snapshotProto.launchParametersCount != 0) {
-        val args = snapshotProto
+      if (snapshotProto!!.launchParametersCount != 0) {
+        val args = snapshotProto!!
           .launchParametersList
           .toMutableList()
           .apply {
