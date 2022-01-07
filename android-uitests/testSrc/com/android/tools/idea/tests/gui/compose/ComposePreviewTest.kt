@@ -125,8 +125,7 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     clearClipboard()
     assertFalse(Toolkit.getDefaultToolkit().systemClipboard.getContents(this).isDataFlavorSupported(DataFlavor.imageFlavor))
@@ -212,8 +211,7 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     val editor = fixture.editor
     editor.select("(@Preview)")
