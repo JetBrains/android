@@ -39,6 +39,7 @@ import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.EventLog
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.fest.swing.core.MouseButton
 import org.fest.swing.data.TableCell
 import org.fest.swing.timing.Wait
@@ -64,7 +65,6 @@ private const val LAYOUT_NAME = "inspection"
  */
 @RunWith(GuiTestRemoteRunner::class)
 class BasicLayoutInspectorUITest {
-/*  Disabled pending rewrite to app inspection: b/187734852
   companion object {
     init {
       System.loadLibrary("layout_inspector_test_support")
@@ -86,9 +86,9 @@ class BasicLayoutInspectorUITest {
 
   @get:Rule
   val transportRule = TransportRule()
-    .withCommandHandler(LayoutInspectorCommand.Type.START, ::startHandler)
-    .withCommandHandler(LayoutInspectorCommand.Type.STOP, ::stopHandler)
-    .withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::produceProperties)
+    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND, ::startHandler)
+    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.STOP_FETCH_COMMAND, ::stopHandler)
+    .withCommandHandler(LayoutInspectorViewProtocol.Command.SpecializedCase.GET_PROPERTIES_COMMAND, ::produceProperties)
     .withDeviceCommandHandler(commandHandler)
     .withFile(PAYLOAD_SINGLE_BOX, generateSingle())
     .withFile(PAYLOAD_BOXES, generateBoxes())
@@ -108,6 +108,7 @@ class BasicLayoutInspectorUITest {
     }
   }
 
+  /*
   @Test
   @UseBleak
   @RunIn(TestGroup.PERFORMANCE)
@@ -119,6 +120,8 @@ class BasicLayoutInspectorUITest {
 
     guiTest.runWithBleak { basicLayoutInspectorOperations(frame) }
   }
+
+   */
 
   private fun init(): IdeFrameFixture {
     val frame = guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_NAME)
@@ -155,8 +158,9 @@ class BasicLayoutInspectorUITest {
     frame.findToolWindowSplitter().lastSize = 300
 
     // Select a device and process and wait for the component tree to display the correct amount of nodes.
-    inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}",
-                           "${DEFAULT_PROCESS.name} (${DEFAULT_PROCESS.pid})")
+    inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}", DEFAULT_PROCESS.name)
+
+    /*
     inspector.waitForComponentTreeToLoad(1)
 
     // Simulate that the user did something on the device that caused a different skia image to be received.
@@ -315,8 +319,10 @@ class BasicLayoutInspectorUITest {
 
     inspector.stop()
     Wait.seconds(10).expecting("debug attribute cleanup").until { commandHandler.stopped }
+    */
   }
 
+  /*
   private fun requireDeclaredAttributeValue(properties: PropertiesPanelFixture<*>, attrName: String, attrValue: String) {
     val declared = properties.findSectionByName("Declared Attributes")!!
     val table = declared.components.single() as PTableFixture
@@ -337,26 +343,29 @@ class BasicLayoutInspectorUITest {
   private fun toUrl(ref: ResourceReference): String =
     ref.getRelativeResourceUrl(namespace).toString()
 
-  private fun startHandler(command: Commands.Command, events: MutableList<Common.Event>) {
-    events.add(createSingleBoxTreeEvent(command.pid))
+   */
+
+  private fun startHandler(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
+    //events.add(createSingleBoxTreeEvent(DEFAULT_PROCESS.pid))
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun stopHandler(command: Commands.Command, events: MutableList<Common.Event>) {
+  private fun stopHandler(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
     transportRule.revertToEventPositionMark(DEFAULT_DEVICE.deviceId)
   }
 
-  private fun produceProperties(command: Commands.Command, events: MutableList<Common.Event>) {
-    val event = when (command.layoutInspector.viewId) {
-      1L -> createPropertiesForLinearLayout(command.pid)
-      2L -> createPropertiesForFrameLayout(command.pid)
-      3L -> createPropertiesForButton3(command.pid)
-      4L -> createPropertiesForButton4(command.pid)
-      else -> error("unexpected property request")
-    }
-    events.add(event)
+  private fun produceProperties(command: LayoutInspectorViewProtocol.Command, events: MutableList<Common.Event>) {
+    //val event = when (command.getPropertiesCommand.viewId) {
+    //  1L -> createPropertiesForLinearLayout(DEFAULT_PROCESS.pid)
+    //  2L -> createPropertiesForFrameLayout(DEFAULT_PROCESS.pid)
+    //  3L -> createPropertiesForButton3(DEFAULT_PROCESS.pid)
+    //  4L -> createPropertiesForButton4(DEFAULT_PROCESS.pid)
+    //  else -> error("unexpected property request")
+    //}
+    //events.add(event)
   }
 
+  /*
   private fun createSingleBoxTreeEvent(processId: Int): Common.Event {
     val strings = TestStringTable()
     return Common.Event.newBuilder().apply {
@@ -656,6 +665,8 @@ class BasicLayoutInspectorUITest {
     }.build()
   }
 
+   */
+
   private external fun generateSingle(): ByteArray
 
   private external fun generateBoxes(): ByteArray
@@ -718,5 +729,5 @@ class BasicLayoutInspectorUITest {
         else -> null
       }
     }
-  }*/
+  }
 }
