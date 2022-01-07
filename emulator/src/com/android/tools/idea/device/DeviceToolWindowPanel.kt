@@ -135,6 +135,7 @@ internal class DeviceToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_CONTROLLER_KEY.name -> primaryDeviceView?.deviceController
       else -> null
     }
   }

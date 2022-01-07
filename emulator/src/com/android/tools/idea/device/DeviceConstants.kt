@@ -20,6 +20,8 @@ import com.intellij.openapi.actionSystem.DataKey
 
 /** Constants for mirroring of physical devices. */
 
+@JvmField val DEVICE_CONTROLLER_KEY = DataKey.create<DeviceController>("DeviceController")
+
 @JvmField val DEVICE_VIEW_KEY = DataKey.create<DeviceView>("DeviceView")
 
 internal const val DEVICE_MAIN_TOOLBAR_ID = "DeviceToolbar"

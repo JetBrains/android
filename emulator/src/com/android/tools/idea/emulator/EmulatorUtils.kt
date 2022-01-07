@@ -109,6 +109,19 @@ internal fun Point.scaled(scale: Double): Point {
 }
 
 /**
+ * Converts the given [value] from the `[0, fromRange-1]` interval to the `[0, toRange - 1]`
+ * interval by scaling by the [toRange]/[fromRange] factor while maintaining symmetry with
+ * respect to the centers of the two intervals.
+ */
+internal fun Int.scaledUnbiased(fromRange: Int, toRange: Int): Int {
+  if (fromRange <= 1) {
+    return toRange / 2
+  }
+  val shift = (toRange + fromRange / 2) / (2 * fromRange)
+  return (shift + toLong() * (toRange - 2 * shift) / (fromRange - 1)).toInt()
+}
+
+/**
  * Returns this [Dimension] rotated according to [rotation].
  */
 internal fun Dimension.rotated(rotation: SkinRotation): Dimension {

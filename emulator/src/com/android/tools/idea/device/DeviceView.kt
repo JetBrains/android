@@ -20,6 +20,7 @@ import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.emulator.rotatedByQuadrants
 import com.android.tools.idea.emulator.scaled
+import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -30,6 +31,9 @@ import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.AffineTransform
 import kotlin.math.min
 
@@ -52,6 +56,8 @@ class DeviceView(
   private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
   private var deviceClient: DeviceClient? = null
+  val deviceController: DeviceController?
+    get() = deviceClient?.deviceController
   private var decoder: VideoDecoder? = null
 
   /** Size of the device display in device pixels. */
@@ -73,8 +79,16 @@ class DeviceView(
 
   private val connected = true
 
+  /** Last received state of the first mouse button. */
+  private var mouseButton1Pressed = false
+
   init {
     Disposer.register(disposableParent, this)
+
+    // Forward mouse & keyboard events.
+    val mouseListener = MyMouseListener()
+    addMouseListener(mouseListener)
+    addMouseMotionListener(mouseListener)
 
     AndroidCoroutineScope(this).launch { initializeAgent() }
   }
@@ -166,6 +180,93 @@ class DeviceView(
           startTime = 0L
         }
       }
+    }
+  }
+
+  private inner class MyMouseListener : MouseAdapter() {
+
+    private var dragging = false
+
+    override fun mousePressed(event: MouseEvent) {
+      requestFocusInWindow()
+      if (event.button == BUTTON1) {
+        mouseButton1Pressed = true
+        sendMouseEvent(event.x, event.y, 1)
+      }
+    }
+
+    override fun mouseReleased(event: MouseEvent) {
+      if (event.button == BUTTON1) {
+        mouseButton1Pressed = false
+        sendMouseEvent(event.x, event.y, 0)
+      }
+    }
+
+    override fun mouseEntered(event: MouseEvent) {
+    }
+
+    override fun mouseExited(event: MouseEvent) {
+      if (dragging) {
+        sendMouseEvent(event.x, event.y, 0) // Terminate the ongoing dragging.
+      }
+    }
+
+    override fun mouseDragged(event: MouseEvent) {
+      sendMouseEvent(event.x, event.y, 1, drag = true)
+    }
+
+    private fun sendMouseEvent(x: Int, y: Int, buttons: Int, drag: Boolean = false) {
+      val displayRectangle = displayRectangle ?: return
+      // Mouse pointer coordinates compensated for the device display rotation.
+      val normalizedX: Int
+      val normalizedY: Int
+      val imageWidth: Int
+      val imageHeight: Int
+      when (displayRotationQuadrants) {
+        0 -> {
+          normalizedX = x.scaled(screenScale) - displayRectangle.x
+          normalizedY = y.scaled(screenScale) - displayRectangle.y
+          imageWidth = displayRectangle.width
+          imageHeight = displayRectangle.height
+        }
+        1 -> {
+          normalizedX = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+          normalizedY = x.scaled(screenScale) - displayRectangle.x
+          imageWidth = displayRectangle.height
+          imageHeight = displayRectangle.width
+        }
+        2 -> {
+          normalizedX = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+          normalizedY = displayRectangle.y + displayRectangle.height - y.scaled(screenScale)
+          imageWidth = displayRectangle.width
+          imageHeight = displayRectangle.height
+        }
+        3 -> {
+          normalizedX = y.scaled(screenScale) - displayRectangle.y
+          normalizedY = displayRectangle.x + displayRectangle.width - x.scaled(screenScale)
+          imageWidth = displayRectangle.height
+          imageHeight = displayRectangle.width
+        }
+        else -> return
+      }
+      // Device display coordinates.
+      val displayX = normalizedX.scaledUnbiased(imageWidth, deviceDisplaySize.width)
+      val displayY = normalizedY.scaledUnbiased(imageHeight, deviceDisplaySize.height)
+
+      if (displayX in 0 until deviceDisplaySize.width && displayY in 0 until deviceDisplaySize.height) {
+        // Within the bounds of the device display.
+        sendMouseOrTouchEvent(displayX, displayY, buttons)
+      }
+      else if (drag) {
+        // Crossed the device display boundary while dragging.
+        sendMouseOrTouchEvent(displayX.coerceIn(0, deviceDisplaySize.width - 1), displayY.coerceIn(0, deviceDisplaySize.height - 1), 0)
+      }
+    }
+
+    private fun sendMouseOrTouchEvent(displayX: Int, displayY: Int, buttons: Int) {
+      val deviceController = deviceController ?: return
+      val message = MouseEventMessage(displayX, displayY, buttons, displayId)
+      deviceController.sendControlMessage(message)
     }
   }
 }

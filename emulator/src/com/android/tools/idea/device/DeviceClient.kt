@@ -70,6 +70,8 @@ internal class DeviceClient(
   private val coroutineScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
+  lateinit var deviceController: DeviceController
+    private set
   internal var startTime = 0L
   internal var pushTime = 0L
   internal var startAgentTime = 0L
@@ -94,6 +96,7 @@ internal class DeviceClient(
       controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
     }
     removeHostPortForwarding()
+    deviceController = DeviceController(this, controlChannel)
   }
 
   fun createVideoDecoder(maxOutputSize: Dimension) : VideoDecoder =
