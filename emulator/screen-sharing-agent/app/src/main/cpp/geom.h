@@ -25,6 +25,14 @@ namespace screensharing {
 struct Size {
   Size(int32_t width, int32_t height) : width(width), height(height) {}
 
+  bool operator==(Size other) const {
+    return width == other.width && height == other.height;
+  }
+
+  bool operator!=(Size other) const {
+    return width != other.width || height != other.height;
+  }
+
   Size Rotated(int32_t rotation) const {
     return rotation % 2 == 0 ? *this : Size(height, width);
   }
@@ -39,13 +47,6 @@ struct Size {
 
   int32_t width;
   int32_t height;
-};
-
-struct Point {
-  Point(int32_t x, int32_t y) : x(x), y(y) {}
-
-  int32_t x;
-  int32_t y;
 };
 
 // Converts the rotation value to the canonical [0, 3] range.

@@ -63,7 +63,8 @@ struct CodecOutputBuffer {
     }
     buffer = AMediaCodec_getOutputBuffer(codec, static_cast<size_t>(index), &size);
     if (buffer == nullptr) {
-      Log::Fatal("CodecOutputBuffer::Deque: buffer is null");
+      Log::W("CodecOutputBuffer::Deque: AMediaCodec_getOutputBuffer(codec, %ld, &size) returned null", static_cast<long>(index));
+      return false;
     }
     return true;
   }
@@ -87,7 +88,7 @@ constexpr const char* MIMETYPE_VIDEO_AVC = "video/avc";
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
 constexpr int BIT_RATE = 8000000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
-constexpr int REPEAT_FRAME_DELAY_MILLIS = 100L;
+constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 
 AMediaFormat* createMediaFormat() {
   AMediaFormat* media_format = AMediaFormat_new();
@@ -101,19 +102,18 @@ AMediaFormat* createMediaFormat() {
   return media_format;
 }
 
-Size ComputeVideoSize(Size rotated_display_size, int max_video_resolution) {
+int32_t RoundUpToMultipleOf8(int32_t value) {
+  return (value + 7) & ~7;
+}
+
+Size ComputeVideoSize(Size rotated_display_size, Size max_resolution) {
   auto width = rotated_display_size.width;
   auto height = rotated_display_size.height;
-  auto w = (width + 7) & ~7;
-  auto h = (height + 7) & ~7;
-  auto rounded_max_size = max_video_resolution & ~7;
-  if (rounded_max_size == 0 || (w <= rounded_max_size && h <= rounded_max_size)) {
-    return Size { w, h };
-  } else if (h > w) {
-    return Size {min((((width * rounded_max_size + height / 2) / height + 4) & ~7), rounded_max_size), h };
-  } else {
-    return Size { w, min((((height * rounded_max_size + width / 2) / width + 4) & ~7), rounded_max_size) };
+  double scale = min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height));
+  if (scale == 0) {
+    scale = 1.;
   }
+  return Size { RoundUpToMultipleOf8(lround(width * scale)), RoundUpToMultipleOf8(lround(height * scale)) };
 }
 
 // The display area defined by display_info.logical_size is mapped to projected size and then
@@ -129,11 +129,12 @@ void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_tok
 
 }  // namespace
 
-DisplayStreamer::DisplayStreamer(int display_id, int max_video_resolution, int socket_fd)
+DisplayStreamer::DisplayStreamer(int display_id, Size max_video_resolution, int socket_fd)
     : display_id_(display_id),
       max_video_resolution_(max_video_resolution),
       socket_fd_(socket_fd),
       presentation_timestamp_offset_(0),
+      display_rotation_watcher_(this),
       stopped_(),
       video_orientation_(-1),
       running_codec_() {
@@ -142,6 +143,7 @@ DisplayStreamer::DisplayStreamer(int display_id, int max_video_resolution, int s
 
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
+  WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   VideoPacketHeader packet_header = { .frame_number = 1 };
   AMediaFormat* media_format = createMediaFormat();
   SurfaceControl surface_control(jni);
@@ -195,6 +197,14 @@ void DisplayStreamer::OnVideoOrientationChanged(int32_t orientation) {
   scoped_lock lock(mutex_);
   if (video_orientation_ != orientation) {
     video_orientation_ = orientation;
+    StopCodecUnlocked();
+  }
+}
+
+void DisplayStreamer::OnMaxVideoResolutionChanged(Size max_video_resolution) {
+  scoped_lock lock(mutex_);
+  if (max_video_resolution_ != max_video_resolution) {
+    max_video_resolution_ = max_video_resolution;
     StopCodecUnlocked();
   }
 }
@@ -258,6 +268,22 @@ void DisplayStreamer::StopCodecUnlocked() {
 bool DisplayStreamer::IsCodecRunning() {
   scoped_lock lock(mutex_);
   return running_codec_ != nullptr;
+}
+
+DisplayStreamer::DisplayRotationWatcher::DisplayRotationWatcher(DisplayStreamer* display_streamer)
+    : display_streamer(display_streamer),
+      display_rotation() {
+}
+
+DisplayStreamer::DisplayRotationWatcher::~DisplayRotationWatcher() {
+  WindowManager::RemoveRotationWatcher(Jvm::GetJni(), this);
+}
+
+void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rotation) {
+  auto old_rotation = display_rotation.exchange(new_rotation);
+  if (new_rotation != old_rotation) {
+    display_streamer->StopCodec();
+  }
 }
 
 }  // namespace screensharing

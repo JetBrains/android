@@ -18,6 +18,7 @@ add_library(
         accessors/display_manager.cc
         accessors/service_manager.cc
         accessors/surface_control.cc
+        accessors/window_manager.cc
         agent.cc
         display_streamer.cc
         jvm.cc

@@ -33,6 +33,7 @@ public:
   void Run();
 
   static void OnVideoOrientationChanged(int32_t orientation);
+  static void OnMaxVideoResolutionChanged(Size max_video_resolution);
 
   static void Shutdown();
 
@@ -44,7 +45,7 @@ private:
   static Agent* instance_;
 
   int32_t display_id_ = 0;
-  int32_t max_video_resolution_ = std::numeric_limits<int32_t>::max();
+  Size max_video_resolution_;
   DisplayStreamer* display_streamer_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(Agent);
