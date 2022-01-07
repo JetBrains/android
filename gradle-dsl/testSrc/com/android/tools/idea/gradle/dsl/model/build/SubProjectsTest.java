@@ -26,12 +26,12 @@ import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryMod
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
-
 
 /**
  * Tests subprojects section of the build.gradle file.
@@ -195,12 +195,36 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.DELETE_SUB_PROJECT_REPOSITORY_EXPECTED);
   }
 
+  @Test
+  public void testDependenciesInSubProject() throws IOException {
+    writeToBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.DEPENDENCIES_IN_SUBPROJECT_SUB);
+    Module otherModule = writeToNewSubModule("otherSub", TestFile.DEPENDENCIES_IN_SUBPROJECT_OTHERSUB, "");
+    writeToSettingsFile(getSubModuleSettingsText() + getSubModuleSettingsText("otherSub"));
+
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel mainBuildModel = projectBuildModel.getModuleBuildModel(myBuildFile);
+    GradleBuildModel subBuildModel = projectBuildModel.getModuleBuildModel(mySubModuleBuildFile);
+    GradleBuildModel otherSubBuildModel = projectBuildModel.getModuleBuildModel(otherModule);
+
+    assertSize(0, mainBuildModel.dependencies().artifacts());
+    assertSize(2, subBuildModel.dependencies().artifacts());
+    assertEquals("com.example:foo:1.0", subBuildModel.dependencies().artifacts().get(0).compactNotation());
+    assertEquals("com.example:bar:1.0", subBuildModel.dependencies().artifacts().get(1).compactNotation());
+    assertSize(2, otherSubBuildModel.dependencies().artifacts());
+    assertEquals("com.example:foo:1.0", otherSubBuildModel.dependencies().artifacts().get(0).compactNotation());
+    assertEquals("com.example:baz:1.0", otherSubBuildModel.dependencies().artifacts().get(1).compactNotation());
+  }
+
   enum TestFile implements TestFileName {
     APPLY_PLUGINS("applyPlugins"),
     APPLY_PLUGINS_SUB("applyPlugins_sub"),
     APPLY_PLUGINS_SUB2("applyPlugins_sub2"),
     DELETE_SUB_PROJECT_REPOSITORY("deleteSubProjectRepository"),
     DELETE_SUB_PROJECT_REPOSITORY_EXPECTED("deleteSubProjectRepositoryExpected"),
+    DEPENDENCIES_IN_SUBPROJECT("dependenciesInSubproject"),
+    DEPENDENCIES_IN_SUBPROJECT_SUB("dependenciesInSubproject_sub"),
+    DEPENDENCIES_IN_SUBPROJECT_OTHERSUB("dependenciesInSubproject_otherSub"),
     OVERRIDE_SUB_PROJECT_SECTION("overrideSubProjectSection"),
     OVERRIDE_SUB_PROJECT_SECTION_SUB("overrideSubProjectSection_sub"),
     SUB_PROJECTS_SECTION("subProjectsSection"),
@@ -208,6 +232,7 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     ;
 
     @NotNull private @SystemDependent String path;
+
     TestFile(@NotNull @SystemDependent String path) {
       this.path = path;
     }

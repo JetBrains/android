@@ -15,35 +15,47 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
-import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.APPLIED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.DEFAULT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.EXISTING;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_ADDED;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_REMOVED;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -663,8 +675,24 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     removePropertyInternal(property);
   }
 
+  /**
+   * Marks the given {@code element} for removal.
+   * <p>
+   * Note that it removes the element from all its holders, not just the one this is called on (usually, but not always, its parent).
+   *
+   * @param element the element to remove.
+   */
   public void removeProperty(@NotNull GradleDslElement element) {
     removePropertyInternal(element);
+    for (GradlePropertiesDslElement holder : element.getHolders()) {
+      if (this != holder) {
+        holder.removePropertyInternal(element);
+      }
+    }
+    GradleDslElement parent = element.getParent();
+    if (this != parent && parent instanceof GradlePropertiesDslElement) {
+      ((GradlePropertiesDslElement)parent).removePropertyInternal(element);
+    }
   }
 
   @Override
@@ -845,6 +873,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       }
     }
     // The element must be found.
+    throw new IllegalStateException("Element not found in parent");
+  }
+
+  void updateAppliedState(@NotNull GradleDslElement element) {
+    for (ElementList.ElementItem item : myProperties.myElements) {
+      if (item.myElement == element) {
+        if (item.myElementState == APPLIED) item.myElementState = TO_BE_ADDED;
+        return;
+      }
+    }
     throw new IllegalStateException("Element not found in parent");
   }
 

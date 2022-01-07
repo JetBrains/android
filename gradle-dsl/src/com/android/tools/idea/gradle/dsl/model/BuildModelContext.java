@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.GradleUtil.FN_GRADLE_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.gradle.dsl.GradleDslBuildScriptUtil;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -25,33 +30,36 @@ import com.android.tools.idea.gradle.dsl.parser.DependencyManager;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.files.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.gradle.dsl.GradleUtil.FN_GRADLE_PROPERTIES;
-import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * A context object used to hold information relevant to each unique instance of the project/build model.
  * This means there is one {@link BuildModelContext} for each call to the following methods,
  * {@link GradleBuildModel#parseBuildFile(VirtualFile, Project)}, {@link GradleBuildModel#get(Module)}
- * and {@link ProjectBuildModel#get(Project)}. This can be accessed from each of the {@link GradleDslFile}s.
+ * and {@link ProjectBuildModel#get(Project)}. This can be accessed from each of the {@link GradleDslFile}s
+ * and their associated models.
  */
 public final class BuildModelContext {
 
@@ -268,11 +276,6 @@ public final class BuildModelContext {
     buildDslFile.addAppliedProperty(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
       GradleDslElement element = entry.getValue();
-      // TODO(b/147139838): we need to implement a sufficiently-deep copy to handle subprojects correctly: as it stands, this special-case
-      //  shallow copy works around a particular bug, but e.g. configuring some android properties in a subprojects block, then
-      //  modifying the configuration in one subproject will cause the parser to propagate that modification to all other subprojects
-      //  because of the shared structure.  (The copy must not be too deep: we probably want to preserve the association of properties
-      //  to the actual file they're defined in).
       if (element instanceof ApplyDslElement) {
         ApplyDslElement subProjectsApply = (ApplyDslElement)element;
         ApplyDslElement myApply = new ApplyDslElement(buildDslFile);
@@ -282,10 +285,42 @@ public final class BuildModelContext {
         }
       }
       else {
-        // TODO(b/147139838): I believe this is wrong in general (see comment above, and the referenced bug, for details)
-        buildDslFile.addAppliedProperty(element);
+        buildDslFile.addAppliedProperty(dslTreeCopy(element, buildDslFile));
       }
     }
+  }
+
+  private GradleDslElement dslTreeCopy(GradleDslElement element, GradleDslElement parent) {
+    return dslTreeCopy(element, parent, new HashMap<>());
+  }
+
+  private GradleDslElement dslTreeCopy(GradleDslElement element, GradleDslElement parent, Map<GradleDslElement, GradleDslElement> seen) {
+    GradleDslElement previous = seen.get(element);
+    if (previous != null) {
+      return previous;
+    }
+    GradleDslElement result;
+    if (element instanceof DescribedGradlePropertiesDslElement) {
+      // Strictly speaking, it's not the fact that we have a description for the element that matters; what matters is whether this
+      // element should be considered to be a leaf in the Dsl tree, or an internal node.  This has more to do with the semantics of our
+      // model (i.e. what model operations are permitted, and what their effect should be if those operations are performed on elements
+      // included through allprojects/subprojects) than the object structure: consider for example that we need to be able to remove
+      // repositories by identity, even though they have block-nature.  For now, this will do: we implement the
+      // DescribedGradlePropertiesDslElement interface incrementally on elements where there is an observable problem if it is not
+      // implemented.
+      PropertiesElementDescription description = ((DescribedGradlePropertiesDslElement<?>)element).getDescription();
+      GradlePropertiesDslElement myProperties = description.constructor.construct(parent, GradleNameElement.copy(element.getNameElement()));
+      result = myProperties;
+      seen.put(element, result);
+      for (GradleDslElement subElement : ((GradlePropertiesDslElement)element).getAllElements()) {
+        myProperties.addAppliedProperty(dslTreeCopy(subElement, myProperties, seen));
+      }
+    }
+    else {
+      result = element;
+      seen.put(element, result);
+    }
+    return result;
   }
 
   @Nullable
