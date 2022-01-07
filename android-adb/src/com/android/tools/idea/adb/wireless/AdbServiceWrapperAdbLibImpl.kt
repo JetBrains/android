@@ -81,7 +81,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
       // and
       // https://cs.android.com/android/platform/superproject/+/3a52886262ae22477a7d8ffb12adba64daf6aafa:packages/modules/adb/client/transport_mdns.cpp;l=302;drc=3a52886262ae22477a7d8ffb12adba64daf6aafa
       val stdout = listOf("List of discovered mdns services") +
-                   result.services.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
+                   result.map { "${it.instanceName}\t${it.serviceName}\t${it.deviceAddress}" }
       AdbCommandResult(0, stdout, listOf())
     }
     catch (e: AdbFailResponseException) {
@@ -117,7 +117,7 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
   }
 
   private fun DeviceList.getPairedDevice(pairingResult: PairingResult): DeviceInfo? {
-    return devices.firstOrNull {
+    return firstOrNull {
       it.deviceState == DeviceState.ONLINE &&
       sameDevice(it, pairingResult)
     }

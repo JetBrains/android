@@ -604,7 +604,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
       val removed: Set<String>
       synchronized(this) {
         val oldDevices = mirroredDevices
-        devices = deviceList.devices.filter { it.deviceState == DeviceState.ONLINE }
+        devices = deviceList.filter { it.deviceState == DeviceState.ONLINE }
         val newDevices = devices.map(DeviceInfo::serialNumber).filter(::isMirrorable).toSortedSet()
         added = newDevices.minus(oldDevices)
         removed = oldDevices.minus(newDevices)
