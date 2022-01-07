@@ -89,8 +89,8 @@ import javax.swing.event.HyperlinkListener
 private const val WEAR_MAIN_ACTIVITY = "com.google.android.clockwork.companion.launcher.LauncherActivity"
 private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
 private const val TIME_TO_INSTALL_COMPANION_APP = 120_000L
-private const val PATH_PLAY_SCREEN = "/wearPairing/screens/playStore.png"
-private const val PATH_PAIR_SCREEN = "/wearPairing/screens/wearPair.png"
+private const val PATH_PLAY_SCREEN = "/screens/playStore.png"
+private const val PATH_PAIR_SCREEN = "/screens/wearPair.png"
 
 private val LOG get() = logger<WearPairingManager>()
 
