@@ -1058,6 +1058,71 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/wear_round_expected.png"), generatedImage, DIFF_THRESHOLD)
   }
+
+  @Test
+  fun testPaintWithChildrenOutsideParent() {
+    val model = model {
+      view(ROOT, 0, 0, 20, 40) {
+        view(VIEW1, 0, 0, 20, 40)
+        image()
+        view(VIEW2, -23, 0, 20, 40)
+        view(VIEW3, 0, 0, 20, 40)
+      }
+    }
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(90, 70, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val settings = EditorDeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { mock() }, mock(), null,
+                                       disposable.disposable)
+    panel.setSize(90, 70)
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent.png"), generatedImage,
+                                     DIFF_THRESHOLD)
+
+    panel.model.layerSpacing = 30
+    settings.scalePercent = 100
+    panel.model.rotate(0.3, 0.2)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent_rotated.png"),
+                                     generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  fun testPaintWithChildAboveSibling() {
+    val model = model {
+      view(ROOT, 0, 0, 20, 40) {
+        view(VIEW1, 0, 0, 20, 20) {
+          view(VIEW2, 0, 0, 20, 40)
+        }
+        view(VIEW3, 0, 20, 20, 20)
+      }
+    }
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(70, 70, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val settings = EditorDeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, { mock() }, mock(), null,
+                                       disposable.disposable)
+    panel.setSize(70, 70)
+
+    panel.model.layerSpacing = 30
+    settings.scalePercent = 100
+    panel.model.rotate(0.3, 0.2)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithChildAboveSibling.png"), generatedImage,
+                                     DIFF_THRESHOLD)
+  }
 }
 
 class DeviceViewContentPanelWithScaledFontTest {

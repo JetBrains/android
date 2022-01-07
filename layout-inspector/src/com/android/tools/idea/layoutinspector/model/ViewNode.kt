@@ -114,6 +114,13 @@ open class ViewNode(
     _transformedBounds = bounds
   }
 
+  /**
+   *  The rectangular bounds of this node's transformed bounds plus the transitive bounds of all children.
+   *  [calculateTransitiveBounds] must be called before accessing this, but that should be done automatically soon after creation.
+   */
+  lateinit var transitiveBounds: Rectangle
+    private set
+
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 
   private val children = mutableListOf<ViewNode>()
@@ -157,6 +164,19 @@ open class ViewNode(
    */
   private fun preOrderFlatten(): Sequence<ViewNode> {
     return sequenceOf(this).plus(children.asSequence().flatMap { it.preOrderFlatten() })
+  }
+
+  /**
+   * Calculate the transitive bounds for all nodes under the given [root]. This should be called once after the
+   * ViewNode tree is built.
+   */
+  fun calculateTransitiveBounds() {
+    readAccess {
+      flatten().forEach {
+        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.transformedBounds.bounds)
+          .reduce { r1, r2 -> r1.union(r2) }
+      }
+    }
   }
 
   /**
