@@ -16,19 +16,35 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.devicemanager.legacy.CreateAvdAction;
-import com.intellij.testFramework.LightPlatform4TestCase;
+import com.intellij.testFramework.fixtures.BareTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class VirtualDevicePanelTest extends LightPlatform4TestCase {
+public final class VirtualDevicePanelTest {
+  private BareTestFixture myFixture;
+
+  @Before
+  public void setUpFixture() throws Exception {
+    myFixture = IdeaTestFixtureFactory.getFixtureFactory().createBareFixture();
+    myFixture.setUp();
+  }
+
+  @After
+  public void tearDownFixture() throws Exception {
+    myFixture.tearDown();
+  }
+
   @Test
   public void createDeviceButton() {
     CreateAvdAction createAvdAction = Mockito.mock(CreateAvdAction.class);
     VirtualDevicePanel virtualDevicePanel = new VirtualDevicePanel(null,
-                                                                   getTestRootDisposable(),
+                                                                   myFixture.getTestRootDisposable(),
                                                                    avdInfoProvider -> createAvdAction);
 
     virtualDevicePanel.getCreateButton().doClick();
