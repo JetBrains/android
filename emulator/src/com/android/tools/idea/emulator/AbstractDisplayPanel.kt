@@ -47,7 +47,7 @@ import javax.swing.plaf.ScrollBarUI
 @Suppress("LeakingThis") // Passing "this" to Disposer in constructor is safe because the dispose method is final.
 abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   disposableParent: Disposable,
-  zoomToolbarVisible: Boolean
+  zoomToolbarVisible: Boolean,
 ) : BorderLayoutPanel(), Disposable {
 
   private val scrollPane: JScrollPane

@@ -30,6 +30,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -131,6 +132,18 @@ internal fun Point.rotated(rotation: SkinRotation): Point {
     SkinRotation.REVERSE_LANDSCAPE -> Point(-y, x)
     else -> this
   }
+}
+
+/**
+ * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise
+ * returns this Dimension scaled down to satisfy this requirement while preserving the aspect ratio.
+ */
+internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
+  if (width <= maximumValue.width && height <= maximumValue.height) {
+    return this
+  }
+  val scale = min(maximumValue.width.toDouble() / width, maximumValue.height.toDouble() / height).coerceAtMost(1.0)
+  return Dimension(width.scaled(scale).coerceAtMost(maximumValue.width), height.scaled(scale).coerceAtMost(maximumValue.height))
 }
 
 internal val Container.sizeWithoutInsets: Dimension
