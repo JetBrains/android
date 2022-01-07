@@ -17,40 +17,22 @@
 #pragma once
 
 #include <string>
-#include <vector>
-
-#include "common.h"
-#include "controller.h"
-#include "display_streamer.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
+class IoException : public std::exception {
 public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
+  IoException();
+  IoException(const char* message);
 
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-  static void OnMaxVideoResolutionChanged(Size max_video_resolution);
-
-  static void Shutdown();
+  virtual std::string GetMessage() const;
 
 private:
-  void ShutdownInternal();
+  int errno_;
+  std::string message_;
+};
 
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  Size max_video_resolution_;
-  DisplayStreamer* display_streamer_ = nullptr;
-  Controller* controller_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+class EndOfFile : public IoException {
 };
 
 }  // namespace screensharing

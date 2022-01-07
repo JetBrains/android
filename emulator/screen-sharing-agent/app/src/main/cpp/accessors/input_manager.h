@@ -16,41 +16,33 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <android/input.h>
 
 #include "common.h"
-#include "controller.h"
-#include "display_streamer.h"
+#include "display_info.h"
+#include "jvm.h"
 
 namespace screensharing {
 
-// The main class of the screen sharing agent.
-class Agent {
+// Copied from android/os/InputEventInjectionSync.h.
+enum class InputEventInjectionSync : int32_t {
+  NONE = 0,
+  WAIT_FOR_RESULT = 1,
+  WAIT_FOR_FINISHED = 2,
+};
+
+// Provides access to the android.hardware.input.IInputManager.injectInputEvent method.
+class InputManager {
 public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
+  InputManager(Jni jni);
+  ~InputManager();
 
-  void Run();
-
-  static void OnVideoOrientationChanged(int32_t orientation);
-  static void OnMaxVideoResolutionChanged(Size max_video_resolution);
-
-  static void Shutdown();
+  void InjectInputEvent(const JObject& input_event, InputEventInjectionSync mode);
 
 private:
-  void ShutdownInternal();
-
-  static constexpr char SOCKET_NAME[] = "screen-sharing-agent";
-
-  static Agent* instance_;
-
-  int32_t display_id_ = 0;
-  Size max_video_resolution_;
-  DisplayStreamer* display_streamer_ = nullptr;
-  Controller* controller_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
+  Jni jni_;
+  JObject input_manager_;
+  jmethodID inject_input_event_method_;
 };
 
 }  // namespace screensharing

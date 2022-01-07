@@ -49,6 +49,13 @@ struct Size {
   int32_t height;
 };
 
+struct Point {
+  Point(int32_t x, int32_t y) : x(x), y(y) {}
+
+  int32_t x;
+  int32_t y;
+};
+
 // Converts the rotation value to the canonical [0, 3] range.
 inline int32_t NormalizeRotation(int32_t rotation) {
   return rotation & 0x03;

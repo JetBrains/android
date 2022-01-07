@@ -20,8 +20,9 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-#include <chrono>
 #include <cerrno>
+#include <chrono>
+#include <cmath>
 
 #include "accessors/surface_control.h"
 #include "accessors/display_manager.h"

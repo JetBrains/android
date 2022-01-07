@@ -89,11 +89,15 @@ Agent::Agent(const vector<string>& args)
 
 Agent::~Agent() {
   Log::I("Screen sharing agent is stopping");
+  delete controller_;
   delete display_streamer_;
 }
 
 void Agent::Run() {
   display_streamer_ = new DisplayStreamer(display_id_, max_video_resolution_, CreateAndConnectSocket(SOCKET_NAME));
+  controller_ = new Controller(CreateAndConnectSocket(SOCKET_NAME));
+  Log::D("Created video and control sockets");
+  controller_->Start();
   display_streamer_->Run();
 }
 
@@ -117,6 +121,9 @@ void Agent::Shutdown() {
 }
 
 void Agent::ShutdownInternal() {
+  if (controller_ != nullptr) {
+    controller_->Shutdown();
+  }
   if (display_streamer_ != nullptr) {
     display_streamer_->Shutdown();
   }
