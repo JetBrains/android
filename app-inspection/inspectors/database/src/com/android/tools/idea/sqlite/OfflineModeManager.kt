@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.ApkFacetChecker
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.openapi.ui.MessageDialogBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Class used to download files needed to enter offline mode.
@@ -47,7 +49,12 @@ interface OfflineModeManager {
   }
 }
 
-class OfflineModeManagerImpl(private val project: Project, private val fileDatabaseManager: FileDatabaseManager): OfflineModeManager {
+class OfflineModeManagerImpl(
+  private val project: Project,
+  private val fileDatabaseManager: FileDatabaseManager,
+  private val uiDispatcher: CoroutineContext,
+  private val isFileDownloadAllowed: suspend () -> Boolean = { doIsFileDownloadAllowed(project, uiDispatcher) },
+  ): OfflineModeManager {
   private val databaseInspectorAnalyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   /**
@@ -70,7 +77,7 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
         emit(OfflineModeManager.DownloadProgress(OfflineModeManager.DownloadState.IN_PROGRESS, emptyList(), databasesToDownload.size))
 
         when {
-            isOfflineModeAllowed(appPackageName ?: processDescriptor.name) -> {
+            isFileDownloadAllowed() -> {
               downloadFiles(databasesToDownload, appPackageName, processDescriptor, downloadedFiles, handleError)
             }
             else -> {
@@ -129,18 +136,44 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
     }
   }
 
-  /**
-   * File download is not allowed if:
-   * 1. the file belongs to an app different from the one open in the studio project
-   * 2. the project comes from a prebuilt apk
-   */
-  private fun isOfflineModeAllowed(packageName: String): Boolean {
-    val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
-      project,
-      packageName
-    )
+  companion object {
+    private const val PROJECT_TRUSTED_KEY = "PROJECT_TRUSTED_KEY"
+    /**
+     * Before downloading any database, ask the user if they trust the app.
+     * We're doing this because downloading a db and running statements on it might result in executing malicious code.
+     *
+     * If user trusts the app we store the value as a project level property, so that we don't ask each time.
+     */
+    @VisibleForTesting
+    suspend fun doIsFileDownloadAllowed(
+      project: Project,
+      uiDispatcher: CoroutineContext,
+      askUser: () -> Boolean = { askUserIfAppIsTrusted(project) }
+    ) = withContext(uiDispatcher) {
+      val isProjectTrusted = PropertiesComponent.getInstance(project).getBoolean(PROJECT_TRUSTED_KEY)
 
-    val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }
-    return androidFacetsForInspectedProcess.isNotEmpty() && !hasApkFacet
+      if (isProjectTrusted) {
+        return@withContext true
+      }
+
+      val userAnswer = askUser()
+
+      if (userAnswer) {
+        PropertiesComponent.getInstance(project).setValue(PROJECT_TRUSTED_KEY, true)
+      }
+
+      return@withContext userAnswer
+    }
+
+    private fun askUserIfAppIsTrusted(project: Project): Boolean {
+      return MessageDialogBuilder.yesNo(
+        DatabaseInspectorBundle.message("trust.database.title"),
+        DatabaseInspectorBundle.message("trust.database.message")
+      )
+        .yesText(DatabaseInspectorBundle.message("trust.and.continue"))
+        .noText(DatabaseInspectorBundle.message("dont.trust.app"))
+        .asWarning()
+        .ask(project)
+    }
   }
 }

@@ -155,7 +155,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val databaseRepository: DatabaseRepository = DatabaseRepositoryImpl(project, taskExecutor),
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
   private val fileDatabaseManager: FileDatabaseManager = FileDatabaseManagerImpl(project, edtExecutor.asCoroutineDispatcher()),
-  private val offlineModeManager: OfflineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager),
+  private val offlineModeManager: OfflineModeManager = OfflineModeManagerImpl(project, fileDatabaseManager, edtExecutor.asCoroutineDispatcher()),
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
   private val createController: (DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager) -> DatabaseInspectorController =
     { myModel, myRepository, myFileDatabaseManager, myOfflineModeManager ->

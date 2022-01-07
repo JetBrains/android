@@ -49,15 +49,6 @@ internal fun getJdbcDatabaseConnection(
   }
 }
 
-internal fun initProjectSystemService(project: Project, disposable: Disposable, androidFacets: List<AndroidFacet>) {
-  val projectSystemService = IdeComponents(project, disposable).mockProjectService(ProjectSystemService::class.java)
-  val androidProjectSystem = mock<AndroidProjectSystem>()
-  `when`(
-    androidProjectSystem.getAndroidFacetsWithPackageName(project, "processName")
-  ).thenReturn(androidFacets)
-  `when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
-}
-
 /** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
 internal fun initAdbFileProvider(project: Project) {
   AdbFileProvider {

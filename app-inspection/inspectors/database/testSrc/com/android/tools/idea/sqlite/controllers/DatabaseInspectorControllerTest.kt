@@ -66,7 +66,6 @@ import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
-import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
@@ -91,8 +90,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -191,7 +188,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     databaseIdFile = SqliteDatabaseId.fromFileDatabase(databaseFileData) as SqliteDatabaseId.FileSqliteDatabaseId
 
     fileDatabaseManager = spy(FakeFileDatabaseManager(sqliteFile))
-    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager))
+    offlineModeManager = spy(OpenOfflineModeManager(project, fileDatabaseManager, edtDispatcher))
 
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId1, mockDatabaseConnection)
@@ -1522,8 +1519,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testEnterOfflineModeSuccess() {
     // Prepare
-    initProjectSystemService(project, testRootDisposable, listOf(AndroidFacet(module, "facet", AndroidFacetConfiguration())))
-
     val projectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(projectService.openSqliteDatabase(any())).thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, projectService)
