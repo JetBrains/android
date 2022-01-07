@@ -16,6 +16,9 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
+import static com.android.SdkConstants.FD_EMULATOR;
+import static com.android.SdkConstants.FD_LIB;
+import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
@@ -55,6 +58,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -143,6 +147,9 @@ public class AvdManagerConnection {
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
+  private static final String INTERNAL_STORAGE_KEY = AvdManager.AVD_INI_DATA_PARTITION_SIZE;
+  private static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
+
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
@@ -168,6 +175,9 @@ public class AvdManagerConnection {
 
   private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
+
+  // A map from hardware config name to its belonging hardware property.
+  private static @Nullable Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties;
 
   @Nullable
   private final AndroidSdkHandler mySdkHandler;
@@ -288,13 +298,35 @@ public class AvdManagerConnection {
   @Nullable
   public String getSdCardSizeFromHardwareProperties() {
     assert mySdkHandler != null;
-    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(SD_CARD_STORAGE_KEY, mySdkHandler);
   }
 
   @Nullable
   public String getInternalStorageSizeFromHardwareProperties() {
     assert mySdkHandler != null;
-    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(INTERNAL_STORAGE_KEY, mySdkHandler);
+  }
+
+  /**
+   * Get the default value of hardware property from hardware-properties.ini.
+   *
+   * @param name the name of the requested hardware property
+   * @return the default value
+   */
+  @Nullable
+  private String getHardwarePropertyDefaultValue(@NotNull String name, @Nullable AndroidSdkHandler sdkHandler) {
+    if (ourHardwareProperties == null && sdkHandler != null) {
+      // get the list of possible hardware properties
+      // The file is in the emulator component
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdManagerConnection.class));
+      if (emulatorPackage != null) {
+        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
+        ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
+          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+      }
+    }
+    HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
+    return (hwProp == null) ? null : hwProp.getDefault();
   }
 
   @Nullable
@@ -647,7 +679,7 @@ public class AvdManagerConnection {
    */
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
     if (mySdkHandler == null) return false; // Don't know, so guess
-    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
     if (sdkPackage == null) {
       return false;
@@ -910,7 +942,7 @@ public class AvdManagerConnection {
       File skin = getRoundSkin(systemImageDescription);
       skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && FileUtil.filesEqual(FileOpUtils.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
+    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {
