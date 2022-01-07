@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.transport.faketransport;
 
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
@@ -97,6 +98,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     cpuService.myServer = server;
     energyService.myServer = server;
     server.myCpuService = cpuService;
+    TransportService.setTestChannelName(server.getName());
     return server;
   }
 

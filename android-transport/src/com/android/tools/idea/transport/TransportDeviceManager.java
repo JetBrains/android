@@ -352,7 +352,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
          * Reconnect to the agents that were last known connected.
          */
         private void reconnectAgents() {
-          TransportClient client = new TransportClient(TransportService.CHANNEL_NAME);
+          TransportClient client = new TransportClient(TransportService.getChannelName());
           DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
           assert context != null;
           for (Long pid : context.myConnectedAgents) {

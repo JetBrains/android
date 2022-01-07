@@ -71,7 +71,7 @@ class TransportServiceImpl @VisibleForTesting constructor() : TransportService {
 
   init {
     val datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator
-    dataStoreService = DataStoreService(TransportService.CHANNEL_NAME, datastoreDirectory,
+    dataStoreService = DataStoreService(TransportService.channelName, datastoreDirectory,
                                         { runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }, logService)
     dataStoreService.setNoPiiExceptionHandler { t -> logger.error(NoPiiException(t)) }
     deviceManager = TransportDeviceManager(dataStoreService, messageBus, this)

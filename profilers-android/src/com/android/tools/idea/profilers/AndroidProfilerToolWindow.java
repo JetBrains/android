@@ -289,7 +289,7 @@ public class AndroidProfilerToolWindow implements Disposable {
                            @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
       myWindow = window;
-      ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
+      ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       CodeNavigator navigator = ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.

@@ -103,7 +103,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     // If we don't do this, calls to blocking gRPC stubs later will hang forever.
     TransportService.getInstance();
 
-    myClient = new TransportClient(TransportService.CHANNEL_NAME);
+    myClient = new TransportClient(TransportService.getChannelName());
 
     myProcessSelectionAction = new CommonAction("Select Process", AllIcons.General.Add);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
