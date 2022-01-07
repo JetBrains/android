@@ -28,6 +28,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_WAVED
 import com.intellij.ui.SimpleTextAttributes.merge
+import com.intellij.util.ui.JBUI
 
 /**
  * A sequence of actions to render a represented value onto a [TextRenderer].
@@ -36,7 +37,7 @@ interface ValueRenderer {
   fun renderTo(textRenderer: TextRenderer): Boolean
 }
 
-private val variableNameAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.link()))
+private val variableNameAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBUI.CurrentTheme.Link.Foreground.ENABLED))
 private val regularAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.black))
 private val commentAttributes = SimpleTextAttributes.GRAYED_ATTRIBUTES
 private val defaultAttributes = SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES

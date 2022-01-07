@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColorUtil
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
@@ -65,7 +64,7 @@ class NoFacetView(val project: Project)
   }
 
   private fun createInnerText(): JEditorPane {
-    val linkColor = ColorUtil.toHex(JBColor.link())
+    val linkColor = ColorUtil.toHex(JBUI.CurrentTheme.Link.Foreground.ENABLED)
     return JEditorPane().apply {
       contentType = UIUtil.HTML_MIME
       background = UIUtil.getPanelBackground()
