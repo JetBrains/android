@@ -1136,6 +1136,10 @@ public class TimeLinePanel extends JPanel {
     }
 
     public void setSelectedIndex(int index) {
+      if (index < 0) {
+        return;
+      }
+
       int prev = mSelectedIndex;
       mSelectedIndex = index;
       if (mSelectedKeyFrame == null) {
