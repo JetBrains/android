@@ -1462,7 +1462,7 @@ public final class ConstraintComponentUtilities {
 
   public static void setScoutVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
     AttributesTransaction transaction = component.startAttributeTransaction();
-    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
     transaction.apply();
   }
 
