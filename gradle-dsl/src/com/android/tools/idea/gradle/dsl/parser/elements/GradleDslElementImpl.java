@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -312,6 +313,12 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     modify();
     if (myParent != null) {
       myParent.setModified();
+      if (this instanceof DescribedGradlePropertiesDslElement && myParent instanceof GradlePropertiesDslElement) {
+        // If we modify a previously-applied internal node of the Dsl tree, in particular when adding an element to it or any of its
+        // children, we must change its state from APPLIED to reflect the fact that the new element will have a physical existence
+        // in the file, and can no longer be represented as merely the effect of transclusion.
+        ((GradlePropertiesDslElement)myParent).updateAppliedState(this);
+      }
     }
   }
 

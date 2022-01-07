@@ -20,14 +20,20 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public class RepositoriesDslElement extends GradleDslBlockElement {
+public class RepositoriesDslElement extends GradleDslBlockElement implements DescribedGradlePropertiesDslElement<RepositoriesDslElement> {
   public static final PropertiesElementDescription<RepositoriesDslElement> REPOSITORIES =
     new PropertiesElementDescription<>("repositories", RepositoriesDslElement.class, RepositoriesDslElement::new);
+
+  @Override
+  public @NotNull PropertiesElementDescription<RepositoriesDslElement> getDescription() {
+    return REPOSITORIES;
+  }
 
   public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"flatDir", FlatDirRepositoryDslElement.FLAT_DIR},
