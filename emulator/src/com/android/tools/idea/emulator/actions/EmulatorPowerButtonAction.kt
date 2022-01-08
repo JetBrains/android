@@ -18,4 +18,4 @@ package com.android.tools.idea.emulator.actions
 /**
  * Simulates pressing the Power button on an Android virtual device.
  */
-class EmulatorPowerButtonAction : EmulatorPushButtonAction("Power")
+class EmulatorPowerButtonAction : EmulatorPushButtonAction("Power", configFilter = { config -> !config.isWearOs || config.api < 28 })

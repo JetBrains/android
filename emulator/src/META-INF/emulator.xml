@@ -59,6 +59,14 @@
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
       <action id="android.emulator.overview.button" class="com.android.tools.idea.emulator.actions.EmulatorOverviewButtonAction"
               icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
+      <action id="android.emulator.wear1.button" class="com.android.tools.idea.emulator.actions.Wear1ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="First" description="Press the first button"/>
+      <action id="android.emulator.wear2.button" class="com.android.tools.idea.emulator.actions.Wear2ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Second" description="Press the second button"/>
+      <action id="android.emulator.sleep" class="com.android.tools.idea.emulator.actions.PalmAction"
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture"/>
+      <action id="android.emulator.tilt" class="com.android.tools.idea.emulator.actions.TiltAction"
+              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.emulator.actions.DisplayModeActionGroup"

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.emulator.EmulatorConfiguration
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.createHardwareKeyEvent
@@ -23,29 +22,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
 
 /**
- * Simulates pressing and releasing a button on an Android virtual device.
+ * Common superclass for toolbar actions that send a keypress event to the Emulator.
  *
  * @param configFilter determines the types of devices the action is applicable to
  */
-open class EmulatorPushButtonAction(
+abstract class EmulatorKeypressAction(
   private val keyName: String,
   configFilter: Predicate<EmulatorConfiguration>? = null,
-) : AbstractEmulatorAction(configFilter = configFilter), PushButtonAction {
+) : AbstractEmulatorAction(configFilter = configFilter) {
 
-  override fun buttonPressed(event: AnActionEvent) {
+  override fun actionPerformed(event: AnActionEvent) {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keydown))
-  }
-
-  override fun buttonReleased(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent(keyName, eventType = KeyboardEvent.KeyEventType.keyup))
-  }
-
-  /**
-   * This method is called by the framework but does nothing. Real action happens in
-   * the [buttonPressed] and [buttonReleased] methods.
-   */
-  final override fun actionPerformed(event: AnActionEvent) {
+    emulatorController.sendKey(createHardwareKeyEvent(keyName))
   }
 }

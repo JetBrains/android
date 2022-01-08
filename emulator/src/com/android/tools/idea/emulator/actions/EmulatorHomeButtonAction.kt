@@ -15,17 +15,7 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.createHardwareKeyEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
-
 /**
- * Simulates pressing the Power button on an Android virtual device.
+ * Simulates pressing the Home button on an Android virtual device.
  */
-class EmulatorHomeButtonAction : AbstractEmulatorAction() {
-
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("Home"))
-  }
-}
+class EmulatorHomeButtonAction : EmulatorKeypressAction("Home", configFilter = { config -> !config.isWearOs || config.api < 28 })

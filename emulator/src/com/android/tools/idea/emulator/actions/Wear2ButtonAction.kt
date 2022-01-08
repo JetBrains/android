@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator.actions
 
 /**
- * Simulates pressing the Volume Up button on an Android virtual device.
+ * Simulates pressing the second button on an Android Wear virtual device.
  */
-class EmulatorVolumeUpButtonAction : EmulatorPushButtonAction("AudioVolumeUp",
-                                                              configFilter = { config -> !config.isWearOs || config.api < 28 })
+class Wear2ButtonAction : EmulatorPushButtonAction("Power", configFilter = { config -> config.isWearOs && config.api >= 30 })

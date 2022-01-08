@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.emulator.control.PaneEntry.PaneIndex
+import com.android.emulator.control.ParameterValue
+import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.PhysicalModelValue.PhysicalType.WRIST_TILT
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Shows the virtual sensors page of the emulator extended controls.
+ * Triggers the tilt sensor on an Android Wear virtual device.
  */
-class EmulatorShowFoldingControlsAction : AbstractEmulatorAction(configFilter = { config -> config.isFoldable || config.isRollable}) {
+class TiltAction : AbstractEmulatorAction(configFilter = { config -> config.isWearOs && config.api >= 30 }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    showExtendedControls(emulatorController, getProject(event), PaneIndex.VIRT_SENSORS)
+    val physicalModelValue = PhysicalModelValue.newBuilder()
+        .setTarget(WRIST_TILT)
+        .setValue(ParameterValue.newBuilder().addData(1F))
+    emulatorController.setPhysicalModel(physicalModelValue.build())
   }
 }

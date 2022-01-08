@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.emulator.EmulatorConfiguration
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.NUMBER_OF_DISPLAYS
@@ -25,14 +26,20 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import java.util.function.Predicate
 
 /**
  * Common superclass for toolbar actions of the Emulator window.
+ *
+ * @param configFilter determines the types of devices the action is applicable to
  */
-abstract class AbstractEmulatorAction : AnAction(), DumbAware {
+abstract class AbstractEmulatorAction(private val configFilter: Predicate<EmulatorConfiguration>? = null) : AnAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = isEnabled(event)
+    if (configFilter != null) {
+      event.presentation.isVisible = getEmulatorConfig(event)?.let(configFilter::test) ?: false
+    }
   }
 
   protected open fun isEnabled(event: AnActionEvent): Boolean =
@@ -44,6 +51,11 @@ internal fun getProject(event: AnActionEvent): Project =
 
 internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
   event.getData(EMULATOR_CONTROLLER_KEY)
+
+internal fun getEmulatorConfig(event: AnActionEvent): EmulatorConfiguration? {
+  val controller = getEmulatorController(event)
+  return if (controller?.connectionState == EmulatorController.ConnectionState.CONNECTED) controller.emulatorConfig else null
+}
 
 internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =
   event.getData(EMULATOR_VIEW_KEY)

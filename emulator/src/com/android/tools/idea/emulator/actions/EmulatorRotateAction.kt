@@ -27,7 +27,10 @@ import kotlin.math.roundToInt
 /**
  * Rotates the emulator left or right.
  */
-sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmulatorAction() {
+sealed class EmulatorRotateAction(
+  val rotationAngleDegrees: Float,
+) : AbstractEmulatorAction(configFilter = { config -> config.hasOrientationSensors && !(config.isWearOs && config.api >= 28) }) {
+
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val emulatorView = getEmulatorView(event) ?: return
@@ -52,11 +55,9 @@ sealed class EmulatorRotateAction(val rotationAngleDegrees: Float) : AbstractEmu
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val emulatorController = getEmulatorController(event)
-    if (emulatorController != null) {
-      // Rotation is disabled if the device has no rotation sensors or more than one display.
-      event.presentation.isVisible = isEmulatorConnected(event) && emulatorController.emulatorConfig.hasOrientationSensors &&
-                                     getNumberOfDisplays(event) <= 1
+    // Rotation is disabled if the device has more than one display.
+    if (event.presentation.isVisible && getNumberOfDisplays(event) > 1) {
+      event.presentation.isVisible = false
     }
   }
 

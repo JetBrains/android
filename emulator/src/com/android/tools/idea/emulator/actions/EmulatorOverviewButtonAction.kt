@@ -15,17 +15,7 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.createHardwareKeyEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
-
 /**
  * Simulates pressing the Overview button on an Android virtual device.
  */
-class EmulatorOverviewButtonAction : AbstractEmulatorAction() {
-
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("AppSwitch"))
-  }
-}
+class EmulatorOverviewButtonAction : EmulatorKeypressAction("AppSwitch", configFilter = { config -> !config.isWearOs || config.api < 28 })
