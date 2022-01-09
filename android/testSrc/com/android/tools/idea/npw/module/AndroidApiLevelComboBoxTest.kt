@@ -23,8 +23,8 @@ import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists
-import com.intellij.ide.util.ProjectPropertiesComponentImpl
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.ide.util.PropertiesComponentImpl
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -42,7 +42,7 @@ class AndroidApiLevelComboBoxTest {
   fun setUp() {
     disposable = Disposable { }
     val instance = MockApplication(disposable)
-    instance.registerService(PropertiesComponent::class.java, ProjectPropertiesComponentImpl::class.java)
+    instance.registerService(PropertiesComponent::class.java, PropertiesComponentImpl::class.java)
     ApplicationManager.setApplication(instance, disposable)
   }
 
@@ -55,7 +55,7 @@ class AndroidApiLevelComboBoxTest {
   fun testDefaultSelectedItem() {
     val formFactor = FormFactor.MOBILE
     assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
-    val items: MutableList<VersionItem> = Lists.newArrayList(
+    val items: MutableList<VersionItem> = mutableListOf(
       createMockVersionItem(formFactor.defaultApi - 1),
       createMockVersionItem(formFactor.defaultApi),
       // Default is at position 1
