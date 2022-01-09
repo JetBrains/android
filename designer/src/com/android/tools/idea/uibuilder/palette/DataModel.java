@@ -32,14 +32,12 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -185,7 +183,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.add(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setList(FAVORITE_ITEMS, myFavoriteItems);
     update();
   }
 
@@ -194,7 +192,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.remove(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtilRt.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setList(FAVORITE_ITEMS, myFavoriteItems);
     update();
     if (myCurrentSelectedGroup == COMMON) {
       createFilteredItems(COMMON);
@@ -214,24 +212,24 @@ public class DataModel implements Disposable {
 
   @NotNull
   private static List<String> readFavoriteItems() {
-    String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
-    if (favorites == null) {
-      favorites = new String[]{
-        TEXT_VIEW,
-        BUTTON,
-        IMAGE_VIEW,
-        RECYCLER_VIEW.oldName(),
-        RECYCLER_VIEW.newName(),
-        FRAGMENT_CONTAINER_VIEW,
-        SCROLL_VIEW,
-        SWITCH,
-        PreferenceTags.CHECK_BOX_PREFERENCE,
-        PreferenceTags.EDIT_TEXT_PREFERENCE,
-        PreferenceTags.SWITCH_PREFERENCE,
-        PreferenceTags.PREFERENCE_CATEGORY,
-      };
+    List<String> favorites = PropertiesComponent.getInstance().getList(FAVORITE_ITEMS);
+    if (favorites != null) {
+      return favorites;
     }
-    return Lists.newArrayList(favorites);
+    return List.of(
+      TEXT_VIEW,
+      BUTTON,
+      IMAGE_VIEW,
+      RECYCLER_VIEW.oldName(),
+      RECYCLER_VIEW.newName(),
+      FRAGMENT_CONTAINER_VIEW,
+      SCROLL_VIEW,
+      SWITCH,
+      PreferenceTags.CHECK_BOX_PREFERENCE,
+      PreferenceTags.EDIT_TEXT_PREFERENCE,
+      PreferenceTags.SWITCH_PREFERENCE,
+      PreferenceTags.PREFERENCE_CATEGORY
+      );
   }
 
   private void update(@NotNull NlPaletteModel paletteModel, @NotNull DesignerEditorFileType layoutType) {

@@ -106,17 +106,17 @@ fun getRecommendedThemeNames(themeResolver: ThemeResolver, filter: ThemeStyleFil
 
 // TODO: Handle namespace issues around recently used themes
 @JvmOverloads
-fun getRecentlyUsedThemes(project: Project, excludedNames: Set<String> = emptySet()) =
-  PropertiesComponent.getInstance(project)
-    .getValues(RECENTLY_USED_THEMES_PROPERTY)
-    ?.asList()
-    ?.minus(excludedNames) ?: emptyList()
+fun getRecentlyUsedThemes(project: Project, excludedNames: Set<String> = emptySet()): List<String> {
+  return PropertiesComponent.getInstance(project)
+           .getList(RECENTLY_USED_THEMES_PROPERTY)
+           ?.minus(excludedNames) ?: emptyList()
+}
 
 fun addRecentlyUsedTheme(project: Project, theme: String) {
   // The recently used themes are not shared between different projects.
-  val old = PropertiesComponent.getInstance(project).getValues(RECENTLY_USED_THEMES_PROPERTY)?.toSet() ?: emptySet()
-  val new = setOf(theme).plus(old).take(MAX_RECENTLY_USED_THEMES).toTypedArray()
-  PropertiesComponent.getInstance(project).setValues(RECENTLY_USED_THEMES_PROPERTY, new)
+  val old = PropertiesComponent.getInstance(project).getList(RECENTLY_USED_THEMES_PROPERTY)?.toSet() ?: emptySet()
+  val new = setOf(theme).plus(old).take(MAX_RECENTLY_USED_THEMES)
+  PropertiesComponent.getInstance(project).setList(RECENTLY_USED_THEMES_PROPERTY, new)
 }
 
 /**

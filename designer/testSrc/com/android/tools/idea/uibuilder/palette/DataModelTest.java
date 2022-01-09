@@ -157,7 +157,7 @@ public class DataModelTest extends AndroidTestCase {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
-    assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
+    assertThat(PropertiesComponent.getInstance().getList(FAVORITE_ITEMS))
       .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
                        SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
                        PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY, FLOATING_ACTION_BUTTON.newName()).inOrder();
@@ -172,7 +172,7 @@ public class DataModelTest extends AndroidTestCase {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
-    assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
+    assertThat(PropertiesComponent.getInstance().getList(FAVORITE_ITEMS))
       .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
                        SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
                        PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY).inOrder();

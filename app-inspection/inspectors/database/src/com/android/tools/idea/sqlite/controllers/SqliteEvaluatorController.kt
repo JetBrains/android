@@ -38,7 +38,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.util.LinkedList
+import java.util.*
 import java.util.concurrent.Executor
 
 /**
@@ -103,7 +103,7 @@ class SqliteEvaluatorController(
     updateDefaultMessage()
 
     // load query history
-    PropertiesComponent.getInstance(project).getValues(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
+    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
     view.setQueryHistory(queryHistory.toList())
 
     if (evaluationParams != null) {
@@ -177,7 +177,7 @@ class SqliteEvaluatorController(
     queryHistory.addFirst(newEntry)
     view.setQueryHistory(queryHistory.toList())
     // save query history
-    PropertiesComponent.getInstance(project).setValues(QUERY_HISTORY_KEY, queryHistory.toTypedArray())
+    PropertiesComponent.getInstance(project).setList(QUERY_HISTORY_KEY, queryHistory)
 
     lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {

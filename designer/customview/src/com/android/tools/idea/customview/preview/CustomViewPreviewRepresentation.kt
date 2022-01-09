@@ -24,7 +24,6 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -37,12 +36,13 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
@@ -362,7 +362,7 @@ class CustomViewPreviewRepresentation(
 
       // Load and set preview size if exists for this custom view
       withContext(uiThread) {
-        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
+        persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
           updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
         }
       }
@@ -385,8 +385,7 @@ class CustomViewPreviewRepresentation(
       val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setValues(
-        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
+      persistenceManager.setList(dimensionsPropertyNameForClass(className), listOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 

@@ -17,7 +17,6 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -26,16 +25,13 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
 import gnu.trove.TIntArrayList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -75,8 +71,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     }
 
     TIntArrayList lastSelectedIndices = new TIntArrayList(buildVariants.size());
-    String[] cachedVariants = properties.getValues(PROPERTY_BUILD_VARIANTS);
-    Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Sets.newHashSet(cachedVariants);
+    List<String> cachedVariants = properties.getList(PROPERTY_BUILD_VARIANTS);
+    Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Set.copyOf(cachedVariants);
 
     for (int i = 0; i < buildVariants.size(); i++) {
       String variant = buildVariants.get(i);
@@ -140,7 +136,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     properties.setValue(PROPERTY_APK_PATH, apkFolder);
-    properties.setValues(PROPERTY_BUILD_VARIANTS, ArrayUtil.toStringArray(buildVariants));
+    properties.setList(PROPERTY_BUILD_VARIANTS, buildVariants);
   }
 
   @Override
