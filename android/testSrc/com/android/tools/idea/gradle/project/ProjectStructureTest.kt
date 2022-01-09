@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.testFramework.PlatformTestCase
-import junit.framework.TestCase
 import java.io.File
 
 /**
@@ -47,7 +46,7 @@ class ProjectStructureTest : PlatformTestCase() {
     val appModules = projectStructure.appModules.map { it.name }
     Truth.assertThat(appModules).containsAllOf("app", "instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
-    TestCase.assertFalse(agpPluginVersions.isEmpty)
+    Truth.assertThat(agpPluginVersions.isEmpty).isFalse()
     // Verify that the AGP versions were recorded correctly.
     val internalMap = agpPluginVersions.internalMap
     Truth.assertThat(internalMap).containsEntry(":app", GradleVersion.parse("3.0"))

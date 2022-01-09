@@ -36,10 +36,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.PlatformTestCase
-import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import kotlin.test.assertNotEquals
 
 class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
@@ -56,7 +54,6 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
       )
 
       val module = project.gradleModule(":moduleName")
-      TestCase.assertNotNull(module)
 
       val listener = UsageTrackerTestRunListener(
         module!!.getModuleSystem().getTestLibrariesInUse(),
@@ -161,7 +158,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
 
   fun testExecutionMapping() {
     for (execution in IdeTestOptions.Execution.values()) {
-      assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
+      assertThat(execution.toProtoValue()).isNotEqualTo(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION)
     }
   }
 }

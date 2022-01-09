@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -23,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
-import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -82,14 +82,14 @@ class BuildListenerTest {
 
     buildState.buildStarted(buildMode)
     processEvents()
-    assertEquals("Build Started", buildListener.getLog())
+    assertThat(buildListener.getLog()).isEqualTo("Build Started")
 
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
-    assertEquals("""
+    assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
       Build Succeeded
-    """.trimIndent(), buildListener.getLog())
+    """.trimIndent())
   }
 
   @Test
@@ -99,10 +99,10 @@ class BuildListenerTest {
     buildState.buildStarted(buildMode)
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.FAILED)
     processEvents()
-    assertEquals("""
+    assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
       Build Failed
-    """.trimIndent(), buildListener.getLog())
+    """.trimIndent())
   }
 
   @Test
@@ -110,11 +110,11 @@ class BuildListenerTest {
     val (buildState, buildMode, buildListener) = setupBuildListener(ProjectSystemBuildManager.BuildMode.CLEAN)
     buildState.buildStarted(buildMode)
     processEvents()
-    assertEquals("", buildListener.getLog())
+    assertThat(buildListener.getLog()).isEqualTo("")
 
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
-    assertEquals("Build Cleaned", buildListener.getLog())
+    assertThat(buildListener.getLog()).isEqualTo("Build Cleaned")
   }
 
   /**
@@ -134,10 +134,10 @@ class BuildListenerTest {
     buildState.buildStarted(buildMode)
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
-    assertEquals("""
+    assertThat(buildListener.getLog()).isEqualTo("""
       Build Started
       Build Succeeded
-    """.trimIndent(), buildListener.getLog())
+    """.trimIndent())
   }
 
   @Test
@@ -166,8 +166,8 @@ class BuildListenerTest {
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
-    assertEquals(1, firstListenerCalls)
-    assertEquals(1, secondListenerCalls)
+    assertThat(firstListenerCalls).isEqualTo(1)
+    assertThat(secondListenerCalls).isEqualTo(1)
 
     Disposer.dispose(firstDisposable)
 
@@ -175,10 +175,10 @@ class BuildListenerTest {
     testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
 
-    assertEquals(1, firstListenerCalls)
+    assertThat(firstListenerCalls).isEqualTo(1)
     // The second disposable was not disposed, but the second listener was not called since we didn't allow multiple listener subscriptions
     // per project. Therefore, after the first subscription was disposed, further subscriptions were ignored.
-    assertEquals(1, secondListenerCalls)
+    assertThat(secondListenerCalls).isEqualTo(1)
 
     var thirdListenerCalls = 0
     val thirdListener = object : BuildListener {
@@ -195,10 +195,10 @@ class BuildListenerTest {
     processEvents()
 
 
-    assertEquals(1, thirdListenerCalls)
+    assertThat(thirdListenerCalls).isEqualTo(1)
     // The second disposable was not disposed, and now we're allowing multiple listener subscriptions per project. Therefore, the second
     // listener will also be called.
-    assertEquals(2, secondListenerCalls)
+    assertThat(secondListenerCalls).isEqualTo(2)
 
     Disposer.dispose(secondDisposable)
     Disposer.dispose(thirdDisposable)

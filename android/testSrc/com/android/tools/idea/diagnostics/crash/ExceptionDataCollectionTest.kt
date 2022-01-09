@@ -28,10 +28,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.replaceService
-import junit.framework.TestCase
 import org.apache.log4j.LogManager
+import org.hamcrest.Matchers.hasSize
 import org.hamcrest.core.Is.`is`
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertThat
@@ -127,8 +126,8 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
   fun testRegisteringAppenders() {
     val registeredAppenders = service.registeredAppenders
-    UsefulTestCase.assertSize(1, registeredAppenders)
-    TestCase.assertEquals("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest", registeredAppenders[0].logger.name)
+    assertThat(registeredAppenders, hasSize(1))
+    assertThat(registeredAppenders[0].logger.name, equalTo("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest"))
   }
 
   fun testLogCollection() {
@@ -148,13 +147,13 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
-    TestCase.assertEquals("""
+    assertThat(result.trimEnd(), equalTo("""
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #4
 [<time>] E [sh.ExceptionDataCollectionTest] error message #4
 [<time>] I [sh.ExceptionDataCollectionTest] info message #5
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
 [<time>] E [sh.ExceptionDataCollectionTest] error message #5
-    """.trimIndent(), result.trimEnd())
+    """.trimIndent()))
   }
 
   fun testCalculateSignature() {

@@ -22,9 +22,9 @@ import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElem
 import com.android.tools.idea.testartifacts.getPsiElement
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import junit.framework.TestCase
 import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestTasksProvider
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 
@@ -38,18 +38,18 @@ class AndroidGradleTestTasksProviderTest: AndroidGradleTestCase() {
     loadProject(SIMPLE_APPLICATION_WITH_DUPLICATES)
     var psiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication/UnitTest.java", false)
     val appGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
-    TestCase.assertNotNull(appGradleTestClassConfiguration)
+    assertThat(appGradleTestClassConfiguration).isNotNull()
 
     psiElement = getPsiElement(project, "libs/src/test/java/google/simpleapplication/UnitTest.java", false)
     var libGradleTestClassConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, psiElement)
     // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
     // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
     // between the two contexts.
-    TestCase.assertNull(libGradleTestClassConfiguration)
+    assertThat(libGradleTestClassConfiguration).isNull()
 
     libGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
-    TestCase.assertNotNull(libGradleTestClassConfiguration)
-    TestCase.assertNotSame(appGradleTestClassConfiguration, libGradleTestClassConfiguration)
+    assertThat(libGradleTestClassConfiguration).isNotNull()
+    assertThat(libGradleTestClassConfiguration).isNotSameAs(appGradleTestClassConfiguration)
   }
 
   @Throws(Exception::class)
@@ -57,24 +57,24 @@ class AndroidGradleTestTasksProviderTest: AndroidGradleTestCase() {
     loadProject(SIMPLE_APPLICATION_WITH_DUPLICATES)
     val appModulePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
     val appGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, appModulePsiElement)
-    TestCase.assertNotNull(appGradleTestPackageConfiguration)
+    assertThat(appGradleTestPackageConfiguration).isNotNull()
 
     val libModulePsiLocation = getPsiElement(project, "libs/src/test/java/google/simpleapplication", true)
     val libExistingTestPackageConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, libModulePsiLocation)
     // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
     // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
     // between the two contexts.
-    TestCase.assertNull(libExistingTestPackageConfiguration)
+    assertThat(libExistingTestPackageConfiguration).isNull()
 
     val libGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, libModulePsiLocation)
-    TestCase.assertNotNull(libGradleTestPackageConfiguration)
-    TestCase.assertNotSame(appGradleTestPackageConfiguration, libGradleTestPackageConfiguration)
+    assertThat(libGradleTestPackageConfiguration).isNotNull()
+    assertThat(libGradleTestPackageConfiguration).isNotSameAs(appGradleTestPackageConfiguration)
   }
 
   @Throws(Exception::class)
   fun testAndroidGradleTestTaskProviderIsNotRegistered() {
     val androidGradleTestTasksProvider = GradleTestTasksProvider.EP_NAME.extensions.filterIsInstance<AndroidGradleTestTasksProvider>()
-    TestCase.assertTrue(androidGradleTestTasksProvider.isEmpty())
+    assertThat(androidGradleTestTasksProvider).isEmpty()
   }
 
   private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {

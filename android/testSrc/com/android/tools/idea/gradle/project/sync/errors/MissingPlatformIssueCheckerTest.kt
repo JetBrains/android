@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import junit.framework.TestCase
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
@@ -38,20 +37,18 @@ class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   fun testGetMissingPlatform() {
-    TestCase.assertEquals("android-21", getMissingPlatform("Failed to find target with hash string 'android-21' in: /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("failed to find target with hash string 'android-21' in: /pat/tp/sdk"))
-    TestCase.assertEquals(
-      "android-21", getMissingPlatform("Cause: Failed to find target with hash string 'android-21' in: /pat/tp/sdk"))
-    TestCase.assertEquals(
-      "android-21", getMissingPlatform("Cause: failed to find target with hash string 'android-21' in: /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Failed to find target android-21 : /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("failed to find target android-21 : /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Cause: Failed to find target android-21 : /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Cause: failed to find target android-21 : /pat/tp/sdk"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Failed to find target android-21"))
-    TestCase.assertEquals("android-21", getMissingPlatform("failed to find target android-21"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Cause: Failed to find target android-21"))
-    TestCase.assertEquals("android-21", getMissingPlatform("Cause: failed to find target android-21"))
+    assertThat(getMissingPlatform("Failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: Failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Failed to find target android-21 : /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("failed to find target android-21 : /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: Failed to find target android-21 : /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: failed to find target android-21 : /pat/tp/sdk")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Failed to find target android-21")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("failed to find target android-21")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: Failed to find target android-21")).isEqualTo("android-21")
+    assertThat(getMissingPlatform("Cause: failed to find target android-21")).isEqualTo("android-21")
   }
 
   fun testCheckIssueHandled() {

@@ -19,7 +19,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.LightPlatformTestCase
-import junit.framework.TestCase
 
 /**
  * Kotlin tests for [SystemHealthMonitor].
@@ -33,16 +32,18 @@ class AndroidStudioSystemHealthMonitorKtTest : LightPlatformTestCase() {
       "AnAction@AndroidStudioSystemHealthMonitorKtTest"
     // Anonymous class - in Java8, Kotlin classes are not recognized as anonymous classes by the JVM.
     //   Action is formatted as an inner class
-    TestCase.assertEquals(expected1,
-                          AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
-                            override fun actionPerformed(e: AnActionEvent) {}
-                          }.javaClass, Presentation("foo")))
+    assertEquals(
+      expected1,
+      AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
+        override fun actionPerformed(e: AnActionEvent) {}
+      }.javaClass, Presentation("foo")))
     // Double-nested anonymous class - same as above - not seen as an anonymous class.
     Any().apply {
-      TestCase.assertEquals(expected2,
-                            AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
-                              override fun actionPerformed(e: AnActionEvent) {}
-                            }.javaClass, Presentation("foo")))
+      assertEquals(
+        expected2,
+        AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {}
+        }.javaClass, Presentation("foo")))
     }
   }
 }

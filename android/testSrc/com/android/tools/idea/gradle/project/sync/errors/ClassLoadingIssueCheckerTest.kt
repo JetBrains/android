@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.openapi.application.ApplicationManager
-import junit.framework.TestCase
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -53,7 +52,7 @@ class ClassLoadingIssueCheckerTest : AndroidGradleTestCase() {
 
     val restartCapable = ApplicationManager.getApplication().isRestartCapable
     val quickFixText = if (restartCapable) "Stop Gradle build processes (requires restart)" else "Open Gradle Daemon documentation"
-    TestCase.assertTrue(message.contains(quickFixText))
+    assertThat(message.contains(quickFixText)).isTrue()
 
     // Verify QuickFixes.
     val quickFixes = buildIssue.quickFixes

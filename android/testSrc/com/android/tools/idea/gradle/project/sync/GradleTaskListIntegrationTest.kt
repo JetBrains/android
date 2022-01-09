@@ -21,7 +21,6 @@ import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import junit.framework.TestCase
 import org.jetbrains.plugins.gradle.util.GradleUtil
 
 /**
@@ -49,7 +48,6 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
     loadSimpleApplication()
 
     val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
-    TestCase.assertNotNull(moduleData)
 
     // Verify that no TaskData DataNode is being created.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)
@@ -61,7 +59,6 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
     loadSimpleApplication()
 
     val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
-    TestCase.assertNotNull(moduleData)
 
     // Verify that TaskData DataNode is not empty.
     val taskNodeData = ExternalSystemApiUtil.findAll(moduleData!!, ProjectKeys.TASK)

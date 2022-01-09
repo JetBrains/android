@@ -38,9 +38,8 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
-import com.intellij.testFramework.UsefulTestCase
-import junit.framework.TestCase
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
@@ -86,15 +85,15 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
-    TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
+    assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
 
   fun testMultipleOutputsFromPostBuildModel() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
-    TestCase.assertEquals(output1.parentFile, output2.parentFile)
+    assertThat(output2.parentFile).isEqualTo(output1.parentFile)
     val androidModel = GradleAndroidModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
@@ -103,8 +102,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
-    TestCase.assertEquals(output1.parentFile, buildsAndBundlePaths[myModule.name])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
+    assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output1.parentFile)
   }
 
   fun testSingleOutputFromPostBuildModelForSignedApk() {
@@ -116,15 +115,15 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
-    TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
+    assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
   fun testMultipleOutputFromPostBuildModelForSignedApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
-    TestCase.assertEquals(output1.parentFile, output2.parentFile)
+    assertThat(output2.parentFile).isEqualTo(output1.parentFile)
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createPostBuildModel(Lists.newArrayList(output1, output2),
                            buildVariant).toTestAssembleResult(),
@@ -132,9 +131,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
-    TestCase.assertEquals(output1.parentFile,
-                          buildsAndBundlePaths[buildVariant])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
+    assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output1.parentFile)
   }
 
   fun testSingleOutputFromInstantAppPostBuildModel() {
@@ -148,8 +146,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
-    TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
+    assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
 
   fun testSingleOutputFromInstantAppPostBuildModelForSignedApk() {
@@ -161,8 +159,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       false
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
-    TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
+    assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
   fun testSingleOutputFromPostBuildModelForBundle() {
@@ -175,8 +173,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       true
     )
 
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
-    TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(myModule.name)
+    assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
 
   fun testSingleOutputFromPostBuildModelForSignedBundle() {
@@ -188,8 +186,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       setOf(myModule),
       true
     )
-    UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
-    TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
+    assertThat(buildsAndBundlePaths.keys).containsExactly(buildVariant)
+    assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
   private fun createInstantAppPostBuildModel(output: File, buildVariant: String): PostBuildProjectModels {

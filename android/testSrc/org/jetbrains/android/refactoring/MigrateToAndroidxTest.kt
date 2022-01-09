@@ -16,11 +16,11 @@
 package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.usageView.UsageInfo
-import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
 
@@ -148,7 +148,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
     }
 
     fun run(fixture: JavaCodeInsightTestFixture, expectedFile: Map<String, String>) {
-      TestCase.assertTrue("Requires entries", !entries.isEmpty())
+      assertThat(entries).isNotEmpty()
       for ((key, value) in paths.entries) {
         fixture.copyFileToProject(BASE_PATH + key, value)
       }

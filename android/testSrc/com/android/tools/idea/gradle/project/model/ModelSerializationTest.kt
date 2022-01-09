@@ -70,7 +70,6 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
-import junit.framework.TestCase
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModelImpl
 import org.junit.Test
 import java.io.File
@@ -117,7 +116,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     )
 
     val module = project.gradleModule(":moduleName")
-    TestCase.assertNotNull(module)
+    Truth.assertThat(module).isNotNull()
     GradleAndroidModel.get(module!!)!!
   }
 

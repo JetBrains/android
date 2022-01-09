@@ -19,7 +19,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-import junit.framework.TestCase;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**
