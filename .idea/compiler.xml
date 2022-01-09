@@ -45,6 +45,7 @@
       <module name="android.sdktools.chunkio" target="8" />
       <module name="android.sdktools.chunkio-processor" target="8" />
       <module name="android.sdktools.pixelprobe" target="8" />
+      <module name="android.sdktools.resource-repository" target="8" />
       <module name="db-baseLibrary" target="8" />
       <module name="db-baseLibrarySupport" target="8" />
       <module name="db-compilationTests" target="8" />
