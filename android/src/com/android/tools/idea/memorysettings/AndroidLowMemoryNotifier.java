@@ -23,6 +23,7 @@ import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
@@ -40,10 +41,10 @@ final class AndroidLowMemoryNotifier implements Disposable {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int xmxCap = MemorySettingsUtil.getIdeXmxCapInGB() * 1024;
     if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
-      Notification notification = new Notification(NotificationGroup.createIdWithTitle("Low Memory", IdeBundle.message("low.memory.notification.title")),
-                                                   IdeBundle.message("low.memory.notification.title"),
-                                                   IdeBundle.message("low.memory.notification.content"),
-                                                   NotificationType.WARNING);
+      Notification notification = NotificationGroupManager.getInstance().getNotificationGroup("Low Memory").createNotification(
+        IdeBundle.message("low.memory.notification.title"),
+        IdeBundle.message("low.memory.notification.content"),
+        NotificationType.WARNING);
       notification.addAction(new NotificationAction(IdeBundle.message("low.memory.notification.action")) {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
