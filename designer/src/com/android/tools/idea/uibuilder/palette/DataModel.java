@@ -40,7 +40,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
@@ -186,7 +185,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.add(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setList(FAVORITE_ITEMS, myFavoriteItems);
     update();
   }
 
@@ -195,7 +194,7 @@ public class DataModel implements Disposable {
       return;
     }
     myFavoriteItems.remove(item.getId());
-    PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
+    PropertiesComponent.getInstance().setList(FAVORITE_ITEMS, myFavoriteItems);
     update();
     if (myCurrentSelectedGroup == COMMON) {
       createFilteredItems(COMMON);
@@ -215,9 +214,9 @@ public class DataModel implements Disposable {
 
   @NotNull
   private static List<String> readFavoriteItems() {
-    String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
+    List<String> favorites = PropertiesComponent.getInstance().getList(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{
+      return Lists.newArrayList(
         TEXT_VIEW,
         BUTTON,
         IMAGE_VIEW,
@@ -229,10 +228,9 @@ public class DataModel implements Disposable {
         PreferenceTags.CHECK_BOX_PREFERENCE,
         PreferenceTags.EDIT_TEXT_PREFERENCE,
         PreferenceTags.SWITCH_PREFERENCE,
-        PreferenceTags.PREFERENCE_CATEGORY,
-      };
+        PreferenceTags.PREFERENCE_CATEGORY);
     }
-    return Lists.newArrayList(favorites);
+    return favorites;
   }
 
   @Slow

@@ -103,7 +103,7 @@ class SqliteEvaluatorController(
     updateDefaultMessage()
 
     // load query history
-    PropertiesComponent.getInstance(project).getValues(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
+    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
     view.setQueryHistory(queryHistory.toList())
 
     if (evaluationParams != null) {
@@ -173,7 +173,7 @@ class SqliteEvaluatorController(
     queryHistory.addFirst(newEntry)
     view.setQueryHistory(queryHistory.toList())
     // save query history
-    PropertiesComponent.getInstance(project).setValues(QUERY_HISTORY_KEY, queryHistory.toTypedArray())
+    PropertiesComponent.getInstance(project).setList(QUERY_HISTORY_KEY, queryHistory)
 
     lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {

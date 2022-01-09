@@ -26,7 +26,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ArrayUtil;
 import gnu.trove.TIntArrayList;
 import java.io.File;
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     }
 
     TIntArrayList lastSelectedIndices = new TIntArrayList(buildVariants.size());
-    String[] cachedVariants = properties.getValues(PROPERTY_BUILD_VARIANTS);
+    List<String> cachedVariants = properties.getList(PROPERTY_BUILD_VARIANTS);
     Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Sets.newHashSet(cachedVariants);
 
     for (int i = 0; i < buildVariants.size(); i++) {
@@ -140,7 +139,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
     properties.setValue(PROPERTY_APK_PATH, apkFolder);
-    properties.setValues(PROPERTY_BUILD_VARIANTS, ArrayUtil.toStringArray(buildVariants));
+    properties.setList(PROPERTY_BUILD_VARIANTS, buildVariants);
   }
 
   @Override

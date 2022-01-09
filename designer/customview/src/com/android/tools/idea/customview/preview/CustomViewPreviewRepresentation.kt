@@ -402,8 +402,8 @@ class CustomViewPreviewRepresentation(
       val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setValues(
-        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
+      persistenceManager.setList(
+        dimensionsPropertyNameForClass(className), listOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 

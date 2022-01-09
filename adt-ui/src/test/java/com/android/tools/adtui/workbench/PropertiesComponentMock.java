@@ -16,10 +16,13 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 public class PropertiesComponentMock extends PropertiesComponent {
@@ -114,5 +117,16 @@ public class PropertiesComponentMock extends PropertiesComponent {
       builder.append(value);
     }
     myProperties.setProperty(name, builder.toString());
+  }
+
+  @Nullable
+  @Override
+  public List<String> getList(@NotNull String name) {
+    return List.of(getValues(name));
+  }
+
+  @Override
+  public void setList(@NotNull String name, @Nullable Collection<String> values) {
+    setValues(name, values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY));
   }
 }
