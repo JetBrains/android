@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.intentions;
 
+// OptIn(IDEAPluginsCompatibilityAPI) insertMember
 import static org.jetbrains.kotlin.idea.core.OldGenerateUtilKt.insertMember;
 import static org.jetbrains.kotlin.psi.KtPsiFactoryKt.KtPsiFactory;
 
