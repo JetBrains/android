@@ -24,8 +24,8 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.util.DemoExample
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -35,8 +35,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,46 +50,52 @@ class GotoDeclarationActionTest {
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
 
   @Before
   fun setup() {
     loadComposeFiles()
   }
 
-  @RunsInEdt
   @Test
   fun testViewNode() {
-    val model = createModel()
-    model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-    val stats = SessionStatistics(model, FakeTreeSettings())
-    val event = createEvent(model, stats)
-    GotoDeclarationAction.actionPerformed(event)
+    val stats = runInEdtAndGet {
+      val model = createModel()
+      model.setSelection(model["title"], SelectionOrigin.INTERNAL)
+      val stats = SessionStatistics(model, FakeTreeSettings())
+      val event = createEvent(model, stats)
+      GotoDeclarationAction.actionPerformed(event)
+      stats
+    }
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
     checkStats(stats, clickCount = 1)
   }
 
-  @RunsInEdt
   @Test
   fun testComposeViewNode() {
-    val model = createModel()
-    model.setSelection(model[-2], SelectionOrigin.INTERNAL)
-    val stats = SessionStatistics(model, FakeTreeSettings())
-    val event = createEvent(model, stats, fromShortcut = true)
-    GotoDeclarationAction.actionPerformed(event)
+    val stats = runInEdtAndGet {
+      val model = createModel()
+      model.setSelection(model[-2], SelectionOrigin.INTERNAL)
+      val stats = SessionStatistics(model, FakeTreeSettings())
+      val event = createEvent(model, stats, fromShortcut = true)
+      GotoDeclarationAction.actionPerformed(event)
+      stats
+    }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
                                     "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     checkStats(stats, keyStrokeCount = 1)
   }
 
-  @RunsInEdt
   @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
-    val model = createModel()
-    model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-    val stats = SessionStatistics(model, FakeTreeSettings())
-    val event = createEvent(model, stats)
-    GotoDeclarationAction.actionPerformed(event)
+    val stats = runInEdtAndGet {
+      val model = createModel()
+      model.setSelection(model[-5], SelectionOrigin.INTERNAL)
+      val stats = SessionStatistics(model, FakeTreeSettings())
+      val event = createEvent(model, stats)
+      GotoDeclarationAction.actionPerformed(event)
+      stats
+    }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
     checkStats(stats, clickCount = 1)
   }

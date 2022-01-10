@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.invokeLater
 import com.intellij.pom.Navigatable
 import org.jetbrains.kotlin.idea.debugger.readAction
 
@@ -35,7 +36,8 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     executeOnPooledThread {
       readAction {
         inspector.stats.gotoSourceFromTreeActionMenu(event)
-        findNavigatable(event)?.navigate(true)
+        val navigatable = findNavigatable(event)
+        invokeLater { navigatable?.navigate(true) }
       }
     }
   }
