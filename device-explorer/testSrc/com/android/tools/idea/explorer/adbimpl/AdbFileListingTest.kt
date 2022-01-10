@@ -15,29 +15,67 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
+import com.android.ddmlib.DdmPreferences
+import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import java.util.function.Consumer
 
 class AdbFileListingTest {
+  private lateinit var device: IDevice
+  private lateinit var deviceState: com.android.fakeadbserver.DeviceState
+
+  private val commands = TestShellCommands()
+
   @get:Rule
   var thrown = ExpectedException.none()
 
+  @get:Rule
+  val adb = FakeAdbRule()
+    .withDeviceCommandHandler(TestShellCommandHandler(commands))
+    .withDeviceCommandHandler(SyncCommandHandler())
+
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+
+  private var originalTimeout = 0
+
+  @Before
+  fun setUp() {
+    // We need the DDMLib timeout to be shorter than the test timeout, so that we can test that
+    // ShellCommandUnresponsiveException is produced when ADB is slow to respond. The default
+    // timeout of 5s is fine. However, the AdbService singleton messes with this timeout, so this
+    // test may fail (depending on test execution order) unless we set the timeout ourselves.
+    // (And the proper solution of resetting all shared state between tests appears infeasible.)
+    originalTimeout = DdmPreferences.getTimeOut()
+    DdmPreferences.setTimeOut(5_000)
+
+    deviceState = adb.attachDevice(
+      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+      hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
+
+    device = adb.bridge.devices.single()
+  }
+
+  @After
+  fun tearDown() {
+    DdmPreferences.setTimeOut(originalTimeout)
+  }
 
   @Test
   fun test_Nexus7Api23_GetRoot() {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -51,12 +89,10 @@ class AdbFileListingTest {
   }
 
   @Test
-  fun test_Nexus7Api23__GetRootChildrenError(): Unit = runBlocking {
+  fun test_Nexus7Api23_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
     commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -70,9 +106,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -134,9 +168,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -156,9 +188,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRoot(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addNexus7Api23Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -174,10 +204,8 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
     commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -191,9 +219,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -255,9 +281,7 @@ class AdbFileListingTest {
 
   @Test
   fun whenLsEscapes(): Unit = runBlocking {
-    val commands = TestShellCommands()
     TestDevices.addWhenLsEscapesCommands(commands)
-    val device = commands.createMockDevice()
     val listing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
@@ -275,9 +299,7 @@ class AdbFileListingTest {
 
   @Test
   fun whenLsDoesNotEscape(): Unit = runBlocking {
-    val commands = TestShellCommands()
     TestDevices.addWhenLsDoesNotEscapeCommands(commands)
-    val device = commands.createMockDevice()
     val listing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
     val dir = AdbFileListingEntry(
       "/sdcard/dir",
@@ -296,9 +318,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    val commands = TestShellCommands()
     TestDevices.addEmulatorApi25Commands(commands)
-    val device = commands.createMockDevice()
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act

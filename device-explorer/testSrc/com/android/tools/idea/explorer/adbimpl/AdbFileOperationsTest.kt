@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.explorer.adbimpl
 
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
@@ -35,11 +38,22 @@ import java.util.function.Consumer
 class AdbFileOperationsTest(private val mySetupCommands: Consumer<TestShellCommands>) {
   @get:Rule
   val thrown = ExpectedException.none()
-  
+
+  val shellCommands = TestShellCommands()
+
+  @get:Rule
+  val adb = FakeAdbRule()
+    .withDeviceCommandHandler(TestShellCommandHandler(shellCommands))
+    .withDeviceCommandHandler(SyncCommandHandler())
+
   private fun setupMockDevice(): AdbFileOperations {
-    val commands = TestShellCommands()
-    mySetupCommands.accept(commands)
-    val device = commands.createMockDevice()
+    mySetupCommands.accept(shellCommands)
+
+    val deviceState = adb.attachDevice(
+      deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
+      hostConnectionType = DeviceState.HostConnectionType.USB)
+
+    val device = adb.bridge.devices.single()
     return AdbFileOperations(device, AdbDeviceCapabilities(device), PooledThreadExecutor.INSTANCE.asCoroutineDispatcher())
   }
 

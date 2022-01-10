@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TestShellCommands {
-  @NotNull private static final Logger LOGGER = Logger.getInstance(TestShellCommands.class);
-
   @NotNull private final Map<String, TestShellCommandResult> myCommands = new HashMap<>();
   @NotNull private String myDescription = "[MockDevice]";
 
@@ -44,39 +42,5 @@ public class TestShellCommands {
 
   public TestShellCommandResult get(@NotNull String command) {
     return myCommands.get(command);
-  }
-
-  public IDevice createMockDevice() throws Exception {
-    return new MockDdmlibDevice().setName(myDescription).setShellCommands(this).getIDevice();
-  }
-
-  public void executeShellCommand(String command, IShellOutputReceiver receiver) throws Exception {
-    TestShellCommandResult commandResult = this.get(command);
-    if (commandResult == null) {
-      UnsupportedOperationException error = new UnsupportedOperationException(
-        String.format("Command \"%s\" not found in mock device \"%s\". Test case is not correctly setup.", command, myDescription));
-      LOGGER.error(error);
-      throw error;
-    }
-
-    LOGGER.info(String.format("executeShellCommand: %s", command));
-    if (commandResult.getError() != null) {
-      throw commandResult.getError();
-    }
-
-    if (commandResult.getOutput() == null) {
-      UnsupportedOperationException error = new UnsupportedOperationException(
-        String.format("Command \"%s\" has no result in mock device \"%s\". Test case is not setup correctly", command, myDescription));
-      LOGGER.error(error);
-      throw error;
-    }
-
-    byte[] bytes = commandResult.getOutput().getBytes(Charset.forName("UTF-8"));
-    int chunkSize = 100;
-    for (int i = 0; i < bytes.length; i += chunkSize) {
-      int count = Math.min(chunkSize, bytes.length - i);
-      receiver.addOutput(bytes, i, count);
-    }
-    receiver.flush();
   }
 }
