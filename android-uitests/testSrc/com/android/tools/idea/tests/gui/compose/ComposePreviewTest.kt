@@ -269,7 +269,7 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
-  fun testInteractiveSwitch() {
+  fun testInteractivePreview() {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
@@ -279,20 +279,18 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW).click()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .waitUntilEnabledAndShowing()
+      .click()
 
     composePreview
       .waitForRenderToFinish()
 
     composePreview.waitForSceneViewsCount(1)
 
-    val animationInspectorButton = composePreview
-      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    // There are no animations, so it's disabled
-    assertFalse(animationInspectorButton.isEnabled)
-
     composePreview
-      .findActionButtonByText("Stop Interactive Preview")
+      .findActionButtonByText("Stop Interactive Mode")
+      .waitUntilEnabledAndShowing()
       .click()
 
     composePreview
@@ -376,7 +374,7 @@ class ComposePreviewTest {
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
     assertNotNull(otherComposePreview.findAnimationInspector())
 
-    // Clicking on the "Stop Animation Inspection" button should close the animation preview panel (and go to interactive mode)
+    // Clicking on the "Stop Animation Inspection" button should close the animation preview panel
     otherComposePreview
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
