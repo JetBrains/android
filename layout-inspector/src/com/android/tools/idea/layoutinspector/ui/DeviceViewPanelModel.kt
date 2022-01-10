@@ -70,14 +70,14 @@ class DeviceViewPanelModel(
   @VisibleForTesting
   var yOff = 0.0
 
-  private var rootBounds: Rectangle = Rectangle()
+  private var visibleBounds: Rectangle = Rectangle()
   private var maxDepth: Int = 0
 
   internal val maxWidth
-    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.width.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.width.toFloat()).toInt()
 
   internal val maxHeight
-    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.height.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), visibleBounds.height.toFloat()).toInt()
 
   val isRotated
     get() = xOff != 0.0 || yOff != 0.0
@@ -107,6 +107,8 @@ class DeviceViewPanelModel(
       field = value
       refresh()
     }
+
+  private var rootBounds = Rectangle()
 
   init {
     model.modificationListeners.add { _, new, _ ->
@@ -156,7 +158,7 @@ class DeviceViewPanelModel(
       stats.rotation.toggledTo3D()
     }
     if (model.isEmpty) {
-      rootBounds = Rectangle()
+      visibleBounds = Rectangle()
       maxDepth = 0
       hitRects = emptyList()
       modificationListeners.forEach { it() }
@@ -176,16 +178,21 @@ class DeviceViewPanelModel(
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.node.bounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
-      // If nodes are visible (not explicitly hidden via right-click) but filtered out (e.g. by filter system nodes) they won't be in
-      // levelLists but may still paint something. Prior to initial image generation there's no way to know if they will end up painting
-      // or not, but we still need to be able to zoom to fit correctly, so include those bounds here.
+      // Only consider the bounds of visible nodes here, unlike model.root.transitiveBounds.
       ViewNode.readAccess {
-        model.root.flatten()
-          .minus(model.root)
+        visibleBounds = model.root.flatten()
           .filter { model.isVisible(it) }
-          .forEach { node -> rootBounds.add(node.layoutBounds) }
+          .map { it.transitiveBounds.bounds }
+          .reduce { acc, bounds -> acc.apply { add(bounds) } }
+
+        fun lowestVisible(node: ViewNode): Sequence<ViewNode> {
+          return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
+        }
+
+        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.transformedBounds.bounds }
+          .reduce { acc, bounds -> acc.apply { add(bounds) } }
       }
+
       root.x = rootBounds.x
       root.y = rootBounds.y
       root.width = rootBounds.width
@@ -200,7 +207,7 @@ class DeviceViewPanelModel(
       transform.rotate(angle)
     }
     else {
-      rootBounds = Rectangle()
+      visibleBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     hitRects = newHitRects.toList()

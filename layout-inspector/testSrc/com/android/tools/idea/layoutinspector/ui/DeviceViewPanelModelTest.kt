@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
@@ -32,6 +33,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.window
 import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertArrayEquals
@@ -192,19 +194,28 @@ class DeviceViewPanelModelTest {
         view(VIEW1, Rectangle(10, -10, 50, 100)) {
           image()
         }
+        view(VIEW3, 20, 20, 10, 10)
       }
     }
+    val window1 = window(ROOT2, ROOT2, -10, 0, 10, 10) {
+      view(VIEW2, Rectangle(-10, 0, 10, 10)) {
+        image()
+      }
+    }
+    model.update(window1, listOf(ROOT, ROOT2), 0)
+
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(0.1, 0.2)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, -10, 100, 210))
+    // Only the bounds of the roots themselves should be taken into account.
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
     // ensure that nothing changes when we rotate more
     panelModel.rotate(0.1, 0.2)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, -10, 100, 210))
-    // Hide the subview and verify the bounds reduce
-    model.hideSubtree(model[VIEW1]!!)
-    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(0, 0, 100, 200))
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
+    // Show only a subtree and verify the bounds reduce
+    model.showOnlySubtree(model[VIEW3]!!)
+    assertThat(model.root.layoutBounds).isEqualTo(Rectangle(20, 20, 10, 10))
   }
 
   @Test
