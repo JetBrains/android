@@ -34,7 +34,6 @@ import org.w3c.dom.Element;
 public class TestMergedManifestSnapshotBuilder {
   @NotNull private final Module myModule;
   @Nullable private String myName;
-  @Nullable private String myId;
   @Nullable private Integer myVersionCode;
   @Nullable private String myTheme;
   @Nullable private ImmutableMap<String, ActivityAttributesSnapshot> myAttributes;
@@ -81,12 +80,6 @@ public class TestMergedManifestSnapshotBuilder {
   @NotNull
   public TestMergedManifestSnapshotBuilder setPackageName(@NotNull String name) {
     myName = name;
-    return this;
-  }
-
-  @NotNull
-  public TestMergedManifestSnapshotBuilder setApplicationId(@NotNull String id) {
-    myId = id;
     return this;
   }
 
@@ -201,7 +194,7 @@ public class TestMergedManifestSnapshotBuilder {
   @NotNull
   public MergedManifestSnapshot build() {
     return new MergedManifestSnapshot(myModule,
-                                      myName, myId, myVersionCode, myTheme,
+                                      myName, myVersionCode, myTheme,
                                       myAttributes != null ? myAttributes : ImmutableMap.of(),
                                       myMergedManifestInfo,
                                       myMinSdk != null ? myMinSdk : AndroidVersion.DEFAULT,

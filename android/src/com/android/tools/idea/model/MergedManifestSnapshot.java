@@ -50,11 +50,10 @@ public class MergedManifestSnapshot {
   private final long myCreationTimeMs = Clock.getTime();
   private final Module myModule;
   @Nullable private final String myPackageName;
-  @Nullable private final String myApplicationId;
   @Nullable private final Integer myVersionCode;
   @Nullable private final Actions myActions;
   @NotNull private final ImmutableList<MergingReport.Record> myLoggingRecords;
-  @Nullable private String myManifestTheme;
+  @Nullable private final String myManifestTheme;
   @NotNull private final ImmutableMap<String, ActivityAttributesSnapshot> myAttributes;
   @Nullable private final MergedManifestInfo myMergedManifestInfo;
   @NotNull private final AndroidVersion myMinSdk;
@@ -76,7 +75,6 @@ public class MergedManifestSnapshot {
 
   MergedManifestSnapshot(@NotNull Module module,
                          @Nullable String packageName,
-                         @Nullable String applicationId,
                          @Nullable Integer versionCode,
                          @Nullable String manifestTheme,
                          @NotNull ImmutableMap<String, ActivityAttributesSnapshot> activityAttributes,
@@ -99,7 +97,6 @@ public class MergedManifestSnapshot {
                          boolean isValid) {
     myModule = module;
     myPackageName = packageName;
-    myApplicationId = applicationId;
     myVersionCode = versionCode;
     myManifestTheme = manifestTheme;
     myAttributes = activityAttributes;
@@ -165,11 +162,6 @@ public class MergedManifestSnapshot {
   @Nullable
   public String getPackage() {
     return myPackageName;
-  }
-
-  @Nullable
-  public String getApplicationId() {
-    return myApplicationId;
   }
 
   @Nullable

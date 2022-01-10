@@ -159,7 +159,6 @@ class MergedManifestSnapshotFactory {
                                       null,
                                       null,
                                       null,
-                                      null,
                                       ImmutableMap.of(),
                                       null,
                                       AndroidVersion.DEFAULT,
@@ -184,7 +183,6 @@ class MergedManifestSnapshotFactory {
   @NotNull
   private static MergedManifestSnapshot createFailedMergedManifestSnapshot(@NotNull Module module, @NotNull MergedManifestInfo mergedManifestInfo) {
     return new MergedManifestSnapshot(module,
-                                      null,
                                       null,
                                       null,
                                       null,
@@ -345,7 +343,7 @@ class MergedManifestSnapshotFactory {
 
         Actions actions = mergedManifestInfo.getActions();
         ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
-        return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
+        return new MergedManifestSnapshot(facet.getModule(), packageName, versionCode, manifestTheme,
                                           ImmutableMap.copyOf(activityAttributesMap),
                                           mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
                                           ImmutableList.copyOf(mergedManifestInfo.getFiles()),
