@@ -28,6 +28,7 @@ import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.HeaderFormatOptionsAction
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.folding.FoldingDetector
 import com.android.tools.idea.logcat.hyperlinks.HyperlinkDetector
@@ -371,6 +372,16 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("filter", IMPLICIT_LINE))
     assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("filter")
+  }
+
+  @RunsInEdt
+  @Test
+  fun appliesState_noState() {
+    val logcatMainPanel = logcatMainPanel(state = null)
+
+    assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isInstanceOf(ProjectAppFilter::class.java)
+    assertThat(logcatMainPanel.headerPanel.getFilterText()).isEqualTo("package:mine")
   }
 
   @Test

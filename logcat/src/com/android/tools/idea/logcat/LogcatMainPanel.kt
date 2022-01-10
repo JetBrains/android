@@ -78,6 +78,8 @@ import kotlin.math.max
 private const val MAX_TAGS = 1000
 private const val MAX_PACKAGE_NAMES = 1000
 
+private const val DEFAULT_FILTER = "package:mine"
+
 /**
  * The top level Logcat panel.
  *
@@ -121,7 +123,7 @@ internal class LogcatMainPanel(
     project,
     logcatPresenter = this,
     deviceContext, packageNamesProvider,
-    state?.filter ?: "",
+    state?.filter ?: DEFAULT_FILTER,
   )
 
   @VisibleForTesting
