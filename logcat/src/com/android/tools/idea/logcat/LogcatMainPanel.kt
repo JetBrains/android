@@ -131,7 +131,7 @@ internal class LogcatMainPanel(
     this,
     messageFormatter::formatMessages,
     LogcatFilterParser(project, packageNamesProvider).parse(headerPanel.getFilterText()))
-  private var logcatReader: LogcatReader? = null
+  private var deviceManager: LogcatDeviceManager? = null
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
@@ -157,19 +157,19 @@ internal class LogcatMainPanel(
     deviceContext.addListener(object : DeviceConnectionListener() {
       @UiThread
       override fun onDeviceConnected(device: IDevice) {
-        logcatReader?.let {
+        deviceManager?.let {
           Disposer.dispose(it)
         }
         document.setText("")
-        logcatReader = LogcatReader.create(project, device, this@LogcatMainPanel)
+        deviceManager = LogcatDeviceManager.create(project, device, this@LogcatMainPanel)
       }
 
       @UiThread
       override fun onDeviceDisconnected(device: IDevice) {
-        logcatReader?.let {
+        deviceManager?.let {
           Disposer.dispose(it)
         }
-        logcatReader = null
+        deviceManager = null
       }
     }, this)
 
@@ -270,7 +270,7 @@ internal class LogcatMainPanel(
     }
   }
 
-  override fun isAttachedToDevice() = logcatReader != null
+  override fun isAttachedToDevice() = deviceManager != null
 
   override fun getTags(): Set<String> = tags
 
@@ -294,7 +294,7 @@ internal class LogcatMainPanel(
   @UiThread
   override fun clearMessageView() {
     AndroidCoroutineScope(this, ioThread).launch {
-      logcatReader?.clearLogcat()
+      deviceManager?.clearLogcat()
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
       withContext(uiThread) {
         document.setText("")

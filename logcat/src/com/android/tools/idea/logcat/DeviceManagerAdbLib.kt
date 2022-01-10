@@ -40,8 +40,8 @@ import kotlinx.coroutines.runBlocking
 /**
  * Implementation of [LogcatReceiver] using coroutines and `adblib`
  */
-internal class LogcatReaderAdbLibImpl(project: Project, device: IDevice, logcatPresenter: LogcatPresenter)
-  : LogcatReader(device, logcatPresenter) {
+internal class DeviceManagerAdbLib(project: Project, device: IDevice, logcatPresenter: LogcatPresenter)
+  : LogcatDeviceManager(device, logcatPresenter) {
   /**
    * The [CoroutineScope] used to control the lifetime of the coroutines launched by this implementation
    */

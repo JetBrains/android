@@ -27,7 +27,7 @@ import java.io.File
 /**
  * Abstraction over the execution of the `logcat` command, forwarding its output to [logcatPresenter].
  */
-internal abstract class LogcatReader(val device: IDevice, val logcatPresenter: LogcatPresenter) : Disposable {
+internal abstract class LogcatDeviceManager(val device: IDevice, val logcatPresenter: LogcatPresenter) : Disposable {
 
   /**
    * Clears the `logcat` buffer on the device. This is a blocking call that succeeds when the underlying `logcat -c` command
@@ -37,12 +37,12 @@ internal abstract class LogcatReader(val device: IDevice, val logcatPresenter: L
   abstract fun clearLogcat()
 
   companion object {
-    fun create(project: Project, device: IDevice, logcatPresenter: LogcatPresenter): LogcatReader {
+    fun create(project: Project, device: IDevice, logcatPresenter: LogcatPresenter): LogcatDeviceManager {
       return if (StudioFlags.ADBLIB_MIGRATION_LOGCAT_V2.get()) {
-        LogcatReaderAdbLibImpl(project, device, logcatPresenter)
+        DeviceManagerAdbLib(project, device, logcatPresenter)
       }
       else {
-        LogcatReaderDdmLib(device, logcatPresenter)
+        DeviceManagerDdmLib(device, logcatPresenter)
       }
     }
 
@@ -50,7 +50,7 @@ internal abstract class LogcatReader(val device: IDevice, val logcatPresenter: L
     // mimics the behavior of AdbHelper#executeRemoteCommand() including a busy wait loop with a 25ms delay.
     internal fun executeDebugLogcatFromFile(filename: String, logcatReceiver: LogcatReceiver) {
       if (!File(filename).exists()) {
-        Logger.getInstance(LogcatReader::class.java).warn("Failed to load logcat from $filename. File does not exist")
+        Logger.getInstance(LogcatDeviceManager::class.java).warn("Failed to load logcat from $filename. File does not exist")
       }
       val process = ProcessBuilder("tail", "-n", "+1", "-f", filename).start()
       val inputStream = process.inputStream
