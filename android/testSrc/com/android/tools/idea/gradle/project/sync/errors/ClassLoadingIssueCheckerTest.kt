@@ -52,7 +52,7 @@ class ClassLoadingIssueCheckerTest : AndroidGradleTestCase() {
 
     val restartCapable = ApplicationManager.getApplication().isRestartCapable
     val quickFixText = if (restartCapable) "Stop Gradle build processes (requires restart)" else "Open Gradle Daemon documentation"
-    assertThat(message.contains(quickFixText)).isTrue()
+    assertThat(message).contains(quickFixText)
 
     // Verify QuickFixes.
     val quickFixes = buildIssue.quickFixes
