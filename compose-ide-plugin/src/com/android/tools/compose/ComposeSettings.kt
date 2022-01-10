@@ -15,18 +15,18 @@
  */
 package com.android.tools.compose
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 
 @Service
-@State(name = "ComposeSettings", storages = [Storage(file = "composeSettings.xml")])
+@State(name = "ComposeSettings", storages = [Storage("composeSettings.xml")])
 class ComposeSettings : SimplePersistentStateComponent<ComposeSettingsState>(ComposeSettingsState()) {
   companion object {
-    fun getInstance() = ServiceManager.getService(ComposeSettings::class.java)
+    fun getInstance(): ComposeSettings = ApplicationManager.getApplication().getService(ComposeSettings::class.java)
   }
 }
 
