@@ -524,6 +524,14 @@ public final class StudioFlags {
     false);
 
   /**
+   * Details: go/decouple-android-debuggers-from-android-configurations, "Android Java Debugger refactoring" section .
+   */
+  public static final Flag<Boolean> NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER = Flag.create(
+    RUNDEBUG, "android.new.execution.flow.for.java.debugger.enabled", "Enable new Execution flow for debuggers",
+    "If enabled, AS executes Run Java debugger via com.android.tools.idea.run.debug.StartJavaDebuggerKt.attachJavaDebuggerToClient",
+    false);
+
+  /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support
    * configured here will cause the deployment to install via the package manager.
