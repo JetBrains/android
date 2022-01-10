@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
 import java.io.File;
-import javax.swing.*;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +44,16 @@ public final class ResourceNavigationItem implements NavigationItem {
     myResource = resourceItem;
     myFile = file;
     myProject = project;
+  }
+
+  @NotNull
+  public ResourceItem getResource() {
+    return myResource;
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 
   @Override

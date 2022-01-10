@@ -18,6 +18,8 @@ package com.android.tools.idea.res.psi
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
+import com.intellij.ide.util.ModuleRendererFactory
 import com.intellij.ide.util.gotoByName.GotoSymbolModel2
 import com.intellij.navigation.NavigationItem
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -79,6 +81,9 @@ class GoToAndroidResourceContributorTest {
     assertThat(searchResults).hasLength(expectedNumberOfResults)
     val result = searchResults[selectResult]
     assertThat(result).isInstanceOf(NavigationItem::class.java)
+    val textWithIcon = ModuleRendererFactory.findInstance(result).getModuleTextWithIcon(result)
+    assertThat(textWithIcon!!.text).isEqualTo("GoToAndroidResourceContributorTest")
+    assertThat(textWithIcon.icon).isEqualTo(AllIcons.Nodes.Module)
     assertThat((result as NavigationItem).presentation!!.getIcon(false)).isNotNull()
     UIUtil.dispatchAllInvocationEvents()
     result.navigate(true)
