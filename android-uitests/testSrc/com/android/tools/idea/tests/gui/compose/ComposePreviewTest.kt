@@ -178,10 +178,9 @@ class ComposePreviewTest {
 
   @Throws(Exception::class)
   private fun openAndClosePreview(fixture: IdeFrameFixture) {
-    val composePreview = openComposePreview(fixture)
+    val composePreview = openComposePreview(fixture).waitForSceneViewsCount(1)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
 
     // Verify that the element rendered correctly by checking it's not empty
     val singleSceneView = composePreview.designSurface.allSceneViews.single().size()

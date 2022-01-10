@@ -194,13 +194,6 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         text = message("notification.needs.build.broken"),
         color = LightColors.RED)
 
-      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
-      previewStatus.isOutOfDate -> createBuildNotificationPanel(
-        project,
-        file,
-        text = message("notification.preview.out.of.date"),
-        buildActionLabel = "${message("notification.action.build.and.refresh")}${getBuildAndRefreshShortcut().asString()}")
-
       // If the project has compiled, it could be that we are missing a class because we need to recompile.
       // Check for errors from missing classes
       previewStatus.hasErrors -> createBuildNotificationPanel(
@@ -208,6 +201,13 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         file,
         text = if (previewStatus.hasSyntaxErrors) message("notification.syntax.errors") else message("notification.needs.build"),
         color = LightColors.RED)
+
+      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
+      previewStatus.isOutOfDate -> createBuildNotificationPanel(
+        project,
+        file,
+        text = message("notification.preview.out.of.date"),
+        buildActionLabel = "${message("notification.action.build.and.refresh")}${getBuildAndRefreshShortcut().asString()}")
 
       else -> null
     }
