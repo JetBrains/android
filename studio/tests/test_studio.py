@@ -63,6 +63,9 @@ class StudioTests(unittest.TestCase):
       line = line.decode("utf-8").strip()
       if line.startswith("#"):
         continue
+      # ignore ARM specific files
+      if "arm64" in line:
+        continue
       self.assertIn(line, namelist, "%s is in _codesign/filelist but is not present in distribution" % line)
 
   def test_no_build_files(self):
