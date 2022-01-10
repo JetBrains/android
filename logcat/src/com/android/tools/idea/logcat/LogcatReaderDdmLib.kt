@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
 /**
  * Starts a background thread that reads logcat messages and sends them back to the caller.
  */
-internal class LogcatReaderDdmLib(private val device: IDevice, override val logcatPresenter: LogcatPresenter) : LogcatReader {
+internal class LogcatReaderDdmLib(device: IDevice, logcatPresenter: LogcatPresenter) : LogcatReader(device, logcatPresenter) {
 
   private val executor = Executors.newSingleThreadExecutor(
     ThreadFactoryBuilder()
@@ -64,10 +64,10 @@ internal class LogcatReaderDdmLib(private val device: IDevice, override val logc
     executor.execute {
       val filename = System.getProperty("studio.logcat.debug.readFromFile")
       if (filename != null && SystemInfo.isUnix) {
-        LogcatReader.executeDebugLogcatFromFile(filename, logcatReceiver)
+        executeDebugLogcatFromFile(filename, logcatReceiver)
       }
       else {
-        val command = LogcatReader.buildLogcatCommand(device)
+        val command = buildLogcatCommand(device)
         device.executeShellCommand(command, logcatReceiver)
       }
     }

@@ -27,19 +27,14 @@ import java.io.File
 /**
  * Abstraction over the execution of the `logcat` command, forwarding its output to [logcatPresenter].
  */
-internal interface LogcatReader : Disposable {
-  /**
-   * The [LogcatPresenter] that will be invoked, via [LogcatPresenter.processMessages], when `logcat` messages
-   * are received from the device.
-   */
-  val logcatPresenter: LogcatPresenter
+internal abstract class LogcatReader(val device: IDevice, val logcatPresenter: LogcatPresenter) : Disposable {
 
   /**
    * Clears the `logcat` buffer on the device. This is a blocking call that succeeds when the underlying `logcat -c` command
    * successfully finishes.
    */
   @WorkerThread
-  fun clearLogcat()
+  abstract fun clearLogcat()
 
   companion object {
     fun create(project: Project, device: IDevice, logcatPresenter: LogcatPresenter): LogcatReader {
@@ -50,7 +45,6 @@ internal interface LogcatReader : Disposable {
         LogcatReaderDdmLib(device, logcatPresenter)
       }
     }
-
 
     // A blocking call that runs a tail command reading logcat data from a file. Only to be used for debugging and profiling, this method
     // mimics the behavior of AdbHelper#executeRemoteCommand() including a busy wait loop with a 25ms delay.
@@ -85,4 +79,3 @@ internal interface LogcatReader : Disposable {
     }
   }
 }
-

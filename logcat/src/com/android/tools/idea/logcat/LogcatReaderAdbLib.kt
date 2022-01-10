@@ -40,9 +40,8 @@ import kotlinx.coroutines.runBlocking
 /**
  * Implementation of [LogcatReceiver] using coroutines and `adblib`
  */
-internal class LogcatReaderAdbLibImpl(project: Project,
-                                      private val device: IDevice,
-                                      override val logcatPresenter: LogcatPresenter) : LogcatReader {
+internal class LogcatReaderAdbLibImpl(project: Project, device: IDevice, logcatPresenter: LogcatPresenter)
+  : LogcatReader(device, logcatPresenter) {
   /**
    * The [CoroutineScope] used to control the lifetime of the coroutines launched by this implementation
    */
@@ -83,10 +82,10 @@ internal class LogcatReaderAdbLibImpl(project: Project,
     scope.launch(workerThread) {
       val filename = System.getProperty("studio.logcat.debug.readFromFile")
       if (filename != null && SystemInfo.isUnix) {
-        LogcatReader.executeDebugLogcatFromFile(filename, logcatReceiver)
+        executeDebugLogcatFromFile(filename, logcatReceiver)
       }
       else {
-        val command = LogcatReader.buildLogcatCommand(device)
+        val command = buildLogcatCommand(device)
         shellToReceiver(device.toDeviceSelector(), command, logcatReceiver)
       }
     }
