@@ -556,7 +556,7 @@ public final class StudioFlags {
         " \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes;" +
         " or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files." +
         " Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
-    OptimisticInstallSupportLevel.DEX_AND_NATIVE);
+    OptimisticInstallSupportLevel.DEX);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
