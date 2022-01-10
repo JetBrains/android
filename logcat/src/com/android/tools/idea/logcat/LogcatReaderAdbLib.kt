@@ -62,6 +62,7 @@ internal class LogcatReaderAdbLibImpl(project: Project,
     object : LogcatReceiver.LogcatListener {
       @WorkerThread
       override fun onLogMessagesReceived(messages: List<LogCatMessage>) {
+        @Suppress("UnstableApiUsage")
         ApplicationManager.getApplication().assertIsNonDispatchThread()
 
         // Since we are eventually bound by the UI thread, we need to block in order to throttle the caller.
@@ -94,6 +95,7 @@ internal class LogcatReaderAdbLibImpl(project: Project,
   @WorkerThread
   override fun clearLogcat() {
     // This is a blocking call, don't call from EDT
+    @Suppress("UnstableApiUsage")
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
     // Creates the job as part of the scope, so it is canceled on dispose
@@ -103,9 +105,8 @@ internal class LogcatReaderAdbLibImpl(project: Project,
     }
 
     // Waits for the job to finish, since we need to block the calling thread
-    runBlocking {
-      job.join()
-    }
+    @Suppress("ConvertLambdaToReference")
+    runBlocking { job.join() }
   }
 
   @AnyThread

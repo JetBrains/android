@@ -44,9 +44,7 @@ internal val ioDispatcher
 /**
  * Returns a [DeviceSelector] instance that identifies this [IDevice]
  */
-public fun IDevice.toDeviceSelector(): DeviceSelector {
-  return DeviceSelector.fromSerialNumber(serialNumber)
-}
+fun IDevice.toDeviceSelector(): DeviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
 internal fun throwIfDispatchThread() {
   @Suppress("UnstableApiUsage")
