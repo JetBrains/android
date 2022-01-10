@@ -25,26 +25,30 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-public class DeviceExplorerViewServiceImpl implements DeviceExplorerViewService{
-  private final @NotNull Project myProject;
+/**
+ * Utility methods providing an entry point to Device Explorer, for use by other modules.
+ *
+ * Note that DeviceExplorerToolWindowFactory is used by the platform directly; these methods are
+ * essentially convenience wrappers around it.
+ */
+public class DeviceExplorer {
+  private DeviceExplorer() {}
 
-  DeviceExplorerViewServiceImpl(@NotNull Project project) {
-    myProject = project;
-  }
-
-  @Override
-  public void openAndShowDevice(@NotNull AvdInfo avdInfo) {
-    if (!showToolWindowImpl()) {
+  /** Shows Device Explorer and selects the given AVD. */
+  public static void openAndShowDevice(Project project, @NotNull AvdInfo avdInfo) {
+    if (!showToolWindow(project)) {
       return;
     }
 
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(myProject);
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
     assert controller != null;
     assert AndroidDebugBridge.getBridge() != null;
 
     String avdName = avdInfo.getName();
-    Optional<IDevice> optionalIDevice = Arrays.stream(AndroidDebugBridge.getBridge().getDevices()).filter(
-      device -> avdName.equals(device.getAvdName())).findAny();
+    Optional<IDevice> optionalIDevice =
+        Arrays.stream(AndroidDebugBridge.getBridge().getDevices())
+            .filter(device -> avdName.equals(device.getAvdName()))
+            .findAny();
     if (!optionalIDevice.isPresent()) {
       controller.reportErrorFindingDevice("Unable to find AVD " + avdName + " by name. Please retry.");
       return;
@@ -53,25 +57,22 @@ public class DeviceExplorerViewServiceImpl implements DeviceExplorerViewService{
     controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
   }
 
-  @Override
-  public void openAndShowDevice(@NotNull String serialNumber) {
-    if (!showToolWindowImpl()) {
+  /** Shows Device Explorer and selects the device with the given serial number. */
+  public static void openAndShowDevice(Project project, @NotNull String serialNumber) {
+    if (!showToolWindow(project)) {
       return;
     }
 
-    DeviceExplorerController controller = DeviceExplorerController.getProjectController(myProject);
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
     assert controller != null;
 
     controller.selectActiveDevice(serialNumber);
   }
 
-  @Override
-  public void showToolWindow() {
-    showToolWindowImpl();
-  }
-
-  private boolean showToolWindowImpl() {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
+  /** Shows Device Explorer, creating it if necessary. */
+  public static boolean showToolWindow(Project project) {
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project)
+        .getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
 
     if (toolWindow != null) {
       toolWindow.show();

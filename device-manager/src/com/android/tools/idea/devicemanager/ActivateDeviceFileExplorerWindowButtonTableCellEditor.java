@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
+import com.android.tools.idea.explorer.DeviceExplorer;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
 import javax.swing.JTable;
@@ -27,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D extends Device> extends IconButtonTableCellEditor {
   private Device myDevice;
 
-  private final @Nullable Object myProject;
+  private final @Nullable Project myProject;
   private final @NotNull DeviceTable<@NotNull D> myTable;
 
   public ActivateDeviceFileExplorerWindowButtonTableCellEditor(@Nullable Project project,
@@ -46,7 +50,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
       assert project != null;
-      new DeviceExplorerViewServiceInvokeLater(project).openAndShowDevice(myDevice);
+      openAndShowDeviceLater();
     });
   }
 
@@ -67,5 +71,24 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
     }
 
     return myButton;
+  }
+
+  /**
+   * Shows DeviceExplorer for the given physical or virtual device.
+   */
+  private void openAndShowDeviceLater() {
+    // We need to use an invokeLater to avoid a NPE, for convoluted
+    // reasons documented in b/200165926.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (myProject != null && !myProject.isDisposed()) {
+        if (myDevice instanceof VirtualDevice) {
+          DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice) myDevice).getAvdInfo());
+        } else if (myDevice instanceof PhysicalDevice) {
+          DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
+        } else {
+          assert false;
+        }
+      }
+    });
   }
 }
