@@ -23,7 +23,6 @@ import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.appinspection.AppInspectionIntellijMigrationServices;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -68,7 +67,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -294,14 +292,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
-
-    // We use the deprecated |oldService| to migrate the user created configurations to the new persistent class.
-    // |oldService| probably will be removed in coming versions of Android Studio: http://b/74601959
-    oldService.getConfigurations().forEach(old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto())));
-    // We don't need configurations from |oldService| anymore, so clear it.
-    oldService.setConfigurations(Collections.emptyList());
-
     return ContainerUtil.map(
       CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
       ProfilingConfiguration::fromProto);
