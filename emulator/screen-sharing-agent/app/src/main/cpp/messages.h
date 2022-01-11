@@ -19,6 +19,7 @@
 #include <inttypes.h>
 
 #include <memory>
+#include <vector>
 #include <android/input.h>
 
 #include "common.h"
@@ -87,6 +88,66 @@ private:
   uint32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(MouseEventMessage);
+};
+
+// TYPE = 1 is reserved for a multi-touch control message.
+
+// Represents a key being pressed or released on a keyboard.
+class KeyEventMessage : Message {
+public:
+  KeyEventMessage(int32_t action, int32_t keycode, uint32_t meta_state)
+      : Message(TYPE),
+        action_(action),
+        keycode_(keycode),
+        meta_state_(meta_state) {
+  }
+  virtual ~KeyEventMessage() {};
+
+  // AKEY_EVENT_ACTION_DOWN, AKEY_EVENT_ACTION_UP or ACTION_DOWN_AND_UP.
+  int32_t get_action() const { return action_; }
+
+  // The code of the pressed or released key. */
+  int32_t get_keycode() const { return keycode_; }
+
+  int32_t get_meta_state() const { return meta_state_; }
+
+  static constexpr int TYPE = 2;
+
+  static constexpr int ACTION_DOWN_AND_UP = 8;
+
+private:
+  friend class Message;
+
+  static KeyEventMessage* deserialize(Base128InputStream& stream);
+
+  int32_t action_;
+  int32_t keycode_;
+  uint32_t meta_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(KeyEventMessage);
+};
+
+// Represents one or more characters typed on a keyboard.
+class TextInputMessage : Message {
+public:
+  TextInputMessage(const std::u16string& text)
+      : Message(TYPE),
+        text_(text) {
+  }
+  virtual ~TextInputMessage() {};
+
+  const std::u16string& get_text() const { return text_; }
+
+  static constexpr int TYPE = 3;
+
+private:
+  friend class Message;
+
+  static TextInputMessage* deserialize(Base128InputStream& stream);
+
+  std::u16string text_;
+
+  DISALLOW_COPY_AND_ASSIGN(TextInputMessage);
 };
 
 }  // namespace screensharing

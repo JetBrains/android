@@ -19,6 +19,7 @@
 #include <thread>
 #include <vector>
 #include <accessors/input_manager.h>
+#include <accessors/key_character_map.h>
 
 #include "common.h"
 #include "accessors/pointer_helper.h"
@@ -49,6 +50,8 @@ private:
   void Run();
   void ProcessMessage(const Message& message);
   void ProcessMouseEvent(const MouseEventMessage& message);
+  void ProcessKeyboardEvent(const KeyEventMessage& message);
+  void ProcessTextInput(const TextInputMessage& message);
   std::vector<PressedPointer>::iterator FindPressedPointer(int pointer_id);
 
   Jni jni_ = nullptr;
@@ -59,6 +62,7 @@ private:
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
   std::vector<PressedPointer> pressed_pointers_;
+  KeyCharacterMap* key_character_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

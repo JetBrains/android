@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "accessors/motion_event.h"
+#include "accessors/key_event.h"
 #include "accessors/window_manager.h"
 #include "agent.h"
 #include "log.h"
@@ -45,7 +46,8 @@ Controller::Controller(int socket_fd)
     : input_stream_(socket_fd, BUFFER_SIZE),
       thread_(),
       input_manager_(),
-      pointer_helper_() {
+      pointer_helper_(),
+      key_character_map_() {
   assert(socket_fd > 0);
 }
 
@@ -56,6 +58,7 @@ Controller::~Controller() {
   }
   delete input_manager_;
   delete pointer_helper_;
+  delete key_character_map_;
 }
 
 void Controller::Start() {
@@ -86,6 +89,8 @@ void Controller::Initialize() {
     pointer_coordinates_.SetElement(i, coords);
   }
 
+  key_character_map_ = new KeyCharacterMap(jni_);
+
   pointer_properties_.MakeGlobal();
   pointer_coordinates_.MakeGlobal();
 }
@@ -109,6 +114,14 @@ void Controller::ProcessMessage(const Message& message) {
   switch (message.get_type()) {
     case MouseEventMessage::TYPE:
       ProcessMouseEvent((const MouseEventMessage&) message);
+      break;
+
+    case KeyEventMessage::TYPE:
+      ProcessKeyboardEvent((const KeyEventMessage&) message);
+      break;
+
+    case TextInputMessage::TYPE:
+      ProcessTextInput((const TextInputMessage&) message);
       break;
 
     default:
@@ -153,6 +166,41 @@ void Controller::ProcessMouseEvent(const MouseEventMessage& message) {
   event.pointer_coordinates = pointer_coordinates_;
   JObject motion_event = event.ToJava();
   input_manager_->InjectInputEvent(motion_event, InputEventInjectionSync::NONE);
+}
+
+void Controller::ProcessKeyboardEvent(const KeyEventMessage& message) {
+  int64_t now = UptimeMillis();
+  KeyEvent event(jni_);
+  event.down_time_millis = now;
+  event.event_time_millis = now;
+  int32_t action = message.get_action();
+  event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
+  event.code = message.get_keycode();
+  event.meta_state = message.get_meta_state();
+  event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
+  JObject key_event = event.ToJava();
+  input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+  if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
+    event.action = AKEY_EVENT_ACTION_UP;
+    key_event = event.ToJava();
+    input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+  }
+}
+
+void Controller::ProcessTextInput(const TextInputMessage& message) {
+  const u16string& text = message.get_text();
+  for (uint16_t c: text) {
+    JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
+    if (event_array.IsNull()) {
+      Log::E("Unable to map character '\\u%04X' to key events", c);
+      continue;
+    }
+    auto len = event_array.GetLength();
+    for (int i = 0; i < len; i++) {
+      JObject key_event = event_array.GetElement(i);
+      input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
+    }
+  }
 }
 
 vector<Controller::PressedPointer>::iterator Controller::FindPressedPointer(int pointer_id) {
