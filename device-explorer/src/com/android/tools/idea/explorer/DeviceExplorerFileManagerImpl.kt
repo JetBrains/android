@@ -45,22 +45,21 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.CancellationException
 
 
 /**
  * Abstraction over the application logic of the Device Explorer UI
  */
 class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructor(
-  private val myProject: Project,
+  private val project: Project,
   private val defaultDownloadPathSupplier: () -> Path
 ) : DeviceExplorerFileManager {
   private val LOGGER = thisLogger()
 
-  private val myTemporaryEditorFiles = mutableListOf<VirtualFile>()
+  private val temporaryEditorFiles = mutableListOf<VirtualFile>()
 
   init {
-    myProject.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorManagerAdapter())
+    project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, MyFileEditorManagerAdapter())
   }
 
   /** Service constructor */
@@ -186,16 +185,16 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   override suspend fun openFile(localPath: Path) {
     val file = findFile(localPath)
     withContext(uiThread) {
-      FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject) ?: cancelAndThrow()
-      OpenFileAction.openFile(file, myProject)
-      myTemporaryEditorFiles.add(file)
+      FileTypeChooser.getKnownFileTypeOrAssociate(file, project) ?: cancelAndThrow()
+      OpenFileAction.openFile(file, project)
+      temporaryEditorFiles.add(file)
     }
   }
 
   private inner class MyFileEditorManagerAdapter : FileEditorManagerListener {
     override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-      if (myTemporaryEditorFiles.contains(file)) {
-        myTemporaryEditorFiles.remove(file)
+      if (temporaryEditorFiles.contains(file)) {
+        temporaryEditorFiles.remove(file)
         val localPath = Paths.get(file.path)
         deleteTemporaryFile(localPath)
       }

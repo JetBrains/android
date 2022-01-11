@@ -30,10 +30,10 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class AdbFileOperations(
-    private val myDevice: IDevice,
-    private val deviceCapabilities: AdbDeviceCapabilities,
-    private val dispatcher: CoroutineDispatcher) {
-  private val myShellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
+  private val device: IDevice,
+  private val deviceCapabilities: AdbDeviceCapabilities,
+  private val dispatcher: CoroutineDispatcher) {
+  private val shellCommandsUtil = AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get())
 
   suspend fun createNewFile(parentPath: String, fileName: String) {
     return createNewFileRunAs(parentPath, fileName, null)
@@ -55,7 +55,7 @@ class AdbFileOperations(
         else ->
           getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build()
       }
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
+      val commandResult = shellCommandsUtil.executeCommand(device, command)
       if (!commandResult.isError) {
         throw AdbShellCommandException.create("File $remotePath already exists on device")
       }
@@ -76,14 +76,14 @@ class AdbFileOperations(
       // "mkdir" fails if the file/directory already exists
       val remotePath = AdbPathUtil.resolve(parentPath, directoryName)
       val command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build()
-      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+      shellCommandsUtil.executeCommand(device, command).throwIfError()
     }
   }
 
   suspend fun listPackages(): List<String> {
     return withContext(dispatcher) {
       val command = getCommand(null, "pm list packages").build()
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
+      val commandResult = shellCommandsUtil.executeCommand(device, command)
       commandResult.throwIfError()
       commandResult.output.mapNotNull(::processPackageListLine)
     }
@@ -92,7 +92,7 @@ class AdbFileOperations(
   suspend fun listPackageInfo(): List<PackageInfo> {
     return withContext(dispatcher) {
       val command = getCommand(null, "pm list packages -f").build()
-      val commandResult = myShellCommandsUtil.executeCommand(myDevice, command)
+      val commandResult = shellCommandsUtil.executeCommand(device, command)
       commandResult.throwIfError()
       commandResult.output.mapNotNull(::processPackageInfoLine)
     }
@@ -111,7 +111,7 @@ class AdbFileOperations(
   suspend fun deleteFileRunAs(path: String, runAs: String?) {
     return withContext(dispatcher) {
       val command = getRmCommand(runAs, path, false)
-      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+      shellCommandsUtil.executeCommand(device, command).throwIfError()
     }
   }
 
@@ -122,7 +122,7 @@ class AdbFileOperations(
   suspend fun deleteRecursiveRunAs(path: String, runAs: String?) {
     return withContext(dispatcher) {
       val command = getRmCommand(runAs, path, true)
-      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+      shellCommandsUtil.executeCommand(device, command).throwIfError()
     }
   }
 
@@ -138,7 +138,7 @@ class AdbFileOperations(
         else ->
           getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build()
       }
-      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+      shellCommandsUtil.executeCommand(device, command).throwIfError()
     }
   }
 
@@ -171,7 +171,7 @@ class AdbFileOperations(
         else ->
           AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build()
       }
-      myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+      shellCommandsUtil.executeCommand(device, command).throwIfError()
     }
   }
 
@@ -191,7 +191,7 @@ class AdbFileOperations(
       else ->
         getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build()
     }
-    myShellCommandsUtil.executeCommand(myDevice, command).throwIfError()
+    shellCommandsUtil.executeCommand(device, command).throwIfError()
   }
 
   @Throws(

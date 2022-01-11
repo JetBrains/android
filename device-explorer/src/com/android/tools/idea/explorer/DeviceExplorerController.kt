@@ -90,82 +90,85 @@ import javax.swing.tree.TreePath
  */
 @UiThread
 class DeviceExplorerController(
-  private val myProject: Project,
-  private val myModel: DeviceExplorerModel,
-  private val myView: DeviceExplorerView,
-  private val myService: DeviceFileSystemService<out DeviceFileSystem>,
+  private val project: Project,
+  private val model: DeviceExplorerModel,
+  private val view: DeviceExplorerView,
+  private val service: DeviceFileSystemService<out DeviceFileSystem>,
   private val fileManager: DeviceExplorerFileManager,
-  private val myFileOpener: FileOpener
+  private val fileOpener: FileOpener
 ) : Disposable {
 
-  private val scope = myProject.coroutineScope + uiThread
-  private var myShowLoadingNodeDelayMillis = 200
-  private var myTransferringNodeRepaintMillis = 100
-  private val myWorkEstimator = FileTransferWorkEstimator()
-  private val myTransferringNodes: MutableSet<DeviceFileEntryNode> = HashSet()
-  private val myLoadingChildren: MutableSet<DeviceFileEntryNode> = HashSet()
-  private val myLoadingNodesAlarms = Alarm()
-  private val myTransferringNodesAlarms = Alarm()
-  private val myLoadingChildrenAlarms = Alarm()
+  private val scope = project.coroutineScope + uiThread
+  var showLoadingNodeDelayMillis = 200
+    @TestOnly set
+  var transferringNodeRepaintMillis = 100
+    @TestOnly set
+
+  private val workEstimator = FileTransferWorkEstimator()
+  private val transferringNodes: MutableSet<DeviceFileEntryNode> = HashSet()
+  private val loadingChildren: MutableSet<DeviceFileEntryNode> = HashSet()
+  private val loadingNodesAlarms = Alarm()
+  private val transferringNodesAlarms = Alarm()
+  private val loadingChildrenAlarms = Alarm()
   private val setupJob = CompletableDeferred<Unit>()
-  private var myLongRunningOperationTracker: LongRunningOperationTracker? = null
+  private var longRunningOperationTracker: LongRunningOperationTracker? = null
 
   init {
-    Disposer.register(myProject, this)
-    myService.addListener(ServiceListener())
-    myView.addListener(ViewListener())
-    myProject.putUserData(KEY, this)
+    Disposer.register(project, this)
+    service.addListener(ServiceListener())
+    view.addListener(ViewListener())
+    project.putUserData(KEY, this)
   }
 
   override fun dispose() {}
 
   private fun getTreeModel(): DefaultTreeModel? {
-    return myModel.treeModel
+    return model.treeModel
   }
 
   private fun getTreeSelectionModel(): DefaultTreeSelectionModel? {
-    return myModel.treeSelectionModel
+    return model.treeSelectionModel
   }
 
   fun setup() {
     scope.launch {
-      myView.setup()
-      myView.startRefresh("Initializing ADB")
+      view.setup()
+      view.startRefresh("Initializing ADB")
       try {
-        myService.start { getAdbFile() }
+        service.start { getAdbFile() }
         setupJob.complete(Unit)
         refreshDeviceList(null)
       } catch (t: Throwable) {
-        myView.reportErrorRelatedToService(myService, "Error initializing ADB", t)
+        view.reportErrorRelatedToService(service, "Error initializing ADB", t)
         setupJob.completeExceptionally(t)
       } finally {
-        myView.stopRefresh()
+        view.stopRefresh()
       }
     }
   }
 
   fun restartService() {
     scope.launch {
-      myView.startRefresh("Restarting ADB")
+      view.startRefresh("Restarting ADB")
       try {
-        myService.restart { getAdbFile() }
+        service.restart { getAdbFile() }
         // A successful restart invokes {@link ServiceListener#serviceRestarted()} which
         // eventually refreshes the list of devices
       } catch (t: Throwable) {
-        myView.reportErrorRelatedToService(myService, "Error restarting ADB", t)
+        view.reportErrorRelatedToService(service, "Error restarting ADB", t)
       } finally {
-        myView.stopRefresh()
+        view.stopRefresh()
       }
     }
   }
 
   private fun getAdbFile(): File? {
-    val provider = fromProject(myProject)
+    val provider = fromProject(project)
     return provider?.adbFile
   }
 
   fun reportErrorFindingDevice(message: String) {
-    myView.reportErrorGeneric(message, IllegalStateException())
+    view.reportErrorGeneric(message, IllegalStateException())
   }
 
   fun selectActiveDevice(serialNumber: String) {
@@ -173,7 +176,7 @@ class DeviceExplorerController(
       // This is called shortly after setup; wait for setup to complete
       setupJob.await()
 
-      when (val device = myModel.devices.find { it.deviceSerialNumber == serialNumber }) {
+      when (val device = model.devices.find { it.deviceSerialNumber == serialNumber }) {
         null -> refreshDeviceList(serialNumber)
         else -> setActiveDevice(device)
       }
@@ -182,59 +185,59 @@ class DeviceExplorerController(
 
   private suspend fun refreshDeviceList(serialNumberToSelect: String?) {
     cancelOrMoveToBackgroundPendingOperations()
-    myView.startRefresh("Refreshing list of devices")
+    view.startRefresh("Refreshing list of devices")
     try {
-      val devices = myService.devices
-      myModel.removeAllDevices()
-      devices.forEach { myModel.addDevice(it) }
+      val devices = service.devices
+      model.removeAllDevices()
+      devices.forEach { model.addDevice(it) }
       if (devices.isEmpty()) {
-        myView.showNoDeviceScreen()
+        view.showNoDeviceScreen()
       } else if (serialNumberToSelect != null) {
-        when (val device = myModel.devices.find { it.deviceSerialNumber == serialNumberToSelect }) {
+        when (val device = model.devices.find { it.deviceSerialNumber == serialNumberToSelect }) {
           null -> reportErrorFindingDevice("Unable to find device with serial number $serialNumberToSelect. Please retry.")
           else -> setActiveDevice(device)
         }
       }
     } catch (t: Throwable) {
-      myModel.removeAllDevices()
-      myView.reportErrorRelatedToService(myService, "Error refreshing list of devices", t)
+      model.removeAllDevices()
+      view.reportErrorRelatedToService(service, "Error refreshing list of devices", t)
     } finally {
-      myView.stopRefresh()
+      view.stopRefresh()
     }
   }
 
   private fun setNoActiveDevice() {
     cancelOrMoveToBackgroundPendingOperations()
-    myModel.activeDevice = null
-    myModel.setActiveDeviceTreeModel(null, null, null)
-    myView.showNoDeviceScreen()
+    model.activeDevice = null
+    model.setActiveDeviceTreeModel(null, null, null)
+    view.showNoDeviceScreen()
   }
 
   private suspend fun setActiveDevice(device: DeviceFileSystem) {
     cancelOrMoveToBackgroundPendingOperations()
-    myModel.activeDevice = device
+    model.activeDevice = device
     trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
     refreshActiveDevice(device)
   }
 
   private suspend fun deviceStateUpdated(device: DeviceFileSystem) {
-    if (device != myModel.activeDevice) {
+    if (device != model.activeDevice) {
       return
     }
 
     // Refresh the active device view only if the device state has changed,
     // for example from offline -> online.
     val newState = device.deviceState
-    val lastKnownState = myModel.getActiveDeviceLastKnownState(device)
+    val lastKnownState = model.getActiveDeviceLastKnownState(device)
     if (newState == lastKnownState) {
       return
     }
-    myModel.setActiveDeviceLastKnownState(device)
+    model.setActiveDeviceLastKnownState(device)
     refreshActiveDevice(device)
   }
 
   private suspend fun refreshActiveDevice(device: DeviceFileSystem) {
-    if (device != myModel.activeDevice) {
+    if (device != model.activeDevice) {
       return
     }
     if (device.deviceState != DeviceState.ONLINE) {
@@ -244,32 +247,32 @@ class DeviceExplorerController(
         else ->
           String.format("Device is not online (%s)", device.deviceState)
       }
-      myView.reportMessageRelatedToDevice(device, message)
-      myModel.setActiveDeviceTreeModel(device, null, null)
+      view.reportMessageRelatedToDevice(device, message)
+      model.setActiveDeviceTreeModel(device, null, null)
       return
     }
     try {
       val root = device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
-      myModel.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
+      this.model.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
-      myModel.setActiveDeviceTreeModel(device, null, null)
-      myView.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t)
+      model.setActiveDeviceTreeModel(device, null, null)
+      view.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t)
     }
   }
 
   private fun cancelOrMoveToBackgroundPendingOperations() {
-    myLoadingNodesAlarms.cancelAllRequests()
-    myLoadingChildrenAlarms.cancelAllRequests()
-    myTransferringNodesAlarms.cancelAllRequests()
-    myLoadingChildren.clear()
-    myTransferringNodes.clear()
-    if (myLongRunningOperationTracker != null) {
-      if (myLongRunningOperationTracker!!.isBackgroundable) {
-        myLongRunningOperationTracker!!.moveToBackground()
-        myLongRunningOperationTracker = null
+    loadingNodesAlarms.cancelAllRequests()
+    loadingChildrenAlarms.cancelAllRequests()
+    transferringNodesAlarms.cancelAllRequests()
+    loadingChildren.clear()
+    transferringNodes.clear()
+    if (longRunningOperationTracker != null) {
+      if (longRunningOperationTracker!!.isBackgroundable) {
+        longRunningOperationTracker!!.moveToBackground()
+        longRunningOperationTracker = null
       } else {
-        myLongRunningOperationTracker!!.cancel()
+        longRunningOperationTracker!!.cancel()
       }
     }
   }
@@ -283,16 +286,16 @@ class DeviceExplorerController(
   }
 
   private fun startNodeTransfer(node: DeviceFileEntryNode, download: Boolean) {
-    myView.startTreeBusyIndicator()
+    view.startTreeBusyIndicator()
     if (download) {
       node.isDownloading = true
     } else {
       node.isUploading = true
     }
-    if (myTransferringNodes.isEmpty()) {
-      myTransferringNodesAlarms.addRequest(::repaintTransferringNodes, myTransferringNodeRepaintMillis)
+    if (transferringNodes.isEmpty()) {
+      transferringNodesAlarms.addRequest(::repaintTransferringNodes, transferringNodeRepaintMillis)
     }
-    myTransferringNodes.add(node)
+    transferringNodes.add(node)
   }
 
   private fun stopNodeDownload(node: DeviceFileEntryNode) {
@@ -304,66 +307,55 @@ class DeviceExplorerController(
   }
 
   private fun stopNodeTransfer(node: DeviceFileEntryNode, download: Boolean) {
-    myView.stopTreeBusyIndicator()
+    view.stopTreeBusyIndicator()
     if (download) {
       node.isDownloading = false
     } else {
       node.isUploading = false
     }
     getTreeModel()?.nodeChanged(node)
-    myTransferringNodes.remove(node)
-    if (myTransferringNodes.isEmpty()) {
-      myTransferringNodesAlarms.cancelAllRequests()
+    transferringNodes.remove(node)
+    if (transferringNodes.isEmpty()) {
+      transferringNodesAlarms.cancelAllRequests()
     }
   }
 
   private fun startLoadChildren(node: DeviceFileEntryNode) {
-    myView.startTreeBusyIndicator()
-    if (myLoadingChildren.isEmpty()) {
-      myLoadingChildrenAlarms.addRequest(::repaintLoadingChildren, myTransferringNodeRepaintMillis)
+    view.startTreeBusyIndicator()
+    if (loadingChildren.isEmpty()) {
+      loadingChildrenAlarms.addRequest(::repaintLoadingChildren, transferringNodeRepaintMillis)
     }
-    myLoadingChildren.add(node)
+    loadingChildren.add(node)
   }
 
   private fun stopLoadChildren(node: DeviceFileEntryNode) {
-    myView.stopTreeBusyIndicator()
-    myLoadingChildren.remove(node)
-    if (myLoadingChildren.isEmpty()) {
-      myLoadingChildrenAlarms.cancelAllRequests()
+    view.stopTreeBusyIndicator()
+    loadingChildren.remove(node)
+    if (loadingChildren.isEmpty()) {
+      loadingChildrenAlarms.cancelAllRequests()
     }
   }
 
   @VisibleForTesting
   fun checkLongRunningOperationAllowed(): Boolean {
-    return myLongRunningOperationTracker == null
+    return longRunningOperationTracker == null
   }
 
-  @Throws(Exception::class)
   private fun registerLongRunningOperation(tracker: LongRunningOperationTracker) {
     if (!checkLongRunningOperationAllowed()) {
       throw Exception(DEVICE_EXPLORER_BUSY_MESSAGE)
     }
-    myLongRunningOperationTracker = tracker
+    longRunningOperationTracker = tracker
     Disposer.register(tracker) {
       assert(ApplicationManager.getApplication().isDispatchThread)
-      if (myLongRunningOperationTracker === tracker) {
-        myLongRunningOperationTracker = null
+      if (longRunningOperationTracker === tracker) {
+        longRunningOperationTracker = null
       }
     }
   }
 
   fun hasActiveDevice(): Boolean {
-    return myModel.activeDevice != null
-  }
-
-  @TestOnly
-  fun setShowLoadingNodeDelayMillis(showLoadingNodeDelayMillis: Int) {
-    myShowLoadingNodeDelayMillis = showLoadingNodeDelayMillis
-  }
-
-  @TestOnly
-  fun setTransferringNodeRepaintMillis(transferringNodeRepaintMillis: Int) {
-    myTransferringNodeRepaintMillis = transferringNodeRepaintMillis
+    return model.activeDevice != null
   }
 
   @UiThread
@@ -375,16 +367,16 @@ class DeviceExplorerController(
     }
 
     override fun deviceAdded(device: DeviceFileSystem) {
-      myModel.addDevice(device)
+      model.addDevice(device)
     }
 
     override fun deviceRemoved(device: DeviceFileSystem) {
-      myModel.removeDevice(device)
+      model.removeDevice(device)
     }
 
     override fun deviceUpdated(device: DeviceFileSystem) {
       scope.launch {
-        myModel.updateDevice(device)
+        model.updateDevice(device)
         deviceStateUpdated(device)
       }
     }
@@ -405,15 +397,15 @@ class DeviceExplorerController(
         return
       }
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(getCommonParentNode(treeNodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(getCommonParentNode(treeNodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       scope.launch {
-        val device = myModel.activeDevice
+        val device = model.activeDevice
         for (treeNode in treeNodes) {
-          if (device == myModel.activeDevice && !treeNode.entry.isDirectory) {
+          if (device == model.activeDevice && !treeNode.entry.isDirectory) {
             if (treeNode.isTransferring) {
-              myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", RuntimeException())
+              view.reportErrorRelatedToNode(treeNode, "Entry is already downloading or uploading", RuntimeException())
             }
             else if (!treeNode.entry.isSymbolicLinkToDirectory()) {
               downloadAndOpenFile(treeNode)
@@ -425,9 +417,9 @@ class DeviceExplorerController(
 
     private suspend fun openFile(treeNode: DeviceFileEntryNode, localPath: Path) {
       try {
-        myFileOpener.openFile(localPath)
+        fileOpener.openFile(localPath)
       } catch (t: Throwable) {
-        myView.reportErrorRelatedToNode(treeNode, "Unable to open file \"$localPath\" in editor", t)
+        view.reportErrorRelatedToNode(treeNode, "Unable to open file \"$localPath\" in editor", t)
       }
     }
 
@@ -438,7 +430,7 @@ class DeviceExplorerController(
         openFile(treeNode, path)
       }
       catch (t: Throwable) {
-        myView.reportErrorRelatedToNode(treeNode, "Error opening contents of device file ${getUserFacingNodeName(treeNode)}", t)
+        view.reportErrorRelatedToNode(treeNode, "Error opening contents of device file ${getUserFacingNodeName(treeNode)}", t)
       }
     }
 
@@ -480,7 +472,7 @@ class DeviceExplorerController(
       }
       val commonParentNode = getCommonParentNode(treeNodes)
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(commonParentNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(commonParentNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       scope.launch {
@@ -490,7 +482,7 @@ class DeviceExplorerController(
           reportSaveNodesAsSummary(commonParentNode, summary)
         }
         catch (t: Throwable) {
-          myView.reportErrorRelatedToNode(commonParentNode, "Error saving file(s) to local file system", t)
+          view.reportErrorRelatedToNode(commonParentNode, "Error saving file(s) to local file system", t)
         }
       }
     }
@@ -556,19 +548,19 @@ class DeviceExplorerController(
       performTransfer: suspend (FileTransferOperationTracker) -> Unit,
       backgroundable: Boolean
     ): FileTransferSummary = withContext(uiThread) {
-      val tracker = FileTransferOperationTracker(myView, backgroundable)
+      val tracker = FileTransferOperationTracker(view, backgroundable)
       registerLongRunningOperation(tracker)
       tracker.start()
       tracker.setCalculatingText(0, 0)
       tracker.setIndeterminate(true)
       Disposer.register(this@DeviceExplorerController, tracker)
-      myView.startTreeBusyIndicator()
+      view.startTreeBusyIndicator()
       try {
         prepareTransfer(tracker)
         tracker.setIndeterminate(false)
         performTransfer(tracker)
       } finally {
-        myView.stopTreeBusyIndicator()
+        view.stopTreeBusyIndicator()
         Disposer.dispose(tracker)
       }
       tracker.summary
@@ -579,7 +571,7 @@ class DeviceExplorerController(
 
     suspend fun addUploadOperationWork(tracker: FileTransferOperationTracker, path: Path) {
       val progress = createFileTransferEstimatorProgress(tracker)
-      val estimate = myWorkEstimator.estimateUploadWork(path, progress)
+      val estimate = workEstimator.estimateUploadWork(path, progress)
       tracker.addWorkEstimate(estimate)
     }
 
@@ -595,7 +587,7 @@ class DeviceExplorerController(
       entryNode: DeviceFileEntryNode
     ) {
       val progress = createFileTransferEstimatorProgress(tracker)
-      val estimate = myWorkEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress)
+      val estimate = workEstimator.estimateDownloadWork(entryNode.entry, entryNode.isSymbolicLinkToDirectory, progress)
       tracker.addWorkEstimate(estimate)
     }
 
@@ -727,7 +719,7 @@ class DeviceExplorerController(
 
       scope.launch {
         trackAction(DeviceExplorerEvent.Action.SYNC)
-        myView.startTreeBusyIndicator()
+        view.startTreeBusyIndicator()
         try {
           for (node in directoryNodes) {
             node.isLoaded = false
@@ -739,7 +731,7 @@ class DeviceExplorerController(
             }
           }
         } finally {
-          myView.stopTreeBusyIndicator()
+          view.stopTreeBusyIndicator()
         }
       }
     }
@@ -749,7 +741,7 @@ class DeviceExplorerController(
         return
       }
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       val fileEntries = nodes.map {it.entry}.toMutableList()
@@ -896,7 +888,7 @@ class DeviceExplorerController(
           // Refresh the parent node to show the newly created file
           parentTreeNode.isLoaded = false
           loadNodeChildren(parentTreeNode)
-          myView.expandNode(parentTreeNode)
+          view.expandNode(parentTreeNode)
           return
         } catch (e: Exception) {
           showErrorMessage(errorMessage(newFileName), e)
@@ -926,12 +918,12 @@ class DeviceExplorerController(
 
     override fun uploadFilesInvoked(treeNode: DeviceFileEntryNode) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       val descriptor = FileChooserDescriptorFactory.createAllButJarContentsDescriptor()
       val filesRef = AtomicReference<List<VirtualFile>>()
-      FileChooser.chooseFiles(descriptor, myProject, null) { filesRef.set(it) }
+      FileChooser.chooseFiles(descriptor, project, null) { filesRef.set(it) }
       val files = filesRef.get()
       if (files == null || files.isEmpty()) {
         return
@@ -941,7 +933,7 @@ class DeviceExplorerController(
 
     override fun uploadFilesInvoked(treeNode: DeviceFileEntryNode, files: List<Path>) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       val vfiles = files.mapNotNull { VfsUtil.findFile(it, true) }
@@ -954,7 +946,7 @@ class DeviceExplorerController(
       action: DeviceExplorerEvent.Action
     ) {
       if (!checkLongRunningOperationAllowed()) {
-        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
+        view.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, RuntimeException())
         return
       }
       try {
@@ -965,7 +957,7 @@ class DeviceExplorerController(
         transferSummary.action = action
         reportUploadFilesSummary(treeNode, transferSummary)
       } catch (t: Throwable) {
-        myView.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t)
+        view.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t)
       }
     }
 
@@ -1178,7 +1170,7 @@ class DeviceExplorerController(
             StringUtil.formatDuration(summary.durationMillis)
           )
         }
-        myView.reportMessageRelatedToNode(node, successMessage)
+        view.reportMessageRelatedToNode(node, successMessage)
         return
       }
 
@@ -1203,7 +1195,7 @@ class DeviceExplorerController(
           byteCountString
         )
       }
-      myView.reportErrorRelatedToNode(
+      view.reportErrorRelatedToNode(
         node,
         message,
         Exception(
@@ -1221,7 +1213,6 @@ class DeviceExplorerController(
       return result!!
     }
 
-    @Throws(Exception::class)
     private suspend fun chooseSaveAsFilePath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
@@ -1232,13 +1223,12 @@ class DeviceExplorerController(
       }
       val fileWrapper = withContext(uiThread) {
         val descriptor = FileSaverDescriptor("Save As", "")
-        val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject)
+        val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
         saveFileDialog.save(baseDir, localPath.fileName.toString()) ?: cancelAndThrow()
       }
       return fileWrapper.file.toPath()
     }
 
-    @Throws(Exception::class)
     private suspend fun chooseSaveAsDirectoryPath(treeNode: DeviceFileEntryNode): Path? {
       val entry = treeNode.entry
       val localPath = fileManager.getDefaultLocalPathForEntry(entry)
@@ -1250,7 +1240,7 @@ class DeviceExplorerController(
       val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
       val resultPath = AtomicReference<Path?>(null)
       withContext(uiThread) {
-        FileChooser.chooseFiles(descriptor, myProject, localDir) { files: List<VirtualFile> ->
+        FileChooser.chooseFiles(descriptor, project, localDir) { files: List<VirtualFile> ->
           if (files.size == 1) {
             val path = Paths.get(files[0].path)
             resultPath.set(path)
@@ -1335,12 +1325,12 @@ class DeviceExplorerController(
       if (treeModel == null || treeSelectionModel == null) {
         return
       }
-      val fileSystem = myModel.activeDevice
+      val fileSystem = model.activeDevice
       if (fileSystem != node.entry.fileSystem) {
         return
       }
       val showLoadingNode = Runnable { showLoadingNode(treeModel, node) }
-      myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis)
+      loadingNodesAlarms.addRequest(showLoadingNode, showLoadingNodeDelayMillis)
       startLoadChildren(node)
       try {
         val entries = node.entry.entries()
@@ -1366,7 +1356,7 @@ class DeviceExplorerController(
           })
 
         val addedNodes = updateChildrenNodes(treeModel, node, entries.sortedWith(comparator))
-        myLoadingNodesAlarms.cancelRequest(showLoadingNode)
+        loadingNodesAlarms.cancelRequest(showLoadingNode)
 
         // Restore selection
         restoreTreeSelection(treeSelectionModel, oldSelections, node)
@@ -1382,7 +1372,7 @@ class DeviceExplorerController(
         throw t
       } finally {
         stopLoadChildren(node)
-        myLoadingNodesAlarms.cancelRequest(showLoadingNode)
+        loadingNodesAlarms.cancelRequest(showLoadingNode)
       }
     }
 
@@ -1481,7 +1471,7 @@ class DeviceExplorerController(
         }
 
         // Stop all processing if tree model has changed, i.e. UI has been switched to another device
-        if (myModel.treeModel != treeModel) {
+        if (model.treeModel != treeModel) {
           return
         }
 
@@ -1530,15 +1520,15 @@ class DeviceExplorerController(
   }
 
   private fun repaintTransferringNodes() {
-    for (node in myTransferringNodes) {
+    for (node in transferringNodes) {
       node.incTransferringTick()
       getTreeModel()?.nodeChanged(node)
     }
-    myTransferringNodesAlarms.addRequest(::repaintTransferringNodes, myTransferringNodeRepaintMillis)
+    transferringNodesAlarms.addRequest(::repaintTransferringNodes, transferringNodeRepaintMillis)
   }
 
   private fun repaintLoadingChildren() {
-    for (child in myLoadingChildren) {
+    for (child in loadingChildren) {
       if (child.childCount == 0) continue
       val node = child.firstChild
       if (node is MyLoadingNode) {
@@ -1546,7 +1536,7 @@ class DeviceExplorerController(
         getTreeModel()?.nodeChanged(node)
       }
     }
-    myLoadingChildrenAlarms.addRequest(::repaintLoadingChildren, myTransferringNodeRepaintMillis)
+    loadingChildrenAlarms.addRequest(::repaintLoadingChildren, transferringNodeRepaintMillis)
   }
 
   @VisibleForTesting object NodeSorting {

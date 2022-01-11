@@ -343,8 +343,8 @@ class DeviceExplorerControllerTest {
     checkMockViewInitialState(controller, myDevice1)
 
     // Set timers to ensure the "loading..." animation code is hit
-    controller.setShowLoadingNodeDelayMillis(10)
-    controller.setTransferringNodeRepaintMillis(10)
+    controller.showLoadingNodeDelayMillis = 10
+    controller.transferringNodeRepaintMillis = 10
     myFoo.getEntriesTimeoutMillis = 1000
 
     // Listen to node expansion effect (structure changed event)

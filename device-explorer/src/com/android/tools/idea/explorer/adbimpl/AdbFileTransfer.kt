@@ -28,7 +28,6 @@ import com.android.tools.idea.explorer.fs.ThrottledProgress
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.logger
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -38,12 +37,12 @@ import java.util.concurrent.Executor
 private val LOGGER = logger<AdbFileTransfer>()
 
 class AdbFileTransfer(
-  private val myDevice: IDevice,
-  private val myFileOperations: AdbFileOperations,
+  private val device: IDevice,
+  private val fileOperations: AdbFileOperations,
   progressExecutor: Executor,
   private val dispatcher: CoroutineDispatcher
 ) {
-  private val myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
+  private val progressExecutor = FutureCallbackExecutor.wrap(progressExecutor)
 
   suspend fun downloadFile(
     remoteFileEntry: AdbFileListingEntry,
@@ -72,13 +71,13 @@ class AdbFileTransfer(
     // Note: We should reach this code only if the device is not root, in which case
     // trying a "pullFile" would fail because of permission error (reading from the /data/data/
     // directory), so we copy the file to a temp. location, then pull from that temp location.
-    val tempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    val tempFile = fileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
     try {
       // Copy the remote file to the temporary remote location
-      myFileOperations.copyFileRunAs(remotePath, tempFile, runAs)
+      fileOperations.copyFileRunAs(remotePath, tempFile, runAs)
       downloadFile(tempFile, remotePathSize, localPath, progress)
     } finally {
-      myFileOperations.deleteFile(tempFile)
+      fileOperations.deleteFile(tempFile)
     }
   }
 
@@ -96,13 +95,13 @@ class AdbFileTransfer(
     progress: FileTransferProgress,
     runAs: String?
   ) {
-    val tempFile = myFileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
+    val tempFile = fileOperations.createTempFile(AdbPathUtil.DEVICE_TEMP_DIRECTORY)
     try {
       // Upload to temporary location
       uploadFile(localPath, tempFile, progress)
-      myFileOperations.copyFileRunAs(tempFile, remotePath, runAs)
+      fileOperations.copyFileRunAs(tempFile, remotePath, runAs)
     } finally {
-      myFileOperations.deleteFile(tempFile)
+      fileOperations.deleteFile(tempFile)
     }
   }
 
@@ -117,10 +116,10 @@ class AdbFileTransfer(
         withContext(dispatcher) {
           val stopwatch = Stopwatch.createStarted()
           pullFile(
-            myDevice,
+            device,
             remotePath,
             localPath.toString(),
-            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
+            SingleFileProgressMonitor(progressExecutor, progress, remotePathSize))
           LOGGER.info("Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
         }
       }
@@ -130,7 +129,7 @@ class AdbFileTransfer(
           syncService.pullFile(
             remotePath,
             localPath.toString(),
-            SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize))
+            SingleFileProgressMonitor(progressExecutor, progress, remotePathSize))
           LOGGER.info("Pull file took $stopwatch to execute: \"$remotePath\" -> \"$localPath\"")
         }
       }
@@ -155,10 +154,10 @@ class AdbFileTransfer(
         withContext(dispatcher) {
           val fileLength = localPath.toFile().length()
           val stopwatch = Stopwatch.createStarted()
-          pushFile(myDevice,
+          pushFile(device,
                    localPath.toString(),
                    remotePath,
-                   SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
+                   SingleFileProgressMonitor(progressExecutor, progress, fileLength))
           LOGGER.info( "Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
         }
       } else {
@@ -168,7 +167,7 @@ class AdbFileTransfer(
           syncService.pushFile(
             localPath.toString(),
             remotePath,
-            SingleFileProgressMonitor(myProgressExecutor, progress, fileLength))
+            SingleFileProgressMonitor(progressExecutor, progress, fileLength))
           LOGGER.info("Push file took $stopwatch to execute: \"$localPath\" -> \"$remotePath\"")
         }
       }
@@ -185,7 +184,7 @@ class AdbFileTransfer(
 
   private suspend fun syncService() =
     withContext(dispatcher) {
-      myDevice.syncService ?: throw IOException("Unable to open synchronization service to device")
+      device.syncService ?: throw IOException("Unable to open synchronization service to device")
     }
 
   /**
