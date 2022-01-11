@@ -80,6 +80,18 @@
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
     </group>
     <group id="DeviceToolbar">
+      <action id="android.device.power.button" class="com.android.tools.idea.device.actions.DevicePowerButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button"/>
+      <action id="android.device.volume.up.button" class="com.android.tools.idea.device.actions.DeviceVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
+      <action id="android.device.volume.down.button" class="com.android.tools.idea.device.actions.DeviceVolumeDownButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+      <action id="android.device.back.button" class="com.android.tools.idea.device.actions.DeviceBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
+      <action id="android.device.home.button" class="com.android.tools.idea.device.actions.DeviceHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button"/>
+      <action id="android.device.overview.button" class="com.android.tools.idea.device.actions.DeviceOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button"/>
     </group>
   </actions>
 </idea-plugin>

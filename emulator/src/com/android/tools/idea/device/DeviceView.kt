@@ -16,6 +16,7 @@
 package com.android.tools.idea.device
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.emulator.AbstractDisplayView
 import com.android.tools.idea.emulator.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.emulator.rotatedByQuadrants
@@ -24,13 +25,38 @@ import com.android.tools.idea.emulator.scaledUnbiased
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.InputEvent.CTRL_DOWN_MASK
+import java.awt.event.InputEvent.SHIFT_DOWN_MASK
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_CONTROL
+import java.awt.event.KeyEvent.VK_DELETE
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_ENTER
+import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_KP_DOWN
+import java.awt.event.KeyEvent.VK_KP_LEFT
+import java.awt.event.KeyEvent.VK_KP_RIGHT
+import java.awt.event.KeyEvent.VK_KP_UP
+import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_PAGE_DOWN
+import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -89,6 +115,8 @@ class DeviceView(
     val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
+
+    addKeyListener(MyKeyListener())
 
     AndroidCoroutineScope(this).launch { initializeAgent() }
   }
@@ -179,6 +207,60 @@ class DeviceView(
                   " connected after $connectionDelay ms, first video packet arrived after $firstPacketDelay ms")
           startTime = 0L
         }
+      }
+    }
+  }
+
+  private inner class MyKeyListener  : KeyAdapter() {
+
+    override fun keyTyped(event: KeyEvent) {
+      val c = event.keyChar
+      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+        return
+      }
+      val message = TextInputMessage(c.toString())
+      deviceController?.sendControlMessage(message)
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+      if (event.keyCode == VK_CONTROL && event.modifiersEx == CTRL_DOWN_MASK) {
+        return
+      }
+
+      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
+      if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
+        val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
+        traverseFocusLocally(tabEvent)
+        return
+      }
+
+      if (event.modifiersEx != 0) {
+        return
+      }
+      val deviceController = deviceController ?: return
+      val keyCode = hostKeyCodeToDeviceKeyCode(event.keyCode)
+      if (keyCode == AKEYCODE_UNKNOWN) {
+        return
+      }
+      deviceController.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, 0))
+    }
+
+    private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
+      return when (hostKeyCode) {
+        VK_BACK_SPACE -> AKEYCODE_DEL
+        VK_DELETE -> if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL
+        VK_ENTER -> AKEYCODE_ENTER
+        VK_ESCAPE -> AKEYCODE_ESCAPE
+        VK_TAB -> AKEYCODE_TAB
+        VK_LEFT, VK_KP_LEFT -> AKEYCODE_DPAD_LEFT
+        VK_RIGHT, VK_KP_RIGHT -> AKEYCODE_DPAD_RIGHT
+        VK_UP, VK_KP_UP -> AKEYCODE_DPAD_UP
+        VK_DOWN, VK_KP_DOWN -> AKEYCODE_DPAD_DOWN
+        VK_HOME -> AKEYCODE_MOVE_HOME
+        VK_END -> AKEYCODE_MOVE_END
+        VK_PAGE_UP -> AKEYCODE_PAGE_UP
+        VK_PAGE_DOWN -> AKEYCODE_PAGE_UP
+        else -> AKEYCODE_UNKNOWN
       }
     }
   }

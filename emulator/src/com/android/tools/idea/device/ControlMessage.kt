@@ -36,6 +36,8 @@ sealed class ControlMessage(val type: Int) {
     override fun deserialize(stream: Base128InputStream): ControlMessage {
       return when (val type = stream.readInt()) {
         MouseEventMessage.type -> MouseEventMessage.deserialize(stream)
+        KeyEventMessage.type -> KeyEventMessage.deserialize(stream)
+        TextInputMessage.type -> TextInputMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
@@ -67,6 +69,55 @@ internal data class MouseEventMessage(
       val buttonMask = stream.readInt()
       val displayId = stream.readInt()
       return MouseEventMessage(x, y, buttonMask, displayId)
+    }
+  }
+}
+
+// type = 1 is reserved for a multi-touch control message.
+
+/** Represents a key being pressed or released on a keyboard. */
+internal data class KeyEventMessage(
+  val action: AndroidKeyEventActionType,
+  val keyCode: Int, // One of the values defined in AndroidKeyCodes.kt
+  val metaState: Int
+) : ControlMessage(type) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(action.value)
+    stream.writeInt(keyCode)
+    stream.writeInt(metaState)
+  }
+
+  companion object : Deserializer() {
+    const val type = 2
+
+    override fun deserialize(stream: Base128InputStream): KeyEventMessage {
+      val actionValue = stream.readInt()
+      val action = AndroidKeyEventActionType.fromValue(actionValue) ?: throw StreamFormatException("Unrecognized action: $actionValue")
+      val keyCode = stream.readInt()
+      val metaState = stream.readInt()
+      return KeyEventMessage(action, keyCode, metaState)
+    }
+  }
+}
+
+/** Represents one or more characters typed on a keyboard. */
+internal data class TextInputMessage(
+  val text: String
+) : ControlMessage(type) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeString(text)
+  }
+
+  companion object : Deserializer() {
+    const val type = 3
+
+    override fun deserialize(stream: Base128InputStream): TextInputMessage {
+      val text = stream.readString() ?: throw StreamFormatException("Malformed TextInputMessage")
+      return TextInputMessage(text)
     }
   }
 }
