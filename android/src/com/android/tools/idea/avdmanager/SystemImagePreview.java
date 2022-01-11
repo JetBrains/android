@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.ISystemImage;
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;

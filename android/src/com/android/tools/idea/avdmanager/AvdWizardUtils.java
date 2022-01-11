@@ -16,18 +16,12 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.FD_EMULATOR;
-import static com.android.SdkConstants.FD_LIB;
-import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
@@ -35,7 +29,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -43,13 +36,11 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
@@ -62,7 +53,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,11 +120,6 @@ public class AvdWizardUtils {
   // Tags
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
                                                                          CHROMEOS_TAG, AUTOMOTIVE_TAG);
-  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
-                                                                              WEAR_TAG, CHROMEOS_TAG,
-                                                                              AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
-
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   /**

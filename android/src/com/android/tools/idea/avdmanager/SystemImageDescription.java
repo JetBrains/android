@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+
 import com.android.annotations.NonNull;
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
@@ -28,8 +38,10 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +51,11 @@ import org.jetbrains.annotations.Nullable;
 public final class SystemImageDescription {
   private ISystemImage mySystemImage;
   private RemotePackage myRemotePackage;
+
+  public static final Set<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableSet.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
+                                                                            PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+                                                                            WEAR_TAG, CHROMEOS_TAG,
+                                                                            AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public SystemImageDescription(@NotNull ISystemImage systemImage) {
     mySystemImage = systemImage;
@@ -66,7 +83,7 @@ public final class SystemImageDescription {
     }
     // Google APIs addons up to 19 included a bundled system image
     if (details instanceof DetailsTypes.AddonDetailsType && ((DetailsTypes.AddonDetailsType)details).getVendor().getId().equals("google") &&
-        AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(((DetailsTypes.AddonDetailsType)details).getTag()) && apiLevel <= 19) {
+        TAGS_WITH_GOOGLE_API.contains(((DetailsTypes.AddonDetailsType)details).getTag()) && apiLevel <= 19) {
       return true;
     }
 

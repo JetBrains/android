@@ -203,7 +203,7 @@ public class ChooseSystemImagePanel extends JPanel
     if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.PERFORMANT;
     }
-    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag) &&
+    if (SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag) &&
         (isArm64HostOs ||
          (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
          (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))

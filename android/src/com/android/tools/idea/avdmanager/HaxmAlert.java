@@ -41,7 +41,6 @@ import javax.swing.text.View;
 import java.awt.*;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.TAGS_WITH_GOOGLE_API;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -150,7 +149,7 @@ public class HaxmAlert extends JPanel {
             warningTextBuilder.append(nonX86ImageWarning + "<br>");
           }
 
-          if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+          if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }
