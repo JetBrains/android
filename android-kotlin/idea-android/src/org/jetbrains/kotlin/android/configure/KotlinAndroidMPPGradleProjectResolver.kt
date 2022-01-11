@@ -15,7 +15,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinAndroidSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
-import org.jetbrains.kotlin.idea.gradleJava.configuration.utils.calculateRunTasks
+import org.jetbrains.kotlin.idea.gradleJava.configuration.utils.KotlinModuleUtils.calculateRunTasks
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
