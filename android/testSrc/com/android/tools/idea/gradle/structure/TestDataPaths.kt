@@ -29,6 +29,7 @@ val MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED = TestFileName(
 val MODEL_SIMPLE_PROPERTY_IMPL_RESOLVED_VALUE_MATCHING = TestFileName("modelSimplePropertyImpl/resolvedValueMatching")
 val MODEL_SIMPLE_PROPERTY_IMPL_WRITE_PROPERTY_VALUES = TestFileName("modelSimplePropertyImpl/writePropertyValues")
 val PROPERTY_MODEL_UTILS_TEST_AS_FILE = TestFileName("propertyModelUtils/testAsFile")
+val PROPERTY_MODEL_UTILS_TEST_AS_LANGUAGE_LEVEL = TestFileName("propertyModelUtils/testAsLanguageLevel")
 val PROPERTY_MODEL_UTILS_TEST_DSL_TEXT = TestFileName("propertyModelUtils/testDslText")
 val PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES = TestFileName("psParsedDependencies/parsedDependencies")
 val PS_PARSED_DEPENDENCIES_FIND_LIBRARIES = TestFileName("psParsedDependencies/findLibraries")

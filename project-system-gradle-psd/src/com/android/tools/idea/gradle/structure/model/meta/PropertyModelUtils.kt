@@ -70,6 +70,7 @@ fun ResolvedPropertyModel.asLanguageLevel(): LanguageLevel? =
       ValueType.STRING -> LanguageLevelUtil.parseFromGradleString("'{${toString()}'")
       ValueType.BIG_DECIMAL -> LanguageLevelUtil.parseFromGradleString(toString())
       ValueType.REFERENCE -> LanguageLevelUtil.parseFromGradleString(toString())
+      ValueType.CUSTOM -> LanguageLevelUtil.parseFromGradleString(toString())
       else -> null
     }
 
