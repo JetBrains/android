@@ -52,8 +52,14 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
   }
 
   public final void viewDetails() {
+    viewDetails(DetailsPanel.DEVICE_INFO_TAB_INDEX);
+  }
+
+  public final void viewDetails(int index) {
     DetailsPanel panel = newDetailsPanel();
+
     panel.getCloseButton().addActionListener(event -> myDetailsPanelPanel.removeSplitter());
+    panel.getTabbedPane().ifPresent(pane -> pane.setSelectedIndex(index));
 
     myDetailsPanelPanel.viewDetails(panel);
   }

@@ -31,6 +31,7 @@ import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
@@ -38,17 +39,22 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JTabbedPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
+  static final int DEVICE_INFO_TAB_INDEX = 0;
+  public static final int PAIRED_DEVICES_TAB_INDEX = 1;
+
   private final @NotNull Component myHeadingLabel;
   private final @NotNull AbstractButton myCloseButton;
   protected final @NotNull Collection<@NotNull InfoSection> myInfoSections;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable Component myPairedDevicesPanel;
+  private @Nullable JBTabbedPane myTabbedPane;
 
   protected DetailsPanel(@NotNull String heading) {
     super(null);
@@ -76,8 +82,8 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
 
   protected final void init() {
     setNameLabelPreferredWidthsToMax();
-
     setInfoSectionPanelLayout();
+    initTabbedPane();
     setLayout();
   }
 
@@ -133,20 +139,21 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     myInfoSectionPanel.setLayout(layout);
   }
 
-  private void setLayout() {
-    GroupLayout layout = new GroupLayout(this);
-
-    Component component;
+  private void initTabbedPane() {
     if (myPairedDevicesPanel == null) {
-      component = myScrollPane;
+      return;
     }
-    else {
-      JBTabbedPane tabbedPane = new JBTabbedPane();
-      tabbedPane.setTabComponentInsets(JBUI.emptyInsets());
-      tabbedPane.insertTab("Device Info", null, myScrollPane, null, 0);
-      tabbedPane.insertTab("Paired Devices", null, myPairedDevicesPanel, null, 1);
-      component = tabbedPane;
-    }
+
+    myTabbedPane = new JBTabbedPane();
+    myTabbedPane.setTabComponentInsets(JBUI.emptyInsets());
+
+    myTabbedPane.insertTab("Device Info", null, myScrollPane, null, DEVICE_INFO_TAB_INDEX);
+    myTabbedPane.insertTab("Paired Devices", null, myPairedDevicesPanel, null, PAIRED_DEVICES_TAB_INDEX);
+  }
+
+  private void setLayout() {
+    Component component = myPairedDevicesPanel == null ? myScrollPane : myTabbedPane;
+    GroupLayout layout = new GroupLayout(this);
 
     Group horizontalGroup = layout.createParallelGroup()
       .addGroup(layout.createSequentialGroup()
@@ -178,5 +185,9 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   @VisibleForTesting
   public final @NotNull Container getInfoSectionPanel() {
     return myInfoSectionPanel;
+  }
+
+  final @NotNull Optional<@NotNull JTabbedPane> getTabbedPane() {
+    return Optional.ofNullable(myTabbedPane);
   }
 }

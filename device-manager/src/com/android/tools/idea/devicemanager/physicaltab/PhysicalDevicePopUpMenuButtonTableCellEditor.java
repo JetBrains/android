@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
@@ -120,13 +122,18 @@ final class PhysicalDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButton
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-      try {
-        CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-        BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(key, true, continuation));
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+        myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
       }
-      catch (InterruptedException exception) {
-        Thread.currentThread().interrupt();
-        Logger.getInstance(PhysicalDevicePopUpMenuButtonTableCellEditor.class).warn(exception);
+      else {
+        try {
+          CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
+          BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removePairedDevices(key, true, continuation));
+        }
+        catch (InterruptedException exception) {
+          Thread.currentThread().interrupt();
+          Logger.getInstance(PhysicalDevicePopUpMenuButtonTableCellEditor.class).warn(exception);
+        }
       }
     });
 

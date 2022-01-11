@@ -24,6 +24,7 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.DevicePanel;
 import com.android.tools.idea.devicemanager.DeviceTable;
 import com.android.tools.idea.devicemanager.Table;
 import com.android.tools.idea.devicemanager.Tables;
@@ -183,7 +184,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return sorter;
   }
 
-  @NotNull VirtualDevicePanel getPanel() {
+  public @NotNull DevicePanel getPanel() {
     return myPanel;
   }
 

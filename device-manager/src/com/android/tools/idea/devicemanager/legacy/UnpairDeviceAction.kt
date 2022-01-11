@@ -17,6 +17,9 @@ package com.android.tools.idea.devicemanager.legacy
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.devicemanager.DetailsPanel
+import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTable
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
@@ -51,8 +54,13 @@ internal class UnpairDeviceAction(
     val deviceID = avdInfo?.name ?: return
 
     if (WearPairingManager.isPaired(deviceID)) {
-      GlobalScope.launch(AndroidDispatchers.ioThread) {
-        WearPairingManager.removePairedDevices(deviceID)
+      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
+        (myAvdInfoProvider.avdProviderComponent as VirtualDeviceTable).panel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX)
+      }
+      else {
+        GlobalScope.launch(AndroidDispatchers.ioThread) {
+          WearPairingManager.removePairedDevices(deviceID)
+        }
       }
     }
     else {
