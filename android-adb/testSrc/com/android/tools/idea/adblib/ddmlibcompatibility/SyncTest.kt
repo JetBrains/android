@@ -135,7 +135,7 @@ class SyncTest {
     val fileDate = FileTime.from(1_000_000, TimeUnit.SECONDS)
     val fileState = DeviceFileState(
       filePath,
-      fileMode.modeBits.toString(),
+      fileMode.modeBits,
       (fileDate.toMillis() / 1_000).toInt(),
       fileBytes
     )
