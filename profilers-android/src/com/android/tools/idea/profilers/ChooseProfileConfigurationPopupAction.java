@@ -21,7 +21,7 @@ import com.intellij.execution.actions.ChooseRunConfigurationPopupAction;
 public class ChooseProfileConfigurationPopupAction extends ChooseRunConfigurationPopupAction {
   @Override
   protected Executor getDefaultExecutor() {
-    return ProfileRunExecutor.getProfileExecutorInstance();
+    return ProfileRunExecutor.Companion.getInstance();
   }
 
   @Override
