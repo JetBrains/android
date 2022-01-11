@@ -65,20 +65,13 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.MouseInfo
 import java.awt.Point
-import java.awt.RadialGradientPaint
 import java.awt.Rectangle
-import java.awt.RenderingHints
-import java.awt.RenderingHints.KEY_ANTIALIASING
-import java.awt.RenderingHints.KEY_RENDERING
-import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
-import java.awt.RenderingHints.VALUE_RENDER_QUALITY
 import java.awt.color.ColorSpace
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -112,8 +105,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.geom.AffineTransform
-import java.awt.geom.Area
-import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
 import java.awt.image.DataBufferInt
@@ -121,10 +112,8 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.SwingUtilities
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
@@ -429,7 +418,7 @@ class EmulatorView(
     }
 
     if (multiTouchMode) {
-      drawMultiTouchFeedback(g, displayRect)
+      drawMultiTouchFeedback(g, displayRect, mouseButton1Pressed)
     }
 
     if (deviceFrameVisible) {
@@ -441,68 +430,6 @@ class EmulatorView(
       val paintTime = System.currentTimeMillis()
       stats?.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
     }
-  }
-
-  private fun drawMultiTouchFeedback(parentGc: Graphics2D, displayRectangle: Rectangle) {
-    val mouseLocation = MouseInfo.getPointerInfo().location
-    SwingUtilities.convertPointFromScreen(mouseLocation, this)
-    val touchPoint = mouseLocation.scaled(screenScale)
-
-    if (!displayRectangle.contains(touchPoint)) {
-      return
-    }
-    val g = parentGc.create() as Graphics2D
-    g.setRenderingHints(RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON, KEY_RENDERING to VALUE_RENDER_QUALITY)))
-    g.clip = displayRectangle
-
-    val centerPoint = Point(displayRectangle.x + displayRectangle.width / 2, displayRectangle.y + displayRectangle.height / 2)
-    val mirrorPoint = Point(centerPoint.x * 2 - touchPoint.x, centerPoint.y * 2 - touchPoint.y)
-    val r1 = (max(displayRectangle.width, displayRectangle.height) * 0.015).roundToInt()
-    val r2 = r1 / 4
-    val touchCircle = createCircle(touchPoint, r1)
-    val mirrorCircle = createCircle(mirrorPoint, r1)
-    val centerCircle = createCircle(centerPoint, r2)
-    val clip = Area(displayRectangle).apply {
-      subtract(Area(touchCircle))
-      subtract(Area(mirrorCircle))
-      subtract(Area(centerCircle))
-    }
-    g.clip = clip
-    val darkColor = Color(0, 154, 133, 157)
-    val lightColor = Color(255, 255, 255, 157)
-    g.color = darkColor
-    g.drawLine(touchPoint.x, touchPoint.y, mirrorPoint.x, mirrorPoint.y)
-    g.clip = displayRectangle
-    g.fillCircle(centerPoint, r2 * 3 / 4)
-    val backgroundIntensity = if (mouseButton1Pressed) 0.8 else 0.3
-    paintTouchBackground(g, touchPoint, r1, darkColor, backgroundIntensity)
-    paintTouchBackground(g, mirrorPoint, r1, darkColor, backgroundIntensity)
-    g.color = lightColor
-    g.drawCircle(touchPoint, r1)
-    g.drawCircle(mirrorPoint, r1)
-    g.drawCircle(centerPoint, r2)
-  }
-
-  private fun paintTouchBackground(g: Graphics2D, center: Point, radius: Int, color: Color, intensity: Double) {
-    require(0 < intensity && intensity <= 1)
-    val r = radius * 5 / 4
-    val intenseColor = Color(color.red, color.green, color.blue, (color.alpha * intensity).roundToInt())
-    val subtleColor = Color(color.red, color.green, color.blue, (color.alpha * intensity * 0.15).roundToInt())
-    g.paint = RadialGradientPaint(center, r.toFloat(), floatArrayOf(0F, 0.8F, 1F), arrayOf(subtleColor, intenseColor, subtleColor))
-    g.fillCircle(center, r)
-  }
-
-  private fun createCircle(center: Point, radius: Int): Ellipse2D {
-    val diameter = radius * 2.0
-    return Ellipse2D.Double((center.x - radius).toDouble(), (center.y - radius).toDouble(), diameter, diameter)
-  }
-
-  private fun Graphics.drawCircle(center: Point, radius: Int) {
-    drawOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
-  }
-
-  private fun Graphics.fillCircle(center: Point, radius: Int) {
-    fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
