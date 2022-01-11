@@ -17,7 +17,10 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.androidProjectType
+import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
@@ -39,6 +42,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
 
@@ -120,9 +124,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
  * A helper class responsible for configuring [AndroidTestRunConfiguration] properly based on given information.
  * This is a stateless class and you can call [configure] method as many times as you wish.
  */
-private class AndroidTestConfigurator(private val module: Module,
-                                      private val facet: AndroidFacet,
-                                      private val testScopes: TestArtifactSearchScopes,
+private class AndroidTestConfigurator(private val facet: AndroidFacet,
                                       private val location: Location<PsiElement>,
                                       private val virtualFile: VirtualFile) {
   companion object {
@@ -134,9 +136,8 @@ private class AndroidTestConfigurator(private val module: Module,
       val location = context.location ?: return null
       val module = AndroidUtils.getAndroidModule(context) ?: return null
       val facet = module.androidFacet ?: return null
-      val testScopes = TestArtifactSearchScopes.getInstance(module) ?: return null
       val virtualFile = PsiUtilCore.getVirtualFile(location.psiElement) ?: return null
-      return AndroidTestConfigurator(module, facet, testScopes, location, virtualFile)
+      return AndroidTestConfigurator(facet, location, virtualFile)
     }
 
     /**
@@ -159,13 +160,26 @@ private class AndroidTestConfigurator(private val module: Module,
    */
   fun configure(configuration: AndroidTestRunConfiguration,
                 sourceElementRef: Ref<PsiElement>): Boolean {
-    if (!(testScopes.isAndroidTestSource(virtualFile) ||
-        virtualFile.isDirectory && testScopes.isAndroidTestAncestorFolder(virtualFile))) {
+    val sourceProviders = SourceProviderManager.getInstance(facet)
+    val (androidTestSources, generatedAndroidTestSources) =
+      if (facet.module.androidProjectType() == AndroidModuleSystem.Type.TYPE_TEST) {
+        sourceProviders.sources to sourceProviders.generatedSources
+      }
+      else {
+        sourceProviders.androidTestSources to sourceProviders.generatedAndroidTestSources
+    }
+    if (
+      !androidTestSources.containsFile(virtualFile) && !androidTestSources.isContainedBy(virtualFile) &&
+      !generatedAndroidTestSources.containsFile(virtualFile) && !generatedAndroidTestSources.isContainedBy(virtualFile)
+    ) {
       return false
     }
 
+    val androidTestModule =
+      (if (facet.module.androidProjectType() == (AndroidModuleSystem.Type.TYPE_TEST)) facet.mainModule else facet.androidTestModule)
+      ?: return false
     val targetSelectionMode = AndroidUtils.getDefaultTargetSelectionMode(
-      module, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
+      androidTestModule, AndroidTestRunConfigurationType.getInstance(), AndroidRunConfigurationType.getInstance())
     if (targetSelectionMode != null) {
       configuration.deployTargetContext.targetSelectionMode = targetSelectionMode
     }

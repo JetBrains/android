@@ -381,6 +381,22 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
+            file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
+            line="172"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
+            line="173"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
             file="src/com/android/tools/idea/gradle/project/build/output/BuildOutputParserWrapper.kt"
             line="42"/>
     </issue>
@@ -446,7 +462,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="902"/>
+            line="903"/>
     </issue>
 
     <issue
@@ -478,7 +494,7 @@
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/ddms/actions/CachedFeatures.java"
-            line="63"/>
+            line="62"/>
     </issue>
 
     <issue

@@ -34,7 +34,6 @@
                         serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"
                         serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider"/>
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
@@ -75,7 +74,6 @@
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$SyncStateUpdater" />
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncListener" />
     <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
-    <useScopeOptimizer implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactUseScopeOptimizer"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>

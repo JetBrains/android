@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getAndroidTestModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getUnitTestModule;
 import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeArtifactName;
-import com.android.tools.idea.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
-import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -36,12 +30,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,19 +44,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull private final Module myModule;
   @NotNull private final GradleAndroidModel myAndroidModel;
 
-  private FileRootSearchScope myAndroidTestSourceScope;
-  private FileRootSearchScope myUnitTestSourceScope;
-  private FileRootSearchScope myAndroidTestExcludeScope;
-  private FileRootSearchScope myUnitTestExcludeScope;
-  private FileRootSearchScope myAndroidTestDependencyExcludeScope;
-  private FileRootSearchScope mySharedTestsExcludeScope;
-  private FileRootSearchScope myUnitTestDependencyExcludeScope;
-
   private static final Object ourLock = new Object();
-
-  private DependencySet myMainDependencies;
-  private DependencySet myUnitTestDependencies;
-  private DependencySet myAndroidTestDependencies;
 
   @Nullable
   public static GradleTestArtifactSearchScopes getInstance(@NotNull Module module) {
@@ -96,12 +73,6 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   }
 
   @Override
-  @NotNull
-  public Module getModule() {
-    return myModule;
-  }
-
-  @Override
   public boolean isAndroidTestSource(@NotNull VirtualFile file) {
     return getAndroidTestSourceScope().accept(file);
   }
@@ -113,212 +84,24 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
 
   @Override
   @NotNull
-  public FileRootSearchScope getAndroidTestSourceScope() {
-    if (myAndroidTestSourceScope == null) {
-      myAndroidTestSourceScope = getSourceScope(IdeArtifactName.ANDROID_TEST);
-    }
-    return myAndroidTestSourceScope;
-  }
-
-  @Override
-  @NotNull
-  public FileRootSearchScope getUnitTestSourceScope() {
-    if (myUnitTestSourceScope == null) {
-      myUnitTestSourceScope = getSourceScope(IdeArtifactName.UNIT_TEST);
-    }
-    return myUnitTestSourceScope;
-  }
-
-  @NotNull
-  private FileRootSearchScope getSourceScope(IdeArtifactName artifactName) {
-    Set<File> roots = new HashSet<>();
-
-    if (artifactName.equals(IdeArtifactName.ANDROID_TEST) && myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-      // Special case where android tests correspond actually to the _main_ artifact (i.e. com.android.test plugin).
-      // There is only instrumentation test artifacts in this project type so the whole directory is in testing scope.
-      roots.add(myAndroidModel.getRootDirPath());
-      for (IdeSourceProvider sourceProvider : myAndroidModel.getActiveSourceProviders()) {
-        roots.addAll(getAllSourceFolders(sourceProvider));
-      }
+  public GlobalSearchScope getAndroidTestSourceScope() {
+    Module androidTestModule;
+    if (myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+      androidTestModule = getMainModule(myModule);
     }
     else {
-      for (IdeSourceProvider sourceProvider : myAndroidModel.getTestSourceProviders(artifactName)) {
-        roots.addAll(getAllSourceFolders(sourceProvider));
-      }
-
-      // Workaround for (b/151029089) and Gradle not providing generated test sources (b/153655585)
-      IdeBaseArtifact testArtifact;
-      switch (artifactName) {
-        case UNIT_TEST:
-          testArtifact = myAndroidModel.getSelectedVariant().getUnitTestArtifact();
-          break;
-        case ANDROID_TEST:
-          testArtifact = myAndroidModel.getSelectedVariant().getAndroidTestArtifact();
-          break;
-        default:
-          testArtifact = null;
-      }
-      if (testArtifact != null) {
-        roots.addAll(testArtifact.getGeneratedSourceFolders());
-      }
+      androidTestModule = getAndroidTestModule(myModule);
     }
-    return new FileRootSearchScope(myModule.getProject(), roots);
-  }
-
-  /**
-   * Returns a {@link GlobalSearchScope} that contains files to be excluded from resolution inside shared tests.
-   *
-   * <p>Note that currently there are no shared tests in AGP.
-   */
-  @Override
-  @NotNull
-  public FileRootSearchScope getSharedTestExcludeScope() {
-    if (mySharedTestsExcludeScope == null) {
-      // When a file is shared by both tests, then the test should only access the dependencies that android test and unit test both
-      // have. Since the API requires us return a excluding scope, we want to exclude all the dependencies android test doesn't
-      // includes and the ones that unit test doesn't have.
-      mySharedTestsExcludeScope = getAndroidTestExcludeClasspathScope().add(getUnitTestExcludeClasspathScope());
-    }
-    return mySharedTestsExcludeScope;
+    return androidTestModule != null ? androidTestModule.getModuleContentScope() : GlobalSearchScope.EMPTY_SCOPE;
   }
 
   @Override
   @NotNull
-  public FileRootSearchScope getAndroidTestExcludeScope() {
-    if (myAndroidTestExcludeScope == null) {
-      // Exclude all unit tests, unless some of them are also android tests (currently that's never the case).
-      FileRootSearchScope exclude = getUnitTestSourceScope().subtract(getAndroidTestSourceScope());
-      // Exclude all dependencies which are only for unit tests.
-      myAndroidTestExcludeScope = exclude.add(getAndroidTestExcludeClasspathScope());
-    }
-    return myAndroidTestExcludeScope;
+  public GlobalSearchScope getUnitTestSourceScope() {
+    Module unitTestModule = getUnitTestModule(myModule);
+    return unitTestModule != null ? unitTestModule.getModuleContentScope() : GlobalSearchScope.EMPTY_SCOPE;
   }
 
-  @Override
-  @NotNull
-  public FileRootSearchScope getUnitTestExcludeScope() {
-    if (myUnitTestExcludeScope == null) {
-      // Exclude all android tests, unless some of them are also unit tests (currently that's never the case).
-      FileRootSearchScope exclude = getAndroidTestSourceScope().subtract(getUnitTestSourceScope());
-      // Exclude all dependencies which are only for android tests.
-      myUnitTestExcludeScope = exclude.add(getUnitTestExcludeClasspathScope());
-    }
-    return myUnitTestExcludeScope;
-  }
-
-  @Override
-  public boolean includeInUnitTestClasspath(@NotNull File file) {
-    return !getUnitTestExcludeScope().accept(file);
-  }
-
-  @Override
-  public boolean isAndroidTestAncestorFolder(@NotNull VirtualFile file) {
-    return getAndroidTestSourceScope().acceptAncestor(file);
-  }
-
-  @NotNull
-  private FileRootSearchScope getAndroidTestExcludeClasspathScope() {
-    if (myAndroidTestDependencyExcludeScope == null) {
-      myAndroidTestDependencyExcludeScope = getExcludeClasspathScope(IdeArtifactName.ANDROID_TEST);
-    }
-    return myAndroidTestDependencyExcludeScope;
-  }
-
-  @NotNull
-  private FileRootSearchScope getUnitTestExcludeClasspathScope() {
-    if (myUnitTestDependencyExcludeScope == null) {
-      myUnitTestDependencyExcludeScope = getExcludeClasspathScope(IdeArtifactName.UNIT_TEST);
-    }
-    return myUnitTestDependencyExcludeScope;
-  }
-
-  @NotNull
-  private FileRootSearchScope getExcludeClasspathScope(@NotNull IdeArtifactName artifactName) {
-    boolean isAndroidTest = IdeArtifactName.ANDROID_TEST.equals(artifactName);
-    Collection<File> excluded;
-    synchronized (ourLock) {
-      DependencySet dependenciesToInclude = isAndroidTest ? getAndroidTestDependencies() : getUnitTestDependencies();
-      DependencySet dependenciesToExclude = isAndroidTest ? getUnitTestDependencies() : getAndroidTestDependencies();
-
-      ExcludedModules excludedModules = new ExcludedModules(myModule);
-      excludedModules.add(dependenciesToExclude);
-      excludedModules.remove(dependenciesToInclude);
-      excludedModules.remove(getMainDependencies());
-
-      ExcludedRoots excludedRoots =
-        new ExcludedRoots(excludedModules, dependenciesToExclude, dependenciesToInclude, isAndroidTest);
-      excludedRoots.removeLibraryPaths(getMainDependencies());
-      excluded = excludedRoots.get();
-    }
-
-    return new FileRootSearchScope(myModule.getProject(), excluded);
-  }
-
-  @NotNull
-  private static DependencySet extractDependencies(@NotNull Project project, @Nullable IdeBaseArtifact artifact) {
-    if (artifact != null) {
-      ModuleFinder moduleFinder = ProjectStructure.getInstance(project).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(artifact.getLevel2Dependencies(), moduleFinder);
-    }
-    return DependencySet.EMPTY;
-  }
-
-  /**
-   * Adds children modules' dependencies to own set of dependencies
-   */
-  @NotNull
-  private static DependencySet mergeSubmoduleDependencies(@NotNull DependencySet original) {
-    // We have to copy the collection because the Map where it comes from is modified inside the loop (see http://b.android.com/230391)
-    Set<ModuleDependency> moduleDependencies = new LinkedHashSet<>(original.onModules());
-    for (ModuleDependency moduleDependency : moduleDependencies) {
-      Module module = moduleDependency.getModule();
-      if (module != null) {
-        GradleTestArtifactSearchScopes moduleScope = getInstance(module);
-        if (moduleScope != null) {
-          original.addAll(moduleScope.getMainDependencies());
-        }
-      }
-    }
-    return original;
-  }
-
-  @NotNull
-  DependencySet getMainDependencies() {
-    synchronized (ourLock) {
-      if (myMainDependencies == null) {
-        myMainDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
-        myMainDependencies =
-          mergeSubmoduleDependencies(extractDependencies(myModule.getProject(), myAndroidModel.getMainArtifact()));
-      }
-      return myMainDependencies;
-    }
-  }
-
-  @NotNull
-  DependencySet getUnitTestDependencies() {
-    synchronized (ourLock) {
-      if (myUnitTestDependencies == null) {
-        myUnitTestDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
-        myUnitTestDependencies =
-          mergeSubmoduleDependencies(
-            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getUnitTestArtifact()));
-      }
-      return myUnitTestDependencies;
-    }
-  }
-
-  @NotNull
-  DependencySet getAndroidTestDependencies() {
-    synchronized (ourLock) {
-      if (myAndroidTestDependencies == null) {
-        myAndroidTestDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
-        myAndroidTestDependencies =
-          mergeSubmoduleDependencies(
-            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getAndroidTestArtifact()));
-      }
-      return myAndroidTestDependencies;
-    }
-  }
 
   @Override
   public String toString() {
