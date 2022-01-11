@@ -32,9 +32,11 @@ import org.jetbrains.annotations.NotNull;
 public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"sourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"setSourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
-    {"setTargetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
+    {"targetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET},
+    {"setTargetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{

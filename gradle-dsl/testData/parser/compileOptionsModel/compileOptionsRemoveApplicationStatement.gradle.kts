@@ -1,8 +1,8 @@
 android {
   compileSdkVersion(23)
   compileOptions {
-    setSourceCompatibility(1.6)
-    setTargetCompatibility(1.6)
+    sourceCompatibility(1.6)
+    targetCompatibility(1.6)
     encoding = "UTF8"
     incremental = true
   }
