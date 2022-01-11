@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.config.LanguageFeature.State.ENABLED
 import org.junit.Test
 import java.io.File
 
+@org.junit.Ignore("b/213362187")
 class ChangeProjectLanguageFeatureTest : GradleFileModelTestCase("tools/adt/idea/android-kotlin/idea-android/testData") {
   @Test
   fun testEnableInlineClasses() {
