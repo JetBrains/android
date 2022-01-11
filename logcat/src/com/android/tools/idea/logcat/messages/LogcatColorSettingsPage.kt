@@ -50,8 +50,6 @@ internal class LogcatColorSettingsPage : ColorSettingsPage {
     2022-01-06 14:19:34.697 <w> W </w> <wm>Sample warn text</wm>
     2022-01-06 14:19:34.697 <e> E </e> <em>Sample error text</em>
     2022-01-06 14:19:34.697 <a> A </a> <am>Sample assert text</am>
-
-    Changes only affect newly added log lines.
   """.trimIndent()
 
   override fun getAttributeDescriptors(): Array<AttributesDescriptor> = ATTRIBUTES_DESCRIPTORS

@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
 import com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT_KEY
 import com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT_KEY
-import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.jetbrains.rd.util.concurrentMapOf
@@ -117,5 +116,3 @@ internal class LogcatColors {
     )
   }
 }
-
-internal fun TextAttributesKey.toTextAttributes() = EditorColorsManager.getInstance().globalScheme.getAttributes(this)

@@ -45,12 +45,13 @@ internal class MessageFormatter(private val formattingOptions: FormattingOptions
 
       textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
       textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
-      textAccumulator.accumulate(formattingOptions.tagFormat.format(tag, previousTag), logcatColors.getTagColor(tag), tag)
+      textAccumulator.accumulate(formattingOptions.tagFormat.format(tag, previousTag), textAttributes = logcatColors.getTagColor(tag),
+                                 hint = tag)
       textAccumulator.accumulate(formattingOptions.appNameFormat.format(appName, header.pid, previousPid), hint = appName)
-      textAccumulator.accumulate(" ${header.logLevel.priorityLetter} ", logcatColors.getLogLevelKey(header.logLevel).toTextAttributes())
+      textAccumulator.accumulate(" ${header.logLevel.priorityLetter} ", textAttributesKey = logcatColors.getLogLevelKey(header.logLevel))
       textAccumulator.accumulate(
         " ${message.message.replace("\n", newline)}\n",
-        logcatColors.getMessageKey(header.logLevel).toTextAttributes())
+        textAttributesKey = logcatColors.getMessageKey(header.logLevel))
 
       previousTag = tag
       previousPid = header.pid

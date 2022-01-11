@@ -324,16 +324,16 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
+    val textAttributes = textAccumulator.textAttributesKeyRanges.filter { it.getText(textAccumulator.text).matches(" [VDIWEA] ".toRegex()) }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "V", logcatColors.getLogLevelKey(VERBOSE).toTextAttributes(),
-      "D", logcatColors.getLogLevelKey(DEBUG).toTextAttributes(),
-      "I", logcatColors.getLogLevelKey(INFO).toTextAttributes(),
-      "W", logcatColors.getLogLevelKey(WARN).toTextAttributes(),
-      "E", logcatColors.getLogLevelKey(ERROR).toTextAttributes(),
-      "A", logcatColors.getLogLevelKey(ASSERT).toTextAttributes(),
+      "V", logcatColors.getLogLevelKey(VERBOSE),
+      "D", logcatColors.getLogLevelKey(DEBUG),
+      "I", logcatColors.getLogLevelKey(INFO),
+      "W", logcatColors.getLogLevelKey(WARN),
+      "E", logcatColors.getLogLevelKey(ERROR),
+      "A", logcatColors.getLogLevelKey(ASSERT),
     )
   }
 
@@ -348,16 +348,18 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
-    val textAttributes = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches(" message-.*\n".toRegex()) }
+    val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
+      it.getText(textAccumulator.text).matches(" message-.*\n".toRegex())
+    }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
 
     assertThat(textAttributes).containsExactly(
-      "message-VERBOSE", logcatColors.getMessageKey(VERBOSE).toTextAttributes(),
-      "message-DEBUG", logcatColors.getMessageKey(DEBUG).toTextAttributes(),
-      "message-INFO", logcatColors.getMessageKey(INFO).toTextAttributes(),
-      "message-WARN", logcatColors.getMessageKey(WARN).toTextAttributes(),
-      "message-ERROR", logcatColors.getMessageKey(ERROR).toTextAttributes(),
-      "message-ASSERT", logcatColors.getMessageKey(ASSERT).toTextAttributes(),
+      "message-VERBOSE", logcatColors.getMessageKey(VERBOSE),
+      "message-DEBUG", logcatColors.getMessageKey(DEBUG),
+      "message-INFO", logcatColors.getMessageKey(INFO),
+      "message-WARN", logcatColors.getMessageKey(WARN),
+      "message-ERROR", logcatColors.getMessageKey(ERROR),
+      "message-ASSERT", logcatColors.getMessageKey(ASSERT),
     )
   }
 
@@ -374,7 +376,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(textAccumulator, messages)
 
     // Filter the ranges corresponding to a tag and build a map tag -> color.
-    val tagColors = textAccumulator.highlightRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
+    val tagColors = textAccumulator.textAttributesRanges.filter { it.getText(textAccumulator.text).matches("tag\\d+ *".toRegex()) }
       .associate { it.getText(textAccumulator.text).trim() to it.data }
     assertThat(tagColors).hasSize(numTags)
     tagColors.forEach { (tag, color) ->

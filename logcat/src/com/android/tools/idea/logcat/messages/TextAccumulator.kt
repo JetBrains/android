@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.logcat.messages.TextAccumulator.Range
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 
 /**
@@ -26,21 +26,30 @@ internal class TextAccumulator {
 
   val text: String get() = stringBuilder.toString()
 
-  val highlightRanges = mutableListOf<Range<TextAttributes>>()
+  val textAttributesRanges = mutableListOf<Range<TextAttributes>>()
+  val textAttributesKeyRanges = mutableListOf<Range<TextAttributesKey>>()
   val hintRanges = mutableListOf<Range<String>>()
 
-  fun accumulate(text: String, textAttributes: TextAttributes? = null, hint: String? = null): TextAccumulator {
+  fun accumulate(
+    text: String,
+    textAttributes: TextAttributes? = null,
+    textAttributesKey: TextAttributesKey? = null,
+    hint: String? = null): TextAccumulator {
+    assert(textAttributes == null || textAttributesKey == null) { "Only one of textAttributesKey and textAttributesKeyKey can be set" }
     val start = stringBuilder.length
     val end = start + text.length
     stringBuilder.append(text)
-    highlightRanges.addRange(start, end, textAttributes)
-    hintRanges.addRange(start, end, hint)
+    if (textAttributes != null) {
+      textAttributesRanges.add(Range(start, end, textAttributes))
+    }
+    else if (textAttributesKey != null) {
+      textAttributesKeyRanges.add(Range(start, end, textAttributesKey))
+    }
+    if (hint != null) {
+      hintRanges.add(Range(start, end, hint))
+    }
     return this
   }
 
   internal data class Range<T>(val start: Int, val end: Int, val data: T)
-}
-
-private fun <T> MutableList<Range<T>>.addRange(start: Int, end: Int, data: T?) = data?.let {
-  add(Range(start, end, data))
 }

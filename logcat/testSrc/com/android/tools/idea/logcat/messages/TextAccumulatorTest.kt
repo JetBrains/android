@@ -17,50 +17,88 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.messages.TextAccumulator.Range
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
 import java.awt.Color
 
 private val blue = TextAttributes().apply { foregroundColor = Color.blue }
 private val red = TextAttributes().apply { foregroundColor = Color.red }
+private val blueKey = TextAttributesKey.createTextAttributesKey("blue")
+private val redKey = TextAttributesKey.createTextAttributesKey("red")
 
 /**
  * Tests for [TextAccumulator]
  */
 class TextAccumulatorTest {
+  private val textAccumulator = TextAccumulator()
+
   @Test
-  fun accumulate_noColor() {
-    val buffer = TextAccumulator()
+  fun accumulate() {
+    textAccumulator.accumulate("foo")
+    textAccumulator.accumulate("bar")
 
-    buffer.accumulate("foo")
-    buffer.accumulate("bar")
-
-    assertThat(buffer.text).isEqualTo("foobar")
-    assertThat(buffer.highlightRanges).isEmpty()
+    assertThat(textAccumulator.text).isEqualTo("foobar")
+    assertThat(textAccumulator.textAttributesRanges).isEmpty()
+    assertThat(textAccumulator.textAttributesKeyRanges).isEmpty()
+    assertThat(textAccumulator.hintRanges).isEmpty()
   }
 
   @Test
-  fun accumulate_withColor() {
-    val buffer = TextAccumulator()
+  fun accumulate_withTextAttributes() {
+    textAccumulator.accumulate("foo-")
+    textAccumulator.accumulate("blue", textAttributes = blue)
+    textAccumulator.accumulate("-bar-")
+    textAccumulator.accumulate("red", textAttributes = red)
 
-    buffer.accumulate("foo-")
-    buffer.accumulate("blue", blue)
-    buffer.accumulate("-bar-")
-    buffer.accumulate("red", red)
+    assertThat(textAccumulator.text).isEqualTo("foo-blue-bar-red")
+    assertThat(textAccumulator.textAttributesRanges).containsExactly(Range(4, 8, blue), Range(13, 16, red))
+    assertThat(textAccumulator.textAttributesKeyRanges).isEmpty()
+    assertThat(textAccumulator.hintRanges).isEmpty()
+  }
 
-    assertThat(buffer.text).isEqualTo("foo-blue-bar-red")
-    assertThat(buffer.highlightRanges).containsExactly(Range(4, 8, blue), Range(13, 16, red))
+  @Test
+  fun accumulate_withTextAttributesKey() {
+    textAccumulator.accumulate("foo-")
+    textAccumulator.accumulate("blue", textAttributesKey = blueKey)
+    textAccumulator.accumulate("-bar-")
+    textAccumulator.accumulate("red", textAttributesKey = redKey)
+
+    assertThat(textAccumulator.text).isEqualTo("foo-blue-bar-red")
+    assertThat(textAccumulator.textAttributesKeyRanges).containsExactly(Range(4, 8, blueKey), Range(13, 16, redKey))
+    assertThat(textAccumulator.textAttributesRanges).isEmpty()
+    assertThat(textAccumulator.hintRanges).isEmpty()
   }
 
   @Test
   fun accumulate_withHint() {
-    val buffer = TextAccumulator()
 
-    buffer.accumulate("foo", hint="foo")
-    buffer.accumulate("-")
-    buffer.accumulate("bar", hint="bar")
+    textAccumulator.accumulate("foo", hint = "foo")
+    textAccumulator.accumulate("-")
+    textAccumulator.accumulate("bar", hint = "bar")
 
-    assertThat(buffer.text).isEqualTo("foo-bar")
-    assertThat(buffer.hintRanges).containsExactly(Range(0, 3, "foo"), Range(4, 7, "bar"))
+    assertThat(textAccumulator.text).isEqualTo("foo-bar")
+    assertThat(textAccumulator.hintRanges).containsExactly(Range(0, 3, "foo"), Range(4, 7, "bar"))
+    assertThat(textAccumulator.textAttributesRanges).isEmpty()
+    assertThat(textAccumulator.textAttributesKeyRanges).isEmpty()
+  }
+
+  @Test
+  fun accumulate_mixed() {
+    textAccumulator.accumulate("foo-")
+    textAccumulator.accumulate("blue", textAttributes = blue, hint = "blue")
+    textAccumulator.accumulate("-bar-")
+    textAccumulator.accumulate("red", textAttributesKey = redKey, hint = "red")
+
+    assertThat(textAccumulator.text).isEqualTo("foo-blue-bar-red")
+    assertThat(textAccumulator.textAttributesRanges).containsExactly(Range(4, 8, blue))
+    assertThat(textAccumulator.textAttributesKeyRanges).containsExactly(Range(13, 16, redKey))
+    assertThat(textAccumulator.hintRanges).containsExactly(Range(4, 8, "blue"), Range(13, 16, "red"))
+  }
+
+  @Test
+  fun accumulate_textAttributesAndKey() {
+    assertThrows(AssertionError::class.java) { textAccumulator.accumulate("blue", textAttributes = blue, textAttributesKey = blueKey) }
   }
 }
