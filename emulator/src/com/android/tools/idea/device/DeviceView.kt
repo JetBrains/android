@@ -34,6 +34,8 @@ import java.awt.EventQueue
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -111,6 +113,14 @@ class DeviceView(
   init {
     Disposer.register(disposableParent, this)
 
+    addComponentListener(object : ComponentAdapter() {
+      override fun componentShown(event: ComponentEvent) {
+        if (width > 0 && height > 0) {
+          deviceClient?.deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+        }
+      }
+    })
+
     // Forward mouse & keyboard events.
     val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
@@ -128,6 +138,9 @@ class DeviceView(
     EventQueue.invokeLater {
       this.deviceClient = deviceClient
       this.decoder = decoder
+      if (width > 0 && height > 0) {
+        deviceClient.deviceController.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+      }
     }
     decoder.addFrameListener(object : VideoDecoder.FrameListener {
       override fun onNewFrameAvailable() {
@@ -161,6 +174,9 @@ class DeviceView(
     super.setBounds(x, y, width, height)
     if (resized) {
       decoder?.maxOutputSize = realSize.rotatedByQuadrants(-displayRotationQuadrants)
+      if (width > 0 && height > 0) {
+        deviceClient?.deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(realWidth, realHeight))
+      }
     }
   }
 

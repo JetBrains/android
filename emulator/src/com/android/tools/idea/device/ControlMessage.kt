@@ -38,6 +38,8 @@ sealed class ControlMessage(val type: Int) {
         MouseEventMessage.type -> MouseEventMessage.deserialize(stream)
         KeyEventMessage.type -> KeyEventMessage.deserialize(stream)
         TextInputMessage.type -> TextInputMessage.deserialize(stream)
+        SetDeviceOrientationMessage.type -> SetDeviceOrientationMessage.deserialize(stream)
+        SetMaxVideoResolutionMessage.type -> SetMaxVideoResolutionMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
@@ -118,6 +120,44 @@ internal data class TextInputMessage(
     override fun deserialize(stream: Base128InputStream): TextInputMessage {
       val text = stream.readString() ?: throw StreamFormatException("Malformed TextInputMessage")
       return TextInputMessage(text)
+    }
+  }
+}
+
+/** Represents one or more characters typed on a keyboard. */
+internal class SetDeviceOrientationMessage(val orientation: Int) : ControlMessage(type) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(orientation)
+  }
+
+  companion object : Deserializer() {
+    const val type = 4
+
+    override fun deserialize(stream: Base128InputStream): SetDeviceOrientationMessage {
+      val orientation = stream.readInt()
+      return SetDeviceOrientationMessage(orientation)
+    }
+  }
+}
+
+/** Sets maximum display streaming resolution. */
+internal class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(type) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(width)
+    stream.writeInt(height)
+  }
+
+  companion object : Deserializer() {
+    const val type = 5
+
+    override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
+      val width = stream.readInt()
+      val height = stream.readInt()
+      return SetMaxVideoResolutionMessage(width, height)
     }
   }
 }

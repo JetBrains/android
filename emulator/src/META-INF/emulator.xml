@@ -86,6 +86,10 @@
               icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button"/>
       <action id="android.device.volume.down.button" class="com.android.tools.idea.device.actions.DeviceVolumeDownButtonAction"
               icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button"/>
+      <action id="android.device.rotate.left" class="com.android.tools.idea.device.actions.DeviceRotateLeftAction"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+      <action id="android.device.rotate.right" class="com.android.tools.idea.device.actions.DeviceRotateRightAction"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
       <action id="android.device.back.button" class="com.android.tools.idea.device.actions.DeviceBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
       <action id="android.device.home.button" class="com.android.tools.idea.device.actions.DeviceHomeButtonAction"

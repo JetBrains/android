@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.device.actions
 
-import com.android.tools.idea.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
-import com.android.tools.idea.device.KeyEventMessage
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * Sends the given key code to an Android device.
+ * Simulates rotating the device counterclockwise by 90 degrees.
  */
-internal open class DeviceKeypressAction(private val keyCode: Int) : AbstractDeviceAction() {
+internal class DeviceRotateLeftAction : DeviceRotateAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    getDeviceController(event)?.sendControlMessage(KeyEventMessage(ACTION_DOWN_AND_UP, keyCode, metaState = 0))
+    rotate(event, 1)
   }
 }
