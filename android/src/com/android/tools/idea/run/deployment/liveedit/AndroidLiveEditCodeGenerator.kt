@@ -24,6 +24,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
+import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
@@ -36,12 +38,14 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.annotations.Annotated
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.project.platform
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -51,6 +55,9 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
+import org.jetbrains.kotlin.resolve.source.PsiSourceFile
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
+import org.objectweb.asm.Opcodes
 import java.lang.Math.ceil
 
 const val SLOTS_PER_INT = 10
@@ -127,7 +134,7 @@ class AndroidLiveEditCodeGenerator {
    */
   fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
-    return kotlinCacheService.getResolutionFacade(input, project.platform!!)
+    return kotlinCacheService.getResolutionFacade(input)
   }
 
   /**
@@ -190,7 +197,17 @@ class AndroidLiveEditCodeGenerator {
                                                          compilerConfiguration);
 
     if (useComposeIR) {
-      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(compilerConfiguration, PhaseConfig(jvmPhases)))
+      generationStateBuilder.codegenFactory(AndroidLiveEditJvmIrCodegenFactory(
+        compilerConfiguration,
+        PhaseConfig(jvmPhases),
+        jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
+          override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
+            val psiSourceFile =
+              descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
+            return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
+          }
+        }
+      ))
     }
 
     val generationState = generationStateBuilder.build();

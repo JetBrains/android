@@ -10,10 +10,10 @@ open class Open(val foo: String) : Parcelable
 class Final(val foo: String) : Parcelable
 
 @Parcelize
-<error descr="[PARCELABLE_SHOULD_BE_INSTANTIABLE] 'Parcelable' should not be a 'sealed' or 'abstract' class">abstract</error> class Abstract(val foo: String) : Parcelable
+<error descr="[PARCELABLE_SHOULD_BE_INSTANTIABLE] 'Parcelable' should not be an 'abstract' class">abstract</error> class Abstract(val foo: String) : Parcelable
 
 @Parcelize
-<error descr="[PARCELABLE_SHOULD_BE_INSTANTIABLE] 'Parcelable' should not be a 'sealed' or 'abstract' class">sealed</error> class Sealed(val foo: String) : Parcelable {
+sealed class Sealed(val foo: String) : Parcelable {
     class X : Sealed("")
 }
 

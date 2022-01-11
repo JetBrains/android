@@ -14,6 +14,6 @@
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 %prefix%Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
-%prefix%Contents/plugins/Kotlin/lib/kotlin-compiler-for-ide-1.6.10-release-923.jar
+%prefix%Contents/plugins/Kotlin/lib/kotlin-compiler-common-for-ide-1.6.20-M1-release-for-android-studio.jar
 %prefix%Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 %prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar

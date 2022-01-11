@@ -92,7 +92,7 @@ class EmbeddedCompilerClientImpl(private val project: Project, private val log: 
     log.debug("compileKtFile($inputs, $outputDirectory)")
     val resolution = runReadAction {
       log.debug("fetchResolution")
-      KotlinCacheService.getInstance(project).getResolutionFacade(inputs, project.platform!!)
+      KotlinCacheService.getInstance(project).getResolutionFacade(inputs)
     }
     val bindingContext = runReadAction { analyze(inputs, resolution) }
 
