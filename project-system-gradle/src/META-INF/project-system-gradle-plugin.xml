@@ -73,7 +73,6 @@
                                            order="before gradle"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$SyncStateUpdater" />
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncListener" />
-    <resolveScopeProvider implementation="com.android.tools.idea.testartifacts.scopes.TestArtifactResolveScopeProvider" order="first"/>
     <projectModelModifier implementation="com.android.tools.idea.gradle.AndroidGradleJavaProjectModelModifier"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>

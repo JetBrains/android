@@ -31,7 +31,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import java.nio.file.Path
 
@@ -418,16 +417,6 @@ enum class ScopeType {
       MAIN, TEST_FIXTURES -> false
       ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
     }
-}
-
-fun AndroidModuleSystem.getResolveScope(file: VirtualFile): GlobalSearchScope {
-  val scopeType = getScopeType(file, module.project)
-  return getResolveScope(scopeType)
-}
-
-fun AndroidModuleSystem.getResolveScope(element: PsiElement): GlobalSearchScope {
-  val scopeType = element.containingFile?.virtualFile?.let { getScopeType(it, module.project) } ?: ScopeType.MAIN
-  return getResolveScope(scopeType)
 }
 
 fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
