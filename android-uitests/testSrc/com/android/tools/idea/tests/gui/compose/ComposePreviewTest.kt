@@ -110,7 +110,7 @@ class ComposePreviewTest {
   private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication",
                                                                                              null,
                                                                                              null,
-                                                                                             "1.5.31",
+                                                                                             "1.6.0",
                                                                                              GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
   @Test
