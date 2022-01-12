@@ -62,7 +62,7 @@ public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspect
            "public class X {\n" +
            "\n" +
            "    public void test(List<String> strings) {\n" +
-           "        /*The loop can be replaced with 'Collection.removeIf'*/for (Iterator<String> it = strings.iterator(); it.hasNext(); )/**/ {\n" +
+           "        /*The loop can be replaced with 'Collection.removeIf'*/for/**/ (Iterator<String> it = strings.iterator(); it.hasNext(); ) {\n" +
            "            String aValue = it.next();\n" +
            "            if(shouldBeRemoved(aValue)) {\n" +
            "                it.remove();\n" +
