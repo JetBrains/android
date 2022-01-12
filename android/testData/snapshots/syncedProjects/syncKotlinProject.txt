@@ -312,6 +312,8 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         ORDER_ENTRY                   : testSyncKotlinProject.app.main
         ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.androidTest
     MODULE                        : testSyncKotlinProject.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncKotlinProject.app
@@ -460,6 +462,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testSyncKotlinProject.app.main
     MODULE                        : testSyncKotlinProject.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncKotlinProject.app
@@ -636,6 +640,8 @@ PROJECT                       : testSyncKotlinProject
             Scope                         : Test
         ORDER_ENTRY                   : testSyncKotlinProject.app.main
         ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.app.unitTest
     MODULE                        : testSyncKotlinProject.awesomeandroidlibrary
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncKotlinProject.awesomeandroidlibrary
@@ -884,6 +890,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testSyncKotlinProject.awesomeandroidlibrary.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.androidTest
     MODULE                        : testSyncKotlinProject.awesomeandroidlibrary.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncKotlinProject.awesomeandroidlibrary
@@ -1004,6 +1012,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testSyncKotlinProject.awesomeandroidlibrary.main
     MODULE                        : testSyncKotlinProject.awesomeandroidlibrary.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSyncKotlinProject.awesomeandroidlibrary
@@ -1151,6 +1161,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testSyncKotlinProject.awesomeandroidlibrary.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSyncKotlinProject.awesomeandroidlibrary.unitTest
     MODULE                        : testSyncKotlinProject.contentLib
         ExternalModuleGroup           : testSyncKotlinProject
         ExternalModuleVersion         : unspecified
@@ -1270,6 +1282,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/contentLib/build/classes/java/main
     MODULE                        : testSyncKotlinProject.contentLib.test
         ExternalModuleGroup           : testSyncKotlinProject
         ExternalModuleType            : sourceSet
@@ -1358,6 +1372,8 @@ PROJECT                       : testSyncKotlinProject
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : testSyncKotlinProject.contentLib.main
+        Classes
+            -                             : file://<PROJECT>/contentLib/build/classes/java/test
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testSyncKotlinProject.app

@@ -272,6 +272,8 @@ PROJECT                       : MainActivity
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.app.main
         ORDER_ENTRY                   : MainActivity.javaLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/MainActivity.app.androidTest
     MODULE                        : MainActivity.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -398,6 +400,8 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : MainActivity.javaLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/MainActivity.app.main
     MODULE                        : MainActivity.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : MainActivity.app
@@ -532,6 +536,8 @@ PROJECT                       : MainActivity
             Scope                         : Test
         ORDER_ENTRY                   : MainActivity.app.main
         ORDER_ENTRY                   : MainActivity.javaLib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/MainActivity.app.unitTest
     MODULE                        : MainActivity.javaLib
         ExternalModuleGroup           : MainActivity
         ExternalModuleVersion         : unspecified
@@ -653,6 +659,8 @@ PROJECT                       : MainActivity
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/javaLib/build/classes/java/main
     MODULE                        : MainActivity.javaLib.test
         ExternalModuleGroup           : MainActivity
         ExternalModuleType            : sourceSet

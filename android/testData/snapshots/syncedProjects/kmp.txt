@@ -283,6 +283,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.androidTest
     MODULE                        : kotlinMultiPlatform.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.app
@@ -425,6 +427,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.app.main
     MODULE                        : kotlinMultiPlatform.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.app
@@ -597,6 +601,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.app.unitTest
     MODULE                        : kotlinMultiPlatform.module2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2
@@ -851,6 +857,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.androidTest
     MODULE                        : kotlinMultiPlatform.module2.commonMain
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -1149,6 +1157,8 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : kotlinMultiPlatform.app

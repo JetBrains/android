@@ -242,6 +242,8 @@ PROJECT                       : testWithBuildSrc
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithBuildSrc.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithBuildSrc.app.androidTest
     MODULE                        : testWithBuildSrc.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithBuildSrc.app
@@ -335,6 +337,8 @@ PROJECT                       : testWithBuildSrc
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testWithBuildSrc.app.main
     MODULE                        : testWithBuildSrc.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithBuildSrc.app
@@ -453,6 +457,8 @@ PROJECT                       : testWithBuildSrc
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithBuildSrc.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithBuildSrc.app.unitTest
     MODULE                        : testWithBuildSrc.buildSrc
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -523,6 +529,8 @@ PROJECT                       : testWithBuildSrc
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testWithBuildSrc.buildSrc.lib2.main
+        Classes
+            -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
     MODULE                        : testWithBuildSrc.buildSrc.lib1.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -590,6 +598,8 @@ PROJECT                       : testWithBuildSrc
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
     MODULE                        : testWithBuildSrc.buildSrc.lib2.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
@@ -739,6 +749,8 @@ PROJECT                       : testWithBuildSrc
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testWithBuildSrc.buildSrc.lib1.main
         ORDER_ENTRY                   : testWithBuildSrc.buildSrc.lib2.main
+        Classes
+            -                             : file://<PROJECT>/buildSrc/build/classes/java/main
     MODULE                        : testWithBuildSrc.buildSrc.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet

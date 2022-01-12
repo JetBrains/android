@@ -39,6 +39,8 @@ PROJECT                       : testLoadPlainJavaProject
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/build/classes/java/main
     MODULE                        : testLoadPlainJavaProject.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
@@ -63,6 +65,8 @@ PROJECT                       : testLoadPlainJavaProject
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         ORDER_ENTRY                   : testLoadPlainJavaProject.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/java/test
     LIBRARY_TABLE
         LIBRARY                       : Gradle: junit:junit:4.12
             *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/

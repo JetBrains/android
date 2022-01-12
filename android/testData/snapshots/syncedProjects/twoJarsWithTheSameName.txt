@@ -135,6 +135,8 @@ PROJECT                       : My Application
             Scope                         : Test
         ORDER_ENTRY                   : My_Application.lib.main
         ORDER_ENTRY                   : My_Application.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/My_Application.androidTest
     MODULE                        : My_Application.lib
         ExternalModuleGroup           : My Application
         ExternalModuleVersion         : unspecified
@@ -189,6 +191,8 @@ PROJECT                       : My Application
             IsModuleLevel                 : true
             LIBRARY
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
+        Classes
+            -                             : file://<PROJECT>/lib/build/classes/java/main
     MODULE                        : My_Application.lib.test
         ExternalModuleGroup           : My Application
         ExternalModuleType            : sourceSet
@@ -284,6 +288,8 @@ PROJECT                       : My Application
         LIBRARY                       : Gradle: ./lib1/liba.jar [=]
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
         ORDER_ENTRY                   : My_Application.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/My_Application.main
     MODULE                        : My_Application.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : My_Application

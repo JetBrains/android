@@ -140,6 +140,15 @@ fun ProjectDumper.dump(module: Module) {
                 { (it as? LibraryOrderEntry)?.scope})).forEach {
       dump(it)
     }
+    val classes = moduleRootModel.orderEntries().withoutDepModules().withoutLibraries().withoutSdk().classes().urls
+    if (classes.isNotEmpty()) {
+      head("Classes")
+      nest {
+        classes.forEach {
+          prop("-") { it.replaceKnownPaths() }
+        }
+      }
+    }
   }
 }
 

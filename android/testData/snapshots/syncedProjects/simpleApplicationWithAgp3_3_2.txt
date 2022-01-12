@@ -239,6 +239,8 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.androidTest
     MODULE                        : testSimpleApplicationWithAgp3_3_2.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSimpleApplicationWithAgp3_3_2.app
@@ -330,6 +332,8 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2.app.main
     MODULE                        : testSimpleApplicationWithAgp3_3_2.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testSimpleApplicationWithAgp3_3_2.app
@@ -445,6 +449,8 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testSimpleApplicationWithAgp3_3_2.app

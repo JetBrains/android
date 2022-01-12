@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -404,5 +402,3 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 }
-
-private fun <T : Any> T.asParsed() = ParsedValue.Set.Parsed(this, DslText.Literal)

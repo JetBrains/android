@@ -425,6 +425,8 @@ PROJECT                       : testTestOnlyModule
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
         ORDER_ENTRY                   : testTestOnlyModule.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testTestOnlyModule.test.main
     MODULE                        : testTestOnlyModule.test2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTestOnlyModule.test2
@@ -586,6 +588,8 @@ PROJECT                       : testTestOnlyModule
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
         ORDER_ENTRY                   : testTestOnlyModule.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testTestOnlyModule.test2.main
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testTestOnlyModule.app

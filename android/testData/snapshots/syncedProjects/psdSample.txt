@@ -420,6 +420,8 @@ PROJECT                       : testPsdSample
         LIBRARY                       : Gradle: com.example.jlib:lib4:1.0 [=]
         LIBRARY                       : Gradle: com.example.libs:lib2:1.0@aar [=]
         ORDER_ENTRY                   : testPsdSample.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testPsdSample.app.main
     MODULE                        : testPsdSample.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdSample.app
@@ -1155,6 +1157,8 @@ PROJECT                       : testPsdSample
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         ORDER_ENTRY                   : testPsdSample.jav.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testPsdSample.lib.main
     MODULE                        : testPsdSample.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testPsdSample.lib

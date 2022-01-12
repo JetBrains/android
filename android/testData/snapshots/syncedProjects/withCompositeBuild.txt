@@ -231,6 +231,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.androidTest
     MODULE                        : TestCompositeLib1.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.app
@@ -333,6 +335,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/TestCompositeLib1.app.main
     MODULE                        : TestCompositeLib1.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.app
@@ -460,6 +464,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.app.unitTest
     MODULE                        : TestCompositeLib1.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -662,6 +668,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.androidTest
     MODULE                        : TestCompositeLib1.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -760,6 +768,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/TestCompositeLib1.lib.main
     MODULE                        : TestCompositeLib1.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib1.lib
@@ -881,6 +891,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite2.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib1.lib.unitTest
     MODULE                        : TestCompositeLib3
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -1109,6 +1121,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.androidTest
     MODULE                        : TestCompositeLib3.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.app
@@ -1209,6 +1223,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/TestCompositeLib3.app.main
     MODULE                        : TestCompositeLib3.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.app
@@ -1334,6 +1350,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.app.unitTest
     MODULE                        : TestCompositeLib3.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -1524,6 +1542,8 @@ PROJECT                       : testWithCompositeBuild
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.androidTest
     MODULE                        : TestCompositeLib3.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -1615,6 +1635,8 @@ PROJECT                       : testWithCompositeBuild
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/TestCompositeLib3.lib.main
     MODULE                        : TestCompositeLib3.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : TestCompositeLib3.lib
@@ -1724,6 +1746,8 @@ PROJECT                       : testWithCompositeBuild
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
         ORDER_ENTRY                   : composite4.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/TestCompositeLib3.lib.unitTest
     MODULE                        : com.test.compositeNest3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
@@ -1768,6 +1792,8 @@ PROJECT                       : testWithCompositeBuild
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main
     MODULE                        : com.test.compositeNest3.compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
@@ -1834,6 +1860,8 @@ PROJECT                       : testWithCompositeBuild
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/TestCompositeLib2/build/classes/java/main
     MODULE                        : composite2.test
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
@@ -1900,6 +1928,8 @@ PROJECT                       : testWithCompositeBuild
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/TestCompositeLib4/build/classes/java/main
     MODULE                        : composite4.test
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
@@ -1966,6 +1996,8 @@ PROJECT                       : testWithCompositeBuild
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main
     MODULE                        : compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
@@ -2262,6 +2294,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : compositeNest.main
         ORDER_ENTRY                   : testWithCompositeBuild.app.main
         ORDER_ENTRY                   : testWithCompositeBuild.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithCompositeBuild.app.androidTest
     MODULE                        : testWithCompositeBuild.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithCompositeBuild.app
@@ -2408,6 +2442,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : composite4.main
         ORDER_ENTRY                   : compositeNest.main
         ORDER_ENTRY                   : testWithCompositeBuild.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testWithCompositeBuild.app.main
     MODULE                        : testWithCompositeBuild.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithCompositeBuild.app
@@ -2579,6 +2615,8 @@ PROJECT                       : testWithCompositeBuild
         ORDER_ENTRY                   : compositeNest.main
         ORDER_ENTRY                   : testWithCompositeBuild.app.main
         ORDER_ENTRY                   : testWithCompositeBuild.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithCompositeBuild.app.unitTest
     MODULE                        : testWithCompositeBuild.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithCompositeBuild.lib
@@ -2803,6 +2841,8 @@ PROJECT                       : testWithCompositeBuild
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithCompositeBuild.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithCompositeBuild.lib.androidTest
     MODULE                        : testWithCompositeBuild.lib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithCompositeBuild.lib
@@ -2923,6 +2963,8 @@ PROJECT                       : testWithCompositeBuild
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testWithCompositeBuild.lib.main
     MODULE                        : testWithCompositeBuild.lib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithCompositeBuild.lib
@@ -3066,6 +3108,8 @@ PROJECT                       : testWithCompositeBuild
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithCompositeBuild.lib.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithCompositeBuild.lib.unitTest
     RUN_CONFIGURATION             : TestCompositeLib1.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : TestCompositeLib1.app

@@ -232,6 +232,8 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.androidTest
     MODULE                        : testTransitiveDependencies.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -334,6 +336,8 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.app.main
     MODULE                        : testTransitiveDependencies.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.app
@@ -462,6 +466,8 @@ PROJECT                       : testTransitiveDependencies
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.app.unitTest
     MODULE                        : testTransitiveDependencies.javalib1
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleVersion         : unspecified
@@ -512,6 +518,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.google.j2objc:j2objc-annotations:1.1 [=]
         LIBRARY                       : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
         ORDER_ENTRY                   : testTransitiveDependencies.javalib2.main
+        Classes
+            -                             : file://<PROJECT>/javalib1/build/classes/java/main
     MODULE                        : testTransitiveDependencies.javalib1.test
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -584,6 +592,8 @@ PROJECT                       : testTransitiveDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+        Classes
+            -                             : file://<PROJECT>/javalib2/build/classes/java/main
     MODULE                        : testTransitiveDependencies.javalib2.test
         ExternalModuleGroup           : testTransitiveDependencies
         ExternalModuleType            : sourceSet
@@ -821,6 +831,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.androidTest
     MODULE                        : testTransitiveDependencies.library1.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -912,6 +924,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library1.main
     MODULE                        : testTransitiveDependencies.library1.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library1
@@ -1026,6 +1040,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library1.unitTest
     MODULE                        : testTransitiveDependencies.library2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1222,6 +1238,8 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.androidTest
     MODULE                        : testTransitiveDependencies.library2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1316,6 +1334,8 @@ PROJECT                       : testTransitiveDependencies
         LIBRARY                       : Gradle: com.google.code.gson:gson:2.2.4 [=]
         LIBRARY                       : Gradle: commons-io:commons-io:2.4 [=]
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testTransitiveDependencies.library2.main
     MODULE                        : testTransitiveDependencies.library2.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testTransitiveDependencies.library2
@@ -1435,6 +1455,8 @@ PROJECT                       : testTransitiveDependencies
             Scope                         : Test
         ORDER_ENTRY                   : testTransitiveDependencies.library1.main
         ORDER_ENTRY                   : testTransitiveDependencies.library2.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testTransitiveDependencies.library2.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testTransitiveDependencies.app

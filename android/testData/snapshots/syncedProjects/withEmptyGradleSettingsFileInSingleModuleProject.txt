@@ -190,6 +190,8 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             Scope                         : Test
         ORDER_ENTRY                   : testWithEmptyGradleSettingsFileInSingleModuleProject.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/testWithEmptyGradleSettingsFileInSingleModuleProject.androidTest
     MODULE                        : testWithEmptyGradleSettingsFileInSingleModuleProject.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithEmptyGradleSettingsFileInSingleModuleProject
@@ -280,6 +282,8 @@ PROJECT                       : testWithEmptyGradleSettingsFileInSingleModulePro
         LIBRARY                       : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/testWithEmptyGradleSettingsFileInSingleModuleProject.main
     MODULE                        : testWithEmptyGradleSettingsFileInSingleModuleProject.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : testWithEmptyGradleSettingsFileInSingleModuleProject

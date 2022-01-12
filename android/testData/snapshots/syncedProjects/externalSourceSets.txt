@@ -242,6 +242,8 @@ PROJECT                       : application
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : application.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/application.app.androidTest
     MODULE                        : application.app.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : application.app
@@ -336,6 +338,8 @@ PROJECT                       : application
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
+        Classes
+            -                             : file://<PROJECT>/build/classes/production/application.app.main
     MODULE                        : application.app.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : application.app
@@ -454,6 +458,8 @@ PROJECT                       : application
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
         ORDER_ENTRY                   : application.app.main
+        Classes
+            -                             : file://<PROJECT>/build/classes/test/application.app.unitTest
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : application.app
