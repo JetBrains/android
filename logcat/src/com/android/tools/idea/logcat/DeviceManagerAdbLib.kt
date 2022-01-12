@@ -40,8 +40,12 @@ import kotlinx.coroutines.runBlocking
 /**
  * Implementation of [LogcatReceiver] using coroutines and `adblib`
  */
-internal class DeviceManagerAdbLib(project: Project, device: IDevice, logcatPresenter: LogcatPresenter)
-  : LogcatDeviceManager(device, logcatPresenter) {
+internal class DeviceManagerAdbLib(
+  project: Project,
+  device: IDevice,
+  logcatPresenter: LogcatPresenter,
+  packageNamesProvider: PackageNamesProvider
+) : LogcatDeviceManager(device, logcatPresenter, packageNamesProvider) {
   /**
    * The [CoroutineScope] used to control the lifetime of the coroutines launched by this implementation
    */
@@ -74,7 +78,6 @@ internal class DeviceManagerAdbLib(project: Project, device: IDevice, logcatPres
     })
 
   init {
-    Disposer.register(logcatPresenter, this)
     start()
   }
 
@@ -106,11 +109,6 @@ internal class DeviceManagerAdbLib(project: Project, device: IDevice, logcatPres
     // Waits for the job to finish, since we need to block the calling thread
     @Suppress("ConvertLambdaToReference")
     runBlocking { job.join() }
-  }
-
-  @AnyThread
-  override fun dispose() {
-    // Nothing to do here, but our child [scope] is cancelled because it was registered as our child disposable
   }
 
   /**

@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.ddmlib.Log
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import java.time.Clock
 import java.time.Duration
@@ -35,7 +36,7 @@ internal class LogcatMasterFilter(val logcatFilter: LogcatFilter?) {
       return messages
     }
     logcatFilter.prepare()
-    return messages.filter { logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) }
+    return messages.filter { it.header === SYSTEM_HEADER || logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) }
   }
 }
 

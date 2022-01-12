@@ -20,6 +20,7 @@ import com.android.ddmlib.Log.LogLevel.INFO
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatMessage
 import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
@@ -49,6 +50,16 @@ class LogcatFilterTest {
       override fun matches(message: LogcatMessageWrapper) = message.logCatMessage == MESSAGE1
     }
     assertThat(LogcatMasterFilter(filter).filter(listOf(MESSAGE1, MESSAGE2))).containsExactly(MESSAGE1)
+  }
+
+  @Test
+  fun logcatMasterFilter_systemMessages() {
+    val filter = object : LogcatFilter {
+      override fun matches(message: LogcatMessageWrapper) = false
+    }
+    val systemMessage = LogCatMessage(SYSTEM_HEADER, "message")
+
+    assertThat(LogcatMasterFilter(filter).filter(listOf(systemMessage))).containsExactly(systemMessage)
   }
 
   @Test

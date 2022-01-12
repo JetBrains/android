@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.logcat;
 
-import static com.android.ddmlib.Log.LogLevel.INFO;
 import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
 
 import com.android.annotations.concurrency.WorkerThread;
@@ -31,7 +30,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -173,7 +171,7 @@ public final class LogcatReceiver extends AndroidOutputReceiver implements Dispo
     ImmutableList.Builder<LogCatMessage> batchMessages = new ImmutableList.Builder<>();
     for (String line : newLines) {
       if (isSystemLine(line)) {
-        batchMessages.add(new LogCatMessage(new LogCatHeader(INFO, /* pid=*/ 0, /* tid=*/ 0, "System", "Logcat", Instant.EPOCH), line));
+        batchMessages.add(new LogCatMessage(ConstantsKt.SYSTEM_HEADER, line));
         continue;
       }
       line = fixLine(line);

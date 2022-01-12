@@ -75,7 +75,7 @@ class MessageProcessorTest {
     messageProcessor.start()
 
     messageProcessor.onIdle {
-      assertThat(fakeLogcatPresenter.messageBatches).containsExactly((batch1 + batch2).mapMessages())
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly((batch1 + batch2).mapMessages())
     }
   }
 
@@ -97,7 +97,7 @@ class MessageProcessorTest {
 
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
-      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(
         batch1.mapMessages(),
         batch2.mapMessages(),
       ).inOrder()
@@ -126,7 +126,7 @@ class MessageProcessorTest {
 
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
-      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(
         (batch1 + batch2).mapMessages(),
         batch3.mapMessages()
       ).inOrder()
@@ -145,7 +145,7 @@ class MessageProcessorTest {
 
     messageProcessor.onIdle {
       @Suppress("ConvertLambdaToReference") // Calling inOrder() confuses IDEA.
-      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(
         batch1.mapMessages(),
         batch2.mapMessages(),
       ).inOrder()
@@ -162,7 +162,7 @@ class MessageProcessorTest {
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {
-      assertThat(fakeLogcatPresenter.messageBatches).containsExactly(listOf(message2).mapMessages())
+      assertThat(fakeLogcatPresenter.lineBatches).containsExactly(listOf(message2).mapMessages())
     }
   }
 

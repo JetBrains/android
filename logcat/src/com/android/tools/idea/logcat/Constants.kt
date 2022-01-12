@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.ddmlib.Log.LogLevel.INFO
+import com.android.ddmlib.logcat.LogCatHeader
 import com.intellij.openapi.util.Key
+import java.time.Instant
 
 /**
  * Bucket for various global constants
@@ -24,3 +27,6 @@ import com.intellij.openapi.util.Key
 internal val TAGS_PROVIDER_KEY = Key<TagsProvider>("TagProvider")
 
 internal val PACKAGE_NAMES_PROVIDER_KEY = Key<PackageNamesProvider>("PackageNamesProvider")
+
+@JvmField
+internal val SYSTEM_HEADER = LogCatHeader(INFO, 0, 0, "", "", Instant.EPOCH)

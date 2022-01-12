@@ -31,7 +31,11 @@ import java.util.concurrent.Executors
 /**
  * Starts a background thread that reads logcat messages and sends them back to the caller.
  */
-internal class DeviceManagerDdmLib(device: IDevice, logcatPresenter: LogcatPresenter) : LogcatDeviceManager(device, logcatPresenter) {
+internal class DeviceManagerDdmLib(
+  device: IDevice,
+  logcatPresenter: LogcatPresenter,
+  packageNamesProvider: PackageNamesProvider
+) : LogcatDeviceManager(device, logcatPresenter, packageNamesProvider) {
 
   private val executor = Executors.newSingleThreadExecutor(
     ThreadFactoryBuilder()
@@ -54,7 +58,6 @@ internal class DeviceManagerDdmLib(device: IDevice, logcatPresenter: LogcatPrese
     })
 
   init {
-    Disposer.register(logcatPresenter, this)
     start()
   }
 
@@ -65,7 +68,8 @@ internal class DeviceManagerDdmLib(device: IDevice, logcatPresenter: LogcatPrese
       val filename = System.getProperty("studio.logcat.debug.readFromFile")
       if (filename != null && SystemInfo.isUnix) {
         executeDebugLogcatFromFile(filename, logcatReceiver)
-      } else {
+      }
+      else {
         val command = buildLogcatCommand(device)
         device.executeShellCommand(command, logcatReceiver)
       }
@@ -80,9 +84,5 @@ internal class DeviceManagerDdmLib(device: IDevice, logcatPresenter: LogcatPrese
     ApplicationManager.getApplication().assertIsNonDispatchThread()
 
     device.executeShellCommand("logcat -c", LoggingReceiver(thisLogger()))
-  }
-
-  @AnyThread
-  override fun dispose() {
   }
 }

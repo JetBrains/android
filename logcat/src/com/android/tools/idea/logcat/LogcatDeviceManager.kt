@@ -15,19 +15,35 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import java.io.File
 
 /**
  * Abstraction over the execution of the `logcat` command, forwarding its output to [logcatPresenter].
  */
-internal abstract class LogcatDeviceManager(val device: IDevice, val logcatPresenter: LogcatPresenter) : Disposable {
+internal abstract class LogcatDeviceManager(
+  val device: IDevice,
+  val logcatPresenter: LogcatPresenter,
+  packageNamesProvider: PackageNamesProvider
+) : Disposable {
+
+  private val clientListener = ProjectAppMonitor(logcatPresenter, packageNamesProvider, device)
+
+  init {
+    @Suppress("LeakingThis") // Passing "this" to Disposer in constructor is safe because the dispose method is final.
+    Disposer.register(logcatPresenter, this)
+    AndroidDebugBridge.addDeviceChangeListener(clientListener)
+    AndroidDebugBridge.addClientChangeListener(clientListener)
+  }
 
   /**
    * Clears the `logcat` buffer on the device. This is a blocking call that succeeds when the underlying `logcat -c` command
@@ -36,13 +52,24 @@ internal abstract class LogcatDeviceManager(val device: IDevice, val logcatPrese
   @WorkerThread
   abstract fun clearLogcat()
 
+  @AnyThread
+  final override fun dispose() {
+    AndroidDebugBridge.removeDeviceChangeListener(clientListener)
+    AndroidDebugBridge.removeClientChangeListener(clientListener)
+  }
+
   companion object {
-    fun create(project: Project, device: IDevice, logcatPresenter: LogcatPresenter): LogcatDeviceManager {
+    fun create(
+      project: Project,
+      device: IDevice,
+      logcatPresenter: LogcatPresenter,
+      packageNamesProvider: PackageNamesProvider
+    ): LogcatDeviceManager {
       return if (StudioFlags.ADBLIB_MIGRATION_LOGCAT_V2.get()) {
-        DeviceManagerAdbLib(project, device, logcatPresenter)
+        DeviceManagerAdbLib(project, device, logcatPresenter, packageNamesProvider)
       }
       else {
-        DeviceManagerDdmLib(device, logcatPresenter)
+        DeviceManagerDdmLib(device, logcatPresenter, packageNamesProvider)
       }
     }
 

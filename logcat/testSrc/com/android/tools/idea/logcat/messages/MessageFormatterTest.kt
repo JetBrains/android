@@ -24,6 +24,7 @@ import com.android.ddmlib.Log.LogLevel.VERBOSE
 import com.android.ddmlib.Log.LogLevel.WARN
 import com.android.ddmlib.logcat.LogCatHeader
 import com.android.ddmlib.logcat.LogCatMessage
+import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
@@ -407,7 +408,7 @@ class MessageFormatterTest {
     messageFormatter.formatMessages(
       textAccumulator,
       listOf(
-        LogCatMessage(LogCatHeader(WARN, 1, 2, appName = "", tag = "", Instant.EPOCH), "message"),
+        LogCatMessage(SYSTEM_HEADER, "message"),
       ))
 
     assertThat(textAccumulator.text).isEqualTo("message\n")

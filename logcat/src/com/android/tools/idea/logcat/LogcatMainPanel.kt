@@ -161,7 +161,7 @@ internal class LogcatMainPanel(
           Disposer.dispose(it)
         }
         document.setText("")
-        deviceManager = LogcatDeviceManager.create(project, device, this@LogcatMainPanel)
+        deviceManager = LogcatDeviceManager.create(project, device, this@LogcatMainPanel, packageNamesProvider)
       }
 
       @UiThread
