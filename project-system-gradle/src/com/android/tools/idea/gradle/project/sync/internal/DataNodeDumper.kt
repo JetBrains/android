@@ -77,7 +77,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
     is JavaModuleModel -> "\n" + """
       isBuildable = ${isBuildable}
       languageLevel = ${javaLanguageLevel}
-      buildFolderPath = ${buildFolderPath}
       contentRoots = ${contentRoots}
       javaModuleDependencies = ${javaModuleDependencies}
       jarLibraryDependencies = ${jarLibraryDependencies}

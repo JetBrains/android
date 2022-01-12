@@ -163,16 +163,6 @@ public class JavaModuleModel implements ModuleModel {
     return myArtifactsByConfiguration;
   }
 
-  @Nullable
-  public ExtIdeaCompilerOutput getCompilerOutput() {
-    return myCompilerOutput;
-  }
-
-  @Nullable
-  public File getBuildFolderPath() {
-    return myBuildFolderPath;
-  }
-
   @NotNull
   public Collection<JavaModuleDependency> getJavaModuleDependencies() {
     return myJavaModuleDependencies;
