@@ -127,28 +127,28 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testSafeArgsVersionInLiteral() {
     writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInLiteral"))
-    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))
     processor.run()
 
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInLiteral"))
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInLiteralExpected"))
   }
 
   @Test
   fun testSafeArgsVersionInInterpolatedVariable() {
     writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInInterpolatedVariable"))
-    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))
     processor.run()
 
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInInterpolatedVariable"))
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInInterpolatedVariableExpected"))
   }
 
   @Test
   fun testSafeArgsVersionInDsl() {
     writeToBuildFile(TestFileName("GradlePlugins/SafeArgsVersionInDsl"))
-    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))
     processor.run()
 
-    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInDsl"))
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/SafeArgsVersionInDslExpected"))
   }
 
   @Test
