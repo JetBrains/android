@@ -27,7 +27,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -57,8 +57,9 @@ import java.util.concurrent.TimeUnit
 private const val MIN_PORT = 15050
 private const val MAX_PORT = 15099
 private const val DEVICE_PATH_BASE = "/data/local/tmp"
-private const val SCREEN_SHARING_AGENT_APK_NAME = "screen-sharing-agent.jar"
+private const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 private const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
+private const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/emulator/screen-sharing-agent"
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -158,40 +159,49 @@ internal class DeviceClient(
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
-    val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
     val soFile: Path
-    val apkFile: Path
-    if (project.name == "Screen Sharing Agent") {
+    val jarFile: Path
+    if (StudioPathManager.isRunningFromSources()) {
       // Development environment.
-      val projectDir = project.guessProjectDir()?.toNioPath() ?:
-                       Paths.get(StudioPathManager.getSourcesRoot()).resolve("tools/adt/idea/emulator/screen-sharing-agent")
-      val facet = project.allModules().firstNotNullResult { AndroidFacet.getInstance(it) }
-      val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
-      val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-releaze-unsigned.apk"
-      soFile = projectDir.resolve(
-          "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
-      apkFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
+      val projectDir = project.guessProjectDir()?.toNioPath()
+      if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
+        // Development environment for the screen sharing agent.
+        // Use the agent built by running "Build > Make Project" in Studio.
+        val facet = project.allModules().firstNotNullResult { AndroidFacet.getInstance(it) }
+        val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
+        val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-releaze-unsigned.apk"
+        soFile = projectDir.resolve(
+            "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
+      }
+      else {
+        // Development environment for Studio.
+        // Use the agent built by running "bazel build //tools/adt/idea/emulator/screen-sharing-agent:bundle"
+        val binDir = Paths.get(StudioPathManager.getBinariesRoot())
+        soFile = binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/native/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        jarFile = binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME")
+      }
     }
     else {
       // Installed Studio.
-      val studioHome = Paths.get(PathManager.getHomePath())
-      soFile = studioHome.resolve("plugins/android/screen-sharing-agent/$deviceAbi/libscreen-sharing-agent.so")
-      apkFile = studioHome.resolve("plugins/android/screen-sharing-agent/screen-sharing-agent.jar")
+      val pluginDir = PluginPathManager.getPluginHome("android").toPath()
+      soFile = pluginDir.resolve("screen-sharing-agent/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+      jarFile = pluginDir.resolve("screen-sharing-agent/$SCREEN_SHARING_AGENT_JAR_NAME")
     }
 
-    // Owner read and write.
     coroutineScope {
+      val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
       val nativeLibraryPushed = async {
         adb.syncSend(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
       }
-      adb.syncSend(deviceSelector, apkFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_APK_NAME", permissions)
+      adb.syncSend(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
     }
   }
 
   private suspend fun startAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
     startAgentTime = System.currentTimeMillis()
-    val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_APK_NAME app_process $DEVICE_PATH_BASE" +
+    val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main --log=debug"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
     // the agent has a chance to terminate gracefully when the client is disposed rather than
