@@ -60,6 +60,7 @@ class CoroutineDebuggerConfigurableProviderTest : LightPlatformTestCase() {
     val configurable = provider.getConfigurables(DebuggerSettingsCategory.GENERAL).first()
     val coroutineDebuggerEnabledCheckBox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
 
+/* b/214269580
     assertTrue(CoroutineDebuggerSettings.isCoroutineDebuggerEnabled())
     assertFalse(coroutineDebuggerEnabledCheckBox.isSelected)
 
@@ -71,6 +72,7 @@ class CoroutineDebuggerConfigurableProviderTest : LightPlatformTestCase() {
     coroutineDebuggerEnabledCheckBox.isSelected = false
     assertTrue(configurable.isModified)
     assertTrue(CoroutineDebuggerSettings.isCoroutineDebuggerEnabled())
+b/214269580 */
 
     configurable.apply()
     assertFalse(configurable.isModified)
