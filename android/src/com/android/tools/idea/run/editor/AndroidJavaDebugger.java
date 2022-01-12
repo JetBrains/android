@@ -22,6 +22,7 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.debug.VMExitedNotifier;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
@@ -52,7 +53,6 @@ import com.intellij.xdebugger.XDebugSession;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -241,21 +241,5 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
-  }
-
-  private static class VMExitedNotifier {
-    @NotNull private final Client myClient;
-    @NotNull private final AtomicBoolean myNeedsToNotify = new AtomicBoolean(true);
-
-    private VMExitedNotifier(@NotNull Client client) {
-      myClient = client;
-    }
-
-    private void notifyClient() {
-      // The atomic boolean guarantees that we only ever notify the Client once.
-      if (myNeedsToNotify.getAndSet(false)) {
-        myClient.notifyVmMirrorExited();
-      }
-    }
   }
 }
