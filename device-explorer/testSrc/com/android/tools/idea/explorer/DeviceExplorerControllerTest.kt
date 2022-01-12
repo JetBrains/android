@@ -424,6 +424,8 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun downloadFileWithEnterKey() {
+    downloadFileSetup()
+
     downloadFile(myFile1) {
 
       // Send a VK_ENTER key event
@@ -435,6 +437,8 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun downloadFileWithMouseClick() {
+    downloadFileSetup()
+
     downloadFile(myFile1) {
       val path = getFileEntryPath(myFile1)
       val pathBounds = checkNotNull(myMockView.tree.getPathBounds(path))
@@ -448,6 +452,8 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun downloadFileLocationWithMouseClick() {
+    downloadFileSetup()
+
     // This saves in the default location for test
     downloadFile(myFile1) {
       val path = getFileEntryPath(myFile1)
@@ -524,10 +530,7 @@ class DeviceExplorerControllerTest {
   @Test
   fun changeActiveDeviceDuringFileDownload() {
     // Prepare
-    val controller = createController()
-    controller.setup()
-    pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
-    checkMockViewInitialState(controller, myDevice1)
+    downloadFileSetup()
 
     // Start file download.
     downloadFile(myFile1) {
@@ -690,6 +693,8 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun fileSystemTree_ContextMenu_Open_Works() {
+    downloadFileSetup()
+
     downloadFile(myFile1) {
       val actionGroup = myMockView.fileTreeActionGroup
       val action = getActionByText(actionGroup, "Open")
@@ -711,6 +716,8 @@ class DeviceExplorerControllerTest {
 
   @Test
   fun fileSystemTree_ContextMenu_SaveFileAs_Works() {
+    downloadFileSetup()
+
     val tempFile = FileUtil.createTempFile("foo", "bar")
     downloadFile(myFile1) {
 
@@ -1761,7 +1768,7 @@ class DeviceExplorerControllerTest {
     )
   }
 
-  private fun downloadFile(file: MockDeviceFileEntry, trigger: Runnable): VirtualFile {
+  private fun downloadFileSetup() {
     // Prepare
     val controller = createController()
 
@@ -1769,6 +1776,9 @@ class DeviceExplorerControllerTest {
     controller.setup()
     pumpEventsAndWaitForFuture(myMockView.startRefreshTracker.consume())
     checkMockViewInitialState(controller, myDevice1)
+  }
+
+  private fun downloadFile(file: MockDeviceFileEntry, trigger: Runnable): VirtualFile {
     myDevice1.downloadChunkSize = 1000 // download chunks of 1000 bytes at a time
     myDevice1.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
     // Setting the size to 200_000 bytes should force the download to take ~2 seconds,
