@@ -141,6 +141,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_7_1 -> GradleVersion.parse("1.3.20")
         VERSION_7_0_2 -> GradleVersion.parse("1.3.40")
         VERSION_7_2 -> GradleVersion.parse("1.3.40")
+        VERSION_7_3 -> GradleVersion.parse("1.3.40")
         VERSION_FOR_DEV -> GradleVersion.parse("1.3.40")
       }
 
@@ -151,7 +152,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
           GradleVersion.parse("2.0.0")
         // For versions up to Studio Bumblebee / AGP 7.1, this is correct: BaseVariant.getApplicationIdTextResource is deprecated
         // but not removed.
-        VERSION_7_0_2, VERSION_7_2 -> GradleVersion.parse("2.0.0")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3 -> GradleVersion.parse("2.0.0")
         // TODO(xof): At some point, the BaseVariant.getApplicationIdTextResource method will be removed, at which point we would need to
         //  upgrade safeargs to 2.4.0, which contains the fix (see b/159542337, b/172824579).  At the time of writing this comment (June
         //  17, 2021) the fix is in the safeargs 2.4.0-alpha02 release.
@@ -163,14 +164,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> GradleVersion.parse("1.3.1.0")
         VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> GradleVersion.parse("1.4.2.1")
-        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
+        VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
       }
 
     fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("2.0.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
       }
 
     fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
@@ -178,14 +179,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_4_4, VERSION_4_6, VERSION_MIN -> GradleVersion.parse("1.0.0")
         VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> GradleVersion.parse("1.1.0")
         VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.4.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
       }
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> GradleVersion.parse("0.9.3")
         VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("0.10.1")
-        VERSION_7_0_2, VERSION_7_2, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
       }
 
     /**
