@@ -182,11 +182,25 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
       }
 
+    fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.2.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("1.4.1")
+      }
+
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> GradleVersion.parse("0.9.3")
         VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("0.10.1")
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
+      }
+
+    fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("4.0.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3, VERSION_FOR_DEV -> GradleVersion.parse("4.3.10")
       }
 
     /**
@@ -204,6 +218,12 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
       "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
       "de.mannodermaus.android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
+
+      "com.google.gms:google-services" to ::`com-google-gms-google-services-plugin-compatibility-info`,
+      "com.google.gms.google-services" to ::`com-google-gms-google-services-plugin-compatibility-info`,
+
+      "com.google.firebase:perf-plugin" to ::`com-google-firebase-perf-plugin-compatibility-info`,
+      "com.google.firebase.firebase-perf" to ::`com-google-firebase-perf-plugin-compatibility-info`,
 
       "com.google.firebase:firebase-crashlytics-gradle" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
       "com.google.firebase.crashlytics" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,

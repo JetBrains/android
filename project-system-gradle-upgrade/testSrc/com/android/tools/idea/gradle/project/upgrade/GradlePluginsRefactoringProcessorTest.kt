@@ -259,5 +259,22 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("GradlePlugins/GoogleOssLicensesVersionInDslTo700Expected"))
   }
 
+  @Test
+  fun testFirebasePerfVersion() {
+    writeToBuildFile(TestFileName("GradlePlugins/FirebasePerfVersion"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersionExpected"))
+  }
+
+  @Test
+  fun testFirebasePerfVersionInDsl() {
+    writeToBuildFile(TestFileName("GradlePlugins/FirebasePerfVersionInDsl"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("7.1.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/FirebasePerfVersionInDslExpected"))
+  }
 
 }
