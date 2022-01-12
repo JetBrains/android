@@ -47,6 +47,17 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   private val project: Project, textEditor: TextEditor, preview: P, editorName: String) :
   SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
   /**
+   * SplitEditorAction that sets the [layoutSetExplicitly] when the user has clicked the action.
+   * This prevents the tab from being switched automatically once the user has explicitly switch to a specific mode.
+   */
+  private inner class SplitEditorActionDelegate(delegate: SplitEditorAction)
+    : SplitEditorAction(delegate.name, delegate.icon, delegate.delegate, delegate.showDefaultGutterPopup) {
+    override fun onUserSelectedAction() {
+      layoutSetExplicitly = true
+    }
+  }
+
+  /**
    * Whether this editor is active currently or not.
    */
   private var isActive = false
@@ -61,6 +72,22 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
    * the editor will not try to set the preferred layout from the [PreviewRepresentation.preferredInitialVisibility].
    */
   private var layoutSetExplicitly = false
+
+
+  /**
+   * Action that replaces the default "Show Editor" action with one that registers when the user has clicked it explicitly.
+   */
+  private val showEditorAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowEditorAction())
+
+  /**
+   * Action that replaces the default "Show Editor And Preview" action with one that registers when the user has clicked it explicitly.
+   */
+  private var showEditorAndPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowEditorAndPreviewAction())
+
+  /**
+   * Action that replaces the default "Show Preview" action with one that registers when the user has clicked it explicitly.
+   */
+  private var showPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowPreviewAction())
 
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
@@ -148,4 +175,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
       setEditorLayout(layout)
     }
   }
+
+  override fun getShowEditorAction(): SplitEditorAction = showEditorAction
+  override fun getShowEditorAndPreviewAction(): SplitEditorAction = showEditorAndPreviewAction
+  override fun getShowPreviewAction(): SplitEditorAction = showPreviewAction
 }

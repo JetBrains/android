@@ -383,6 +383,7 @@ class CustomViewPreviewRepresentation(
         updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
+      surface.models.forEach { surface.removeModel(it) }
       surface.addAndRenderModel(model).await()
       surface.activate()
 

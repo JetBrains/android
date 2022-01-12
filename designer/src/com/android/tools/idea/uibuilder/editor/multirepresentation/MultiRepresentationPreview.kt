@@ -386,7 +386,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   private class RepresentationsSelector(val parent: MultiRepresentationPreview) :
-    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
+    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()

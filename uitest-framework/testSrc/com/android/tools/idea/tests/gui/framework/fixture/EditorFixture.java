@@ -27,6 +27,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.editor.DesignerEditor;
@@ -38,6 +39,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
@@ -48,6 +50,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -87,6 +90,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -451,20 +456,34 @@ public class EditorFixture {
       }
     );
 
-    List<AnAction> actions = actionToolbar.getActions();
+    List<ToggleAction> actions =
+      actionToolbar.getActions()
+        .stream()
+        .flatMap((action) -> {
+          if (action instanceof DefaultActionGroup) {
+            return Arrays.stream(((DefaultActionGroup)action).getChildren(null));
+          }
+          return Stream.of(action);
+        })
+        .filter(ToggleAction.class::isInstance)
+        .map(ToggleAction.class::cast)
+        .collect(Collectors.toList());
     TestActionEvent e = new TestActionEvent();
-    if (tab == Tab.EDITOR) {
-      ToggleAction textOnly = (ToggleAction)actions.get(0); // Text-only is the first action in the toolbar
-      if (!textOnly.isSelected(e)) {
-        textOnly.setSelected(e, true);
-      }
+    int actionToSelect = -1;
+    switch (tab) {
+      case EDITOR:
+        // Text-only is the first action in the toolbar
+        actionToSelect = 0;
+        break;
+      case DESIGN:
+        // Design is the third action in the toolbar
+        actionToSelect = 2;
+        break;
+      default: fail("Wrong tab action to select " + tab);
     }
-    else {
-      assertSame(Tab.DESIGN, tab);
-      ToggleAction designOnly = (ToggleAction)actions.get(2); // Design-only is the third action in the toolbar
-      if (!designOnly.isSelected(e)) {
-        designOnly.setSelected(e, true);
-      }
+    ToggleAction toggleAction = actions.get(actionToSelect);
+    if (!toggleAction.isSelected(e)) {
+      toggleAction.setSelected(e, true);
     }
     return true;
   }

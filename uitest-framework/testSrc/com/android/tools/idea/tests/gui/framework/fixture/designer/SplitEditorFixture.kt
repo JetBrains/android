@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer
 
+import com.android.tools.adtui.TextAccessors
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
@@ -26,15 +27,18 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.IconLoader
+import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
 import javax.swing.Icon
@@ -45,12 +49,25 @@ import javax.swing.JComponent
  */
 class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEditor>) :
   ComponentFixture<SplitEditorFixture, JComponent>(SplitEditorFixture::class.java, robot, editor.component) {
-  private fun setMode(modeName: String) = robot.click(robot.finder().findByName(target(), modeName))
+  private fun setMode(modeName: String) = findActionButtonByText(modeName).click()
 
   fun setCodeMode() = setMode("Code")
   fun setSplitMode() = setMode("Split")
   fun setDesignMode() = setMode("Design")
 
+  fun setRepresentation(name: String) {
+    val representationSelector = ActionButtonFixture.findByIcon(StudioIcons.LayoutEditor.Palette.LIST_VIEW, robot, target())
+      .waitUntilEnabledAndShowing()
+
+    if (name == TextAccessors.getTextAccessor(representationSelector.target())?.text) return
+
+    representationSelector.click()
+    JPopupMenuFixture(robot, robot.findActivePopupMenu()!!)
+      .menuItem(object: GenericTypeMatcher<ActionMenuItem>(ActionMenuItem::class.java) {
+        override fun isMatching(component: ActionMenuItem): Boolean =component.text == name
+      })
+      .click()
+  }
 
   val designSurface: NlDesignSurfaceFixture
     get() {
