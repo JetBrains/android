@@ -18,8 +18,10 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.DOT_KTS
 import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
 import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.checks.WrongIdDetector
@@ -167,7 +169,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
-      } else if (name == OLD_PROGUARD_FILE || name == FN_PROJECT_PROGUARD_FILE) {
+      } else if (name == OLD_PROGUARD_FILE || name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE) {
         scope = EnumSet.of(Scope.PROGUARD_FILE)
       } else if (GradleFileType.isGradleFile(mainFile)) {
         scope = Scope.GRADLE_SCOPE
@@ -232,7 +234,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       }
       val severity = displayLevel.severity
       val type: ProblemHighlightType =
-        if (issue === DeprecationDetector.ISSUE || issue === GradleDetector.DEPRECATED || issue === GradleDetector.DEPRECATED_CONFIGURATION) {
+        if (issue === DeprecationDetector.ISSUE ||
+            issue === GradleDetector.DEPRECATED ||
+            issue === GradleDetector.DEPRECATED_CONFIGURATION ||
+            issue === DeprecatedSinceApiDetector.ISSUE) {
           ProblemHighlightType.LIKE_DEPRECATED
         } else if (issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT) {
           ProblemHighlightType.ERROR // like unknown symbol
