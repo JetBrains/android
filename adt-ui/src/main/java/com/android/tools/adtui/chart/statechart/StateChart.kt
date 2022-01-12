@@ -36,7 +36,6 @@ import java.awt.geom.Rectangle2D
 import java.util.function.Consumer
 import java.util.function.IntConsumer
 import javax.swing.JList
-import kotlin.math.absoluteValue
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -348,24 +347,18 @@ class StateChart<T>(private val model: StateChartModel<T>,
 
   @VisibleForTesting
   fun itemAtMouse(point: Point): T? = seriesIndexAtMouse(point)?.let { (seriesIndex, i) ->
-    val seriesData = model.series[seriesIndex].series
-    when (i) {
-      in seriesData.indices -> seriesData[i].value
-      else -> {
-        val j = -i - 1 - 1 // take the one to the left of the insertion index
-        if (j in seriesData.indices) seriesData[j].value else null
-      }
-    }
+    model.series[seriesIndex].series.getOrNull(i)?.value
   }
 
   /**
    * Find the item index in the model that corresponds to the mouse position.
    * @return - null if the mouse isn't on any series, or
    *         - a pair of the series index, and the item index within the series.
-   *           The item index is negative if it's an "insertion" index when the item
-   *           with the exact `x` isn't found
+   *           The item index corresponds to the right-most edge that's to the
+   *           mouse's left, or (-1) if the mouse is to the left of all items
    */
-  private fun seriesIndexAtMouse(point: Point): Pair<Int, Int>? {
+  @VisibleForTesting
+  fun seriesIndexAtMouse(point: Point): Pair<Int, Int>? {
     val series = model.series
     if (series.isEmpty()) return null
 
@@ -381,7 +374,10 @@ class StateChart<T>(private val model: StateChartModel<T>,
       val modelMouseX = point.x / scaleX * range + min
       when {
         seriesData.isEmpty() -> null
-        else -> seriesIndex to seriesData.binarySearch { it.x.compareTo(modelMouseX) }
+        else -> seriesIndex to when (val i = seriesData.binarySearch { it.x.compareTo(modelMouseX) }) {
+          in seriesData.indices -> i // mouse right on edge
+          else -> -i - 1 - 1         // mouse to the right of insertion index
+        }
       }
     }
   }
@@ -420,14 +416,10 @@ class StateChart<T>(private val model: StateChartModel<T>,
     val seriesSize = model.series.size
     val scaleX = width.toDouble()
     val scaleY = height.toDouble()
-    val (leftIndex, rightIndex) = when (i) {
-      in seriesDataList.indices -> max(0, i - 2) to min(i + 2, seriesDataList.size - 1)
-      else -> (-i - 1).let { max(0, it - 2) to min(it + 2, seriesDataList.size - 1) }
-    }
 
     // Transform the union of the left and right (or range max) index x values back into view space.
-    val modelXLeft = max(min, seriesDataList[leftIndex].x.toDouble())
-    val modelXRight = min(max, seriesDataList[rightIndex].x.toDouble())
+    val modelXLeft = seriesDataList.getOrNull(i)?.x?.toDouble() ?: min
+    val modelXRight = seriesDataList.getOrNull(i + 1)?.x?.toDouble() ?: max
     val screenXLeft = floor((modelXLeft - min) * scaleX / range)
     val screenYTop = floor(scaleY - (seriesIndex + 1) * scaleY / seriesSize)
     val screenXRight = ceil((modelXRight - min) * scaleX / range)
@@ -462,3 +454,5 @@ class StateChart<T>(private val model: StateChartModel<T>,
       }}
   }
 }
+
+private fun<T: Any> List<T>.getOrNull(i: Int): T? = if (i in indices) get(i) else null

@@ -133,6 +133,32 @@ class StateChartTest {
   }
 
   @Test
+  fun `series at mouse gives right-most index to mouse's left`() {
+    val model = StateChartModel<Long>()
+    fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(0, 2, 4, 6, 8, 10)))
+    model.addSeries(RangedSeries(Range(0.0, 10.0), seriesOf(1, 3, 5, 7, 9)))
+
+    val stateChart = StateChart(model, constColorProvider(Color.PINK)).apply {
+      setSize(100, 100)
+    }
+
+    // --1---3---5---7---9--
+    // 0---2---4---6---8---10
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 25))).isEqualTo(1 to -1)
+    assertThat(stateChart.seriesIndexAtMouse(Point(95, 25))).isEqualTo(1 to 4)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, 25))).isEqualTo(1 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(10, 80))).isEqualTo(0 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(75, 20))).isEqualTo(1 to 3)
+    assertThat(stateChart.seriesIndexAtMouse(Point(75, 80))).isEqualTo(0 to 3)
+
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 200))).isEqualTo(null)
+    assertThat(stateChart.seriesIndexAtMouse(Point(5, 101))).isEqualTo(0 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, -1))).isEqualTo(1 to 0)
+    assertThat(stateChart.seriesIndexAtMouse(Point(25, -100))).isEqualTo(null)
+  }
+
+  @Test
   fun `chart uses custom renderer`() {
     val model = StateChartModel<Long>()
     fun seriesOf(vararg xs: Long) = DataSeries { xs.map { SeriesData(it, it) } }
