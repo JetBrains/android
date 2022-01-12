@@ -113,7 +113,7 @@ class AppInspectionInspectorMetricsTest {
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    waitForCondition(1, TimeUnit.SECONDS) { usages.size == 3 }
+    waitForCondition(10, TimeUnit.SECONDS) { usages.size == 3 }
     assertThat(usages).hasSize(3)
 
     usages[0].studioEvent.let { studioEvent ->
@@ -157,7 +157,7 @@ class AppInspectionInspectorMetricsTest {
     inspectorRule.asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.asyncLaunchLatch.await()
-    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
+    waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
     var rootId = 1L
     val skiaParser = mock<SkiaParser>().also {
       `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
@@ -187,13 +187,13 @@ class AppInspectionInspectorMetricsTest {
     // Now disconnect and reconnect. This should generate another event.
     inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
     inspectorRule.asyncLaunchLatch.await()
-    waitForCondition(1, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
+    waitForCondition(10, TimeUnit.SECONDS) { !inspectorRule.inspectorClient.isConnected }
 
     inspectorRule.asyncLaunchLatch = CountDownLatch(1)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.asyncLaunchLatch.await()
     inspectorRule.asyncLaunchLatch = CountDownLatch(1)
-    waitForCondition(1, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
+    waitForCondition(10, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
     val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
