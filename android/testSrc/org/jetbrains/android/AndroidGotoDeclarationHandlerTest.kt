@@ -41,6 +41,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.dom.AndroidValueResourcesTest
 import org.jetbrains.android.dom.manifest.Manifest
@@ -651,7 +652,8 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       """.trimIndent()
     )
 
-/* b/214263460
+    CodeInsightTestFixtureImpl.ensureIndexesUpToDate(project)
+
     assertEquals(
       """
       AndroidManifest.xml:8:
@@ -667,7 +669,6 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
         .filter { it.isNotEmpty() }
         .joinToString(separator = "\n")
     )
-b/214263460 */
   }
 
   protected fun getDeclarationsFrom(file: VirtualFile): Array<PsiElement> {
