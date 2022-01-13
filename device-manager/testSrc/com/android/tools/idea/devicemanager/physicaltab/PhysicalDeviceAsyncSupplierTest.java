@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
+import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,6 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Future<List<PhysicalDevice>> devicesFuture = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), DeviceManagerFutures.get(devicesFuture));
+    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), TestDeviceManagerFutures.get(devicesFuture));
   }
 }

@@ -33,6 +33,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 final class AsyncVirtualDeviceBuilder {
   private final @NotNull AvdInfo myDevice;
@@ -40,13 +41,18 @@ final class AsyncVirtualDeviceBuilder {
 
   @UiThread
   AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListeningExecutorService service) {
-    myDevice = device;
-    mySizeOnDiskFuture = service.submit(this::recursiveSize);
+    this(device, service.submit(() -> recursiveSize(device)));
   }
 
-  private long recursiveSize() {
+  @VisibleForTesting
+  AsyncVirtualDeviceBuilder(@NotNull AvdInfo device, @NotNull ListenableFuture<@NotNull Long> sizeOnDiskFuture) {
+    myDevice = device;
+    mySizeOnDiskFuture = sizeOnDiskFuture;
+  }
+
+  private static long recursiveSize(@NotNull AvdInfo device) {
     try {
-      return FileUtilKt.recursiveSize(myDevice.getDataFolderPath());
+      return FileUtilKt.recursiveSize(device.getDataFolderPath());
     }
     catch (IOException exception) {
       Logger.getInstance(AsyncVirtualDeviceBuilder.class).warn(exception);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.physicaltab;
+package com.android.tools.idea.devicemanager;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -21,11 +21,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
-final class DeviceManagerFutures {
-  private DeviceManagerFutures() {
+public final class TestDeviceManagerFutures {
+  private TestDeviceManagerFutures() {
   }
 
-  static <V> V get(@NotNull Future<@NotNull V> future) throws InterruptedException, ExecutionException, TimeoutException {
+  public static <V> V get(@NotNull Future<@NotNull V> future) throws InterruptedException, ExecutionException, TimeoutException {
     return future.get(60, TimeUnit.SECONDS);
   }
 }

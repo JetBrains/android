@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Resolution;
+import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,6 +68,6 @@ public final class AsyncDetailsBuilderTest {
       .setResolution(new Resolution(1080, 2160))
       .build();
 
-    assertEquals(device, DeviceManagerFutures.get(future));
+    assertEquals(device, TestDeviceManagerFutures.get(future));
   }
 }
