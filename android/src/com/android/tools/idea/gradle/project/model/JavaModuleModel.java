@@ -164,11 +164,13 @@ public class JavaModuleModel implements ModuleModel {
   }
 
   @NotNull
+  @Deprecated
   public Collection<JavaModuleDependency> getJavaModuleDependencies() {
     return myJavaModuleDependencies;
   }
 
   @NotNull
+  @Deprecated
   public Collection<JarLibraryDependency> getJarLibraryDependencies() {
     return myJarLibraryDependencies;
   }

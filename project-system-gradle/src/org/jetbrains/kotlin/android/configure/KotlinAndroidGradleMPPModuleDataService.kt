@@ -20,7 +20,6 @@ import com.intellij.openapi.externalSystem.service.project.manage.ContentRootDat
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.containers.stream
@@ -140,10 +139,9 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                sourceSet.actualPlatforms.platforms.singleOrNull() != KotlinPlatform.ANDROID
     }
 
-    private fun getDependencyModuleNodes(
+    private fun getAndroidDependencyModuleNodes(
       moduleNode: DataNode<ModuleData>,
       indexedModules: IndexedModules,
-      modelsProvider: IdeModifiableModelsProvider,
       testScope: Boolean
     ): List<DataNode<out ModuleData>> {
         val androidModel = getAndroidModuleModel(moduleNode)
@@ -157,18 +155,6 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 .moduleDependencies
                 .mapNotNull { indexedModules.byId[it.projectPath!!] }
         }
-
-        val javaModel = getJavaModuleModel(moduleNode)
-        if (javaModel != null) {
-            val scope = if (testScope) DependencyScope.TEST.name else DependencyScope.COMPILE.name
-            return javaModel
-                .javaModuleDependencies
-                .filter { scope == (it.scope ?: DependencyScope.COMPILE.name) }
-                .map { it.moduleName }
-                .distinct()
-                .mapNotNull { indexedModules.byIdeName[it] }
-        }
-
         return emptyList()
     }
 
@@ -180,7 +166,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
       testScope: Boolean
     ) {
         if (!isAndroidModule(moduleNode)) return
-        val dependencyModuleNodes = getDependencyModuleNodes(moduleNode, indexedModules, modelsProvider, testScope)
+        val dependencyModuleNodes = getAndroidDependencyModuleNodes(moduleNode, indexedModules, testScope)
         for (dependencyModule in dependencyModuleNodes) {
             val dependencySourceSets = ExternalSystemApiUtil.getChildren(dependencyModule, GradleSourceSetData.KEY)
                 .filter { sourceSet -> sourceSet.kotlinSourceSet?.kotlinModule?.isTestModule == false }

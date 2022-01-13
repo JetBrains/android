@@ -78,8 +78,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       isBuildable = ${isBuildable}
       languageLevel = ${javaLanguageLevel}
       contentRoots = ${contentRoots}
-      javaModuleDependencies = ${javaModuleDependencies}
-      jarLibraryDependencies = ${jarLibraryDependencies}
       artifactsByConfiguration = ${artifactsByConfiguration}
       configurations = ${configurations}
       """.replaceIndent("    ")

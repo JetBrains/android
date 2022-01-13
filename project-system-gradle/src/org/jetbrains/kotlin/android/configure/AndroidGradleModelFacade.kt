@@ -15,25 +15,8 @@ import org.jetbrains.kotlin.idea.inspections.gradle.KotlinGradleModelFacade
 import org.jetbrains.kotlin.idea.inspections.gradle.findModulesByNames
 
 class AndroidGradleModelFacade : KotlinGradleModelFacade {
-    override fun getResolvedKotlinStdlibVersionByModuleData(moduleData: DataNode<*>, libraryIds: List<String>): String? {
-        ExternalSystemApiUtil.findAllRecursively(moduleData, AndroidProjectKeys.JAVA_MODULE_MODEL).asSequence()
-                .flatMap { it.data.jarLibraryDependencies.asSequence() }
-                .forEach {
-                    val libraryName = it.name
-                    for (libraryId in libraryIds) {
-                        val prefix = "$libraryId-"
-                        if (libraryName.startsWith(prefix)) return libraryName.substringAfter(prefix)
-                    }
-                }
-        return null
-    }
-
     override fun getDependencyModules(ideModule: DataNode<ModuleData>, gradleIdeaProject: IdeaProject): Collection<DataNode<ModuleData>> {
         val ideProject = ideModule.parent as DataNode<ProjectData>
-        ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.JAVA_MODULE_MODEL)?.let { javaModuleModel ->
-            val moduleNames = javaModuleModel.data.javaModuleDependencies.map { it.moduleName }.toHashSet()
-            return findModulesByNames(moduleNames, gradleIdeaProject, ideProject)
-        }
         ExternalSystemApiUtil.find(ideModule, AndroidProjectKeys.ANDROID_MODEL)?.let { androidModel ->
             val modules = androidModel.data.mainArtifact.level2Dependencies.moduleDependencies
             val projectIds = modules.mapNotNull { it.projectPath }
