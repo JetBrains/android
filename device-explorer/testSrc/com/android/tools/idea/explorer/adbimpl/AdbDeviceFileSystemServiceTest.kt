@@ -20,42 +20,35 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService.Companion.getInstance
-import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.Futures.immediateFuture
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.io.FileNotFoundException
 import java.util.function.Supplier
 
-class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
+class AdbDeviceFileSystemServiceTest {
+
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.withSdk()
+
+  private val project: Project
+    get() = androidProjectRule.project
+
   private val adbSupplier = Supplier { AndroidSdkUtils.getAdb(project) }
-  private lateinit var ideComponents: IdeComponents
 
-  public override fun setUp() {
-    super.setUp()
-    ideComponents = IdeComponents(project)
-
-    // Setup Android SDK path so that ddmlib can find adb.exe
-    ApplicationManager.getApplication().runWriteAction {
-      ProjectRootManager.getInstance(project).projectSdk = Sdks.createLatestAndroidSdk()
-    }
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    // This assumes that ADB is terminated on project close
-    assertNull("AndroidDebugBridge should have been terminated", AndroidDebugBridge.getBridge())
-  }
-
-  fun testStartService() = runBlocking {
+  @Test
+  fun startService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
@@ -68,7 +61,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(service.devices)
   }
 
-  fun testDebugBridgeListenersRemovedOnDispose() = runBlocking {
+  @Test
+  fun debugBridgeListenersRemovedOnDispose() = runBlocking {
     // Prepare
     val service = getInstance(project)
     service.start(adbSupplier)
@@ -83,7 +77,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertEquals(0, AndroidDebugBridge.getDeviceChangeListenerCount())
   }
 
-  fun testStartAlreadyStartedService() = runBlocking {
+  @Test
+  fun startAlreadyStartedService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
@@ -97,7 +92,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(service.devices)
   }
 
-  fun testStartServiceFailsIfAdbIsNull() {
+  @Test
+  fun startServiceFailsIfAdbIsNull() {
     // Prepare
     val service = getInstance(project)
 
@@ -109,7 +105,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     }
   }
 
-  fun testRestartService() = runBlocking {
+  @Test
+  fun restartService() = runBlocking {
     // Prepare
     val service = getInstance(project)
     service.start(adbSupplier)
@@ -123,7 +120,8 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(service.devices)
   }
 
-  fun testRestartNonStartedService() = runBlocking {
+  @Test
+  fun restartNonStartedService() = runBlocking {
     // Prepare
     val service = getInstance(project)
 
@@ -136,9 +134,10 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     assertNotNull(service.devices)
   }
 
-  fun testRestartServiceCantTerminateDdmlib() = runBlocking {
+  @Test
+  fun restartServiceCantTerminateDdmlib() = runBlocking {
     // Prepare
-    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mock()))
 
     Mockito.doThrow(RuntimeException()).`when`(mockAdbService).terminateDdmlib()
@@ -154,10 +153,11 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     Mockito.doNothing().`when`(mockAdbService).terminateDdmlib()
   }
 
-  fun testGetDebugBridgeFailure() {
+  @Test
+  fun getDebugBridgeFailure() {
     // Prepare
     val service = getInstance(project)
-    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException("test fail")))
 
     assertThrows(RuntimeException::class.java, "test fail") {
@@ -165,10 +165,11 @@ class AdbDeviceFileSystemServiceTest : AndroidTestCase() {
     }
   }
 
-  fun testGetDebugBridgeFailureNoMessage() {
+  @Test
+  fun getDebugBridgeFailureNoMessage() {
     // Prepare
     val service = getInstance(project)
-    val mockAdbService = ideComponents.mockApplicationService(AdbService::class.java)
+    val mockAdbService = androidProjectRule.mockService(AdbService::class.java)
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFailedFuture(RuntimeException()))
 
     // Act
