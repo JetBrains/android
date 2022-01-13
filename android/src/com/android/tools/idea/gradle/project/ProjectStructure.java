@@ -21,13 +21,14 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -39,10 +40,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class ProjectStructure {
   @NotNull private final Project myProject;
@@ -81,9 +84,21 @@ public class ProjectStructure {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     Module[] modules = moduleManager.getModules();
-    Queue<Module> leafModules = new ConcurrentLinkedQueue<>(Arrays.asList(modules));
-
     ModuleFinder moduleFinder = new ModuleFinder(myProject);
+
+
+    Set<Module> accessibleModules = Arrays.stream(modules)
+      .filter(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, it))
+      .flatMap(it -> Arrays.stream(ModuleRootManager.getInstance(it).getDependencies()))
+      .collect(Collectors.toSet());
+
+    List<Module> leafModules =
+      Arrays.stream(modules)
+        .filter(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, it))
+        .filter(it -> !accessibleModules.contains(it) || isAppOrFeature(it))
+        .map(ModuleSystemUtil::getHolderModule)
+        .distinct()
+        .collect(Collectors.toList());
 
     for (Module module : modules) {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
@@ -98,20 +113,6 @@ public class ProjectStructure {
             appModules.add(module);
           }
         }
-        else {
-          JavaFacet javaFacet = JavaFacet.getInstance(module);
-          if (javaFacet != null && !javaFacet.getConfiguration().BUILDABLE) {
-            // Remove module not "buildable" from "leaf" modules.
-            leafModules.remove(module);
-          }
-        }
-        ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        // Remove all dependencies, except 'app' or 'dynamic-feature' modules
-        leafModules.removeAll(Arrays.stream(rootManager.getDependencies()).filter(m -> !isAppOrFeature(m)).collect(Collectors.toList()));
-      }
-      else {
-        // Remove non-Gradle modules from "leaf" modules.
-        leafModules.remove(module);
       }
     }
 
