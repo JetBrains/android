@@ -40,8 +40,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindowId
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
@@ -235,7 +233,7 @@ class BuildAttributionUiManagerImpl(
         }
         uiAnalytics.registerOpenEventSource(eventSource)
         contentManager!!.setSelectedContent(buildContent!!, true, true)
-        ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD)!!.show {}
+        BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
       }
     }
   }
