@@ -223,8 +223,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       }
       else {
         parentPsiElement.addAfter(lineTerminator, addedElement);
-        GrClosableBlock parentBlock = (GrClosableBlock)parentPsiElement;
-        if (parentBlock.getRBrace() != null && !hasNewLineBetween(parentBlock.getLBrace(), parentBlock.getRBrace())) {
+        if (closableBlockNeedsNewline((GrClosableBlock)parentPsiElement)) {
           parentPsiElement.addBefore(lineTerminator, addedElement);
         }
       }

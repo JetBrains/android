@@ -1113,14 +1113,16 @@ public final class GroovyDslUtil {
     return parent != null && parent.getPsiElement() == null;
   }
 
-  static boolean hasNewLineBetween(@NotNull PsiElement start, @NotNull PsiElement end) {
-    assert start.getParent() == end.getParent() && start.getStartOffsetInParent() <= end.getStartOffsetInParent();
+  static boolean closableBlockNeedsNewline(@NotNull GrClosableBlock block) {
+    PsiElement start = block.getLBrace();
+    PsiElement end = block.getRBrace();
+    if (end == null) return false;
     for (PsiElement element = start; element != end; element = element.getNextSibling()) {
       if (element.getNode().getElementType().equals(GroovyTokenTypes.mNLS)) {
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   static List<GradleReferenceInjection> findInjections(@NotNull GradleDslSimpleExpression context,
