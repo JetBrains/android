@@ -24,12 +24,11 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
 import java.lang.Math.max
 import java.util.Locale
@@ -41,8 +40,7 @@ class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
   private val devBuildHome: File = File(PathManager.getCommunityHomePath()),
-  private val kotlinPlugin: File? =
-    PluginManager.getInstance().findEnabledPlugin(PluginId.findId("org.jetbrains.kotlin")!!)?.pluginPath?.toFile(),
+  private val kotlinPlugin: File? = KotlinArtifacts.instance.kotlincDirectory,
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val gradleCache: File = getGradleCacheLocation()

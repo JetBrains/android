@@ -920,7 +920,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>/kotlinc
+            HomePath                      : <KOTLIN_PATH>
             VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : kotlinMultiPlatform.module2.commonTest
@@ -986,7 +986,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      : <KOTLIN_PATH>/kotlinc
+            HomePath                      : <KOTLIN_PATH>
             VersionString                 : <KOTLIN_SDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
