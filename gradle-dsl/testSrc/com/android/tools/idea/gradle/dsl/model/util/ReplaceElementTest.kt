@@ -49,15 +49,11 @@ class ReplaceElementTest : TransformTestCase() {
     holder.addParsedExpression(oldElement)
     val newElement = createLiteral("reference")
     newElement.setValue(RawText("fakeRef", "fakeRef"))
-    try {
-      replaceElement(holder, oldElement, newElement)
-/* b/214275823
-      fail()
-b/214275823 */
-    }
-    catch (e: AssertionError) {
-      // Expected
-    }
+    replaceElement(holder, oldElement, newElement)
+    assertThat(holder.arguments.size, equalTo(1))
+    assertThat(holder.arguments, hasItem(newElement))
+    assertThat(newElement.parent, equalTo(holder.argumentsElement as GradleDslElement))
+    assertThat(newElement.parent?.parent, equalTo(holder as GradleDslElement))
   }
 
   @Test
