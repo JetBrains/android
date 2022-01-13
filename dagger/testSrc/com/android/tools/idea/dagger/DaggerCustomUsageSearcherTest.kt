@@ -481,10 +481,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(provider)
-/* b/214263356
     assertThat(presentation).contains(
       """
-      | Usages in Project Files (4)
       |  Consumers (4)
       |   ${module.name} (4)
       |    example (4)
@@ -501,7 +499,6 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |       8@Provides String provider(MyProvider consumer) {}
       """.trimMargin()
     )
-b/214263356 */
   }
 
   fun testDaggerComponentMethods() {
@@ -538,10 +535,8 @@ b/214263356 */
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(componentMethod)
 
-/* b/214263356
     assertThat(presentation).contains(
       """
-      | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
       |    test (1)
@@ -550,17 +545,14 @@ b/214263356 */
       |       6@Inject public MyClass() {}
       """.trimMargin()
     )
-b/214263356 */
 
     myFixture.configureFromExistingVirtualFile(classFile)
     val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
-/* b/214263356
     assertThat(presentation).contains(
       """
-      | Usages in Project Files (1)
       |  Exposed by components (1)
       |   ${module.name} (1)
       |    test (1)
@@ -569,7 +561,6 @@ b/214263356 */
       |       6MyClass getMyClass();
       """.trimMargin()
     )
-b/214263356 */
   }
 
   fun testEntryPointMethodsForProvider() {
@@ -604,10 +595,8 @@ b/214263356 */
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(entryPointMethod)
 
-/* b/214263356
     assertThat(presentation).contains(
       """
-      | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
       |    test (1)
@@ -616,7 +605,6 @@ b/214263356 */
       |       6@Inject public MyClass() {}
       """.trimMargin()
     )
-b/214263356 */
 
     myFixture.configureFromExistingVirtualFile(classFile)
     val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
