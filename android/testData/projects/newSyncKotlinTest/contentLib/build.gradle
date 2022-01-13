@@ -38,6 +38,5 @@ compileKotlin {
         suppressWarnings = true
         verbose = true
         allWarningsAsErrors = false
-        noReflect = false
     }
 }
