@@ -2,6 +2,7 @@ load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
@@ -666,18 +667,9 @@ def android_studio(
     )
 
 def _intellij_plugin_impl(ctx):
-    infos = []
-    for jar in ctx.files.jars:
-        ijar = java_common.run_ijar(
-            actions = ctx.actions,
-            jar = jar,
-            java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
-        )
-        infos.append(JavaInfo(
-            output_jar = jar,
-            compile_jar = ijar,
-        ))
-    plugin_info = _check_plugin(ctx, ctx.files.jars)
+    infos = [export[JavaInfo] for export in ctx.attr.exports]
+    jar_files = _jars_from_java_infos(infos)
+    plugin_info = _check_plugin(ctx, jar_files)
     return struct(
         providers = [java_common.merge(infos)],
         plugin_info = plugin_info,
@@ -685,8 +677,7 @@ def _intellij_plugin_impl(ctx):
 
 _intellij_plugin = rule(
     attrs = {
-        "jars": attr.label_list(allow_files = True),
-        "_java_toolchain": attr.label(default = Label("@bazel_tools//tools/jdk:current_java_toolchain")),
+        "exports": attr.label_list(providers = [JavaInfo]),
         "_check_plugin": attr.label(
             default = Label("//tools/adt/idea/studio:check_plugin"),
             cfg = "host",
@@ -864,17 +855,11 @@ def intellij_platform(
     )
 
     for plugin, jars in spec.plugin_jars.items():
-        add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
-        add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
-        add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
-
+        jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
+        _gen_plugin_jars_import_target(jars_target_name, src, spec, plugin, jars)
         _intellij_plugin(
             name = name + "-plugin-%s" % plugin,
-            jars = select({
-                "//tools/base/bazel:windows": [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows],
-                "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin],
-                "//conditions:default": [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux],
-            }),
+            exports = [":" + jars_target_name],
             visibility = ["//visibility:public"],
         )
 
@@ -883,3 +868,28 @@ def intellij_platform(
         jars = [src + "/updater-full.jar"],
         visibility = ["//visibility:public"],
     )
+
+def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
+    """Generates a jvm_import target for the specified plugin."""
+    add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
+    jars_windows = [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows]
+    add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
+    jars_darwin = [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin]
+    add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
+    jars_linux = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux]
+
+    jvm_import(
+        name = name,
+        jars = select({
+            "//tools/base/bazel:windows": jars_windows,
+            "//tools/base/bazel:darwin": jars_darwin,
+            "//conditions:default": jars_linux,
+        }),
+    )
+
+def _jars_from_java_infos(java_infos):
+    """Returns a list of the direct output jars from JavaInfo."""
+    jars = []
+    for info in java_infos:
+        jars.extend([java_out.class_jar for java_out in info.outputs.jars])
+    return jars
