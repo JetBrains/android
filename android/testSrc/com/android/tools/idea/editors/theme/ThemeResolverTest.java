@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.GradleVersion;
@@ -29,7 +28,7 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;

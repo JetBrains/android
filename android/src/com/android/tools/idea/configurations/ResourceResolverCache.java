@@ -31,7 +31,7 @@ import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;

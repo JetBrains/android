@@ -33,7 +33,7 @@ import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.rendering.Locale
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
+import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
