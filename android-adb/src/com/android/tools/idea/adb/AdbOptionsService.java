@@ -19,11 +19,13 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.util.SmartList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class AdbOptionsService {
+@Service
+public final class AdbOptionsService {
   /**
    * Default user managed adb port. Same as {@link #USER_MANAGED_ADB_PORT_MIN_VALUE}.
    */
