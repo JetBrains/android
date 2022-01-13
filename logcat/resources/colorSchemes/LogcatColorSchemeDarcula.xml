@@ -16,49 +16,79 @@
 <list>
   <option name="LOGCAT_V2_LEVEL_VERBOSE">
     <value>
-      <option name="FOREGROUND" value="ffffff"/>
-      <option name="BACKGROUND" value="000000"/>
+      <option name="FOREGROUND" value="000000"/>
+      <option name="BACKGROUND" value="d6d6d6"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_DEBUG">
     <value>
-      <option name="FOREGROUND" value="ffffff"/>
-      <option name="BACKGROUND" value="589df6"/>
+      <option name="FOREGROUND" value="e9f5e6"/>
+      <option name="BACKGROUND" value="6a8759"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_INFO">
     <value>
-      <option name="FOREGROUND" value="000000"/>
-      <option name="BACKGROUND" value="629655"/>
+      <option name="FOREGROUND" value="bbbbbb"/>
+      <option name="BACKGROUND" value="305d78"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_WARNING">
     <value>
       <option name="FOREGROUND" value="000000"/>
-      <option name="BACKGROUND" value="ffc800"/>
+      <option name="BACKGROUND" value="bbb529"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_ERROR">
     <value>
-      <option name="FOREGROUND" value="ffffff"/>
-      <option name="BACKGROUND" value="ff6464"/>
+      <option name="FOREGROUND" value="000000"/>
+      <option name="BACKGROUND" value="cf5b56"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_ASSERT">
     <value>
       <option name="FOREGROUND" value="ffffff"/>
-      <option name="BACKGROUND" value="ff6464"/>
+      <option name="BACKGROUND" value="8b3c3c"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_V2_MESSAGE_VERBOSE">
+    <value>
+      <option name="FOREGROUND" value="bbbbbb"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_V2_MESSAGE_DEBUG">
+    <value>
+      <option name="FOREGROUND" value="bbbbbb"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_V2_MESSAGE_INFO">
+    <value>
+      <option name="FOREGROUND" value="bbbbbb"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_MESSAGE_WARNING">
     <value>
-      <option name="FOREGROUND" value="ffc800"/>
+      <option name="FOREGROUND" value="bbb529"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_V2_MESSAGE_ERROR">
+    <value>
+      <option name="FOREGROUND" value="ff6b68"/>
+    </value>
+  </option>
+
+  <option name="LOGCAT_V2_MESSAGE_ASSERT">
+    <value>
+      <option name="FOREGROUND" value="ff6b68"/>
     </value>
   </option>
 </list>

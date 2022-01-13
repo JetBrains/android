@@ -19,8 +19,6 @@ import com.android.ddmlib.Log
 import com.android.ddmlib.Log.LogLevel
 import com.android.tools.adtui.common.ColorPaletteManager
 import com.google.gson.Gson
-import com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT_KEY
-import com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT_KEY
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.jetbrains.rd.util.concurrentMapOf
@@ -98,13 +96,12 @@ internal class LogcatColors {
       LogLevel.ASSERT to LEVEL_ASSERT_KEY,
     )
 
-    val MESSAGE_VERBOSE_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_VERBOSE", NORMAL_OUTPUT_KEY)
-    val MESSAGE_DEBUG_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_DEBUG", NORMAL_OUTPUT_KEY)
-    val MESSAGE_INFO_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_INFO", NORMAL_OUTPUT_KEY)
-    // ConsoleViewContentType.LOG_WARNING_OUTPUT doesn't seem to be set up, so we use our own colors from the xml in resources/colorSchemes.
+    val MESSAGE_VERBOSE_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_VERBOSE")
+    val MESSAGE_DEBUG_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_DEBUG")
+    val MESSAGE_INFO_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_INFO")
     val MESSAGE_WARNING_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_WARNING")
-    val MESSAGE_ERROR_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ERROR", ERROR_OUTPUT_KEY)
-    val MESSAGE_ASSERT_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ASSERT", ERROR_OUTPUT_KEY)
+    val MESSAGE_ERROR_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ERROR")
+    val MESSAGE_ASSERT_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ASSERT")
 
     private val MESSAGE_KEYS = mapOf(
       LogLevel.VERBOSE to MESSAGE_VERBOSE_KEY,
