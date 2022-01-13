@@ -38,3 +38,7 @@ Access to unresolved class com.intellij.ide.wizard.BuildSystemWithSettings
 Access to unresolved class com.intellij.util.DeprecatedMethodException
 Access to unresolved field com.intellij.openapi.ui.TextComponentAccessor.*
 Invocation of unresolved method com.intellij.ide.util.projectWizard.WizardContext.getWizard.*
+
+// IDEA 213.4293.20
+Invocation of unresolved method org.jetbrains.plugins.gradle.execution.test.runner.TestTasksChooser.chooseTestTasks.*
+Invocation of unresolved method org.jetbrains.plugins.gradle.util.GradleExecutionSettingsUtil.createTestFilterFrom.*

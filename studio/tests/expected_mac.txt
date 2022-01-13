@@ -497,10 +497,10 @@ Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/kotlin-reflect.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-943.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-943.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-943.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-943.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-945.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-945.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-945.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-945.jar
 Android Studio Preview.app/Contents/lib/kotlin-test.jar
 Android Studio Preview.app/Contents/lib/kotlinx.jar
 Android Studio Preview.app/Contents/lib/openapi.jar
@@ -2355,9 +2355,9 @@ Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgro
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Orange_Sunset.webp
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Stream.webp
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/backgrounds/scenic/Yosemite_Tree.webp
-Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/arm64-v8a/libscreen-sharing-agent.so
 Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/armeabi-v7a/libscreen-sharing-agent.so
+Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
 Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/x86/libscreen-sharing-agent.so
 Android Studio Preview.app/Contents/plugins/android/resources/screen-sharing-agent/x86_64/libscreen-sharing-agent.so
 Android Studio Preview.app/Contents/plugins/android/resources/simpleperf/arm64-v8a/simpleperf
@@ -2876,6 +2876,11 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/json/package.js
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/json/package.nls.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/json/syntaxes/JSON.tmLanguage.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/json/syntaxes/JSONC.tmLanguage.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/jsp/LICENSE
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/jsp/README.md
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/jsp/jsp-configuration.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/jsp/package.json
+Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/jsp/syntaxes/jsp.tmLanguage.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/cgmanifest.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/language-configuration.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/package.json

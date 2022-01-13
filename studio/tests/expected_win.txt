@@ -57,6 +57,7 @@ android-studio/bin/studio.ico
 android-studio/bin/studio.svg
 android-studio/bin/studio64.exe
 android-studio/bin/studio64.exe.vmoptions
+android-studio/bin/wslproxy
 android-studio/build.txt
 android-studio/jre/bin/attach.dll
 android-studio/jre/bin/awt.dll
@@ -509,10 +510,10 @@ android-studio/lib/jps-model.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
 android-studio/lib/kotlin-reflect.jar
-android-studio/lib/kotlin-stdlib-1.5.10-release-943.jar
-android-studio/lib/kotlin-stdlib-common-1.5.10-release-943.jar
-android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-943.jar
-android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-943.jar
+android-studio/lib/kotlin-stdlib-1.5.10-release-945.jar
+android-studio/lib/kotlin-stdlib-common-1.5.10-release-945.jar
+android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-945.jar
+android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-945.jar
 android-studio/lib/kotlin-test.jar
 android-studio/lib/kotlinx.jar
 android-studio/lib/openapi.jar
@@ -1781,9 +1782,9 @@ android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Open_Sky.
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Orange_Sunset.webp
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Stream.webp
 android-studio/plugins/android/resources/sampleData/backgrounds/scenic/Yosemite_Tree.webp
-android-studio/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
 android-studio/plugins/android/resources/screen-sharing-agent/arm64-v8a/libscreen-sharing-agent.so
 android-studio/plugins/android/resources/screen-sharing-agent/armeabi-v7a/libscreen-sharing-agent.so
+android-studio/plugins/android/resources/screen-sharing-agent/screen-sharing-agent.jar
 android-studio/plugins/android/resources/screen-sharing-agent/x86/libscreen-sharing-agent.so
 android-studio/plugins/android/resources/screen-sharing-agent/x86_64/libscreen-sharing-agent.so
 android-studio/plugins/android/resources/simpleperf/arm64-v8a/simpleperf
@@ -2304,6 +2305,11 @@ android-studio/plugins/textmate/lib/bundles/json/package.json
 android-studio/plugins/textmate/lib/bundles/json/package.nls.json
 android-studio/plugins/textmate/lib/bundles/json/syntaxes/JSON.tmLanguage.json
 android-studio/plugins/textmate/lib/bundles/json/syntaxes/JSONC.tmLanguage.json
+android-studio/plugins/textmate/lib/bundles/jsp/LICENSE
+android-studio/plugins/textmate/lib/bundles/jsp/README.md
+android-studio/plugins/textmate/lib/bundles/jsp/jsp-configuration.json
+android-studio/plugins/textmate/lib/bundles/jsp/package.json
+android-studio/plugins/textmate/lib/bundles/jsp/syntaxes/jsp.tmLanguage.json
 android-studio/plugins/textmate/lib/bundles/julia/cgmanifest.json
 android-studio/plugins/textmate/lib/bundles/julia/language-configuration.json
 android-studio/plugins/textmate/lib/bundles/julia/package.json
