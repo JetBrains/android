@@ -1,3 +1,0 @@
-dependencies {
-  implementation("com.example:baz:1.0")
-}

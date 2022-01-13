@@ -663,24 +663,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     removePropertyInternal(property);
   }
 
-  /**
-   * Marks the given {@code element} for removal.
-   *
-   * Note that it removes the element from all its holders, not just the one this is called on (usually, but not always, its parent).
-   *
-   * @param element the element to remove.
-   */
   public void removeProperty(@NotNull GradleDslElement element) {
     removePropertyInternal(element);
-    for (GradlePropertiesDslElement holder : element.getHolders()) {
-      if (this != holder) {
-        holder.removePropertyInternal(element);
-      }
-    }
-    GradleDslElement parent = element.getParent();
-    if (this != parent && parent instanceof GradlePropertiesDslElement) {
-      ((GradlePropertiesDslElement)parent).removePropertyInternal(element);
-    }
   }
 
   @Override
@@ -864,15 +848,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     throw new IllegalStateException("Element not found in parent");
   }
 
-  void updateAppliedState(@NotNull GradleDslElement element) {
-    for (ElementList.ElementItem item : myProperties.myElements) {
-      if (item.myElement == element) {
-        if (item.myElementState == APPLIED) item.myElementState = TO_BE_ADDED;
-        return;
-      }
-    }
-    throw new IllegalStateException("Element not found in parent");
-  }
   /**
    * Class to deal with retrieving the correct property for a given context. It manages whether
    * or not variable types should be returned along with coordinating a number of properties
