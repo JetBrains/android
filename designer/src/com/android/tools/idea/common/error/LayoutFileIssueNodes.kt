@@ -32,7 +32,6 @@ import com.intellij.ui.tree.TreeVisitor
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
 import java.util.Objects
-import javax.swing.JComponent
 import javax.swing.tree.TreePath
 
 /**
@@ -105,10 +104,6 @@ class LayoutFileIssueNode(val fileData: IssuedFileData, val issue: Issue, parent
   override fun getName() = text
 
   override fun getVirtualFile() = fileData.file
-
-  override fun detailPanel(): JComponent {
-    return DesignerCommonIssueDetailPanel(issue)
-  }
 
   override fun getChildren(): Collection<DesignerCommonIssueNode> = emptySet()
 

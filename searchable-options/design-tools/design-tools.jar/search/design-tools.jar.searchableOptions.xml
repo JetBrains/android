@@ -109,6 +109,11 @@
     <option name="data" path="ActionManager" hit="Sample Data Directory" />
     <option name="directory" path="ActionManager" hit="Sample Data Directory" />
     <option name="sample" path="ActionManager" hit="Sample Data Directory" />
+    <option name="filters" path="ActionManager" hit="Severity Filters of Issue Panel" />
+    <option name="issue" path="ActionManager" hit="Severity Filters of Issue Panel" />
+    <option name="of" path="ActionManager" hit="Severity Filters of Issue Panel" />
+    <option name="panel" path="ActionManager" hit="Severity Filters of Issue Panel" />
+    <option name="severity" path="ActionManager" hit="Severity Filters of Issue Panel" />
     <option name="help" path="ActionManager" hit="Show Help Panel" />
     <option name="panel" path="ActionManager" hit="Show Help Panel" />
     <option name="show" path="ActionManager" hit="Show Help Panel" />
@@ -118,6 +123,12 @@
     <option name="navigation" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
     <option name="panel" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
     <option name="show" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="detail" path="ActionManager" hit="Show Issue Detail" />
+    <option name="issue" path="ActionManager" hit="Show Issue Detail" />
+    <option name="show" path="ActionManager" hit="Show Issue Detail" />
+    <option name="fixes" path="ActionManager" hit="Show Quick Fixes" />
+    <option name="quick" path="ActionManager" hit="Show Quick Fixes" />
+    <option name="show" path="ActionManager" hit="Show Quick Fixes" />
     <option name="editor" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="for" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="help" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />

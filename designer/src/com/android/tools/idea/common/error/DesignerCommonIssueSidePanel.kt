@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.idea.common.error.IssueView.FixEntry
 import com.android.utils.HtmlBuilder
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBHtmlEditorKit
@@ -36,9 +42,35 @@ import javax.swing.text.html.HTMLEditorKit
 import javax.swing.text.html.StyleSheet
 
 /**
+ * The side panel to show the detail of issue and its source code if available
+ */
+class DesignerCommonIssueSidePanel(private val project: Project, issue: Issue, private val file: VirtualFile) : JPanel(BorderLayout()) {
+
+  private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
+  val editor: Editor?
+
+  init {
+    splitter.firstComponent = DesignerCommonIssueDetailPanel(issue)
+
+    editor = createEditor()
+    if (editor != null) {
+      splitter.secondComponent = editor.component
+      splitter.setResizeEnabled(true)
+    }
+    add(splitter, BorderLayout.CENTER)
+  }
+
+  private fun createEditor(): Editor? {
+    val document = ProblemsView.getDocument(project, file) ?: return null
+    return EditorFactory.getInstance().createEditor(document, project, EditorKind.PREVIEW)
+  }
+}
+
+
+/**
  * The side panel to show the details of issue detail in [DesignerCommonIssuePanel].
  */
-class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout()) {
+private class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout()) {
   private val content = JPanel(BorderLayout())
   private val sourceLabel: JLabel = JLabel()
   private val errorTitle: JBLabel = JBLabel()
@@ -96,7 +128,7 @@ class DesignerCommonIssueDetailPanel(issue: Issue) : JPanel(BorderLayout()) {
   }
 
   private fun createFixEntry(fix: Issue.Fix) {
-    fixPanel.add(FixEntry(fix.buttonText, fix.description, fix.runnable))
+    fixPanel.add(IssueView.FixEntry(fix.buttonText, fix.description, fix.runnable))
   }
 
   private fun updateImageSize(html: String, size: Int): String {

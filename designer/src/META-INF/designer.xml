@@ -167,6 +167,23 @@
       <add-to-group group-id="Android.Designer.ToolsActions"/>
     </group>
 
+    <group id="Android.Designer.IssuePanel.ToolbarActions">
+      <group id="Android.Designer.IssuePanel.ViewOptions" text="View Options" icon="AllIcons.Actions.Show" popup="true">
+        <action id="Android.Designer.IssuePanel.SeverityFilter"
+                class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
+                text="Severity Filters of Issue Panel"/>
+      </group>
+      <action id="Android.Designer.IssuePanel.ToggleIssueDetailAction"
+              text="Show Issue Detail"
+              icon="AllIcons.Actions.PreviewDetails"
+              class="com.android.tools.idea.common.error.ToggleIssueDetailAction"/>
+      <action id="Android.Designer.IssuePanel.QuickFixes"
+              text="Show Quick Fixes"
+              icon="AllIcons.Actions.IntentionBulb"
+              use-shortcut-of="ShowIntentionActions"
+              class="com.android.tools.idea.common.error.ShowQuickFixesAction"/>
+    </group>
+
     <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
     </action>

@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile
 
 interface DesignerCommonIssueProvider<T> {
   val source: T
+  var filter: (Issue) -> Boolean
   fun getIssues(file: IssuedFileData): List<Issue>
   fun getIssuedFileDataList(): List<IssuedFileData>
 
@@ -32,6 +33,9 @@ data class IssuedFileData(val file: VirtualFile, val source: Any?)
 
 object EmptyIssueProvider : DesignerCommonIssueProvider<Any?> {
   override val source: Any? = null
+  override var filter: (Issue) -> Boolean
+    get() = { true }
+    set(_) {}
   override fun getIssues(file: IssuedFileData): List<Issue> = emptyList()
   override fun getIssuedFileDataList(): List<IssuedFileData> = emptyList()
 }
@@ -42,8 +46,15 @@ object EmptyIssueProvider : DesignerCommonIssueProvider<Any?> {
 class IssueModelProvider(private val issueModel: IssueModel, private val file: VirtualFile, private val onRemovedTask: () -> Unit = {})
   : DesignerCommonIssueProvider<IssueModel> {
   override val source: IssueModel = issueModel
+  private var _filter: (Issue) -> Boolean = { true }
+  override var filter: (Issue) -> Boolean
+    get() = _filter
+    set(value) {
+      _filter = value
+    }
+
   override fun getIssues(file: IssuedFileData): List<Issue> {
-    return if (file.source == issueModel) issueModel.issues else emptyList()
+    return if (file.source == issueModel) issueModel.issues.filter(filter).toList() else emptyList()
   }
 
   override fun getIssuedFileDataList(): List<IssuedFileData> = listOf(IssuedFileData(file, issueModel))

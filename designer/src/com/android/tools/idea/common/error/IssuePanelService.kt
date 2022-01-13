@@ -363,6 +363,10 @@ class IssuePanelService(private val project: Project) {
     return null
   }
 
+  fun getSelectedSharedIssuePanel(): DesignerCommonIssuePanel? {
+    return if (sharedIssueTab?.isSelected == true) sharedIssuePanel else null
+  }
+
   companion object {
     @JvmStatic
     fun getInstance(project: Project): IssuePanelService = project.getService(IssuePanelService::class.java)
