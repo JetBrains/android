@@ -281,23 +281,15 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
-
-    // Check appearance.
-    var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(430, 450)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
 
-    // Check Wear1ButtonAction.
-    val button = ui.getComponent<ActionButton> { it.action.templateText == "First" }
-    ui.mouseClickOn(button)
-    val call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Home"""")
+    // Check toolbar buttons.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "First" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNotNull()
 
     // Check that the buttons not applicable to Wear OS 3 are hidden.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNull()
@@ -308,11 +300,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
 
-    // Check that the buttons not applicable to API < 30 are hidden.
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
-
+    val streamScreenshotCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
@@ -327,16 +315,15 @@ class EmulatorToolWindowPanelTest {
     assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
-
-    // Check appearance.
-    var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(430, 450)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 320 height: 320")
+
+    // Check that the buttons specific to Wear OS 3 are hidden.
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "First" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
 
     // The device doesn't run Wear OS 3. Check that regular toolbar buttons are present.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Power" }).isNotNull()
@@ -347,12 +334,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Home" }).isNotNull()
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNotNull()
 
-    // Check that the buttons specific to Wear OS 3 are hidden.
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "First" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Second" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
-    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Tilt" }).isNull()
-
+    val streamScreenshotCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
     streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
