@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditConfig
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -171,7 +172,7 @@ class AndroidLiveEditCodeGenerator {
     // TODO: Resolve this using the project itself, somehow.
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, "app_debug")
 
-    val useComposeIR = StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_USE_EMBEDDED_COMPILER.get();
+    val useComposeIR = LiveEditConfig.getInstance().useEmbeddedCompiler
     if (useComposeIR) {
       // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
       compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
