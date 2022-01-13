@@ -37,6 +37,8 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
 import com.android.tools.idea.explorer.ui.TreeUtil
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.ClipboardSynchronizer
@@ -62,14 +64,24 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.UIBundle
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.ui.tree.TreeModelAdapter
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.awt.Component
@@ -78,7 +90,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
-import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Arrays
@@ -100,7 +111,19 @@ import javax.swing.tree.TreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
-class DeviceExplorerControllerTest : AndroidTestCase() {
+@RunsInEdt
+class DeviceExplorerControllerTest {
+
+  // We need to use a heavy fixture (i.e. on disk) so that the project gets disposed
+  // at the end; otherwise, some state will be left over and interfere with other tests.
+  // (Specifically, the DeviceNamePropertiesFetcher.DeviceChangeListener will remain in
+  // AndroidDebugBridge.)
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+
+  private val project: Project
+    get() = androidProjectRule.project
+
   private lateinit var myModel: DeviceExplorerModel
   private lateinit var myMockView: MockDeviceExplorerView
   private lateinit var myMockService: MockDeviceFileSystemService
@@ -123,8 +146,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
   private lateinit var myTaskExecutor: FutureCallbackExecutor
   private var myTearingDown = false
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
     myModel = object : DeviceExplorerModel() {
@@ -164,21 +187,18 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     myDevice2.root.addFile("foo2File2.txt")
   }
 
-  override fun tearDown() {
-    try {
-      myTearingDown = true
-      RepaintManager.setCurrentManager(null)
-      if (myInitialTestDialog != null) {
-        TestDialogManager.setTestDialog(myInitialTestDialog)
-      }
-      if (myInitialTestInputDialog != null) {
-        TestDialogManager.setTestInputDialog(myInitialTestInputDialog)
-      }
-      Disposer.dispose(myMockFileManager)
-      ClipboardSynchronizer.getInstance().resetContent()
-    } finally {
-      super.tearDown()
+  @After
+  fun tearDown() {
+    myTearingDown = true
+    RepaintManager.setCurrentManager(null)
+    if (myInitialTestDialog != null) {
+      TestDialogManager.setTestDialog(myInitialTestDialog)
     }
+    if (myInitialTestInputDialog != null) {
+      TestDialogManager.setTestInputDialog(myInitialTestInputDialog)
+    }
+    Disposer.dispose(myMockFileManager)
+    ClipboardSynchronizer.getInstance().resetContent()
   }
 
   private fun injectRepaintManagerMock() {
@@ -187,7 +207,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     RepaintManager.setCurrentManager(myMockRepaintManager)
   }
 
-  fun testControllerIsSetAsProjectKey() {
+  @Test
+  fun controllerIsSetAsProjectKey() {
     // Prepare
     val controller = createController()
 
@@ -195,7 +216,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(controller, getProjectController(project))
   }
 
-  fun testStartController() {
+  @Test
+  fun startController() {
     // Prepare
     val controller = createController()
 
@@ -207,7 +229,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewInitialState(controller, myDevice1)
   }
 
-  fun testStartControllerFailure() = runBlocking {
+  @Test
+  fun startControllerFailure() = runBlocking {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
@@ -223,7 +246,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(setupErrorMessage))
   }
 
-  fun testStartControllerUnexpectedFailure() = runBlocking {
+  @Test
+  fun startControllerUnexpectedFailure() = runBlocking {
     // Prepare
     val service = mock<DeviceFileSystemService<*>>()
     `when`(service.start(any())).thenThrow(RuntimeException())
@@ -238,7 +262,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains("Error initializing ADB"))
   }
 
-  fun testRestartController() {
+  @Test
+  fun restartController() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -253,7 +278,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewInitialState(controller, myDevice1)
   }
 
-  fun testRestartControllerFailure() = runBlocking  {
+  @Test
+  fun restartControllerFailure() = runBlocking  {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
@@ -271,7 +297,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(setupErrorMessage))
   }
 
-  fun testGetDevicesFailure() = runBlocking {
+  @Test
+  fun getDevicesFailure() = runBlocking {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     val service = mock<DeviceFileSystemService<*>>()
@@ -287,7 +314,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(errorMessage))
   }
 
-  fun testGetRootDirectoryFailure() {
+  @Test
+  fun getRootDirectoryFailure() {
     // Prepare
     val setupErrorMessage = "<Unique error message>"
     myDevice1.rootDirectoryError = RuntimeException(setupErrorMessage)
@@ -304,7 +332,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(errorMessage.contains(setupErrorMessage))
   }
 
-  fun testExpandChildren() {
+  @Test
+  fun expandChildren() {
     // Prepare
     val controller = createController()
 
@@ -348,7 +377,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(fooPath.lastPathComponent, nodeExpandedPath.lastPathComponent)
   }
 
-  fun testExpandChildrenFailure() {
+  @Test
+  fun expandChildrenFailure() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -364,16 +394,15 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
 
     // Assert
     val fooNode = getFileEntryPath(myFoo).lastPathComponent
-    checkNotNull(fooNode)
-    assertInstanceOf(fooNode, TreeNode::class.java)
+    assertThat(fooNode).isInstanceOf(TreeNode::class.java)
     assertTrue((fooNode as TreeNode).childCount == 1)
-    val errorNode: Any = fooNode.getChildAt(0)
-    checkNotNull(errorNode)
-    assertInstanceOf(errorNode, ErrorNode::class.java)
+    val errorNode = fooNode.getChildAt(0)
+    assertThat(errorNode).isInstanceOf(ErrorNode::class.java)
     assertEquals(errorMessage, (errorNode as ErrorNode).text)
   }
 
-  fun testOpenNodeInEditorDoesNothingForSymlinkToDirectory() {
+  @Test
+  fun openNodeInEditorDoesNothingForSymlinkToDirectory() {
     val mockFileManager: DeviceExplorerFileManager = Mockito.spy(myMockFileManager)
     val controller = createController(
       myMockView,
@@ -393,7 +422,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     Mockito.verifyNoMoreInteractions(mockFileManager)
   }
 
-  fun testDownloadFileWithEnterKey() {
+  @Test
+  fun downloadFileWithEnterKey() {
     downloadFile(myFile1) {
 
       // Send a VK_ENTER key event
@@ -403,7 +433,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
   }
 
-  fun testDownloadFileWithMouseClick() {
+  @Test
+  fun downloadFileWithMouseClick() {
     downloadFile(myFile1) {
       val path = getFileEntryPath(myFile1)
       val pathBounds = checkNotNull(myMockView.tree.getPathBounds(path))
@@ -415,7 +446,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
   }
 
-  fun testDownloadFileLocationWithMouseClick() {
+  @Test
+  fun downloadFileLocationWithMouseClick() {
     // This saves in the default location for test
     downloadFile(myFile1) {
       val path = getFileEntryPath(myFile1)
@@ -426,10 +458,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
     var downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
-    assertTrue(
-      FileUtil.toSystemIndependentName(downloadPath.toString())
-        .endsWith("device-explorer-temp/TestDevice-1/file1.txt")
-    )
+    assertThat(downloadPath.systemIndependentPath)
+        .endsWith(myDownloadLocation.get().systemIndependentPath + "/TestDevice-1/file1.txt")
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     val changedPath = FileUtil.createTempDirectory("device-explorer-temp-2", "", true).toPath()
@@ -445,13 +475,11 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
     downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
-    assertTrue(
-      FileUtil.toSystemIndependentName(downloadPath.toString())
-        .endsWith("device-explorer-temp-2/TestDevice-1/file1.txt")
-    )
+    assertThat(downloadPath.systemIndependentPath).endsWith("device-explorer-temp-2/TestDevice-1/file1.txt")
   }
 
-  fun testDownloadFileFailure() {
+  @Test
+  fun downloadFileFailure() {
     // Prepare
     val controller = createController()
 
@@ -478,7 +506,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(loadingError.contains(errorMessage))
   }
 
-  fun testChangeActiveDevice() {
+  @Test
+  fun changeActiveDevice() {
     // Prepare
     val controller = createController()
 
@@ -492,7 +521,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewActiveDevice(myDevice2)
   }
 
-  fun testChangeActiveDeviceDuringFileDownload() {
+  @Test
+  fun changeActiveDeviceDuringFileDownload() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -519,7 +549,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
   }
 
-  fun testUpdateActiveDeviceState() {
+  @Test
+  fun updateActiveDeviceState() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -546,7 +577,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     )
   }
 
-  fun testSetActiveDeviceFromSerialNumber() {
+  @Test
+  fun setActiveDeviceFromSerialNumber() {
     // Prepare
     val controller = createController()
 
@@ -560,7 +592,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewActiveDevice(myDevice2)
   }
 
-  fun testSetActiveDeviceFromSerialNumberNotFound() {
+  @Test
+  fun setActiveDeviceFromSerialNumberNotFound() {
     // Prepare
     val controller = createController()
 
@@ -577,7 +610,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewActiveDevice(myDevice1)
   }
 
-  fun testAddDevice() {
+  @Test
+  fun addDevice() {
     // Prepare
     val controller = createController()
 
@@ -603,7 +637,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(3, myMockView.deviceCombo.itemCount)
   }
 
-  fun testRemoveActiveDevice() {
+  @Test
+  fun removeActiveDevice() {
     // Prepare
     val controller = createController()
 
@@ -629,7 +664,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkMockViewActiveDevice(myDevice2)
   }
 
-  fun testFileSystemTree_ContextMenu_Items_Present() {
+  @Test
+  fun fileSystemTree_ContextMenu_Items_Present() {
     // Prepare
     val controller = createController()
 
@@ -652,7 +688,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     actions.forEach  { it.update(e) }
   }
 
-  fun testFileSystemTree_ContextMenu_Open_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Open_Works() {
     downloadFile(myFile1) {
       val actionGroup = myMockView.fileTreeActionGroup
       val action = getActionByText(actionGroup, "Open")
@@ -672,7 +709,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
   }
 
-  fun testFileSystemTree_ContextMenu_SaveFileAs_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_SaveFileAs_Works() {
     val tempFile = FileUtil.createTempFile("foo", "bar")
     downloadFile(myFile1) {
 
@@ -692,7 +730,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
           }
         }
       }
-      ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+      ApplicationManager.getApplication().replaceService(
+        FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
       // Invoke "Save As..." content menu
       val actionGroup = myMockView.fileTreeActionGroup
@@ -717,7 +756,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(200000, tempFile.length())
   }
 
-  fun testFileSystemTree_ContextMenu_SaveDirectoryAs_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_SaveDirectoryAs_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -755,7 +795,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -775,7 +816,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
       listOf(myFooFile1, myFooFile2, myFooLink1, myFooDir).map { it.name })
   }
 
-  fun testFileSystemTree_ContextMenu_SaveMultipleFilesAs_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_SaveMultipleFilesAs_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -817,7 +859,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -836,7 +879,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertThat(files.map { it.name }).containsExactlyElementsIn(listOf(myFooFile1, myFooFile2).map { it.name })
   }
 
-  fun testFileSystemTree_ContextMenu_SaveDirectoryAs_ShowsProblems() {
+  @Test
+  fun fileSystemTree_ContextMenu_SaveDirectoryAs_ShowsProblems() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -879,7 +923,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Act
     myMockView.startTreeBusyIndicatorTacker.clear()
@@ -905,7 +950,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertTrue(createdFiles.any { it.name == myFooDir.name })
   }
 
-  fun testFileSystemTree_ContextMenu_New_IsHiddenForFiles() {
+  @Test
+  fun fileSystemTree_ContextMenu_New_IsHiddenForFiles() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -920,7 +966,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkContextMenuItemVisible("New/Directory", false)
   }
 
-  fun testFileSystemTree_ContextMenu_New_IsVisibleForDirectories() {
+  @Test
+  fun fileSystemTree_ContextMenu_New_IsVisibleForDirectories() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -936,7 +983,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkContextMenuItemVisible("New/Directory", true)
   }
 
-  fun testFileSystemTree_ContextMenu_NewFile_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_NewFile_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -967,7 +1015,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertNotNull(newChild)
   }
 
-  fun testFileSystemTree_ContextMenu_NewDirectory_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_NewDirectory_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -998,7 +1047,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     checkNotNull(newChild)
   }
 
-  fun testFileSystemTree_ContextMenu_NewDirectory_ExistingPath_Fails() {
+  @Test
+  fun fileSystemTree_ContextMenu_NewDirectory_ExistingPath_Fails() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -1037,7 +1087,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertNull(newChild)
   }
 
-  fun testFileSystemTree_ContextMenu_CopyPath_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_CopyPath_Works() {
     // Prepare
     val controller = createController()
 
@@ -1066,7 +1117,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals("/" + myFile1.name, contents.getTransferData(DataFlavor.stringFlavor))
   }
 
-  fun testFileSystemTree_ContextMenu_CopyPaths_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_CopyPaths_Works() {
     // Prepare
     val controller = createController()
 
@@ -1101,7 +1153,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     )
   }
 
-  fun testFileSystemTree_ContextMenu_Delete_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Delete_Works() {
     // Prepare
     val controller = createController()
 
@@ -1135,7 +1188,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(2, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Delete_ShowProblems() {
+  @Test
+  fun fileSystemTree_ContextMenu_Delete_ShowProblems() {
     // Prepare
     val controller = createController()
 
@@ -1178,7 +1232,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(3, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Upload_SingleFile_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Upload_SingleFile_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -1210,7 +1265,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Assert
     assertTrue(e.presentation.isVisible)
@@ -1233,7 +1289,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(5, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Upload_SingleFile_Cancellation_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Upload_SingleFile_Cancellation_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -1263,12 +1320,13 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Give ourselves time to cancel
     myDevice1.uploadChunkIntervalMillis = 30_000
 
-    // Start the upload; verify that a long-running operation is present
+    // Start the upload verify that a long-running operation is present
     myMockView.startTreeBusyIndicatorTacker.clear()
     myMockView.stopTreeBusyIndicatorTacker.clear()
     action.actionPerformed(e)
@@ -1276,14 +1334,15 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertThat(controller.checkLongRunningOperationAllowed()).isFalse()
 
     // Cancel upload
-    myMockView.cancelTransfer();
+    myMockView.cancelTransfer()
     pumpEventsAndWaitForFuture(myMockView.stopTreeBusyIndicatorTacker.consume())
 
     // Verify that a long-running operation is no longer present
     assertThat(controller.checkLongRunningOperationAllowed()).isTrue()
   }
 
-  fun testFileSystemTree_DropFile_SingleFile_Works() {
+  @Test
+  fun fileSystemTree_DropFile_SingleFile_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -1337,7 +1396,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(5, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() {
     // Prepare
     val controller = createController()
 
@@ -1377,7 +1437,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Assert
     assertTrue(e.presentation.isVisible)
@@ -1400,7 +1461,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(6, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Upload_ShowsProblems() {
+  @Test
+  fun fileSystemTree_ContextMenu_Upload_ShowsProblems() {
     // Prepare
     val controller = createController()
 
@@ -1434,7 +1496,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(
+      FileChooserFactory::class.java, factory, androidProjectRule.testRootDisposable)
 
     // Ensure file upload fails
     myDevice1.uploadError = AdbShellCommandException("Permission error")
@@ -1460,7 +1523,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertEquals(4, fooNode.childCount)
   }
 
-  fun testFileSystemTree_ContextMenu_Synchronize_Works() {
+  @Test
+  fun fileSystemTree_ContextMenu_Synchronize_Works() {
     // Prepare
     val controller = createController()
     controller.setup()
@@ -1514,15 +1578,17 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     )
   }
 
-  fun testTreeNodeOrder() {
+  @Test
+  fun treeNodeOrder() {
     val comparator = CustomComparator({ s -> s }, { s: String -> s.startsWith("D") })
-    val l: List<String?> = ArrayList(Arrays.asList(null, "Dir3", "B1", "AbC", "abD", null, "Dir1", "DiR2"))
+    val l: List<String?> = listOf(null, "Dir3", "B1", "AbC", "abD", null, "Dir1", "DiR2")
     assertThat(l.sortedWith(comparator))
       .containsExactly(null, null, "Dir1", "DiR2", "Dir3", "AbC", "abD", "B1")
       .inOrder()
   }
 
-  fun testOpenFileInEditorFailure() {
+  @Test
+  fun openFileInEditorFailure() {
     // Prepare
     val controller = createController()
 
@@ -1547,7 +1613,8 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     assertThat(loadingError).contains(errorMessage)
   }
 
-  fun testCustomFileOpenerIsCalled() {
+  @Test
+  fun customFileOpenerIsCalled() {
     // Prepare
     val openPath = arrayOf<Path?>(null)
     val controller = createController(fileOpener = { localPath -> openPath[0] = localPath })
@@ -1694,7 +1761,7 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     )
   }
 
-  fun downloadFile(file: MockDeviceFileEntry, trigger: Runnable): VirtualFile {
+  private fun downloadFile(file: MockDeviceFileEntry, trigger: Runnable): VirtualFile {
     // Prepare
     val controller = createController()
 
@@ -1706,7 +1773,7 @@ class DeviceExplorerControllerTest : AndroidTestCase() {
     myDevice1.downloadChunkIntervalMillis = 10 // wait 10 millis between each 1000 bytes chunk
     // Setting the size to 200_000 bytes should force the download to take ~2 seconds,
     // i.e. 200 chunks of 1000 bytes at 100 chunks per second.
-    // This allows use to cover the code that animates nodes UI during download.
+    // This allows us to cover the code that animates nodes UI during download.
     file.size = 200000
 
     // Select node
