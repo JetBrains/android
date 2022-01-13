@@ -63,10 +63,10 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
         override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow, event.newFile)
       }
     )
+  }
 
-    // set up initial availability
-    toolWindow.isAvailable = FileEditorManager.getInstance(project).selectedEditors
-      .any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
+  override fun shouldBeAvailable(project: Project): Boolean {
+    return FileEditorManager.getInstance(project).selectedEditors.any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
   }
 
   /**
