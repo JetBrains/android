@@ -280,7 +280,7 @@ public final class BuildAnalyzerShowActionTest {
 
     button.doClick();
 
-    verify(myBuildInvoker).assemble(any(), eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));
     verify(myBuildAttributionUiManagerMock).requestOpenTabWhenDataReady(eq(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON));
   }
 

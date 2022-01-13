@@ -196,6 +196,13 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     )
   }
 
+  override fun assemble(testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult> {
+    val modules = ProjectStructure.getInstance(project).leafModules.toTypedArray().takeUnless { it.isEmpty() }
+      // If there is no Android modules an invocation of `assemble` below  will still fail but provide a notification to the user.
+      ?: ModuleManager.getInstance(project).modules
+    return assemble(modules, testCompileType)
+  }
+
   override fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult> {
     val buildMode = ASSEMBLE
     val tasks: ListMultimap<Path, String> = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType)
