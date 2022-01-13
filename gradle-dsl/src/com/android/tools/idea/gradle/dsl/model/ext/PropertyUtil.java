@@ -89,10 +89,10 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslMethodCall) {
-      assert newElement instanceof GradleDslExpression;
+      if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + newElement);
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
       if (oldElement != null) {
-        assert oldElement instanceof GradleDslExpression;
+        if (!(oldElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + oldElement);
         methodCall.replaceArgument((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
       }
       else {

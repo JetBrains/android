@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -82,7 +79,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     addNewElementAt(index, expression);
   }
 
-  @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
   public void removeElement(@NotNull GradleDslElement element) {
     super.removeProperty(element);
   }
@@ -95,7 +91,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     return expressions.get(index);
   }
 
-  @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
   public int findIndexOf(@NotNull GradleDslElement element) {
     List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
     for (int i = 0; i < expressions.size(); i++) {
@@ -184,32 +179,32 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
 
   @Override
   public void setParsedElement(@NotNull GradleDslElement element) {
-    assert element instanceof GradleDslExpression;
+    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
     super.setParsedElement(element);
   }
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    assert element instanceof GradleDslExpression;
+    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
     super.addParsedElement(element);
   }
 
   @Override
   public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
-    assert element instanceof GradleDslExpression;
+    if (!(element instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + element);
     super.addToParsedExpressionList(property, element);
   }
 
   @NotNull
   @Override
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    assert newElement instanceof GradleDslExpression;
+    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + newElement);
     return super.setNewElement(newElement);
   }
 
   @Override
   public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
-    assert newElement instanceof GradleDslExpression;
+    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression: " + newElement);
     List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
     if (index > expressions.size()) {
       throw new IndexOutOfBoundsException(index + " is out of bounds for size " + expressions.size());
@@ -220,7 +215,8 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   @NotNull
   @Override
   public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
-    assert newElement instanceof GradleDslExpression && oldElement instanceof GradleDslExpression;
+    if (!(oldElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression (old): " + oldElement);
+    if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("Not an expression (new): " + newElement);
     return super.replaceElement(oldElement, newElement);
   }
 
