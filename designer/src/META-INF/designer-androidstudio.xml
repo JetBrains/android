@@ -14,6 +14,14 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+
+  <!--suppress PluginXmlValidity -->
+    <applicationInitializedListener id="Startup.AndroidDisableFloatingSplitSelector"
+                                  implementation="com.android.tools.idea.initialization.AndroidDisableFloatingSplitSelector"/>
+
+  </extensions>
+
   <actions>
     <action
         id="LayoutEditor.HelpAssistant"
