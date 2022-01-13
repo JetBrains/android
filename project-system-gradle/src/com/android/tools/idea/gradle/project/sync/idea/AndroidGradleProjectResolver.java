@@ -195,8 +195,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
 
-  private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
-
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY");
 
@@ -818,12 +816,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
   private boolean isAndroidGradleProject() {
-    Boolean isAndroidGradleProject = resolverCtx.getUserData(IS_ANDROID_PROJECT_KEY);
-    if (isAndroidGradleProject != null) {
-      return isAndroidGradleProject;
-    }
-    isAndroidGradleProject = resolverCtx.hasModulesWithModel(IdeAndroidModels.class);
-    return resolverCtx.putUserDataIfAbsent(IS_ANDROID_PROJECT_KEY, isAndroidGradleProject);
+    return resolverCtx.hasModulesWithModel(IdeAndroidModels.class);
   }
 
   @Override
