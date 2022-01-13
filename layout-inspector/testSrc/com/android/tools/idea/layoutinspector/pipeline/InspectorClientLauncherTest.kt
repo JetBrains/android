@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
+import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.google.common.truth.Truth.assertThat
@@ -36,17 +40,29 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 class InspectorClientLauncherTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
+  private val projectRule = ProjectRule()
+  private val adbRule = FakeAdbRule().withDeviceCommandHandler(FakeShellCommandHandler())
+  private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   @get:Rule
-  val projectRule = ProjectRule()
+  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule).around(adbService)!!
+
+  @Before
+  fun before() {
+    for (device in setOf(MODERN_DEVICE, LEGACY_DEVICE)) {
+      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
+                           DeviceState.HostConnectionType.USB)
+    }
+  }
 
   @Test
   fun initialInspectorLauncherStartsWithDisconnectedClient() {
@@ -373,14 +389,25 @@ class InspectorClientLauncherTest {
 }
 
 class InspectorClientLauncherMetricsTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
-  val projectRule = ProjectRule()
 
   @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
+
+  private val disposableRule = DisposableRule()
+  private val projectRule = ProjectRule()
+  private val adbRule = FakeAdbRule().withDeviceCommandHandler(FakeShellCommandHandler())
+  private val adbService = AdbServiceRule(projectRule::project, adbRule)
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule).around(adbService)!!
+
+
+  @Before
+  fun before() {
+    val device = MODERN_DEVICE
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString(),
+                         DeviceState.HostConnectionType.USB)
+  }
 
   @Test
   fun attachRequestOnlyLoggedOnce() {

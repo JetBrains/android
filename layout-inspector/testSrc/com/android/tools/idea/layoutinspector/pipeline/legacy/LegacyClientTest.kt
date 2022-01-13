@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -59,6 +60,10 @@ class LegacyClientTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(disposableRule)!!
 
+  @Before
+  fun setUp() {
+    inspectorRule.attachDevice(LEGACY_DEVICE)
+  }
 
   @Test
   fun testReloadAllWindows() {

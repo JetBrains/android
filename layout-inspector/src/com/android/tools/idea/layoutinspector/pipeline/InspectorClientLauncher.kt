@@ -242,7 +242,7 @@ class InspectorClientLauncher(
           field = value
         }
         clientChangedCallbacks.forEach { callback -> callback(value) }
-        value.connect()
+        value.connect(project)
       }
     }
 

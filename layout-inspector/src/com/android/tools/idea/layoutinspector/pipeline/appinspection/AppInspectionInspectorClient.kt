@@ -53,6 +53,7 @@ import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
@@ -164,6 +165,10 @@ class AppInspectionInspectorClient(
     }
     scope.launch(exceptionHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+
+      // Create the app inspection connection now, so we can log that it happened.
+      apiServices.attachToProcess(process, model.project.name)
+      launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
       composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, launchMonitor)
       val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent,

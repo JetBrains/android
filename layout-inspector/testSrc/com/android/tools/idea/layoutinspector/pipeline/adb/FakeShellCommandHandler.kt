@@ -46,6 +46,8 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     // DebugViewAttributes spawns a blocking subshell on a background thread in production; this flow is not easily testable so just
     // treat it like a no-op.
     if (command == "sh") return ""
+    if (command == "echo") return args.joinToString(" ")
+
     if (command != "settings") {
       return null
     }

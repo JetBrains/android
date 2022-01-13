@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
@@ -95,7 +96,7 @@ interface InspectorClient: Disposable {
    *
    * You are only supposed to call this once.
    */
-  fun connect()
+  fun connect(project: Project)
 
   fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
 
@@ -200,7 +201,7 @@ interface InspectorClient: Disposable {
 }
 
 object DisconnectedClient : InspectorClient {
-  override fun connect() {}
+  override fun connect(project: Project) {}
   override fun updateProgress(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {}
 
   override fun disconnect() {}

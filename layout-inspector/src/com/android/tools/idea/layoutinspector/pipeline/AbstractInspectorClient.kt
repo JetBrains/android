@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
@@ -25,6 +27,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
 
@@ -92,10 +95,20 @@ abstract class AbstractInspectorClient(
     treeEventCallbacks.forEach { callback -> callback(event) }
   }
 
-  final override fun connect() {
+  final override fun connect(project: Project) {
     launchMonitor.start(this)
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
+
+    // Test that we can actually contact the device via ADB, and fail fast if we can't.
+    val adb = AdbUtils.getAdbFuture(project).get() ?: return
+    if (adb.executeShellCommand(process.device, "echo ok") != "ok") {
+      state = InspectorClient.State.DISCONNECTED
+      return
+    }
+    launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+
+
     doConnect().addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Nothing> {
       override fun onSuccess(value: Nothing?) {
         state = InspectorClient.State.CONNECTED

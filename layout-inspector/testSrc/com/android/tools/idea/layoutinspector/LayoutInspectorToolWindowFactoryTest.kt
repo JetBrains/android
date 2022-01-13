@@ -58,6 +58,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -169,6 +170,7 @@ class LayoutInspectorToolWindowFactoryTest {
 
   @Test
   fun clientCanBeDisconnectedWhileMinimized() {
+    inspectorRule.attachDevice(LEGACY_DEVICE)
     val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
     val toolWindow = FakeToolWindow(inspectorRule.project, listener)
 

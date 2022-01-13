@@ -705,6 +705,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
 
   @Test
   fun testLiveControlDisabledWithProcessFromLegacyDevice() {
+    inspectorRule.attachDevice(LEGACY_DEVICE)
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 

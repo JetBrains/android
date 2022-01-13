@@ -136,6 +136,8 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
     val inOrder = inOrder(monitor)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
     inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT)
     inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED)
     inOrder.verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT)
@@ -725,7 +727,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
                                                 mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
       // shouldn't get an exception
-      client.connect()
+      client.connect(inspectorRule.project)
     })
 
   }
@@ -751,7 +753,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
                                                 mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
-      client.connect()
+      client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
       assertThat(banner.isVisible).isTrue()
@@ -770,7 +772,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       val client = AppInspectionInspectorClient(processDescriptor, isInstantlyAutoConnected = false, model(inspectorRule.project) {},
                                                 mock(), disposableRule.disposable, inspectionRule.inspectionService.apiServices,
                                                 sdkHandler = sdkHandler)
-      client.connect()
+      client.connect(inspectorRule.project)
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
       assertThat(banner.isVisible).isTrue()
