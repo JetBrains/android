@@ -2545,7 +2545,7 @@ MODULE                        : My_First_App.app
             currentArguments              : -Xfriend-paths
                 -                             : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                -                             : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/firstapp/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             currentArguments              : -module-name
             currentArguments              : app_debug
             currentArguments              : -no-jdk
@@ -2567,7 +2567,7 @@ MODULE                        : My_First_App.app
             defaultArguments              : -Xfriend-paths
                 -                             : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                -                             : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/firstapp/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             defaultArguments              : -module-name
             defaultArguments              : app_debug
             defaultArguments              : -no-reflect
@@ -2635,7 +2635,7 @@ MODULE                        : My_First_App.app
             currentArguments              : -Xfriend-paths
                 -                             : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                -                             : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/firstapp/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             currentArguments              : -module-name
             currentArguments              : app_debug
             currentArguments              : -no-jdk
@@ -2657,7 +2657,7 @@ MODULE                        : My_First_App.app
             defaultArguments              : -Xfriend-paths
                 -                             : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                -                             : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/firstapp/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             defaultArguments              : -module-name
             defaultArguments              : app_debug
             defaultArguments              : -no-reflect

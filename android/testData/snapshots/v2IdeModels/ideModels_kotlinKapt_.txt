@@ -1684,7 +1684,7 @@ MODULE                        : MainActivity.app
                 -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             currentArguments              : -module-name
             currentArguments              : app_debug
             currentArguments              : -no-jdk
@@ -1708,7 +1708,7 @@ MODULE                        : MainActivity.app
                 -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             defaultArguments              : -module-name
             defaultArguments              : app_debug
             defaultArguments              : -no-reflect
@@ -1757,7 +1757,7 @@ MODULE                        : MainActivity.app
                 -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             currentArguments              : -module-name
             currentArguments              : app_debug
             currentArguments              : -no-jdk
@@ -1781,7 +1781,7 @@ MODULE                        : MainActivity.app
                 -                             : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 -                             : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 -                             : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
-                -                             : <ROOT>/app/build/intermediates/app_classes/debug/classes.jar [-]
+                -                             : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
             defaultArguments              : -module-name
             defaultArguments              : app_debug
             defaultArguments              : -no-reflect
