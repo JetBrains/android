@@ -94,7 +94,7 @@ class ApplicationInstallerImpl(private val project: Project) : ApplicationInstal
 
   private fun getLocalInstaller(): String? {
     val path = if (StudioPathManager.isRunningFromSources()) { // Development mode
-      File(StudioPathManager.getSourcesRoot(), "bazel-bin/tools/base/deploy/installer/android-installer")
+      StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toFile()
     }
     else {
       File(PathManager.getHomePath(), "plugins/android/resources/installer")

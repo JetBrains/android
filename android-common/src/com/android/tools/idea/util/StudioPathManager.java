@@ -4,7 +4,9 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.PathUtil;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Code inside Android Studio (as opposed to code inside studio-sdk), should use the methods in this class
@@ -50,10 +52,31 @@ public class StudioPathManager {
   }
 
   /**
-   * @return returns the root of the Android repo when running from sources. This method
-   * should be called only when {@link #isRunningFromSources()} returns true.
+   * This method should be called only when {@link #isRunningFromSources()} returns true.
+   *
+   * @return file path resolved relative to the root of the Android repo.
    */
+  @NotNull
+  public static Path resolvePathFromSourcesRoot(@NotNull String relativePath) {
+    return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
+  }
+
+  @NotNull
+  public static Path resolvePathFromSourcesRoot(@NotNull Path relativePath) {
+    return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
+  }
+
+  /**
+   * @deprecated use {@link #resolvePathFromSourcesRoot(String)} instead.
+   */
+  @Deprecated
+  @NotNull
   public static String getSourcesRoot() {
+    return getSourcesRootInternal();
+  }
+
+  @NotNull
+  private static String getSourcesRootInternal() {
     assert isRunningFromSources();
 
     if (PluginManagerCore.isRunningFromSources()) {
@@ -83,7 +106,7 @@ public class StudioPathManager {
    * should be called only when {@link #isRunningFromSources()} returns true.
    */
   public static String getBinariesRoot() {
-    return getSourcesRoot() + (isRunningInBazelTest() ? "" : "/bazel-bin");
+    return getSourcesRootInternal() + (isRunningInBazelTest() ? "" : "/bazel-bin");
   }
 
   /**

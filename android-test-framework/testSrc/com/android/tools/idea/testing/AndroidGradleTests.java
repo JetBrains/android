@@ -27,7 +27,6 @@ import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
@@ -59,6 +58,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -672,8 +672,7 @@ public class AndroidGradleTests {
   }
 
   public static String getEmbeddedJdk8Path() throws IOException {
-    String sourcesRoot = getSourcesRoot();
-    String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
+    String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
     String relativePath = toSystemDependentName(jdkDevPath);
     File jdkRootPath = new File(toCanonicalPath(relativePath));
     if (SystemInfo.isWindows) {

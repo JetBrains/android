@@ -104,7 +104,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
     String path = FileUtil.join(homePath, "/resources/layoutlib/");
     if (StudioPathManager.isRunningFromSources()) {
-      path = FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/");
+      path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString();
     }
 
     VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));

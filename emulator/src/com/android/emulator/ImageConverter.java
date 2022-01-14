@@ -110,8 +110,8 @@ public class ImageConverter {
     }
 
     // Dev environment.
-    libFile = Paths.get(StudioPathManager.getSourcesRoot()).resolve("tools/adt/idea/emulator/native")
-        .resolve(getPlatformName()).resolve(libName);
+    libFile = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/emulator/native")
+      .resolve(getPlatformName()).resolve(libName);
     if (Files.exists(libFile)) {
       return libFile;
     }

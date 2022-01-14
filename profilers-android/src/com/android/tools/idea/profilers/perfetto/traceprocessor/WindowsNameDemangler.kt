@@ -45,10 +45,10 @@ class WindowsNameDemangler(val timeoutMsc: Long = 5000) : NameDemangler {
   private fun getLlvmCppFiltPath(): String {
     val exe = "x86_64-linux-android-c++filt.exe"
     val result = if (StudioPathManager.isRunningFromSources()) {
-      Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", "windows-x86_64", "lldb", "bin", exe)
+      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/windows-x86_64/lldb/bin/$exe")
     }
     else {
-      Paths.get(PathManager.getBinPath(), "lldb", "bin", exe)
+      Paths.get(PathManager.getBinPath(), "lldb/bin/$exe")
     }
     return result.toString()
   }

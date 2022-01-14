@@ -490,7 +490,7 @@ b/214265385 */
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
       get() {
-        val adtPath = Paths.get(StudioPathManager.getSourcesRoot(), "tools/adt/idea", "android").normalize()
+        val adtPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android")
         return if (Files.exists(adtPath))
           adtPath.toString()
         else

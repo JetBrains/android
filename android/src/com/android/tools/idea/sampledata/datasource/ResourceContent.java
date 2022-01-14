@@ -50,7 +50,7 @@ public class ResourceContent implements Function<OutputStream, Exception> {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     String jarPath = FileUtil.join(homePath, "plugins/android/resources/sampleData");
     if (StudioPathManager.isRunningFromSources()) {
-      jarPath = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData");
+      jarPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/lib/sampleData").toString();
     }
 
     File rootFile = new File(jarPath);

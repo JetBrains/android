@@ -82,10 +82,9 @@ public class EmbeddedDistributionPaths {
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
       repoCandidates.add(Paths.get("..", "maven", "repo"));
 
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
       for (Path candidate : repoCandidates) {
         if (!candidate.isAbsolute()) {
-          candidate = Paths.get(sourcesRoot).resolve(candidate);
+          candidate = StudioPathManager.resolvePathFromSourcesRoot(candidate);
         }
         File offlineRepo = candidate.toFile();
         if (offlineRepo.isDirectory()) {
@@ -101,7 +100,7 @@ public class EmbeddedDistributionPaths {
   public File findEmbeddedProfilerTransform() {
     if (StudioPathManager.isRunningFromSources()) {
       // Development build
-      return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
+      return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/profiler/transform/profilers-transform.jar").toFile();
     } else {
       return new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     }
@@ -116,9 +115,7 @@ public class EmbeddedDistributionPaths {
     //noinspection IfStatementWithIdenticalBranches
     if (StudioPathManager.isRunningFromSources()) {
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
-      String relativePath = toSystemDependentName("tools/external/gradle");
-      File distributionPath = new File(toCanonicalPath(Paths.get(sourcesRoot, relativePath).toString()));
+      File distributionPath = new File(toCanonicalPath(StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle").toString()));
       if (distributionPath.isDirectory()) {
         return distributionPath;
       }
@@ -185,8 +182,7 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String sourcesRoot = StudioPathManager.getSourcesRoot();
-      String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
+      String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
       String relativePath = toSystemDependentName(jdkDevPath);
       Path jdkRootPath = Paths.get(relativePath, "jdk11");
       if (SystemInfo.isWindows) {

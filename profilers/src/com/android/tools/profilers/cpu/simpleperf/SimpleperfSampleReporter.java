@@ -108,11 +108,11 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
     if (StudioPathManager.isRunningFromSources())  {
       // Running from sources, so use the prebuilts path. For example:
       // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
-      return Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", subDir, "simpleperf", binaryName).toString();
+      return StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
     } else {
       // Release build. For instance:
       // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
-      return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
+      return Paths.get(PathManager.getHomePath(), "prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
     }
   }
 
