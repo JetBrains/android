@@ -29,8 +29,6 @@ import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.wizard.template.ApiTemplateData
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -308,8 +306,6 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
-      RenderTemplateModel.Companion.toString()
-      moduleData.category = Category.Compose
     }
     checkCreateTemplate("Empty Compose Activity", withSpecificKotlin) // Compose is always Kotlin
   }
@@ -321,7 +317,6 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
       val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
         projectData.language = Language.Kotlin
         projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
-        moduleData.category = Category.Compose
       }
       checkCreateTemplate("Empty Compose Activity (Material3)", withSpecificKotlin) // Compose is always Kotlin
     } finally {
@@ -349,17 +344,6 @@ class TemplateTest(private val runTemplateCoverageOnly: Boolean = false) : Andro
     val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
       projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
-      RenderTemplateModel.Companion.toString()
-      if (moduleData.apis != null) {
-        moduleData.apis = moduleData.apis?.let {
-          ApiTemplateData(
-            buildApi = ApiVersion(31, "31"),
-            targetApi = ApiVersion(31, "31"),
-            minApi = ApiVersion(31, "31"),
-            appCompatVersion = it.appCompatVersion
-          )
-        }
-      }
     }
     checkCreateTemplate("Empty Wear OS Compose Activity", withSpecificKotlin)
   }

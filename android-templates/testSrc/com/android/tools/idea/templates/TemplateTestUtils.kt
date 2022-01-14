@@ -21,7 +21,6 @@ package com.android.tools.idea.templates
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
@@ -39,10 +38,10 @@ import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
-import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.lint.checks.ManifestDetector
@@ -247,7 +246,7 @@ internal fun cleanupProjectFiles(projectDir: File) {
 
 private const val defaultPackage = "template.test.pkg"
 
-internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder {
+internal fun getDefaultModuleState(project: Project, template: Template): ModuleTemplateDataBuilder {
   // TODO(qumeric): is always new?
   val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
     androidXSupport = true
@@ -259,6 +258,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
   }
 
+  val minSdk = template.minSdk.coerceAtLeast(AndroidVersion.VersionCodes.M)
   return ModuleTemplateDataBuilder(
     projectStateBuilder,
     isNewModule = true,
@@ -267,13 +267,13 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     val paths = createDefaultTemplateAt(project.basePath!!, name!!).paths
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
-    formFactor = FormFactor.Mobile // FIXME
-    category = Category.Activity
+    formFactor = template.formFactor
+    category = template.category
     themesData = ThemesData("App")
     apis = ApiTemplateData(
       buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
       targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
-      minApi = ApiVersion(AndroidVersion.VersionCodes.M, AndroidVersion.VersionCodes.M.toString()),
+      minApi = ApiVersion(minSdk, minSdk.toString()),
       // The highest supported/recommended appCompact version is P(28)
       appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
     )
