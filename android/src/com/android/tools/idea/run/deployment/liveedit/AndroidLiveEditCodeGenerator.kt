@@ -48,10 +48,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.KotlinToJvmSignatureMapper
-import org.objectweb.asm.Opcodes
 import java.lang.Math.ceil
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.ServiceLoader
 
 const val SLOTS_PER_INT = 10

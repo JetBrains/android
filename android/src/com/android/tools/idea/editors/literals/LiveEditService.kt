@@ -18,9 +18,7 @@ package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.util.ListenerCollection
-import com.android.tools.tracer.Trace
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -31,19 +29,7 @@ import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import org.jetbrains.kotlin.nj2k.postProcessing.type
-import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.isBoolean
-import org.jetbrains.kotlin.types.typeUtil.isByte
-import org.jetbrains.kotlin.types.typeUtil.isChar
-import org.jetbrains.kotlin.types.typeUtil.isDouble
-import org.jetbrains.kotlin.types.typeUtil.isFloat
-import org.jetbrains.kotlin.types.typeUtil.isInt
-import org.jetbrains.kotlin.types.typeUtil.isLong
-import org.jetbrains.kotlin.types.typeUtil.isShort
-import org.jetbrains.kotlin.types.typeUtil.isUnit
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
