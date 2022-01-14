@@ -446,7 +446,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @Throws(ExecutionException::class, InterruptedException::class, TimeoutException::class)
   fun <V> pumpAndWait(future: Future<V>): V {
-    return pumpEventsAndWaitForFuture(future, testTimeout.remainingUnits, testTimeUnit)
+    return pumpEventsAndWaitForFuture(future, testTimeout.getRemainingUnits(TimeUnit.SECONDS), testTimeUnit)
   }
 
   private fun newLine(): String {

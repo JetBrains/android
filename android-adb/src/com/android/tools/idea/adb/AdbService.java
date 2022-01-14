@@ -348,7 +348,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         }
         synchronized (ADB_INIT_LOCK) {
           AndroidDebugBridge.init(options.build());
-          bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false, rem.getRemainingUnits(), myUnit);
+          bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false, rem.getRemainingNanos(), TimeUnit.NANOSECONDS);
         }
 
         if (bridge == null) {
@@ -356,7 +356,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         }
 
         while (!bridge.isConnected()) {
-          if (rem.getRemainingUnits() <= 0) {
+          if (rem.getRemainingNanos() <= 0) {
             return BridgeConnectionResult.make("Timed out attempting to connect to adb: " + toStringLogger.getOutput());
           }
           try {
