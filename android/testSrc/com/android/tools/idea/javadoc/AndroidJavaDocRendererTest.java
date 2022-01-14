@@ -112,6 +112,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
     checkStrings(sourcePath, targetPath);
   }
 
+  /**
+   * Testing R.stri<caret>ng.app_name
+   * <p>
+   * There is no custom documentation for the inner R class, so the default Java platform documentation for a Java
+   * static final field is used.
+   */
   public void testString3Java() {
     checkString3("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
   }
@@ -121,9 +127,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
   }
 
   public void checkString3(String sourcePath, String targetPath) {
-/* b/214263458
     checkStrings(sourcePath, targetPath);
-b/214263458 */
   }
 
   public void testDimensionsJava() {
