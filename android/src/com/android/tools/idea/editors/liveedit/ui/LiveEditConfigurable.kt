@@ -40,6 +40,13 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
             AndroidBundle.message("live.edit.configurable.enable.embedded.compiler.comment")
           )
         }
+        row {
+        checkBox(
+          AndroidBundle.message("live.edit.configurable.enable.debug.mode"),
+          liveEditSettings::useDebugMode,
+          AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment")
+        )
+      }
     }
   }
 }

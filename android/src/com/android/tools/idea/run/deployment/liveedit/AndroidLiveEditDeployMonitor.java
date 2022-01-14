@@ -29,6 +29,7 @@ import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
+import com.android.tools.idea.editors.liveedit.LiveEditConfig;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.AndroidSessionInfo;
@@ -199,10 +200,11 @@ public class AndroidLiveEditDeployMonitor {
   private static void onCompileSuccessCallBack(
     Project project, AdbClient adb, String packageName, String deployEventKey, LiveUpdateDeployer deployer, Installer installer,
     String className, String methodName, String methodDesc, byte[] classData, Map<String, byte[]> supportClasses) {
+    boolean useDebugMode = LiveEditConfig.getInstance().getUseDebugMode();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
         // TODO: Actually set the value of isComposable based on the frontend analysis.
-        className, methodName, methodDesc, false, -1, -1, classData, supportClasses);
+        className, methodName, methodDesc, false, -1, -1, classData, supportClasses, useDebugMode);
 
     String deviceId = adb.getSerial() + "#" + packageName;
     LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, deployEventKey);

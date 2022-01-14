@@ -26,6 +26,7 @@ import com.intellij.openapi.components.StoragePathMacros
 class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(State()) {
   class State: BaseState() {
     var useEmbeddedCompiler by property(true)
+    var useDebugMode by property(false)
   }
 
   var useEmbeddedCompiler
@@ -34,7 +35,13 @@ class LiveEditConfig : SimplePersistentStateComponent<LiveEditConfig.State>(Stat
       state.useEmbeddedCompiler = value
     }
 
+  var useDebugMode
+    get() = state.useDebugMode
+    set(value) {
+      state.useDebugMode= value
+    }
+
   companion object {
-    fun getInstance(): LiveEditConfig = ApplicationManager.getApplication().getService(LiveEditConfig::class.java)
+    @JvmStatic fun getInstance(): LiveEditConfig = ApplicationManager.getApplication().getService(LiveEditConfig::class.java)
   }
 }
