@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
-import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.fileEditor.FileEditorProvider
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TemporaryDirectory
+import org.jetbrains.android.ComponentStack
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,22 +42,27 @@ class BenchmarkLinkListenerTest {
 
   @get:Rule
   val rules = RuleChain.outerRule(projectRule).around(temporaryDirectoryRule)
-
-  private val mockEditorService = mock<FileEditorProviderManager>()
-  private val fileCapture = ArgumentCaptor.forClass(VirtualFile::class.java)
-  private val testProvider = mock<FileEditorProvider>()
+  private val mockEditorService = mock<FileEditorManager>()
+  private val fileCapture = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+  private lateinit var componentStack: ComponentStack;
   @Before
   fun setup() {
-    projectRule.replaceService(FileEditorProviderManager::class.java, mockEditorService)
-    `when`(mockEditorService.getProviders(eq(projectRule.project), fileCapture.capture())).thenReturn(arrayOf(testProvider))
+    componentStack = ComponentStack(projectRule.project)
+    componentStack.registerComponentInstance(FileEditorManager::class.java, mockEditorService)
+    `when`(mockEditorService.openEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
+  }
+
+  @After
+  fun tearDown() {
+    componentStack.restore()
   }
 
   @Test
   fun listenerOpensProvider() {
     val listener = BenchmarkLinkListener(projectRule.project)
-    val traceFile = temporaryDirectoryRule.createVirtualFile("traceFile.trace")
+    val traceFile = FileUtil.createTempFile("traceFile",".trace")
+    traceFile.deleteOnExit()
     listener.hyperlinkClicked("file://${traceFile.name}")
-    verify(testProvider, times(1)).createEditor(projectRule.project, fileCapture.value)
-    assertThat(fileCapture.value.name).isEqualTo(traceFile.name)
+    assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
   }
 }
