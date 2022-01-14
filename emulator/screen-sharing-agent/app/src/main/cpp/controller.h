@@ -52,6 +52,8 @@ private:
   void ProcessMouseEvent(const MouseEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message);
   void ProcessTextInput(const TextInputMessage& message);
+  void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
+  void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   std::vector<PressedPointer>::iterator FindPressedPointer(int pointer_id);
 
   Jni jni_ = nullptr;

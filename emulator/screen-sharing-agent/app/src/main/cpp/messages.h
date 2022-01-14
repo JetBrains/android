@@ -51,7 +51,7 @@ protected:
 // Represents a mouse button being pressed or released or a mouse being moved.
 class MouseEventMessage : Message {
 public:
-  MouseEventMessage(int32_t x, int32_t y, uint32_t buttons, uint32_t display_id)
+  MouseEventMessage(int32_t x, int32_t y, uint32_t buttons, int32_t display_id)
     : Message(TYPE),
       x_(x),
       y_(y),
@@ -73,7 +73,7 @@ public:
   uint32_t get_button_state() const { return button_state_; }
 
   // The display device where the mouse event occurred. Zero indicates the main display.
-  uint32_t get_display_id() const { return display_id_; }
+  int32_t get_display_id() const { return display_id_; }
 
   static constexpr int TYPE = 0;
 
@@ -85,7 +85,7 @@ private:
   int32_t x_;
   int32_t y_;
   uint32_t button_state_;
-  uint32_t display_id_;
+  int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(MouseEventMessage);
 };
@@ -148,6 +148,55 @@ private:
   std::u16string text_;
 
   DISALLOW_COPY_AND_ASSIGN(TextInputMessage);
+};
+
+// Represents one or more characters typed on a keyboard.
+class SetDeviceOrientationMessage : Message {
+public:
+  SetDeviceOrientationMessage(uint32_t orientation)
+      : Message(TYPE),
+        orientation_(orientation) {
+  }
+  virtual ~SetDeviceOrientationMessage() {};
+
+  uint32_t get_orientation() const { return orientation_; }
+
+  static constexpr int TYPE = 4;
+
+private:
+  friend class Message;
+
+  static SetDeviceOrientationMessage* deserialize(Base128InputStream& stream);
+
+  uint32_t orientation_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetDeviceOrientationMessage);
+};
+
+// Sets maximum display streaming resolution.
+class SetMaxVideoResolutionMessage : Message {
+public:
+  SetMaxVideoResolutionMessage(uint32_t width, uint32_t height)
+      : Message(TYPE),
+        width_(width),
+        height_(height) {
+  }
+  virtual ~SetMaxVideoResolutionMessage() {};
+
+  uint32_t get_width() const { return width_; }
+  uint32_t get_height() const { return height_; }
+
+  static constexpr int TYPE = 5;
+
+private:
+  friend class Message;
+
+  static SetMaxVideoResolutionMessage* deserialize(Base128InputStream& stream);
+
+  uint32_t width_;
+  uint32_t height_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
 
 }  // namespace screensharing

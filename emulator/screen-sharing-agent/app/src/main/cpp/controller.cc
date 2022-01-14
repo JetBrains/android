@@ -124,6 +124,14 @@ void Controller::ProcessMessage(const Message& message) {
       ProcessTextInput((const TextInputMessage&) message);
       break;
 
+    case SetDeviceOrientationMessage::TYPE:
+      ProcessSetDeviceOrientation((const SetDeviceOrientationMessage&) message);
+      break;
+
+    case SetMaxVideoResolutionMessage::TYPE:
+      ProcessSetMaxVideoResolution((const SetMaxVideoResolutionMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.get_type());
       break;
@@ -201,6 +209,32 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
       input_manager_->InjectInputEvent(key_event, InputEventInjectionSync::NONE);
     }
   }
+}
+
+void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message) {
+  int orientation = message.get_orientation();
+  if (orientation < 0 || orientation >= 4) {
+    Log::E("An attempt to set an invalid device orientation: %d", orientation);
+    return;
+  }
+  bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni_);
+
+  WindowManager::FreezeRotation(jni_, orientation);
+  // Restore the original state of auto-display_rotation.
+  if (!rotation_was_frozen) {
+    WindowManager::ThawRotation(jni_);
+  }
+
+  Agent::OnVideoOrientationChanged(orientation);
+}
+
+void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
+  if (message.get_width() <= 0 || message.get_height() <= 0) {
+    Log::E("An attempt to set an invalid video resolution: %dx%d", message.get_width(), message.get_height());
+    return;
+  }
+  Size max_size(message.get_width(), message.get_height());
+  Agent::OnMaxVideoResolutionChanged(max_size);
 }
 
 vector<Controller::PressedPointer>::iterator Controller::FindPressedPointer(int pointer_id) {

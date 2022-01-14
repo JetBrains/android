@@ -34,6 +34,12 @@ unique_ptr<Message> Message::deserialize(Base128InputStream& stream) {
     case TextInputMessage::TYPE:
       return unique_ptr<Message>(TextInputMessage::deserialize(stream));
 
+    case SetDeviceOrientationMessage::TYPE:
+      return unique_ptr<Message>(SetDeviceOrientationMessage::deserialize(stream));
+
+    case SetMaxVideoResolutionMessage::TYPE:
+      return unique_ptr<Message>(SetMaxVideoResolutionMessage::deserialize(stream));
+
     default:
       Log::Fatal("Unexpected message type %d", type);
   }
@@ -43,7 +49,7 @@ MouseEventMessage* MouseEventMessage::deserialize(Base128InputStream& stream) {
   int32_t x = stream.ReadInt32();
   int32_t y = stream.ReadInt32();
   uint32_t buttons = stream.ReadUInt32();
-  uint32_t display_id = stream.ReadUInt32();
+  int32_t display_id = stream.ReadInt32();
   return new MouseEventMessage(x, y, buttons, display_id);
 }
 
@@ -57,6 +63,17 @@ KeyEventMessage* KeyEventMessage::deserialize(Base128InputStream& stream) {
 TextInputMessage* TextInputMessage::deserialize(Base128InputStream& stream) {
   u16string text = stream.ReadString16();
   return new TextInputMessage(text);
+}
+
+SetDeviceOrientationMessage* SetDeviceOrientationMessage::deserialize(Base128InputStream& stream) {
+  uint32_t orientation = stream.ReadUInt32();
+  return new SetDeviceOrientationMessage(orientation);
+}
+
+SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::deserialize(Base128InputStream& stream) {
+  uint32_t width = stream.ReadUInt32();
+  uint32_t height = stream.ReadUInt32();
+  return new SetMaxVideoResolutionMessage(width, height);
 }
 
 }  // namespace screensharing
