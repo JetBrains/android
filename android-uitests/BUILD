@@ -156,6 +156,7 @@ maven_repository(
         "@maven//:androidx.test.ext.junit_1.1.1",
         "@maven//:androidx.wear.wear_1.1.0",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
+        "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.3",

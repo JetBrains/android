@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFix
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -96,6 +97,12 @@ public class AddInstantModuleTest {
     assertThat(fileText).contains("dist:instant=\"true\"");
     assertThat(fileText).contains("dist:fusing dist:include=\"false\"");
 
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+    ideFrame.focus();
+    Wait.seconds(5)
+      .expecting("IDE Frame to be active again")
+      .until(() ->
+               GuiQuery.getNonNull(() -> ideFrame.target().hasFocus())
+      );
+    ideFrame.invokeAndWaitForBuildAction("Build", "Make Project");
   }
 }
