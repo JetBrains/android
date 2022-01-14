@@ -159,7 +159,7 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     val extension = if (file.extension != "") "." + file.extension else ""
 
     val javaSpecSpecificFileName = File(file.parent, "$name.$javaSpecString$extension").toString()
-    val javaSpecSpecificFile = TestUtils.getWorkspaceRoot().resolve(javaSpecSpecificFileName)
+    val javaSpecSpecificFile = TestUtils.resolveWorkspacePathUnchecked(javaSpecSpecificFileName)
 
     if (Files.exists(javaSpecSpecificFile)) {
       return javaSpecSpecificFile

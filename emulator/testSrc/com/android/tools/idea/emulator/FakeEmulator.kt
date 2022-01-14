@@ -47,7 +47,7 @@ import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.CodedOutputStream
@@ -1475,7 +1475,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
 
     @JvmStatic
-    fun getRootSkinFolder(): Path = getWorkspaceRoot().resolve(DEVICE_ART_RESOURCES_DIR)
+    fun getRootSkinFolder(): Path = TestUtils.resolveWorkspacePathUnchecked(DEVICE_ART_RESOURCES_DIR)
 
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"

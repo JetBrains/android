@@ -21,7 +21,7 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -178,7 +178,7 @@ class ResolutionElementEditorTest {
     editors.setBounds(0, 0, 200, 300)
     val ui = FakeUi(editors)
     val generatedImage = ui.render()
-    CheckUtil.assertImageSimilarPerPlatform(getWorkspaceRoot().resolve(TEST_DATA_PATH), "testResolutionEditorPaint$expected",
+    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testResolutionEditorPaint$expected",
                                             generatedImage, DIFF_THRESHOLD)
   }
 

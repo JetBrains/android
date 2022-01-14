@@ -35,7 +35,7 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
   val bytes: ByteArray
 
   init {
-    val origImage = TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/$filename").readImage()
+    val origImage = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/$filename").readImage()
     val buffer = ByteBuffer.allocate(origImage.width * origImage.height * bitmapType.pixelSize)
     image = bitmapType.createImage(buffer, origImage.width, origImage.height)
     val graphics = image.graphics

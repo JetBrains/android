@@ -20,7 +20,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
@@ -486,7 +486,7 @@ class EmulatorViewTest {
   }
 
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("${GOLDEN_FILE_PATH}/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
   }
 }
 

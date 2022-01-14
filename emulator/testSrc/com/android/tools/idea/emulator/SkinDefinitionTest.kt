@@ -18,7 +18,7 @@ package com.android.tools.idea.emulator
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getRootSkinFolder
@@ -362,7 +362,7 @@ class SkinDefinitionTest {
   }
 
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("${GOLDEN_FILE_PATH}/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
   }
 }
 

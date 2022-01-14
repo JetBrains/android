@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
@@ -107,7 +107,7 @@ class EmulatorScreenshotActionTest {
 
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
-    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/${name}.png")
+    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
   }
 }
 

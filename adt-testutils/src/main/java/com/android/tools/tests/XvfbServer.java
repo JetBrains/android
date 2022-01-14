@@ -66,8 +66,7 @@ class XvfbServer {
   }
 
   private Process launchDisplay(String display) {
-    Path workspace = TestUtils.getWorkspaceRoot();
-    Path launcher = workspace.resolve(XVFB_LAUNCHER);
+    Path launcher = TestUtils.resolveWorkspacePathUnchecked(XVFB_LAUNCHER);
     if (Files.notExists(launcher)) {
       throw new IllegalStateException("Xvfb runfiles does not exist. "
                                       + "Add a data dependency on the runfiles for Xvfb. "
@@ -78,7 +77,7 @@ class XvfbServer {
       return new ProcessBuilder(
         launcher.toString(),
         display,
-        workspace.toString(),
+        TestUtils.getWorkspaceRoot().toString(),
         DEFAULT_RESOLUTION
       ).start();
     }

@@ -81,7 +81,7 @@ DONE.
 
   @Test
   fun saveAndLoadSnapshot() {
-    val imageFile = TestUtils.getWorkspaceRoot().resolve("${TEST_DATA_PATH}/image1.png")
+    val imageFile = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png")
     val legacyClient = setUpLegacyClient()
 
     val windowName = "window1"

@@ -34,7 +34,7 @@ class LegacySnapshotLoaderTest {
   @get:Rule
   val projectRule = ProjectRule()
 
-  private val testDataPath = TestUtils.getWorkspaceRoot().resolve(TEST_DATA_PATH)
+  private val testDataPath = TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH)
 
   @Test
   fun loadV1Snapshot() {

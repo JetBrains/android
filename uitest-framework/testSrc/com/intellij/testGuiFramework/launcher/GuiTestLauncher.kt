@@ -17,8 +17,6 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.prefs.AbstractAndroidLocations
 import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.tests.gui.framework.AnalyticsTestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
@@ -181,7 +179,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-          getWorkspaceRoot().resolve("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+        TestUtils.resolveWorkspacePathUnchecked("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
@@ -220,9 +218,9 @@ object GuiTestLauncher {
   }
 
   private fun getJdkPathForGradle(): String? {
-    val jdk = File(getWorkspaceRoot().toFile(), "prebuilts/studio/jdk")
-    if (jdk.exists()) {
-      return File(jdk, "BUILD").toPath().toRealPath().toFile().getParentFile().absolutePath
+    val jdk = TestUtils.resolveWorkspacePathUnchecked("prebuilts/studio/jdk")
+    if (Files.exists(jdk)) {
+      return jdk.resolve("BUILD").toRealPath().parent.toString()
     }
     return null
   }

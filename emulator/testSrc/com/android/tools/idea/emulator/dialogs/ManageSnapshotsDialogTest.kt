@@ -16,7 +16,7 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
@@ -457,7 +457,7 @@ class ManageSnapshotsDialogTest {
   private fun getGoldenFile(name: String): Path {
     // The image is slightly taller on Mac due to a slight layout difference.
     val platformSuffix = if (SystemInfo.isMac) "_Mac" else ""
-    return getWorkspaceRoot().resolve("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
+    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/$name$platformSuffix.png")
   }
 }
 

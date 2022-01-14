@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.io.Images;
 import com.android.testutils.ImageDiffUtil;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
@@ -102,7 +102,7 @@ public class PreviewProviderTest extends LayoutTestCase {
 
   public void testCreatePreviewOfTextView() throws Exception {
     PreviewProvider.ImageAndDimension imageAndSize = myPreviewProvider.createPreview(myComponent, myTextViewItem);
-    Path goldenFile = getWorkspaceRoot().resolve(TEST_DATA_PATH).resolve("TextView.png");
+    Path goldenFile = TestUtils.resolveWorkspacePath(TEST_DATA_PATH).resolve("TextView.png");
     Image expected = ImageUtil.scaleImage(Images.readImage(goldenFile), 1.0f / JBUIScale.sysScale());
     BufferedImage buffered = ImageUtil.toBufferedImage(expected, false);
     ImageDiffUtil.assertImageSimilar("TextView", buffered, imageAndSize.getImage(), MAX_PERCENT_DIFFERENT);

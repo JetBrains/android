@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.io.readImage
+import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -33,8 +34,6 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.io.File
-import javax.imageio.ImageIO
 import kotlin.test.fail
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -85,7 +84,7 @@ class InspectorModelTest {
 
   @Test
   fun testChildCreated() {
-    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "${TEST_DATA_PATH}/image1.png"))
+    val image1 = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png").readImage()
     val model = model {
       view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
         view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {

@@ -63,7 +63,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     List<File> plugins = new ArrayList<>(1);
 
     // Enable Bazel plugin if it's available
-    File aswb = TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android-uitests/aswb").toFile();
+    File aswb = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/android-uitests/aswb").toFile();
     if (aswb.exists()) {
       plugins.add(aswb);
     }

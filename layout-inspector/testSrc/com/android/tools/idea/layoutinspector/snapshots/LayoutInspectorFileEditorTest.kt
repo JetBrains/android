@@ -73,7 +73,7 @@ class LayoutInspectorFileEditorTest {
       doLayout()
       paint(graphics)
     }
-    CheckUtil.assertImageSimilarPerPlatform(TestUtils.getWorkspaceRoot().resolve(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
+    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
                                             0.01)
   }
 
@@ -81,7 +81,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettings() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/snapshot.li")
+      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
@@ -98,7 +98,7 @@ class LayoutInspectorFileEditorTest {
   fun editorCreatesCorrectSettingsForCompose() {
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
-      TestUtils.getWorkspaceRoot().resolve("$TEST_DATA_PATH/compose-snapshot.li")
+      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
