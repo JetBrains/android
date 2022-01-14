@@ -116,6 +116,9 @@ public class ApplicationTerminator implements AndroidDebugBridge.IDeviceChangeLi
     catch (InterruptedException ignored) {
       return false;
     }
+    finally {
+      AndroidDebugBridge.removeDeviceChangeListener(this);
+    }
 
     return true;
   }

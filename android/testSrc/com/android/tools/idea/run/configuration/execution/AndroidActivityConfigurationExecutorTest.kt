@@ -16,18 +16,16 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 
@@ -60,14 +58,14 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
     Mockito.verify(device, Mockito.times(1)).executeShellCommand(
       commandsCaptor.capture(),
-      MockitoKt.any(IShellOutputReceiver::class.java),
-      MockitoKt.any(),
-      MockitoKt.any()
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
     )
     val commands = commandsCaptor.allValues
 
     // Start activity.
-    Truth.assertThat(commands[0]).isEqualTo(
+    assertThat(commands[0]).isEqualTo(
       "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --user 123")
   }
 
@@ -78,29 +76,52 @@ internal class AndroidActivityConfigurationExecutorTest : AndroidConfigurationEx
     // Executor we test.
     val executor = Mockito.spy(AndroidActivityConfigurationExecutor(env))
 
-    val device = getMockDevice()
+    val startCommand = "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D"
+    val stopCommand = "am force-stop com.example.app"
+
+    val runnableClient = RunnableClient(appId, testRootDisposable)
+
+    val startActivityCommandHandler: CommandHandler = { device, _ ->
+      runnableClient.startClient(device)
+    }
+
+    val stopActivityCommandHandler: CommandHandler = { _, _ ->
+      runnableClient.stopClient()
+    }
+
+    val device = getMockDevice(mapOf(
+      startCommand to startActivityCommandHandler,
+      stopCommand to stopActivityCommandHandler
+    ))
 
     val app = createApp(device, appId, servicesName = listOf(), activitiesName = listOf(componentName))
     val appInstaller = TestApplicationInstaller(appId, app)
     // Mock app installation.
     Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
-    // Mock debugSessionStarter.
-    Mockito.doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
-    executor.doOnDevices(listOf(device))
+
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
+    assertThat(runContentDescriptor!!.processHandler).isNotNull()
+
+    // Emulate stopping debug session.
+    val processHandler = runContentDescriptor.processHandler!!
+    processHandler.destroyProcess()
+    processHandler.waitFor()
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, Mockito.times(1)).executeShellCommand(
+    Mockito.verify(device, Mockito.times(2)).executeShellCommand(
       commandsCaptor.capture(),
-      MockitoKt.any(IShellOutputReceiver::class.java),
-      MockitoKt.any(),
-      MockitoKt.any()
+      any(IShellOutputReceiver::class.java),
+      any(),
+      any()
     )
     val commands = commandsCaptor.allValues
 
     // Start Activity with -D flag.
-    Truth.assertThat(commands[0]).isEqualTo(
-      "am start -n com.example.app/com.example.app.Component -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D")
+    assertThat(commands[0]).isEqualTo(startCommand)
+
+    // Stop debug process
+    assertThat(commands[1]).isEqualTo(stopCommand)
   }
 }

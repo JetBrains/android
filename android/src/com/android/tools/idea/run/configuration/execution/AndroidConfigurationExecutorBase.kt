@@ -17,32 +17,26 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
-import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -131,11 +125,6 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     return console
   }
 
-  @VisibleForTesting
-  fun getDebugSessionStarter(): DebugSessionStarter {
-    return DebugSessionStarter(environment)
-  }
-
   protected fun getApkPaths(device: IDevice): List<String> {
     val apkProvider = project.getProjectSystem().getApkProvider(configuration) ?: throw ExecutionException(
       AndroidBundle.message("android.run.configuration.not.supported",
@@ -143,26 +132,12 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     return apkProvider.getApks(device).single().files.map { it.apkFile.path }
   }
 
-  protected open fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
-    RunContentDescriptor {
-    return getDebugSessionStarter().attachDebuggerToClient(device, processHandler, console)
-  }
-
-  protected fun createRunContentDescriptor(
-    devices: List<IDevice>,
+  protected open fun startDebugSession(
+    device: IDevice,
     processHandler: AndroidProcessHandlerForDevices,
     console: ConsoleView
-  ): Promise<RunContentDescriptor> {
-    val promise = AsyncPromise<RunContentDescriptor>()
-    if (environment.executor.isDebug) {
-      processHandler.startNotify()
-      promise.setResult(startDebugger(devices.single(), processHandler, console))
-    }
-    else {
-      invokeLater {
-        promise.setResult(ExecutionUiService.getInstance().showRunContent(DefaultExecutionResult(console, processHandler), environment))
-      }
-    }
-    return promise
+  ): Promise<XDebugSessionImpl> {
+    processHandler.startNotify()
+    return DebugSessionStarter(environment).attachDebuggerToClient(device, { processHandler.destroyProcess() }, console)
   }
 }

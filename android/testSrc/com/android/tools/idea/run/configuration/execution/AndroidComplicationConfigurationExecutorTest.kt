@@ -29,6 +29,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
@@ -104,10 +105,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     )
     doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
 
-    // Mock console.
-    val console: ConsoleView = Mockito.mock(ConsoleView::class.java)
-    doReturn(console).`when`(executor).createConsole()
-    executor.doOnDevices(listOf(device))
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
@@ -130,9 +128,14 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[4]).isEqualTo(showWatchFace)
 
     // Verify that a warning was raised.
-    Mockito.verify(console, times(1))
-      .printError("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
-                  "affect debugging. To avoid this, please update the Wear OS app on your device to the latest version.")
+    val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
+    // Print deferred text
+    consoleViewImpl.getComponent()
+    consoleViewImpl.flushDeferredText()
+    val consoleOutput = consoleViewImpl.editor.document.text
+    assertThat(consoleOutput)
+      .contains("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
+                "affect debugging. To avoid this, please update the Wear OS app on your device to the latest version.")
   }
 
   fun testDebug() {
@@ -150,22 +153,39 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
                                    project)
 
-    val device = getMockDevice(mapOf(
+    val commandHandlers: MutableMap<Command, CommandHandler> = mapOf(
       checkVersion to "Broadcast completed: result=1, data=\"2\"",
       setComplicationSlot1 to "Broadcast completed: result=1",
       setComplicationSlot3 to "Broadcast completed: result=1",
-      setWatchFace to "Broadcast completed: result=1",
-      // Unsuccessful show watchface case.
-      showWatchFace to "Broadcast completed: result=2",
+      showWatchFace to "Broadcast completed: result=1",
       setDebugAppAm to "Broadcast completed: result=1",
       setDebugAppBroadcast to "Broadcast completed: result=1"
-    ).toCommandHandlers())
+    ).toCommandHandlers()
+
+    val runnableClient = RunnableClient(appId, testRootDisposable)
+
+    val setWatchFaceCommandHandler: CommandHandler = { device, receiver ->
+      runnableClient.startClient(device)
+      receiver.addOutput("Broadcast completed: result=1")
+    }
+
+    val unsetWatchFaceCommandHandler: CommandHandler = { _, receiver ->
+      runnableClient.stopClient()
+      receiver.addOutput("Broadcast completed: result=1")
+    }
+
+    val device = getMockDevice(
+      commandHandlers +
+      (setWatchFace to setWatchFaceCommandHandler) +
+      (unsetWatchFace to unsetWatchFaceCommandHandler)
+    )
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
 
     val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
@@ -174,17 +194,17 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       )
     )
     doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
-    doReturn(Mockito.mock(DebugSessionStarter::class.java)).`when`(executor).getDebugSessionStarter()
 
-    // Mock console.
-    val console: ConsoleView = Mockito.mock(ConsoleView::class.java)
-    doReturn(console).`when`(executor).createConsole()
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)
+    assertThat(runContentDescriptor!!.processHandler).isNotNull()
 
-    executor.doOnDevices(listOf(device))
+    // Stop configuration.
+    runContentDescriptor.processHandler!!.destroyProcess()
+    runContentDescriptor.processHandler!!.waitFor()
 
     // Verify commands sent to device.
     val commandsCaptor = ArgumentCaptor.forClass(String::class.java)
-    Mockito.verify(device, times(9)).executeShellCommand(
+    Mockito.verify(device, times(11)).executeShellCommand(
       commandsCaptor.capture(),
       any(IShellOutputReceiver::class.java),
       any(),
@@ -208,10 +228,60 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     assertThat(commands[7]).isEqualTo(setWatchFace)
     // Show watch face
     assertThat(commands[8]).isEqualTo(showWatchFace)
+    // Unset complication
+    assertThat(commands[9]).isEqualTo(unsetComplication)
+    // Unset debug watchFace
+    assertThat(commands[10]).isEqualTo(unsetWatchFace)
+  }
 
-    // Verify that a warning was raised.
-    Mockito.verify(console, times(1))
-      .printError("Warning: Launch was successful, but you may need to bring up the watch face manually")
+  fun testWatchFaceWarning() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run tile", AndroidComplicationConfigurationType().configurationFactories.single())
+    val androidComplicationConfiguration = configSettings.configuration as AndroidComplicationConfiguration
+    androidComplicationConfiguration.watchFaceInfo = TestWatchFaceInfo
+    androidComplicationConfiguration.setModule(myModule)
+    androidComplicationConfiguration.componentName = componentName
+    androidComplicationConfiguration.chosenSlots = listOf(
+      AndroidComplicationConfiguration.ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT),
+    )
+    // Use run executor
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+                                   project)
+
+    val device = getMockDevice(mapOf(
+      checkVersion to "Broadcast completed: result=1, data=\"2\"",
+      setComplicationSlot1 to "Broadcast completed: result=1",
+      setComplicationSlot3 to "Broadcast completed: result=1",
+      setWatchFace to "Broadcast completed: result=1",
+      // Unsuccessful show watchface case.
+      showWatchFace to "Broadcast completed: result=2"
+    ).toCommandHandlers())
+
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
+                                 activitiesName = emptyList())
+
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env))
+    // Mock installation that returns app.
+    val appInstaller = TestApplicationInstaller(
+      hashMapOf(
+        Pair(appId, app),
+        Pair(TestWatchFaceInfo.appId, watchFaceApp)
+      )
+    )
+    doReturn(appInstaller).`when`(executor).getApplicationInstaller(any())
+
+    val runContentDescriptor = executor.doOnDevices(listOf(device)).blockingGet(1000)!!
+
+    // Verify that a warning was raised in console.
+    val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
+    // Print differed test
+    consoleViewImpl.getComponent()
+    consoleViewImpl.flushDeferredText()
+
+    val consoleOutput = consoleViewImpl.editor.document.text
+    assertThat(consoleOutput)
+      .contains("Warning: Launch was successful, but you may need to bring up the watch face manually")
   }
 
   fun testComplicationProcessHandler() {

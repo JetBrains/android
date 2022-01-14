@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.MultiReceiver
-import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -31,11 +30,11 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
 
@@ -75,7 +74,10 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       verifyResponse(showTileReceiver, console)
     }
     ProgressManager.checkCanceled()
-    return createRunContentDescriptor(devices, processHandler, console)
+    if (isDebug) {
+      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
+    }
+    return createRunContentDescriptor(processHandler, console, environment)
   }
 
   private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
@@ -102,10 +104,13 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
     }
   }
 
-  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
-    RunContentDescriptor {
+  override fun startDebugSession(
+    device: IDevice,
+    processHandler: AndroidProcessHandlerForDevices,
+    console: ConsoleView
+  ): Promise<XDebugSessionImpl> {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return super.startDebugger(device, processHandler, console)
+    return super.startDebugSession(device, processHandler, console)
   }
 }
 

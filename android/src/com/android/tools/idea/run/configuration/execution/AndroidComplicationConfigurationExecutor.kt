@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
@@ -25,16 +24,14 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
-import com.android.utils.ILogger
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.concurrency.Promise
 
@@ -68,18 +65,21 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
       indicator?.checkCanceled()
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags)
       indicator?.checkCanceled()
-      val appWatchFace = installWatchApp(device, console)
+      val watchFaceApp = installWatchApp(device, console)
 
       val receiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
       configuration.chosenSlots.forEach { slot ->
         app.activateComponent(configuration.componentType, configuration.componentName!!, "$watchFaceInfo ${slot.id} ${slot.type}", mode,
                               receiver)
       }
-      appWatchFace.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
+      watchFaceApp.activateComponent(ComponentType.WATCH_FACE, configuration.watchFaceInfo.watchFaceFQName, receiver)
       showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
-    return createRunContentDescriptor(devices, processHandler, console)
+    if (isDebug) {
+      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
+    }
+    return createRunContentDescriptor(processHandler, console, environment)
   }
 
   private fun installWatchApp(device: IDevice, console: ConsoleView): App {
@@ -87,10 +87,13 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
     return getApplicationInstaller(console).installAppOnDevice(device, watchFaceInfo.appId, listOf(watchFaceInfo.apk), "")
   }
 
-  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
-    RunContentDescriptor {
+  override fun startDebugSession(
+    device: IDevice,
+    processHandler: AndroidProcessHandlerForDevices,
+    console: ConsoleView
+  ): Promise<XDebugSessionImpl> {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return super.startDebugger(device, processHandler, console)
+    return super.startDebugSession(device, processHandler, console)
   }
 }
 

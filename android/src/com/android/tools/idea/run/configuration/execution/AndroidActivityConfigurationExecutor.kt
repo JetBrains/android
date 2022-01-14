@@ -28,9 +28,7 @@ import com.android.tools.idea.run.configuration.isDebug
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -63,7 +61,10 @@ class AndroidActivityConfigurationExecutor(environment: ExecutionEnvironment) : 
       activateActivity(device, app, console)
     }
     ProgressManager.checkCanceled()
-    return createRunContentDescriptor(devices, processHandler, console)
+    if (isDebug) {
+      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
+    }
+    return createRunContentDescriptor(processHandler, console, environment)
   }
 
   private fun StringBuilder.appendWithSpace(text: String) {

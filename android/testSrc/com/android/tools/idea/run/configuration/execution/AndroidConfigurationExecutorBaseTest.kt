@@ -38,8 +38,10 @@ import java.io.File
 internal typealias Command = String
 internal typealias CommandHandler = (mockDevice: IDevice, receiver: AndroidConfigurationExecutorBaseTest.TestReceiver) -> Unit
 
-fun Map<Command, String>.toCommandHandlers(): Map<Command, CommandHandler> {
-  return entries.associate { it.key to { _, receiver -> receiver.addOutput(it.value) } }
+fun Map<Command, String>.toCommandHandlers(): MutableMap<Command, CommandHandler> {
+  return entries.associate {
+    it.key to { _: IDevice, receiver: AndroidConfigurationExecutorBaseTest.TestReceiver -> receiver.addOutput(it.value) }
+  }.toMutableMap()
 }
 
 abstract class AndroidConfigurationExecutorBaseTest : AndroidTestCase() {

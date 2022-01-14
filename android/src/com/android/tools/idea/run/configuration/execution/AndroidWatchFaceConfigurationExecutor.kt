@@ -33,6 +33,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import org.jetbrains.concurrency.Promise
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
@@ -62,7 +63,10 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
       showWatchFace(device, console)
     }
     ProgressManager.checkCanceled()
-    return createRunContentDescriptor(devices, processHandler, console)
+    if (isDebug) {
+      return startDebugSession(devices.single(), processHandler, console).then { it.runContentDescriptor }
+    }
+    return createRunContentDescriptor(processHandler, console, environment)
   }
 
   private fun installWatchFace(device: IDevice, applicationInstaller: ApplicationInstaller): App {
@@ -87,10 +91,13 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
     }
   }
 
-  override fun startDebugger(device: IDevice, processHandler: AndroidProcessHandlerForDevices, console: ConsoleView):
-    RunContentDescriptor {
+  override fun startDebugSession(
+    device: IDevice,
+    processHandler: AndroidProcessHandlerForDevices,
+    console: ConsoleView
+  ): Promise<XDebugSessionImpl> {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return super.startDebugger(device, processHandler, console)
+    return super.startDebugSession(device, processHandler, console)
   }
 }
 

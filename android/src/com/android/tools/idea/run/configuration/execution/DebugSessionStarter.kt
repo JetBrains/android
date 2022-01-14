@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,151 +17,44 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData.DebuggerStatus
 import com.android.ddmlib.IDevice
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
-import com.google.common.util.concurrent.Uninterruptibles
-import com.intellij.debugger.DebuggerManagerEx
-import com.intellij.debugger.DefaultDebugEnvironment
-import com.intellij.debugger.engine.JavaDebugProcess
-import com.intellij.debugger.engine.RemoteDebugProcessHandler
-import com.intellij.execution.DefaultExecutionResult
-import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionResult
-import com.intellij.execution.Executor
-import com.intellij.execution.configurations.RemoteConnection
-import com.intellij.execution.configurations.RemoteState
+import com.android.tools.idea.run.debug.attachJavaDebuggerToClient
+import com.android.tools.idea.run.debug.waitForClientReadyForDebug
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.Project
-import com.intellij.xdebugger.XDebugProcess
-import com.intellij.xdebugger.XDebugProcessStarter
-import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XDebuggerManager
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import com.intellij.xdebugger.impl.XDebugSessionImpl
+import org.jetbrains.concurrency.Promise
 
 class DebugSessionStarter(private val environment: ExecutionEnvironment) {
 
-  private val configuration = environment.runProfile as ComponentSpecificConfiguration
-  private val project = configuration.project
-  private val appId = project.getProjectSystem().getApplicationIdProvider(configuration)?.packageName
+  private val project = environment.project
+  private val appId = project.getProjectSystem().getApplicationIdProvider(environment.runProfile as RunConfiguration)?.packageName
                       ?: throw RuntimeException("Cannot get ApplicationIdProvider")
 
   @WorkerThread
   fun attachDebuggerToClient(device: IDevice,
-                             processHandler: AndroidProcessHandlerForDevices,
-                             consoleView: ConsoleView): RunContentDescriptor {
-    val client = waitForClient(device, consoleView)
-    val debugPort = client.debuggerListenPort.toString()
-    val remoteConnection = RemoteConnection(true, "localhost", debugPort, false)
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.text = "Attaching debugger"
-    return invokeAndWaitIfNeeded {
-      val debugState = object : RemoteState {
-        override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult {
-          val process = AndroidRemoteDebugProcessHandler(project, consoleView, processHandler)
-          consoleView.attachToProcess(process)
-          return DefaultExecutionResult(consoleView, process)
-        }
+                             destroyRunningProcess: (Client) -> Unit,
+                             consoleView: ConsoleView): Promise<XDebugSessionImpl> {
 
-        override fun getRemoteConnection() = remoteConnection
-      }
+    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
+    ProgressManager.checkCanceled()
+    indicator?.text = "Waiting for a client"
+    val client = waitForClientReadyForDebug(device, listOf(appId))
 
-      val debugEnvironment = DefaultDebugEnvironment(environment, debugState, remoteConnection, false)
-      val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
-                            ?: throw ExecutionException("Could not attach the virtual machine")
-
-      val debugSession = XDebuggerManager.getInstance(project).startSession(environment, object : XDebugProcessStarter() {
-        override fun start(session: XDebugSession): XDebugProcess {
-          return JavaDebugProcess.create(session, debuggerSession)
-        }
-      })
-
-      debugSession.runContentDescriptor
-    }
-  }
-
-  @WorkerThread
-  private fun waitForClient(device: IDevice, console: ConsoleView): Client {
-    val pollTimeoutSeconds = 15
-    val timeUnit = TimeUnit.SECONDS
-
-    for (i in 0 until pollTimeoutSeconds) {
-      ProgressManager.checkCanceled()
-      if (!device.isOnline) {
-        throw ExecutionException("Device is offline")
-      }
-      val clients = DeploymentApplicationService.getInstance().findClient(device, appId)
-      if (clients.isEmpty()) {
-        console.print("Waiting for application to come online: $appId")
-      }
-      else {
-        console.print("Connecting to $appId")
-        if (clients.size > 1) {
-          Logger.getInstance(DebugSessionStarter::class.java).info("Multiple clients with same application ID: $appId")
-        }
-        val client = clients[0]
-        when (client.clientData.debuggerConnectionStatus) {
-          DebuggerStatus.ERROR -> {
-            val message = String.format(Locale.US,
-                                        "Debug port (%1\$d) is busy, make sure there is no other active debug connection to the same application",
-                                        client.debuggerListenPort)
-            console.printError(message)
-            throw ExecutionException(message)
-          }
-          DebuggerStatus.ATTACHED -> {
-            val message = "A debugger is already attached"
-            console.printError(message)
-            throw ExecutionException(message)
-          }
-          else -> {
-            console.print("Waiting for application to start debug server")
-            return client
-          }
-        }
-
-      }
-      sleep(1, timeUnit)
-    }
-    throw ExecutionException("Process $appId is not found. Aborting session.")
-  }
-
-  protected fun sleep(sleepFor: Long, unit: TimeUnit) {
-    Uninterruptibles.sleepUninterruptibly(sleepFor, unit)
-  }
-}
-
-/**
- * [processHandler] is handler responsible for monitoring app process on devices. For example [WatchFaceProcessHandler].
- * [AndroidRemoteDebugProcessHandler] is responsible for monitoring debugger process.
- */
-class AndroidRemoteDebugProcessHandler(
-  project: Project,
-  private val console: ConsoleView,
-  private val processHandler: AndroidProcessHandlerForDevices
-) : RemoteDebugProcessHandler(project, false) {
-
-  private val DEBUG_SURFACE_CLEAR = "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app' --ecn component "
-  private val ACTIVITY_MANAGER_CLEAR = "am clear-debug-app"
-
-  override fun detachIsDefault() = false
-
-  override fun destroyProcess() {
-    super.destroyProcess()
-    processHandler.destroyProcess()
-    processHandler.devices.forEach {
-      val dummyReceiver = CommandResultReceiver()
-      it.executeShellCommand(DEBUG_SURFACE_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
-      it.executeShellCommand(ACTIVITY_MANAGER_CLEAR, dummyReceiver, 5, TimeUnit.SECONDS)
-    }
+    ProgressManager.checkCanceled()
+    indicator?.text = "Attaching debugger"
+    return attachJavaDebuggerToClient(
+      project,
+      client,
+      environment,
+      consoleView,
+      null,
+      destroyRunningProcess
+    )
+      .onError { destroyRunningProcess(client) }
   }
 }
