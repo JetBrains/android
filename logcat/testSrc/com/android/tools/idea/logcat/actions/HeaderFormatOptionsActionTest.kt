@@ -24,6 +24,7 @@ import com.android.tools.idea.logcat.messages.AppNameFormat
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
+import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TagFormat
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
@@ -69,22 +70,21 @@ class HeaderFormatOptionsActionTest {
 
   @Test
   fun actionPerformed_dialogInitialized() {
-    val formattingOptions = FormattingOptions(TimestampFormat(TIME, enabled = true), ProcessThreadFormat(BOTH), TagFormat(),
-                                              AppNameFormat())
-    var isShowTimestamp = false
-    var isShowDate = true
+    val formattingOptions = FormattingOptions(processThreadFormat = ProcessThreadFormat(PID))
+    var isShowProcessId = false
+    var isShowThreadId = true
     val action = headerFormatOptionsAction(formattingOptions = formattingOptions)
 
     createModalDialogAndInteractWithIt(action::performAction) { dialogWrapper ->
-      val showTimestamp = dialogWrapper.getCheckBox("Show timestamp")
-      val showDate = dialogWrapper.getCheckBox("Show date")
-      isShowTimestamp = showTimestamp.isSelected
-      isShowDate = showDate.isSelected
+      val showProcessId = dialogWrapper.getCheckBox("Show process id")
+      val showThreadId = dialogWrapper.getCheckBox("Include thread id")
+      isShowProcessId = showProcessId.isSelected
+      isShowThreadId = showThreadId.isSelected
     }
 
     // More comprehensive dialog tests are in HeaderFormatOptionsDialogTest
-    assertThat(isShowTimestamp).isTrue()
-    assertThat(isShowDate).isFalse()
+    assertThat(isShowProcessId).isTrue()
+    assertThat(isShowThreadId).isFalse()
   }
 
   @Test
