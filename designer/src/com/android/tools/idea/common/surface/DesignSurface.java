@@ -54,7 +54,6 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -71,7 +70,6 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -313,6 +311,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     super(new BorderLayout());
 
     Disposer.register(parentDisposable, this);
+    Disposer.register(this, myIssueModel);
     myProject = project;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;

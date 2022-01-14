@@ -75,6 +75,7 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -264,7 +265,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
-    ClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
+    ClassLoaderPreloaderKt.preload(myModuleClassLoader, () -> Disposer.isDisposed(myModuleClassLoader), classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(

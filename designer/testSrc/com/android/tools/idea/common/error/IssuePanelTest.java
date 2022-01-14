@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
 
@@ -25,6 +26,7 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testPanel() {
     IssueModel model = new IssueModel();
+    Disposer.register(myFixture.getTestRootDisposable(), model);
     IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
@@ -44,6 +46,7 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testRemoveOldError() {
     IssueModel model = new IssueModel();
+    Disposer.register(myFixture.getTestRootDisposable(), model);
     IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
@@ -73,6 +76,7 @@ public class IssuePanelTest extends AndroidTestCase {
    */
   public void testRemoveIfPsiChangedError() {
     IssueModel model = new IssueModel();
+    Disposer.register(myFixture.getTestRootDisposable(), model);
     IssuePanel panel = new IssuePanel(model, issue -> { });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();

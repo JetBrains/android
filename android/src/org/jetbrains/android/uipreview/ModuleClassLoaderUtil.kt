@@ -19,7 +19,6 @@ package org.jetbrains.android.uipreview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
@@ -146,14 +145,18 @@ fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = th
  *
  * The [binaryCache] provides a cache where the transformed classes from the libraries are reused. The cache can be shared across multiple
  * [ModuleClassLoaderImpl] to benefit from sharing the classes already loaded.
+ *
+ * The passed [ModuleClassLoaderDiagnosticsWrite] will be used to report class rewrites.
  */
 internal class ModuleClassLoaderImpl(module: Module,
                                      private val projectSystemLoader: ProjectSystemClassLoader,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,
                                      private val binaryCache: ClassBinaryCache,
-                                     onClassRewrite: (String, Long, Int) -> Unit) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
+                                     private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
   private val loader: DelegatingClassLoader.Loader
+
+  private val onClassRewrite = { fqcn: String, timeMs: Long, size: Int -> diagnostics.classRewritten(fqcn, size, timeMs) }
 
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())

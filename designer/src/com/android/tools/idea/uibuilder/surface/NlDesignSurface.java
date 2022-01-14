@@ -371,7 +371,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private final boolean myIsInPreview;
   private final RenderListener myRenderListener = this::modelRendered;
   @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
-  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
+  private final AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
   /**
    * Allows customizing the generation of {@link SceneManager}s
@@ -736,6 +736,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void dispose() {
     myAccessoryPanel.setSurface(null);
+    myRenderIssueProviders = ImmutableList.of();
     super.dispose();
   }
 

@@ -24,8 +24,8 @@ import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -36,7 +36,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
-import kotlin.Unit;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -164,8 +162,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
     myParentAtConstruction = parent;
     myImpl = loader;
     myModuleReference = new WeakReference<>(renderContext.getModule());
-    Disposer.register(renderContext.getModule(), this);
-    Disposer.register(this, loader);
+    Disposer.register(renderContext.getModule(), new WeakReferenceDisposableWrapper(this));
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
     myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
@@ -203,10 +200,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
         projectTransformations,
         nonProjectTransformations,
         cache,
-        (fqcn, timeMs, size) -> {
-          diagnostics.classRewritten(fqcn, size, timeMs);
-          return Unit.INSTANCE;
-        }),
+        diagnostics),
       diagnostics);
   }
 
@@ -416,6 +410,7 @@ public final class ModuleClassLoader extends DelegatingClassLoader implements Mo
 
   @Override
   public void dispose() {
+    myImpl.dispose();
     ourDisposeService.submit(() -> {
       waitForCoroutineThreadToStop();
 

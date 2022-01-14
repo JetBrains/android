@@ -82,7 +82,7 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
    * Should be called when the clutch is no longer needed to free all the resources.
    */
   fun destroy() {
-    generateSequence { eggs.poll() }.forEach { Disposer.dispose(it) }
+    generateSequence { eggs.poll() }.forEach { it.cancel() }
   }
 
   fun getStats(): Stats {

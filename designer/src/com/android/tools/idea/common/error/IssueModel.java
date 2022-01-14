@@ -20,6 +20,7 @@ import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Model to centralize every issue that should be used in the Layout Editor
  */
-public class IssueModel {
+public class IssueModel implements Disposable {
   private static final int MAX_ISSUE_NUMBER_LIMIT = 200;
 
   /**
@@ -91,6 +92,12 @@ public class IssueModel {
     }
 
     return max;
+  }
+
+  @Override
+  public void dispose() {
+    myIssueProviders.clear();
+    myListeners.clear();
   }
 
   /**

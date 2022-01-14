@@ -453,5 +453,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
 
   override fun dispose() {
     onDeactivate()
+    representations.clear()
   }
 }
