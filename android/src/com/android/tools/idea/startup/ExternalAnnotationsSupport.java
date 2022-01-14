@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.SdkConstants.FD_DATA;
+import static com.android.SdkConstants.FD_PLATFORMS;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static java.io.File.separator;
+
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -32,26 +37,31 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.*;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.AnnotationOrderRootType;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtilCore;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.List;
-
-import static com.android.SdkConstants.FD_DATA;
-import static com.android.SdkConstants.FD_PLATFORMS;
-import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
-import static java.io.File.separator;
 
 /**
  * Helper code for attaching the external annotations .jar file
@@ -145,10 +155,10 @@ public class ExternalAnnotationsSupport {
       if (platformHash != null) {
         String sdkRootPath = modificator.getHomePath();
         if (sdkRootPath != null) {
-          File sdkRoot = new File(sdkRootPath);
-          if (sdkRoot.isDirectory()) {
+          Path sdkRoot = Paths.get(sdkRootPath);
+          if (Files.isDirectory(sdkRoot)) {
             ProgressIndicator progress = new StudioLoggerProgressIndicator(ExternalAnnotationsSupport.class);
-            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot.toPath());
+            AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkRoot);
             LocalPackage info = sdkHandler.getLocalPackage(FD_PLATFORMS + ";" + platformHash, progress);
             if (info != null) {
               Revision revision = info.getVersion();

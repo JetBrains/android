@@ -33,7 +33,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import java.io.File
+import java.nio.file.Paths
 
 interface ApplicationInstaller {
   fun installAppOnDevice(device: IDevice,
@@ -94,12 +94,12 @@ class ApplicationInstallerImpl(private val project: Project) : ApplicationInstal
 
   private fun getLocalInstaller(): String? {
     val path = if (StudioPathManager.isRunningFromSources()) { // Development mode
-      StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toFile()
+      StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer")
     }
     else {
-      File(PathManager.getHomePath(), "plugins/android/resources/installer")
+      Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer")
     }
-    return path.absolutePath
+    return path.toString()
   }
 
 

@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -103,7 +104,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       return false;
     }
 
-    VirtualFile fontCachePath = VirtualFileManager.getInstance().findFileByUrl("file://" + fontCachePathFile.getAbsolutePath());
+    VirtualFile fontCachePath = VirtualFileManager.getInstance().findFileByNioPath(fontCachePathFile.toPath());
     if (fontCachePath == null) {
       return false;
     }
@@ -225,7 +226,7 @@ public class AssetRepositoryImpl extends AssetRepository {
     )
       .filter(Objects::nonNull)
       .distinct()
-      .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
+      .map(dir -> manager.findFileByUrl("file://" + dir.toAbsolutePath()))
       .filter(Objects::nonNull);
 
     return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs, libraryDepAars)

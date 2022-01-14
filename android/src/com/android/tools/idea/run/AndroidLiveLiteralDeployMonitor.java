@@ -41,7 +41,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -302,14 +303,14 @@ class AndroidLiveLiteralDeployMonitor {
 
   // TODO: Unify this part.
   private static String getLocalInstaller() {
-    File path;
+    Path path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toFile();
+      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
     } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
-    return path.getAbsolutePath();
+    return path.toString();
   }
 
   public static String getLiteralTimeStampKey(String deviceId, String helper, int offset) {

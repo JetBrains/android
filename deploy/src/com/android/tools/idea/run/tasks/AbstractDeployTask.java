@@ -63,7 +63,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -215,18 +216,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
                                              @NotNull Canceller canceller) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path;
+    Path path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toFile();
+      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
     } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
-    return path.getAbsolutePath();
+    return path.toString();
   }
 
   protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
-    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkFile).map(File::getPath).collect(Collectors.toList());
+    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
   }
 
   @NotNull

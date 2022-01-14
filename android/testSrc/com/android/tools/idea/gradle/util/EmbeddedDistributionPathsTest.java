@@ -20,6 +20,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.util.StudioPathManager;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,16 +35,16 @@ public class EmbeddedDistributionPathsTest {
 
   @Test
   public void testFindAndroidStudioLocalMavenRepoPaths() {
-    List<File> expectedRepo = Arrays.asList(
-      StudioPathManager.resolvePathFromSourcesRoot("out/repo").toFile(),
-      StudioPathManager.resolvePathFromSourcesRoot("out/studio/repo").toFile(),
-      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/common/m2/repository").toFile(),
-      StudioPathManager.resolvePathFromSourcesRoot("../maven/repo").toFile(),
-      new File(System.getProperty("java.io.tmpdir"), "offline-maven-repo")
+    List<Path> expectedRepo = Arrays.asList(
+      StudioPathManager.resolvePathFromSourcesRoot("out/repo"),
+      StudioPathManager.resolvePathFromSourcesRoot("out/studio/repo"),
+      StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/common/m2/repository"),
+      StudioPathManager.resolvePathFromSourcesRoot("../maven/repo"),
+      Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo")
     );
-    expectedRepo = expectedRepo.stream().filter(File::isDirectory).collect(Collectors.toList());
+    expectedRepo = expectedRepo.stream().filter(Files::isDirectory).collect(Collectors.toList());
     // Invoke the method to test.
-    List<File> paths = doFindAndroidStudioLocalMavenRepoPaths();
+    List<Path> paths = doFindAndroidStudioLocalMavenRepoPaths().stream().map(File::toPath).collect(Collectors.toList());
     assertThat(paths).hasSize(expectedRepo.size());
     assertThat(paths).containsExactlyElementsIn(expectedRepo);
   }

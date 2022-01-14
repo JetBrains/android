@@ -18,18 +18,22 @@ package com.android.tools.idea.sampledata.datasource;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.StudioPathManager;
-import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
 import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
@@ -46,17 +50,16 @@ public class ResourceContent implements Function<OutputStream, Exception> {
    * Returns the base directory for the Sample Data directory contents
    */
   @Nullable
-  public static File getSampleDataBaseDir() {
+  public static Path getSampleDataBaseDir() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
-    String jarPath = FileUtil.join(homePath, "plugins/android/resources/sampleData");
+    Path jarPath = Paths.get(homePath, "plugins/android/resources/sampleData");
     if (StudioPathManager.isRunningFromSources()) {
-      jarPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/lib/sampleData").toString();
+      jarPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android/lib/sampleData");
     }
 
-    File rootFile = new File(jarPath);
-    if (rootFile.exists()) {
+    if (Files.exists(jarPath)) {
       LOG.debug("Sample data base dir found at " + jarPath);
-      return rootFile;
+      return jarPath;
     }
 
     LOG.warn("Unable to sampleData in path :" + jarPath);
@@ -67,9 +70,9 @@ public class ResourceContent implements Function<OutputStream, Exception> {
    * Returns the Sample Data directory created by the user in the provided facet's module.
    */
   @Nullable
-  public static File getSampleDataUserDir(AndroidFacet facet) {
+  public static Path getSampleDataUserDir(AndroidFacet facet) {
     PathString sampleDataDirectory = ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory();
-    return sampleDataDirectory != null ? sampleDataDirectory.toFile() : null;
+    return sampleDataDirectory != null ? sampleDataDirectory.toPath() : null;
   }
 
   /**
@@ -78,19 +81,22 @@ public class ResourceContent implements Function<OutputStream, Exception> {
    */
   @NotNull
   public static ResourceContent fromDirectory(@NotNull String relativePath) {
-    File baseDir = getSampleDataBaseDir();
-    File sampleDataPath = baseDir != null ? new File(baseDir, relativePath) : null;
-    File[] files = sampleDataPath != null && sampleDataPath.isDirectory() ? sampleDataPath.listFiles() : null;
+    Path baseDir = getSampleDataBaseDir();
+    Path sampleDataPath = baseDir != null ? baseDir.resolve(relativePath) : null;
 
-    StringBuilder content = new StringBuilder();
-
-    if (files != null) {
-      for (File file : files) {
-        content.append(file.getAbsolutePath()).append('\n');
+    String content = "";
+    if (sampleDataPath != null && Files.isDirectory(sampleDataPath)) {
+      try {
+        content = Files.walk(sampleDataPath, 1)
+          .filter(file -> !file.equals(sampleDataPath))
+          .map(Path::toString)
+          .collect(Collectors.joining("\n"));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
     }
-
-    return new ResourceContent(content.toString().getBytes(Charsets.UTF_8));
+    return new ResourceContent(content.getBytes(StandardCharsets.UTF_8));
   }
 
   @NotNull

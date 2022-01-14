@@ -43,7 +43,9 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import java.io.File;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -352,13 +354,13 @@ public class AndroidLiveEditDeployMonitor {
 
   // TODO: Unify this part.
   private static String getLocalInstaller() {
-    File path;
+    Path path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toFile();
+      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
     } else {
-      path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
+      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
-    return path.getAbsolutePath();
+    return path.toString();
   }
 }

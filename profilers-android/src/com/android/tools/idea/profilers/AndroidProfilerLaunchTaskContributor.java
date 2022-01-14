@@ -69,8 +69,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import io.grpc.StatusRuntimeException;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -379,15 +381,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                           @NotNull String releaseDir,
                                           @NotNull String devDir,
                                           @NotNull String fileName) {
-    File dir;
+    Path dir;
     if (StudioPathManager.isRunningFromSources()) {
-      dir = StudioPathManager.resolvePathFromSourcesRoot(devDir).toFile();
+      dir = StudioPathManager.resolvePathFromSourcesRoot(devDir);
     } else {
-      dir = new File(PathManager.getHomePath(), releaseDir);
+      dir = Paths.get(PathManager.getHomePath(), releaseDir);
     }
     for (String abi : device.getAbis()) {
-      File candidate = new File(dir, abi + "/" + fileName);
-      if (candidate.exists()) {
+      Path candidate = dir.resolve(abi).resolve(fileName);
+      if (Files.exists(candidate)) {
         return Abi.getEnum(abi).getCpuArch();
       }
     }

@@ -114,19 +114,14 @@ public class EmbeddedDistributionPaths {
    */
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
-    //noinspection IfStatementWithIdenticalBranches
     if (StudioPathManager.isRunningFromSources()) {
       // Development build.
-      File distributionPath = new File(toCanonicalPath(StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle").toString()));
-      if (distributionPath.isDirectory()) {
-        return distributionPath;
+      Path distribution = StudioPathManager.resolvePathFromSourcesRoot("tools/external/gradle");
+      if (Files.isDirectory(distribution)) {
+        return distribution.toFile();
       }
-
-      return null;
-    } else {
-      // Release build.
-      return null;
     }
+    return null;
   }
 
   /**
