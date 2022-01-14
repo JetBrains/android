@@ -37,6 +37,7 @@ import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ApplicationLogListener;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
+import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt;
 import com.google.common.base.Preconditions;
@@ -56,6 +57,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import java.time.ZoneId;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,12 +76,30 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
                                        @NotNull final Client client,
                                        @NotNull ProcessHandlerLaunchStatus launchStatus,
                                        @NotNull ProcessHandlerConsolePrinter printer) {
+    ProcessHandler processHandler = launchStatus.getProcessHandler();
+    // Reuse the current ConsoleView to retain the UI state and not to lose test results.
+    Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
+
+    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
+      StartJavaDebuggerKt.attachJavaDebuggerToClient(
+        myProject,
+        client,
+        currentLaunchInfo.env,
+        (ConsoleView)androidTestResultListener,
+        () -> {
+          processHandler.detachProcess();
+          return null;
+        },
+        null
+      ).onSuccess(XDebugSessionImpl::showSessionTab);
+      return null;
+    }
+
     String debugPort = Integer.toString(client.getDebuggerListenPort());
     final int pid = client.getClientData().getPid();
     Logger.getInstance(ConnectJavaDebuggerTask.class)
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
-    ProcessHandler processHandler = launchStatus.getProcessHandler();
     RunContentDescriptor descriptor = Preconditions.checkNotNull(processHandler.getUserData(AndroidSessionInfo.KEY)).getDescriptor();
 
     // create a new process handler
@@ -97,8 +117,6 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
     final AndroidDebugState debugState;
 
-    // Reuse the current ConsoleView to retain the UI state and not to lose test results.
-    Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
     if (androidTestResultListener instanceof ConsoleView) {
       ConsoleView consoleViewToReuse = (ConsoleView)androidTestResultListener;
       debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, (parent, handler, executor) -> {

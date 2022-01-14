@@ -19,9 +19,11 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.debug.StartJavaDebuggerKt;
 import com.android.tools.idea.run.debug.VMExitedNotifier;
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
@@ -114,6 +116,11 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @Slow
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client, @Nullable AndroidDebuggerState debugState) {
+    if (StudioFlags.NEW_EXECUTION_FLOW_FOR_JAVA_DEBUGGER.get()) {
+      StartJavaDebuggerKt.attachJavaDebuggerToClientAndShowTab(project, client);
+      return;
+    }
+
     String debugPort = getClientDebugPort(client);
     String runConfigName = getRunConfigurationName(debugPort);
 
