@@ -27,6 +27,7 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -83,7 +84,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.DEFAULT_BACKGROUND);
     }
     else {
-      myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
+      myContainer.setBackground(getDisabledBackground());
     }
   }
 
@@ -101,7 +102,18 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
 
   @NotNull
   public String getDisabledMessage() {
-    return "Advanced profiling is unavailable for the selected process";
+    return isPreO()
+           ? "Additional profiling support is unavailable for the selected process"
+           : "There was an error loading this feature. Try restarting the profiler to fix it.";
+  }
+
+  private Color getDisabledBackground() {
+    return isPreO() ? ProfilerColors.MONITOR_DISABLED : ProfilerColors.MONITOR_ERROR;
+  }
+
+  private boolean isPreO() {
+    return myMonitor.getProfilers().getDevice() != null &&
+           myMonitor.getProfilers().getDevice().getFeatureLevel() < AndroidVersion.VersionCodes.O;
   }
 
   private void monitorEnabledChanged() {
@@ -111,7 +123,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       populateUi(myContainer);
     }
     else {
-      myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
+      myContainer.setBackground(getDisabledBackground());
       populateDisabledView(myContainer);
     }
   }
@@ -119,9 +131,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
   protected void populateDisabledView(JPanel container) {
     TabularLayout layout = new TabularLayout("*,Fit-,*", "*");
     myContainer.setLayout(layout);
-    boolean canConfigureAdvancedProfiling = myMonitor.getProfilers().getDevice() != null &&
-                                            myMonitor.getProfilers().getDevice().getFeatureLevel() < AndroidVersion.VersionCodes.O;
-    if (canConfigureAdvancedProfiling) {
+    if (isPreO()) {
       layout.setRowSizing(0, "6*");
       layout.setRowSizing(1, "4*");
     }
@@ -132,17 +142,17 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     disabledMessage.setFont(H2_FONT);
     myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
-    if (canConfigureAdvancedProfiling) {
+    if (isPreO()) {
       if (IdeInfo.isGameTool()) {
         HyperlinkLabel linkToInstructionMessage = new HyperlinkLabel();
-        linkToInstructionMessage.setHyperlinkText("Please recompile the APK with ", "advanced profiling enabled", ".");
+        linkToInstructionMessage.setTextWithHyperlink("Please recompile the APK with <hyperlink>advanced profiling enabled</hyperlink>.");
         linkToInstructionMessage.setHyperlinkTarget("https://developer.android.com/r/studio-ui/advanced-profiling");
         myContainer.add(linkToInstructionMessage, new TabularLayout.Constraint(1, 1));
         linkToInstructionMessage.setFont(STANDARD_FONT);
       }
       else {
         HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-        linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
+        linkToConfigMessage.setTextWithHyperlink("Configure this setting in the <hyperlink>Run Configuration</hyperlink>");
         linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
           @Override
           protected void hyperlinkActivated(HyperlinkEvent e) {

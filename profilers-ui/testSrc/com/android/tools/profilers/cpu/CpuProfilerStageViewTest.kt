@@ -252,7 +252,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     assumeTrue(isTestingProfileable)
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     assertThat(TreeWalker(stageView.component).descendantStream()
-                 .noneMatch { it is JLabel && it.text != null && it.text.contains("Advanced profiling is unavailable") })
+                 .noneMatch { it is JLabel && it.text != null && it.text.contains("Additional profiling support is unavailable") })
       .isTrue()
   }
 

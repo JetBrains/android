@@ -22,6 +22,7 @@ import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACH
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.EventComponent;
 import com.android.tools.adtui.model.FakeTimer;
@@ -33,27 +34,44 @@ import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
+import com.google.common.truth.Truth;
 import java.awt.Component;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class EventMonitorViewTest {
+  public EventMonitorViewTest(int featureLevel) {
+    myFeatureLevel = featureLevel;
+    myTransportService = new FakeTransportService(myTimer, true, myFeatureLevel);
+    myGrpcChannel =
+      FakeGrpcServer.createFakeGrpcServer("EventMonitorViewTestChannel", myTransportService, new FakeProfilerService(myTimer));
+  }
+
+  private final int myFeatureLevel;
 
   private FakeTimer myTimer = new FakeTimer();
-  private final FakeTransportService myTransportService = new FakeTransportService(myTimer, true);
+  private final FakeTransportService myTransportService;
 
-  @Rule
-  public FakeGrpcServer myGrpcChannel =
-    FakeGrpcServer.createFakeGrpcServer("EventMonitorViewTestChannel", myTransportService, new FakeProfilerService(myTimer));
+  public final FakeGrpcServer myGrpcChannel;
 
   private EventMonitorView myMonitorView;
 
+  @Rule
+  public FakeGrpcServer getGrpcChannel() {
+    return myGrpcChannel;
+  }
+
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(getGrpcChannel().getChannel()), new FakeIdeProfilerServices(), myTimer);
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
@@ -76,9 +94,16 @@ public class EventMonitorViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     children = myMonitorView.getComponent().getComponents();
-    assertEquals(1, children.length);
+    assertEquals(myFeatureLevel < AndroidVersion.VersionCodes.O ? 2 : 1, children.length);
     assertTrue(children[0] instanceof JLabel);
     JLabel label = (JLabel)children[0];
     assertEquals(myMonitorView.getDisabledMessage(), label.getText());
+
+    Truth.assertThat(label.getText()).contains(myFeatureLevel < AndroidVersion.VersionCodes.O ? "Additional" : "error");
+  }
+
+  @Parameterized.Parameters
+  public static List<Integer> getFeatureLevels() {
+    return Arrays.asList(AndroidVersion.VersionCodes.O, AndroidVersion.VersionCodes.N);
   }
 }
