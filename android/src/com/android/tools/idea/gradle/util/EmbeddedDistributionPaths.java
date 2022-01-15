@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -23,20 +28,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmbeddedDistributionPaths {
   @NotNull
@@ -59,36 +59,38 @@ public class EmbeddedDistributionPaths {
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
-      if (!customRepoPath.isDirectory()) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
+      try {
+        Path customRepoPath = Paths.get(studioCustomRepo).toRealPath();
+        if (!Files.isDirectory(customRepoPath)) {
+          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
+        }
+        repoPaths.add(customRepoPath.toFile());
       }
-      repoPaths.add(customRepoPath);
+      catch (IOException e) {
+        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable", e);
+      }
     }
 
     if (StudioPathManager.isRunningFromSources()) {
       // Repo path candidates, the path should be relative to tools/idea.
-      List<Path> repoCandidates = new ArrayList<>();
+      List<String> repoCandidates = new ArrayList<>();
 
       if (studioCustomRepo == null) {
-        repoCandidates.add(Paths.get("out", "repo"));
+        repoCandidates.add("out/repo");
       }
 
       // Add locally published offline studio repo
-      repoCandidates.add(Paths.get("out", "studio", "repo"));
+      repoCandidates.add("out/studio/repo");
       // Add prebuilts repo.
-      repoCandidates.add(Paths.get("prebuilts", "tools", "common", "m2", "repository"));
-      repoCandidates.add(Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo"));
+      repoCandidates.add("prebuilts/tools/common/m2/repository");
+      repoCandidates.add(System.getProperty("java.io.tmpdir") + "/offline-maven-repo");
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
-      repoCandidates.add(Paths.get("..", "maven", "repo"));
+      repoCandidates.add("../maven/repo");
 
-      for (Path candidate : repoCandidates) {
-        if (!candidate.isAbsolute()) {
-          candidate = StudioPathManager.resolvePathFromSourcesRoot(candidate);
-        }
-        File offlineRepo = candidate.toFile();
-        if (offlineRepo.isDirectory()) {
-          repoPaths.add(offlineRepo);
+      for (String candidate : repoCandidates) {
+        Path candidateDir = StudioPathManager.resolvePathFromSourcesRoot(candidate);
+        if (Files.isDirectory(candidateDir)) {
+          repoPaths.add(candidateDir.toFile());
         }
       }
     }

@@ -61,11 +61,6 @@ public class StudioPathManager {
     return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
   }
 
-  @NotNull
-  public static Path resolvePathFromSourcesRoot(@NotNull Path relativePath) {
-    return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
-  }
-
   /**
    * @deprecated use {@link #resolvePathFromSourcesRoot(String)} instead.
    */
