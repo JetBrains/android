@@ -476,7 +476,7 @@ android-studio/lib/asm-commons-7.1.jar
 android-studio/lib/asm-tree-7.1.jar
 android-studio/lib/asm-util-7.1.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-213.4293.20.2113.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-213.4631.20.2113.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/classpath.txt
@@ -637,6 +637,7 @@ android-studio/plugins/Groovy/lib/agent/gragent.jar
 android-studio/plugins/Groovy/lib/console.groovy
 android-studio/plugins/Groovy/lib/groovy-constants-rt.jar
 android-studio/plugins/Groovy/lib/groovy-jps.jar
+android-studio/plugins/Groovy/lib/groovy-rt-class-loader.jar
 android-studio/plugins/Groovy/lib/groovy-rt.jar
 android-studio/plugins/Groovy/lib/standardDsls/categoryTransform.gdsl
 android-studio/plugins/Groovy/lib/standardDsls/closuresInMethod.gdsl
@@ -2662,6 +2663,7 @@ android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
 android-studio/plugins/java/lib/3rd-party.jar
 android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/debugger-memory-agent.jar
+android-studio/plugins/java/lib/ecj/eclipse.jar
 android-studio/plugins/java/lib/java-api.jar
 android-studio/plugins/java/lib/java-impl.jar
 android-studio/plugins/java/lib/javac2.jar

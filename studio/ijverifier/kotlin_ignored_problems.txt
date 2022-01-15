@@ -42,3 +42,6 @@ Invocation of unresolved method com.intellij.ide.util.projectWizard.WizardContex
 // IDEA 213.4293.20
 Invocation of unresolved method org.jetbrains.plugins.gradle.execution.test.runner.TestTasksChooser.chooseTestTasks.*
 Invocation of unresolved method org.jetbrains.plugins.gradle.util.GradleExecutionSettingsUtil.createTestFilterFrom.*
+
+// IDEA 213.4631.20
+Reference to a missing property label.project.wizard.new.project.*

@@ -624,6 +624,7 @@ Android Studio Preview.app/Contents/plugins/Groovy/lib/agent/gragent.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/console.groovy
 Android Studio Preview.app/Contents/plugins/Groovy/lib/groovy-constants-rt.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/groovy-jps.jar
+Android Studio Preview.app/Contents/plugins/Groovy/lib/groovy-rt-class-loader.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/groovy-rt.jar
 Android Studio Preview.app/Contents/plugins/Groovy/lib/standardDsls/categoryTransform.gdsl
 Android Studio Preview.app/Contents/plugins/Groovy/lib/standardDsls/closuresInMethod.gdsl
@@ -2660,6 +2661,7 @@ Android Studio Preview.app/Contents/plugins/java-ide-customization/lib/java-ide-
 Android Studio Preview.app/Contents/plugins/java/lib/3rd-party.jar
 Android Studio Preview.app/Contents/plugins/java/lib/aether-dependency-resolver.jar
 Android Studio Preview.app/Contents/plugins/java/lib/debugger-memory-agent.jar
+Android Studio Preview.app/Contents/plugins/java/lib/ecj/eclipse.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-api.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-impl.jar
 Android Studio Preview.app/Contents/plugins/java/lib/javac2.jar

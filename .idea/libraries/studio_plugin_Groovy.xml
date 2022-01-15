@@ -4,6 +4,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Groovy/lib/Groovy.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-constants-rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-jps.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-rt-class-loader.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/plugins/Groovy/lib/groovy-rt.jar!/" />
     </CLASSES>
     <JAVADOC />
