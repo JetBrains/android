@@ -20,8 +20,12 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.explorer.adbimpl.AdbFileListingEntry.EntryKind
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.TestApplicationManager
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.ide.PooledThreadExecutor
@@ -30,9 +34,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.function.Consumer
 
-class AdbFileListingTest {
+@RunWith(Parameterized::class)
+class AdbFileListingTest(private val deviceInterfaceLibrary: DeviceInterfaceLibrary) {
   private lateinit var device: IDevice
   private lateinit var deviceState: com.android.fakeadbserver.DeviceState
 
@@ -46,12 +53,18 @@ class AdbFileListingTest {
     .withDeviceCommandHandler(TestShellCommandHandler(commands))
     .withDeviceCommandHandler(SyncCommandHandler())
 
+  @get:Rule
+  val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER, deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
+
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   private var originalTimeout = 0
 
   @Before
   fun setUp() {
+    // AdbLib makes use of ApplicationManager, so we need to set one up.
+    TestApplicationManager.getInstance()
+
     // We need the DDMLib timeout to be shorter than the test timeout, so that we can test that
     // ShellCommandUnresponsiveException is produced when ADB is slow to respond. The default
     // timeout of 5s is fine. However, the AdbService singleton messes with this timeout, so this
@@ -75,7 +88,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRoot() {
     // Prepare
-    TestDevices.addNexus7Api23Commands(commands)
+    TestDevices.NEXUS_7_API23.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -91,7 +104,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    TestDevices.addNexus7Api23Commands(commands)
+    TestDevices.NEXUS_7_API23.addCommands(commands)
     commands.addError("ls -al /" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
@@ -99,14 +112,17 @@ class AdbFileListingTest {
     val root = fileListing.root
 
     // Assert
-    thrown.expect(ShellCommandUnresponsiveException::class.java)
+    thrown.expect(when (deviceInterfaceLibrary) {
+      DeviceInterfaceLibrary.DDMLIB -> ShellCommandUnresponsiveException::class.java
+      DeviceInterfaceLibrary.ADBLIB -> TimeoutCancellationException::class.java
+    })
     fileListing.getChildren(root)
   }
 
   @Test
   fun test_Nexus7Api23_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    TestDevices.addNexus7Api23Commands(commands)
+    TestDevices.NEXUS_7_API23.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -168,7 +184,7 @@ class AdbFileListingTest {
   @Test
   fun test_Nexus7Api23_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    TestDevices.addNexus7Api23Commands(commands)
+    TestDevices.NEXUS_7_API23.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -188,7 +204,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRoot(): Unit = runBlocking {
     // Prepare
-    TestDevices.addNexus7Api23Commands(commands)
+    TestDevices.NEXUS_7_API23.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -204,7 +220,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_GetRootChildrenError(): Unit = runBlocking {
     // Prepare
-    TestDevices.addEmulatorApi25Commands(commands)
+    TestDevices.EMULATOR_API25.addCommands(commands)
     commands.addError("su 0 sh -c 'ls -al /'" + TestDevices.COMMAND_ERROR_CHECK_SUFFIX, ShellCommandUnresponsiveException())
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
@@ -212,14 +228,17 @@ class AdbFileListingTest {
     val root = fileListing.root
 
     // Assert
-    thrown.expect(ShellCommandUnresponsiveException::class.java)
+    thrown.expect(when (deviceInterfaceLibrary) {
+                    DeviceInterfaceLibrary.DDMLIB -> ShellCommandUnresponsiveException::class.java
+                    DeviceInterfaceLibrary.ADBLIB -> TimeoutCancellationException::class.java
+                  })
     fileListing.getChildren(root)
   }
 
   @Test
   fun test_EmulatorApi25_GetRootChildren(): Unit = runBlocking {
     // Prepare
-    TestDevices.addEmulatorApi25Commands(commands)
+    TestDevices.EMULATOR_API25.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -318,7 +337,7 @@ class AdbFileListingTest {
   @Test
   fun test_EmulatorApi25_IsDirectoryLink(): Unit = runBlocking {
     // Prepare
-    TestDevices.addEmulatorApi25Commands(commands)
+    TestDevices.EMULATOR_API25.addCommands(commands)
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(device), dispatcher)
 
     // Act
@@ -354,5 +373,10 @@ class AdbFileListingTest {
       val entry = checkNotNull(entries.find { it.name == name })
       consumer.accept(entry)
     }
+
+    @SuppressWarnings("unused")
+    @JvmStatic
+    @Parameterized.Parameters(name="{0}")
+    fun data(): Array<Any?> = arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB)
   }
 }

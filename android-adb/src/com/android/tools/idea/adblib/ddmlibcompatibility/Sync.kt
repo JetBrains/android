@@ -108,7 +108,6 @@ private suspend fun syncRecv(device: IDevice,
     val fileChannel = createNewFileChannel(localFilename)
     fileChannel.use {
       deviceServices.syncRecv(device.toDeviceSelector(), remoteFilepath, fileChannel, progress)
-      fileChannel.close()
     }
   }
 }
@@ -128,10 +127,10 @@ internal inline fun <R> mapToSyncException(block: () -> R): R {
   catch (e: CancellationException) {
     throw SyncException(SyncException.SyncError.CANCELED, e)
   }
-  catch (e: java.util.concurrent.CancellationException) {
-    throw SyncException(SyncException.SyncError.CANCELED, e)
-  }
   catch(e: AdbProtocolErrorException) {
+    throw SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR, e)
+  }
+  catch (e: AdbFailResponseException) {
     throw SyncException(SyncException.SyncError.TRANSFER_PROTOCOL_ERROR, e)
   }
 }

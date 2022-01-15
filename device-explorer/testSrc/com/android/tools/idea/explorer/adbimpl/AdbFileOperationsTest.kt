@@ -18,13 +18,19 @@ package com.android.tools.idea.explorer.adbimpl
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.adb.AdbShellCommandException
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.TestApplicationManager
+import com.intellij.util.containers.toArray
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.core.IsInstanceOf
 import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.After
+import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +41,7 @@ import java.util.concurrent.ExecutionException
 import java.util.function.Consumer
 
 @RunWith(Parameterized::class)
-class AdbFileOperationsTest(private val mySetupCommands: Consumer<TestShellCommands>) {
+class AdbFileOperationsTest(deviceInterfaceLibrary: DeviceInterfaceLibrary, private val testDevice: TestDevices) {
   @get:Rule
   val thrown = ExpectedException.none()
 
@@ -46,8 +52,17 @@ class AdbFileOperationsTest(private val mySetupCommands: Consumer<TestShellComma
     .withDeviceCommandHandler(TestShellCommandHandler(shellCommands))
     .withDeviceCommandHandler(SyncCommandHandler())
 
+  @get:Rule
+  val enableAdblib = SetFlagRule(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER, deviceInterfaceLibrary == DeviceInterfaceLibrary.ADBLIB)
+
+  @Before
+  fun setUp() {
+    // AdbLib makes use of ApplicationManager, so we need to set one up.
+    TestApplicationManager.getInstance()
+  }
+
   private fun setupMockDevice(): AdbFileOperations {
-    mySetupCommands.accept(shellCommands)
+    testDevice.addCommands(shellCommands)
 
     val deviceState = adb.attachDevice(
       deviceId = "test_device_01", manufacturer = "Google", model = "Pixel 10", release = "8.0", sdk = "31",
@@ -309,17 +324,14 @@ class AdbFileOperationsTest(private val mySetupCommands: Consumer<TestShellComma
   companion object {
     @SuppressWarnings("unused")
     @JvmStatic
-    @Parameterized.Parameters
-    fun data(): Array<Any> {
-      return arrayOf(
-        Consumer { commands: TestShellCommands ->
-          TestDevices.addEmulatorApi10Commands(commands)
-        },
-        Consumer { commands: TestShellCommands ->
-          TestDevices.addNexus7Api23Commands(commands)
-        }
-      )
-    }
+    @Parameterized.Parameters(name="{0},{1}")
+    fun data(): List<Array<Any>> =
+      crossProduct(
+        arrayOf(DeviceInterfaceLibrary.DDMLIB, DeviceInterfaceLibrary.ADBLIB),
+        arrayOf(TestDevices.EMULATOR_API10, TestDevices.NEXUS_7_API23))
+
+    fun crossProduct(a1: Array<Any>, a2: Array<Any>): List<Array<Any>> =
+      a1.flatMap { v1 -> a2.map { v2 -> arrayOf(v1, v2) } }
 
     @JvmField
     @ClassRule
