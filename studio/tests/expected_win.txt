@@ -509,6 +509,7 @@ android-studio/lib/jna.jar
 android-studio/lib/jps-model.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
+android-studio/lib/junit5.jar
 android-studio/lib/kotlin-reflect.jar
 android-studio/lib/kotlin-stdlib-1.5.10-release-945.jar
 android-studio/lib/kotlin-stdlib-common-1.5.10-release-945.jar

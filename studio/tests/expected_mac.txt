@@ -496,6 +496,7 @@ Android Studio Preview.app/Contents/lib/jna.jar
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
+Android Studio Preview.app/Contents/lib/junit5.jar
 Android Studio Preview.app/Contents/lib/kotlin-reflect.jar
 Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-945.jar
 Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-945.jar
