@@ -502,14 +502,13 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage.jar
+android-studio/lib/intellij-coverage-agent-1.0.609.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jna.jar
 android-studio/lib/jps-model.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
-android-studio/lib/junit5.jar
 android-studio/lib/kotlin-reflect.jar
 android-studio/lib/kotlin-stdlib-1.5.10-release-945.jar
 android-studio/lib/kotlin-stdlib-common-1.5.10-release-945.jar
@@ -529,6 +528,7 @@ android-studio/lib/platform-objectSerializer-annotations.jar
 android-studio/lib/platform-statistics-devkit.jar
 android-studio/lib/protobuf.jar
 android-studio/lib/pty4j-native/win/x86-64/cyglaunch.exe
+android-studio/lib/pty4j-native/win/x86-64/win-helper.dll
 android-studio/lib/pty4j-native/win/x86-64/winpty-agent.exe
 android-studio/lib/pty4j-native/win/x86-64/winpty.dll
 android-studio/lib/pty4j-native/win/x86/winpty-agent.exe

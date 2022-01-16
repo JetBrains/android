@@ -26,6 +26,7 @@ Android Studio Preview.app/Contents/bin/helpers/jb_declarative_formatters/type_v
 Android Studio Preview.app/Contents/bin/icons.db
 Android Studio Preview.app/Contents/bin/idea.properties
 Android Studio Preview.app/Contents/bin/inspect.sh
+Android Studio Preview.app/Contents/bin/libmacscreenmenu64.dylib
 Android Studio Preview.app/Contents/bin/libnst64.dylib
 Android Studio Preview.app/Contents/bin/lldb/helpers/jb_lldb_init.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/jb_lldb_stepping.py
@@ -510,14 +511,13 @@ Android Studio Preview.app/Contents/lib/forms_rt.jar
 Android Studio Preview.app/Contents/lib/grpc-netty-shaded.jar
 Android Studio Preview.app/Contents/lib/idea.jar
 Android Studio Preview.app/Contents/lib/idea_rt.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.609.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
 Android Studio Preview.app/Contents/lib/jdkAnnotations.jar
 Android Studio Preview.app/Contents/lib/jna.jar
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
-Android Studio Preview.app/Contents/lib/junit5.jar
 Android Studio Preview.app/Contents/lib/kotlin-reflect.jar
 Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-945.jar
 Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-945.jar

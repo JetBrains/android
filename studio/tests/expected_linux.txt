@@ -476,7 +476,7 @@ android-studio/lib/asm-commons-7.1.jar
 android-studio/lib/asm-tree-7.1.jar
 android-studio/lib/asm-util-7.1.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-213.4928.7.2113.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-213.5281.15.2113.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/classpath.txt
@@ -487,7 +487,7 @@ android-studio/lib/forms_rt.jar
 android-studio/lib/grpc-netty-shaded.jar
 android-studio/lib/idea.jar
 android-studio/lib/idea_rt.jar
-android-studio/lib/intellij-coverage.jar
+android-studio/lib/intellij-coverage-agent-1.0.609.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/java-utils-1.0.6.jar
 android-studio/lib/jdkAnnotations.jar
@@ -504,7 +504,6 @@ android-studio/lib/jnr-x86asm-1.0.2.jar
 android-studio/lib/jps-model.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
-android-studio/lib/junit5.jar
 android-studio/lib/kotlin-reflect.jar
 android-studio/lib/kotlin-stdlib-1.5.10-release-945.jar
 android-studio/lib/kotlin-stdlib-common-1.5.10-release-945.jar

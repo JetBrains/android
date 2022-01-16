@@ -12,14 +12,13 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/grpc-netty-shaded.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/idea.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/idea_rt.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-coverage.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.609.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/intellij-test-discovery.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/jdkAnnotations.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/jna.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/jps-model.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/junit.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/junit4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/junit5.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-reflect.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-1.5.10-release-945.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-213/$SDK_PLATFORM$/lib/kotlin-stdlib-common-1.5.10-release-945.jar!/" />
