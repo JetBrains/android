@@ -85,6 +85,13 @@ open class ProjectsUpgradeTestBase {
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
     val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpGradleVersion(), to.agpGradleVersion())
+    processor.componentRefactoringProcessors.forEach {
+      it.isEnabled = when (it.necessity()) {
+        AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE -> false
+        AgpUpgradeComponentNecessity.IRRELEVANT_PAST -> false
+        else -> true
+      }
+    }
 
     processor.run()
 
