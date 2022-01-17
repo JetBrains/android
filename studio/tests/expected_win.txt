@@ -496,6 +496,7 @@ android-studio/lib/bootstrap.jar
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/classpath.txt
+android-studio/lib/commons-net-3.8.0.jar
 android-studio/lib/error-prone-annotations.jar
 android-studio/lib/external-system-rt.jar
 android-studio/lib/forms_rt.jar
@@ -510,10 +511,10 @@ android-studio/lib/jps-model.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
 android-studio/lib/kotlin-reflect.jar
-android-studio/lib/kotlin-stdlib-1.5.10-release-945.jar
-android-studio/lib/kotlin-stdlib-common-1.5.10-release-945.jar
-android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-945.jar
-android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-945.jar
+android-studio/lib/kotlin-stdlib-1.5.10-release-949.jar
+android-studio/lib/kotlin-stdlib-common-1.5.10-release-949.jar
+android-studio/lib/kotlin-stdlib-jdk7-1.5.10-release-949.jar
+android-studio/lib/kotlin-stdlib-jdk8-1.5.10-release-949.jar
 android-studio/lib/kotlin-test.jar
 android-studio/lib/kotlinx.jar
 android-studio/lib/openapi.jar
@@ -537,6 +538,7 @@ android-studio/lib/pty4j.jar
 android-studio/lib/rd-core.jar
 android-studio/lib/rd-framework.jar
 android-studio/lib/rd-swing.jar
+android-studio/lib/rd-text.jar
 android-studio/lib/resources.jar
 android-studio/lib/stats.jar
 android-studio/lib/util.jar
@@ -2095,9 +2097,12 @@ android-studio/plugins/java/lib/ecj/eclipse.jar
 android-studio/plugins/java/lib/java-api.jar
 android-studio/plugins/java/lib/java-impl.jar
 android-studio/plugins/java/lib/javac2.jar
+android-studio/plugins/java/lib/jb-jdi-2.16.jar
 android-studio/plugins/java/lib/jdkAnnotations.jar
+android-studio/plugins/java/lib/jgoodies-common-1.4.0.jar
 android-studio/plugins/java/lib/jps-builders-6.jar
 android-studio/plugins/java/lib/jps-builders.jar
+android-studio/plugins/java/lib/jps-javac-extension-1.jar
 android-studio/plugins/java/lib/jps-launcher.jar
 android-studio/plugins/java/lib/jshell-frontend.jar
 android-studio/plugins/java/lib/jshell-protocol.jar
@@ -2119,7 +2124,7 @@ android-studio/plugins/settings-repository/lib/settings-repository.jar
 android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/stream-debugger/lib/stream-debugger.jar
-android-studio/plugins/svn4idea/lib/sqlite.jar
+android-studio/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/svn4idea/lib/svn4idea.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
 android-studio/plugins/terminal/.zshenv
@@ -2129,7 +2134,11 @@ android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/test-recorder/lib/swt.jar
 android-studio/plugins/test-recorder/lib/test-recorder.jar
 android-studio/plugins/test-recorder/lib/uiautomatorviewer.jar
-android-studio/plugins/testng/lib/3rd-party.jar
+android-studio/plugins/testng/lib/aopalliance-1.0.jar
+android-studio/plugins/testng/lib/guice-4.1.0-no_aop.jar
+android-studio/plugins/testng/lib/javax.inject-1.jar
+android-studio/plugins/testng/lib/jcommander-1.72.jar
+android-studio/plugins/testng/lib/testng-7.1.0.jar
 android-studio/plugins/testng/lib/testng-plugin.jar
 android-studio/plugins/testng/lib/testng-rt.jar
 android-studio/plugins/textmate/lib/bundles/bat/.vscodeignore

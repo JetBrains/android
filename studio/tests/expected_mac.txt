@@ -484,6 +484,7 @@ Android Studio Preview.app/Contents/lib/bootstrap.jar
 Android Studio Preview.app/Contents/lib/byte-buddy-agent.jar
 Android Studio Preview.app/Contents/lib/cds/classesLogAgent.jar
 Android Studio Preview.app/Contents/lib/classpath.txt
+Android Studio Preview.app/Contents/lib/commons-net-3.8.0.jar
 Android Studio Preview.app/Contents/lib/error-prone-annotations.jar
 Android Studio Preview.app/Contents/lib/external-system-rt.jar
 Android Studio Preview.app/Contents/lib/forms_rt.jar
@@ -498,10 +499,10 @@ Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/kotlin-reflect.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-945.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-945.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-945.jar
-Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-945.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-common-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk7-1.5.10-release-949.jar
+Android Studio Preview.app/Contents/lib/kotlin-stdlib-jdk8-1.5.10-release-949.jar
 Android Studio Preview.app/Contents/lib/kotlin-test.jar
 Android Studio Preview.app/Contents/lib/kotlinx.jar
 Android Studio Preview.app/Contents/lib/openapi.jar
@@ -520,6 +521,7 @@ Android Studio Preview.app/Contents/lib/pty4j.jar
 Android Studio Preview.app/Contents/lib/rd-core.jar
 Android Studio Preview.app/Contents/lib/rd-framework.jar
 Android Studio Preview.app/Contents/lib/rd-swing.jar
+Android Studio Preview.app/Contents/lib/rd-text.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/util.jar
@@ -2666,9 +2668,12 @@ Android Studio Preview.app/Contents/plugins/java/lib/ecj/eclipse.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-api.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-impl.jar
 Android Studio Preview.app/Contents/plugins/java/lib/javac2.jar
+Android Studio Preview.app/Contents/plugins/java/lib/jb-jdi-2.16.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jdkAnnotations.jar
+Android Studio Preview.app/Contents/plugins/java/lib/jgoodies-common-1.4.0.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-builders-6.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-builders.jar
+Android Studio Preview.app/Contents/plugins/java/lib/jps-javac-extension-1.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-launcher.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jshell-frontend.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jshell-protocol.jar
@@ -2690,7 +2695,7 @@ Android Studio Preview.app/Contents/plugins/settings-repository/lib/settings-rep
 Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/stream-debugger/lib/stream-debugger.jar
-Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite.jar
+Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/svn4idea.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/.zshenv
@@ -2700,7 +2705,11 @@ Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/test-recorder.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/uiautomatorviewer.jar
-Android Studio Preview.app/Contents/plugins/testng/lib/3rd-party.jar
+Android Studio Preview.app/Contents/plugins/testng/lib/aopalliance-1.0.jar
+Android Studio Preview.app/Contents/plugins/testng/lib/guice-4.1.0-no_aop.jar
+Android Studio Preview.app/Contents/plugins/testng/lib/javax.inject-1.jar
+Android Studio Preview.app/Contents/plugins/testng/lib/jcommander-1.72.jar
+Android Studio Preview.app/Contents/plugins/testng/lib/testng-7.1.0.jar
 Android Studio Preview.app/Contents/plugins/testng/lib/testng-plugin.jar
 Android Studio Preview.app/Contents/plugins/testng/lib/testng-rt.jar
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/bat/.vscodeignore
