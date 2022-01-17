@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet.Companion.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.run.RunConfigurationChecker
