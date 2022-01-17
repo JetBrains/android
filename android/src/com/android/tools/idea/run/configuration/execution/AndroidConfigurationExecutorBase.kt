@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.MultiLineReceiver
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.configuration.ComponentSpecificConfiguration
@@ -36,7 +35,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressIndicatorProvider
@@ -152,15 +150,6 @@ abstract class AndroidConfigurationExecutorBase(protected val environment: Execu
     }
     else {
       invokeAndWaitIfNeeded { showRunContent(DefaultExecutionResult(console, processHandler), environment) }
-    }
-  }
-
-  open class AndroidLaunchReceiver(private val isCancelledCheck: () -> Boolean,
-                                   private val consoleView: ConsoleView) : MultiLineReceiver() {
-    override fun isCancelled() = isCancelledCheck()
-
-    override fun processNewLines(lines: Array<String>) = lines.forEach {
-      consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
   }
 }

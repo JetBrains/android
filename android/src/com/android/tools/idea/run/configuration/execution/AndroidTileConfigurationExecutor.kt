@@ -56,33 +56,44 @@ class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment) : Andr
       val app = applicationInstaller.installAppOnDevice(device, appId, getApkPaths(device), configuration.installFlags) {
         console.print(it, ConsoleViewContentType.NORMAL_OUTPUT)
       }
-      val receiver = TileIndexReceiver({ indicator?.isCanceled == true }, console)
+      val receiver = AddTileCommandResultReceiver({ indicator?.isCanceled == true }, console)
       app.activateComponent(configuration.componentType, configuration.componentName!!, mode, receiver)
-      val tileIndex = receiver.tileIndex ?: throw ExecutionException("Tile index is not found")
-      val command = SHOW_TILE_COMMAND + tileIndex
-      console.printShellCommand(command)
-      device.executeShellCommand(command, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
+      verifyResponse(receiver)
+      val tileIndex = receiver.index
+      val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
+      console.printShellCommand(showTileCommand)
+      device.executeShellCommand(showTileCommand, AndroidLaunchReceiver({ indicator?.isCanceled == true }, console), 5, TimeUnit.SECONDS)
     }
     ProgressManager.checkCanceled()
     return createRunContentDescriptor(devices, processHandler, console)
   }
 
+  private fun verifyResponse(receiver: AddTileCommandResultReceiver) {
+    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      throw ExecutionException("Error while setting the tile, message: ${receiver.getOutput()}")
+    }
+    if (receiver.index == null) {
+      throw ExecutionException("Tile index was not found.")
+    }
+  }
+
 }
 
-private class TileIndexReceiver(val isCancelledCheck: () -> Boolean,
-                                consoleView: ConsoleView) : AndroidConfigurationExecutorBase.AndroidLaunchReceiver(isCancelledCheck,
-                                                                                                                   consoleView) {
-  var tileIndex: Int? = null
-  val indexPattern = "Index=\\[(\\d+)]".toRegex()
+
+private class AddTileCommandResultReceiver(isCancelledCheck: () -> Boolean, consoleView: ConsoleView) : CommandResultReceiver(
+  isCancelledCheck, consoleView) {
+  private val indexPattern = "Index=\\[(\\d+)]".toRegex()
+  var index: Int? = null
+
   override fun processNewLines(lines: Array<String>) {
     super.processNewLines(lines)
-    lines.forEach { line -> indexPattern.find(line)?.groupValues?.getOrNull(1)?.let { tileIndex = it.toInt() } }
+    lines.forEach { line -> extractPattern(line, indexPattern)?.let { index = it.toInt() } }
   }
 }
 
 class TileProcessHandler(private val tileName:String, private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidLaunchReceiver({ false }, console)
 
     val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
     console.printShellCommand(removeTileCommand)

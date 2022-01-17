@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
+import com.intellij.execution.ExecutionException
 import com.android.testutils.MockitoKt
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
@@ -33,6 +34,7 @@ import com.intellij.execution.ui.ConsoleView
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
+import kotlin.test.assertFailsWith
 
 class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
 
@@ -57,7 +59,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       // get the 4th arg (the receiver to feed it the lines).
       val receiver = invocation.getArgument<MultiLineReceiver>(1)
       // Test TileIndexReceiver.
-      receiver.processNewLines(arrayOf("Index=[1]"))
+      receiver.processNewLines(arrayOf("Broadcast completed: result=1, Index=[1]"))
     }.`when`(device)
       // Test that we call activateComponent with right params.
       .executeShellCommand(MockitoKt.eq(
@@ -90,6 +92,33 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(commands[1]).isEqualTo("am broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-tile --ei index 1")
   }
 
+  fun testException() {
+    // Use DefaultRunExecutor, equivalent of pressing run button.
+    val env = getExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance())
+
+    val executor = Mockito.spy(AndroidTileConfigurationExecutor(env))
+
+    val device = getMockDevice()
+
+    val response = "Broadcast completed: result=2, data=\"Internal failure.\""
+    val extraLine = "End of output."
+
+    Mockito.doAnswer { invocation: InvocationOnMock -> // get the 4th arg (the receiver to feed it the lines).
+      val receiver = invocation.getArgument<MultiLineReceiver>(1) // Test TileIndexReceiver.
+      receiver.processNewLines(arrayOf(response, extraLine))
+    }.`when`(device) // Test that we call activateComponent with right params.
+      .executeShellCommand(MockitoKt.eq(
+        "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'add-tile' --ecn component com.example.app/com.example.app.Component"),
+                           MockitoKt.any(IShellOutputReceiver::class.java), MockitoKt.any(), MockitoKt.any())
+
+    val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
+    val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
+    Mockito.doReturn(appInstaller).`when`(executor).getApplicationInstaller()
+
+    val e = assertFailsWith<ExecutionException> { executor.doOnDevices(listOf(device)) }
+    assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $response\n$extraLine")
+  }
+
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
@@ -103,7 +132,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       // get the 4th arg (the receiver to feed it the lines).
       val receiver = invocation.getArgument<MultiLineReceiver>(1)
       // Test TileIndexReceiver.
-      receiver.processNewLines(arrayOf("Index=[101]"))
+      receiver.processNewLines(arrayOf("Broadcast completed: result=1, Index=[101]"))
     }.`when`(device)
       // Test that we call activateComponent with right params.
       .executeShellCommand(MockitoKt.eq(

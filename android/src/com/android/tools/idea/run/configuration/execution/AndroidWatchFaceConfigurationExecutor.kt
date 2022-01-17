@@ -70,7 +70,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment) :
 class WatchFaceProcessHandler(private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
 
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidLaunchReceiver({ false }, console)
 
     console.printShellCommand(UNSET_WATCH_FACE)
     device.executeShellCommand(UNSET_WATCH_FACE, receiver, 5, TimeUnit.SECONDS)

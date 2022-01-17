@@ -160,8 +160,7 @@ class AndroidRemoteDebugProcessHandler(
     processHandler.destroyProcess()
     processHandler.devices.forEach {
       console.printShellCommand(CLEAR_DEBUG_APP_COMMAND)
-      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console), 5,
-                             TimeUnit.SECONDS)
+      it.executeShellCommand(CLEAR_DEBUG_APP_COMMAND, AndroidLaunchReceiver({ false }, console), 5, TimeUnit.SECONDS)
     }
   }
 }

@@ -88,7 +88,7 @@ class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment
 class ComplicationProcessHandler(private val complicationComponentName: String,
                                  private val console: ConsoleView) : AndroidProcessHandlerForDevices() {
   override fun destroyProcessOnDevice(device: IDevice) {
-    val receiver = AndroidConfigurationExecutorBase.AndroidLaunchReceiver({ false }, console)
+    val receiver = AndroidLaunchReceiver({ false }, console)
 
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     console.printShellCommand(removeComplicationCommand)
