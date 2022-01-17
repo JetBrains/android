@@ -138,6 +138,8 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
 import java.io.File
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
@@ -1126,28 +1128,29 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
   }
 
   return object : ModelCache.V2 {
+    private val lock = ReentrantLock()
     override fun variantFrom(
       androidProject: IdeAndroidProject,
       basicVariant: BasicVariant,
       variant: Variant,
       modelVersion: GradleVersion?
-    ): IdeVariantImpl = variantFrom(androidProject, basicVariant, variant, modelVersion)
+    ): IdeVariantImpl = lock.withLock { variantFrom(androidProject, basicVariant, variant, modelVersion) }
 
     override fun variantFrom(
       variant: IdeVariantImpl,
       variantDependencies: VariantDependencies,
       getVariantNameResolver: (buildId: File, projectPath: String) -> VariantNameResolver,
       buildNameMap: Map<String, File>
-    ): IdeVariantImpl = variantFrom(variant, variantDependencies, getVariantNameResolver, buildNameMap)
+    ): IdeVariantImpl = lock.withLock { variantFrom(variant, variantDependencies, getVariantNameResolver, buildNameMap) }
 
     override fun androidProjectFrom(
       basicProject: BasicAndroidProject,
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl
-    ): IdeAndroidProjectImpl = androidProjectFrom(basicProject, project, androidVersion, androidDsl)
+    ): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(basicProject, project, androidVersion, androidDsl)}
 
-    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
+    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
 
     override fun nativeVariantAbiFrom(variantAbi: com.android.builder.model.NativeVariantAbi): IdeNativeVariantAbiImpl =
       throw UnsupportedOperationException("com.android.builder.model.NativeVariantAbi is a model v1 concept")

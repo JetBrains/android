@@ -141,6 +141,8 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import java.io.File
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
@@ -1147,22 +1149,27 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache.V1
   }
 
   return object : ModelCache.V1 {
+    private val lock = ReentrantLock()
     override fun variantFrom(
       androidProject: IdeAndroidProject,
       variant: Variant,
       modelVersion: GradleVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantImpl = variantFrom(androidProject, variant, modelVersion, androidModuleId)
+    ): IdeVariantImpl = lock.withLock { variantFrom(androidProject, variant, modelVersion, androidModuleId) }
 
-    override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = androidProjectFrom(project)
+    override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = lock.withLock { androidProjectFrom(project) }
 
-    override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl = androidArtifactOutputFrom(output)
-    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
-    override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl = nativeVariantAbiFrom(variantAbi)
+    override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =
+      lock.withLock { androidArtifactOutputFrom(output) }
+
+    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
+    override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl =
+      lock.withLock { nativeVariantAbiFrom(variantAbi) }
+
     override fun nativeAndroidProjectFrom(
       project: NativeAndroidProject,
       ndkVersion: String
-    ): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project, ndkVersion)
+    ): IdeNativeAndroidProjectImpl = lock.withLock { nativeAndroidProjectFrom(project, ndkVersion) }
   }
 }
 
