@@ -267,7 +267,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
           if (sourceSet != null && sourceSet.getCanBeConsumed()) {
             GradleProjectPath gradleProjectPath = new GradleProjectPath(
-              projectIdentifier.getBuildIdentifier().getRootDir(),
+              projectIdentifier.getBuildIdentifier().getRootDir().getPath(),
               projectIdentifier.getProjectPath(),
               sourceSet
             );

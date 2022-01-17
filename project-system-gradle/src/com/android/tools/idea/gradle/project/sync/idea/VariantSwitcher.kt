@@ -28,10 +28,9 @@ import com.android.tools.idea.gradle.project.sync.VariantSelectionChange
 import com.android.tools.idea.gradle.project.sync.applyChange
 import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.toGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -89,7 +88,6 @@ fun computeExpectedVariantsAfterSwitch(
   val affectedModules =
     androidModules.getAffectedModuleIds(
       module.getGradleProjectPath()
-        ?.let { GradleProjectPath(it.projectRoot, it.gradleProjectPath, IdeModuleSourceSet.MAIN) }
       ?: return null
     )
 
@@ -114,7 +112,7 @@ fun Project.getSelectedVariantAndAbis(): Map<GradleProjectPath, VariantAndAbi> {
     .mapNotNull { androidFacet ->
       val module = androidFacet.module
       val ndkFacet = NdkFacet.getInstance(module)
-      val gradleProjectPath = module.getGradleProjectPath()?.toGradleProjectPath() ?: return@mapNotNull null
+      val gradleProjectPath = module.getGradleProjectPath() ?: return@mapNotNull null
       gradleProjectPath to
           VariantAndAbi(
             androidFacet.properties.SELECTED_BUILD_VARIANT,
