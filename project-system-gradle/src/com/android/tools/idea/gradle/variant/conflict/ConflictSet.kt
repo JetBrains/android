@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeModuleDependency
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.messages.GroupNames
@@ -23,14 +24,11 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.project.messages.SyncMessage
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 
 /**
@@ -87,30 +85,50 @@ class ConflictSet private constructor(
   }
 
   companion object {
+    private class RawConflict(val sourceModule: Module, val selectedVariant: String, val targetModule: Module, val expectedVariant: String)
+
     @JvmStatic
     fun findConflicts(project: Project): ConflictSet {
-      val selectionConflicts = mutableMapOf<String, Conflict>()
-      val moduleManager = ModuleManager.getInstance(project)
-      for (module in moduleManager.modules) {
-        val currentAndroidModel = GradleAndroidModel.get(module)
-        if (currentAndroidModel == null || currentAndroidModel.androidProject.projectType === IdeAndroidProjectType.PROJECT_TYPE_APP) {
-          continue
-        }
-        val gradlePath = module.getGradleProjectPath() ?: continue
-        val selectedVariant = currentAndroidModel.selectedVariant.name
-        val dependentModules = runReadAction { ModuleUtilCore.getAllDependentModules(module) }
-        for (dependent in dependentModules) {
-          val dependentAndroidModel = GradleAndroidModel.get(dependent) ?: continue
-          val expectedVariant = getExpectedVariant(dependentAndroidModel, gradlePath)
-          if (expectedVariant.isNullOrEmpty()) {
-            continue
-          }
-          if (selectedVariant != expectedVariant) {
-            selectionConflicts.addConflict(module, selectedVariant, dependent, expectedVariant)
-          }
-        }
-      }
+      val androidHolderModules = project.getAndroidFacets().map { it.holderModule }
 
+      val modulesByPath = androidHolderModules
+        .asSequence()
+        .mapNotNull {
+          val gradleProjectPath = it.getGradleProjectPath() ?: return@mapNotNull null
+          gradleProjectPath to it
+        }
+        .toMap()
+
+      val selectedVariants =
+        androidHolderModules
+          .asSequence()
+          .mapNotNull { module ->
+            val model = GradleAndroidModel.get(module) ?: return@mapNotNull null
+            module to model.selectedVariantName
+          }
+          .toMap()
+
+      val conflicts =
+        androidHolderModules
+          .asSequence()
+          .flatMap { module ->
+            GradleAndroidModel.get(module)
+              ?.getModuleDependencies().orEmpty()
+              .mapNotNull {
+                val targetVariant = it.variant?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                val targetModule =
+                  modulesByPath[it.getGradleProjectPath().copy(sourceSet = IdeModuleSourceSet.MAIN)] ?: return@mapNotNull null
+                val selectedVariant = selectedVariants[targetModule] ?: return@mapNotNull null
+                if (selectedVariant == targetVariant) null
+                else RawConflict(module, selectedVariant, targetModule, targetVariant)
+              }
+          }
+
+
+      val selectionConflicts = mutableMapOf<String, Conflict>()
+      conflicts.forEach { conflict ->
+        selectionConflicts.addConflict(conflict.targetModule, conflict.selectedVariant, conflict.sourceModule, conflict.expectedVariant)
+      }
       return ConflictSet(project, ImmutableList.copyOf(selectionConflicts.values))
     }
 
@@ -125,35 +143,12 @@ class ConflictSet private constructor(
       conflict.addAffectedModule(affected, expectedVariant)
     }
 
-    private fun getExpectedVariant(dependentAndroidModel: GradleAndroidModel, dependencyGradlePath: GradleProjectPath): String? {
-      val variant = dependentAndroidModel.selectedVariant
-      for (dependency in variant.mainArtifact.level2Dependencies.moduleDependencies) {
-        if (dependencyGradlePath == dependency.getGradleProjectPath()) {
-          return dependency.variant
-        }
-      }
-      if (variant.androidTestArtifact != null) {
-        for (dependency in variant.androidTestArtifact!!.level2Dependencies.moduleDependencies) {
-          if (dependencyGradlePath == dependency.getGradleProjectPath()) {
-            return dependency.variant
-          }
-        }
-      }
-      if (variant.testFixturesArtifact != null) {
-        for (dependency in variant.testFixturesArtifact!!.level2Dependencies.moduleDependencies) {
-          if (dependencyGradlePath == dependency.getGradleProjectPath()) {
-            return dependency.variant
-          }
-        }
-      }
-      if (variant.unitTestArtifact != null) {
-        for (dependency in variant.unitTestArtifact!!.level2Dependencies.moduleDependencies) {
-          if (dependencyGradlePath == dependency.getGradleProjectPath()) {
-            return dependency.variant
-          }
-        }
-      }
-      return null
+    private fun GradleAndroidModel.getModuleDependencies(): Sequence<IdeModuleDependency> {
+      val variant = selectedVariant
+      return variant.mainArtifact.level2Dependencies.moduleDependencies.asSequence() +
+        variant.androidTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
+        variant.testFixturesArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty() +
+        variant.unitTestArtifact?.level2Dependencies?.moduleDependencies?.asSequence().orEmpty()
     }
   }
 }
