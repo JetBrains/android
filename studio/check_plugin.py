@@ -6,7 +6,21 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
-def load_include(external_xmls, cwd, index, href, xpath):
+def load_include(include, external_xmls, cwd, index):
+  href = include.get("href")
+  parse = include.get("parse", "xml")
+  if parse != "xml":
+    print("only xml parse is supported")
+    sys.exit(1)
+  xpointer = include.get("xpointer")
+  xpath = None
+  if xpointer:
+    m = re.match(r"xpointer\((.*)\)", xpointer)
+    if not m:
+      print("only xpointers of the form xpointer(xpath) are supported")
+      sys.exit(1)
+    xpath = m.group(1)
+
   rel = href[1:] if href.startswith("/") else cwd + "/" + href
 
   if rel in external_xmls:
@@ -54,20 +68,7 @@ def resolve_includes(elem, external_xmls, cwd, index):
   while i < len(elem):
     e = elem[i]
     if e.tag == "{http://www.w3.org/2001/XInclude}include":
-      href = e.get("href")
-      parse = e.get("parse", "xml")
-      if parse != "xml":
-        print("only xml parse is supported")
-        sys.exit(1)
-      xpointer = e.get("xpointer")
-      xpath = None
-      if xpointer:
-        m = re.match(r"xpointer\((.*)\)", xpointer)
-        if not m:
-          print("only xpointers of the form xpointer(xpath) are supported")
-          sys.exit(1)
-        xpath = m.group(1)
-      nodes, new_cwd = load_include(external_xmls, cwd, index, href, xpath)
+      nodes, new_cwd = load_include(e, external_xmls, cwd, index)
       subtree = ET.Element("nodes")
       subtree.extend(nodes)
       resolve_includes(subtree, external_xmls, new_cwd, index)
