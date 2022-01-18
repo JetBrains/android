@@ -35,7 +35,6 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
@@ -145,6 +144,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipException;
 import kotlin.Unit;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -1120,5 +1120,17 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   private boolean isModulePerSourceSetEnabled() {
     return myIsModulePerSourceSetMode;
+  }
+
+  private static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {
+    return Stream.of(
+      provider.getJavaDirectories(),
+      provider.getKotlinDirectories(),
+      provider.getResDirectories(),
+      provider.getAidlDirectories(),
+      provider.getRenderscriptDirectories(),
+      provider.getAssetsDirectories(),
+      provider.getJniLibsDirectories()
+    ).flatMap(Collection::stream).collect(Collectors.toList());
   }
 }
