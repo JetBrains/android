@@ -26,10 +26,10 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.firstNotNullResult
-import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 object ModuleUtil {
@@ -67,7 +67,7 @@ object ModuleUtil {
     var androidTestModule : Module? = null
     var testFixturesModule : Module? = null
     var mainModule : Module? = null
-    findAll(GradleSourceSetData.KEY).forEach {
+    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
       when(val sourceSetName = it.data.externalName.substringAfterLast(":")) {
         getModuleName(IdeArtifactName.MAIN) -> mainModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
