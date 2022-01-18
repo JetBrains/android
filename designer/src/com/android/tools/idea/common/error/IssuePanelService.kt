@@ -42,6 +42,8 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.ColorUtil.toHtmlColor
 import com.intellij.ui.content.Content
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.ui.UIUtil
 
 /**
@@ -109,6 +111,34 @@ class IssuePanelService(private val project: Project) {
         isCloseable = false
         contentManager.addContent(this@apply)
       }
+
+      contentManager.addContentManagerListener(object : ContentManagerListener {
+        override fun selectionChanged(event: ContentManagerEvent) {
+          val provider = issuePanel.getIssueProvider() ?: return
+          if (provider !is EmptyIssueProvider) {
+            // Nothing to do.
+            return
+          }
+          if (event.index == 2) {
+            val editor = FileEditorManager.getInstance(project).selectedEditor
+            val surface = getDesignSurface(editor)
+            if (surface == null || surface.layoutType is DrawableFileType) {
+              if (removeSharedIssueTabFromProblemsPanel()) {
+                issuePanel.setIssueProvider(EmptyIssueProvider)
+              }
+              return
+            }
+            else {
+              addSharedIssueTabToProblemsPanel()
+              contentManager.setSelectedContent(sharedIssueTab!!)
+              val issueModel = surface.issueModel
+              val listener = IssueModel.IssueModelListener { issuePanel.updateTree(editor!!.file, issueModel) }
+              issueModel.addErrorModelListener(listener)
+              issuePanel.setIssueProvider(IssueModelProvider(issueModel, editor!!.file!!) { issueModel.removeErrorModelListener(listener) })
+            }
+          }
+        }
+      })
     }
 
     project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
