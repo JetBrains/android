@@ -51,8 +51,6 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
   }
 
   private fun update() {
-    val chosenSlotsIds = currentChosenSlots.map { it.id }
-    notChosenSlotIds = allAvailableSlots.filter { !chosenSlotsIds.contains(it.slotId) }.map { it.slotId }
     repaintSlotsComponent()
     addSlotLink.isEnabled = currentChosenSlots.size < allAvailableSlots.size
   }
@@ -113,6 +111,8 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   private fun repaintSlotsComponent() {
     slotsComponent.removeAll()
+    val chosenSlotsIds = currentChosenSlots.map { it.id }
+    notChosenSlotIds = allAvailableSlots.filter { !chosenSlotsIds.contains(it.slotId) }.map { it.slotId }
     currentChosenSlots.forEach { slotsComponent.add(createSlot(it)) }
     slotsComponent.revalidate()
     slotsComponent.repaint()
@@ -152,6 +152,7 @@ class AndroidComplicationConfigurationEditor(project: Project, configuration: An
 
   private fun getSlotIdComboBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<Int> {
     val availableSlotIds = (notChosenSlotIds + chosenSlot.id).toTypedArray()
+    availableSlotIds.sort()
     return ComboBox(availableSlotIds).apply {
       renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = allAvailableSlots.first { it.slotId == value }.name }
       preferredSize = Dimension(150, preferredSize.height)

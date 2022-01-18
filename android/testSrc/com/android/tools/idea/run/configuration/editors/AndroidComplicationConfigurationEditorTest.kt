@@ -26,15 +26,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
-import javax.swing.JList
 import javax.swing.JPanel
 
 
-class AndroidComplicationConfigurationEditorTes : AndroidTestCase() {
+class AndroidComplicationConfigurationEditorTest : AndroidTestCase() {
 
   private lateinit var runConfiguration: AndroidComplicationConfiguration
   private lateinit var settingsEditor: AndroidComplicationConfigurationEditor
@@ -94,6 +92,15 @@ class AndroidComplicationConfigurationEditorTes : AndroidTestCase() {
     assertThat(slotIdComboBox1.items).containsExactly(0, 2)
     assertEquals(0, slotIdComboBox1.item)
 
+    // Selecting between items should not change the list of available items
+    slotIdComboBox1.item = 2
+    slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
+    assertThat(slotIdComboBox1.items).containsExactly(0, 2)
+
+    slotIdComboBox1.item = 0
+    slotIdComboBox1 = slotsPanel.getIdComboBoxForSlot(0)
+    assertThat(slotIdComboBox1.items).containsExactly(0, 2)
+
     val slotTypeComboBox1 = slotsPanel.getTypeComboBoxForSlot(0)
     assertThat(slotTypeComboBox1.items).containsExactly(ComplicationType.SHORT_TEXT, ComplicationType.RANGED_VALUE)
 
@@ -152,7 +159,7 @@ class AndroidComplicationConfigurationEditorTes : AndroidTestCase() {
     settingsEditor.resetFrom(runConfiguration)
 
     val editor = settingsEditor.component as DialogPanel
-    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>()[1] as ComboBox<String>
+    val componentComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<String>>()[1]
 
     assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyComplication")
   }
