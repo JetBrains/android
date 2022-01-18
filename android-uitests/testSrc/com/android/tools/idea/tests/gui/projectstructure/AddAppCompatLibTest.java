@@ -35,16 +35,6 @@ public class AddAppCompatLibTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>TT ID: eb05dfdd-f751-47f1-820c-e9f71896dab4

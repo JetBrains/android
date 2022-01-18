@@ -40,16 +40,6 @@ public class JavaLibsDepTest {
   private static final String JAVA_MODULE_1 = "lib"; // default name
   private static final String JAVA_MODULE_2 = "lib2"; // default name
 
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
   /**
    * Verifies that transitive dependencies with Java Libraries are resolved in a gradle file.
    * <p>

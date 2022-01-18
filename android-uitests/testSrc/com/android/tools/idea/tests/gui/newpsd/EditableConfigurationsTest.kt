@@ -43,18 +43,12 @@ class EditableConfigurationsTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
     // Under StudioRobot, typing into an editor happens character-by-character below a certain limit.  The EditorComboBox implementation
     // we currently use will pop up a completion window, which will update and disappear at uncertain times, and testing for the presence
     // of this window is also unreliable.  We work around this in these tests by using replaceText() with long strings, which the
     // StudioRobot will paste all in one go; the reliability of these tests is consequently dependent on the robot's implementation
     // strategy.
     assertThat(StudioRobot.MAX_CHARS_TO_TYPE).isAtMost(8)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
   @RunIn(TestGroup.UNRELIABLE)

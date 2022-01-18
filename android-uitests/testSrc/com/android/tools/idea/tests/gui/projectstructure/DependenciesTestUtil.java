@@ -47,16 +47,6 @@ public class DependenciesTestUtil {
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
 
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,

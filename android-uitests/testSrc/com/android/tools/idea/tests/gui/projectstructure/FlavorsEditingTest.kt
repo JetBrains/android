@@ -36,16 +36,6 @@ class FlavorsEditingTest {
   @JvmField
   val guiTest = GuiTestRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
-
   /**
    * Verify flavor editing works as expected.
    * <p>

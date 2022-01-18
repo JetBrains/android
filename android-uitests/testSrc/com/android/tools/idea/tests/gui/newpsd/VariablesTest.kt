@@ -34,16 +34,6 @@ class VariablesTest {
   @JvmField
   val guiTest = PsdGuiTestRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
-
   @Test
   fun addAndEditMultipleVariables() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")

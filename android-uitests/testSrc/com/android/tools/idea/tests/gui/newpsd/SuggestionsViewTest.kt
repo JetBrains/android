@@ -37,16 +37,6 @@ class SuggestionsViewTest {
   @JvmField
   val guiTest = PsdGuiTestRule()
 
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
-
   @Ignore("b/77848741")
   @Test
   fun showsAndProcessesMessages() {

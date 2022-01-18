@@ -44,16 +44,6 @@ import org.junit.runner.RunWith;
 public class PrivateResourceTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
   /**
    * Verifies that private resources from libraries are not suggested to the
    * layout editor.

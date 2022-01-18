@@ -42,16 +42,6 @@ public class AndroidLibsDepTest {
   private static final String LIB_NAME_1 = "modulea";
   private static final String LIB_NAME_2 = "moduleb";
 
-  @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
   /**
    * Verifies that transitive dependencies with Android Libraries are resolved in a gradle file.
    * <p>

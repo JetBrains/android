@@ -60,16 +60,6 @@ public class FlavorsExecutionTest {
   private FakeAdbServer fakeAdbServer;
 
   @Before
-  public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true);
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride();
-  }
-
-  @Before
   public void setupFakeAdbServer() throws IOException, InterruptedException, ExecutionException {
     ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
       @NotNull

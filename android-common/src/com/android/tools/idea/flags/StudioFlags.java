@@ -675,9 +675,6 @@ public final class StudioFlags {
     "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
     true);
 
-  public static final Flag<Boolean> NEW_PSD_ENABLED = Flag.create(
-    GRADLE_IDE, "new.psd", "Enable new \"Project Structure\" dialog",
-    "Turns on the new \"Project Structure\" dialog.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", StudioPathManager.isRunningFromSources());

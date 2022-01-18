@@ -39,16 +39,6 @@ class CreateNewFlavorsTest {
   @JvmField
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
-  @Before
-  fun setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NEW_PSD_ENABLED.clearOverride()
-  }
-
   /**
    * Verifies addition of new flavors from project structure dialog.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
