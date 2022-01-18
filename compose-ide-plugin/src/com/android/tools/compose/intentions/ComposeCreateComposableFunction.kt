@@ -78,23 +78,25 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
     val unresolvedCall = diagnostic.psiElement.parent as? KtCallExpression ?: return null
     val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
-    if (parentFunction.isComposableFunction()) {
-      val functionInfo = createNewComposeFunctionInfo(unresolvedCall)
-      if (functionInfo != null) {
-        return object : CreateCallableFromUsageFix<KtCallExpression>(unresolvedCall, listOf(functionInfo)) {
-          override fun getText() = ComposeBundle.message("create.composable.function") + " " + "'${callableInfos.first().name}'"
-        }
-      }
+    if (!parentFunction.isComposableFunction()) return null
+
+    val name = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
+    // Composable function usually starts with uppercase first letter.
+    if (name.isBlank() || !name[0].isUpperCase()) return null
+
+    val ktCreateCallableFromUsageFix = CreateCallableFromUsageFix(unresolvedCall) { listOfNotNull(createNewComposeFunctionInfo(name, it)) }
+
+    // Since CreateCallableFromUsageFix is no longer an 'open' class, we instead use delegation to customize the text.
+    return object : IntentionAction by ktCreateCallableFromUsageFix {
+      override fun getText(): String = ComposeBundle.message("create.composable.function") + " '$name'"
     }
-    return null
   }
 
   private val composableAnnotation = "@$COMPOSABLE_ANNOTATION_NAME"
 
-  private fun createNewComposeFunctionInfo(element: KtCallExpression): CallableInfo? {
-    val name = element.calleeExpression.safeAs<KtSimpleNameExpression>()?.getReferencedName()?.takeIf { it.isNotBlank() } ?: return null
-    // Composable function usually starts with uppercase first letter.
-    if (!name[0].isUpperCase()) return null
+  // n.b. Do not cache this CallableInfo anywhere, otherwise it is easy to leak Kotlin descriptors.
+  // (see https://github.com/JetBrains/intellij-community/commit/608589428c).
+  private fun createNewComposeFunctionInfo(name: String, element: KtCallExpression): CallableInfo? {
     val analysisResult = element.analyzeAndGetResult()
     val fullCallExpression = element.getQualifiedExpressionForSelectorOrThis()
     val expectedType = fullCallExpression.guessTypes(analysisResult.bindingContext, analysisResult.moduleDescriptor).singleOrNull()
