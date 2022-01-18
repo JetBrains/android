@@ -50,11 +50,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   public List<RepositoryModel> repositories() {
     List<RepositoryModel> result = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
-      if (element instanceof GradleDslMethodCall) {
-        String methodName = ((GradleDslMethodCall)element).getMethodName();
-        assert !Arrays.asList(MAVEN_CENTRAL_METHOD_NAME, JCENTER.name, GOOGLE_METHOD_NAME).contains(methodName);
-      }
-      else if (element instanceof MavenRepositoryDslElement) {
+      if (element instanceof MavenRepositoryDslElement) {
         if (MAVEN.name.equals(element.getName())) {
           result.add(new MavenRepositoryModelImpl(myDslElement, (MavenRepositoryDslElement)element));
         }

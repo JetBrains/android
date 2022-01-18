@@ -780,6 +780,17 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositories.get(1).getPsiElement().getText()).isEqualTo("mavenCentral()");
   }
 
+  @Test
+  public void testParseInvalidRepository() throws IOException {
+    writeToBuildFile(TestFile.PARSE_INVALID_REPOSITORY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0).getPsiElement().getText()).isEqualTo("mavenCentral()");
+  }
+
   enum TestFile implements TestFileName {
     PARSE_J_CENTER_DEFAULT_REPOSITORY("parseJCenterDefaultRepository"),
     PARSE_J_CENTER_CUSTOM_REPOSITORY("parseJCenterCustomRepository"),
@@ -794,6 +805,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT("parseFlatDirRepositoryWithDirListArgument"),
     PARSE_MULTIPLE_REPOSITORIES("parseMultipleRepositories"),
     PARSE_GOOGLE_DEFAULT_REPOSITORY("parseGoogleDefaultRepository"),
+    PARSE_INVALID_REPOSITORY("parseInvalidRepository"),
     ADD_FLAT_REPOSITORY_EXPECTED("addFlatRepositoryExpected"),
     ADD_FLAT_REPOSITORY_FROM_EMPTY_EXPECTED("addFlatRepositoryFromEmptyExpected"),
     ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL("addGoogleRepositoryByMethodCall"),
