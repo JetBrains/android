@@ -31,6 +31,7 @@ import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandle
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.matchElementsToModels
 import com.android.tools.idea.compose.preview.util.modelAffinity
@@ -281,7 +282,7 @@ internal suspend fun NlDesignSurface.updatePreviewsAndRefresh(
 
       (navigationHandler as PreviewNavigationHandler).setDefaultLocation(model, defaultFile, offset)
 
-      previewElement.configuration.applyTo(model.configuration)
+      previewElement.applyTo(model.configuration)
 
       model to previewElement
     }

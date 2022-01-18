@@ -21,6 +21,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
@@ -47,7 +48,7 @@ fun createRenderTaskFuture(facet: AndroidFacet,
   val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
   val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
-  previewElement.configuration.applyTo(configuration)
+  previewElement.applyTo(configuration)
 
   return RenderService.getInstance(project)
     .taskBuilder(facet, configuration)

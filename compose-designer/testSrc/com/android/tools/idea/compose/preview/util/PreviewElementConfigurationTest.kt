@@ -16,24 +16,53 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.Density
+import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRound
+import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.Hardware
+import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
+import kotlin.math.sqrt
+
+private fun buildState(name: String, screenWidthPx: Int, screenHeightPx: Int, density: Density = Density.MEDIUM): State = State().apply {
+  this.name = name
+  orientation = ScreenOrientation.PORTRAIT
+  hardware = Hardware().apply {
+    screen = Screen().apply {
+      xDimension = screenWidthPx
+      yDimension = screenHeightPx
+      pixelDensity = density
+
+      xdpi = pixelDensity.dpiValue.toDouble()
+      ydpi = pixelDensity.dpiValue.toDouble()
+
+      val widthDp = screenWidthPx.toDouble() * 160 / density.dpiValue
+      val heightDp = screenHeightPx.toDouble() * 160 / density.dpiValue
+      diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
+      size = ScreenSize.getScreenSize(diagonalLength)
+      ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+      screenRound = ScreenRound.NOTROUND
+      chin = 0
+    }
+  }
+}
 
 private fun buildDevice(name: String,
                         id: String = name,
                         manufacturer: String = "Google",
                         software: List<Software> = listOf(Software()),
-                        states: List<State> = listOf(State().apply { isDefaultState = true })): Device =
+                        states: List<State> = listOf(buildState("default", 1000, 2000).apply { isDefaultState = true })): Device =
   Device.Builder().apply {
     setId(id)
     setName(name)
@@ -54,18 +83,10 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 /**
  * Tests checking [PreviewElement] being applied to a [Configuration].
  */
-@RunWith(Parameterized::class)
-class PreviewElementConfigurationTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
-
+class PreviewElementConfigurationTest() {
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
-                                       composableAnnotationPackage = composableAnnotationPackage)
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
+                                       composableAnnotationPackage = "androidx.compose.runtime")
   private val fixture get() = projectRule.fixture
 
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
@@ -90,5 +111,53 @@ class PreviewElementConfigurationTest(previewAnnotationPackage: String, composab
     assertDeviceMatches(defaultDevice, "id:not found")
     assertDeviceMatches(defaultDevice, "name:not found")
     assertDeviceMatches(defaultDevice, "invalid:pixel_4")
+  }
+
+  @Test
+  fun testSpecificDeviceSizes() {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    configManager.defaultDevice
+    val configuration = Configuration.create(configManager, null, FolderConfiguration.createDefault())
+
+    SinglePreviewElementInstance("NoSize",
+                                 PreviewDisplaySettings("Name", null, false, false, null), null, null,
+                                 PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null),
+                                 ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+      previewElement.applyConfigurationForTest(configuration,
+                                               highestApiTarget = { null },
+                                               devicesProvider = deviceProvider,
+                                               defaultDeviceProvider = { defaultDevice })
+      val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+      assertEquals(1000, screenSize.width)
+      assertEquals(2000, screenSize.height)
+    }
+    SinglePreviewElementInstance("WithSize",
+                                                              PreviewDisplaySettings("Name", null, false, false, null), null, null,
+                                                              PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null,
+                                                                                               null),
+                                                              ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+      previewElement.applyConfigurationForTest(configuration,
+                                               highestApiTarget = { null },
+                                               devicesProvider = deviceProvider,
+                                               defaultDeviceProvider = { defaultDevice })
+      val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+      assertEquals(123, screenSize.width)
+      assertEquals(234, screenSize.height)
+    }
+
+    SinglePreviewElementInstance("WithSizeAndDecorations",
+                                                                            PreviewDisplaySettings("Name", null, true, false, null), null,
+                                                                            null,
+                                                                            PreviewConfiguration.cleanAndGet(null, null, 123, 234, null,
+                                                                                                             null, null, null),
+                                                                            ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API).let { previewElement ->
+      previewElement.applyConfigurationForTest(configuration,
+                                               highestApiTarget = { null },
+                                               devicesProvider = deviceProvider,
+                                               defaultDeviceProvider = { defaultDevice })
+      val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+      assertEquals(1000, screenSize.width)
+      assertEquals(2000, screenSize.height)
+    }
   }
 }
